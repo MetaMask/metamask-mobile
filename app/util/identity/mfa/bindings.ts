@@ -3,6 +3,7 @@ import type {
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../core/Engine';
+import { withPasskeyRecoveryTrust } from '../../../core/MfaRecovery/passkeyTrust';
 import { MfaFlowError } from './engine/errors';
 import type { MfaControllerAdapter } from './engine/types';
 
@@ -11,9 +12,13 @@ export const mobileMfaControllerAdapter: MfaControllerAdapter = {
     Engine.context.AuthenticationController.refreshEnrolledCredentials(),
   beginCredentialEnrollment: (request) =>
     Engine.context.AuthenticationController.beginCredentialEnrollment(request),
-  completeCredentialEnrollment: (request) =>
-    Engine.context.AuthenticationController.completeCredentialEnrollment(
+  completeCredentialEnrollment: async (request) =>
+    await withPasskeyRecoveryTrust(
       request,
+      async () =>
+        await Engine.context.AuthenticationController.completeCredentialEnrollment(
+          request,
+        ),
     ),
   beginCredentialVerification: (request) =>
     Engine.context.AuthenticationController.beginCredentialVerification(

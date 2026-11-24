@@ -24496,7 +24496,7 @@
   },
   "app/util/identity/mfa/bindings.ts": {
     "typescript/promise-function-async": {
-      "count": 9
+      "count": 8
     }
   },
   "app/util/identity/mfa/engine/activeFlow.test.ts": {

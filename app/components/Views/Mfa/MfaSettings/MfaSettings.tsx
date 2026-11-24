@@ -1,5 +1,5 @@
-import React, { useContext, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -37,6 +37,7 @@ import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import useRecoverySync from '../useRecoverySync';
 
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
   passkey: MfaSettingsSelectorsIDs.PASSKEY_ROW,
@@ -75,6 +76,8 @@ const MfaSettings = () => {
   const activeTypes = new Set(
     getActiveCredentials(credentials).map(({ type }) => type),
   );
+  const [pendingMethod, setPendingMethod] = useState<MfaMethod>();
+  const { syncRecovery, recoverySheets } = useRecoverySync();
 
   useEffect(() => {
     mobileMfaControllerAdapter
@@ -82,21 +85,37 @@ const MfaSettings = () => {
       .catch(() => undefined);
   }, []);
 
-  const add = (method: MfaMethod) => {
-    enroll({
-      method,
-      reason: { operation: ADD_OPERATIONS[method] },
-    })
-      .then(() => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [{ label: strings(ADD_SUCCESS_MESSAGE_KEYS[method]) }],
-          iconName: ToastIconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          hasNoTimeout: false,
-        });
-      })
-      .catch(() => undefined);
+  const addMethod = async (method: MfaMethod) => {
+    try {
+      await enroll({
+        method,
+        reason: { operation: ADD_OPERATIONS[method] },
+      });
+    } catch {
+      return;
+    }
+
+    await syncRecovery(method, { operation: ADD_OPERATIONS[method] });
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings(ADD_SUCCESS_MESSAGE_KEYS[method]) }],
+      iconName: ToastIconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      hasNoTimeout: false,
+    });
+  };
+
+  const add = async (method: MfaMethod) => {
+    if (pendingMethod !== undefined) {
+      return;
+    }
+    setPendingMethod(method);
+    try {
+      await addMethod(method);
+    } finally {
+      setPendingMethod(undefined);
+    }
   };
 
   const rows: {
@@ -130,7 +149,7 @@ const MfaSettings = () => {
 
   const open = (method: MfaMethod, isSetUp: boolean) => {
     if (!isSetUp) {
-      add(method);
+      void add(method);
     } else if (method === 'passkey') {
       navigation.navigate(Routes.MFA.PASSKEYS);
     } else {
@@ -169,16 +188,27 @@ const MfaSettings = () => {
           <ListItem
             key={method}
             isInteractive
+            accessibilityState={{ busy: pendingMethod === method }}
             variant={ContentVariant.OneLine}
             title={label}
             value={isSetUp ? summary : strings('mfa.settings.add')}
             valueProps={{ color: TextColor.TextAlternative }}
             endAccessory={
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
+              pendingMethod === method ? (
+                <ActivityIndicator
+                  size="small"
+                  accessibilityLabel={strings('mfa.settings.adding_method', {
+                    method: label,
+                  })}
+                  testID={MfaSettingsSelectorsIDs.ADD_LOADING}
+                />
+              ) : (
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              )
             }
             accessoryGap={2}
             onPress={() => open(method, isSetUp)}
@@ -187,6 +217,7 @@ const MfaSettings = () => {
         ))}
         {isMfaDevBuild() ? <MfaQaPresets /> : null}
       </ScrollView>
+      {recoverySheets}
     </SafeAreaView>
   );
 };
