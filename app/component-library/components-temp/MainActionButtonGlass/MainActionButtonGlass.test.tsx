@@ -70,42 +70,42 @@ describe('MainActionButtonGlass', () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
-});
 
-it('renders a custom icon in place of iconName and stays pressable', () => {
-  const onPress = jest.fn();
-  const { getByText, getByTestId, queryByTestId } = render(
-    <MainActionButtonGlass
-      customIcon={<></>}
-      label="Freeze"
-      onPress={onPress}
-      testID="freeze"
-      isGlass={false}
-    />,
-  );
+  it('renders a custom icon in place of iconName and stays pressable', () => {
+    const onPress = jest.fn();
+    const { getByText, getByTestId, queryByTestId } = render(
+      <MainActionButtonGlass
+        customIcon={<></>}
+        label="Freeze"
+        onPress={onPress}
+        testID="freeze"
+        isGlass={false}
+      />,
+    );
 
-  expect(getByText('Freeze')).toBeOnTheScreen();
-  expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(getByText('Freeze')).toBeOnTheScreen();
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
 
-  fireEvent.press(getByTestId('freeze'));
+    fireEvent.press(getByTestId('freeze'));
 
-  expect(onPress).toHaveBeenCalledTimes(1);
-});
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
 
-it('does not call onPress when the custom-icon button is disabled', () => {
-  const onPress = jest.fn();
-  const { getByTestId } = render(
-    <MainActionButtonGlass
-      customIcon={<></>}
-      label="Freeze"
-      onPress={onPress}
-      isDisabled
-      testID="freeze"
-      isGlass={false}
-    />,
-  );
+  it('does not call onPress when the custom-icon button is disabled', () => {
+    const onPress = jest.fn();
+    const { getByTestId } = render(
+      <MainActionButtonGlass
+        customIcon={<></>}
+        label="Freeze"
+        onPress={onPress}
+        isDisabled
+        testID="freeze"
+        isGlass={false}
+      />,
+    );
 
-  fireEvent.press(getByTestId('freeze'));
+    fireEvent.press(getByTestId('freeze'));
 
-  expect(onPress).not.toHaveBeenCalled();
+    expect(onPress).not.toHaveBeenCalled();
+  });
 });

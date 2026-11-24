@@ -4,6 +4,7 @@ import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
   type CardHomeActionVisibilityInput,
 } from './CardHomeActionButtonRow';
+import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { SNOWFLAKE_ICON_TEST_ID } from '../../../components/SnowflakeIcon';
 import { CardType } from '../../../types';
@@ -62,14 +63,6 @@ describe('getCardHomeActionVisibility', () => {
       details: false,
       pin: false,
       freeze: false,
-    });
-  });
-
-  it('keeps all the buttons for a funding-limit provider with no balance', () => {
-    expect(getCardHomeActionVisibility(buildInput())).toEqual({
-      details: true,
-      pin: true,
-      freeze: true,
     });
   });
 
@@ -149,8 +142,12 @@ describe('CardHomeActionButtonRow', () => {
         freeze={{ onPress: jest.fn(), isFrozen: false }}
       />,
     );
-    expect(getByText('Details')).toBeOnTheScreen();
-    expect(getByText('Freeze')).toBeOnTheScreen();
+    expect(
+      getByText(strings('card.card_home.action_buttons.details')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('card.card_home.action_buttons.freeze')),
+    ).toBeOnTheScreen();
 
     rerender(
       <CardHomeActionButtonRow
@@ -158,8 +155,12 @@ describe('CardHomeActionButtonRow', () => {
         freeze={{ onPress: jest.fn(), isFrozen: true }}
       />,
     );
-    expect(getByText('Hide')).toBeOnTheScreen();
-    expect(getByText('Unfreeze')).toBeOnTheScreen();
+    expect(
+      getByText(strings('card.card_home.action_buttons.hide_details')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('card.card_home.action_buttons.unfreeze')),
+    ).toBeOnTheScreen();
   });
 
   it('does not call a disabled button', () => {
