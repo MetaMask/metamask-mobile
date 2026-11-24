@@ -31,7 +31,9 @@ export type ClaimHeadline = 'available' | 'held' | 'pending' | 'balance';
 /**
  * The line under the amount. `{minimum}` takes the formatted claim minimum.
  * With no minimum to show, the word "minimum" fills it instead, so the raw
- * token never reaches the screen.
+ * token never reaches the screen. A payload cached before the server added
+ * this headline's key has no copy, so the line is left empty rather than
+ * failing the render.
  */
 function subtextFor(
   headline: ClaimHeadline,
@@ -44,6 +46,9 @@ function subtextFor(
     pending: localizedText.pendingSubtext,
     balance: localizedText.balanceSubtext,
   }[headline];
+  if (!template) {
+    return '';
+  }
   return template.replaceAll('{minimum}', minimumAmount ?? 'minimum');
 }
 

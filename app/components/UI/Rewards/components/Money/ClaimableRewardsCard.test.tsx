@@ -682,6 +682,32 @@ describe('ClaimableRewardsCard subtext', () => {
     ).toHaveTextContent('mUSD paid into your Money account');
   });
 
+  it('renders the card without subtext when the payload predates the subtext keys', () => {
+    const {
+      availableToClaimSubtext: _available,
+      heldSubtext: _held,
+      pendingSubtext: _pending,
+      balanceSubtext: _balance,
+      ...withoutSubtext
+    } = LOCALIZED_TEXT;
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        localizedText={withoutSubtext as ReferralLocalizedText}
+        claimable="1000000"
+        canClaim
+        claimableAmount="$1.00"
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(getByText('$1.00')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent('');
+  });
+
   it('shows the held subtext when the headline is held', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <ClaimableRewardsCard
