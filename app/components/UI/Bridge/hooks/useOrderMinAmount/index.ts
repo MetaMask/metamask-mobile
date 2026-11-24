@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
+import I18n from '../../../../../../locales/i18n';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import type { BridgeToken } from '../../types';
 import { formatCurrency } from '../../utils/currencyUtils';
 import { useFiatToUsdRate } from '../useFiatToUsdRate';
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 
-const FIAT_DECIMALS = 2;
+const USD_CENT_DECIMALS = 2;
 const USD_CURRENCY = 'USD';
 
 interface UseOrderMinAmountParams {
@@ -28,14 +30,20 @@ function isValidRate(rate: number | undefined): rate is number {
 }
 
 function formatMinAmount(amount: BigNumber.Value, currency: string): string {
+  const currencyFractionDigits = getIntlNumberFormatter(I18n.locale, {
+    style: 'currency',
+    currency,
+  }).resolvedOptions().maximumFractionDigits;
   const roundedAmount = new BigNumber(amount).decimalPlaces(
-    FIAT_DECIMALS,
+    currencyFractionDigits,
     BigNumber.ROUND_HALF_UP,
   );
 
   return formatCurrency(roundedAmount.toNumber(), currency, {
-    minimumFractionDigits: roundedAmount.isInteger() ? 0 : FIAT_DECIMALS,
-    maximumFractionDigits: FIAT_DECIMALS,
+    minimumFractionDigits: roundedAmount.isInteger()
+      ? 0
+      : currencyFractionDigits,
+    maximumFractionDigits: currencyFractionDigits,
   });
 }
 
@@ -89,7 +97,7 @@ export function useOrderMinAmount({
     const sourceAmountUsd = new BigNumber(sourceAmount || 0)
       .times(sourceTokenFiatRate)
       .times(fiatToUsdRate)
-      .decimalPlaces(FIAT_DECIMALS, BigNumber.ROUND_HALF_UP);
+      .decimalPlaces(USD_CENT_DECIMALS, BigNumber.ROUND_HALF_UP);
 
     return sourceAmountUsd.isFinite() && sourceAmountUsd.lt(minAmountUsd);
   }, [fiatToUsdRate, minAmountUsd, sourceAmount, sourceTokenFiatRate]);
