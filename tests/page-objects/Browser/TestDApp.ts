@@ -601,6 +601,24 @@ class TestDApp {
     );
   }
 
+  /**
+   * Calls `wallet_switchEthereumChain` from the dapp. When the chain is not yet
+   * part of the dapp's CAIP-25 permission, the wallet shows a switch-chain
+   * approval that adds it to the existing session.
+   *
+   * @param chainId - Hex chain ID to switch to.
+   */
+  async switchEthereumChain(chainId: string): Promise<void> {
+    const request = JSON.stringify({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId }],
+    });
+    await ChromeCdpHelpers.evaluateInWebView(
+      testDappPageUrl(),
+      `window.ethereum.request(${request})`,
+    );
+  }
+
   async tapApproveButton(): Promise<void> {
     await Gestures.waitAndTap(this.approveButtonText, {
       elemDescription: 'Approve Button',
