@@ -259,7 +259,7 @@ describe('useTokenSelection', () => {
       });
     });
 
-    it('aborts the money account upgrade when the token selector unmounts', async () => {
+    it('keeps the money account upgrade alive after the token selector unmounts', async () => {
       const moneyToken = createMockToken({
         address: '0xmoney',
         symbol: 'MUSD',
@@ -274,11 +274,12 @@ describe('useTokenSelection', () => {
       });
 
       const signal = mockUpgradeMoneyAccount.mock.calls[0][0];
+      expect(mockGoBack).toHaveBeenCalled();
       expect(signal.aborted).toBe(false);
 
       unmount();
 
-      expect(signal.aborted).toBe(true);
+      expect(signal.aborted).toBe(false);
     });
 
     it('does not swap when dest network is disabled', async () => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -47,23 +47,13 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const { autoUpdateDestToken } = useAutoUpdateDestToken();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const moneyUpgradeAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(
-    () => () => {
-      moneyUpgradeAbortRef.current?.abort();
-    },
-    [],
-  );
-
   /**
-   * Attempt to setup CHOMP for the money account
+   * Kick off CHOMP setup for the money account. The asset picker always navs back
+   * after selection, so this signal must outlive the hook: aborting on unmount
+   * skips an already-aborted run and cancels retry backoff before the swap.
    */
   const handleMoneySelection = useCallback(() => {
-    moneyUpgradeAbortRef.current?.abort();
-    const abortController = new AbortController();
-    moneyUpgradeAbortRef.current = abortController;
-    dispatch(upgradeMoneyAccount(abortController.signal));
+    dispatch(upgradeMoneyAccount(new AbortController().signal));
   }, [dispatch]);
 
   const handleTokenPress = useCallback(

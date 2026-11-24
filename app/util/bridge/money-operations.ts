@@ -15,8 +15,8 @@ export const isBridgeWithdrawTx = (transaction: TransactionMeta): boolean =>
   Boolean(
     Object.values(Engine.context.BridgeStatusController.state.txHistory).find(
       ({ withdrawTxMeta }) =>
-        withdrawTxMeta.batchId &&
-        withdrawTxMeta?.batchId === transaction.batchId,
+        withdrawTxMeta?.batchId &&
+        withdrawTxMeta.batchId === transaction.batchId,
     ),
   );
 
