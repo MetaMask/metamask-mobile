@@ -36,7 +36,9 @@ export function useLighterAccountLookupAlert(): Alert[] {
         {
           key: AlertKeys.LighterAccountLookupFailed,
           severity: Severity.Danger,
-          message: strings('alert_system.lighter_account_lookup_failed.message'),
+          message: strings(
+            'alert_system.lighter_account_lookup_failed.message',
+          ),
           isBlocking: true,
         },
       ];

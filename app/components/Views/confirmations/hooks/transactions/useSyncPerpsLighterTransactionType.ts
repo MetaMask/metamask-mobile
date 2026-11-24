@@ -405,9 +405,13 @@ export function useSyncPerpsLighterTransactionType({
   const appliedKeyRef = useRef<string | undefined>(undefined);
   const lookupKeyRef = useRef<string | undefined>(undefined);
   const lookupGenerationRef = useRef(0);
+  const transactionIdRef = useRef<string | undefined>(transactionId);
   const hyperliquidConfirmationRef = useRef<
     HyperliquidConfirmationSnapshot | undefined
   >(undefined);
+
+  // Keep transactionId ref up to date
+  transactionIdRef.current = transactionId;
 
   useEffect(() => {
     logLighterAccountUnlessDepositOwnsIt({
@@ -422,9 +426,9 @@ export function useSyncPerpsLighterTransactionType({
   // Unmount-only cleanup: invalidate any in-flight lookup and clear state
   useEffect(
     () => () => {
-      if (transactionId) {
+      if (transactionIdRef.current) {
         lookupGenerationRef.current += 1;
-        LighterLookupState.clear(transactionId);
+        LighterLookupState.clear(transactionIdRef.current);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

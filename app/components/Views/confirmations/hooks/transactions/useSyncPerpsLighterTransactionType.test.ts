@@ -8,7 +8,10 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../../util/transactions';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { useSyncPerpsLighterTransactionType } from './useSyncPerpsLighterTransactionType';
+import {
+  useSyncPerpsLighterTransactionType,
+  useLighterAccountLookupState,
+} from './useSyncPerpsLighterTransactionType';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -587,11 +590,6 @@ describe('useSyncPerpsLighterTransactionType', () => {
       hyperliquidDeposit as never,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {
-      useLighterAccountLookupState,
-    } = require('./useSyncPerpsLighterTransactionType');
-
     renderSync({
       destination: 'lighter',
       source: 'hyperliquid',
@@ -674,11 +672,6 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
     mockAddTransaction.mockRejectedValueOnce(new Error('Network error'));
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {
-      useLighterAccountLookupState,
-    } = require('./useSyncPerpsLighterTransactionType');
-
     renderSync({
       destination: 'lighter',
       source: 'hyperliquid',
@@ -716,11 +709,6 @@ describe('useSyncPerpsLighterTransactionType', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
       hyperliquidDeposit as never,
     );
-
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {
-      useLighterAccountLookupState,
-    } = require('./useSyncPerpsLighterTransactionType');
 
     const { rerender } = renderSync({
       destination: 'lighter',
