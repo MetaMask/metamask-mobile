@@ -1,5 +1,4 @@
 import { Theme } from '@metamask/design-tokens';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { parseCaipAssetType } from '@metamask/utils';
 import {
   useFocusEffect,
@@ -19,16 +18,18 @@ import React, {
 } from 'react';
 import {
   AppState,
+  ScrollView,
   StyleSheet,
+  type LayoutChangeEvent,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSharedValue } from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
@@ -43,17 +44,35 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
-import ActivityHeader from '../../../Views/Asset/ActivityHeader';
-import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import Transactions from '../../Transactions';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
 } from '../../QuickBuy/abTestConfig';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../../AssetOverview/PriceChart/PriceChart.context';
+import { getAssetsPrice } from '../../../../selectors/assets/assets-controller';
 import AssetOverviewContent from '../components/AssetOverviewContent';
+import ActivitySection from '../components/sections/ActivitySection';
+import TokenDetailsV1TabBar, {
+  HIDDEN_TAB_PAGE_STYLE,
+  usePinnedTokenDetailsV1TabBar,
+  useTokenDetailsV1ScrollStabilization,
+  useTokenDetailsV1Tabs,
+} from '../components/TokenDetailsV1TabBar';
+import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
+import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
+import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
+import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
+import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
+import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
+import { useSecurityFacts } from '../hooks/useSecurityFacts';
+import { useTokenStats } from '../hooks/useTokenStats';
+import { useElapsedTime } from '../hooks/useElapsedTime';
+import { TokenDetailsIds } from '../testIds';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
@@ -63,6 +82,8 @@ import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/fea
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
+  TOKEN_DETAILS_V1_TABS,
+  type TokenDetailsV1TabKey,
   TokenDetailsAction,
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
@@ -76,13 +97,15 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
 import { useTraderPositionPnl } from '../TraderPositionPnl/useTraderPositionPnl';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import {
+  selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1TabConfigOrder,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
-import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
@@ -116,6 +139,13 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
       isolation: 'isolate',
+    },
+    contentScroll: { flex: 1 },
+    pinnedTabBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
     },
   });
 };
@@ -372,6 +402,7 @@ const TokenDetails: React.FC<{
     securityData,
     isLoading: isSecurityDataLoading,
     error: securityDataError,
+    fetchedAt: securityFetchedAt,
   } = useTokenSecurityData({
     assetId: caip19AssetId,
     prefetchedData: token.securityData,
@@ -400,6 +431,7 @@ const TokenDetails: React.FC<{
     hasInsufficientCoverage,
     historicalPricesApiMs,
     exchangeRateApiMs,
+    spotMarketData,
   } = useTokenPrice({ token });
   const isOrderLookupEnabled = !(
     hardwareTier === 'LOW' &&
@@ -425,20 +457,118 @@ const TokenDetails: React.FC<{
   const { inset: headerInset, onLayout: handleHeaderLayout } =
     useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
-  const handleListScrollOffset = useCallback(
-    (y: number) => {
+  const pinnedTabBar = usePinnedTokenDetailsV1TabBar(headerScrollY);
+  const { onScrollOffset: onPinnedScroll, onTabBarOffsetY } = pinnedTabBar;
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const y = event.nativeEvent.contentOffset.y;
       headerScrollY.set(y);
       onScrollOffset(y);
+      onPinnedScroll(y);
     },
-    [headerScrollY, onScrollOffset],
+    [headerScrollY, onScrollOffset, onPinnedScroll],
+  );
+  const {
+    scrollViewRef,
+    handleScroll: onScroll,
+    handleTabBarLayout,
+    clampScrollToTabBar,
+  } = useTokenDetailsV1ScrollStabilization({
+    onScroll: handleScroll,
+    topInset: headerInset,
+  });
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [tabBarHeight, setTabBarHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleScrollLayout = useCallback((event: LayoutChangeEvent) => {
+    setViewportHeight(event.nativeEvent.layout.height);
+  }, []);
+  const handleTabSlotLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      const offset = Math.max(0, y - headerInset);
+      setTabBarHeight(height);
+      onTabBarOffsetY(offset);
+      handleTabBarLayout(event);
+    },
+    [handleTabBarLayout, headerInset, onTabBarOffsetY],
   );
 
-  const handleMultichainScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      handleListScrollOffset(event.nativeEvent.contentOffset.y);
+  const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
+  const tabs = useMemo(() => {
+    const standardTabs = tabConfigOrder.filter(
+      (tab) => tab === 'overview' || tab === 'security',
+    );
+    return standardTabs.length
+      ? standardTabs
+      : TOKEN_DETAILS_V1_TABS.filter(
+          (tab) => tab === 'overview' || tab === 'security',
+        );
+  }, [tabConfigOrder]);
+  const { activeTab, activateTab, swipeGesture } = useTokenDetailsV1Tabs({
+    initialTab: tabs[0],
+    tabs,
+    onTabChange: clampScrollToTabBar,
+  });
+  const selectedTab = tabs.some((tab) => tab === activeTab)
+    ? activeTab
+    : tabs[0];
+  useEffect(() => {
+    if (selectedTab !== activeTab && selectedTab) {
+      activateTab(selectedTab);
+    }
+  }, [activeTab, activateTab, selectedTab]);
+  const handleTabPress = useCallback(
+    (tab: TokenDetailsV1TabKey) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_TAB_VIEWED)
+          .addProperties({ ...getTdpAnalyticsBase(token, null), tab_name: tab })
+          .build(),
+      );
+      activateTab(tab);
     },
-    [handleListScrollOffset],
+    [activateTab, createEventBuilder, token, trackEvent],
   );
+
+  const [explainer, setExplainer] = useState<ExplainerCopy | null>(null);
+  const handleExplain = useCallback((row: SecurityRowKey) => {
+    setExplainer(EXPLAINER_KEYS_BY_ROW[row]);
+  }, []);
+  const handleExplainAttribution = useCallback(
+    () => setExplainer(SECURITY_ATTRIBUTION_EXPLAINER),
+    [],
+  );
+  const closeExplainer = useCallback(() => setExplainer(null), []);
+  const openContractDetails = useCallback(() => {
+    navigation.navigate(Routes.CONTRACT_SECURITY, {
+      token: {
+        ...token,
+        resolvedSecurity: { data: securityData, fetchedAt: securityFetchedAt },
+      },
+      tdpVersion: 'v2',
+      tokenCategory: 'standard',
+    });
+  }, [navigation, securityData, securityFetchedAt, token]);
+  const securityFacts = useSecurityFacts({
+    securityData,
+    isLoading: isSecurityDataLoading,
+    error: securityDataError,
+  });
+  const cachedPrice = useSelector((state: RootState) =>
+    caip19AssetId ? getAssetsPrice(state)?.[caip19AssetId] : undefined,
+  );
+  const marketData =
+    spotMarketData ??
+    (cachedPrice?.assetPriceType === 'fungible' ? cachedPrice : null);
+  const tokenStats = useTokenStats({
+    marketData: marketData ?? null,
+    isMarketDataLoading: !marketData && isLoading,
+    securityData,
+    currentCurrency,
+  });
+  const fetchedMinutesAgo = useElapsedTime({
+    since: selectedTab === 'security' ? securityFetchedAt : undefined,
+  });
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
 
@@ -496,13 +626,6 @@ const TokenDetails: React.FC<{
     networkConfigurationsByChainId,
     evmMultiChainCurrencyRates,
   ]);
-
-  const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
-    null,
-  );
-  const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
-    setChartPricePositive(isPositive);
-  }, []);
 
   const refreshTronAssets = useFreshTronAssets(token.chainId);
   useFocusEffect(
@@ -651,89 +774,108 @@ const TokenDetails: React.FC<{
     ],
   );
 
-  const {
-    transactions,
-    submittedTxs,
-    confirmedTxs,
-    loading: txLoading,
-    transactionsUpdated,
-    selectedAddress,
-    conversionRate,
-    currentCurrency: txCurrentCurrency,
-    isNonEvmAsset: txIsNonEvmAsset,
-    bridgeArrivalTxs,
-  } = useTokenTransactions(token);
-
-  const hasTransactions =
-    transactions.length > 0 ||
-    submittedTxs.length > 0 ||
-    confirmedTxs.length > 0;
-
-  const headerSpacer = headerInset > 0 && (
-    <View
-      style={{ height: headerInset }}
-      testID={TokenDetailsTestIds.HEADER_SPACER}
-    />
+  const renderTabs = (overview: React.ReactNode) => (
+    <>
+      <View
+        {...pinnedTabBar.inFlowProps}
+        onLayout={handleTabSlotLayout}
+        testID={TokenDetailsIds.tabBarSlot}
+      >
+        <TokenDetailsV1TabBar
+          activeTab={selectedTab ?? 'overview'}
+          onTabPress={handleTabPress}
+          tabs={tabs}
+        />
+      </View>
+      <GestureDetector gesture={swipeGesture}>
+        <View
+          collapsable={false}
+          style={{
+            minHeight: Math.max(
+              0,
+              viewportHeight - tabBarHeight - headerInset - footerHeight,
+            ),
+          }}
+          testID={TokenDetailsIds.tabContent}
+        >
+          <View
+            style={
+              selectedTab === 'overview' ? undefined : HIDDEN_TAB_PAGE_STYLE
+            }
+            testID={TokenDetailsIds.tabPage('overview')}
+          >
+            {overview}
+            <ActivitySection token={token} includeNonEvm />
+          </View>
+          {selectedTab === 'security' && (
+            <View testID={TokenDetailsIds.tabPage('security')}>
+              <SecurityTab
+                facts={securityFacts}
+                stats={tokenStats}
+                onExplain={handleExplain}
+                onOpenContractDetails={openContractDetails}
+                onExplainAttribution={handleExplainAttribution}
+                fetchedMinutesAgo={fetchedMinutesAgo}
+              />
+            </View>
+          )}
+        </View>
+      </GestureDetector>
+    </>
   );
 
-  const renderHeader = () => (
-    <>
-      {headerSpacer}
-      <AssetOverviewContent
-        token={token}
-        balance={balance}
-        balanceCta={moneyBalanceCta}
-        balanceDescription={moneyBalanceDescription}
-        balancePriceChangeOverride={
-          moneyAssetOverviewCtas.isBalanceCtaVisible &&
-          moneyAssetOverviewCtas.apyPercent !== undefined
-            ? strings('money.asset_overview.balance_cta.earn_apy', {
-                apy: moneyAssetOverviewCtas.apyPercent,
-              })
-            : undefined
-        }
-        balancePriceChangeOverrideColor={
-          moneyAssetOverviewCtas.isBalanceCtaVisible
-            ? TextColor.Success
-            : undefined
-        }
-        mainBalance={fiatBalance ?? ''}
-        secondaryBalance={tokenFormattedBalance}
-        currentPrice={currentPrice}
-        priceDiff={priceDiff}
-        comparePrice={comparePrice}
-        prices={prices}
-        isLoading={isLoading}
-        hasInsufficientCoverage={hasInsufficientCoverage}
-        timePeriod={timePeriod}
-        setTimePeriod={setTimePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        currentCurrency={currentCurrency}
-        onBuy={handleBuy}
-        onSend={handleSend}
-        onReceive={onReceive}
-        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        securityData={securityData}
-        isSecurityDataLoading={isSecurityDataLoading}
-        hasSecurityDataError={Boolean(securityDataError)}
-        onPriceDirectionChange={handlePriceDirectionChange}
-        onExitAction={onCtaClicked}
-        isPricePositive={chartPricePositive}
-        onPerpsMarketResolved={onPerpsMarketResolved}
-        mostRecentOrder={mostRecentOrder}
-        stakedTrxAsset={stakedTrxAsset}
-        inLockPeriodBalance={inLockPeriodBalance}
-        readyForWithdrawalBalance={readyForWithdrawalBalance}
-      />
-      {(txLoading || hasTransactions) && (
-        <ActivityHeader
-          asset={{
-            ...token,
-            hasBalanceError: token.hasBalanceError ?? false,
-          }}
-        />
-      )}
-    </>
+  const overviewContent = (
+    <AssetOverviewContent
+      token={token}
+      balance={balance}
+      balanceCta={moneyBalanceCta}
+      balanceDescription={moneyBalanceDescription}
+      balancePriceChangeOverride={
+        moneyAssetOverviewCtas.isBalanceCtaVisible &&
+        moneyAssetOverviewCtas.apyPercent !== undefined
+          ? strings('money.asset_overview.balance_cta.earn_apy', {
+              apy: moneyAssetOverviewCtas.apyPercent,
+            })
+          : undefined
+      }
+      balancePriceChangeOverrideColor={
+        moneyAssetOverviewCtas.isBalanceCtaVisible
+          ? TextColor.Success
+          : undefined
+      }
+      mainBalance={fiatBalance ?? ''}
+      secondaryBalance={tokenFormattedBalance}
+      currentPrice={currentPrice}
+      priceDiff={priceDiff}
+      comparePrice={comparePrice}
+      prices={prices}
+      isLoading={isLoading}
+      hasInsufficientCoverage={hasInsufficientCoverage}
+      timePeriod={timePeriod}
+      setTimePeriod={setTimePeriod}
+      chartNavigationButtons={chartNavigationButtons}
+      currentCurrency={currentCurrency}
+      onBuy={handleBuy}
+      onSend={handleSend}
+      onReceive={onReceive}
+      onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+      securityData={securityData}
+      renderTabs={renderTabs}
+      headerSpacer={
+        headerInset > 0 && (
+          <View
+            style={{ height: headerInset }}
+            testID={TokenDetailsTestIds.HEADER_SPACER}
+          />
+        )
+      }
+      onExitAction={onCtaClicked}
+      onPerpsMarketResolved={onPerpsMarketResolved}
+      mostRecentOrder={mostRecentOrder}
+      stakedTrxAsset={stakedTrxAsset}
+      inLockPeriodBalance={inLockPeriodBalance}
+      readyForWithdrawalBalance={readyForWithdrawalBalance}
+    />
   );
 
   return (
@@ -760,46 +902,38 @@ const TokenDetails: React.FC<{
           scrollY={headerScrollY}
         />
 
-        {txIsNonEvmAsset ? (
-          <MultichainTransactionsView
-            header={renderHeader()}
-            transactions={transactions}
-            navigation={navigation}
-            selectedAddress={selectedAddress}
-            chainId={token.chainId as SupportedCaipChainId}
-            bridgeArrivalTransactions={bridgeArrivalTxs}
-            enableRefresh
-            showDisclaimer
-            location={TransactionDetailLocation.AssetDetails}
-            onScroll={handleMultichainScroll}
-            refreshControlOffset={headerInset}
-          />
-        ) : (
-          <>
-            {/* Transactions drops its header while loading, so its spinner needs the spacer here. */}
-            {!transactionsUpdated && headerSpacer}
-            <Transactions
-              header={renderHeader()}
-              onScrollThroughContent={handleListScrollOffset}
-              assetSymbol={token.symbol}
-              navigation={navigation}
-              transactions={transactions}
-              submittedTransactions={submittedTxs}
-              confirmedTransactions={confirmedTxs}
-              selectedAddress={selectedAddress}
-              conversionRate={conversionRate}
-              currentCurrency={txCurrentCurrency}
-              networkType={token.chainId}
-              loading={!transactionsUpdated}
-              headerHeight={280}
-              tokenChainId={token.chainId}
-              skipScrollOnClick
-              hideEmptyState
-              location={TransactionDetailLocation.AssetDetails}
-              refreshControlOffset={headerInset}
+        <PriceChartProvider>
+          <PriceChartContext.Consumer>
+            {({ isChartBeingTouched }) => (
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.contentScroll}
+                contentContainerStyle={{ paddingBottom: footerHeight }}
+                onScroll={onScroll}
+                onLayout={handleScrollLayout}
+                scrollEnabled={!isChartBeingTouched}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+                testID={TokenDetailsIds.scrollView}
+              >
+                {overviewContent}
+              </ScrollView>
+            )}
+          </PriceChartContext.Consumer>
+          <Animated.View
+            style={[styles.pinnedTabBar, pinnedTabBar.pinnedStyle]}
+            {...pinnedTabBar.pinnedProps}
+            testID={TokenDetailsIds.pinnedTabBarOverlay}
+          >
+            <TokenDetailsV1TabBar
+              activeTab={selectedTab ?? 'overview'}
+              onTabPress={handleTabPress}
+              tabs={tabs}
+              topInset={headerInset}
+              isPinnedCopy
             />
-          </>
-        )}
+          </Animated.View>
+        </PriceChartProvider>
       </View>
       {/* Outside the isolated content, so its sheets open above the glass header. */}
       {isMemecoinTdpEnabled ? (
@@ -820,6 +954,7 @@ const TokenDetails: React.FC<{
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
           tokenKey={traderPositionTokenKey}
+          onFooterLayout={setFooterHeight}
         />
       ) : (
         <TokenDetailsStickyFooter
@@ -841,6 +976,13 @@ const TokenDetails: React.FC<{
         />
       )}
 
+      {explainer && (
+        <TokenExplainerSheet
+          title={strings(explainer.title)}
+          description={strings(explainer.description)}
+          onClose={closeExplainer}
+        />
+      )}
       {shareUrl && (
         <ShareTokenBottomSheetController
           ref={shareSheetRef}

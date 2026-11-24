@@ -10,7 +10,9 @@ import {
 import { renderTokenDetailsV1View } from '../../../../../tests/component-view/renderers/tokenDetailsV1';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import {
+  buildTokenDetailsV1RouteParams,
   clearTokenDetailsV1ApiMocks,
+  tokenDetailsV1SecurityData,
   setupTokenDetailsV1ApiMocks,
   TOKEN_DETAILS_V1_ADDRESS,
   TOKEN_DETAILS_V1_AGE_LABEL,
@@ -407,6 +409,61 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(
       queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID),
     ).not.toBeOnTheScreen();
+  });
+
+  it('switches standard tabs from the pinned bar using prefetched security data', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        tabConfigOrder: ['feed', 'holders'],
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          securityData: tokenDetailsV1SecurityData,
+        },
+      });
+
+    const slot = await findByTestId(
+      TokenDetailsIds.tabBarSlot,
+      {},
+      FIND_TIMEOUT,
+    );
+    expect(getByTestId(TokenDetailsIds.tabPage('overview'))).toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('holders'))).not.toBeOnTheScreen();
+    expect(queryByTestId(StatBarSelectors.BAR)).not.toBeOnTheScreen();
+
+    fireEvent(slot, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 420, width: 390, height: 48 } },
+    });
+    fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      nativeEvent: { contentOffset: { y: 420 } },
+    });
+    await userEvent.press(getByTestId(TokenDetailsIds.pinnedTab('security')));
+
+    expect(getByTestId(SecurityTabSelectors.TAB)).toBeOnTheScreen();
+    expect(
+      queryByTestId(TokenDetailsIds.tabPage('overview')),
+    ).not.toBeOnTheScreen();
+    expectCheckValues(getByTestId, SecurityTabSelectors.rowValue);
+
+    await userEvent.press(
+      getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK),
+    );
+    expect(
+      await findByTestId(ContractSecuritySelectors.SCREEN),
+    ).toBeOnTheScreen();
+    expectCheckValues(getByTestId, ContractSecuritySelectors.rowValue);
+  });
+
+  it('keeps the configured order of the standard tabs', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false });
+    const { findByTestId } = renderTokenDetailsV1View({
+      tabConfigOrder: ['holders', 'security', 'overview'],
+    });
+
+    expect(
+      await findByTestId(SecurityTabSelectors.TAB, {}, FIND_TIMEOUT),
+    ).toBeOnTheScreen();
   });
 
   it('lists each open holder and hides a closed position', async () => {

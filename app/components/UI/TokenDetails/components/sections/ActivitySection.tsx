@@ -1,51 +1,41 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  BoxAlignItems,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import type { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import NonEvmActivityRows from './NonEvmActivityRows';
+import ActivityRows from './ActivityRows';
 import type { Hex } from '@metamask/utils';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
 import {
-  getGroupedActivityListItemKey,
   groupActivityListItems,
   type ActivityListItem,
   type GroupedActivityListItem,
 } from '../../../../../util/activity-adapters';
-import ActivityListDateHeader from '../../../ActivityListItemRow/ActivityListDateHeader';
 import AssetDetailsActivityListItem from '../../../Transactions/AssetDetailsActivityListItem';
 import {
   mapTransactionToActivityItem,
   type TransactionWithImportTime,
 } from '../../../Transactions/AssetDetailsActivityListItem.utils';
 import { filterDuplicateOutgoingTransactions } from '../../../Transactions/utils';
-import ActivityHeader from '../../../../Views/Asset/ActivityHeader';
 import { useTokenTransactions } from '../../hooks/useTokenTransactions';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 
-export const TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID =
-  'token-details-overview-tab-activity';
-export const TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID =
-  'token-details-activity-show-more';
-
-/** Transaction rows shown before the first "View more" press. */
-export const DEFAULT_INITIAL_VISIBLE_ROWS = 3;
-
-/** Additional transaction rows revealed by each "View more" press. */
-export const ACTIVITY_EXPAND_STEP_ROWS = 5;
+export {
+  TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
+  TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID,
+  DEFAULT_INITIAL_VISIBLE_ROWS,
+  ACTIVITY_EXPAND_STEP_ROWS,
+} from './ActivityRows';
 
 export interface ActivitySectionProps {
   token: TokenDetailsRouteParams;
   showSectionRule?: boolean;
+  includeNonEvm?: boolean;
 }
 
 interface UseGroupedTokenActivityParams {
@@ -118,49 +108,10 @@ function useGroupedTokenActivity({
   ]);
 }
 
-/**
- * Rows (not headers) drive pagination: "View more" always expands by
- * ACTIVITY_EXPAND_STEP_ROWS transaction rows regardless of how many
- * pending/date headers sit in between. Trailing headers are only rendered
- * when at least one of their rows is visible.
- */
-function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
-  visibleItems: GroupedActivityListItem[];
-  hasMore: boolean;
-  handleShowMore: () => void;
-} {
-  const [visibleRowCount, setVisibleRowCount] = useState(
-    DEFAULT_INITIAL_VISIBLE_ROWS,
-  );
-
-  const handleShowMore = useCallback(() => {
-    setVisibleRowCount((prev) => prev + ACTIVITY_EXPAND_STEP_ROWS);
-  }, []);
-
-  const { visibleItems, hasMore } = useMemo(() => {
-    // Indexes of transaction rows (headers never count toward pagination).
-    const rowIndexes = groupedItems
-      .map((item, index) => (item.type === 'item' ? index : -1))
-      .filter((index) => index >= 0);
-    const totalRowCount = rowIndexes.length;
-    const hasHiddenRows = visibleRowCount < totalRowCount;
-    // Slice through the Nth visible row so a trailing header is only rendered
-    // when at least one of its rows is visible (no orphaned headers).
-    const lastVisibleRowIndex = hasHiddenRows
-      ? rowIndexes[visibleRowCount - 1]
-      : -1;
-    const visibleGroupedItems = hasHiddenRows
-      ? groupedItems.slice(0, lastVisibleRowIndex + 1)
-      : groupedItems;
-    return { visibleItems: visibleGroupedItems, hasMore: hasHiddenRows };
-  }, [groupedItems, visibleRowCount]);
-
-  return { visibleItems, hasMore, handleShowMore };
-}
-
 const ActivitySection: React.FC<ActivitySectionProps> = ({
   token,
   showSectionRule = false,
+  includeNonEvm = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const chainId = token.chainId as Hex | undefined;
@@ -171,6 +122,8 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     submittedTxs,
     confirmedTxs,
     loading: isActivityLoading,
+    bridgeArrivalTxs,
+    selectedAddress,
     isNonEvmAsset,
   } = useTokenTransactions(token);
 
@@ -195,86 +148,49 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     chainId,
   });
 
-  const [visibleRowCount, setVisibleRowCount] = useState(
-    DEFAULT_INITIAL_VISIBLE_ROWS,
-  );
-  const { visibleItems, hasMore, handleShowMore } =
-    useVisibleActivityRows(activityGroupedItems);
+  if (isNonEvmAsset) {
+    return includeNonEvm ? (
+      <NonEvmActivityRows
+        token={token}
+        transactions={transactions}
+        address={selectedAddress}
+        chainId={token.chainId as SupportedCaipChainId}
+        bridgeArrivals={bridgeArrivalTxs}
+        navigation={navigation}
+        showSectionRule={showSectionRule}
+      />
+    ) : null;
+  }
 
-  const hasActivity = activityGroupedItems.length > 0;
-  // Same header gate as the legacy Token Details view: the activity section
-  // shows while transactions are still loading or once any are listed.
-  const showActivitySection =
-    !isNonEvmAsset && (isActivityLoading || hasActivity);
-
-  if (!showActivitySection) {
+  if (!isActivityLoading && activityGroupedItems.length === 0) {
     return null;
   }
 
   return (
-    <>
-      <Box
-        testID={TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID}
-        twClassName={
-          showSectionRule ? 'mt-6 border-t border-muted pt-6' : undefined
+    <ActivityRows
+      token={token}
+      groupedItems={activityGroupedItems}
+      showSectionRule={showSectionRule}
+      renderItem={({ item, index }) => {
+        const transaction = activityItemToTransaction.get(item);
+        if (!transaction) {
+          return null;
         }
-      >
-        <ActivityHeader
-          asset={{
-            ...token,
-            hasBalanceError: token.hasBalanceError ?? false,
-          }}
-        />
-        {visibleItems.map((item, index) => {
-          if (item.type === 'pending-header') {
-            return (
-              <ActivityListDateHeader
-                key="pending-header"
-                label={strings('transaction.pending')}
-              />
-            );
-          }
-          if (item.type === 'date-header') {
-            return (
-              <ActivityListDateHeader
-                key={`date-header-${item.date}`}
-                timestamp={item.date}
-              />
-            );
-          }
-          const transaction = activityItemToTransaction.get(item.item);
-          if (!transaction) {
-            return null;
-          }
-          return (
-            <AssetDetailsActivityListItem
-              key={getGroupedActivityListItemKey(item, index)}
-              transaction={transaction}
-              index={index}
-              assetSymbol={assetSymbol}
-              chainId={chainId}
-              tokenChainId={chainId}
-              navigation={navigation}
-              accountImportTime={accountImportTime}
-              networkConfigurations={networkConfigurationsByChainId}
-              bridgeHistory={bridgeHistory}
-            />
-          );
-        })}
-
-        {hasMore ? (
-          <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
-            <Button
-              variant={ButtonVariant.Tertiary}
-              onPress={handleShowMore}
-              testID={TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID}
-            >
-              {strings('homepage.sections.view_more')}
-            </Button>
-          </Box>
-        ) : null}
-      </Box>
-    </>
+        return (
+          <AssetDetailsActivityListItem
+            transaction={transaction}
+            index={index}
+            assetSymbol={assetSymbol}
+            chainId={chainId}
+            tokenChainId={chainId}
+            navigation={navigation}
+            accountImportTime={accountImportTime}
+            networkConfigurations={networkConfigurationsByChainId}
+            bridgeHistory={bridgeHistory}
+          />
+        );
+      }}
+    />
   );
 };
 

@@ -16,6 +16,7 @@ interface UseTokenSecurityDataResult {
   securityData: TokenSecurityData | null;
   isLoading: boolean;
   error: Error | null;
+  fetchedAt?: number;
 }
 
 const isValidTokenSecurityData = (data: unknown): data is TokenSecurityData =>
@@ -43,6 +44,7 @@ export const useTokenSecurityData = ({
     prefetchedData ?? null,
   );
   const [isLoading, setIsLoading] = useState(!prefetchedData && !!assetId);
+  const [fetchedAt, setFetchedAt] = useState<number>();
   const [error, setError] = useState<Error | null>(null);
   const isMountedRef = useRef(true);
 
@@ -54,6 +56,7 @@ export const useTokenSecurityData = ({
       });
       if (!isMountedRef.current) return;
       setSecurityData(securityDataFromAssets(assets));
+      setFetchedAt(Date.now());
       setError(null);
     } catch (err) {
       if (!isMountedRef.current) return;
@@ -69,6 +72,7 @@ export const useTokenSecurityData = ({
 
     if (prefetchedData) {
       setSecurityData(prefetchedData);
+      setFetchedAt(undefined);
       setIsLoading(false);
       return;
     }
@@ -86,5 +90,5 @@ export const useTokenSecurityData = ({
     };
   }, [assetId, prefetchedData, fetchData]);
 
-  return { securityData, isLoading, error };
+  return { securityData, isLoading, error, fetchedAt };
 };

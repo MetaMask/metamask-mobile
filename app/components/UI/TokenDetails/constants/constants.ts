@@ -91,6 +91,7 @@ export enum TokenDetailsAction {
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
   securityData?: TokenSecurityData;
+  resolvedSecurity?: { data: TokenSecurityData | null; fetchedAt?: number };
   /** CAIP-19 asset id when known at navigation time (e.g. watchlist / trending rows). */
   caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */

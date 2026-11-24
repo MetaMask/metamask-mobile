@@ -1,4 +1,9 @@
 import React from 'react';
+import {
+  SolScope,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/keyring-api';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +19,50 @@ import ActivitySection, {
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
   TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID,
 } from './ActivitySection';
+
+jest.mock(
+  '../../../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys',
+  () => ({
+    useMultichainActivityMaliciousTokenKeys: () => ({
+      maliciousTokenKeys: new Set(),
+    }),
+  }),
+);
+jest.mock('../../../Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
+  useBridgeHistoryItemBySrcTxHash: () => ({
+    bridgeHistoryItemsBySrcTxHash: {},
+    bridgeHistoryItemsByDestTxHash: {},
+  }),
+}));
+jest.mock(
+  '../../../../Views/MultichainTransactionsView/MultichainTransactionsFooter',
+  () => () => null,
+);
+jest.mock(
+  '../../../../Views/MultichainTransactionsView/MultichainAssetDetailsActivityListItem',
+  () => {
+    const { Text: RowText } = jest.requireActual('react-native');
+    return ({ transaction }: { transaction: { id: string } }) => (
+      <RowText>{transaction.id}</RowText>
+    );
+  },
+);
+jest.mock('../../../../Views/ActivityList/getActivityDetailsRoute', () => ({
+  getActivityDetailsRoute: jest.fn(),
+}));
+jest.mock('../../../Bridge/utils/transaction-history', () => ({
+  handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
+}));
+jest.mock('../../../../../core/Multichain/utils', () => ({
+  getAddressUrl: () => '',
+}));
+
+jest.mock('../../../ActivityListItemRow/ActivityListItemRow', () => ({
+  ActivityListItemRow: () => null,
+}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({}),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -213,6 +262,39 @@ describe('ActivitySection', () => {
 
     const { queryByTestId } = render(<ActivitySection token={token} />);
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
+  });
+
+  it('shows three Solana transactions initially and five more per press when enabled', () => {
+    const transactions = Array.from({ length: 10 }, (_, index) => ({
+      id: `sol-${index}`,
+      timestamp: NOW - index * 60,
+      chain: SolScope.Mainnet,
+      from: [{ address: '0x123' }],
+      to: [{ address: 'other' }],
+      type: TransactionType.Send,
+      status: TransactionStatus.Confirmed,
+    }));
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({ transactions, isNonEvmAsset: true }),
+    );
+
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <ActivitySection
+        token={{ ...token, chainId: SolScope.Mainnet }}
+        includeNonEvm
+      />,
+    );
+
+    expect(getByText('sol-2')).toBeOnTheScreen();
+    expect(queryByText('sol-3')).not.toBeOnTheScreen();
+    fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID));
+    expect(getByText('sol-7')).toBeOnTheScreen();
+    expect(queryByText('sol-8')).not.toBeOnTheScreen();
+    fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID));
+    expect(getByText('sol-9')).toBeOnTheScreen();
+    expect(
+      queryByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
+    ).not.toBeOnTheScreen();
   });
 
   it('paginates by rows: 3 initially, +5 per "View more" press until all visible', () => {

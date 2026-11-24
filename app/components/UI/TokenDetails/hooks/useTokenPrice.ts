@@ -184,6 +184,7 @@ export interface UseTokenPriceResult {
   hasInsufficientCoverage: boolean;
   historicalPricesApiMs: number | undefined;
   exchangeRateApiMs: number | undefined;
+  spotMarketData?: MarketDataDetails;
 }
 
 export interface UseTokenPriceParams {
@@ -364,6 +365,9 @@ export const useTokenPrice = ({
     hasInsufficientCoverage,
     historicalPricesApiMs,
     exchangeRateApiMs,
+    spotMarketData: spotQuery.data?.marketData.price
+      ? spotQuery.data.marketData
+      : undefined,
   };
 };
 
