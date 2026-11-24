@@ -83,10 +83,10 @@ describe('OptionSelectorModal', () => {
   it('renders the title and every option', () => {
     const { getByText } = renderModal();
 
-    expect(getByText('Source of funds')).toBeTruthy();
-    expect(getByText('Salary payments')).toBeTruthy();
-    expect(getByText('Savings')).toBeTruthy();
-    expect(getByText('Pension')).toBeTruthy();
+    expect(getByText('Source of funds')).toBeOnTheScreen();
+    expect(getByText('Salary payments')).toBeOnTheScreen();
+    expect(getByText('Savings')).toBeOnTheScreen();
+    expect(getByText('Pension')).toBeOnTheScreen();
   });
 
   it('reports the chosen value and closes the sheet', () => {

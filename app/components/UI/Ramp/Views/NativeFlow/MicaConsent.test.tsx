@@ -399,6 +399,49 @@ describe('MicaConsent', () => {
     expect(mockUseTransakRouting.mock.calls[0][0].baseRoute).toBeUndefined();
   });
 
+  describe('retry after a failed details fetch', () => {
+    it('shows a retry action and loads the details when retried', async () => {
+      mockGetUserDetails.mockRejectedValueOnce(new Error('network down'));
+      const utils = renderScreen();
+
+      await waitFor(() => {
+        expect(utils.getByText('deposit.mica.errorTitle')).toBeOnTheScreen();
+      });
+      expect(
+        utils.queryByText('deposit.mica.loadingDetails'),
+      ).not.toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(utils.getByText('deposit.mica.retry_button'));
+      });
+
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(2);
+      expect(
+        utils.queryByText('deposit.mica.errorTitle'),
+      ).not.toBeOnTheScreen();
+      expect(mockSubmitMicaConsent).not.toHaveBeenCalled();
+    });
+
+    it('keeps the retry action when the details fetch fails again', async () => {
+      mockGetUserDetails.mockRejectedValue(new Error('still down'));
+      const utils = renderScreen();
+
+      await waitFor(() => {
+        expect(utils.getByText('deposit.mica.retry_button')).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(utils.getByText('deposit.mica.retry_button'));
+      });
+
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(2);
+      expect(utils.getByText('deposit.mica.retry_button')).toBeOnTheScreen();
+    });
+  });
+
   describe('retry after a failed submission', () => {
     const submitOnce = async (utils: ReturnType<typeof renderScreen>) => {
       await checkBothConsents(utils);

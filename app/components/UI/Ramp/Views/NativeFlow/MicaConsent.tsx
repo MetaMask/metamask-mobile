@@ -3,7 +3,7 @@
  * and requires acceptance of data processing consent and Terms/Privacy Policy.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Linking } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -150,30 +150,38 @@ const MicaConsent = (): React.JSX.Element => {
     null,
   );
 
+  const [userDetailsFailed, setUserDetailsFailed] = useState(false);
+  const isMountedRef = useRef(true);
+
+  const loadUserDetails = useCallback(async () => {
+    setUserDetailsFailed(false);
+    try {
+      const details = await getUserDetails();
+      if (isMountedRef.current) {
+        setUserDetails(details);
+        setError(null);
+      }
+    } catch (err) {
+      Logger.error(err as Error, 'MicaConsent: Failed to fetch user details');
+      if (isMountedRef.current) {
+        setUserDetailsFailed(true);
+        setError(
+          parseUserFacingError(err, strings('deposit.mica.userDetailsError')),
+        );
+      }
+    }
+  }, [getUserDetails]);
+
   // Fetch user details on mount
   React.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const details = await getUserDetails();
-        if (mounted) {
-          setUserDetails(details);
-        }
-      } catch (err) {
-        Logger.error(err as Error, 'MicaConsent: Failed to fetch user details');
-        if (mounted) {
-          setError(
-            parseUserFacingError(err, strings('deposit.mica.userDetailsError')),
-          );
-        }
-      }
-    })().catch((err) => {
+    isMountedRef.current = true;
+    loadUserDetails().catch((err) => {
       Logger.error(err as Error, 'MicaConsent: Unhandled error in effect');
     });
     return () => {
-      mounted = false;
+      isMountedRef.current = false;
     };
-  }, [getUserDetails]);
+  }, [loadUserDetails]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -282,6 +290,18 @@ const MicaConsent = (): React.JSX.Element => {
     routeAfterAuthentication,
   ]);
 
+  // A failed details fetch is retried by reloading the details; otherwise the
+  // banner retries a previously captured consent submission.
+  const bannerRetryHandler = userDetailsFailed
+    ? () => {
+        void loadUserDetails();
+      }
+    : capturedConsentedAt
+      ? () => {
+          void handleRetry();
+        }
+      : undefined;
+
   // Consent is only valid once the user has seen the details being consented to.
   const isFormValid =
     dataProcessingConsent && termsAndPrivacyConsent && userDetails !== null;
@@ -324,17 +344,11 @@ const MicaConsent = (): React.JSX.Element => {
                 description={error}
                 twClassName="mb-4"
                 actionButtonLabel={
-                  capturedConsentedAt
+                  bannerRetryHandler
                     ? strings('deposit.mica.retry_button')
                     : undefined
                 }
-                actionButtonOnPress={
-                  capturedConsentedAt
-                    ? () => {
-                        void handleRetry();
-                      }
-                    : undefined
-                }
+                actionButtonOnPress={bannerRetryHandler}
                 actionButtonProps={{ isDisabled: loading || retrying }}
               />
             )}
@@ -403,7 +417,9 @@ const MicaConsent = (): React.JSX.Element => {
                   </>
                 ) : (
                   <Text variant={TextVariant.BodyMd}>
-                    {strings('deposit.mica.loadingDetails')}
+                    {userDetailsFailed
+                      ? strings('deposit.mica.userDetailsError')
+                      : strings('deposit.mica.loadingDetails')}
                   </Text>
                 )}
               </Box>

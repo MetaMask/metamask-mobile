@@ -148,10 +148,10 @@ describe('SourceOfIncome', () => {
       ).toBeOnTheScreen();
       expect(
         queryByText('deposit.source_of_income.employment_status_label'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(
         queryByText('deposit.source_of_income.nationality_label'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
   });
 
