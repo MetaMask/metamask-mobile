@@ -63,6 +63,26 @@ describe('useLimitOrderMinAmount', () => {
     expect(formattedMinAmountInSelectedCurrency).toBe('€40.50');
   });
 
+  it('uses zero decimal places for a zero-decimal currency', () => {
+    jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50.625);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
+    jest.mocked(useSelector).mockReturnValue('jpy');
+
+    const { formattedMinAmountInSelectedCurrency } = renderMinAmount('1');
+
+    expect(formattedMinAmountInSelectedCurrency).toBe('¥41');
+  });
+
+  it('uses three decimal places for a three-decimal currency', () => {
+    jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50.625);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
+    jest.mocked(useSelector).mockReturnValue('kwd');
+
+    const { formattedMinAmountInSelectedCurrency } = renderMinAmount('1');
+
+    expect(formattedMinAmountInSelectedCurrency).toContain('40.500');
+  });
+
   it('values the amount at the live rate of the source token', () => {
     renderMinAmount('1');
 
