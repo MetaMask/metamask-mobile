@@ -83,12 +83,12 @@ export type KalshiPrototypeCardState =
  * The Predictions status card's state, from the script the fake backend is
  * walking.
  *
- * - `getStarted` — no scenario armed yet; the card is the entry point.
- * - `needMoreInfo` — the flow was started (or the step-up asks for Level 2)
- *   and the identity provider has not reported a decision yet.
- * - `verifying` — the KYC was submitted and its review is pending.
- * - `cantVerify` — the review came back rejected: terminal, no way back in.
- * - `verified` — the review approved.
+ * - `getStarted`: no scenario armed yet; the card is the entry point.
+ * - `needMoreInfo`: the flow was started — or the step-up asks for Level 2 —
+ * and the identity provider has not reported a decision yet.
+ * - `verifying`: the KYC was submitted and its review is pending.
+ * - `cantVerify`: the review came back rejected; terminal, no way back in.
+ * - `verified`: the review approved.
  *
  * @param script - The fake script, or `null` before a scenario is armed.
  * @returns The card state.
