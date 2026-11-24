@@ -736,61 +736,6 @@ describe('WebSocketManager', () => {
     });
   });
 
-  describe('price cache after unsubscribe', () => {
-    const sendPriceChange = (assetId: string, price: string) => {
-      mockWebSocketInstances[0].simulateMessage({
-        event_type: 'price_change',
-        market: 'market-1',
-        price_changes: [
-          {
-            asset_id: assetId,
-            price,
-            best_bid: price,
-            best_ask: price,
-          },
-        ],
-        timestamp: '2025-01-12T12:00:00Z',
-      });
-    };
-
-    it('does not replay a quote from before the last subscriber left', () => {
-      const manager = WebSocketManager.getInstance();
-      const unsubscribe = manager.subscribeToMarketPrices(
-        ['token1'],
-        jest.fn(),
-      );
-      // A second subscription keeps the socket open after `unsubscribe`.
-      manager.subscribeToMarketPrices(['token-other'], jest.fn());
-      mockWebSocketInstances[0].simulateOpen();
-      sendPriceChange('token1', '0.40');
-
-      unsubscribe();
-      const returningCallback = jest.fn();
-      manager.subscribeToMarketPrices(['token1'], returningCallback);
-
-      expect(returningCallback).not.toHaveBeenCalled();
-    });
-
-    it('keeps replaying a quote another subscriber still receives', () => {
-      const manager = WebSocketManager.getInstance();
-      const unsubscribeHome = manager.subscribeToMarketPrices(
-        ['token1', 'token2'],
-        jest.fn(),
-      );
-      manager.subscribeToMarketPrices(['token1'], jest.fn());
-      mockWebSocketInstances[0].simulateOpen();
-      sendPriceChange('token1', '0.40');
-
-      unsubscribeHome();
-      const lateCallback = jest.fn();
-      manager.subscribeToMarketPrices(['token1'], lateCallback);
-
-      expect(lateCallback).toHaveBeenCalledWith([
-        expect.objectContaining({ tokenId: 'token1', price: 0.4 }),
-      ]);
-    });
-  });
-
   describe('orderbook subscriptions', () => {
     const getMarketInstance = () => {
       const instance = mockWebSocketInstances.find(
@@ -2711,6 +2656,43 @@ describe('WebSocketManager', () => {
         timestamp: '2025-01-12T12:00:00Z',
       });
     };
+
+    it('does not replay a quote from before the last subscriber left', () => {
+      const manager = WebSocketManager.getInstance();
+      const unsubscribe = manager.subscribeToMarketPrices(
+        ['token1'],
+        jest.fn(),
+      );
+      // A second subscription keeps the socket open after `unsubscribe`.
+      manager.subscribeToMarketPrices(['token-other'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.40');
+
+      unsubscribe();
+      const returningCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], returningCallback);
+
+      expect(returningCallback).not.toHaveBeenCalled();
+    });
+
+    it('keeps replaying a quote another subscriber still receives', () => {
+      const manager = WebSocketManager.getInstance();
+      const unsubscribeHome = manager.subscribeToMarketPrices(
+        ['token1', 'token2'],
+        jest.fn(),
+      );
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.40');
+
+      unsubscribeHome();
+      const lateCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], lateCallback);
+
+      expect(lateCallback).toHaveBeenCalledWith([
+        expect.objectContaining({ tokenId: 'token1', price: 0.4 }),
+      ]);
+    });
 
     it('delivers cached prices synchronously to a new subscriber when prices are available', () => {
       const manager = WebSocketManager.getInstance();

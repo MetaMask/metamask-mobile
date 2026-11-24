@@ -10,7 +10,13 @@
 import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
 import { renderPredictHomeWithPositionsRoute } from '../../../../../../tests/component-view/renderers/predictHome';
-import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import {
+  buildMockCryptoUpDownMarket,
+  buildMockPredictPosition,
+  MOCK_PREDICT_LIVE_SPORT_MARKET,
+  PREDICT_UP_DOWN_FLAG_OVERRIDES,
+} from '../../../../../../tests/component-view/fixtures/predict';
+import { deepMerge } from '../../../../../../tests/component-view/stateFixture';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   PredictCryptoUpDownMarketCardSelectorsIDs,
@@ -19,12 +25,6 @@ import {
 } from '../../Predict.testIds';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './components/PredictPortfolio';
 import { BTC_UP_DOWN_5M_SERIES_ID } from '../../constants/btcUpDown5mSeries';
-import {
-  PredictPositionStatus,
-  Recurrence,
-  type PredictMarket,
-  type PredictPosition,
-} from '../../types';
 
 // The live crypto card resolves through two chained queries (market list, then
 // series) before it leaves its skeleton, so it needs longer than the default.
@@ -33,7 +33,7 @@ const SPORT_TOKEN_IDS = ['token-home', 'token-draw', 'token-away'];
 const CRYPTO_TOKEN_IDS = ['btc-live-up', 'btc-live-down'];
 const POSITION_TOKEN_ID = 'position-token';
 
-const flagOverrides = {
+const homeWithUpDownOverrides = deepMerge(PREDICT_UP_DOWN_FLAG_OVERRIDES, {
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
@@ -43,78 +43,24 @@ const flagOverrides = {
             featureVersion: '1.0.0',
             minimumVersion: '0.0.1',
           },
-          predictUpDown: {
-            enabled: true,
-            featureVersion: '1.0.0',
-            minimumVersion: '0.0.1',
-          },
         },
       },
     },
   },
-};
-
-const createBtcMarket = (): PredictMarket => ({
-  id: 'btc-live',
-  providerId: 'polymarket',
-  slug: 'btc-live-btc-up-or-down-5m',
-  title: 'BTC Up or Down - 5 Minutes',
-  description: 'BTC Up or Down',
-  image: 'https://example.com/btc.png',
-  status: 'open',
-  recurrence: Recurrence.NONE,
-  category: 'crypto',
-  tags: ['crypto', 'up-or-down', 'bitcoin'],
-  outcomes: [
-    {
-      id: 'btc-live-outcome',
-      providerId: 'polymarket',
-      marketId: 'btc-live',
-      title: 'BTC Up or Down',
-      description: '',
-      image: '',
-      status: 'open',
-      tokens: [
-        { id: CRYPTO_TOKEN_IDS[0], title: 'Up', price: 0.4 },
-        { id: CRYPTO_TOKEN_IDS[1], title: 'Down', price: 0.6 },
-      ],
-      volume: 1_500_000,
-      groupItemTitle: 'BTC',
-    },
-  ],
-  liquidity: 500_000,
-  volume: 1_500_000,
-  endDate: new Date(Date.now() + 60_000).toISOString(),
-  series: {
-    id: BTC_UP_DOWN_5M_SERIES_ID,
-    slug: 'btc-up-or-down-5m',
-    title: 'BTC Up or Down - 5 Minutes',
-    recurrence: '5m',
-  },
 });
 
-const OPEN_POSITION: PredictPosition = {
-  amount: 10,
-  avgPrice: 0.5,
-  cashPnl: 0,
-  claimable: false,
-  currentValue: 5,
-  endDate: '2030-01-01T00:00:00Z',
-  icon: 'https://example.com/icon.png',
-  id: 'position-1',
-  initialValue: 5,
-  marketId: 'position-market',
-  outcome: 'Yes',
-  outcomeId: 'position-outcome',
-  outcomeIndex: 0,
+const createBtcMarket = () =>
+  buildMockCryptoUpDownMarket({
+    id: 'btc-live',
+    endDate: new Date(Date.now() + 60_000).toISOString(),
+    seriesId: BTC_UP_DOWN_5M_SERIES_ID,
+  });
+
+const OPEN_POSITION = buildMockPredictPosition({
   outcomeTokenId: POSITION_TOKEN_ID,
-  percentPnl: 0,
-  price: 0.5,
-  providerId: 'polymarket',
-  size: 10,
-  status: PredictPositionStatus.OPEN,
+  marketId: 'position-market',
   title: 'Will the position market resolve yes?',
-};
+});
 
 /** Token ids with at least one open Engine price subscription, counted. */
 let activeSubscriptions: Map<string, number>;
@@ -177,7 +123,7 @@ const getPricesCallsForCrypto = () =>
 
 const renderHomeWithLiveCarousel = async () => {
   const view = renderPredictHomeWithPositionsRoute({
-    overrides: flagOverrides,
+    overrides: homeWithUpDownOverrides,
   });
 
   await view.findByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION);
@@ -220,6 +166,20 @@ const goBackHome = async (
       view.queryByTestId(PredictPositionsViewSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
   });
+};
+
+/** Pushes Positions over home and goes back, `rounds` times, waiting each time
+ * for the carousel to unsubscribe and then resubscribe. */
+const cycleHomeFocus = async (
+  view: Awaited<ReturnType<typeof renderHomeWithLiveCarousel>>,
+  rounds = 1,
+) => {
+  for (let round = 1; round <= rounds; round++) {
+    await openPositions(view);
+    await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(false));
+    await goBackHome(view);
+    await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(true));
+  }
 };
 
 describe('PredictHome Live Now focus gate', () => {
@@ -328,14 +288,7 @@ describe('PredictHome Live Now focus gate', () => {
     const view = await renderHomeWithLiveCarousel();
     const initialRestCalls = getPricesCallsForCrypto();
 
-    for (let round = 1; round <= 3; round++) {
-      await openPositions(view);
-      await waitFor(() =>
-        expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(false),
-      );
-      await goBackHome(view);
-      await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(true));
-    }
+    await cycleHomeFocus(view, 3);
 
     expect(getPricesCallsForCrypto()).toBe(initialRestCalls + 3);
   });
@@ -343,14 +296,7 @@ describe('PredictHome Live Now focus gate', () => {
   it('holds one subscription per carousel token after repeated blur and focus', async () => {
     const view = await renderHomeWithLiveCarousel();
 
-    for (let round = 1; round <= 3; round++) {
-      await openPositions(view);
-      await waitFor(() =>
-        expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(false),
-      );
-      await goBackHome(view);
-      await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(true));
-    }
+    await cycleHomeFocus(view, 3);
 
     expect(activeSubscriptions.get(CRYPTO_TOKEN_IDS[0])).toBe(1);
   });
