@@ -85,7 +85,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform, RefreshControl } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -2887,7 +2887,11 @@ describe('CardHome Component', () => {
     expect(
       screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
     ).toHaveTextContent(strings('card.card_home.setup_pending.checking.title'));
-    expect(screen.queryByText('Creating your card')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('card.card_home.setup_pending.creating.title'),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('rechecks an Immersve review when the waiting view is pulled to refresh', async () => {
@@ -2902,7 +2906,11 @@ describe('CardHome Component', () => {
 
     render();
 
-    const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+    // RefreshControl is a prop of the status view's ScrollView, not a host
+    // element, so reach it through the ScrollView's testID.
+    const { refreshControl } = screen.getByTestId(
+      CardHomeStatusViewSelectors.SCROLL_VIEW,
+    ).props;
     await act(async () => {
       await refreshControl.props.onRefresh();
     });
@@ -2922,7 +2930,11 @@ describe('CardHome Component', () => {
 
     render();
 
-    const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+    // RefreshControl is a prop of the status view's ScrollView, not a host
+    // element, so reach it through the ScrollView's testID.
+    const { refreshControl } = screen.getByTestId(
+      CardHomeStatusViewSelectors.SCROLL_VIEW,
+    ).props;
     await act(async () => {
       await refreshControl.props.onRefresh();
     });
