@@ -33,7 +33,7 @@ const BNB: LimitOrderAsset = {
 
 const BSC_USDT: LimitOrderAsset = {
   assetId: 'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
   decimals: 18,
   chainId: 56,
 };
@@ -297,7 +297,7 @@ describe('getTriggerPrice', () => {
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
       expect(result).toStrictEqual({
-        triggerPrice: quote('0.5', 'USDT'),
+        triggerPrice: quote('0.5', 'BSC-USD'),
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
@@ -316,7 +316,7 @@ describe('getTriggerPrice', () => {
 
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
-      expect(result.triggerPrice).toBe(quote('0.0₈1746', 'USDT'));
+      expect(result.triggerPrice).toBe(quote('0.0₈1746', 'BSC-USD'));
     });
 
     it('quotes a buy at the reported price when it reads per destination token', () => {
@@ -353,7 +353,7 @@ describe('getTriggerPrice', () => {
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
       expect(result).toStrictEqual({
-        triggerPrice: quote('817.501762', 'USDT'),
+        triggerPrice: quote('817.501762', 'BSC-USD'),
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
@@ -373,7 +373,7 @@ describe('getTriggerPrice', () => {
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
       expect(result).toStrictEqual({
-        triggerPrice: quote('2500', 'USDT'),
+        triggerPrice: quote('2500', 'BSC-USD'),
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
@@ -393,7 +393,7 @@ describe('getTriggerPrice', () => {
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
       expect(result).toStrictEqual({
-        triggerPrice: quote('0.3', 'USDT'),
+        triggerPrice: quote('0.3', 'BSC-USD'),
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
@@ -561,8 +561,8 @@ describe('getTriggerPrice', () => {
     });
 
     it('reads a below threshold as at or above when the ratio shown is the reciprocal of the reported one', () => {
-      // Selling BNB at or above 817.501762 USDT per BNB, which the API reports
-      // as at or below 1 / 817.501762 BNB per USDT.
+      // Selling BNB at or above 817.501762 BSC-USD per BNB, which the API reports
+      // as at or below 1 / 817.501762 BNB per BSC-USD.
       const order = createOrder({
         srcAsset: BNB,
         srcAmount: '100000000000000000',
@@ -577,7 +577,7 @@ describe('getTriggerPrice', () => {
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
       expect(result).toStrictEqual({
-        triggerPrice: quote('817.501762', 'USDT'),
+        triggerPrice: quote('817.501762', 'BSC-USD'),
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
