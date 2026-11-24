@@ -26,7 +26,7 @@ export type StakeScreensStackParamList = {
     | undefined;
   UnstakeConfirmation: { amountWei?: string; amountFiat?: string } | undefined;
   EarningsHistory: { asset: TokenI };
-  RedesignedConfirmations: StakeConfirmationsParams;
+  Confirmations: StakeConfirmationsParams;
 };
 
 /** Earn token list sheet params (WalletActions / StakeModals). */

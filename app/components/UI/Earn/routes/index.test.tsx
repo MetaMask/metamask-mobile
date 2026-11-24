@@ -131,9 +131,7 @@ describe('EarnScreenStack', () => {
   });
 
   it('defines full screen confirmations route', () => {
-    expect(
-      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    ).toBeDefined();
+    expect(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS).toBeDefined();
   });
 });
 
@@ -152,9 +150,7 @@ describe('EarnModalStack', () => {
   });
 
   it('defines full screen confirmations modal route', () => {
-    expect(
-      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    ).toBeDefined();
+    expect(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS).toBeDefined();
   });
 });
 
