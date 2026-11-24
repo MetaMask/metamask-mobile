@@ -13146,6 +13146,8 @@
     "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
+      "live_until_date": "Live until {{date}}",
+      "join_campaign": "Join the {{campaignName}}",
       "ended_date": "Ended {{date}}",
       "pill_up_next": "Coming soon",
       "up_next": "Up next",

@@ -3,7 +3,7 @@
  * A cleared payee claims every open route. An uncleared payee with cashback
  * at the minimum claims cashback alone.
  *
- * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tax.view.test.tsx --runInBand --coverage=false
+ * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.tax.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
@@ -24,7 +24,7 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import {
-  renderEarningsTab as renderEarningsTabScreen,
+  renderWaysToEarnTab as renderWaysToEarnTabScreen,
   REWARDS_ROOT_MODAL_BACK_TEST_ID,
   type RenderRewardsMoneyOptions,
 } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
@@ -144,8 +144,8 @@ const OPEN_FOLLOW_TRADE_COMMISSIONS = {
   cursor: null,
 };
 
-function renderEarningsTab(options: RenderRewardsMoneyOptions = {}) {
-  return renderEarningsTabScreen({
+function renderWaysToEarnTab(options: RenderRewardsMoneyOptions = {}) {
+  return renderWaysToEarnTabScreen({
     ...options,
     handlers: {
       ...(options.summary === HELD_ONLY
@@ -193,14 +193,14 @@ function pageMessage(view: ReactTestInstance, type: string) {
   });
 }
 
-describe('EarningsTab tax documentation', () => {
+describe('WaysToEarnTab tax documentation', () => {
   beforeEach(() => {
     postMessage.mockClear();
     clearMintRateLimit();
   });
 
   it('shows Paused when only revenue share is held for tax', async () => {
-    const { findByTestId, queryByTestId } = renderEarningsTab({
+    const { findByTestId, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: withTaxHeldIncome(
         earningsSummaryFixture({
@@ -221,7 +221,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('shows Claim when revenue share is held for tax and its claim route is open', async () => {
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
       persona: 'referrer',
       summary: withTaxHeldIncome(
         earningsSummaryFixture({
@@ -260,7 +260,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('shows Paused when follow-trade is held for tax but its claim route is closed', async () => {
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -292,12 +292,12 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('shows the held balance and Claim when follow-trade is held for tax', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
     });
 
-    expect(await findByText('Held • mUSD')).toBeOnTheScreen();
+    expect(await findByText('Held')).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -310,12 +310,12 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('shows the held balance and Claim for a referrer whose follow-trade is held for tax', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referrer',
       summary: HELD_ONLY,
     });
 
-    expect(await findByText('Held • mUSD')).toBeOnTheScreen();
+    expect(await findByText('Held')).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -348,7 +348,7 @@ describe('EarningsTab tax documentation', () => {
         },
       },
     };
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
       persona: 'referrer',
       summary,
       claimReady: true,
@@ -375,7 +375,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('opens the tax sheet from a fresh read when a tax hold is cached as cleared', async () => {
-    const { findByTestId, engine } = renderEarningsTab({
+    const { findByTestId, engine } = renderWaysToEarnTab({
       persona: 'referrer',
       summary: HELD_ONLY,
       handlers: {
@@ -408,7 +408,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('submits cashback without the tax sheet when income is held', async () => {
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: CASHBACK_AND_HELD,
       claimReady: true,
@@ -439,7 +439,7 @@ describe('EarningsTab tax documentation', () => {
       cashbackClaimable: '0',
       followTradeClaimable: '1000000',
     });
-    const { findByTestId, findAllByTestId, engine } = renderEarningsTab({
+    const { findByTestId, findAllByTestId, engine } = renderWaysToEarnTab({
       persona: 'referrer',
       summary,
       claimReady: true,
@@ -471,7 +471,7 @@ describe('EarningsTab tax documentation', () => {
       cashbackClaimable: '1000000',
       followTradeClaimable: '1000000',
     });
-    const { findByTestId, queryByTestId, engine, store } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine, store } = renderWaysToEarnTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -510,7 +510,7 @@ describe('EarningsTab tax documentation', () => {
 
   it('opens the form after Yes', async () => {
     let tax = ATTESTATION;
-    const { findByTestId, findByText } = renderEarningsTab({
+    const { findByTestId, findByText } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -556,7 +556,7 @@ describe('EarningsTab tax documentation', () => {
 
   it('shows the not-needed toast after No', async () => {
     let tax = ATTESTATION;
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -581,7 +581,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('mints once from Continue and posts the token only to the page', async () => {
-    const { findByTestId, engine } = renderEarningsTab({
+    const { findByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -620,7 +620,7 @@ describe('EarningsTab tax documentation', () => {
   it('changes the answer without minting and then records No', async () => {
     let tax: TaxMeDto = OPEN_FORM;
     const { findByTestId, findByText, queryByTestId, engine } =
-      renderEarningsTab({
+      renderWaysToEarnTab({
         persona: 'referee',
         summary: HELD_ONLY,
         handlers: {
@@ -655,7 +655,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('hides Change my answer once the answer can no longer change', async () => {
-    const { findByTestId, queryByTestId } = renderEarningsTab({
+    const { findByTestId, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -677,7 +677,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('replaces the form with the pending sheet after success', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -706,7 +706,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('keeps the pending sheet on the next Claim while tax status is unchanged', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -740,7 +740,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('keeps the pending sheet after resubmitting a TIN mismatch', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+    const { findByTestId, findByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -777,7 +777,7 @@ describe('EarningsTab tax documentation', () => {
   it('mints one replacement token and closes on the second expiry', async () => {
     let minted = 0;
     const { findByTestId, findByText, queryByTestId, engine } =
-      renderEarningsTab({
+      renderWaysToEarnTab({
         persona: 'referee',
         summary: HELD_ONLY,
         handlers: {
@@ -832,14 +832,13 @@ describe('EarningsTab tax documentation', () => {
       claimed: '0',
     };
     const { findByTestId, findByText, queryByTestId, engine } =
-      renderEarningsTab({
+      renderWaysToEarnTab({
         persona: 'referrer',
         summary: followTrade,
         claimReady: true,
-        referralMe: {
-          ...referralMeFixture('referrer'),
-          localized_text: { ...COPY, taxFormUrl: '' },
-        },
+        referralMe: referralMeFixture('referrer', {
+          localizedText: { taxFormUrl: '' },
+        }),
         handlers: {
           'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
         },
@@ -851,9 +850,7 @@ describe('EarningsTab tax documentation', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
-    expect(
-      await findByText(`${COPY.balance} \u2022 ${COPY.mUSD}`),
-    ).toBeOnTheScreen();
+    expect(await findByText(COPY.balance)).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$58.50');
@@ -871,15 +868,14 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('claims cashback without the tax flow when the form URL is hidden', async () => {
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: CASHBACK_AND_HELD,
       claimReady: true,
       initiateClaim: 'hang',
-      referralMe: {
-        ...referralMeFixture('referee'),
-        localized_text: { ...COPY, taxFormUrl: '' },
-      },
+      referralMe: referralMeFixture('referee', {
+        localizedText: { taxFormUrl: '' },
+      }),
       handlers: {
         'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
       },
@@ -918,7 +914,7 @@ describe('EarningsTab tax documentation', () => {
       pending: '0',
       claimed: '0',
     };
-    const { findByTestId, engine } = renderEarningsTab({
+    const { findByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -958,7 +954,7 @@ describe('EarningsTab tax documentation', () => {
       claimed: '0',
     };
     const { findByTestId, getByTestId, queryByTestId, engine } =
-      renderEarningsTab({
+      renderWaysToEarnTab({
         persona: 'referee',
         summary,
         claimReady: true,
@@ -1002,7 +998,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('shows the determination sheet for a provider 503 and does not retry', async () => {
-    const { findByTestId, findByText, engine } = renderEarningsTab({
+    const { findByTestId, findByText, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -1029,7 +1025,7 @@ describe('EarningsTab tax documentation', () => {
 
   it('keeps Continue disabled after the sheet is closed until Retry-After elapses', async () => {
     const { findByTestId, findAllByText, queryByTestId, engine } =
-      renderEarningsTab({
+      renderWaysToEarnTab({
         persona: 'referee',
         summary: HELD_ONLY,
         handlers: {
@@ -1080,7 +1076,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('rate-limits Continue for the rest of the sheet visit', async () => {
-    const { findByTestId, engine } = renderEarningsTab({
+    const { findByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -1114,7 +1110,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('opens support from the US activity block', async () => {
-    const view = renderEarningsTab({
+    const view = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       supportPreferenceSaved: true,
@@ -1161,7 +1157,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('keeps the contact sheet up when the support consent sheet is dismissed', async () => {
-    const view = renderEarningsTab({
+    const view = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -1196,7 +1192,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('closes the contact sheet after backing out of support opened from the consent sheet', async () => {
-    const view = renderEarningsTab({
+    const view = renderWaysToEarnTab({
       persona: 'referee',
       summary: HELD_ONLY,
       handlers: {
@@ -1250,7 +1246,7 @@ describe('EarningsTab tax documentation', () => {
       cashbackClaimable: '1000000',
       followTradeClaimable: '1000000',
     });
-    const { findByTestId, findByText, engine } = renderEarningsTab({
+    const { findByTestId, findByText, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -1292,7 +1288,7 @@ describe('EarningsTab tax documentation', () => {
 
   it('opens the tax sheet when the claim is refused for tax documentation', async () => {
     let tax = CLEARED;
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: CASHBACK_AND_HELD,
       claimReady: true,
@@ -1330,7 +1326,7 @@ describe('EarningsTab tax documentation', () => {
   });
 
   it('still opens the paused sheet for a refusal that is not tax', async () => {
-    const { findByTestId, queryByTestId } = renderEarningsTab({
+    const { findByTestId, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
       summary: CASHBACK_AND_HELD,
       claimReady: true,
