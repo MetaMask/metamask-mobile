@@ -207,7 +207,7 @@ describe('WaysToEarnTab', () => {
   });
 
   it('ignores a second tap while the first claim is still open', async () => {
-    const { findByTestId, getByTestId, engine } = renderWaysToEarnTab({
+    const { findByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
       claimReady: true,

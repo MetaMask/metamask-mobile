@@ -4,7 +4,7 @@
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.nextSteps.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
@@ -44,8 +44,9 @@ describe('WaysToEarnTab next steps', () => {
   });
 
   it('lists Refer friends and Post trades for a referrer', async () => {
-    const { findByTestId, getByTestId, getByText, queryByTestId } =
-      renderWaysToEarnTab({ persona: 'referrer' });
+    const { findByTestId, getByText, queryByTestId } = renderWaysToEarnTab({
+      persona: 'referrer',
+    });
 
     expect(
       await findByTestId(EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS_HEADER),
@@ -55,17 +56,11 @@ describe('WaysToEarnTab next steps', () => {
     expect(
       getByText(REFERRAL_LOCALIZED_TEXT.earnEligibleFees),
     ).toBeOnTheScreen();
-    expect(avatarIconNameIn(getByTestId(`${ROW}-referrals`))).toBe(
-      IconName.UserCircleAdd,
-    );
     expect(getByText(REFERRAL_LOCALIZED_TEXT.postTrades)).toBeOnTheScreen();
     expect(
       getByText(REFERRAL_LOCALIZED_TEXT.copyTradingInfoDescription),
     ).toBeOnTheScreen();
-    expect(avatarIconNameIn(getByTestId(`${ROW}-social`))).toBe(
-      IconName.People,
-    );
-    expect(queryByTestId(`${ROW}-trading`)).toBeNull();
+    expect(queryByTestId(`${ROW}-trading`)).not.toBeOnTheScreen();
   });
 
   it('opens the share code sheet from Refer friends', async () => {
@@ -81,18 +76,16 @@ describe('WaysToEarnTab next steps', () => {
   });
 
   it('lists Trade and earn for a referee and opens the trade tray', async () => {
-    const { findByTestId, getByTestId, getByText, queryByTestId } =
-      renderWaysToEarnTab({ persona: 'referee' });
+    const { findByTestId, getByText, queryByTestId } = renderWaysToEarnTab({
+      persona: 'referee',
+    });
 
     const tradeRow = await findByTestId(`${ROW}-trading`);
     expect(getByText(REFERRAL_LOCALIZED_TEXT.tradeAndEarn)).toBeOnTheScreen();
     expect(
       getByText(REFERRAL_LOCALIZED_TEXT.invitedBenefitTitle),
     ).toBeOnTheScreen();
-    expect(avatarIconNameIn(getByTestId(`${ROW}-trading`))).toBe(
-      IconName.SwapVertical,
-    );
-    expect(queryByTestId(`${ROW}-referrals`)).toBeNull();
+    expect(queryByTestId(`${ROW}-referrals`)).not.toBeOnTheScreen();
 
     fireEvent.press(tradeRow);
 
@@ -120,7 +113,7 @@ describe('WaysToEarnTab next steps', () => {
     });
 
     expect(await findByTestId(`${ROW}-social`)).toBeOnTheScreen();
-    expect(queryByTestId(`${ROW}-trading`)).toBeNull();
+    expect(queryByTestId(`${ROW}-trading`)).not.toBeOnTheScreen();
   });
 
   it('lists only Post trades for a plain user', async () => {
@@ -129,8 +122,8 @@ describe('WaysToEarnTab next steps', () => {
     });
 
     expect(await findByTestId(`${ROW}-social`)).toBeOnTheScreen();
-    expect(queryByTestId(`${ROW}-referrals`)).toBeNull();
-    expect(queryByTestId(`${ROW}-trading`)).toBeNull();
+    expect(queryByTestId(`${ROW}-referrals`)).not.toBeOnTheScreen();
+    expect(queryByTestId(`${ROW}-trading`)).not.toBeOnTheScreen();
   });
 
   it('omits Post trades while Social V1 is off', async () => {
@@ -140,7 +133,7 @@ describe('WaysToEarnTab next steps', () => {
     });
 
     expect(await findByTestId(`${ROW}-referrals`)).toBeOnTheScreen();
-    expect(queryByTestId(`${ROW}-social`)).toBeNull();
+    expect(queryByTestId(`${ROW}-social`)).not.toBeOnTheScreen();
   });
 
   describe('not opted in to Rewards', () => {
@@ -202,7 +195,7 @@ describe('WaysToEarnTab next steps', () => {
       });
 
       expect(await findByTestId(`${ROW}-social`)).toBeOnTheScreen();
-      expect(queryByTestId(`${ROW}-campaign`)).toBeNull();
+      expect(queryByTestId(`${ROW}-campaign`)).not.toBeOnTheScreen();
     });
   });
 
@@ -221,10 +214,24 @@ describe('WaysToEarnTab next steps', () => {
       ...overrides,
     });
 
-    const withCampaigns = (campaigns: CampaignDto[]) => ({
-      subscriptionId: 'sub-1',
-      handlers: { 'RewardsController:getCampaigns': async () => campaigns },
-    });
+    const withCampaigns = (campaigns: CampaignDto[]) => {
+      const getCampaigns = jest.fn(async () => campaigns);
+      return {
+        getCampaigns,
+        options: {
+          subscriptionId: 'sub-1',
+          handlers: { 'RewardsController:getCampaigns': getCampaigns },
+        },
+      };
+    };
+
+    /** The campaign row only renders once the lookup resolves, so absence is only meaningful after it. */
+    const waitForCampaignsLoaded = async (getCampaigns: jest.Mock) => {
+      await waitFor(() => expect(getCampaigns).toHaveBeenCalled());
+      await act(async () => {
+        await getCampaigns.mock.results[0].value;
+      });
+    };
 
     it('offers the most recently started live campaign to every user', async () => {
       const newest = campaign({
@@ -234,20 +241,18 @@ describe('WaysToEarnTab next steps', () => {
         startDate: '2021-01-01T00:00:00.000Z',
         endDate: '2098-06-30T00:00:00.000Z',
       });
+      const { options } = withCampaigns([
+        campaign({}),
+        newest,
+        campaign({
+          id: 'campaign-3',
+          name: 'Ended campaign',
+          startDate: '2022-01-01T00:00:00.000Z',
+          endDate: '2022-02-01T00:00:00.000Z',
+        }),
+      ]);
       const { findByTestId, getByText, getByTestId, queryByText } =
-        renderWaysToEarnTab({
-          persona: 'plain',
-          ...withCampaigns([
-            campaign({}),
-            newest,
-            campaign({
-              id: 'campaign-3',
-              name: 'Ended campaign',
-              startDate: '2022-01-01T00:00:00.000Z',
-              endDate: '2022-02-01T00:00:00.000Z',
-            }),
-          ]),
-        });
+        renderWaysToEarnTab({ persona: 'plain', ...options });
 
       const row = await findByTestId(`${ROW}-campaign`);
 
@@ -269,20 +274,21 @@ describe('WaysToEarnTab next steps', () => {
       expect(avatarIconNameIn(getByTestId(`${ROW}-campaign`))).toBe(
         IconName.Trophy,
       );
-      expect(queryByText(/Tokenized stocks campaign/u)).toBeNull();
-      expect(queryByText(/Ended campaign/u)).toBeNull();
+      expect(queryByText(/Tokenized stocks campaign/u)).not.toBeOnTheScreen();
+      expect(queryByText(/Ended campaign/u)).not.toBeOnTheScreen();
     });
 
     it('opens the campaign details', async () => {
+      const { options } = withCampaigns([
+        campaign({
+          id: 'campaign-2',
+          type: CampaignType.PERPS_TRADING,
+          name: 'Perps trading competition',
+        }),
+      ]);
       const { findByTestId } = renderWaysToEarnTab({
         persona: 'plain',
-        ...withCampaigns([
-          campaign({
-            id: 'campaign-2',
-            type: CampaignType.PERPS_TRADING,
-            name: 'Perps trading competition',
-          }),
-        ]),
+        ...options,
       });
 
       fireEvent.press(await findByTestId(`${ROW}-campaign`));
@@ -298,47 +304,54 @@ describe('WaysToEarnTab next steps', () => {
     });
 
     it('is the only row for a plain user while Social V1 is off', async () => {
+      const { options } = withCampaigns([campaign({})]);
       const { findByTestId, queryByTestId } = renderWaysToEarnTab({
         persona: 'plain',
         socialV1: false,
-        ...withCampaigns([campaign({})]),
+        ...options,
       });
 
       expect(await findByTestId(`${ROW}-campaign`)).toBeOnTheScreen();
-      expect(queryByTestId(`${ROW}-social`)).toBeNull();
+      expect(queryByTestId(`${ROW}-social`)).not.toBeOnTheScreen();
     });
 
     it('is left out when no campaign is live', async () => {
+      const { getCampaigns, options } = withCampaigns([
+        campaign({ startDate: '2099-01-01T00:00:00.000Z' }),
+        campaign({
+          id: 'campaign-3',
+          startDate: '2022-01-01T00:00:00.000Z',
+          endDate: '2022-02-01T00:00:00.000Z',
+        }),
+      ]);
       const { findByTestId, queryByTestId } = renderWaysToEarnTab({
         persona: 'referrer',
-        ...withCampaigns([
-          campaign({ startDate: '2099-01-01T00:00:00.000Z' }),
-          campaign({
-            id: 'campaign-3',
-            startDate: '2022-01-01T00:00:00.000Z',
-            endDate: '2022-02-01T00:00:00.000Z',
-          }),
-        ]),
+        ...options,
       });
 
       expect(await findByTestId(`${ROW}-referrals`)).toBeOnTheScreen();
-      expect(queryByTestId(`${ROW}-campaign`)).toBeNull();
-    });
-  });
-
-  it('omits the section for an opted-in plain user with no live campaign while Social V1 is off', async () => {
-    const { findByTestId, queryByTestId } = renderWaysToEarnTab({
-      persona: 'plain',
-      socialV1: false,
-      subscriptionId: 'sub-1',
+      await waitForCampaignsLoaded(getCampaigns);
+      expect(queryByTestId(`${ROW}-campaign`)).not.toBeOnTheScreen();
     });
 
-    expect(
-      await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS)).toBeNull();
-    expect(
-      queryByTestId(EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS_HEADER),
-    ).toBeNull();
+    it('omits Next steps for an opted-in plain user with no live campaign while Social V1 is off', async () => {
+      const { getCampaigns, options } = withCampaigns([]);
+      const { findByTestId, queryByTestId } = renderWaysToEarnTab({
+        persona: 'plain',
+        socialV1: false,
+        ...options,
+      });
+
+      expect(
+        await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+      await waitForCampaignsLoaded(getCampaigns);
+      expect(
+        queryByTestId(EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS_HEADER),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

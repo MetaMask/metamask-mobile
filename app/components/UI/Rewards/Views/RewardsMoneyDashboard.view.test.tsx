@@ -22,7 +22,6 @@ import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRo
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { SHARE_CODE_SHEET_TEST_IDS } from '../components/Money/ShareCodeSheet';
 import { BENEFITS_TAB_TEST_IDS } from '../components/Money/Tabs/BenefitsTab.testIds';
-import { EARNINGS_TAB_TEST_IDS } from '../components/Money/Tabs/EarningsTab.testIds';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';

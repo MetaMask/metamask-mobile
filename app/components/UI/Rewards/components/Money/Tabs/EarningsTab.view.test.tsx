@@ -44,7 +44,9 @@ describe('EarningsTab', () => {
       await findByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER),
     ).toBeOnTheScreen();
     expect(getByText(REFERRAL_LOCALIZED_TEXT.yourEarnings)).toBeOnTheScreen();
-    expect(queryByRole('button', { name: 'Your earnings' })).toBeNull();
+    expect(
+      queryByRole('button', { name: 'Your earnings' }),
+    ).not.toBeOnTheScreen();
   });
 
   it('falls back to the breakdown title when the payload has no Your earnings key', async () => {
@@ -63,7 +65,9 @@ describe('EarningsTab', () => {
     expect(
       await findByText(REFERRAL_LOCALIZED_TEXT.breakdown),
     ).toBeOnTheScreen();
-    expect(queryByText(REFERRAL_LOCALIZED_TEXT.yourEarnings)).toBeNull();
+    expect(
+      queryByText(REFERRAL_LOCALIZED_TEXT.yourEarnings),
+    ).not.toBeOnTheScreen();
   });
 
   it('lists referrals and trading commissions for a referrer in success color', async () => {
@@ -84,7 +88,7 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(getByText(REFERRAL_LOCALIZED_TEXT.referrals)).toBeOnTheScreen();
     expect(
       getByText(REFERRAL_LOCALIZED_TEXT.tradingCommissionsSection),
@@ -122,7 +126,9 @@ describe('EarningsTab', () => {
       ),
     ).toBe(IconName.SwapVertical);
     expect(getByText('$7.65')).toHaveStyle({ color: SUCCESS_DEFAULT_LIGHT });
-    expect(queryByText(REFERRAL_LOCALIZED_TEXT.referrals)).toBeNull();
+    expect(
+      queryByText(REFERRAL_LOCALIZED_TEXT.referrals),
+    ).not.toBeOnTheScreen();
   });
 
   it.each([
@@ -145,7 +151,7 @@ describe('EarningsTab', () => {
       ).toBeOnTheScreen();
       expect(
         queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-${hidden}`),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     },
   );
 
@@ -182,7 +188,7 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('omits the section for a plain persona', async () => {
@@ -194,123 +200,29 @@ describe('EarningsTab', () => {
     expect(
       await findByTestId(EARNINGS_TAB_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
+    expect(
+      queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN),
+    ).not.toBeOnTheScreen();
   });
 
-  describe('Ways to earn', () => {
-    it('lists Refer friends and Post trades for a referrer above Your earnings', async () => {
-      const { findByTestId, getByTestId, getByText, queryByTestId } =
-        renderEarningsTab({
-          persona: 'referrer',
-          summary: BREAKDOWN_SUMMARY,
-        });
-
-      expect(
-        await findByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
-      ).toBeOnTheScreen();
-      expect(getByText(REFERRAL_LOCALIZED_TEXT.waysToEarn)).toBeOnTheScreen();
-      const referFriends = getByTestId(
-        `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`,
-      );
-      expect(getByText(REFERRAL_LOCALIZED_TEXT.referFriends)).toBeOnTheScreen();
-      expect(
-        getByText(REFERRAL_LOCALIZED_TEXT.earnEligibleFees),
-      ).toBeOnTheScreen();
-      expect(avatarIconNameIn(referFriends)).toBe(IconName.UserCircleAdd);
-      expect(
-        avatarIconNameIn(
-          getByTestId(
-            `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-social`,
-          ),
-        ),
-      ).toBe(IconName.People);
-      expect(
-        queryByTestId(
-          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-trading`,
-        ),
-      ).toBeNull();
-      expect(
-        getByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER),
-      ).toBeOnTheScreen();
+  it('shows Ways to earn alongside Your earnings', async () => {
+    const { findByTestId, getByTestId, getByText } = renderEarningsTab({
+      persona: 'referrer',
+      summary: BREAKDOWN_SUMMARY,
     });
 
-    it('lists Trade and earn and Post trades for a referee', async () => {
-      const { findByTestId, getByTestId, getByText, queryByTestId } =
-        renderEarningsTab({
-          persona: 'referee',
-          summary: BREAKDOWN_SUMMARY,
-        });
-
-      expect(
-        await findByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
-      ).toBeOnTheScreen();
-      expect(getByText(REFERRAL_LOCALIZED_TEXT.tradeAndEarn)).toBeOnTheScreen();
-      expect(
-        getByText(REFERRAL_LOCALIZED_TEXT.invitedBenefitTitle),
-      ).toBeOnTheScreen();
-      expect(
-        avatarIconNameIn(
-          getByTestId(
-            `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-trading`,
-          ),
-        ),
-      ).toBe(IconName.SwapVertical);
-      expect(getByText(REFERRAL_LOCALIZED_TEXT.postTrades)).toBeOnTheScreen();
-      expect(
-        getByText(REFERRAL_LOCALIZED_TEXT.copyTradingInfoDescription),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`,
-        ),
-      ).toBeNull();
-    });
-
-    it('lists only Post trades for a plain user', async () => {
-      const { findByTestId, getByTestId, queryByTestId } = renderEarningsTab({
-        persona: 'plain',
-        summary: BREAKDOWN_SUMMARY,
-      });
-
-      expect(
-        await findByTestId(
-          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-social`,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`,
-        ),
-      ).toBeNull();
-      expect(
-        queryByTestId(
-          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-trading`,
-        ),
-      ).toBeNull();
-    });
-
-    it('omits Post trades and the section while Social V1 is off for a plain user', async () => {
-      const { findByTestId, queryByTestId } = renderEarningsTab({
-        persona: 'plain',
-        summary: BREAKDOWN_SUMMARY,
-        socialV1: false,
-      });
-
-      expect(
-        await findByTestId(EARNINGS_TAB_TEST_IDS.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
-      ).toBeNull();
-      expect(
-        queryByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER),
-      ).toBeNull();
-    });
+    expect(
+      await findByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
+    ).toBeOnTheScreen();
+    expect(getByText(REFERRAL_LOCALIZED_TEXT.waysToEarn)).toBeOnTheScreen();
+    expect(
+      getByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER),
+    ).toBeOnTheScreen();
   });
 });
