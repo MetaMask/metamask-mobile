@@ -1,7 +1,7 @@
 /**
  * GitHub Actions entrypoint for swaps-cpu-profile-report.mjs. Lists the
- * scheduled runs and downloads their artifacts with `gh` (needs GH_TOKEN),
- * posts the report, and writes the weekly summary to `$OUT_DIR/summary.json`.
+ * scheduled runs and downloads their artifacts with `gh` (needs GH_TOKEN), and
+ * writes the weekly summary and the Slack post to `$OUT_DIR`; the workflow posts it.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -74,40 +74,10 @@ function previousSummary({ start }) {
   }
 }
 
-/** chat.postMessage reports errors as HTTP 200 with `ok: false`. */
-async function postToSlack(token, text) {
-  const response = await fetch('https://slack.com/api/chat.postMessage', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    body: JSON.stringify({
-      channel: SLACK_CHANNEL_ID,
-      text,
-      unfurl_links: false,
-      unfurl_media: false,
-    }),
-  });
-  if (!response.ok) {
-    throw new Error(`Slack chat.postMessage HTTP ${response.status}`);
-  }
-  const body = await response.json();
-  if (!body.ok) {
-    throw new Error(
-      `Slack chat.postMessage failed: ${body.error || 'unknown error'}`,
-    );
-  }
-}
-
 async function main() {
   const env = process.env;
-  const dryRun = env.DRY_RUN === 'true';
   if (!env.GH_TOKEN || !env.OUT_DIR) {
     throw new Error('GH_TOKEN or OUT_DIR is not set');
-  }
-  if (!dryRun && !env.SLACK_BOT_TOKEN) {
-    throw new Error('SLACK_BOT_TOKEN is not set (or run with DRY_RUN=true)');
   }
 
   const window = lastWeek();
@@ -154,8 +124,8 @@ async function main() {
     path.join(env.OUT_DIR, 'summary.json'),
     `${JSON.stringify({ window, runIds, runsRead, devices, scenarios }, null, 2)}\n`,
   );
-  // Dry runs name no artifact, so the workflow uploads no baseline from them.
-  if (env.GITHUB_OUTPUT && !dryRun) {
+  // Dry runs name no artifact, so the workflow neither uploads a baseline nor posts.
+  if (env.GITHUB_OUTPUT && env.DRY_RUN !== 'true') {
     fs.appendFileSync(
       env.GITHUB_OUTPUT,
       `artifact=${summaryArtifact(window)}\n`,
@@ -176,13 +146,17 @@ async function main() {
     ...details,
     runUrl: env.GITHUB_RUN_URL || '',
   });
-  console.log(`${message}\n`);
-  if (dryRun) {
-    console.log('Dry run; not posted.');
-  } else {
-    await postToSlack(env.SLACK_BOT_TOKEN, message);
-    console.log('Posted to Slack.');
-  }
+  console.log(message);
+  const payload = {
+    channel: SLACK_CHANNEL_ID,
+    text: message,
+    unfurl_links: false,
+    unfurl_media: false,
+  };
+  fs.writeFileSync(
+    path.join(env.OUT_DIR, 'slack-payload.json'),
+    `${JSON.stringify(payload, null, 2)}\n`,
+  );
 }
 
 main().catch((error) => {
