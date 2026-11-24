@@ -127,6 +127,7 @@ import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
+import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
@@ -803,6 +804,7 @@ const CardHome = () => {
   });
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
+  const reduceMotion = useReduceMotion();
   // Offline: no Rive, on every hardware tier. A low-end phone on a slow
   // cell connection skips it too. An unknown network keeps the animation.
   const allowCardRive =
@@ -823,8 +825,11 @@ const CardHome = () => {
   // The freeze file only contains the virtual face. Metal and physical cards,
   // a blocked card (which dims), and the arrival reveal keep their own art.
   // Setup reconciliation keeps the image skeleton.
+  // Under Reduce Motion the animation would only show a still image, so the
+  // card image (which dims a frozen card) is used and the .riv never loads.
   const showFreezeCardArt =
     allowCardRive &&
+    !reduceMotion &&
     !arrivalHoldsCard &&
     !isSetupReconciling &&
     data?.card?.type === CardType.VIRTUAL &&
@@ -832,28 +837,26 @@ const CardHome = () => {
     (showFreezeAnimation || (isAuthenticated && !isLoading));
 
   // Freezing or unfreezing while the card details are open closes them, so
-  // the Freeze/Melt animation is what plays instead of the details. Both
-  // mutations keep isSuccess after they settle, so this clears on the
-  // success transition only — details opened afterwards stay open.
-  const wasFreezeSuccessRef = useRef(false);
-  const wasUnfreezeSuccessRef = useRef(false);
+  // the Freeze/Melt animation is what plays instead of the details. The
+  // animation starts on the optimistic isFrozen flip, so this clears as the
+  // request starts, not when it settles. Only the start transition clears —
+  // details opened afterwards stay open.
+  const wasFreezePendingRef = useRef(false);
+  const wasUnfreezePendingRef = useRef(false);
   const { clearCardDetails } = actions;
   useEffect(() => {
-    const freezeJustSucceeded =
-      actions.freeze.isSuccess && !wasFreezeSuccessRef.current;
-    const unfreezeJustSucceeded =
-      actions.unfreeze.isSuccess && !wasUnfreezeSuccessRef.current;
-    wasFreezeSuccessRef.current = actions.freeze.isSuccess;
-    wasUnfreezeSuccessRef.current = actions.unfreeze.isSuccess;
-    if (
-      (freezeJustSucceeded || unfreezeJustSucceeded) &&
-      isRevealingCardDetails
-    ) {
+    const freezeJustStarted =
+      actions.freeze.isPending && !wasFreezePendingRef.current;
+    const unfreezeJustStarted =
+      actions.unfreeze.isPending && !wasUnfreezePendingRef.current;
+    wasFreezePendingRef.current = actions.freeze.isPending;
+    wasUnfreezePendingRef.current = actions.unfreeze.isPending;
+    if ((freezeJustStarted || unfreezeJustStarted) && isRevealingCardDetails) {
       clearCardDetails();
     }
   }, [
-    actions.freeze.isSuccess,
-    actions.unfreeze.isSuccess,
+    actions.freeze.isPending,
+    actions.unfreeze.isPending,
     isRevealingCardDetails,
     clearCardDetails,
   ]);
