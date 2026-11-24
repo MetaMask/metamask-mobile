@@ -9,7 +9,7 @@ import Matchers from '../../../framework/Matchers.js';
 import { LocalNode, LocalNodeType } from '../../../framework/types.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
-import { startRedesignedNativeSendFiveEthToReview } from '../../../flows/confirmations.flow.js';
+import { startNativeSendFiveEthToReview } from '../../../flows/confirmations.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager.js';
@@ -282,9 +282,7 @@ appiumTest.describe.skip(
               balance: 'Bal: $25.25 USD',
             };
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await startRedesignedNativeSendFiveEthToReview(
-              RECIPIENT_ADDRESS_MOCK,
-            );
+            await startNativeSendFiveEthToReview(RECIPIENT_ADDRESS_MOCK);
 
             await Assertions.expectElementToBeVisible(
               RowComponents.NetworkFeeGasFeeTokenArrow,

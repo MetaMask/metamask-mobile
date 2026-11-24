@@ -193,14 +193,13 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
-          // Redesigned stake confirmations use confirm-button (FooterActions),
+          // Stake confirmations use confirm-button (FooterActions),
           // not the legacy text "Confirm" locator in StakeView.tapReviewWithRetry.
           await StakeView.tapReview();
           await Assertions.expectElementToBeVisible(
             FooterActions.confirmButton,
             {
-              description:
-                'Redesigned Confirm button should appear after Review',
+              description: 'Confirm button should appear after Review',
             },
           );
           await FooterActions.tapConfirmButton();

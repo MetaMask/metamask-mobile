@@ -15,7 +15,7 @@ import type { Hex } from '@metamask/utils';
 
 import {
   MM_PAY_TRANSACTION_TYPES,
-  REDESIGNED_TRANSACTION_TYPES,
+  CONFIRMATION_TRANSACTION_TYPES,
   RELAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -385,7 +385,7 @@ function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
     return false;
   }
 
-  return REDESIGNED_TRANSACTION_TYPES.includes(
+  return CONFIRMATION_TRANSACTION_TYPES.includes(
     transaction.type as TransactionType,
   );
 }

@@ -9,7 +9,7 @@ import { AnvilPort } from '../../../framework/fixtures/FixtureUtils.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
   confirmSponsoredNativeSendAndOpenActivity,
-  startRedesignedNativeSendFiveEthToReview,
+  startNativeSendFiveEthToReview,
 } from '../../../flows/confirmations.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager.js';
@@ -250,9 +250,7 @@ appiumTest.describe.skip(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await startRedesignedNativeSendFiveEthToReview(
-              RECIPIENT_ADDRESS_MOCK,
-            );
+            await startNativeSendFiveEthToReview(RECIPIENT_ADDRESS_MOCK);
             await confirmSponsoredNativeSendAndOpenActivity();
           },
         );
@@ -284,9 +282,7 @@ appiumTest.describe.skip(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await startRedesignedNativeSendFiveEthToReview(
-              RECIPIENT_ADDRESS_MOCK,
-            );
+            await startNativeSendFiveEthToReview(RECIPIENT_ADDRESS_MOCK);
             await confirmSponsoredNativeSendAndOpenActivity();
             await Assertions.expectTextDisplayed('Failed', {
               description: 'Activity status Failed after relay API error',
