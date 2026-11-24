@@ -75,6 +75,7 @@ export const getKalshiPrototypeRuntime = (): PrototypeRuntimeState => runtime;
 export type KalshiPrototypeCardState =
   | 'getStarted'
   | 'needMoreInfo'
+  | 'stepUp'
   | 'verifying'
   | 'cantVerify'
   | 'verified';
@@ -84,8 +85,10 @@ export type KalshiPrototypeCardState =
  * walking.
  *
  * - `getStarted`: no scenario armed yet; the card is the entry point.
- * - `needMoreInfo`: the flow was started — or the step-up asks for Level 2 —
- * and the identity provider has not reported a decision yet.
+ * - `getStarted` also covers a scenario still at the terms step: a new or
+ * returning user who has not started yet sees the same entry card.
+ * - `needMoreInfo`: the flow was started and left part way through.
+ * - `stepUp`: Kalshi asks for Level 2, so the card opens Sumsub.
  * - `verifying`: the KYC was submitted and its review is pending.
  * - `cantVerify`: the review came back rejected; terminal, no way back in.
  * - `verified`: the review approved.
@@ -96,8 +99,11 @@ export type KalshiPrototypeCardState =
 export const deriveKalshiPrototypeCardState = (
   script: PrototypeScriptState | null,
 ): KalshiPrototypeCardState => {
-  if (!script) {
+  if (!script || script.vendor.step === 'terms') {
     return 'getStarted';
+  }
+  if (script.scenario === 'stepUpRequired' && script.vendor.step === 'sumsub') {
+    return 'stepUp';
   }
   if (script.vendor.step === 'decision') {
     switch (script.vendor.status) {

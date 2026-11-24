@@ -3,7 +3,8 @@ import React from 'react';
 import BannerCompact, {
   type BannerCompactProps,
 } from '../../../../../component-library/components-temp/BannerCompact';
-import securityIllustration from '../../../../../images/secure_wallet_dark.png';
+import moneyVbaKycDecisionArt from '../../../../../images/money-vba-kyc-decision-art.png';
+import moneyVbaAccountReadyArt from '../../../../../images/money-vba-account-ready-art.png';
 import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
 import { PROTOTYPE_COPY } from './prototypeConstants';
@@ -22,6 +23,14 @@ const VERIFYING_THUMBNAIL = {
   ),
 };
 
+/** The identity-verification Rive; it plays through once, then holds. */
+const IDENTITY_ANIMATION_THUMBNAIL = VERIFYING_HERO.heroAnimation ? (
+  <MoneyVbaHomeCardHeroAnimation
+    animation={VERIFYING_HERO.heroAnimation}
+    fallback={VERIFYING_THUMBNAIL}
+  />
+) : undefined;
+
 /**
  * What each card state shows. Only the states the flow continues from are
  * pressable, and only the states that outlive a visit can be dismissed.
@@ -35,11 +44,15 @@ const CARD_STATE_CONFIG: Record<
   }
 > = {
   getStarted: {
-    thumbnail: securityIllustration,
+    thumbnail: IDENTITY_ANIMATION_THUMBNAIL,
     isPressable: true,
     isDismissible: true,
   },
   needMoreInfo: {
+    isPressable: true,
+    isDismissible: false,
+  },
+  stepUp: {
     isPressable: true,
     isDismissible: false,
   },
@@ -55,10 +68,14 @@ const CARD_STATE_CONFIG: Record<
     isDismissible: false,
   },
   cantVerify: {
+    // The VBA can't-verify card's X.
+    thumbnail: moneyVbaKycDecisionArt,
     isPressable: false,
     isDismissible: true,
   },
   verified: {
+    // The VBA identity-verified card's check.
+    thumbnail: moneyVbaAccountReadyArt,
     isPressable: false,
     isDismissible: true,
   },

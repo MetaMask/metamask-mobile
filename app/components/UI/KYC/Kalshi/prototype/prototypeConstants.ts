@@ -218,19 +218,30 @@ export const PROTOTYPE_COPY = {
         'Verify your identity and sign in with Kalshi to trade prediction markets.',
     },
     needMoreInfo: {
-      title: '[PROTO] Finish verifying your identity',
+      title: 'Finish verifying your identity',
       description:
-        '[PROTO] Pick up where you left off. Kalshi still needs a few details from you.',
+        'Pick up where you left off. Kalshi still needs a few details from you.',
+      action: 'Continue',
+    },
+    // The VBA home card's step-up words (money.vba_home_card.finish_verification).
+    stepUp: {
+      title: 'We need more info',
+      description:
+        'Provide more details to finish verifying your identity. It only takes a minute.',
       action: 'Continue',
     },
     verifying: {
-      title: GEORGE_COPY.waiting.title,
-      description: GEORGE_COPY.waiting.body,
-    },
-    cantVerify: {
-      title: "[PROTO] We can't verify your identity",
+      // The VBA home card's words (money.vba_home_card.kyc_pending).
+      title: 'Verifying your identity',
       description:
-        "[PROTO] Kalshi couldn't verify your identity this time. Reset the prototype to try again.",
+        'We’re reviewing your details. We’ll let you know when the check is complete.',
+    },
+    // The VBA home card's title (money.vba_home_card.kyc_decision), with
+    // Kalshi's product in place of bank transfers.
+    cantVerify: {
+      title: 'We can’t verify your identity',
+      description:
+        'We’re unable to offer prediction markets at this time. Contact support for assistance.',
     },
     verified: {
       title: GEORGE_COPY.done.title,
