@@ -1,15 +1,22 @@
 import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  type Query,
+} from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
   MONEY_ACCOUNT_ADDRESS as ACCOUNT,
+  PREMIUM_VAULT,
   VAULT_SHARE_TOKENS,
   cardActivity,
   cardValuation,
   vaultShareValuationResponse,
 } from '../__fixtures__/vaultShareValuations';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import type { AccountsApiActivity } from '../types/moneyActivity';
 import {
   readCachedVaultShareValuations,
   writeCachedVaultShareValuations,
@@ -37,15 +44,15 @@ const mockWriteCache = jest.mocked(writeCachedVaultShareValuations);
 const activity = cardActivity();
 const vaultShareTokens = [VAULT_SHARE_TOKENS[0]];
 
-function QueryWrapper({
+const QueryWrapper = ({
   client,
   children,
 }: {
   client: QueryClient;
   children: React.ReactNode;
-}) {
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-}
+}): React.JSX.Element => (
+  <QueryClientProvider client={client}>{children}</QueryClientProvider>
+);
 
 describe('useMoneyActivityValuations query lifecycle', () => {
   beforeEach(() => {
@@ -98,6 +105,96 @@ describe('useMoneyActivityValuations query lifecycle', () => {
       value: '968399999',
       decimals: 6,
     });
+
+    unmount();
+    client.clear();
+  });
+
+  it('changes the valuation query identity when a later page adds a vault target', async () => {
+    const premiumActivity = {
+      ...activity,
+      token: {
+        ...activity.token,
+        address: PREMIUM_VAULT,
+        symbol: 'pvmUSD',
+      },
+    };
+    const valuationResponse = vaultShareValuationResponse(
+      [cardValuation(), cardValuation('968399998', PREMIUM_VAULT)],
+      ACCOUNT,
+    );
+    mockEngineCall.mockImplementation(async (action: string) => {
+      if (action === 'MoneyAccountApiDataService:fetchVaultShareValuations') {
+        return valuationResponse;
+      }
+      return { rate: '1.017488' };
+    });
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    const { result, rerender, unmount } = renderHook(
+      ({ pages }: { pages: AccountsApiActivity[][] }) =>
+        useMoneyActivityValuations({
+          pageActivities: pages,
+          moneyAddress: ACCOUNT,
+          vaultShareTokens: VAULT_SHARE_TOKENS,
+          enabled: true,
+        }),
+      {
+        initialProps: { pages: [[activity]] },
+        wrapper: ({ children }) => (
+          <QueryWrapper client={client}>{children}</QueryWrapper>
+        ),
+      },
+    );
+
+    const getValuationQueries = (): Query[] =>
+      client
+        .getQueryCache()
+        .getAll()
+        .filter(
+          ({ queryKey }) =>
+            queryKey[0] ===
+            MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_SHARE_VALUATIONS,
+        );
+
+    await waitFor(() =>
+      expect(
+        mockEngineCall.mock.calls.filter(
+          ([action]) =>
+            action === 'MoneyAccountApiDataService:fetchVaultShareValuations',
+        ),
+      ).toHaveLength(1),
+    );
+    const initialQueryKey = JSON.stringify(getValuationQueries()[0].queryKey);
+
+    rerender({ pages: [[activity], [premiumActivity]] });
+
+    await waitFor(() =>
+      expect(
+        mockEngineCall.mock.calls.filter(
+          ([action]) =>
+            action === 'MoneyAccountApiDataService:fetchVaultShareValuations',
+        ),
+      ).toHaveLength(2),
+    );
+    await waitFor(() =>
+      expect(result.current.getDisplayAmount(premiumActivity)).toEqual({
+        type: 'historical',
+        value: '968399998',
+        decimals: 6,
+      }),
+    );
+
+    const valuationQueries = getValuationQueries();
+    expect(valuationQueries).toHaveLength(2);
+    expect(JSON.stringify(valuationQueries[1].queryKey)).not.toBe(
+      initialQueryKey,
+    );
+    expect(JSON.stringify(valuationQueries[1].queryKey)).toContain(
+      PREMIUM_VAULT.toLowerCase(),
+    );
 
     unmount();
     client.clear();

@@ -99,27 +99,37 @@ function usableEntries(
 }
 
 function valuationRequests(
-  missing: ReadonlyMap<number, Set<string>>,
+  params: readonly ValuationRequestParams[],
   vaultShareTokens: readonly VaultShareToken[],
 ): ValuationRequest[] {
   const requests: ValuationRequest[] = [];
-  for (const [chainId, hashes] of missing) {
+  for (const { chainId, txHashes, vaultKeys } of params) {
     const configuredVaults = vaultShareTokens.filter(
-      (token) => hexToNumber(token.chainId) === chainId,
+      (token) =>
+        hexToNumber(token.chainId) === chainId &&
+        vaultKeys.includes(getVaultShareVaultKey(token.chainId, token.address)),
     );
     const chainIdHex = configuredVaults[0]?.chainId;
     if (!chainIdHex) {
       continue;
     }
-    for (const txHashes of chunk(
-      [...hashes].sort(compareStrings),
+    const vaultAddresses = [
+      ...new Map(
+        configuredVaults.map((token) => [
+          token.address.toLowerCase(),
+          token.address,
+        ]),
+      ).values(),
+    ];
+    for (const chunkHashes of chunk(
+      [...txHashes].sort(compareStrings),
       VAULT_SHARE_VALUATIONS_MAX_TX_HASHES,
     )) {
       requests.push({
         chainId,
         chainIdHex,
-        vaultAddresses: configuredVaults.map((token) => token.address),
-        txHashes,
+        vaultAddresses,
+        txHashes: chunkHashes,
       });
     }
   }
@@ -174,15 +184,177 @@ function missingHashesByChain(
   return missing;
 }
 
+interface ValuationRequestParams {
+  chainId: number;
+  txHashes: string[];
+  vaultKeys: string[];
+}
+
+function vaultKeysByChain(
+  targets: readonly VaultShareValuationTarget[],
+): Map<number, Set<string>> {
+  const keysByChain = new Map<number, Set<string>>();
+  for (const target of targets) {
+    const chainId = hexToNumber(target.activity.chainId);
+    const keys = keysByChain.get(chainId) ?? new Set<string>();
+    keys.add(target.vaultKey);
+    keysByChain.set(chainId, keys);
+  }
+  return keysByChain;
+}
+
 function requestParams(
   missing: ReadonlyMap<number, Set<string>>,
-): { chainId: number; txHashes: string[] }[] {
+  targets: readonly VaultShareValuationTarget[],
+): ValuationRequestParams[] {
+  const keysByChain = vaultKeysByChain(targets);
   return [...missing.entries()]
     .map(([chainId, hashes]) => ({
       chainId,
       txHashes: [...hashes].sort(compareStrings),
+      vaultKeys: [...(keysByChain.get(chainId) ?? [])].sort(compareStrings),
     }))
     .sort((a, b) => a.chainId - b.chainId);
+}
+
+interface ValuationQueryGroup {
+  params: ValuationRequestParams[];
+  targets: VaultShareValuationTarget[];
+  cached: VaultShareValuationCacheEntry[];
+  cachedByIdentity: Map<string, VaultShareValuationCacheEntry>;
+  pageIndices: number[];
+}
+
+function getTargetIdentity(target: VaultShareValuationTarget): string {
+  return JSON.stringify([
+    target.identity ?? target.vaultKey,
+    target.activity.hash.toLowerCase(),
+    target.activity.kind,
+    target.activity.blockNumber ?? null,
+    target.activity.amount,
+  ]);
+}
+
+function mergeValuationTargets(
+  existingTargets: readonly VaultShareValuationTarget[],
+  newTargets: readonly VaultShareValuationTarget[],
+): VaultShareValuationTarget[] {
+  const targetsByIdentity = new Map<string, VaultShareValuationTarget>();
+  for (const target of [...existingTargets, ...newTargets]) {
+    targetsByIdentity.set(getTargetIdentity(target), target);
+  }
+  return [...targetsByIdentity.values()];
+}
+
+function mergeRequestParams(
+  existingParams: readonly ValuationRequestParams[],
+  newParams: readonly ValuationRequestParams[],
+): ValuationRequestParams[] {
+  const paramsByChain = new Map<
+    number,
+    { txHashes: Set<string>; vaultKeys: Set<string> }
+  >();
+
+  for (const params of [...existingParams, ...newParams]) {
+    const current = paramsByChain.get(params.chainId) ?? {
+      txHashes: new Set<string>(),
+      vaultKeys: new Set<string>(),
+    };
+    params.txHashes.forEach((hash) => current.txHashes.add(hash));
+    params.vaultKeys.forEach((vaultKey) => current.vaultKeys.add(vaultKey));
+    paramsByChain.set(params.chainId, current);
+  }
+
+  return [...paramsByChain.entries()]
+    .map(([chainId, params]) => ({
+      chainId,
+      txHashes: [...params.txHashes].sort(compareStrings),
+      vaultKeys: [...params.vaultKeys].sort(compareStrings),
+    }))
+    .sort((a, b) => a.chainId - b.chainId);
+}
+
+function groupsOverlap(
+  existingGroup: ValuationQueryGroup,
+  newGroup: ValuationQueryGroup,
+): boolean {
+  const hashesByChain = new Map(
+    existingGroup.params.map(({ chainId, txHashes }) => [
+      chainId,
+      new Set(txHashes),
+    ]),
+  );
+  return newGroup.params.some(({ chainId, txHashes }) => {
+    const existingHashes = hashesByChain.get(chainId);
+    return txHashes.some((hash) => existingHashes?.has(hash));
+  });
+}
+
+function mergeValuationQueryGroups(
+  existingGroup: ValuationQueryGroup,
+  newGroup: ValuationQueryGroup,
+): ValuationQueryGroup {
+  const cached = [
+    ...entriesByIdentity([
+      ...existingGroup.cached,
+      ...newGroup.cached,
+    ]).values(),
+  ];
+  return {
+    params: mergeRequestParams(existingGroup.params, newGroup.params),
+    targets: mergeValuationTargets(existingGroup.targets, newGroup.targets),
+    cached,
+    cachedByIdentity: entriesByIdentity(cached),
+    pageIndices: [
+      ...new Set([...existingGroup.pageIndices, ...newGroup.pageIndices]),
+    ].sort((a, b) => a - b),
+  };
+}
+
+function buildValuationQueryGroups(
+  pages: readonly {
+    targets: VaultShareValuationTarget[];
+    cached: VaultShareValuationCacheEntry[];
+    cachedByIdentity: Map<string, VaultShareValuationCacheEntry>;
+  }[],
+): ValuationQueryGroup[] {
+  const groups: ValuationQueryGroup[] = [];
+
+  pages.forEach((page, pageIndex) => {
+    const missing = missingHashesByChain(page.targets, page.cachedByIdentity);
+    if (missing.size === 0) {
+      return;
+    }
+
+    const pageGroup: ValuationQueryGroup = {
+      params: requestParams(missing, page.targets),
+      targets: page.targets,
+      cached: page.cached,
+      cachedByIdentity: page.cachedByIdentity,
+      pageIndices: [pageIndex],
+    };
+    const overlappingGroups = groups.filter((group) =>
+      groupsOverlap(group, pageGroup),
+    );
+    if (overlappingGroups.length === 0) {
+      groups.push(pageGroup);
+      return;
+    }
+
+    const overlappingGroupSet = new Set(overlappingGroups);
+    const mergedGroup = overlappingGroups.reduce(
+      (merged, group) => mergeValuationQueryGroups(merged, group),
+      pageGroup,
+    );
+    groups.splice(
+      0,
+      groups.length,
+      ...groups.filter((group) => !overlappingGroupSet.has(group)),
+      mergedGroup,
+    );
+  });
+
+  return groups;
 }
 
 export function useMoneyActivityValuations({
@@ -237,45 +409,50 @@ export function useMoneyActivityValuations({
     [],
   );
 
-  const valuationState = useQueries({
-    queries: pages.map((page, pageIndex) => {
-      const missing = missingHashesByChain(page.targets, page.cachedByIdentity);
+  const valuationQueryGroups = useMemo(
+    () => buildValuationQueryGroups(pages),
+    [pages],
+  );
 
-      return {
+  const valuationQueries = valuationQueryGroups.map(
+    (group) =>
+      ({
         queryKey: [
           MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_SHARE_VALUATIONS,
           moneyAddress.toLowerCase(),
-          requestParams(missing),
+          group.params,
         ],
-        enabled:
-          enabled &&
-          moneyAddress !== '' &&
-          page.targets.length > 0 &&
-          missing.size > 0 &&
-          canFetch,
-        initialData: page.cached,
+        enabled: enabled && moneyAddress !== '' && canFetch,
+        initialData: group.cached,
         initialDataUpdatedAt: 0,
         staleTime: 0,
         retry: false,
-        queryFn: () =>
+        queryFn: async () =>
           trace(
             {
               name: TraceName.MoneyActivityVaultShareValuationsFetch,
               op: TraceOperation.MoneyAccountDataFetch,
-              tags: { page_index: pageIndex },
+              tags: { page_indices: group.pageIndices.join(',') },
             },
             async (context) => {
               const entries = readCachedVaultShareValuations();
+              const entriesByCacheIdentity = entriesByIdentity(entries);
+              const cacheHitCount = group.targets.filter((target) =>
+                hasHistoricalValue(target, entriesByCacheIdentity),
+              ).length;
               const requests = valuationRequests(
-                missingHashesByChain(page.targets, entriesByIdentity(entries)),
+                requestParams(
+                  missingHashesByChain(group.targets, entriesByCacheIdentity),
+                  group.targets,
+                ),
                 vaultShareTokens,
               );
               const batches = await Promise.all(
-                requests.map((request) =>
+                requests.map(async (request) =>
                   fetchValuationBatch({
                     request,
                     moneyAddress,
-                    targets: page.targets,
+                    targets: group.targets,
                   }),
                 ),
               );
@@ -293,18 +470,19 @@ export function useMoneyActivityValuations({
                   (count, request) => count + request.txHashes.length,
                   0,
                 ),
-                cache_hit_count: page.targets.filter((target) =>
-                  hasHistoricalValue(target, page.cachedByIdentity),
-                ).length,
+                cache_hit_count: cacheHitCount,
                 chunk_count: requests.length,
                 failed_chunk_count: batches.filter((batch) => batch.failed)
                   .length,
               });
-              return usableEntries(page.targets, [...entries, ...newEntries]);
+              return usableEntries(group.targets, [...entries, ...newEntries]);
             },
           ),
-      } as const;
-    }),
+      }) as const,
+  );
+
+  const valuationState = useQueries({
+    queries: valuationQueries,
     combine: combineValuationQueries,
   });
 
@@ -317,9 +495,15 @@ export function useMoneyActivityValuations({
         }
       }
     }
-    return vaultShareTokens.filter((token) =>
-      unresolved.has(getVaultShareVaultKey(token.chainId, token.address)),
-    );
+    const seen = new Set<string>();
+    return vaultShareTokens.filter((token) => {
+      const vaultKey = getVaultShareVaultKey(token.chainId, token.address);
+      if (!unresolved.has(vaultKey) || seen.has(vaultKey)) {
+        return false;
+      }
+      seen.add(vaultKey);
+      return true;
+    });
   }, [pages, vaultShareTokens]);
 
   const combineRateQueries = useCallback(
@@ -335,23 +519,25 @@ export function useMoneyActivityValuations({
     [],
   );
 
-  const rateState = useQueries({
-    queries: unresolvedVaultTokens.map((token) => ({
-      queryKey: [
-        MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
+  const rateQueries = unresolvedVaultTokens.map((token) => ({
+    queryKey: [
+      MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
+      token.address,
+      { chainId: hexToNumber(token.chainId) },
+    ],
+    queryFn: async (): Promise<VaultRateResponse> =>
+      Engine.controllerMessenger.call(
+        'MoneyAccountApiDataService:fetchVaultRate',
         token.address,
         { chainId: hexToNumber(token.chainId) },
-      ],
-      queryFn: (): Promise<VaultRateResponse> =>
-        Engine.controllerMessenger.call(
-          'MoneyAccountApiDataService:fetchVaultRate',
-          token.address,
-          { chainId: hexToNumber(token.chainId) },
-        ),
-      enabled: enabled && canFetch,
-      staleTime: 5 * MINUTE,
-      retry: false,
-    })),
+      ),
+    enabled: enabled && canFetch,
+    staleTime: 5 * MINUTE,
+    retry: false,
+  }));
+
+  const rateState = useQueries({
+    queries: rateQueries,
     combine: combineRateQueries,
   });
 
