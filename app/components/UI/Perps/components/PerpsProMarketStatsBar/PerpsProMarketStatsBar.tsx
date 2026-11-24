@@ -196,11 +196,10 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   }, [liveFunding, marketStats.fundingRate]);
 
   // Mark and oracle are two distinct values and must come from two distinct
-  // fields (TAT-4024). In PriceUpdate, `price` is the live mark (the
-  // activeAssetCtx midPx/markPx that live PnL and position value track), while
-  // `oraclePrice` is the exchange's oraclePx — the same field Lite's
-  // statistics card renders as "Oracle price".
-  const markPriceDisplay = formatLivePrice(livePriceUpdate?.price);
+  // fields (TAT-4024). In PriceUpdate, `price` is the live mid, `markPrice` is
+  // the venue mark (HyperLiquid markPx) and `oraclePrice` is the exchange
+  // oracle. Neither row falls back to the mid.
+  const markPriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
   const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.oraclePrice);
 
   return (
