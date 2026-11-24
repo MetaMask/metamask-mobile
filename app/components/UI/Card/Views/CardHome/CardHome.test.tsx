@@ -441,6 +441,12 @@ const mockUseCardRecentTransactions = jest.fn(
   }),
 );
 
+let mockReduceMotion = false;
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  ...jest.requireActual('../../../Money/hooks/useReduceMotion'),
+  useReduceMotion: () => mockReduceMotion,
+}));
+
 jest.mock('./hooks/useCardArrivalAnimation', () => {
   const actual = jest.requireActual('./hooks/useCardArrivalAnimation');
   return {
@@ -1579,6 +1585,7 @@ describe('CardHome Component', () => {
     mockIsFocused = true;
     mockCardNavigationParent = undefined;
     mockArrivalOverride = null;
+    mockReduceMotion = false;
     mockCanEnableCard = false;
     mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
@@ -4724,6 +4731,22 @@ describe('CardHome Component', () => {
       ).toBeNull();
     });
 
+    it('shows the static card image instead of the freeze animation under Reduce Motion', () => {
+      mockReduceMotion = true;
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toBeOnTheScreen();
+    });
+
     it('hands the card from the arrival reveal to the freeze animation after a freeze', () => {
       mockArrivalOverride = { usesRiveCard: true, playReveal: false };
       setupMockSelectors({ isAuthenticated: true });
@@ -6050,7 +6073,7 @@ describe('CardHome Component', () => {
         ).toBeUndefined();
       });
 
-      it('closes the revealed details when a freeze succeeds', () => {
+      it('closes the revealed details as soon as a freeze starts', () => {
         // Given: Authenticated user with the details currently revealed
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -6084,12 +6107,12 @@ describe('CardHome Component', () => {
           screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
         ).toBeOnTheScreen();
 
-        // When: a freeze succeeds while the details are open
+        // When: a freeze starts while the details are open
         mockUseCardFreeze.mockReturnValue({
           freeze: {
             isError: false,
-            isPending: false,
-            isSuccess: true,
+            isPending: true,
+            isSuccess: false,
             mutate: mockFreezeMutate,
             data: undefined,
             error: null,
