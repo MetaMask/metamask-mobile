@@ -89,6 +89,9 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
     expect(
       queryByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows an error and stays on the delete sheet when account removal fails', async () => {
@@ -123,6 +126,9 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
       queryByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
     ).not.toBeOnTheScreen();
     expect(
+      queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+    ).not.toBeOnTheScreen();
+    expect(
       getByTestId(MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER),
     ).toBeOnTheScreen();
   });
@@ -148,6 +154,9 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
       expect(removeAccountSpy).not.toHaveBeenCalled();
       expect(
         queryByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
       ).not.toBeOnTheScreen();
       expect(
         getByTestId(MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER),
