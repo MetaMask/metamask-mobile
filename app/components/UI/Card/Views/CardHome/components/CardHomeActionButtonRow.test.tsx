@@ -95,12 +95,12 @@ describe('getCardHomeActionVisibility', () => {
     ).toBe(false);
   });
 
-  it('shows the teaser buttons when signed out', () => {
+  it('hides the cardholder buttons when signed out', () => {
     expect(
       getCardHomeActionVisibility(
         buildInput({ isAuthenticated: false, card: null }),
       ),
-    ).toEqual({ details: true, pin: true, freeze: true });
+    ).toEqual({ details: false, pin: false, freeze: false });
   });
 });
 

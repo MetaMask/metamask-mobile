@@ -70,27 +70,23 @@ export const getCardHomeActionVisibility = ({
     return { details: false, pin: false, freeze: false };
   }
 
-  const showTeaserOptions = !isLoading && !isAuthenticated;
-
   // The quick actions always show for a signed-in cardholder, even with a
   // zero balance (unlike the old Manage rows, which Baanx hid until funded).
+  // Signed-out callers never reach this screen except during KYC review,
+  // and they do not get the cardholder actions.
   const hasManageableCard = isAuthenticated && !isLoading && Boolean(card);
 
   // Providers set hasPin on CardDetails; absent means treat as true.
   const cardHasPin = card?.hasPin !== false;
 
   return {
-    details: hasManageableCard || showTeaserOptions,
+    details: hasManageableCard,
     pin:
-      (hasManageableCard &&
-        Boolean(capabilities?.supportsPinView) &&
-        cardHasPin) ||
-      (showTeaserOptions && Boolean(capabilities?.supportsPinView)),
+      hasManageableCard && Boolean(capabilities?.supportsPinView) && cardHasPin,
     freeze:
-      (hasManageableCard &&
-        Boolean(card?.isFreezable) &&
-        card?.status !== CardStatus.BLOCKED) ||
-      showTeaserOptions,
+      hasManageableCard &&
+      Boolean(card?.isFreezable) &&
+      card?.status !== CardStatus.BLOCKED,
   };
 };
 

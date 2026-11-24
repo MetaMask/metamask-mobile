@@ -1000,7 +1000,9 @@ const CardHome = () => {
                     </Box>
                   ) : (
                     <AddToWalletButton
-                      onPress={isProvisioning ? undefined : initiateProvisioning}
+                      onPress={
+                        isProvisioning ? undefined : initiateProvisioning
+                      }
                       buttonStyle="blackOutline"
                       buttonType="basic"
                       borderRadius={4}
@@ -1037,7 +1039,9 @@ const CardHome = () => {
                 details={
                   actionVisibility.details
                     ? {
-                        onPress: actions.viewCardDetailsAction,
+                        onPress: () => {
+                          void actions.viewCardDetailsAction();
+                        },
                         isShowingDetails: isCardDetailsVisible,
                       }
                     : undefined
@@ -1045,7 +1049,9 @@ const CardHome = () => {
                 pin={
                   actionVisibility.pin
                     ? {
-                        onPress: actions.viewPinAction,
+                        onPress: () => {
+                          void actions.viewPinAction();
+                        },
                         disabled: actions.isPinLoading,
                       }
                     : undefined
@@ -1053,7 +1059,9 @@ const CardHome = () => {
                 freeze={
                   actionVisibility.freeze
                     ? {
-                        onPress: actions.handleToggleFreeze,
+                        onPress: () => {
+                          void actions.handleToggleFreeze();
+                        },
                         isFrozen,
                         disabled: isFreezeLoading,
                       }
