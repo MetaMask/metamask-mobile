@@ -24,7 +24,7 @@ This component extends `ButtonBaseProps` from `@metamask/design-system-react-nat
 ## Usage
 
 ```tsx
-import ButtonFilter from 'app/component-library/components-temp/ButtonFilter';
+import ButtonFilter from '#app/component-library/components-temp/ButtonFilter';
 
 const MyComponent = () => {
   const [filter, setFilter] = useState('all');

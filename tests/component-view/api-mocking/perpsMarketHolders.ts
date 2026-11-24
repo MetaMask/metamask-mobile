@@ -13,8 +13,10 @@ import AppConstants from '../../../app/core/AppConstants';
 import {
   clearAllNockMocks,
   disableNetConnect,
+  nockRequestUri,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 const HOLDERS_PATH = '/api/v1/positions/';
 
@@ -35,12 +37,14 @@ export function setupPerpsMarketHoldersApiMock(
   nock(AppConstants.SOCIAL_API_URL)
     .persist()
     .get((uri) => uri.includes(HOLDERS_PATH))
-    .reply((uri) => {
-      const [, encodedAssetId = ''] = uri.split(HOLDERS_PATH);
+    .reply((request: Request) => {
+      const [, encodedAssetId = ''] =
+        nockRequestUri(request).split(HOLDERS_PATH);
       requestedAssetIds.push(decodeURIComponent(encodedAssetId.split('?')[0]));
       return [200, { items, pagination: { hasMore: false } }];
     });
 
+  installDefaultApiMocks();
   return requestedAssetIds;
 }
 

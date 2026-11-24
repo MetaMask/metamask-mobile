@@ -1,5 +1,5 @@
 import { PREDICT_MARKET_TYPES } from '../../constants';
-import { PredictErrorCode } from '../../errors';
+import { PredictError, PredictErrorCode } from '../../errors';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -122,7 +122,7 @@ describe('KalshiRemoteAdapter', () => {
   it('serves the API catalog without adding withdraw the deployment omits', async () => {
     const catalog = {
       venueId: 'kalshi',
-      actions: ['buy', 'sell', 'deposit'],
+      actions: ['buy', 'sell'],
       feeds: {
         sports: 'sports-football-nfl-games',
         'nfl-games': 'sports-football-nfl-games',
@@ -132,9 +132,10 @@ describe('KalshiRemoteAdapter', () => {
     };
     client.fetchVenueCatalog.mockResolvedValue(catalog);
 
-    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual(
-      catalog,
-    );
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual({
+      ...catalog,
+      screens: [],
+    });
     expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', undefined);
   });
 
@@ -1504,8 +1505,6 @@ describe('KalshiRemoteAdapter', () => {
           status: 404,
           bodyCode: 'operation_not_found',
           phase: 'observe',
-          mutationRelay: 'not_a_mutation',
-          operationOutcome: 'unknown',
         },
       });
     });
@@ -1882,8 +1881,8 @@ describe('KalshiRemoteAdapter', () => {
         code: PredictErrorCode.VENUE_UNAVAILABLE,
         metadata: {
           phase: 'commit',
-          // The admin request may have reached Kalshi before it faulted.
-          mutationRelay: 'unknown',
+          // No outcome in the body: the admin request may have reached Kalshi.
+          outcome: 'unknown',
         },
       });
     });
@@ -1924,21 +1923,22 @@ describe('KalshiRemoteAdapter', () => {
       ).rejects.toBe(abortError);
     });
 
-    it('never calls a failed withdrawal observation a mutation-free read', async () => {
+    it('never carries a commit outcome on a failed withdrawal observation', async () => {
+      // The GET replays the stored submission before it answers, so even a
+      // not_placed body cannot speak for that submission.
       client.observeWithdraw.mockRejectedValue(
-        new PredictHttpError(503, 'venue_unavailable'),
+        new PredictHttpError(503, 'venue_unavailable', undefined, 'not_placed'),
       );
 
-      await expect(
-        adapter.funding.observeWithdraw(withdrawPreviewId),
-      ).rejects.toMatchObject({
+      const error = await adapter.funding
+        .observeWithdraw(withdrawPreviewId)
+        .catch((caught: unknown) => caught);
+
+      expect(error).toMatchObject({
         code: PredictErrorCode.VENUE_UNAVAILABLE,
-        metadata: {
-          phase: 'observe',
-          // The GET replays the stored submission before it answers.
-          mutationRelay: 'unknown',
-        },
+        metadata: { phase: 'observe' },
       });
+      expect((error as PredictError).metadata).not.toHaveProperty('outcome');
     });
   });
 });

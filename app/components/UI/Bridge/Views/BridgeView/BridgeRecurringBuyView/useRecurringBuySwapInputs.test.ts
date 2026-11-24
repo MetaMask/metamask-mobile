@@ -17,6 +17,7 @@ import {
 import { createMockToken } from '../../../testUtils/fixtures';
 import { TokenSelectorType, type BridgeToken } from '../../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 
 const mockDispatch = jest.fn();
 
@@ -57,6 +58,10 @@ jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
 
 jest.mock('../../../hooks/useLiveTokenFiatRate', () => ({
   useLiveTokenFiatRate: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useRecurringOrderMinAmount', () => ({
+  useRecurringOrderMinAmount: jest.fn(),
 }));
 
 const mockSyncFiatAmountToTokenAmount = jest.fn();
@@ -140,6 +145,12 @@ describe('useRecurringBuySwapInputs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsHardwareWallet = false;
+    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '$50.00',
+      hasError: false,
+      isBelowMinAmount: false,
+      minAmountUsd: 50,
+    });
   });
 
   it('preserves a same-chain token pair and source amount on mount', () => {
@@ -283,6 +294,44 @@ describe('useRecurringBuySwapInputs', () => {
       renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
 
       expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+    });
+
+    it('does not request a quote below the recurring minimum', () => {
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 50,
+      });
+
+      renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
+
+      expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+    });
+
+    it('requests a quote when the amount is no longer below the recurring minimum', () => {
+      const selectorState = { ...validInputs };
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 50,
+      });
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: false,
+        minAmountUsd: 50,
+      });
+      selectorState.sourceAmount = '2';
+
+      rerender(undefined);
+
+      expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -435,7 +484,7 @@ describe('useRecurringBuySwapInputs', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(
           expect.objectContaining({
-            symbol: 'USDT',
+            symbol: 'BSC-USD',
             chainId: '0x38',
           }),
         ),

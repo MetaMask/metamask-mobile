@@ -192,7 +192,7 @@ describe('tokenUtils', () => {
       const result = getDefaultDestToken(caipChainId);
 
       expect(result).toBeDefined();
-      expect(result?.symbol).toBe('USDT');
+      expect(result?.symbol).toBe('BSC-USD');
       expect(result?.chainId).toBe(caipChainId); // Should return with original CAIP format
     });
 

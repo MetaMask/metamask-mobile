@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AccessibilityInfo, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +27,8 @@ import {
   TextButton,
   TextVariant,
   TitleStandard,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -37,7 +45,6 @@ import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
@@ -60,7 +67,10 @@ import {
   getAccountCreateFailureLogFields,
   logAccountCreateFailure,
 } from './accountCreateError';
-import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
+import {
+  exitVbaOnboardingToMoneyHome,
+  navigateToVbaOnboardingDestination,
+} from './hooks/useVbaOnboardingRouting';
 import { useVbaEligibility } from './hooks/useVbaEligibility';
 import VbaCreatingAccount from './VbaCreatingAccount';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -105,10 +115,11 @@ export const VbaDetailsSelectorsIDs = {
   RISK_DISCLOSURE: 'vba-details-risk-disclosure',
   RISK_DISCLOSURE_LINK: 'vba-details-risk-disclosure-link',
   LOADING: 'vba-details-loading',
+  LOADING_ROW: 'vba-details-loading-row',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
   DONE_BUTTON: 'vba-details-done-button',
-  COPY_ALL_BUTTON: 'vba-details-copy-all-button',
+  SHARE_BUTTON: 'vba-details-share-button',
 } as const;
 
 interface AutorampCursor {
@@ -757,10 +768,7 @@ const VbaDetails = () => {
   const handleDone = useCallback(() => {
     finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
     endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    exitVbaOnboardingToMoneyHome(navigation);
   }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
@@ -783,11 +791,17 @@ const VbaDetails = () => {
     (value: string, label: string) => () => {
       Clipboard.setString(value);
       playSelection().catch(() => undefined);
-      AccessibilityInfo.announceForAccessibility(
-        strings('virtual_bank_account.vba_details.copied_label', {
-          field: label,
-        }),
+      const copiedMessage = strings(
+        'virtual_bank_account.vba_details.copied_label',
+        { field: label },
       );
+      AccessibilityInfo.announceForAccessibility(copiedMessage);
+      toast({
+        title: copiedMessage,
+        severity: ToastSeverity.Success,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
     },
     [],
   );
@@ -816,14 +830,10 @@ const VbaDetails = () => {
     setIsDebugOpen(false);
   }, []);
 
-  const rows = buildDetailRows(instructions);
-  const handleCopyAll = useCallback(() => {
+  const rows = useMemo(() => buildDetailRows(instructions), [instructions]);
+  const handleShareDetails = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
-    Clipboard.setString(message);
     playSelection().catch(() => undefined);
-    AccessibilityInfo.announceForAccessibility(
-      strings('virtual_bank_account.vba_details.copied_all_label'),
-    );
     Share.open({ message, failOnCancel: false }).catch((error) => {
       Logger.error(error as Error, {
         message: 'VbaDetails: failed to open the share sheet',
@@ -877,6 +887,27 @@ const VbaDetails = () => {
     instructions?.type === 'UsBank' ||
     instructions?.type === 'Sepa' ||
     (!instructions && (sourceCurrency === 'USD' || sourceCurrency === 'EUR'));
+  // Share lives in the header, and only for a US or SEPA bank transfer with
+  // rows; Pix has no share action.
+  const showShareButton =
+    (instructions?.type === 'UsBank' || instructions?.type === 'Sepa') &&
+    rows.length > 0;
+  const endButtonIconProps = useMemo(
+    () =>
+      showShareButton
+        ? [
+            {
+              iconName: IconName.Share,
+              onPress: handleShareDetails,
+              testID: VbaDetailsSelectorsIDs.SHARE_BUTTON,
+              accessibilityLabel: strings(
+                'virtual_bank_account.vba_details.share_details_button',
+              ),
+            },
+          ]
+        : undefined,
+    [showShareButton, handleShareDetails],
+  );
   // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
   // the user's country. The US and SEPA bank transfer layouts never show it.
   const showProviderDisclosure = instructions
@@ -886,6 +917,19 @@ const VbaDetails = () => {
     instructions?.type === 'UsBank' && rows.length > 0 && !loadError;
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+  // The row count mirrors the rail's real rows: four for a SEPA or US bank
+  // transfer, two for Pix.
+  let skeletonRowIds = ['pix-key', 'copia-cola'];
+  if (sourceCurrency === 'EUR') {
+    skeletonRowIds = ['account-holder', 'iban', 'bic', 'bank-name'];
+  } else if (isBankTransfer) {
+    skeletonRowIds = [
+      'account-holder',
+      'routing-number',
+      'account-number',
+      'bank-name',
+    ];
+  }
   const errorMessage = loadError
     ? strings('virtual_bank_account.vba_details.load_error')
     : null;
@@ -909,6 +953,7 @@ const VbaDetails = () => {
         isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        endButtonIconProps={endButtonIconProps}
         includesTopInset
         testID={VbaDetailsSelectorsIDs.HEADER}
       />
@@ -995,12 +1040,10 @@ const VbaDetails = () => {
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
                 width to resolve against. */}
-            {(sourceCurrency === 'EUR'
-              ? ['account-holder', 'iban', 'bic', 'bank-name']
-              : ['pix-key', 'copia-cola']
-            ).map((id) => (
+            {skeletonRowIds.map((id) => (
               <ListItem
                 key={id}
+                testID={`${VbaDetailsSelectorsIDs.LOADING_ROW}-${id}`}
                 title={
                   <Box gap={2} twClassName="flex-1">
                     <Skeleton
@@ -1071,17 +1114,6 @@ const VbaDetails = () => {
               ).replace(/ /g, '\u00A0')}
             </TextButton>
           </Text>
-        ) : null}
-        {isBankTransfer && rows.length > 0 ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleCopyAll}
-            testID={VbaDetailsSelectorsIDs.COPY_ALL_BUTTON}
-          >
-            {strings('virtual_bank_account.vba_details.copy_all_button')}
-          </Button>
         ) : null}
         {debugEnabled ? (
           <Button

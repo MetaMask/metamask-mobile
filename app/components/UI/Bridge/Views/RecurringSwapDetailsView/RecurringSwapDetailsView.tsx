@@ -48,11 +48,11 @@ import {
   RecurringSwapStatus,
   type RecurringSwap,
 } from '../../api/recurringOrders.types';
-import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { type BridgeToken } from '../../types';
 import { getRecurringOrderTokens } from '../../utils/recurringOrders';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
@@ -62,6 +62,8 @@ import {
 } from '../../hooks/useSwapBridgeNavigation';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../Ramp/constants/rampsBuyCufTags';
 
 interface RecurringSwapStatusDisplay {
   status: Status;
@@ -156,10 +158,10 @@ export function RecurringSwapDelegationButton({
           upgradeStatus.isUpgradeRequired ? 'required' : 'hidden',
         );
       })
-      .catch((error) => {
+      .catch(() => {
         if (!isActive) return;
 
-        showRecurringAutoUpgradeError(error);
+        showGenericErrorToast();
         setDelegationStatus('hidden');
       });
 
@@ -177,8 +179,8 @@ export function RecurringSwapDelegationButton({
     try {
       await autoUpgradeEIP7702Account();
       setDelegationStatus('hidden');
-    } catch (error) {
-      showRecurringAutoUpgradeError(error);
+    } catch {
+      showGenericErrorToast();
       setDelegationStatus('required');
     } finally {
       isDelegatingRef.current = false;
@@ -237,16 +239,11 @@ export function RecurringSwapAgainButton({
   );
 }
 
-function handleAddFunds() {
-  // TODO: Replace this log with Add funds navigation once the destination is defined.
-  // eslint-disable-next-line no-console
-  console.log('[RecurringSwapDetails:AddFunds] Add funds pressed');
-}
-
 function RecurringSwapDetailsView() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const { goToBuy } = useRampNavigation();
   const {
     order,
     swap,
@@ -291,6 +288,15 @@ function RecurringSwapDetailsView() {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleAddFunds = useCallback(() => {
+    goToBuy(
+      { assetId: sourceAssetId },
+      { surface: RAMPS_BUY_CUF_SURFACE.RECURRING_SWAPS },
+    ).catch(() => {
+      showGenericErrorToast();
+    });
+  }, [goToBuy, sourceAssetId]);
 
   return (
     <SafeAreaView

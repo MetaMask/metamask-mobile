@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Kopyala: {{field}}",
       "copied_label": "Kopyalandı: {{field}}",
-      "copy_all_button": "Tüm bilgileri kopyala",
-      "copied_all_label": "Banka bilgileri kopyalandı",
       "button": "Bitti",
       "waiting_for_details": "Hesap bilgileriniz kısa bir süre sonra burada gösterilecek.",
       "loading_details": "Hesap bilgileri yükleniyor",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "Ekle",
-      "transfer": "Gönder",
       "card": "Kart",
       "details": "Ayrıntılar"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "Destek ile iletişime geç"
     },
     "transfer_sheet": {
-      "title": "Fon gönder",
-      "between_accounts": "Başka hesap",
       "perps_account": "Perps hesabı",
       "predictions_account": "Tahminler hesabı",
       "send_external": "Harici adres",

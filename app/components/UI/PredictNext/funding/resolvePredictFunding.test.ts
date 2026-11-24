@@ -4,7 +4,7 @@ import type {
   PredictConfiguredVenue,
 } from '../implementation/types';
 import type { PredictVenueAction, PredictVenueId } from '../types';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import { PREDICT_FUNDING_IMPLEMENTATIONS } from './fundingImplementations';
 import { resolvePredictFunding } from './resolvePredictFunding';
 import type { PredictFundingAction } from './types';
@@ -16,10 +16,12 @@ const descriptor = (
   status: 'ready',
   descriptor: {
     venueId: venueId as PredictVenueId,
+    environment: 'production',
     actions,
     feeds: {},
     categories: [],
     searchSupported: false,
+    screens: [],
     displayName: venueId,
   },
 });
@@ -40,8 +42,6 @@ describe('resolvePredictFunding', () => {
         available: true,
         activeVenue: active('polymarket'),
         getCapabilities: () => descriptor('polymarket', [action]),
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: false,
       });
 
       expect(result).toStrictEqual({
@@ -58,8 +58,6 @@ describe('resolvePredictFunding', () => {
         available: true,
         activeVenue: { status: 'resolving' },
         getCapabilities: () => descriptor('polymarket', [action]),
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: false,
       });
 
       expect(result).toStrictEqual({
@@ -76,8 +74,6 @@ describe('resolvePredictFunding', () => {
         available: false,
         activeVenue: active('polymarket'),
         getCapabilities: () => descriptor('polymarket', [action]),
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: false,
       });
 
       expect(result).toStrictEqual({
@@ -94,8 +90,6 @@ describe('resolvePredictFunding', () => {
         available: true,
         activeVenue: active('polymarket'),
         getCapabilities: () => descriptor('polymarket', ['buy', 'sell']),
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: false,
       });
 
       expect(result).toStrictEqual({
@@ -110,8 +104,6 @@ describe('resolvePredictFunding', () => {
       available: true,
       activeVenue: active('polymarket'),
       getCapabilities: () => ({ status: 'loading' }),
-      kalshiDepositsEnabled: false,
-      kalshiWithdrawalsEnabled: false,
     });
 
     expect(result).toStrictEqual({
@@ -120,67 +112,28 @@ describe('resolvePredictFunding', () => {
     });
   });
 
-  it.each([false, true])(
-    'runs the Polymarket deposit on the legacy implementation whatever kalshiDepositsEnabled is (%s)',
-    (kalshiDepositsEnabled) => {
-      const result = resolvePredictFunding('deposit', {
-        available: true,
-        activeVenue: active('polymarket'),
-        getCapabilities: () => descriptor('polymarket', ['deposit']),
-        kalshiDepositsEnabled,
-        kalshiWithdrawalsEnabled: false,
-      });
-
-      expect(result).toStrictEqual({
-        status: 'ready',
-        implementation: 'legacy',
-      });
-    },
-  );
-
   describe('while Kalshi is active', () => {
-    const kalshiCatalog = (): PredictVenueCapabilities =>
-      descriptor('kalshi', [...KALSHI_STATIC_VENUE_CATALOG.actions]);
-
-    it('runs deposit on the next implementation with kalshiDepositsEnabled on', () => {
+    it('runs deposit on the next implementation when the Kalshi catalog descriptor includes deposit', () => {
       const result = resolvePredictFunding('deposit', {
         available: true,
         activeVenue: active('kalshi'),
-        getCapabilities: kalshiCatalog,
-        kalshiDepositsEnabled: true,
-        kalshiWithdrawalsEnabled: false,
+        getCapabilities: () =>
+          descriptor('kalshi', [...KALSHI_STATIC_VENUE_CATALOG.actions]),
       });
 
+      expect(PREDICT_FUNDING_IMPLEMENTATIONS.next).toContain('deposit');
+      expect(KALSHI_STATIC_VENUE_CATALOG.actions).toContain('deposit');
       expect(result).toStrictEqual({
         status: 'ready',
         implementation: 'next',
       });
     });
 
-    it('offers no deposit with kalshiDepositsEnabled off, though the client flow and the catalog list it', () => {
-      const result = resolvePredictFunding('deposit', {
-        available: true,
-        activeVenue: active('kalshi'),
-        getCapabilities: kalshiCatalog,
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: false,
-      });
-
-      expect(PREDICT_FUNDING_IMPLEMENTATIONS.next).toContain('deposit');
-      expect(KALSHI_STATIC_VENUE_CATALOG.actions).toContain('deposit');
-      expect(result).toStrictEqual({
-        status: 'unavailable',
-        reason: 'notImplemented',
-      });
-    });
-
-    it('offers no deposit with kalshiDepositsEnabled on while Predict is unavailable', () => {
+    it('offers no deposit while Predict is unavailable even when the descriptor includes it', () => {
       const result = resolvePredictFunding('deposit', {
         available: false,
         activeVenue: active('kalshi'),
-        getCapabilities: kalshiCatalog,
-        kalshiDepositsEnabled: true,
-        kalshiWithdrawalsEnabled: false,
+        getCapabilities: () => descriptor('kalshi', ['buy', 'sell', 'deposit']),
       });
 
       expect(result).toStrictEqual({
@@ -189,16 +142,45 @@ describe('resolvePredictFunding', () => {
       });
     });
 
-    it('offers no deposit with kalshiDepositsEnabled on when the descriptor does not list it', () => {
+    it('offers no deposit when the descriptor does not list it', () => {
       const result = resolvePredictFunding('deposit', {
         available: true,
         activeVenue: active('kalshi'),
         getCapabilities: () => descriptor('kalshi', ['buy', 'sell']),
-        kalshiDepositsEnabled: true,
-        kalshiWithdrawalsEnabled: false,
       });
 
       expect(result).toStrictEqual({
+        status: 'unavailable',
+        reason: 'unsupported',
+      });
+    });
+
+    it('offers no deposit while the descriptor is still loading', () => {
+      const result = resolvePredictFunding('deposit', {
+        available: true,
+        activeVenue: active('kalshi'),
+        getCapabilities: () => ({ status: 'loading' }),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'unavailable',
+        reason: 'unsupported',
+      });
+    });
+
+    it('offers no deposit when a ready descriptor omits environment even if actions list deposit', () => {
+      const legacy = descriptor('kalshi', ['buy', 'sell', 'deposit']);
+      if (legacy.status === 'ready') {
+        delete legacy.descriptor.environment;
+      }
+
+      expect(
+        resolvePredictFunding('deposit', {
+          available: true,
+          activeVenue: active('kalshi'),
+          getCapabilities: () => legacy,
+        }),
+      ).toStrictEqual({
         status: 'unavailable',
         reason: 'unsupported',
       });
@@ -210,8 +192,6 @@ describe('resolvePredictFunding', () => {
         activeVenue: active('kalshi'),
         getCapabilities: () =>
           descriptor('kalshi', ['buy', 'sell', 'withdraw']),
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: true,
       });
 
       expect(result).toStrictEqual({
@@ -220,7 +200,7 @@ describe('resolvePredictFunding', () => {
       });
     });
 
-    it('offers no withdraw with kalshiWithdrawalsEnabled off, though the client flow and the descriptor list it', () => {
+    it('runs withdraw on the next implementation once the client flow and the descriptor exist', () => {
       const result = resolvePredictFunding(
         'withdraw',
         {
@@ -228,28 +208,6 @@ describe('resolvePredictFunding', () => {
           activeVenue: active('kalshi'),
           getCapabilities: () =>
             descriptor('kalshi', ['buy', 'sell', 'withdraw']),
-          kalshiDepositsEnabled: true,
-          kalshiWithdrawalsEnabled: false,
-        },
-        { ...PREDICT_FUNDING_IMPLEMENTATIONS, next: ['withdraw'] },
-      );
-
-      expect(result).toStrictEqual({
-        status: 'unavailable',
-        reason: 'notImplemented',
-      });
-    });
-
-    it('runs withdraw on the next implementation once the client flow, its flag and the descriptor exist', () => {
-      const result = resolvePredictFunding(
-        'withdraw',
-        {
-          available: true,
-          activeVenue: active('kalshi'),
-          getCapabilities: () =>
-            descriptor('kalshi', ['buy', 'sell', 'withdraw']),
-          kalshiDepositsEnabled: false,
-          kalshiWithdrawalsEnabled: true,
         },
         { ...PREDICT_FUNDING_IMPLEMENTATIONS, next: ['withdraw'] },
       );
@@ -265,8 +223,6 @@ describe('resolvePredictFunding', () => {
         available: true,
         activeVenue: active('kalshi'),
         getCapabilities: () => descriptor('kalshi', ['buy', 'sell']),
-        kalshiDepositsEnabled: false,
-        kalshiWithdrawalsEnabled: true,
       });
 
       expect(result).toStrictEqual({
@@ -284,8 +240,6 @@ describe('resolvePredictFunding', () => {
             activeVenue: { status: 'resolving' },
             getCapabilities: () =>
               descriptor('kalshi', ['buy', 'sell', action]),
-            kalshiDepositsEnabled: false,
-            kalshiWithdrawalsEnabled: false,
           }),
         ).toStrictEqual({ status: 'unavailable', reason: 'resolving' });
       },
@@ -300,8 +254,6 @@ describe('resolvePredictFunding', () => {
             activeVenue: active('kalshi'),
             getCapabilities: () =>
               descriptor('kalshi', ['buy', 'sell', action]),
-            kalshiDepositsEnabled: false,
-            kalshiWithdrawalsEnabled: false,
           }),
         ).toStrictEqual({ status: 'unavailable', reason: 'unavailable' });
       },
@@ -313,8 +265,6 @@ describe('resolvePredictFunding', () => {
           available: true,
           activeVenue: active('kalshi'),
           getCapabilities: () => ({ status: 'loading' }),
-          kalshiDepositsEnabled: false,
-          kalshiWithdrawalsEnabled: true,
         }),
       ).toStrictEqual({ status: 'unavailable', reason: 'unsupported' });
     });

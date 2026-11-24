@@ -1,9 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ButtonIconSize,
   Text,
@@ -13,12 +13,15 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { BatchSellNetworkFeeInfoModalSelectorsIDs } from './BatchSellNetworkFeeInfoModal.testIds';
 import { BatchSellNetworkFeeInfoModalParams } from './BatchSellNetworkFeeInfoModal.types';
 
 export function BatchSellNetworkFeeInfoModal() {
   const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellNetworkFeeInfoModalParams>();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen)
     : undefined;
@@ -27,7 +30,8 @@ export function BatchSellNetworkFeeInfoModal() {
       testID={BatchSellNetworkFeeInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={handleBack}
         backButtonProps={{
           testID: BatchSellNetworkFeeInfoModalSelectorsIDs.BACK_BUTTON,
@@ -39,7 +43,7 @@ export function BatchSellNetworkFeeInfoModal() {
         }}
       >
         {strings('bridge.network_fee_info_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
           variant={TextVariant.BodyMd}

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} 복사",
       "copied_label": "{{field}} 복사됨",
-      "copy_all_button": "상세 정보 모두 복사",
-      "copied_all_label": "은행 계좌 정보가 복사됨",
       "button": "완료",
       "waiting_for_details": "계정 세부 정보가 곧 여기에 표시됩니다.",
       "loading_details": "계정 세부 정보 불러오는 중",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "추가",
-      "transfer": "전송",
       "card": "카드",
       "details": "세부 정보"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "지원팀에 문의"
     },
     "transfer_sheet": {
-      "title": "자금 전송 대상:",
-      "between_accounts": "다른 계정",
       "perps_account": "무기한 선물 계정",
       "predictions_account": "예측 계정",
       "send_external": "외부 주소",
