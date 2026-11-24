@@ -207,6 +207,7 @@ const KycVerifyIdentity = ({
           isGlass={isGlassHeader}
           isFloating={false}
           onBack={handleBack}
+          title={stepIndicator}
           backButtonProps={{
             testID: KycVerifyIdentitySelectorsIDs.BACK_BUTTON,
           }}
@@ -216,7 +217,6 @@ const KycVerifyIdentity = ({
           contentContainerStyle={tw.style('flex-grow pb-4')}
           testID={KycVerifyIdentitySelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('kyc.verify_identity.title')}
             bottomLabel={
@@ -241,7 +241,7 @@ const KycVerifyIdentity = ({
                 </TextButton>
               </Text>
             }
-            twClassName="px-4 pb-4"
+            twClassName="px-4 pt-2 pb-4"
           />
           <Box>
             {VERIFICATION_STEPS.map((step) => (
