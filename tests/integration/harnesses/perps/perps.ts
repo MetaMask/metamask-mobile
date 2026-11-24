@@ -559,15 +559,43 @@ function buildHarnessController(
  *
  * @param state - Persisted controller state, including pre-upgrade shapes
  * the current TypeScript state no longer describes.
+ * @param options - Optionally supply a loaded multi-provider flag; by default it is unknown.
  * @returns The migrated controller.
  */
 export function buildPerpsPersistedStateHarness(
   state: Partial<PerpsControllerState>,
+  { multiProviderModeEnabled }: { multiProviderModeEnabled?: boolean } = {},
 ): { controller: PerpsController } {
-  const { mocks } = buildPerpsIntegrationHarness();
+  const { mocks } = buildPerpsIntegrationHarness({
+    isTestnet: state.isTestnet,
+  });
+  const messenger = createMockMessenger();
+  if (multiProviderModeEnabled !== undefined) {
+    const defaultCall = messenger.call.getMockImplementation();
+    messenger.call.mockImplementation(
+      (...args): ReturnType<typeof messenger.call> => {
+        if (args[0] === 'RemoteFeatureFlagController:getState') {
+          return {
+            cacheTimestamp: 0,
+            remoteFeatureFlags: {
+              perpsMultiProviderModeEnabled: {
+                enabled: multiProviderModeEnabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          };
+        }
+        return defaultCall?.(...args);
+      },
+    );
+    jest
+      .spyOn(mocks.infrastructure.featureFlags, 'validateVersionGated')
+      .mockImplementation((flag) => flag.enabled);
+  }
+
   return {
     controller: new PerpsController({
-      messenger: createMockMessenger(),
+      messenger,
       state,
       infrastructure: mocks.infrastructure,
       deferEligibilityCheck: true,
