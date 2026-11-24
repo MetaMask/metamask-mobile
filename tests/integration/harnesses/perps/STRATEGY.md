@@ -63,8 +63,8 @@ When a harness is added or its public boundary changes, update this section. Fol
 
 - **Shape:** focused Shape D — real controller startup migration on the Shape A I/O mocks
 - **Real:** `PerpsController` construction and its persisted-state migrations
-- **Mocked:** Shape A SDK/wallet/subscription I/O
-- **Factory:** `buildPerpsPersistedStateHarness(state)`
+- **Mocked:** Shape A SDK/wallet/subscription I/O and the optional version-gated multi-provider flag (unknown when omitted)
+- **Factory:** `buildPerpsPersistedStateHarness(state, { multiProviderModeEnabled? }?)`
 - **Returns:** `{ controller }`
 - **Use when:** an older persisted Perps state must survive the installed controller's startup migration and stay readable through the selectors Mobile uses
 

@@ -3085,7 +3085,7 @@
       "marketsFailed": "Failed to get markets",
       "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
       "providerNotAvailable": "Provider {{providerId}} not available",
-      "providerRouteRequired": "Choose a provider for this order and try again.",
+      "providerRouteRequired": "No exchange selected. Select one and try again.",
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
