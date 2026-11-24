@@ -10,6 +10,8 @@ Mobile emits the Core event set plus one event of its own.
 | ---------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------- |
 | `Perp Margin Adjustment Transaction` (`PERPS_MARGIN_ADJUSTMENT_TRANSACTION`) | `usePerpsMarginAdjustment` | `asset`, `action` (`add` or `remove`), `status`, `error_message` on failure |
 
+For failed results, `error_message` contains the controller's stable `errorCode` when available, otherwise its original `error` text. Thrown errors send their message. Toasts and `onError` callbacks receive translated copy independently.
+
 This event is a known exception to the fixed-event rule. It is not in Core's `PerpsAnalyticsEvent`. It stays until product decides whether to move it into Core or fold it into an existing event.
 
 `MetaMetrics.events.ts` holds 15 `Perp *` names, Core's 14 plus this one.
