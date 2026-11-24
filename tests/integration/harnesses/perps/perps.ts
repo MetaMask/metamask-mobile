@@ -452,6 +452,7 @@ export function buildPerpsIntegrationHarness(
     getCachedOpenOrdersForDex: jest.fn().mockReturnValue(null),
     getCachedActiveTwapOrders: jest.fn().mockReturnValue(null),
     getCachedActiveAssetLeverage: jest.fn().mockReturnValue(null),
+    getFreshCrossMarginContext: jest.fn().mockReturnValue(null),
     getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
     // `null` is the uninitialized-cache signal, not an empty result.
     getFillsCacheIfInitialized: jest.fn().mockReturnValue(null),
