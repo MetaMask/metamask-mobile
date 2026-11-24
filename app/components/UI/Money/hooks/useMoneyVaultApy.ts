@@ -1,13 +1,19 @@
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import type { NormalizedVaultApyResponse } from '@metamask/money-account-balance-service';
-import type { PositionResponse } from '@metamask/money-account-api-data-service';
+import type {
+  PositionResponse,
+  VaultsResponse,
+} from '@metamask/money-account-api-data-service';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountPremiumVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selectors/subscriptionController';
-import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 import { parseApy, toApyPercent } from '../utils/apy';
+import { findVault } from '../utils/moneyVaultState';
 import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -18,7 +24,7 @@ export interface UseMoneyVaultApyResult {
    * user is entitled, otherwise the base vault APY query.
    */
   vaultApyQuery:
-    | UseQueryResult<NormalizedVaultApyResponse>
+    | UseQueryResult<VaultsResponse>
     | UseQueryResult<PositionResponse>;
   /** Effective APY decimal shown across Money surfaces. */
   apyDecimal: number | undefined;
@@ -29,7 +35,7 @@ export interface UseMoneyVaultApyResult {
   /** Base vault APY as a one-decimal percentage. */
   baseApyPercent: number | undefined;
   /**
-   * True while `GET_VAULT_APY` is in its first load and no base rate is
+   * True while `FETCH_VAULTS` is in its first load and no base rate is
    * available yet. An override, a cached service value, or a settled fallback
    * clears this even if a refetch is in flight. Entitled users still need it:
    * `vaultApyQuery` switches to the premium rate and hides this query.
@@ -66,14 +72,20 @@ const useMoneyVaultApy = ({
   );
   const isEntitled = useSelector(selectHasMoneyAccountPremiumApyEntitlement);
   const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
+  const baseVaultConfig = useSelector(selectMoneyAccountVaultConfig);
 
   const baseVaultApyQuery = useQuery({
-    queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
+    queryKey: [MoneyAccountApiDataServiceQueryKeys.FETCH_VAULTS],
     enabled,
     refetchInterval: FIVE_MINUTES_MS,
-  }) as UseQueryResult<NormalizedVaultApyResponse>;
+  }) as UseQueryResult<VaultsResponse>;
 
-  const serviceApy = baseVaultApyQuery.data?.apy;
+  const baseVault = findVault(
+    baseVaultApyQuery.data?.vaults,
+    baseVaultConfig?.boringVault,
+    'standard',
+  );
+  const serviceApy = parseApy(baseVault?.current_apy);
 
   // During first load with no cache, do not show fallback to avoid flicker.
   // Show fallback on explicit APY query errors (service outage path) or when

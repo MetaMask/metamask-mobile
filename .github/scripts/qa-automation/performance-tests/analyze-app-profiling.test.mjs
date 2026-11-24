@@ -98,9 +98,16 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
     parseArgs(['--scheduled-exception', '--skip-ai', '--run', '100']).skipAi,
     true,
   );
+  assert.equal(parseArgs(['--jira-issues']).jiraIssues, true);
+  assert.equal(parseArgs([]).jiraIssues, false);
+  assert.equal(parseArgs([]).jiraIssueType, null);
+  assert.equal(
+    parseArgs(['--jira-issues', '--jira-issue-type', 'Task']).jiraIssueType,
+    'Task',
+  );
 });
 
-test('weekly --github-issues lists issues and does not open or comment', () => {
+test('weekly --jira-issues lists tickets and does not open or comment', () => {
   const source = fs.readFileSync(
     new URL('./analyze-app-profiling.mjs', import.meta.url),
     'utf8',
@@ -945,6 +952,82 @@ test('groupProfiles uses only the worst retry across its segments', () => {
   assert.equal(grouped[0].jsWorkMs, 40);
   assert.equal(grouped[0].averageJsWorkMs, 40);
   assert.equal(grouped[0].jsDutyPct, 40);
+});
+
+test('groupProfiles measures the first attempt even when a retry is the worst', () => {
+  const grouped = groupProfiles([
+    profile('testmu-android-Warm_Start.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 100,
+        jsWorkMs: 40,
+        runtimeAndIdleMs: 60,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+    profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 200,
+        jsWorkMs: 150,
+        runtimeAndIdleMs: 50,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+  ]);
+
+  assert.equal(grouped[0].selectedAttempt, 1);
+  assert.equal(grouped[0].firstAttempt.attempt, 0);
+  assert.equal(grouped[0].firstAttempt.measured, true);
+  assert.equal(grouped[0].firstAttempt.jsWorkMs, 40);
+  assert.equal(grouped[0].firstAttempt.captureLengthMs, 100);
+  assert.equal(grouped[0].firstAttempt.jsDutyPct, 40);
+});
+
+test('groupProfiles marks a first attempt with no usable profile as unmeasured', () => {
+  const grouped = groupProfiles([
+    profile('testmu-android-Warm_Start.cpuprofile', {
+      skipped: true,
+      skillAudit: {
+        captureLengthMs: 100,
+        jsWorkMs: 40,
+        runtimeAndIdleMs: 60,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+    profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 200,
+        jsWorkMs: 150,
+        runtimeAndIdleMs: 50,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+  ]);
+
+  assert.equal(grouped[0].firstAttempt.attempt, 0);
+  assert.equal(grouped[0].firstAttempt.measured, false);
+  assert.equal(grouped[0].firstAttempt.jsWorkMs, 0);
+});
+
+test('groupProfiles never measures a retry as the first attempt', () => {
+  const grouped = groupProfiles([
+    profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 200,
+        jsWorkMs: 150,
+        runtimeAndIdleMs: 50,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+  ]);
+
+  assert.equal(grouped[0].firstAttempt.attempt, 0);
+  assert.equal(grouped[0].firstAttempt.measured, false);
+  assert.equal(grouped[0].firstAttempt.jsWorkMs, 0);
 });
 
 test('scenario filter matches sanitized Hermes name', () => {
