@@ -148,6 +148,7 @@ export type EarnRatesView = {
  */
 export type ReferralLocalizedTextKey =
   | 'waysToEarn'
+  | 'overviewTab'
   | 'earningsTab'
   | 'performanceTitle'
   | 'earnEligibleFees'

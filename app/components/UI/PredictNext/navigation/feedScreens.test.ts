@@ -10,7 +10,6 @@ import {
   SPORTS_FEED_SCREEN_ID,
   getFeedScreen,
   getFeedScreenTab,
-  getKnownFeedScreenLabel,
   getKnownFeedScreenTitle,
   type FeedScreenTab,
 } from './feedScreens';
@@ -52,6 +51,7 @@ const readyCapabilities = (
   descriptor: {
     venueId: 'test-venue' as PredictVenueId,
     displayName: 'Test Venue',
+    environment: 'production',
     actions: [],
     feeds: feeds as Record<string, PredictFeedId>,
     categories: [],
@@ -176,17 +176,6 @@ describe('feedScreens', () => {
 
     it('returns an empty title for a screen the app does not know', () => {
       expect(getKnownFeedScreenTitle('sports-basketball-nba')).toBe('');
-    });
-  });
-
-  describe('getKnownFeedScreenLabel', () => {
-    it.each([
-      [NFL_FEED_SCREEN_ID, 'NFL'],
-      ['sports-football-ncaa', 'NCAAF'],
-      [POLITICS_FEED_SCREEN_ID, 'Politics'],
-      ['sports-basketball-nba', ''],
-    ])('labels %s as "%s"', (feedScreenId, label) => {
-      expect(getKnownFeedScreenLabel(feedScreenId)).toBe(label);
     });
   });
 

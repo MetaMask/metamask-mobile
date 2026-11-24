@@ -6,6 +6,7 @@ import {
 } from '@metamask/utils';
 import { anyScopesMatch } from '../../../hooks/useAccountGroupsForPermissions/utils';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
+import { FEED_CAIP2_CHAINS } from '../../SocialFeed/data/feed-constants';
 
 /** Contract or mint address inside a CAIP-19 asset id. */
 export const tokenAddressFromAsset = (
@@ -36,6 +37,14 @@ export const assetChainScope = (
     return undefined;
   }
 };
+
+/**
+ * Whether the open-position route serves this chain. The API answers 400 for
+ * every other chain, so the caller skips the request instead of sending it.
+ * Mirrors the server's six-chain registry via `FEED_CAIP2_CHAINS`.
+ */
+export const isOpenPositionChain = (scope: CaipChainId | undefined): boolean =>
+  scope !== undefined && FEED_CAIP2_CHAINS.includes(scope);
 
 /**
  * Wallet address to ask the open-position route about, for one asset.

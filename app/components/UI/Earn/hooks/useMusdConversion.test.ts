@@ -5,7 +5,10 @@ import {
 } from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  ORIGIN_METAMASK,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
 import { generateTransferData } from '../../../../util/transactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -822,8 +825,34 @@ describe('useMusdConversion', () => {
         mockTransactionPayController.updatePaymentToken,
       ).toHaveBeenCalledWith({
         transactionId: 'tx-max-123',
-        tokenAddress: mockToken.address,
-        chainId: mockToken.chainId,
+        assetId: `eip155:1/erc20:${toChecksumHexAddress(mockToken.address)}`,
+      });
+    });
+
+    it('sets the payment token by the asset ID the token carries', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await result.current.initiateMaxConversion({
+          ...mockToken,
+          caipAssetId: 'eip155:1/erc20:0xHeldTokenKey',
+        });
+      });
+
+      expect(
+        mockTransactionPayController.updatePaymentToken,
+      ).toHaveBeenCalledWith({
+        transactionId: 'tx-max-123',
+        assetId: 'eip155:1/erc20:0xHeldTokenKey',
       });
     });
 
