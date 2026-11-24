@@ -9,6 +9,7 @@ import { TransactionPayControllerInitMessenger } from '../../messengers/transact
 import { getAmountData } from './amount-data-callback';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 import { getPaymentOverrideData } from './paymentoverride-callback';
+import { createLighterCallbacks } from './lighter-callbacks';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
@@ -30,6 +31,9 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
         getDelegationTransaction(initMessenger, transaction, isSubsidized),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
+      // TODO: pass `lighter` as a typed option once this app depends on a
+      // `@metamask/transaction-pay-controller` release with MetaMask/core#11730.
+      ...{ lighter: createLighterCallbacks() },
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,

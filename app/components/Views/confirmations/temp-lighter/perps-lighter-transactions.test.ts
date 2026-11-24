@@ -5,7 +5,10 @@ import {
 import { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
-import { addTransaction } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import {
@@ -15,10 +18,12 @@ import {
   buildRetypedRequest,
   readEnteredUsdcAmount,
   replacePerpsTransaction,
+  replacePerpsWithdrawBatch,
   snapshotHyperliquidConfirmation,
 } from './perps-lighter-transactions';
 
 jest.mock('../../../../core/Engine', () => ({
+  controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() },
   context: {
     ApprovalController: { rejectRequest: jest.fn() },
     TransactionPayController: {
@@ -30,6 +35,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
+  addTransactionBatch: jest.fn(),
 }));
 
 const USER = '0x1111111111111111111111111111111111111111';
@@ -364,5 +370,139 @@ describe('replacePerpsTransaction', () => {
     expect(
       Engine.context.ApprovalController.rejectRequest,
     ).not.toHaveBeenCalled();
+  });
+});
+
+describe('replacePerpsWithdrawBatch', () => {
+  const meta = {
+    id: 'tx-1',
+    networkClientId: 'arbitrum',
+    origin: 'metamask',
+    txParams: { from: USER },
+    type: TransactionType.batch,
+    nestedTransactions: [
+      {
+        to: USDC,
+        data: transferData(0),
+        value: '0x0',
+        type: TransactionType.perpsWithdraw,
+      },
+    ],
+  } as unknown as TransactionMeta;
+
+  const addedBatch = {
+    id: 'tx-2',
+    type: TransactionType.batch,
+  } as TransactionMeta;
+
+  // Like the real controller, the batch promise stays pending until approval.
+  const addBatchThatStaysPending = (added: TransactionMeta = addedBatch) => {
+    jest.mocked(addTransactionBatch).mockImplementation(async () => {
+      const [, handler] = jest.mocked(Engine.controllerMessenger.subscribe).mock
+        .calls[0] as unknown as [string, (meta: TransactionMeta) => void];
+      handler(added);
+      return await new Promise(() => undefined);
+    });
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    addBatchThatStaysPending();
+  });
+
+  it('adds the same withdraw batch with the new type before rejecting the previous approval', async () => {
+    await replacePerpsWithdrawBatch(meta, TransactionType.perpsLighterWithdraw);
+
+    expect(addTransactionBatch).toHaveBeenCalledWith({
+      from: USER,
+      origin: 'metamask',
+      isInternal: true,
+      networkClientId: 'arbitrum',
+      disableHook: true,
+      disableSequential: true,
+      overwriteUpgrade: true,
+      transactions: [
+        {
+          params: { to: USDC, data: transferData(0), value: '0x0' },
+          type: TransactionType.perpsLighterWithdraw,
+        },
+      ],
+    });
+    expect(
+      Engine.context.ApprovalController.rejectRequest,
+    ).toHaveBeenCalledWith('tx-1', expect.anything());
+    expect(
+      jest.mocked(addTransactionBatch).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest).mock
+        .invocationCallOrder[0],
+    );
+  });
+
+  it('keeps the previous approval and unsubscribes when adding the batch fails', async () => {
+    jest.mocked(addTransactionBatch).mockRejectedValue(new Error('add failed'));
+
+    await expect(
+      replacePerpsWithdrawBatch(meta, TransactionType.perpsLighterWithdraw),
+    ).rejects.toThrow('add failed');
+
+    expect(
+      Engine.context.ApprovalController.rejectRequest,
+    ).not.toHaveBeenCalled();
+    expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalled();
+  });
+
+  it('does not unsubscribe twice when the batch fails after it was added', async () => {
+    let rejectBatch: (error: Error) => void = () => undefined;
+    jest.mocked(addTransactionBatch).mockImplementation(async () => {
+      const [, handler] = jest.mocked(Engine.controllerMessenger.subscribe).mock
+        .calls[0] as unknown as [string, (meta: TransactionMeta) => void];
+      handler(addedBatch);
+      return await new Promise((_resolve, reject) => {
+        rejectBatch = reject;
+      });
+    });
+
+    await replacePerpsWithdrawBatch(meta, TransactionType.perpsLighterWithdraw);
+    rejectBatch(new Error('User rejected'));
+    await Promise.resolve();
+
+    expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores the previous confirmation when waiting for the new batch', async () => {
+    addBatchThatStaysPending({ ...addedBatch, id: 'tx-1' });
+    const pending = replacePerpsWithdrawBatch(
+      meta,
+      TransactionType.perpsLighterWithdraw,
+    );
+    const settled = jest.fn();
+    pending.then(settled, settled);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(settled).not.toHaveBeenCalled();
+    expect(
+      Engine.context.ApprovalController.rejectRequest,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('keeps the type of nested transactions that are not the withdraw', async () => {
+    await replacePerpsWithdrawBatch(
+      {
+        ...meta,
+        nestedTransactions: [
+          ...(meta.nestedTransactions ?? []),
+          { to: OTHER, data: '0x', type: TransactionType.simpleSend },
+        ],
+      },
+      TransactionType.perpsWithdraw,
+    );
+
+    const { transactions } = jest.mocked(addTransactionBatch).mock.calls[0][0];
+    expect(transactions.map(({ type }) => type)).toStrictEqual([
+      TransactionType.perpsWithdraw,
+      TransactionType.simpleSend,
+    ]);
   });
 });

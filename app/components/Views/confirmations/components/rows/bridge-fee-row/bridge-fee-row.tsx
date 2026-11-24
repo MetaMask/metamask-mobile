@@ -53,6 +53,16 @@ import DottedUnderline from '../../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../../util/theme';
 import { decodeEvmAssetId } from '../../../../../../util/transactions/payment-token';
 
+// TODO: temporary cast. Read `fees.lighter` directly once this app depends on a
+// `@metamask/transaction-pay-controller` release with MetaMask/core#11730,
+// which adds it to `TransactionPayFees`.
+function getLighterFee(
+  fees: TransactionPayTotals['fees'],
+): { usd: string } | undefined {
+  return (fees as TransactionPayTotals['fees'] & { lighter?: { usd: string } })
+    .lighter;
+}
+
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
@@ -139,9 +149,11 @@ function TransactionFeeRow({
     const provider = totals.fees.provider.usd;
     const sourceNetwork = totals.fees.sourceNetwork.estimate.usd;
     const targetNetwork = totals.fees.targetNetwork.usd;
+    const lighter = getLighterFee(totals.fees)?.usd ?? 0;
 
     return formatFiat(
       new BigNumber(metaMask)
+        .plus(lighter)
         .plus(provider)
         .plus(sourceNetwork)
         .plus(targetNetwork),
@@ -390,6 +402,11 @@ function FeesTooltip({
     [totals, formatFiat],
   );
 
+  const lighterFeeUsd = useMemo(() => {
+    const lighterFee = getLighterFee(totals.fees);
+    return lighterFee ? formatFiat(new BigNumber(lighterFee.usd)) : undefined;
+  }, [totals, formatFiat]);
+
   return (
     <Box gap={14}>
       <Text>{message}</Text>
@@ -434,6 +451,17 @@ function FeesTooltip({
         </Text>
         <Text color={TextColor.TextAlternative}>{metaMaskFeeUsd}</Text>
       </Box>
+      {lighterFeeUsd !== undefined && (
+        <Box
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Text color={TextColor.TextAlternative}>
+            {strings('confirm.label.lighter_fee')}
+          </Text>
+          <Text color={TextColor.TextAlternative}>{lighterFeeUsd}</Text>
+        </Box>
+      )}
     </Box>
   );
 }

@@ -224,6 +224,46 @@ describe('BridgeFeeRow', () => {
     expect(getByText('$0.50')).toBeOnTheScreen();
   });
 
+  it('shows the Lighter fee in the tooltip and adds it to the total', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { fiat: '1', usd: '1' },
+        lighter: { fiat: '1', usd: '1' },
+        sourceNetwork: {
+          estimate: { fiat: '0', usd: '0', raw: '0', human: '0' },
+          max: { fiat: '0', usd: '0', raw: '0', human: '0' },
+        },
+        targetNetwork: { fiat: '0', usd: '0' },
+        metaMask: { fiat: '0', usd: '0' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { getByTestId, getByText, getAllByText } = render({
+      type: TransactionType.perpsLighterWithdraw,
+    });
+
+    expect(getByText('$2')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('Lighter fee')).toBeOnTheScreen();
+    expect(getAllByText('$1')).toHaveLength(2);
+  });
+
+  it('does not show a Lighter fee row when there is no Lighter fee', async () => {
+    const { getByTestId, queryByText } = render({
+      type: TransactionType.perpsLighterWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(queryByText('Lighter fee')).toBeNull();
+  });
+
   it('renders tooltip for perps withdraw', async () => {
     const { getByTestId } = render({
       type: TransactionType.perpsWithdraw,

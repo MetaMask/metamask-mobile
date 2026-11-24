@@ -76,7 +76,10 @@ import {
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useSyncPerpsLighterTransactionType } from '../../../hooks/transactions/useSyncPerpsLighterTransactionType';
-import { perpsProviderSelectionForType } from '../../../utils/perps-lighter-transaction-type';
+import {
+  getPerpsWithdrawType,
+  perpsProviderSelectionForType,
+} from '../../../utils/perps-lighter-transaction-type';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import {
   MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
@@ -227,7 +230,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         ? CustomAmountStage.NoQuote
         : amountStage;
 
-    const perpsProvider = perpsProviderSelectionForType(transactionMeta?.type);
+    const perpsProvider = perpsProviderSelectionForType(
+      getPerpsWithdrawType(transactionMeta) ?? transactionMeta?.type,
+    );
     const [perpsReceiveDestination, setPerpsReceiveDestination] =
       useState<PerpsReceiveDestination>(perpsProvider);
     const [perpsWithdrawSource, setPerpsWithdrawSource] =

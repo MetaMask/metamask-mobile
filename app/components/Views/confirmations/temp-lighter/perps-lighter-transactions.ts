@@ -15,7 +15,10 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import Engine from '../../../../core/Engine';
-import { addTransaction } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { getTokenTransferData } from '../utils/transaction-pay';
@@ -267,6 +270,72 @@ export function buildRetypedRequest(
       type,
     },
   };
+}
+
+/**
+ * Replaces a Perps withdraw batch with the same batch typed for the other
+ * provider. The Perps withdraw is a batch whose nested transaction carries the
+ * type, so it cannot be recreated with `addTransaction`.
+ *
+ * @param meta - Withdraw confirmation being replaced.
+ * @param type - Withdraw type for the selected provider.
+ */
+export async function replacePerpsWithdrawBatch(
+  meta: TransactionMeta,
+  type: TransactionType,
+): Promise<void> {
+  const { controllerMessenger } = Engine;
+  const event = 'TransactionController:unapprovedTransactionAdded';
+
+  // `addTransactionBatch` resolves only once the batch is approved, so the
+  // previous approval is rejected as soon as the new transaction appears.
+  await new Promise<void>((resolve, reject) => {
+    let isSubscribed = true;
+    let onAdded: (added: TransactionMeta) => void = () => undefined;
+    const unsubscribe = () => {
+      // The batch can fail long after the new transaction appeared.
+      if (isSubscribed) {
+        isSubscribed = false;
+        controllerMessenger.unsubscribe(event, onAdded);
+      }
+    };
+    onAdded = (added: TransactionMeta) => {
+      if (added.id === meta.id || added.type !== TransactionType.batch) {
+        return;
+      }
+      unsubscribe();
+      resolve();
+    };
+    controllerMessenger.subscribe(event, onAdded);
+
+    addTransactionBatch({
+      from: meta.txParams.from as Hex,
+      origin: meta.origin,
+      isInternal: true,
+      networkClientId: meta.networkClientId,
+      disableHook: true,
+      disableSequential: true,
+      overwriteUpgrade: true,
+      transactions: (meta.nestedTransactions ?? []).map(
+        ({ to, data, value, type: nestedType }) => ({
+          params: { to, data, value },
+          type:
+            nestedType === TransactionType.perpsWithdraw ||
+            nestedType === TransactionType.perpsLighterWithdraw
+              ? type
+              : nestedType,
+        }),
+      ),
+    }).catch((error: unknown) => {
+      unsubscribe();
+      reject(error);
+    });
+  });
+
+  Engine.context.ApprovalController.rejectRequest(
+    meta.id,
+    providerErrors.userRejectedRequest(),
+  );
 }
 
 /**

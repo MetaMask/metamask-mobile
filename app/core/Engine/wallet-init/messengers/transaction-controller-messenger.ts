@@ -181,6 +181,10 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      // TODO: temporary cast. Remove it once this app depends on a
+      // `@metamask/transaction-pay-controller` release with MetaMask/core#11730,
+      // which adds this action to the controller types.
+      'TransactionPayController:lighterSubmitTransfer' as never,
       'TransactionPayController:polymarketGetDepositWalletAddress',
       'TransactionPayController:polymarketSubmitDepositWalletBatch',
       'AnalyticsController:trackEvent',
