@@ -136,6 +136,16 @@ describe('CardBalanceDisplay', () => {
     expect(getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeOnTheScreen();
   });
 
+  it('reserves the subtitle row while loading', () => {
+    const { getByTestId } = render(
+      <CardBalanceDisplay {...baseProps} isLoading />,
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.BALANCE_SUBTITLE_SKELETON),
+    ).toBeOnTheScreen();
+  });
+
   it('uses the passed currency for the zero figure', () => {
     I18n.locale = 'en-US';
     const { getByTestId } = render(

@@ -2717,6 +2717,11 @@ describe('CardHome Component', () => {
       screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).toBeDisabled();
     expect(screen.queryByTestId('card-provisioning-alert-skeleton')).toBeNull();
+    // The provisioning alert renders nothing while reconciling, so no empty
+    // banner block is left under the header.
+    expect(
+      screen.queryByTestId(CardHomeSelectors.DASHBOARD_BANNERS),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
