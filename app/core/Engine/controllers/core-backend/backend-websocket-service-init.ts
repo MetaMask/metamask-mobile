@@ -22,14 +22,13 @@ import Logger from '../../../../util/Logger';
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
- * @param request.initMessenger - The messenger for accessing other controllers.
  * @returns The initialized service.
  */
 export const backendWebSocketServiceInit: MessengerClientInitFunction<
   BackendWebSocketService,
   BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger
-> = ({ controllerMessenger, initMessenger }) => {
+> = ({ controllerMessenger }) => {
   Logger.log('Initializing BackendWebSocketService');
 
   const isBasicFunctionality = () =>
@@ -59,38 +58,6 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
     // Inject the Sentry-backed trace function from mobile platform
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,
-    // Feature flag AND app lifecycle integration
-    // Service will check this callback before connecting/reconnecting
-    isEnabled: () => {
-      try {
-        const remoteFeatureFlagState = initMessenger?.call(
-          'RemoteFeatureFlagController:getState',
-        );
-        const { backendWebSocketConnection } =
-          remoteFeatureFlagState?.remoteFeatureFlags || {};
-
-        // The flag can be a bare boolean or a legacy `{ value }` wrapper.
-        // Treat both shapes as enabled when the resolved value is truthy.
-        if (
-          typeof backendWebSocketConnection === 'object' &&
-          backendWebSocketConnection !== null &&
-          'value' in backendWebSocketConnection
-        ) {
-          return Boolean(backendWebSocketConnection.value);
-        }
-
-        return typeof backendWebSocketConnection === 'boolean'
-          ? backendWebSocketConnection
-          : false;
-      } catch (error) {
-        // If feature flag check fails, default to NOT connecting for safer startup
-        Logger.log(
-          'BackendWebSocketService: Could not check feature flag, defaulting to NOT connect',
-          error,
-        );
-        return false;
-      }
-    },
     isBasicFunctionality,
     subscribeToBasicFunctionalityChange,
   });

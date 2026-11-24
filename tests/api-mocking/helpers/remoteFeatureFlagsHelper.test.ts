@@ -34,17 +34,6 @@ describe('Remote Feature Flags Helper', () => {
       expect(Array.isArray(result.response)).toBe(true);
     });
 
-    it('pins backendWebSocketConnection to a boolean true instead of a threshold array', () => {
-      const result = createRemoteFeatureFlagsMock();
-
-      const response = result.response as Record<string, unknown>[];
-      const websocketFlag = response.find(
-        (obj: Record<string, unknown>) => 'backendWebSocketConnection' in obj,
-      );
-
-      expect(websocketFlag).toEqual({ backendWebSocketConnection: true });
-    });
-
     it('pins 2026-10-06 production UI flags to pre-sync values', () => {
       const result = createRemoteFeatureFlagsMock();
       const response = result.response as Record<string, unknown>[];
