@@ -74,6 +74,13 @@ describe('KalshiPrototypeCodeScreen', () => {
       expect(onBack).not.toHaveBeenCalled();
     });
 
+    it('hides the Kalshi email button once that email is entered', () => {
+      const { queryByTestId } = renderScreen({ hideUseDifferentEmail: true });
+      expect(
+        queryByTestId(MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows the entered address, masked', () => {
       const { getByText } = renderScreen({ email: 'connor@example.com' });
       expect(

@@ -34,6 +34,8 @@ interface KalshiPrototypeCodeScreenProps {
   email?: string;
   /** Opens the screen for entering a different email. */
   onUseDifferentEmail?: () => void;
+  /** Hides "Use my Kalshi email", once the user has already entered it. */
+  hideUseDifferentEmail?: boolean;
 }
 
 /**
@@ -53,6 +55,7 @@ const KalshiPrototypeCodeScreen = ({
   onBack,
   email: enteredEmail = PROTOTYPE_EMAIL,
   onUseDifferentEmail,
+  hideUseDifferentEmail = false,
 }: KalshiPrototypeCodeScreenProps) => {
   const tw = useTailwind();
   const [busy, setBusy] = useState(false);
@@ -85,15 +88,16 @@ const KalshiPrototypeCodeScreen = ({
     title: isEmail
       ? PROTOTYPE_COPY.emailCode.title
       : PROTOTYPE_COPY.phoneCode.title,
-    useDifferentEmail: isEmail
-      ? {
-          label: PROTOTYPE_COPY.useDifferentEmail,
-          // To the email entry screen, or back when there is none.
-          onPress: onUseDifferentEmail ?? onBack,
-          // The full-width secondary button under the resend button.
-          asButton: true,
-        }
-      : undefined,
+    useDifferentEmail:
+      isEmail && !hideUseDifferentEmail
+        ? {
+            label: PROTOTYPE_COPY.useDifferentEmail,
+            // To the email entry screen, or back when there is none.
+            onPress: onUseDifferentEmail ?? onBack,
+            // The full-width secondary button under the resend button.
+            asButton: true,
+          }
+        : undefined,
     description,
     // George's copy for a refused code, from his `kalshiErrors.ts`.
     errorMessage: GEORGE_COPY.codeRefused,
