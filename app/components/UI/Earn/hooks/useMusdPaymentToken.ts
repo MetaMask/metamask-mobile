@@ -1,14 +1,23 @@
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConversionTransaction';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { selectEvmAssetIdEncoder } from '../../../../selectors/assets/assets-controller';
 
 export const useMusdPaymentToken = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const { setPayToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
 
   const onPaymentTokenChange = (token: AssetType) => {
+    const assetId =
+      token.caipAssetId ??
+      encodeAssetId({
+        address: token.address as Hex,
+        chainId: token.chainId as Hex,
+      });
     const selectedTokenChainId = token?.chainId;
     const transactionChainId = transactionMeta?.chainId;
 
@@ -25,7 +34,7 @@ export const useMusdPaymentToken = () => {
      */
     if (isChainMismatch && transactionMeta) {
       replaceMusdConversionTransactionForPayToken(transactionMeta, {
-        address: token.address as Hex,
+        assetId,
         chainId: selectedTokenChainId as Hex,
       }).catch((error) => {
         console.error(
@@ -36,10 +45,7 @@ export const useMusdPaymentToken = () => {
       return;
     }
 
-    setPayToken({
-      address: token.address as Hex,
-      chainId: token.chainId as Hex,
-    });
+    setPayToken({ assetId });
   };
 
   return {
