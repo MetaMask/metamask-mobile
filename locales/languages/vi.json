@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Sao chép {{field}}",
       "copied_label": "Đã sao chép {{field}}",
-      "copy_all_button": "Sao chép tất cả thông tin",
-      "copied_all_label": "Đã sao chép thông tin ngân hàng",
       "button": "Hoàn tất",
       "waiting_for_details": "Thông tin tài khoản của bạn sẽ sớm xuất hiện tại đây.",
       "loading_details": "Đang tải thông tin tài khoản",
