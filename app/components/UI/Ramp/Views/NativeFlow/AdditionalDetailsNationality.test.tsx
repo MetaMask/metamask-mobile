@@ -256,7 +256,7 @@ describe('AdditionalDetailsNationality', () => {
     const { getByText } = renderScreen();
 
     expect(
-      getByText('deposit.additional_details_nationality.fields_missing_title'),
+      getByText('deposit.source_of_income.fields_missing_title'),
     ).toBeOnTheScreen();
   });
 
@@ -264,9 +264,7 @@ describe('AdditionalDetailsNationality', () => {
     const { queryByText } = renderScreen();
 
     expect(
-      queryByText(
-        'deposit.additional_details_nationality.fields_missing_title',
-      ),
+      queryByText('deposit.source_of_income.fields_missing_title'),
     ).not.toBeOnTheScreen();
   });
 
@@ -287,9 +285,7 @@ describe('AdditionalDetailsNationality', () => {
     });
 
     const { getByText } = renderScreen();
-    fireEvent.press(
-      getByText('deposit.additional_details_nationality.retry_button'),
-    );
+    fireEvent.press(getByText('deposit.mica.retry_button'));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -311,9 +307,7 @@ describe('AdditionalDetailsNationality', () => {
     mockGetAdditionalRequirements.mockRejectedValue(new Error('network down'));
 
     const { getByText, findByText } = renderScreen();
-    fireEvent.press(
-      getByText('deposit.additional_details_nationality.retry_button'),
-    );
+    fireEvent.press(getByText('deposit.mica.retry_button'));
 
     expect(await findByText('deposit.mica.errorTitle')).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -327,15 +321,11 @@ describe('AdditionalDetailsNationality', () => {
     mockGetAdditionalRequirements.mockRejectedValue(new Error('network down'));
 
     const { getByText, findByText } = renderScreen();
-    fireEvent.press(
-      getByText('deposit.additional_details_nationality.retry_button'),
-    );
+    fireEvent.press(getByText('deposit.mica.retry_button'));
     await findByText('deposit.mica.errorTitle');
 
     mockGetAdditionalRequirements.mockClear();
-    fireEvent.press(
-      getByText('deposit.additional_details_nationality.retry_button'),
-    );
+    fireEvent.press(getByText('deposit.mica.retry_button'));
 
     await waitFor(() => {
       expect(mockGetAdditionalRequirements).toHaveBeenCalledTimes(1);

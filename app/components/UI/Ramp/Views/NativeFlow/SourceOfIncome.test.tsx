@@ -227,7 +227,7 @@ describe('SourceOfIncome', () => {
     });
 
     const { getByText } = renderScreen();
-    fireEvent.press(getByText('deposit.source_of_income.retry_button'));
+    fireEvent.press(getByText('deposit.mica.retry_button'));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -248,7 +248,7 @@ describe('SourceOfIncome', () => {
     mockGetAdditionalRequirements.mockRejectedValue(new Error('network down'));
 
     const { getByText, findByText } = renderScreen();
-    fireEvent.press(getByText('deposit.source_of_income.retry_button'));
+    fireEvent.press(getByText('deposit.mica.retry_button'));
 
     expect(await findByText('deposit.mica.errorTitle')).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -262,11 +262,11 @@ describe('SourceOfIncome', () => {
     mockGetAdditionalRequirements.mockRejectedValue(new Error('network down'));
 
     const { getByText, findByText } = renderScreen();
-    fireEvent.press(getByText('deposit.source_of_income.retry_button'));
+    fireEvent.press(getByText('deposit.mica.retry_button'));
     await findByText('deposit.mica.errorTitle');
 
     mockGetAdditionalRequirements.mockClear();
-    fireEvent.press(getByText('deposit.source_of_income.retry_button'));
+    fireEvent.press(getByText('deposit.mica.retry_button'));
 
     await waitFor(() => {
       expect(mockGetAdditionalRequirements).toHaveBeenCalledTimes(1);

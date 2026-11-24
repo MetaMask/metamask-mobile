@@ -240,7 +240,7 @@ const MicaConsent = (): React.JSX.Element => {
 
   return (
     <MicaKycFormLayout
-      headerTitle={strings('deposit.mica_consent.header_title')}
+      headerTitle={strings('deposit.source_of_income.header_title')}
       title={strings('deposit.mica.continueWithTransak')}
       subtitle={strings('deposit.mica.description')}
       error={error}

@@ -67,9 +67,7 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
     headlessSessionId,
     getAdditionalRequirements,
     setError,
-    fallbackError: strings(
-      'deposit.additional_details_nationality.fetch_error',
-    ),
+    fallbackError: strings('deposit.source_of_income.fetch_error'),
     logContext: 'AdditionalDetailsNationality',
   });
 
@@ -108,21 +106,17 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
         'deposit.additional_details_nationality.header_title',
       )}
       title={strings('deposit.additional_details_nationality.title')}
-      subtitle={strings('deposit.additional_details_nationality.subtitle')}
+      subtitle={strings('deposit.source_of_income.subtitle')}
       step={KYC_STEP.NATIONALITY}
       error={error}
       missingFields={
         hasFieldsMissing
           ? {
-              title: strings(
-                'deposit.additional_details_nationality.fields_missing_title',
-              ),
+              title: strings('deposit.source_of_income.fields_missing_title'),
               description: strings(
                 'deposit.additional_details_nationality.fields_missing_description',
               ),
-              retryLabel: strings(
-                'deposit.additional_details_nationality.retry_button',
-              ),
+              retryLabel: strings('deposit.mica.retry_button'),
               retrying,
               onRetry: retry,
             }

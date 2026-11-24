@@ -127,7 +127,7 @@ const SourceOfIncome = (): React.JSX.Element => {
               description: strings(
                 'deposit.source_of_income.source_of_funds_missing_description',
               ),
-              retryLabel: strings('deposit.source_of_income.retry_button'),
+              retryLabel: strings('deposit.mica.retry_button'),
               retrying,
               onRetry: retry,
             }
