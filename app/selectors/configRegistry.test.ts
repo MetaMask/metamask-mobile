@@ -399,32 +399,72 @@ describe('configRegistry selectors', () => {
       expect(getRegistryNetworkImagesByChainId(state as never)).toEqual({});
     });
 
-    it('keys registry images by hex and CAIP-2 chain ID and skips non-https URLs', () => {
+    it('keys EVM registry images by hex chain ID', () => {
       const state = buildState({
         'eip155:99901': {
           chainId: 'eip155:99901',
           imageUrl: 'https://example.com/elysium.svg',
         } as never,
+      });
+      expect(getRegistryNetworkImagesByChainId(state)['0x1863d']).toEqual({
+        uri: 'https://example.com/elysium.svg',
+      });
+    });
+
+    it('keys registry images by CAIP-2 chain ID', () => {
+      const state = buildState({
+        'eip155:99901': {
+          chainId: 'eip155:99901',
+          imageUrl: 'https://example.com/elysium.svg',
+        } as never,
+      });
+      expect(getRegistryNetworkImagesByChainId(state)['eip155:99901']).toEqual({
+        uri: 'https://example.com/elysium.svg',
+      });
+    });
+
+    it('keys non-EVM registry images by CAIP-2 chain ID', () => {
+      const state = buildState({
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           imageUrl: 'https://example.com/solana.svg',
         } as never,
+      });
+      const result = getRegistryNetworkImagesByChainId(state);
+      expect(result['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']).toEqual({
+        uri: 'https://example.com/solana.svg',
+      });
+    });
+
+    it('skips networks with non-https image URLs', () => {
+      const state = buildState({
         'eip155:9999': {
           chainId: 'eip155:9999',
           imageUrl: 'http://insecure.example.com/x.svg',
         } as never,
       });
       const result = getRegistryNetworkImagesByChainId(state);
-      expect(result['0x1863d']).toEqual({
-        uri: 'https://example.com/elysium.svg',
-      });
-      expect(result['eip155:99901']).toEqual({
-        uri: 'https://example.com/elysium.svg',
-      });
-      expect(result['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']).toEqual({
-        uri: 'https://example.com/solana.svg',
-      });
       expect(result['0x270f']).toBeUndefined();
+      expect(result['eip155:9999']).toBeUndefined();
+    });
+
+    it('skips networks without an imageUrl', () => {
+      const state = buildState({
+        'eip155:9998': {
+          chainId: 'eip155:9998',
+        } as never,
+        'eip155:9997': {
+          chainId: 'eip155:9997',
+          imageUrl: undefined,
+        } as never,
+      });
+      const result = getRegistryNetworkImagesByChainId(state);
+      expect(result['0x270e']).toBeUndefined();
+      expect(result['eip155:9997']).toBeUndefined();
+    });
+
+    it('returns an empty map when the registry has no networks', () => {
+      expect(getRegistryNetworkImagesByChainId(buildState({}))).toEqual({});
     });
   });
 });
