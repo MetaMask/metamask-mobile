@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Foxy</title>
 <script>try{var t=localStorage.getItem('foxy.theme.v1');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦊%3C/text%3E%3C/svg%3E" />
+<link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png" />
+<link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#000000" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Foxy" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))</script>
 <style>
   /* Tokens: @metamask/design-tokens v13, dark theme (names kept so they are easy to cross-check). */
   :root {

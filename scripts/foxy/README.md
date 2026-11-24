@@ -32,6 +32,8 @@ Then:
 
 Keep Metro running on `:8081` (override with `FOXY_METRO`) so stacks are symbolicated to `app/...` and `@metamask/...` frames.
 
+**Install it as an app.** The dashboard is a PWA. Open `http://localhost:8098` in Chrome or Edge and use the install icon in the address bar (or Safari's Share > Add to Dock on macOS). It opens in its own window, and the last shell still opens when the server is stopped. The install is tied to that exact address, so keep the port the same. The manifest, service worker and icons live in `server.mjs` and `pwa/`.
+
 ## Views / output
 
 - **Timeline**: every request in order. The **Call site** column leads with the `method()` that called `fetch` and the file tail beneath it, with a color bar for where it lives (app, `@metamask/*`, third-party, project). Click a row for the full call chain (oldest caller first, wrapper frames collapsed) plus the request and response (query params, headers, body).

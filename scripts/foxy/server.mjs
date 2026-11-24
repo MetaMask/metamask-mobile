@@ -290,6 +290,25 @@ const readBody = (req) =>
   });
 
 const VENDOR_FILES = { 'rive.js': 'text/javascript; charset=utf-8', 'rive.wasm': 'application/wasm', 'foxy-loading.riv': 'application/octet-stream' };
+// Installable as an app (PWA): the manifest, the service worker that keeps the shell usable when the server is down, and the icons.
+const PWA_FILES = { 'icon-192.png': 'image/png', 'icon-512.png': 'image/png', 'apple-touch-icon.png': 'image/png', 'icon.svg': 'image/svg+xml' };
+const MANIFEST = JSON.stringify({
+  name: 'Foxy',
+  short_name: 'Foxy',
+  description: 'Every network request the MetaMask app makes, and which team owns the code behind it.',
+  id: '/',
+  start_url: '/',
+  scope: '/',
+  display: 'standalone',
+  background_color: '#000000',
+  theme_color: '#000000',
+  icons: [
+    { src: '/pwa/icon-192.png', sizes: '192x192', type: 'image/png' },
+    { src: '/pwa/icon-512.png', sizes: '512x512', type: 'image/png' },
+    // the artwork keeps the fox inside the maskable safe zone, so the same file serves both
+    { src: '/pwa/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+  ],
+});
 const httpServer = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const p = url.pathname;
@@ -308,6 +327,19 @@ const httpServer = createServer(async (req, res) => {
       if (!type) { res.writeHead(404); res.end(); return; }
       res.writeHead(200, { 'content-type': type, 'cache-control': 'public, max-age=3600' });
       res.end(await readFile(join(__dirname, 'vendor', name)));
+    } else if (p === '/manifest.webmanifest') {
+      res.writeHead(200, { 'content-type': 'application/manifest+json; charset=utf-8', 'cache-control': 'no-cache' });
+      res.end(MANIFEST);
+    } else if (p === '/sw.js') {
+      // served from the root so the service worker controls the whole dashboard; never cached, so an update is picked up on the next load
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-cache' });
+      res.end(await readFile(join(__dirname, 'pwa', 'sw.js'), 'utf-8'));
+    } else if (p.startsWith('/pwa/')) {
+      const name = p.slice('/pwa/'.length);
+      const type = PWA_FILES[name];
+      if (!type) { res.writeHead(404); res.end(); return; }
+      res.writeHead(200, { 'content-type': type, 'cache-control': 'public, max-age=3600' });
+      res.end(await readFile(join(__dirname, 'pwa', name)));
     } else if (p === '/api/status') {
       json(res, {
         latestSession,
