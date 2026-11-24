@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Platform } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -34,7 +34,8 @@ const MoneyMfaStatusBanner = ({
   );
 
   useEffect(() => {
-    if (isVisible) {
+    // Android reads the live region.
+    if (isVisible && Platform.OS === 'ios') {
       AccessibilityInfo.announceForAccessibility(title);
     }
   }, [isVisible, title]);

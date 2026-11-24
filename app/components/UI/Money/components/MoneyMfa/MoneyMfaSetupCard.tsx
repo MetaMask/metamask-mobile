@@ -21,7 +21,10 @@ interface MoneyMfaSetupCardProps {
 
 const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
   // The 2FA screen opens only once its first step is ready.
-  const isStarting = useActiveMfaFlow()?.state.step.name === 'idle';
+  const activeFlow = useActiveMfaFlow();
+  const isStarting =
+    activeFlow?.flow.reason.operation.startsWith('money.') === true &&
+    activeFlow.state.step.name === 'idle';
 
   return (
     <Card

@@ -223,14 +223,15 @@ export const useMoneyMfa = () => {
     return true;
   }, [showToast]);
 
+  const isAvailable = status !== 'unavailable';
   const refreshCredentials = useCallback(() => {
-    if (status === 'unavailable') {
+    if (!isAvailable) {
       return;
     }
     mobileMfaControllerAdapter
       .refreshEnrolledCredentials()
       .catch(() => undefined);
-  }, [status]);
+  }, [isAvailable]);
 
   return {
     status,
