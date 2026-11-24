@@ -14,7 +14,7 @@ import {
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 
 const TOKEN_LIST_CTA_LABEL_KEY = 'money.token_list_cta.get_apy';
 
@@ -26,7 +26,7 @@ const TOKEN_LIST_CTA_LABEL_KEY = 'money.token_list_cta.get_apy';
  */
 export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
   const { shouldShowMoneyTokenListItemCta } = useMoneyCtaVisibility();
-  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { apyPercent } = useMoneyVaultApy();
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: screenName,

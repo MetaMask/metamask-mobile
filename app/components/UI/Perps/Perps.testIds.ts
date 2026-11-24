@@ -114,6 +114,9 @@ export const getPerpsMarketDetailsTabSelector = (tab: string) =>
 export const getPerpsLiveTradeRowSelector = (postId: string) =>
   `perps-home-live-trade-${postId}`;
 
+export const getPerpsLiveTradeVerifiedBadgeSelector = (postId: string) =>
+  `perps-home-live-trade-verified-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -382,10 +385,10 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSING_STATE: 'perps-close-all-positions-closing-state',
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
-  FEES_VALUE: 'perps-close-all-positions-fees-value',
-  ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
   MARGIN_VALUE: 'perps-close-all-positions-margin-value',
   RECEIVE_VALUE: 'perps-close-all-positions-receive-value',
+  PNL_VALUE: 'perps-close-all-positions-pnl-value',
+  PNL_ROW: 'perps-close-all-positions-pnl-row',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -1026,7 +1029,6 @@ export const PerpsBalanceBottomSheetSelectorsIDs = {
   ACCOUNT_LEVERAGE_VALUE: 'perps-balance-bottom-sheet-account-leverage-value',
   CROSS_MARGIN_USAGE_VALUE:
     'perps-balance-bottom-sheet-cross-margin-usage-value',
-  CROSS_MARGIN_TOOLTIP: 'perps-balance-bottom-sheet-cross-margin-tooltip',
 };
 
 /** Tappable label of a cross margin summary row, keyed by its tooltip key. */

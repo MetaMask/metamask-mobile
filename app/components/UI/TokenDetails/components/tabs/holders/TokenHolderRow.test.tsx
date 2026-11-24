@@ -51,6 +51,25 @@ describe('TokenHolderRow', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the verified badge for a verified holder', () => {
+    const fixture = TOKEN_HOLDERS_FIXTURE.items[0];
+    const actor = { ...fixture.actor, verified: true };
+
+    renderWithProvider(<TokenHolderRow row={toRow(0, { core: { actor } })} />);
+
+    expect(
+      screen.getByTestId(TokenHolderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the verified badge for an unverified holder', () => {
+    renderWithProvider(<TokenHolderRow row={toRow(0)} />);
+
+    expect(
+      screen.queryByTestId(TokenHolderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
+  });
+
   it('abbreviates the position value so a whale keeps the column one line', () => {
     const row = toRow(0, { core: { currentValueUSD: 2_400_000 } });
 

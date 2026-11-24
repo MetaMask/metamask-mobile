@@ -26,6 +26,7 @@ import EngineService from '../../../../core/EngineService';
 import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
+import { selectEvmAssetIdEncoder } from '../../../../selectors/assets/assets-controller';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -199,6 +200,7 @@ export const useMusdConversion = () => {
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
 
   /**
    * Initiates a max-amount mUSD conversion.
@@ -307,8 +309,12 @@ export const useMusdConversion = () => {
             // Set payment token - this triggers automatic Relay quote fetching
             TransactionPayController.updatePaymentToken({
               transactionId,
-              tokenAddress,
-              chainId: tokenChainId,
+              assetId:
+                token.caipAssetId ??
+                encodeAssetId({
+                  address: tokenAddress,
+                  chainId: tokenChainId,
+                }),
             });
 
             EngineService.flushState();
@@ -378,7 +384,7 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, pendingTransactionMetas, selectedAddress],
+    [navigation, pendingTransactionMetas, encodeAssetId, selectedAddress],
   );
 
   /**

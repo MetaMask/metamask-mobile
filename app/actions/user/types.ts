@@ -29,7 +29,6 @@ export enum UserActionType {
   SET_MUSD_CONVERSION_EDUCATION_SEEN = 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
   SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN = 'SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN',
   CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN = 'CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN',
-  SET_MONEY_ONBOARDING_SEEN = 'SET_MONEY_ONBOARDING_SEEN',
   SET_MONEY_SPLASH_SEEN = 'SET_MONEY_SPLASH_SEEN',
   SET_MONEY_EARN_BANNER_DISMISSED = 'SET_MONEY_EARN_BANNER_DISMISSED',
   CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS = 'CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS',
@@ -123,11 +122,6 @@ export type SetMusdConversionAssetDetailCtaSeenAction =
 export type ClearMusdConversionAssetDetailCtasSeenAction =
   Action<UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN>;
 
-export type SetMoneyOnboardingSeenAction =
-  Action<UserActionType.SET_MONEY_ONBOARDING_SEEN> & {
-    payload: { seen: boolean };
-  };
-
 export type SetMoneySplashSeenAction =
   Action<UserActionType.SET_MONEY_SPLASH_SEEN> & {
     payload: { seen: boolean };
@@ -206,7 +200,6 @@ export type UserAction =
   | SetMusdConversionEducationSeenAction
   | SetMusdConversionAssetDetailCtaSeenAction
   | ClearMusdConversionAssetDetailCtasSeenAction
-  | SetMoneyOnboardingSeenAction
   | SetMoneySplashSeenAction
   | SetMoneyEarnBannerDismissedAction
   | ClearMoneyEarnBannerDismissedTokensAction

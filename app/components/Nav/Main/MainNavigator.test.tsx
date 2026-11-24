@@ -215,8 +215,13 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
 }));
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
+const mockSelectIsMoneyEarningsHistoryEnabledFlag = jest
+  .fn()
+  .mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   ...jest.requireActual('../../UI/Money/selectors/featureFlags'),
+  selectIsMoneyEarningsHistoryEnabledFlag: (state: unknown) =>
+    mockSelectIsMoneyEarningsHistoryEnabledFlag(state),
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
@@ -235,6 +240,7 @@ describe('MainNavigator', () => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(false);
   });
 
@@ -642,6 +648,7 @@ describe('MainNavigator', () => {
           headerShown?: boolean;
           animation?: string;
           contentStyle?: unknown;
+          gestureEnabled?: boolean;
         };
       }
       return container.root
@@ -963,18 +970,46 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.EARNINGS,
         Routes.MONEY.MUSD_RESCUE_SEND,
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
         Routes.MONEY.ACCOUNT_STATUS,
       ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(
         Routes.MONEY.FIRST_TIME_DEPOSIT,
       );
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('disables the back gesture on the Earnings chart screen', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const earningsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.MONEY.EARNINGS,
+      );
+
+      expect(earningsScreen?.options).toEqual(
+        expect.objectContaining({ gestureEnabled: false }),
+      );
+    });
+
+    it('does not register the Earnings route when history is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+      mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(false);
+
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.MONEY.ROOT);
+
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.EARNINGS);
     });
 
     it('registers one feature-level VBA onboarding route', () => {
@@ -1031,21 +1066,78 @@ describe('MainNavigator', () => {
       ]);
     });
 
-    it('includes Bridge routes', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
+    describe('Bridge routes', () => {
+      const resolveBridgeRootOptions = (
+        route: Record<string, unknown>,
+      ): Record<string, unknown> => {
+        const container = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const bridgeScreen = getScreenProps(container).find(
+          (screen) => screen?.name === Routes.BRIDGE.ROOT,
+        );
+        const resolveOptions = bridgeScreen?.options as unknown as (args: {
+          route: Record<string, unknown>;
+        }) => Record<string, unknown>;
+
+        return resolveOptions({
+          route: { key: 'bridge-root', name: Routes.BRIDGE.ROOT, ...route },
+        });
+      };
+
+      it('slides the Bridge stack in from the right', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options).toMatchObject(slideFromRightNativeOptions);
+        expect(options).not.toHaveProperty('gestureEnabled');
       });
 
-      const screenProps = getScreenProps(container);
-      const bridgeScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.BRIDGE.ROOT,
+      it('enables the full screen back gesture before the Bridge stack renders', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it('enables the full screen back gesture while BridgeView is focused', () => {
+        const options = resolveBridgeRootOptions({
+          state: {
+            index: 0,
+            routes: [{ name: Routes.BRIDGE.BRIDGE_VIEW }],
+          },
+        });
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it.each([
+        Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        Routes.BRIDGE.RECURRING_SWAP_DETAILS,
+        Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        Routes.BRIDGE.TOKEN_SELECTOR,
+      ])(
+        'leaves the back gesture to the Bridge stack while %s is pushed over BridgeView',
+        (nestedRouteName) => {
+          const options = resolveBridgeRootOptions({
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.BRIDGE.BRIDGE_VIEW },
+                { name: nestedRouteName },
+              ],
+            },
+          });
+
+          expect(options).not.toHaveProperty('fullScreenGestureEnabled');
+        },
       );
 
-      expect(bridgeScreen).toBeDefined();
-      expect(bridgeScreen?.options).toMatchObject({
-        fullScreenGestureEnabled: true,
+      it('leaves the back gesture to the platform default when a nested Bridge screen is opened directly', () => {
+        const options = resolveBridgeRootOptions({
+          params: { screen: Routes.BRIDGE.RECURRING_ORDER_DETAILS },
+        });
+
+        expect(options).not.toHaveProperty('fullScreenGestureEnabled');
       });
-      expect(bridgeScreen?.options).not.toHaveProperty('gestureEnabled');
     });
 
     it('includes Earn routes', () => {
@@ -2585,9 +2677,6 @@ describe('MainNavigator', () => {
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
         );
-        expect(screenNames).not.toContain(
-          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
-        );
       });
 
       describe('Rewards Money routing', () => {
@@ -2759,7 +2848,6 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             Routes.MODAL.REWARDS_SELECT_SHEET,
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-            Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           ]),
         );
       });
@@ -2801,7 +2889,6 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
           Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
           Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Копировать {{field}}",
       "copied_label": "Скопировано: {{field}}",
-      "copy_all_button": "Скопировать все реквизиты",
-      "copied_all_label": "Банковские реквизиты скопированы",
       "button": "Выполнено",
       "waiting_for_details": "Реквизиты вашего счета скоро появятся здесь.",
       "loading_details": "Загрузка реквизитов счета",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "в",
-        "market_cap_suffix": "РК",
-        "size_at_price": "{{size}} по {{price}}",
-        "size_at_market_cap": "{{size}} при {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "РК"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} П/У (30 дн.)",
@@ -1995,22 +1991,6 @@
         "4": "Чт",
         "5": "Пт",
         "6": "Сб"
-      },
-      "tooltip": {
-        "label": "{{action}} по {{price}}",
-        "bought": "Куплено",
-        "sold": "Продано",
-        "perps_closed": "Закрыто",
-        "perps_long_opened": "Открыта длинная позиция",
-        "perps_long_added": "Длинная позиция увеличена",
-        "perps_long_reduced": "Длинная позиция уменьшена",
-        "perps_short_opened": "Короткая позиция открыта",
-        "perps_short_added": "Короткая позиция увеличена",
-        "perps_short_reduced": "Выкуплено",
-        "spot_opened": "Куплено",
-        "spot_added": "Куплено ещё",
-        "spot_reduced": "Частично продано",
-        "spot_closed": "Всё продано"
       }
     },
     "trader_position": {
@@ -9914,7 +9894,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Зарабатывайте, торгуйте и оплачивайте покупки с одного баланса",
       "body_prefix": "MetaMask Money — это счет в стейблкоинах с доходностью до ",
-      "body_suffix": "— с возможностью торговать, переводить средства и оплачивать покупки.",
+      "body_suffix": "- с возможностью торговать, переводить средства и оплачивать покупки.",
       "body_no_apy": "MetaMask Money — это счет в стейблкоинах с возможностью торговать, переводить средства и оплачивать покупки.",
       "benefit_convert_title": "Конвертация в MetaMask USD по курсу 1:1",
       "benefit_convert_body": "Внесенные средства конвертируются в MetaMask USD по курсу 1:1 без комиссий.",

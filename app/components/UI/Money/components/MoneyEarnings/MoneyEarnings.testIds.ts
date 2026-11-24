@@ -1,5 +1,6 @@
 export const MoneyEarningsTestIds = {
   CONTAINER: 'money-earnings-container',
+  HEADER: 'money-earnings-header',
   LAST_30_DAYS: 'money-earnings-last-30-days',
   LAST_30_DAYS_VALUE: 'money-earnings-last-30-days-value',
   LAST_30_DAYS_SKELETON: 'money-earnings-last-30-days-skeleton',

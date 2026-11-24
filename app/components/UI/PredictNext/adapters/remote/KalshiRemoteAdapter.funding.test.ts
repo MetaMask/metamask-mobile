@@ -120,10 +120,7 @@ describe('KalshiRemoteAdapter funding', () => {
           adapter.funding.prepareDeposit(DEPOSIT, USER_APPROVAL),
         ).rejects.toMatchObject({
           code: PredictErrorCode.INVALID_RESPONSE,
-          metadata: {
-            phase: 'commit',
-            mutationRelay: 'not_relayed_this_invocation',
-          },
+          metadata: { phase: 'commit', requestSent: false },
         });
         expect(client.createDeposit).not.toHaveBeenCalled();
       },
@@ -226,7 +223,7 @@ describe('KalshiRemoteAdapter funding', () => {
         adapter.funding.prepareDeposit(DEPOSIT, USER_APPROVAL),
       ).rejects.toMatchObject({
         code: PredictErrorCode.DEPOSIT_IN_PROGRESS,
-        metadata: { phase: 'preview', mutationRelay: 'not_a_mutation' },
+        metadata: { phase: 'preview' },
       });
       expect(client.createDeposit).not.toHaveBeenCalled();
     });
@@ -247,60 +244,28 @@ describe('KalshiRemoteAdapter funding', () => {
     });
 
     it.each([
-      [
-        409,
-        'deposit_in_progress',
-        PredictErrorCode.DEPOSIT_IN_PROGRESS,
-        'not_relayed_this_invocation',
-      ],
-      [
-        403,
-        'venue_preview_mismatch',
-        PredictErrorCode.DEPOSIT_MISMATCH,
-        'not_relayed_this_invocation',
-      ],
-      [
-        409,
-        'client_operation_id_conflict',
-        PredictErrorCode.DEPOSIT_MISMATCH,
-        'not_relayed_this_invocation',
-      ],
-      [
-        422,
-        'amount_rejected',
-        PredictErrorCode.DEPOSIT_AMOUNT_REJECTED,
-        'unknown',
-      ],
-      [422, 'deposit_rejected', PredictErrorCode.DEPOSIT_FAILED, 'unknown'],
-      [
-        502,
-        'deposit_address_invalid',
-        PredictErrorCode.DEPOSIT_FAILED,
-        'unknown',
-      ],
-      [503, 'address_request_lost', PredictErrorCode.DEPOSIT_FAILED, 'unknown'],
+      [409, 'deposit_in_progress', PredictErrorCode.DEPOSIT_IN_PROGRESS],
+      [403, 'venue_preview_mismatch', PredictErrorCode.DEPOSIT_MISMATCH],
+      [409, 'client_operation_id_conflict', PredictErrorCode.DEPOSIT_MISMATCH],
+      [422, 'amount_rejected', PredictErrorCode.DEPOSIT_AMOUNT_REJECTED],
+      [422, 'deposit_rejected', PredictErrorCode.DEPOSIT_FAILED],
+      [502, 'deposit_address_invalid', PredictErrorCode.DEPOSIT_FAILED],
+      [503, 'address_request_lost', PredictErrorCode.DEPOSIT_FAILED],
       [
         409,
         'venue_profile_update_required',
         PredictErrorCode.APP_UPDATE_REQUIRED,
-        'not_relayed_this_invocation',
       ],
-      [
-        403,
-        'venue_authorization_invalid',
-        PredictErrorCode.UNAUTHENTICATED,
-        'not_relayed_this_invocation',
-      ],
+      [403, 'venue_authorization_invalid', PredictErrorCode.UNAUTHENTICATED],
       [
         403,
         'venue_account_not_enabled',
         PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED,
-        'unknown',
       ],
-      [502, 'venue_auth_rejected', PredictErrorCode.UNAUTHENTICATED, 'unknown'],
+      [502, 'venue_auth_rejected', PredictErrorCode.UNAUTHENTICATED],
     ] as const)(
       'maps %s %s from the signed call',
-      async (status, code, expected, mutationRelay) => {
+      async (status, code, expected) => {
         client.createDeposit.mockRejectedValue(
           new PredictHttpError(status, code),
         );
@@ -313,10 +278,26 @@ describe('KalshiRemoteAdapter funding', () => {
             status,
             bodyCode: code,
             phase: 'commit',
-            mutationRelay,
-            operationOutcome: 'unknown',
+            outcome: 'unknown',
           },
         });
+      },
+    );
+
+    it.each([
+      ['not_placed', 409, 'deposit_in_progress'],
+      ['unknown', 503, 'venue_unavailable'],
+      ['not_placed', 503, 'venue_unavailable'],
+    ] as const)(
+      'carries outcome %s from the body of a %s %s',
+      async (outcome, status, code) => {
+        client.createDeposit.mockRejectedValue(
+          new PredictHttpError(status, code, undefined, outcome),
+        );
+
+        await expect(
+          adapter.funding.prepareDeposit(DEPOSIT, USER_APPROVAL),
+        ).rejects.toMatchObject({ metadata: { phase: 'commit', outcome } });
       },
     );
 
@@ -329,10 +310,7 @@ describe('KalshiRemoteAdapter funding', () => {
         adapter.funding.prepareDeposit(DEPOSIT, USER_APPROVAL),
       ).rejects.toMatchObject({
         code: PredictErrorCode.VENUE_SIGNING_REFUSED,
-        metadata: {
-          requestSent: false,
-          mutationRelay: 'not_relayed_this_invocation',
-        },
+        metadata: { phase: 'commit', requestSent: false },
       });
     });
 
@@ -382,7 +360,7 @@ describe('KalshiRemoteAdapter funding', () => {
         adapter.funding.getDeposit(OPERATION_ID),
       ).rejects.toMatchObject({
         code: PredictErrorCode.DEPOSIT_NOT_FOUND,
-        metadata: { phase: 'observe', mutationRelay: 'not_a_mutation' },
+        metadata: { phase: 'observe' },
       });
     });
 
@@ -448,7 +426,7 @@ describe('KalshiRemoteAdapter funding', () => {
       ['transfer_hash_reused', 409],
       ['transfer_not_expected', 409],
     ] as const)(
-      'maps %s to a refused transfer that was not relayed',
+      'maps %s to a refused transfer, leaving the outcome to the body',
       async (code, status) => {
         client.reportDepositTransfer.mockRejectedValue(
           new PredictHttpError(status, code),
@@ -458,18 +436,19 @@ describe('KalshiRemoteAdapter funding', () => {
           adapter.funding.reportDepositTransfer(OPERATION_ID, transfer),
         ).rejects.toMatchObject({
           code: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
-          metadata: {
-            bodyCode: code,
-            phase: 'commit',
-            mutationRelay: 'not_relayed_this_invocation',
-          },
+          metadata: { bodyCode: code, phase: 'commit', outcome: 'unknown' },
         });
       },
     );
 
-    it('maps operation_not_found to a report that was not relayed', async () => {
+    it('carries a not_placed operation_not_found from the body', async () => {
       client.reportDepositTransfer.mockRejectedValue(
-        new PredictHttpError(404, 'operation_not_found'),
+        new PredictHttpError(
+          404,
+          'operation_not_found',
+          undefined,
+          'not_placed',
+        ),
       );
 
       await expect(
@@ -479,8 +458,7 @@ describe('KalshiRemoteAdapter funding', () => {
         metadata: {
           bodyCode: 'operation_not_found',
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
-          operationOutcome: 'unknown',
+          outcome: 'not_placed',
         },
       });
     });
@@ -494,7 +472,7 @@ describe('KalshiRemoteAdapter funding', () => {
         adapter.funding.cancelDeposit(OPERATION_ID),
       ).rejects.toMatchObject({
         code: PredictErrorCode.INVALID_RESPONSE,
-        metadata: { mutationRelay: 'unknown' },
+        metadata: { outcome: 'unknown' },
       });
     });
 
@@ -510,7 +488,7 @@ describe('KalshiRemoteAdapter funding', () => {
         }),
       ).rejects.toMatchObject({
         code: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
-        metadata: { mutationRelay: 'not_relayed_this_invocation' },
+        metadata: { phase: 'commit', requestSent: false },
       });
       expect(client.reportDepositTransfer).not.toHaveBeenCalled();
     });
@@ -546,30 +524,24 @@ describe('KalshiRemoteAdapter funding', () => {
         409,
         'deposit_not_cancellable',
         PredictErrorCode.DEPOSIT_NOT_CANCELLABLE,
-        'not_relayed_this_invocation',
+        'not_placed',
       ],
-      // Cancel looks the deposit up before it changes it, so this call
-      // stored nothing. Absence still says nothing about an earlier call.
       [
         404,
         'operation_not_found',
         PredictErrorCode.DEPOSIT_NOT_FOUND,
-        'not_relayed_this_invocation',
+        'unknown',
       ],
-    ] as const)('maps %s %s', async (status, code, expected, mutationRelay) => {
+    ] as const)('maps %s %s', async (status, code, expected, outcome) => {
       client.cancelDeposit.mockRejectedValue(
-        new PredictHttpError(status, code),
+        new PredictHttpError(status, code, undefined, outcome),
       );
 
       await expect(
         adapter.funding.cancelDeposit(OPERATION_ID),
       ).rejects.toMatchObject({
         code: expected,
-        metadata: {
-          phase: 'commit',
-          mutationRelay,
-          operationOutcome: 'unknown',
-        },
+        metadata: { phase: 'commit', outcome },
       });
     });
   });

@@ -13,7 +13,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -172,6 +171,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const shouldShowPriceImpactRow =
     activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
+  // Hide recipient row to prevent changing the recipient money account
+  const shouldShowRecipientRow = !destToken?.isMoneyToken;
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -243,8 +245,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     'bridge.network_fee_info_content_sponsored',
                     { nativeToken: nativeTokenName },
                   )}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Medium}
                 />
               ),
             }}
@@ -467,7 +467,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        <QuoteDetailsRecipientKeyValueRow />
+        {shouldShowRecipientRow && <QuoteDetailsRecipientKeyValueRow />}
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (

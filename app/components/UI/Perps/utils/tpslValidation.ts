@@ -30,8 +30,8 @@ export interface PerpsOrderTpSlWarningsInput {
   direction: 'long' | 'short';
   takeProfitPrice?: string;
   stopLossPrice?: string;
-  /** Current liquidation price for the prospective order. */
-  liquidationPrice: string;
+  /** Liquidation price for the prospective order; `undefined` when unavailable. */
+  liquidationPrice?: string;
   /** Mid/market price used as the validation reference for market orders. */
   marketPrice: number;
 }

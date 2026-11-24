@@ -40,7 +40,6 @@ export type {
   FeedSortFilterSheetProps,
 } from './FeedSortFilter';
 export {
-  DEFAULT_LEADERBOARD_COHORT,
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
   DEFAULT_V1_LEADERBOARD_RANKING,

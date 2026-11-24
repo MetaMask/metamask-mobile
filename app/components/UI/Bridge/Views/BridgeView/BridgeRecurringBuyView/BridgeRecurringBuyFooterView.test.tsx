@@ -80,11 +80,13 @@ function renderFooter(
     onPreviewOrder = jest.fn(),
     label = strings('bridge.recurring.preview_order'),
     destinationTokenSymbol = 'ETH',
+    isBelowMinAmount = false,
     isPreviewDisabled,
   }: {
     onPreviewOrder?: () => void;
     label?: string;
     destinationTokenSymbol?: string | null;
+    isBelowMinAmount?: boolean;
     isPreviewDisabled?: boolean;
   } = {},
 ) {
@@ -93,6 +95,7 @@ function renderFooter(
       onPreviewOrder={onPreviewOrder}
       label={label}
       destinationTokenSymbol={destinationTokenSymbol ?? undefined}
+      isBelowMinAmount={isBelowMinAmount}
       isPreviewDisabled={isPreviewDisabled}
     />,
     { state },
@@ -125,6 +128,33 @@ describe('BridgeRecurringBuyFooterView', () => {
     const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
     expect(button).toBeOnTheScreen();
     expect(button.props.accessibilityState?.busy).toBe(true);
+    expect(button.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it('renders the minimum without loading when a below-minimum quote is pending', () => {
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: true,
+      activeQuote: null,
+    }));
+    const label = strings('bridge.recurring.min_order_amount', {
+      amount: '$100.00',
+    });
+    const state = buildActiveQuoteState({
+      bridgeControllerOverrides: {
+        quotes: [],
+        quotesLastFetched: null,
+      },
+    });
+
+    const { getByTestId } = renderFooter(state, {
+      label,
+      isBelowMinAmount: true,
+    });
+
+    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(button).toHaveTextContent(label);
+    expect(button.props.accessibilityState?.busy).not.toBe(true);
     expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
@@ -272,6 +302,17 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
     ).toHaveTextContent('Swapping 120 USDC for ETH every hour. Repeats once.');
+  });
+
+  it('joins the repeat sentence with non-breaking spaces so it wraps as one unit', () => {
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      'Swapping 120 USDC for ETH every hour. Repeats\u00A010\u00A0times.',
+      { normalizer: (text) => text },
+    );
   });
 
   it('renders copy in muted grey with user values in white at the same weight', () => {
