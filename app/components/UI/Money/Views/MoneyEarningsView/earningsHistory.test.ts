@@ -1,8 +1,9 @@
-import type {
-  InterestHistoryBucket,
-  InterestHistoryRange,
-  InterestHistoryResponse,
-} from '../../types/moneyInterestHistory';
+import type { InterestHistoryResponse } from '../../types/moneyInterestHistory';
+import {
+  createInterestHistoryBucket,
+  createInterestHistoryRange,
+  createInterestHistoryResponse,
+} from '../../__fixtures__/moneyInterestHistory';
 import {
   EARNINGS_RANGES,
   getAuthoritativeRangeTotalUsd,
@@ -17,87 +18,19 @@ import {
   parseFiniteUsd,
 } from './earningsHistoryValidation';
 
-const available = {
-  earnings: 'available',
-  usd_pricing: 'available',
-} as const;
-
-const createBucket = ({
-  start,
-  end,
-  interestEarnedUsd = '1',
-  bucketAvailability = available,
-}: {
-  start: string;
-  end: string;
-  interestEarnedUsd?: string | null;
-  bucketAvailability?: InterestHistoryBucket['availability'];
-}): InterestHistoryBucket => ({
-  start,
-  end,
-  period_status: 'complete',
-  availability: bucketAvailability,
-  unavailable_reasons:
-    bucketAvailability.earnings === 'available'
-      ? []
-      : ['before_user_earnings_inception'],
-  interest_earned_musd_assets: interestEarnedUsd,
-  interest_earned_usd: interestEarnedUsd,
-  musd_price_usd: bucketAvailability.usd_pricing === 'available' ? '1' : null,
-  price_as_of: bucketAvailability.usd_pricing === 'available' ? start : null,
-  price_source:
-    bucketAvailability.usd_pricing === 'available'
-      ? 'metamask_price_api'
-      : null,
-  by_vault: [],
-});
-
-const createRange = (
-  range: InterestHistoryRange['range'],
-  buckets: InterestHistoryBucket[],
-  total = '99',
-): InterestHistoryRange => ({
-  range,
-  granularity: range === '7d' ? 'day' : 'week',
-  range_start: buckets[0]?.start ?? '2026-11-09T00:00:00.000Z',
-  range_end: buckets.at(-1)?.end ?? '2026-11-16T00:00:00.000Z',
-  period_status: 'partial',
-  availability: available,
-  unavailable_reasons: [],
-  totals: {
-    interest_earned_musd_assets: total,
-    interest_earned_usd: total,
-  },
-  buckets,
-});
-
 const createResponse = (
-  ranges: InterestHistoryRange[] = [
-    createRange('7d', [
-      createBucket({
-        start: '2026-11-09T00:00:00.000Z',
-        end: '2026-11-10T00:00:00.000Z',
-      }),
-    ]),
+  ranges: InterestHistoryResponse['ranges'] = [
+    createInterestHistoryRange({
+      range: '7d',
+      buckets: [
+        createInterestHistoryBucket({
+          start: '2026-11-09T00:00:00.000Z',
+          end: '2026-11-10T00:00:00.000Z',
+        }),
+      ],
+    }),
   ],
-): InterestHistoryResponse => ({
-  address: '0x1234',
-  chain_id: 143,
-  bucket_timezone: 'UTC',
-  updated_through: '2026-11-16T16:02:44.000Z',
-  source_watermark: {
-    vault_accounting: {
-      block_number: '122782198',
-      block_timestamp: '2026-11-16T16:02:44.000Z',
-    },
-  },
-  method: 'nav_difference',
-  denomination: {
-    asset: 'mUSD',
-    decimals: 6,
-  },
-  ranges,
-});
+): InterestHistoryResponse => createInterestHistoryResponse({ ranges });
 
 describe('earningsHistory', () => {
   it('keeps compact ranges from shortest to longest', () => {
@@ -114,16 +47,16 @@ describe('earningsHistory', () => {
 
   it('selects the API range without inferring dates or granularity', () => {
     const response = createResponse([
-      createRange(
-        '30d',
-        [
-          createBucket({
+      createInterestHistoryRange({
+        range: '30d',
+        buckets: [
+          createInterestHistoryBucket({
             start: '2026-10-17T00:00:00.000Z',
             end: '2026-10-19T00:00:00.000Z',
           }),
         ],
-        '2.664489',
-      ),
+        total: '2.664489',
+      }),
     ]);
 
     const result = getSelectedRange(response, '30D');
@@ -134,27 +67,30 @@ describe('earningsHistory', () => {
   });
 
   it('preserves every bucket, including zero and unavailable buckets', () => {
-    const range = createRange('7d', [
-      createBucket({
-        start: '2026-11-09T00:00:00.000Z',
-        end: '2026-11-10T00:00:00.000Z',
-        interestEarnedUsd: '0',
-      }),
-      createBucket({
-        start: '2026-11-10T00:00:00.000Z',
-        end: '2026-11-11T00:00:00.000Z',
-        interestEarnedUsd: null,
-        bucketAvailability: {
-          earnings: 'not_applicable',
-          usd_pricing: 'not_applicable',
-        },
-      }),
-      createBucket({
-        start: '2026-11-11T00:00:00.000Z',
-        end: '2026-11-12T00:00:00.000Z',
-        interestEarnedUsd: '2.5',
-      }),
-    ]);
+    const range = createInterestHistoryRange({
+      range: '7d',
+      buckets: [
+        createInterestHistoryBucket({
+          start: '2026-11-09T00:00:00.000Z',
+          end: '2026-11-10T00:00:00.000Z',
+          interestEarnedUsd: '0',
+        }),
+        createInterestHistoryBucket({
+          start: '2026-11-10T00:00:00.000Z',
+          end: '2026-11-11T00:00:00.000Z',
+          interestEarnedUsd: null,
+          availability: {
+            earnings: 'not_applicable',
+            usd_pricing: 'not_applicable',
+          },
+        }),
+        createInterestHistoryBucket({
+          start: '2026-11-11T00:00:00.000Z',
+          end: '2026-11-12T00:00:00.000Z',
+          interestEarnedUsd: '2.5',
+        }),
+      ],
+    });
 
     const result = getBucketPoints(range);
 
@@ -175,38 +111,41 @@ describe('earningsHistory', () => {
   });
 
   it('uses the authoritative range total instead of summing buckets', () => {
-    const range = createRange(
-      '30d',
-      [
-        createBucket({
+    const range = createInterestHistoryRange({
+      range: '30d',
+      buckets: [
+        createInterestHistoryBucket({
           start: '2026-11-09T00:00:00.000Z',
           end: '2026-11-16T00:00:00.000Z',
           interestEarnedUsd: '2',
         }),
       ],
-      '99',
-    );
+      total: '99',
+    });
 
     expect(getAuthoritativeRangeTotalUsd(range)).toBe(99);
   });
 
   it('finds the latest available bucket while keeping zero available', () => {
-    const range = createRange('7d', [
-      createBucket({
-        start: '2026-11-09T00:00:00.000Z',
-        end: '2026-11-10T00:00:00.000Z',
-        interestEarnedUsd: '0',
-      }),
-      createBucket({
-        start: '2026-11-10T00:00:00.000Z',
-        end: '2026-11-11T00:00:00.000Z',
-        interestEarnedUsd: null,
-        bucketAvailability: {
-          earnings: 'unavailable',
-          usd_pricing: 'unavailable',
-        },
-      }),
-    ]);
+    const range = createInterestHistoryRange({
+      range: '7d',
+      buckets: [
+        createInterestHistoryBucket({
+          start: '2026-11-09T00:00:00.000Z',
+          end: '2026-11-10T00:00:00.000Z',
+          interestEarnedUsd: '0',
+        }),
+        createInterestHistoryBucket({
+          start: '2026-11-10T00:00:00.000Z',
+          end: '2026-11-11T00:00:00.000Z',
+          interestEarnedUsd: null,
+          availability: {
+            earnings: 'unavailable',
+            usd_pricing: 'unavailable',
+          },
+        }),
+      ],
+    });
 
     expect(getLatestAvailableBucketIndex(getBucketPoints(range))).toBe(0);
   });

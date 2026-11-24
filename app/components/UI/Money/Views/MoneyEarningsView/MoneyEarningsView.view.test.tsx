@@ -3,8 +3,11 @@ import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  clearMoneyEarningsApiMocks,
   moneyHistoricalEarningsResponse,
+  withRangeOverride,
+} from '../../__fixtures__/moneyInterestHistory';
+import {
+  clearMoneyEarningsApiMocks,
   setupMoneyEarningsApiMock,
 } from '../../../../../../tests/component-view/api-mocking/moneyEarnings';
 import {
@@ -172,21 +175,18 @@ describe('MoneyEarningsView', () => {
   });
 
   it('shows empty state without a summary when the selected range has no buckets', async () => {
-    const response = {
-      ...moneyHistoricalEarningsResponse,
-      ranges: moneyHistoricalEarningsResponse.ranges.map((range) =>
-        range.range === '30d'
-          ? {
-              ...range,
-              buckets: [],
-              totals: {
-                ...range.totals,
-                interest_earned_usd: '0',
-              },
-            }
-          : range,
-      ),
-    };
+    const response = withRangeOverride(
+      moneyHistoricalEarningsResponse,
+      '30d',
+      (range) => ({
+        ...range,
+        buckets: [],
+        totals: {
+          ...range.totals,
+          interest_earned_usd: '0',
+        },
+      }),
+    );
     setupMoneyEarningsApiMock({ response });
 
     const { findByTestId, queryByTestId } = renderMoneyEarningsView();
@@ -200,39 +200,36 @@ describe('MoneyEarningsView', () => {
   });
 
   it('shows unavailable-range error without a summary', async () => {
-    const response = {
-      ...moneyHistoricalEarningsResponse,
-      ranges: moneyHistoricalEarningsResponse.ranges.map((range) =>
-        range.range === '30d'
-          ? {
-              ...range,
-              availability: {
-                earnings: 'unavailable' as const,
-                usd_pricing: 'unavailable' as const,
-              },
-              totals: {
-                interest_earned_musd_assets: null,
-                interest_earned_usd: null,
-              },
-              buckets: [
-                {
-                  ...range.buckets[0],
-                  availability: {
-                    earnings: 'unavailable' as const,
-                    usd_pricing: 'unavailable' as const,
-                  },
-                  unavailable_reasons: ['historical_price_missing' as const],
-                  interest_earned_musd_assets: null,
-                  interest_earned_usd: null,
-                  musd_price_usd: null,
-                  price_as_of: null,
-                  price_source: null,
-                },
-              ],
-            }
-          : range,
-      ),
-    };
+    const response = withRangeOverride(
+      moneyHistoricalEarningsResponse,
+      '30d',
+      (range) => ({
+        ...range,
+        availability: {
+          earnings: 'unavailable',
+          usd_pricing: 'unavailable',
+        },
+        totals: {
+          interest_earned_musd_assets: null,
+          interest_earned_usd: null,
+        },
+        buckets: [
+          {
+            ...range.buckets[0],
+            availability: {
+              earnings: 'unavailable',
+              usd_pricing: 'unavailable',
+            },
+            unavailable_reasons: ['historical_price_missing'],
+            interest_earned_musd_assets: null,
+            interest_earned_usd: null,
+            musd_price_usd: null,
+            price_as_of: null,
+            price_source: null,
+          },
+        ],
+      }),
+    );
     setupMoneyEarningsApiMock({ response });
 
     const { findByTestId, queryByTestId } = renderMoneyEarningsView();

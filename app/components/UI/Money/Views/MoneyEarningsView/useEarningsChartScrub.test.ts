@@ -1,32 +1,12 @@
 import { act, renderHook } from '@testing-library/react-native';
 import type { GestureResponderEvent } from 'react-native';
-import type { EarningsPoint } from './earningsHistory';
+import { createEarningsPoint } from './EarningsChart.testUtils';
 import { useEarningsChartScrub } from './useEarningsChartScrub';
 
-const createPoint = ({
-  amountUsd,
-  available = true,
-}: {
-  amountUsd: number | null;
-  available?: boolean;
-}): EarningsPoint => ({
-  start: '2026-11-09T00:00:00.000Z',
-  periodEndExclusive: '2026-11-10T00:00:00.000Z',
-  timestamp: '2026-11-09T00:00:00.000Z',
-  amountUsd,
-  granularity: 'day',
-  periodStatus: 'complete',
-  availability: {
-    earnings: available ? 'available' : 'unavailable',
-    usd_pricing: available ? 'available' : 'unavailable',
-  },
-  unavailableReasons: available ? [] : ['before_user_earnings_inception'],
-});
-
 const availablePoints = [
-  createPoint({ amountUsd: 1 }),
-  createPoint({ amountUsd: 2 }),
-  createPoint({ amountUsd: 3 }),
+  createEarningsPoint({ amountUsd: 1 }),
+  createEarningsPoint({ amountUsd: 2 }),
+  createEarningsPoint({ amountUsd: 3 }),
 ];
 
 let nextTimestamp = 1_000;
@@ -92,7 +72,7 @@ describe('useEarningsChartScrub', () => {
   });
 
   it('does not select an unavailable point', () => {
-    const unavailablePoint = createPoint({
+    const unavailablePoint = createEarningsPoint({
       amountUsd: null,
       available: false,
     });
@@ -142,7 +122,7 @@ describe('useEarningsChartScrub', () => {
   });
 
   it('selects the point under the finger when scrubbing starts on an unavailable point', () => {
-    const unavailablePoint = createPoint({
+    const unavailablePoint = createEarningsPoint({
       amountUsd: null,
       available: false,
     });

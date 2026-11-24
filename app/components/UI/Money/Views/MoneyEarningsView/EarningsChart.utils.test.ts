@@ -1,4 +1,3 @@
-import type { EarningsPoint } from './earningsHistory';
 import { formatSignedUsd } from '../../utils/moneyFormatFiat';
 import {
   clampUsdToCents,
@@ -9,23 +8,7 @@ import {
   getNiceUsdChartMaximum,
   getXAxisLabels,
 } from './EarningsChart.utils';
-
-const createPoint = (
-  overrides: Partial<EarningsPoint> = {},
-): EarningsPoint => ({
-  start: '2026-11-09T00:00:00.000Z',
-  periodEndExclusive: '2026-11-10T00:00:00.000Z',
-  timestamp: '2026-11-09T00:00:00.000Z',
-  amountUsd: 1,
-  granularity: 'day',
-  periodStatus: 'complete',
-  availability: {
-    earnings: 'available',
-    usd_pricing: 'available',
-  },
-  unavailableReasons: [],
-  ...overrides,
-});
+import { createEarningsPoint } from './EarningsChart.testUtils';
 
 describe('EarningsChart.utils', () => {
   describe('currency formatting', () => {
@@ -63,7 +46,7 @@ describe('EarningsChart.utils', () => {
     it('formats a point date range using the exclusive period end', () => {
       expect(
         formatPointDateRange(
-          createPoint({
+          createEarningsPoint({
             periodEndExclusive: '2026-11-16T00:00:00.000Z',
           }),
           'en-US',
@@ -93,7 +76,7 @@ describe('EarningsChart.utils', () => {
     ] as const)(
       'formats %s earnings row dates',
       (granularity, start, periodEndExclusive, expected) => {
-        const point = createPoint({
+        const point = createEarningsPoint({
           start,
           periodEndExclusive,
           granularity,
@@ -118,7 +101,7 @@ describe('EarningsChart.utils', () => {
 
       try {
         const result = formatEarningsPointDate(
-          createPoint({
+          createEarningsPoint({
             start: '2026-11-13T00:00:00.000Z',
             periodEndExclusive: '2026-11-20T00:00:00.000Z',
             granularity: 'week',
@@ -143,9 +126,9 @@ describe('EarningsChart.utils', () => {
 
   describe('x-axis labels', () => {
     const points = [
-      createPoint({ start: '2026-11-09T00:00:00.000Z' }),
-      createPoint({ start: '2026-11-10T00:00:00.000Z' }),
-      createPoint({ start: '2026-12-01T00:00:00.000Z' }),
+      createEarningsPoint({ start: '2026-11-09T00:00:00.000Z' }),
+      createEarningsPoint({ start: '2026-11-10T00:00:00.000Z' }),
+      createEarningsPoint({ start: '2026-12-01T00:00:00.000Z' }),
     ];
 
     it('formats labels for weekly and monthly ranges', () => {

@@ -4,44 +4,23 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { EarningsPoint } from './earningsHistory';
 import EarningsChartPlot from './EarningsChartPlot';
+import { createEarningsPoint } from './EarningsChart.testUtils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
-
-const createPoint = ({
-  start,
-  amountUsd,
-  available = true,
-}: {
-  start: string;
-  amountUsd: number | null;
-  available?: boolean;
-}): EarningsPoint => ({
-  start,
-  periodEndExclusive: '2026-11-16T00:00:00.000Z',
-  timestamp: start,
-  amountUsd,
-  granularity: 'day',
-  periodStatus: 'complete',
-  availability: {
-    earnings: available ? 'available' : 'unavailable',
-    usd_pricing: available ? 'available' : 'unavailable',
-  },
-  unavailableReasons: available ? [] : ['before_user_earnings_inception'],
-});
 
 const createPanResponder = (): ReturnType<typeof PanResponder.create> =>
   PanResponder.create({});
 
 const renderPlot = ({
   points = [
-    createPoint({
+    createEarningsPoint({
       start: '2026-11-09T00:00:00.000Z',
       amountUsd: 2,
     }),
-    createPoint({
+    createEarningsPoint({
       start: '2026-11-10T00:00:00.000Z',
       amountUsd: 0,
     }),
-    createPoint({
+    createEarningsPoint({
       start: '2026-11-11T00:00:00.000Z',
       amountUsd: null,
       available: false,
