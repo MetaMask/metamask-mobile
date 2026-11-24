@@ -38,7 +38,9 @@ export function ConfirmationAlertMetrics() {
   const trackAlertMetricsRef = useRef(trackAlertMetrics);
   trackAlertMetricsRef.current = trackAlertMetrics;
 
-  const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     // A write is already scheduled and will read the latest state, so skip.
