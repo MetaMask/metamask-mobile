@@ -128,6 +128,9 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
           testID={testID ? `${testID}-watchlist` : undefined}
           contentWrapperProps={{ gap: 0 }}
+          // Icon-only: ButtonBase pads pl-3 pr-4 for a leading icon (expecting a
+          // label), which leaves the star off-centre. Equal padding keeps it a 32x32 circle.
+          twClassName="px-2"
         >
           {null}
         </FilterButton>

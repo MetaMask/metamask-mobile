@@ -237,7 +237,7 @@ describe('CryptoTokensPillBlock', () => {
     });
 
     it('renders the watchlist pill first and its items by default', () => {
-      const { getByTestId, queryByTestId } = renderBlock();
+      const { getByTestId, queryByTestId, UNSAFE_root: root } = renderBlock();
 
       expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeOnTheScreen();
       expect(getByTestId('crypto-tokens-pill-watchlist')).toHaveProp(
@@ -247,6 +247,14 @@ describe('CryptoTokensPillBlock', () => {
       expect(getByTestId('crypto-tokens-pill-watchlist')).not.toHaveTextContent(
         'perps.watchlist.filter_badge_label',
       );
+      // Tailwind is mocked here, so assert the equal-padding override on the
+      // icon-only FilterButton itself (keeps the star centred in a 32x32 pill).
+      expect(
+        root.findByProps({
+          testID: 'crypto-tokens-pill-watchlist',
+          twClassName: 'px-2',
+        }),
+      ).toBeTruthy();
       expect(getByTestId('crypto-tokens-pill-trending')).toHaveTextContent(
         'trending.crypto_pills.trending',
       );

@@ -187,6 +187,21 @@ describe('PerpsMarketCategoryBadges', () => {
       expect(getByTestId('category-badges-watchlist')).toBeOnTheScreen();
     });
 
+    it('pads the icon-only watchlist badge equally so the star is centred', () => {
+      const { getByTestId } = render(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          showWatchlistBadge
+          onWatchlistToggle={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('category-badges-watchlist')).toHaveStyle({
+        paddingLeft: 8,
+        paddingRight: 8,
+      });
+    });
+
     it('calls onWatchlistToggle when watchlist badge is pressed', () => {
       const onWatchlistToggle = jest.fn();
       const { getByTestId } = render(
