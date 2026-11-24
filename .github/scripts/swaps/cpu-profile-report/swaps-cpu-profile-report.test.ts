@@ -154,22 +154,25 @@ describe('buildSlackMessage', () => {
     );
     expect(message).toContain('on main (Pixel 8 Pro, Pixel 9)');
     expect(message).toContain(
-      '*ETH swap*: 3 used (1 failed, 0 unsymbolicated, 0 missing)\n1 skipped: ambiguous device match',
+      '*ETH swap*: used 3 of 5 runs (dropped: failed test 1, unsymbolicated 0, missing 0)\n1 skipped: ambiguous device match',
     );
     expect(message).toContain('median 340ms · p90 388ms');
     expect(message).toContain('median 50ms · p90 58ms');
     expect(message).toContain(
-      '*Cross-chain swap*: 0 used (0 failed, 0 unsymbolicated, 1 missing)',
+      '*Cross-chain swap*: used 0 of 1 runs (dropped: failed test 0, unsymbolicated 0, missing 1)',
     );
     expect(message).toContain('No passing, symbolicated runs this week.');
   });
 
-  it('escapes Slack markup in artifact-derived names', () => {
+  it('escapes Slack markup and renames the no-source-path area', () => {
     const sample = {
       status: 'used',
       audit: {
         ...audit(300, 40),
         swapsOwnedAreas: [{ area: '<!channel> & co', selfMs: 40 }],
+        nonSwapsConcurrentAreas: [
+          { area: 'Unknown (unsymbolicated)', selfMs: 5 },
+        ],
       },
     };
     const message = buildSlackMessage(
@@ -184,5 +187,8 @@ describe('buildSlackMessage', () => {
     expect(message).toContain('&lt;!channel&gt; &amp; co 40ms');
     expect(message).toContain('(&lt;@U123&gt;)');
     expect(message).not.toMatch(/<!channel>|<@U123>/);
+    expect(message).toContain(
+      'Co-running, not Swaps: Native or no source path 5ms',
+    );
   });
 });

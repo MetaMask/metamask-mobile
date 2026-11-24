@@ -147,10 +147,22 @@ export function summarizeScenario(samples) {
 const escapeSlack = (text) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const formatMs = (value) => `${Math.round(value).toLocaleString('en-US')}ms`;
+/**
+ * Clearer names for two parser areas: frames without a source path (in
+ * symbolicated profiles, mostly native and host functions), and `@expo/cli`,
+ * whose only runtime code is Metro's module loader.
+ */
+const AREA_NAMES = new Map([
+  ['Unknown (unsymbolicated)', 'Native or no source path'],
+  ['@expo/cli (dependency)', 'Metro module loading (@expo/cli)'],
+]);
 const formatAreas = (areas) =>
   areas.length
     ? areas
-        .map(({ area, avgMs }) => `${escapeSlack(area)} ${formatMs(avgMs)}`)
+        .map(
+          ({ area, avgMs }) =>
+            `${escapeSlack(AREA_NAMES.get(area) ?? area)} ${formatMs(avgMs)}`,
+        )
         .join(', ')
     : 'none';
 
@@ -160,13 +172,14 @@ export function buildSlackMessage(
 ) {
   const lines = [
     `:bar_chart: *Swaps CPU profile report, ${window.label}*`,
-    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}). Areas show average self time per run.`,
+    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}). Areas show average self time per run; "called by swaps" is an upper bound, since a function swaps calls even once counts with all its self time.`,
   ];
   for (const { label, summary } of scenarios) {
     const { used, failed, unsymbolicated, missing, ambiguous } = summary.counts;
+    const total = used + failed + unsymbolicated + missing + ambiguous;
     lines.push(
       '',
-      `*${label}*: ${used} used (${failed} failed, ${unsymbolicated} unsymbolicated, ${missing} missing)`,
+      `*${label}*: used ${used} of ${total} runs (dropped: failed test ${failed}, unsymbolicated ${unsymbolicated}, missing ${missing})`,
     );
     if (ambiguous) {
       lines.push(`${ambiguous} skipped: ambiguous device match`);
@@ -180,7 +193,7 @@ export function buildSlackMessage(
       `Widest swaps-owned span: median ${formatMs(widest.median)} · p90 ${formatMs(widest.p90)}`,
       `Swaps-owned self time: median ${formatMs(self.median)} · p90 ${formatMs(self.p90)}`,
       `Top swaps areas: ${formatAreas(summary.ownedAreas)}`,
-      `Called by swaps: ${formatAreas(summary.calledBySwaps)}`,
+      `Called by swaps (upper bound): ${formatAreas(summary.calledBySwaps)}`,
       `Co-running, not Swaps: ${formatAreas(summary.coRunning)}`,
     );
   }

@@ -107,7 +107,9 @@ async function main() {
       });
       runsRead += 1;
     } catch (error) {
-      console.error(`[skip] run ${runId}: ${error.message}`);
+      console.error(
+        `[skip] run ${runId}: ${error.stderr?.trim() || error.message}`,
+      );
     }
   }
 
