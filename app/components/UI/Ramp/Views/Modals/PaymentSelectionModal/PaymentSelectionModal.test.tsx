@@ -596,6 +596,23 @@ describe('PaymentSelectionModal', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('does not crash when a quote has no quote payload or non-array terms', () => {
+      mockSuccessQuotes([
+        { provider: 'transak' },
+        { provider: 'transak', quote: { termsIds: 'MICA_EEA_BUY' } },
+        quoteWithTerms(['MICA_EEA_SELL']),
+      ]);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        PaymentSelectionModal,
+      );
+
+      expect(getByTestId('mica-disclaimer-MICA_EEA_SELL')).toBeOnTheScreen();
+      expect(
+        queryByTestId('mica-disclaimer-MICA_EEA_BUY'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('does not show a disclaimer for unrelated terms', () => {
       mockSuccessQuotes([quoteWithTerms(['SOMETHING_ELSE'])]);
 

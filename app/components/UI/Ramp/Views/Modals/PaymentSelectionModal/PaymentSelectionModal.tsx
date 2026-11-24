@@ -251,8 +251,11 @@ function PaymentSelectionModal() {
   const allTermsIds = useMemo(() => {
     const termsSet = new Set<string>();
     quotes?.success?.forEach((quote) => {
-      const quoteData = quote.quote as { termsIds?: string[] };
-      quoteData.termsIds?.forEach((id: string) => termsSet.add(id));
+      const termsIds = (quote.quote as { termsIds?: unknown } | undefined)
+        ?.termsIds;
+      if (Array.isArray(termsIds)) {
+        termsIds.forEach((id: string) => termsSet.add(id));
+      }
     });
     return Array.from(termsSet);
   }, [quotes]);
