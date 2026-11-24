@@ -4,7 +4,8 @@ import {
   type MarketTypeFilter,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { RootState } from '../../../../../reducers';
+import type { RootState } from '../../../../../reducers';
+import { selectPerpsLighterProviderEnabledFlag } from '../featureFlags';
 
 const VALID_MARKET_TYPE_FILTERS = new Set<MarketTypeFilter>([
   'all',
@@ -61,30 +62,15 @@ export const selectPerpsMarketListPreferences =
  * (for example Lighter disabled by flag) must not let a stale saved choice
  * hide every market, so the effective filter below intersects with this list.
  */
+export const selectLighterEnabled = createSelector(
+  (state: RootState) => state,
+  (state) => selectPerpsLighterProviderEnabledFlag(state),
+);
+
 export const selectAvailableProviderIds = createSelector(
-  (state: RootState) =>
-    state.engine?.backgroundState?.PerpsController as
-      | {
-          activeProvider?: string;
-          availableProviders?: PerpsProviderType[];
-        }
-      | undefined,
-  (perpsControllerState): PerpsProviderType[] => {
-    if (!perpsControllerState) {
-      return ['hyperliquid'];
-    }
-    if (
-      perpsControllerState.activeProvider === 'aggregated' &&
-      Array.isArray(perpsControllerState.availableProviders) &&
-      perpsControllerState.availableProviders.length > 0
-    ) {
-      return perpsControllerState.availableProviders;
-    }
-    return [
-      (perpsControllerState.activeProvider as PerpsProviderType) ??
-        'hyperliquid',
-    ];
-  },
+  selectLighterEnabled,
+  (lighterEnabled): PerpsProviderType[] =>
+    lighterEnabled ? ['hyperliquid', 'lighter'] : ['hyperliquid'],
 );
 
 /**

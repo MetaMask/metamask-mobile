@@ -101,6 +101,27 @@ describe('usePerpsSlice', () => {
     expect(result.current.value1dAgoFiat).toBeUndefined();
   });
 
+  it.each<[string, number | undefined]>([
+    ['0', 0],
+    ['-10', -10],
+    ['invalid', undefined],
+    ['NaN', undefined],
+    ['Infinity', undefined],
+  ])('reports the historical baseline %s as %s', (baseline, expected) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsProvider) return 'hyperliquid';
+      if (selector === selectPerpsBalances) {
+        return { hyperliquid: { accountValue1dAgo: baseline } };
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => usePerpsSlice((amount) => amount));
+
+    expect(result.current.value1dAgoFiat).toBe(expected);
+  });
+
   it('keeps funded balances available when trading is geo-blocked', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;

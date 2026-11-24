@@ -923,11 +923,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    */
   private toPriceUpdate(update: PriceUpdate): PriceUpdate {
     return {
+      // Preserve every controller field, including the venue stamp used by lookups.
       ...update,
       timestamp: Date.now(),
       isTradable: update.isTradable ?? true,
-      // Keep the venue stamp so per-venue lookups can key off it (TAT-4407).
-      providerId: update.providerId,
     };
   }
 

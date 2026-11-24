@@ -5,28 +5,34 @@ import {
   selectEffectivePerpsVenueFilter,
   selectPerpsMarketListPreferences,
 } from './index';
+import { selectPerpsLighterProviderEnabledFlag } from '../featureFlags';
 
-const createMockState = (
-  preferences?: Record<string, unknown>,
-  perpsControllerState?: Record<string, unknown>,
-): RootState =>
+jest.mock('../featureFlags', () => ({
+  ...jest.requireActual('../featureFlags'),
+  selectPerpsLighterProviderEnabledFlag: jest.fn(),
+}));
+
+const mockLighterEnabled =
+  selectPerpsLighterProviderEnabledFlag as unknown as jest.Mock;
+
+// Lighter availability is driven through a mocked flag selector: the
+// production flag compares the app version (device info), which unit tests
+// cannot satisfy.
+const createMockState = (preferences?: Record<string, unknown>): RootState =>
   ({
     settings: {
+      basicFunctionalityEnabled: true,
       perpsMarketListPreferences: preferences,
-    },
-    engine: {
-      backgroundState: {
-        PerpsController: perpsControllerState,
-      },
     },
   }) as unknown as RootState;
 
 describe('selectEffectivePerpsVenueFilter (TAT-4407)', () => {
+  beforeEach(() => {
+    mockLighterEnabled.mockReturnValue(true);
+  });
+
   it('returns all available venues when nothing is saved', () => {
-    const state = createMockState(undefined, {
-      activeProvider: 'aggregated',
-      availableProviders: ['hyperliquid', 'lighter'],
-    });
+    const state = createMockState();
 
     expect(selectEffectivePerpsVenueFilter(state)).toEqual([
       'hyperliquid',
@@ -35,40 +41,31 @@ describe('selectEffectivePerpsVenueFilter (TAT-4407)', () => {
   });
 
   it('intersects the saved ids with the available venues', () => {
-    const state = createMockState(
-      { selectedProviderIds: ['hyperliquid', 'lighter'] },
-      {
-        activeProvider: 'aggregated',
-        availableProviders: ['hyperliquid'],
-      },
-    );
+    // Lighter disabled by flag: only Hyperliquid is available.
+    mockLighterEnabled.mockReturnValue(false);
+    const state = createMockState({
+      selectedProviderIds: ['hyperliquid', 'lighter'],
+    });
 
-    // Lighter is no longer available; the effective filter is what remains.
     expect(selectEffectivePerpsVenueFilter(state)).toEqual(['hyperliquid']);
   });
 
   it('falls back to all available venues when the intersection is empty', () => {
-    const state = createMockState(
-      { selectedProviderIds: ['lighter'] },
-      {
-        activeProvider: 'aggregated',
-        availableProviders: ['hyperliquid'],
-      },
-    );
+    mockLighterEnabled.mockReturnValue(false);
+    const state = createMockState({ selectedProviderIds: ['lighter'] });
 
     expect(selectEffectivePerpsVenueFilter(state)).toEqual(['hyperliquid']);
   });
 
-  it('follows the active provider in direct mode', () => {
-    const state = createMockState(
-      { selectedProviderIds: ['lighter'] },
-      { activeProvider: 'hyperliquid' },
-    );
+  it('keeps both venues selected when both are available', () => {
+    mockLighterEnabled.mockReturnValue(true);
+    const state = createMockState({ selectedProviderIds: ['lighter'] });
 
-    expect(selectEffectivePerpsVenueFilter(state)).toEqual(['hyperliquid']);
+    expect(selectEffectivePerpsVenueFilter(state)).toEqual(['lighter']);
   });
 
-  it('defaults to hyperliquid when the controller state is missing', () => {
+  it('defaults to hyperliquid when the flag state is missing', () => {
+    mockLighterEnabled.mockReturnValue(false);
     const state = createMockState();
 
     expect(selectEffectivePerpsVenueFilter(state)).toEqual(['hyperliquid']);

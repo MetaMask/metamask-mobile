@@ -609,6 +609,37 @@ describe('usePerpsPortfolioBalance', () => {
       expect(result.current.perpsBalance1dAgo).toBeUndefined();
     });
 
+    it.each<[string, number | undefined]>([
+      ['0', 0],
+      ['-10', -10],
+      ['invalid', undefined],
+      ['NaN', undefined],
+      ['Infinity', undefined],
+    ])('reports the historical baseline %s as %s', (baseline, expected) => {
+      setupMocks(
+        {
+          hyperliquid: {
+            totalBalance: '100',
+            unrealizedPnl: '0',
+            accountValue1dAgo: baseline,
+            lastUpdated: 0,
+          },
+        },
+        {
+          spendableBalance: '100',
+          withdrawableBalance: '100',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '100',
+        },
+      );
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
+
+      expect(result.current.perpsBalance1dAgo).toBe(expected);
+    });
+
     it('should handle null provider balance objects', () => {
       const mockBalances = {
         hyperliquid: null as unknown as MockBalance,

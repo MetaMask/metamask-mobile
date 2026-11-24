@@ -101,6 +101,9 @@ export const perpsTwoExchangeState = (
         backgroundState: {
           PerpsController: {
             activeProvider: 'aggregated',
+            // Grouped market rows display the default venue's data; without
+            // this the venue-filter selector cannot resolve the display row.
+            defaultProvider: 'hyperliquid',
             isEligible: true,
             isFirstTimeUser: { mainnet: false, testnet: false },
             perpsBalances: Object.fromEntries(
