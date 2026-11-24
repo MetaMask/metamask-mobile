@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 /**
  * Flakiness detection for component view tests on PRs targeting main. Mirrors
- * the Appium E2E mechanism (e2e-split-tags-shards.mjs): a PR that adds or
- * modifies test files gets them re-run several times so a flake surfaces
- * before merge. Where E2E duplicates each changed spec as a `-retry-1` copy
- * inside the existing Playwright run, Jest has no per-file repeat on v29, so
- * this job re-runs the changed `*.view.test.tsx` files once per repetition
- * with the file order shuffled and `--randomize` shuffling order inside files.
+ * the Appium E2E mechanism (e2e-split-tags-shards.mjs), which duplicates each
+ * changed spec as a `-retry-1` copy inside the Playwright run; Jest has no
+ * per-file repeat on v29, so this job re-runs the changed `*.view.test.tsx`
+ * files once per repetition with the file order shuffled and `--randomize`
+ * shuffling order inside files.
  *
  * A repetition counts as clean only when Jest exits 0 with a readable JSON
  * report that contains results and no suite-level (testExecError /
@@ -22,10 +21,11 @@
  *
  * Env: CHANGED_CV_TEST_FILES space-separated changed paths; REPEAT_COUNT
  * repetitions per file (default 5); MAX_FILES cap (default 10);
- * TIME_BUDGET_MINUTES budget, 0 disables (default 60); JEST_BIN_PATH Jest
- * entry override (test hook); CV_FLAKINESS_DEADLINE_MS test hook: absolute
- * epoch-ms budget deadline; GITHUB_TOKEN, REPOSITORY, PR_NUMBER label check
- * inputs; GITHUB_OUTPUT, GITHUB_STEP_SUMMARY GitHub Actions sinks.
+ * TIME_BUDGET_MINUTES budget, 0 disables (default 60); JEST_BIN_PATH and
+ * JEST_NODE_PATH override the Jest entry and Node runtime (test hooks);
+ * CV_FLAKINESS_DEADLINE_MS test hook: absolute epoch-ms budget deadline;
+ * GITHUB_TOKEN, REPOSITORY, PR_NUMBER label check inputs; GITHUB_OUTPUT,
+ * GITHUB_STEP_SUMMARY GitHub Actions sinks.
  */
 
 import fs from 'node:fs';
@@ -35,7 +35,8 @@ import { spawnSync } from 'node:child_process';
 const DEFAULT_JEST_BIN = 'node_modules/jest/bin/jest.js';
 const SKIP_LABEL = 'skip-cv-flakiness-detection';
 const CV_TEST_FILE_PATTERN = /\.view\.test\.(ts|tsx)$/u;
-const RESULTS_DIR = 'tests/results/cv-flakiness';
+// CV_FLAKINESS_RESULTS_DIR keeps unit tests out of the repository working tree.
+const RESULTS_DIR = process.env.CV_FLAKINESS_RESULTS_DIR || 'tests/results/cv-flakiness';
 
 const env = {
   CHANGED_CV_TEST_FILES: process.env.CHANGED_CV_TEST_FILES || '',
@@ -104,7 +105,8 @@ export function shuffleWithSeed(items, seed) {
 /** Build the Jest invocation for one repetition (paths in run order). */
 export function buildJestCommand(files, { seed, outputFile }) {
   return {
-    command: process.execPath,
+    // JEST_NODE_PATH overrides the Node runtime (test hook for spawn failures).
+    command: process.env.JEST_NODE_PATH || process.execPath,
     args: [
       env.JEST_BIN_PATH,
       '--config',
@@ -126,12 +128,7 @@ export function buildJestCommand(files, { seed, outputFile }) {
   };
 }
 
-/**
- * One repetition outcome, parsed from the Jest JSON report. `crashedSuites`
- * carries suites that failed to run at all (testExecError) and
- * `runtimeErrorSuites` the numRuntimeErrorTestSuites count, so a crash or
- * import failure fails the job even when no assertion is parsed.
- */
+/** Parsed Jest JSON report: assertions, suites that failed to run (testExecError), and the runtime-error count. */
 export function parseJestReport(jsonPath) {
   const suites = [];
   const crashedSuites = [];
@@ -231,12 +228,7 @@ function markSkipped(summaryLine) {
   appendSummary(['### Component view flakiness detection', '', summaryLine]);
 }
 
-/**
- * Emit ::error annotations for one repetition and return every failure: parsed
- * failing assertions, plus crashes, kills, missing/unparsable reports and
- * suite-level (testExecError / numRuntimeErrorTestSuites) failures that would
- * otherwise exit 0 into an empty failures list.
- */
+/** Emit ::error annotations for one repetition and return every failure — assertions plus crashes, kills, unreadable reports and suite-level errors. */
 function collectIterationFailures(iteration, run, report) {
   const found = [];
   for (const suite of report.suites) {
@@ -272,12 +264,12 @@ function collectIterationFailures(iteration, run, report) {
 
 /** Why a repetition did not end cleanly, independent of parsed assertions; empty when clean. */
 function describeCleanRunGap(run, report) {
-  if (run.error) return `Jest could not be started (${run.error.code || run.error.message})`;
-  if (run.signal) {
-    return run.signal === 'SIGTERM'
-      ? 'Jest was aborted (SIGTERM) after exceeding the remaining time budget'
-      : `Jest was terminated by signal ${run.signal}`;
+  if (run.error?.code === 'ETIMEDOUT' || run.signal === 'SIGTERM') {
+    // spawnSync reports its own timeout as ETIMEDOUT + SIGTERM; SIGTERM has no other source here.
+    return 'Jest was aborted (SIGTERM) after exceeding the remaining time budget';
   }
+  if (run.signal) return `Jest was terminated by signal ${run.signal}`;
+  if (run.error) return `Jest could not be started (${run.error.code || run.error.message})`;
   if (report.unreadable) {
     return `Jest exited with status ${run.status} and its JSON report is missing or unparsable (${report.unreadable})`;
   }
@@ -294,7 +286,6 @@ function describeCleanRunGap(run, report) {
 function summarizeMessage(message) {
   return String(message || 'unknown error').split('\n')[0].slice(0, 200);
 }
-
 /** Budget deadline: the CV_FLAKINESS_DEADLINE_MS test hook wins over now + minutes; Infinity disables. */
 function resolveDeadline(minutes) {
   const deadlineOverride = Number(process.env.CV_FLAKINESS_DEADLINE_MS || '');
@@ -320,15 +311,12 @@ async function main() {
   const kept = existing.slice(0, env.MAX_FILES);
   const dropped = existing.slice(env.MAX_FILES);
 
-  for (const file of missing) {
-    console.log(`ℹ️  Skipping deleted component view test file: ${displayPath(file)}`);
-  }
+  for (const file of missing) console.log(`ℹ️  Skipping deleted component view test file: ${displayPath(file)}`);
   for (const file of dropped) {
     console.log(
       `::warning::CV flakiness detection capped at ${env.MAX_FILES} files; not repeating: ${displayPath(file)}`,
     );
   }
-
   appendGithubOutput('cv_files_to_repeat', kept.map(displayPath).join(' '));
   appendGithubOutput('repeat_count', String(env.REPEAT_COUNT));
 
@@ -344,7 +332,7 @@ async function main() {
     markSkipped(
       `Skipped (${SKIP_LABEL} label, non-PR run, or GitHub API unavailable). ` +
         `${kept.length} component view test file(s) would have been repeated ${env.REPEAT_COUNT}×:` +
-        `${kept.map((file) => ` \`${displayPath(file)}\``).join('')}`,
+        kept.map((file) => ` \`${displayPath(file)}\``).join(''),
     );
     return;
   }
@@ -387,11 +375,11 @@ async function main() {
     const run = spawnSync(command, args, {
       env: { ...process.env, TEST_OS: env.TEST_OS },
       encoding: 'utf8',
-      // Safety net so a hung Jest run cannot outlive the budget on its own.
-      timeout: Math.max(
-        Number.isFinite(deadlineMs) ? deadlineMs - Date.now() : 30 * 60000,
-        60000,
-      ),
+      // Safety net so a hung Jest run cannot outlive the budget on its own:
+      // the remaining budget (at least 1s), or 30 minutes when it is disabled.
+      timeout: Number.isFinite(deadlineMs)
+        ? Math.max(deadlineMs - Date.now(), 1000)
+        : 30 * 60000,
     });
     const durationSeconds = Math.round((Date.now() - iterationStartedAt) / 1000);
 

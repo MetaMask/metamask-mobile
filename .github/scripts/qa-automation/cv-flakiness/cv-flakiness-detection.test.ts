@@ -17,21 +17,10 @@ function writeJestStub(stubDir: string, options: { failSubstring?: string; sleep
     `
 const fs = require('node:fs');
 const args = process.argv.slice(2);
-const option = (name) => {
-  const index = args.indexOf(name);
-  return index !== -1 ? args[index + 1] : '';
-};
+const option = (name) => { const i = args.indexOf(name); return i !== -1 ? args[i + 1] : ''; };
 const outputFile = option('--outputFile');
-const seed = option('--seed');
-const files = args.filter(
-  (arg, index) =>
-    arg.endsWith('.view.test.tsx') &&
-    !['--outputFile', '--seed'].includes(args[index - 1]),
-);
-const callsPath = process.env.STUB_CALLS_PATH;
-if (callsPath) {
-  fs.appendFileSync(callsPath, JSON.stringify({ seed, files }) + '\\n');
-}
+const files = args.filter((arg, i) => arg.endsWith('.view.test.tsx') && !['--outputFile', '--seed'].includes(args[i - 1]));
+fs.appendFileSync(process.env.STUB_CALLS_PATH, JSON.stringify({ seed: option('--seed'), files }) + '\\n');
 const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
 const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
 const forcedExit = Number(process.env.STUB_EXIT_CODE || '');
@@ -104,6 +93,7 @@ interface RunOptions {
   sleepMs?: number;
   stubExitCode?: string;
   stubReport?: string;
+  jestNodePath?: string;
 }
 
 interface RunResult {
@@ -140,9 +130,15 @@ function runScript(options: RunOptions): RunResult {
     STUB_EXIT_CODE: options.stubExitCode ?? '',
     STUB_REPORT: options.stubReport ?? '',
     TIME_BUDGET_MINUTES: '60',
+    // Keep per-run Jest JSON reports out of the shared repository tree so a
+    // killed run cannot read a previous test's stale report.
+    CV_FLAKINESS_RESULTS_DIR: path.join(stubDir, 'cv-flakiness-results'),
   };
   if (options.deadlineMs !== undefined) {
     env.CV_FLAKINESS_DEADLINE_MS = options.deadlineMs;
+  }
+  if (options.jestNodePath !== undefined) {
+    env.JEST_NODE_PATH = options.jestNodePath;
   }
   const fetchStubPath = writeFetchStub(stubDir, {
     ok: options.fetchOk ?? true,
@@ -156,11 +152,7 @@ function runScript(options: RunOptions): RunResult {
     encoding: 'utf8',
   });
   if (result.status !== 0) {
-    console.error(
-      '[cv-flakiness-detection test] script failed:\nstdout:\n%s\nstderr:\n%s',
-      result.stdout ?? '',
-      result.stderr ?? '',
-    );
+    console.error('[cv-flakiness-detection test] script failed:', result.status, '\nstdout:', result.stdout, '\nstderr:', result.stderr);
   }
   return {
     status: result.status,
@@ -177,7 +169,6 @@ function runScript(options: RunOptions): RunResult {
     summary: existsSync(summaryPath) ? readFileSync(summaryPath, 'utf8') : '',
   };
 }
-
 function makeCvFile(dir: string, name: string): string {
   const filePath = path.join(dir, name);
   writeFileSync(filePath, '');
@@ -225,9 +216,7 @@ describe('cv-flakiness-detection', () => {
 
     expect(status).toBe(0);
     expect(calls).toHaveLength(2);
-    for (const call of calls) {
-      expect(call.files).toHaveLength(2);
-    }
+    calls.forEach((call) => expect(call.files).toHaveLength(2));
     expect(output).toContain('cv_files_to_repeat=');
     expect(output).toContain('completed_iterations=2');
     expect(output).toContain('budget_exhausted=false');
@@ -272,6 +261,52 @@ describe('cv-flakiness-detection', () => {
     expect(status).toBe(1);
     expect(output).toContain('status=failed');
     expect(stderr).toContain(expectedReason);
+  });
+
+  it('fails the job when the budget kills Jest mid-run, reported as a timeout', () => {
+    const file = makeCvFile(tempDir, 'Hung.view.test.tsx');
+    const { status, output, stderr } = runScript({
+      changedFiles: file,
+      repeatCount: '1',
+      sleepMs: 3000,
+      // Real-clock deadline (Date.now is mocked); the stub outlasts the kill.
+      deadlineMs: String(new Date().getTime() + 1500),
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('status=failed');
+    // The mid-run kill reads as a timeout, not a start failure (Bugbot r4679772868).
+    expect(stderr).toContain('aborted (SIGTERM) after exceeding the remaining time budget');
+  });
+
+  it('fails the job when Jest cannot be spawned at all', () => {
+    const file = makeCvFile(tempDir, 'Unspawnable.view.test.tsx');
+    const missingNode = path.join(tmpdir(), 'cv-flakiness-no-such-node');
+    const { status, output, stderr } = runScript({
+      changedFiles: file,
+      repeatCount: '1',
+      jestNodePath: missingNode,
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('status=failed');
+    expect(stderr).toContain('Jest could not be started');
+  });
+
+  it('stops before starting when the budget is already exhausted', () => {
+    const file = makeCvFile(tempDir, 'Slow.view.test.tsx');
+    const { status, output, stdout } = runScript({
+      changedFiles: file,
+      repeatCount: '3',
+      // Real-clock deadline (Date.now is mocked); a past deadline exercises the deliberate pre-start stop.
+      deadlineMs: String(new Date().getTime() - 1000),
+    });
+
+    expect(status).toBe(0);
+    expect(output).toContain('budget_exhausted=true');
+    expect(output).toContain('completed_iterations=0');
+    expect(output).toContain('status=budget-limited');
+    expect(stdout).toContain('did not get all 3 repetitions');
   });
 
   it('drops deleted component view test files without failing', () => {
@@ -330,25 +365,6 @@ describe('cv-flakiness-detection', () => {
     expect(output).toContain('status=skipped');
   });
 
-  it('stops repeating at the time budget instead of failing', () => {
-    const file = makeCvFile(tempDir, 'Slow.view.test.tsx');
-    const { status, output, summary, stdout } = runScript({
-      changedFiles: file,
-      repeatCount: '3',
-      sleepMs: 8000,
-      // testSetup.js mocks Date.now to a constant, so build the deadline from
-      // the real clock for the child process.
-      deadlineMs: String(new Date().getTime() + 4000),
-    });
-
-    expect(status).toBe(0);
-    expect(output).toContain('budget_exhausted=true');
-    expect(output).toContain('completed_iterations=1');
-    expect(output).toContain('status=budget-limited');
-    expect(summary).toContain('Time budget');
-    expect(stdout).toContain('did not get all 3 repetitions');
-  });
-
   it('shuffles the file order between repetitions', () => {
     const files = ['a', 'b', 'c', 'd', 'e', 'f'].map((name) =>
       makeCvFile(tempDir, `${name}Test.view.test.tsx`),
@@ -358,8 +374,7 @@ describe('cv-flakiness-detection', () => {
     expect(status).toBe(0);
     expect(calls).toHaveLength(5);
     const orders = new Set(calls.map((call) => call.files.join(',')));
-    // Five shuffled repetitions of six files are overwhelmingly unlikely to
-    // produce one identical order every time without shuffling.
+    // One identical order across five shuffled repetitions would be astronomically unlikely.
     expect(orders.size).toBeGreaterThan(1);
   });
 });
