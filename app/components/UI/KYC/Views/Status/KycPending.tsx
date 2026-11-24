@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -18,6 +19,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
+import useVerifiedSuccessCascade from '../../hooks/useVerifiedSuccessCascade';
 import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
 import MarketingMomentTitle from '../../../MarketingMomentTitle';
@@ -65,6 +67,21 @@ const KycPending = ({
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   useTrackKycResultViewed('pending');
   const tw = useTailwind();
+  // Identity verified's entrance: the title, body and button fade and rise
+  // in one after another. The scanner starts on mount, so the cascade does too.
+  const {
+    mode,
+    startEntrance,
+    titleStyle,
+    descriptionStyle,
+    buttonStyle,
+    isButtonInteractive,
+  } = useVerifiedSuccessCascade();
+  useEffect(() => {
+    if (mode === 'animate') {
+      startEntrance();
+    }
+  }, [mode, startEntrance]);
 
   const handleComeBackLater = useCallback(() => {
     onLeave();
@@ -89,20 +106,24 @@ const KycPending = ({
       >
         <TitleStandard
           title={
-            <MarketingMomentTitle twClassName="w-full text-center">
-              {title ?? strings('kyc.kyc_taking_longer.title')}
-            </MarketingMomentTitle>
+            <Animated.View style={[tw.style('w-full'), titleStyle]}>
+              <MarketingMomentTitle twClassName="w-full text-center">
+                {title ?? strings('kyc.kyc_taking_longer.title')}
+              </MarketingMomentTitle>
+            </Animated.View>
           }
           bottomLabel={
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              twClassName="text-center"
-            >
-              {description ??
-                strings('kyc.kyc_taking_longer.description_few_minutes')}
-            </Text>
+            <Animated.View style={[tw.style('w-full'), descriptionStyle]}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
+                {description ??
+                  strings('kyc.kyc_taking_longer.description_few_minutes')}
+              </Text>
+            </Animated.View>
           }
           titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
           bottomLabelWrapperProps={{
@@ -131,17 +152,22 @@ const KycPending = ({
           }
         />
       </ScrollView>
-      <Box twClassName="px-4 pb-2 pt-4">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleComeBackLater}
-          testID={KycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
-        >
-          {buttonLabel ?? strings('kyc.kyc_taking_longer.done_button')}
-        </Button>
-      </Box>
+      <Animated.View
+        style={buttonStyle}
+        pointerEvents={isButtonInteractive ? 'auto' : 'none'}
+      >
+        <Box twClassName="px-4 pb-2 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleComeBackLater}
+            testID={KycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
+          >
+            {buttonLabel ?? strings('kyc.kyc_taking_longer.done_button')}
+          </Button>
+        </Box>
+      </Animated.View>
     </SafeAreaView>
   );
 };
