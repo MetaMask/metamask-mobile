@@ -1,9 +1,14 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Text } from '#app/components/UI/primitives/Text';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockHomePacks } from '../../../../UI/Collectibles/mocks/homePacks';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
+import { homepageSectionTitleTestId } from '#app/components/Views/Homepage/Homepage.testIds';
+import { HomeSectionNames } from '#app/components/Views/Homepage/hooks/useHomeViewedEvent';
 import { CollectiblesSection } from './CollectiblesSection';
 
 let mockQuery: {
@@ -25,9 +30,25 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
   useSectionPerformance: jest.fn(),
 }));
 
+const Stack = createNativeStackNavigator();
+
+function HomeScreen() {
+  return <CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />;
+}
+
+function CollectiblesStub() {
+  return <Text>collectibles landing</Text>;
+}
+
 function renderSection() {
   return renderWithProvider(
-    <CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />,
+    <Stack.Navigator>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen
+        name={collectiblesRoutes.root}
+        component={CollectiblesStub}
+      />
+    </Stack.Navigator>,
   );
 }
 
@@ -75,8 +96,18 @@ describe('CollectiblesSection', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
     expect(screen.getByText(firstPack.subtitle)).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(collectiblesTestIds.openButton(firstPack.code)),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(firstPack.priceLabel)).toBeOnTheScreen();
+  });
+
+  it('opens the collectibles landing screen from the header', async () => {
+    renderSection();
+
+    fireEvent.press(
+      screen.getByTestId(
+        homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES),
+      ),
+    );
+
+    expect(await screen.findByText('collectibles landing')).toBeOnTheScreen();
   });
 });

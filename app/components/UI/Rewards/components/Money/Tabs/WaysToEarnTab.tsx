@@ -1,24 +1,23 @@
 import React from 'react';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import type { ReferralMeDto } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { moneyDashboardPersona } from '../../../../../../reducers/rewardsMoney/selectors';
-import CampaignsPreview from '../../Campaigns/CampaignsPreview';
-import BenefitsPreview from '../../Benefits/BenefitsPreview';
 import RefererHeroCard from '../RefererHeroCard';
 import RefereeHeroCard from '../RefereeHeroCard';
-import RewardsOptInSection from '../RewardsOptInSection';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
 
 export interface WaysToEarnTabProps {
   profileId: string;
   referralMe: ReferralMeDto;
-  isSubscribed: boolean;
 }
 
+/**
+ * First tab of the Rewards dashboard, labelled Overview. Campaigns and
+ * benefits live in their own tabs.
+ */
 const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
   profileId,
   referralMe,
-  isSubscribed,
 }) => {
   const persona = moneyDashboardPersona(referralMe);
   return (
@@ -37,20 +36,6 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
           localizedText={referralMe.localized_text}
         />
       ) : null}
-      {isSubscribed ? (
-        <>
-          <Box testID={WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION}>
-            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
-            <CampaignsPreview />
-          </Box>
-          <Box testID={WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION}>
-            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
-            <BenefitsPreview />
-          </Box>
-        </>
-      ) : (
-        <RewardsOptInSection localizedText={referralMe.localized_text} />
-      )}
     </Box>
   );
 };
