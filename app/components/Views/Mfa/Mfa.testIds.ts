@@ -21,6 +21,7 @@ export const MfaFlowSelectorsIDs = {
   TOTP_QR_SHEET: 'mfa-flow-totp-qr-sheet',
   TOTP_QR_IMAGE: 'mfa-flow-totp-qr-image',
   TOTP_QR_CONTINUE: 'mfa-flow-totp-qr-continue',
+  PARTNER_EMAIL_LINK: 'mfa-flow-partner-email-link',
 } as const;
 
 export const MfaSettingsSelectorsIDs = {

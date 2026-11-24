@@ -25,7 +25,25 @@ export const KycPendingSelectorsIDs = {
   COME_BACK_LATER_BUTTON: 'kyc-pending-come-back-later-button',
 } as const;
 
-const KycPending = ({ onLeave }: { onLeave: () => void }) => {
+interface KycPendingProps {
+  /** Leaves the pending screen. The caller chooses the destination. */
+  onLeave: () => void;
+  /**
+   * Replaces the default copy for a caller whose flow words the wait
+   * differently. Omitted keeps the shared UKYC copy.
+   */
+  title?: string;
+  description?: string;
+  /** Replaces the default button label. Omitted keeps the shared UKYC one. */
+  buttonLabel?: string;
+}
+
+const KycPending = ({
+  onLeave,
+  title,
+  description,
+  buttonLabel,
+}: KycPendingProps) => {
   useTrackKycResultViewed('pending');
   const tw = useTailwind();
 
@@ -54,14 +72,15 @@ const KycPending = ({ onLeave }: { onLeave: () => void }) => {
             />
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-            {strings('kyc.kyc_taking_longer.title')}
+            {title ?? strings('kyc.kyc_taking_longer.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-[4px] text-center"
           >
-            {strings('kyc.kyc_taking_longer.description_few_minutes')}
+            {description ??
+              strings('kyc.kyc_taking_longer.description_few_minutes')}
           </Text>
         </Box>
       </ScrollView>
@@ -73,7 +92,7 @@ const KycPending = ({ onLeave }: { onLeave: () => void }) => {
           onPress={handleComeBackLater}
           testID={KycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
         >
-          {strings('kyc.kyc_taking_longer.done_button')}
+          {buttonLabel ?? strings('kyc.kyc_taking_longer.done_button')}
         </Button>
       </Box>
     </SafeAreaView>

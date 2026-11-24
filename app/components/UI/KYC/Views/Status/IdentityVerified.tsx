@@ -39,6 +39,12 @@ interface KycIdentityVerifiedProps {
   onExit: () => void;
   /** Continues after approval. The caller chooses the next step. */
   onContinue: () => void;
+  /**
+   * Replaces the default copy for a caller whose flow words the result
+   * differently. Omitted keeps the shared UKYC copy.
+   */
+  title?: string;
+  description?: string;
 }
 
 /**
@@ -48,6 +54,8 @@ interface KycIdentityVerifiedProps {
 const KycIdentityVerified = ({
   onExit,
   onContinue,
+  title,
+  description,
 }: KycIdentityVerifiedProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   useTrackKycResultViewed('approved');
@@ -92,7 +100,7 @@ const KycIdentityVerified = ({
           title={
             <Animated.View style={[tw.style('w-full'), titleStyle]}>
               <MarketingMomentTitle twClassName="w-full text-center">
-                {strings('kyc.identity_verified.title')}
+                {title ?? strings('kyc.identity_verified.title')}
               </MarketingMomentTitle>
             </Animated.View>
           }
@@ -104,7 +112,7 @@ const KycIdentityVerified = ({
                 color={TextColor.TextAlternative}
                 twClassName="text-center"
               >
-                {strings('kyc.identity_verified.description')}
+                {description ?? strings('kyc.identity_verified.description')}
               </Text>
             </Animated.View>
           }
