@@ -706,7 +706,7 @@ function keepMockAccountStateOnController(
   const messenger = (
     controller as {
       messenger?: {
-        subscribe: (event: string, handler: (state: unknown) => void) => void;
+        subscribe: (event: string, handler: () => void) => void;
       };
     }
   ).messenger;
@@ -718,8 +718,12 @@ function keepMockAccountStateOnController(
     return;
   }
 
-  messenger.subscribe('PerpsController:stateChanged', (state: unknown) => {
-    if ((state as PerpsControllerState | undefined)?.accountState) {
+  const reseedWhenCleared = (): void => {
+    // Read the live state rather than the event payload: `BaseController`
+    // publishes both events for one update, each carrying that update's
+    // (cleared) payload, so the payload would trigger a redundant re-seed.
+    const currentState = (controller as { state?: PerpsControllerState }).state;
+    if (currentState?.accountState) {
       return;
     }
     try {
@@ -732,7 +736,14 @@ function keepMockAccountStateOnController(
     } catch (e) {
       console.error('E2E Mock: failed to re-seed mock accountState:', e);
     }
-  });
+  };
+
+  // `BaseController` publishes `stateChange` (legacy name, still used by the
+  // Engine allowlist) and `stateChanged` (its replacement) on every update.
+  // Listen to both so this keeps working whichever one a future
+  // `@metamask/base-controller` stops publishing; the handler is idempotent.
+  messenger.subscribe('PerpsController:stateChange', reseedWhenCleared);
+  messenger.subscribe('PerpsController:stateChanged', reseedWhenCleared);
 }
 
 /**
