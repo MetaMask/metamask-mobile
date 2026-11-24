@@ -456,13 +456,9 @@ describe('WaysToEarnTab', () => {
         persona: 'referee',
         summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
         claimReady: true,
-        referralMe: {
-          ...referralMeFixture('referee'),
-          localized_text: {
-            ...REFERRAL_LOCALIZED_TEXT,
-            claimFailureWaitMinutesToast: WAIT_MINUTES_TOAST,
-          },
-        },
+        referralMe: referralMeFixture('referee', {
+          localizedText: { claimFailureWaitMinutesToast: WAIT_MINUTES_TOAST },
+        }),
         handlers: {
           'RewardsMoneyController:initiateClaim': async () => {
             throw new RewardsMoneyClaimRefusalError(
@@ -679,19 +675,16 @@ describe('WaysToEarnTab', () => {
   });
 
   it('shows the minutes still left under a disabled Claim button', async () => {
-    const referralMe = referralMeFixture('referee');
     const { findByText, getByTestId, engine } = renderWaysToEarnTab({
       persona: 'referee',
       summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
       claimReady: true,
       claimWaitUntil: Date.now() + 10 * 60 * 1000,
-      referralMe: {
-        ...referralMe,
-        localized_text: {
-          ...referralMe.localized_text,
+      referralMe: referralMeFixture('referee', {
+        localizedText: {
           claimFailureWaitMinutesToast: 'Claim again in {minutes} minutes',
         },
-      },
+      }),
     });
 
     expect(await findByText('Claim again in 10 minutes')).toBeOnTheScreen();

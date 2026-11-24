@@ -836,10 +836,9 @@ describe('WaysToEarnTab tax documentation', () => {
         persona: 'referrer',
         summary: followTrade,
         claimReady: true,
-        referralMe: {
-          ...referralMeFixture('referrer'),
-          localized_text: { ...COPY, taxFormUrl: '' },
-        },
+        referralMe: referralMeFixture('referrer', {
+          localizedText: { taxFormUrl: '' },
+        }),
         handlers: {
           'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
         },
@@ -874,10 +873,9 @@ describe('WaysToEarnTab tax documentation', () => {
       summary: CASHBACK_AND_HELD,
       claimReady: true,
       initiateClaim: 'hang',
-      referralMe: {
-        ...referralMeFixture('referee'),
-        localized_text: { ...COPY, taxFormUrl: '' },
-      },
+      referralMe: referralMeFixture('referee', {
+        localizedText: { taxFormUrl: '' },
+      }),
       handlers: {
         'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
       },

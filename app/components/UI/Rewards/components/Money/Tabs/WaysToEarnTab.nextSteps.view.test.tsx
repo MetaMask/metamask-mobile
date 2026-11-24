@@ -31,13 +31,6 @@ import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
 
 const ROW = EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS_ROW;
 
-function refereeWithRoles(roles: string[]) {
-  return {
-    ...referralMeFixture('referee'),
-    roles,
-  } as ReturnType<typeof referralMeFixture>;
-}
-
 describe('WaysToEarnTab next steps', () => {
   afterEach(() => {
     restoreRewardsDashboardStore();
@@ -109,7 +102,7 @@ describe('WaysToEarnTab next steps', () => {
   it('leaves out Trade and earn for a referee who only copy trades', async () => {
     const { findByTestId, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
-      referralMe: refereeWithRoles(['COPY_TRADING']),
+      referralMe: referralMeFixture('referee', { roles: ['COPY_TRADING'] }),
     });
 
     expect(await findByTestId(`${ROW}-social`)).toBeOnTheScreen();
@@ -163,14 +156,12 @@ describe('WaysToEarnTab next steps', () => {
     });
 
     it('falls back to the translated copy when the served title and description are missing', async () => {
-      const referralMe = {
-        ...referralMeFixture('referee'),
-        localized_text: {
-          ...REFERRAL_LOCALIZED_TEXT,
+      const referralMe = referralMeFixture('referee', {
+        localizedText: {
           invitedOptInTitle: undefined,
           invitedOptInDescription: undefined,
         },
-      } as unknown as ReturnType<typeof referralMeFixture>;
+      });
       const { findByText } = renderWaysToEarnTab({
         persona: 'referee',
         referralMe,

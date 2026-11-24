@@ -515,11 +515,24 @@ export function earnRatesFixture(
   };
 }
 
+/**
+ * What a test changes on a persona's referral-me. Fields replace the persona's
+ * value. `localizedText` merges key by key into `localized_text`, and a key set to `undefined`
+ * stands for a payload cached before the server added it.
+ */
+export type ReferralMeOverrides = Partial<
+  Omit<ReferralMeDto, 'localized_text'>
+> & {
+  localizedText?: { [Key in keyof ReferralLocalizedText]?: string };
+};
+
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
+  overrides: ReferralMeOverrides = {},
 ): ReferralMeDto {
   const referrer = persona === 'referrer';
   const referee = persona === 'referee';
+  const { localizedText, ...fields } = overrides;
 
   return {
     roles: referrer ? ['REFERRER'] : referee ? ['REFEREE'] : [],
@@ -537,9 +550,10 @@ export function referralMeFixture(
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
     earn_rates: earnRatesFixture(),
-    localized_text: REFERRAL_LOCALIZED_TEXT,
+    localized_text: { ...REFERRAL_LOCALIZED_TEXT, ...localizedText },
     invite_hero: null,
     excluded_regions: [],
+    ...fields,
   };
 }
 
@@ -548,14 +562,9 @@ export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
 export function referralMeWithInvitedBenefit(
   invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
 ): ReferralMeDto {
-  const referralMe = referralMeFixture('referee');
-  return {
-    ...referralMe,
-    localized_text: {
-      ...referralMe.localized_text,
-      invitedBenefitTitle,
-    },
-  };
+  return referralMeFixture('referee', {
+    localizedText: { invitedBenefitTitle },
+  });
 }
 
 /**

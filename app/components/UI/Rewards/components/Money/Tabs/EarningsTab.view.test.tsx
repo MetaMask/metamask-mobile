@@ -26,13 +26,6 @@ const BREAKDOWN_SUMMARY = earningsSummaryFixture({
   followTradeClaimable: '9150000',
 });
 
-function refereeWithRoles(roles: string[]) {
-  return {
-    ...referralMeFixture('referee'),
-    roles,
-  } as ReturnType<typeof referralMeFixture>;
-}
-
 describe('EarningsTab', () => {
   it('titles the section with the Your earnings copy and does not navigate from it', async () => {
     const { findByTestId, getByText, queryByRole } = renderEarningsTab({
@@ -50,16 +43,12 @@ describe('EarningsTab', () => {
   });
 
   it('falls back to the breakdown title when the payload has no Your earnings key', async () => {
-    const referralMe = referralMeFixture('referrer');
-    const { yourEarnings: _omitted, ...localizedText } =
-      referralMe.localized_text;
     const { findByText, queryByText } = renderEarningsTab({
       persona: 'referrer',
       summary: BREAKDOWN_SUMMARY,
-      referralMe: {
-        ...referralMe,
-        localized_text: localizedText as typeof referralMe.localized_text,
-      },
+      referralMe: referralMeFixture('referrer', {
+        localizedText: { yourEarnings: undefined },
+      }),
     });
 
     expect(
@@ -134,13 +123,13 @@ describe('EarningsTab', () => {
   it.each([
     ['CASHBACK_EXPERIMENT', 'trading', 'social'],
     ['COPY_TRADING', 'social', 'trading'],
-  ])(
+  ] as const)(
     'shows only the matching row for a referee with only the %s role',
     async (role, shown, hidden) => {
       const { findByTestId, getByTestId, queryByTestId } = renderEarningsTab({
         persona: 'referee',
         summary: BREAKDOWN_SUMMARY,
-        referralMe: refereeWithRoles([role]),
+        referralMe: referralMeFixture('referee', { roles: [role] }),
       });
 
       expect(
@@ -159,7 +148,9 @@ describe('EarningsTab', () => {
     const { findByTestId, getByTestId } = renderEarningsTab({
       persona: 'referee',
       summary: BREAKDOWN_SUMMARY,
-      referralMe: refereeWithRoles(['CASHBACK_EXPERIMENT', 'COPY_TRADING']),
+      referralMe: referralMeFixture('referee', {
+        roles: ['CASHBACK_EXPERIMENT', 'COPY_TRADING'],
+      }),
     });
 
     expect(
