@@ -11,23 +11,30 @@ export interface WinnerMarketQuotes {
 }
 
 /**
+ * The trading quote for a chart quote: the Yes Outcome of the same winner
+ * Market. The chart quote may tag the No side. That tag is chart association,
+ * not the traded side. A winner Market without a Yes Outcome yields no quote.
+ */
+export const toGameTradingQuote = (
+  quote: GameSelectionQuote,
+): GameSelectionQuote | undefined => {
+  const yesOutcome = quote.market.outcomes.find(
+    (outcome) => outcome.side === 'yes',
+  );
+  return yesOutcome ? { market: quote.market, outcome: yesOutcome } : undefined;
+};
+
+/**
  * The trading quote for a Game Selection: the Yes Outcome of the selection's
- * unique winner Market. Team controls always trade the Yes side, even when
- * the catalog tags the Game Selection on a No Outcome — the Game Selection
- * tag is chart association, not the traded side. Missing or ambiguous
- * selections, or a winner Market without a Yes Outcome, yield no quote.
+ * unique winner Market. Missing or ambiguous selections, or a winner Market
+ * without a Yes Outcome, yield no quote.
  */
 export const findGameTradingQuote = (
   event: PredictEvent,
   selection: PredictGameSelection,
 ): GameSelectionQuote | undefined => {
   const tagged = findGameSelectionQuote(event, selection);
-  const yesOutcome = tagged?.market.outcomes.find(
-    (outcome) => outcome.side === 'yes',
-  );
-  return tagged && yesOutcome
-    ? { market: tagged.market, outcome: yesOutcome }
-    : undefined;
+  return tagged ? toGameTradingQuote(tagged) : undefined;
 };
 
 /**

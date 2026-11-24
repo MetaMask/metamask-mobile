@@ -47,7 +47,11 @@ const PRODUCTION_FLAGS_URL =
 /**
  * Flags excluded from drift comparison (e.g. frequently changing version values).
  */
-const EXCLUDED_FLAGS: ReadonlySet<string> = new Set([]);
+export const EXCLUDED_FLAGS: ReadonlySet<string> = new Set([
+  // Its production value carries the Chainlink API key. The sync must never
+  // print it or write it into the registry, which is committed to a public repo.
+  'predictCryptoPriceFeed',
+]);
 
 // ============================================================================
 // Types

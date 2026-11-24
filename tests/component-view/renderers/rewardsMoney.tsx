@@ -8,8 +8,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
-import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../app/core/Engine';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
@@ -26,6 +25,9 @@ import type { RootState } from '../../../app/reducers';
 import { selectReferralMeEntry } from '../../../app/reducers/rewardsMoney/selectors';
 import { selectSessionProfileId } from '../../../app/selectors/identity';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyClaimsPausedModal, {
+  type RewardsMoneyClaimsPausedModalParams,
+} from '../../../app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
 import ReduxService from '../../../app/core/redux/ReduxService';
@@ -127,9 +129,9 @@ function pendingPage(): Promise<never> {
  * Installs Rewards Money reads on the shared Engine mock.
  *
  * `mockReset` drops a previous test's implementation. Unknown
- * RewardsMoneyController actions throw. Everything else, including
- * MoneyAccountBalanceService:getVaultApy, delegates to the implementation
- * captured when this module loaded.
+ * RewardsMoneyController actions throw. Everything else, including Money
+ * balance reads, delegates to the implementation captured when this module
+ * loaded.
  */
 export function installRewardsMoneyEngine({
   referralMe = referralMeFixture('referee'),
@@ -242,32 +244,29 @@ export function installRewardsMoneyEngine({
 }
 
 /**
- * The claim hook refuses through the app toast. Component-view renders do not
- * mount that host, so this one surfaces the toast label for the refusal tests.
+ * The Rewards toast hook shows toasts through the design-system `toast()` API.
+ * Component-view renders do not mount its Toaster, and that API is stubbed
+ * globally, so this host surfaces the toast title for the refusal and tax tests.
  */
 function RewardsMoneyToastHost({ children }: { children: React.ReactNode }) {
   const [label, setLabel] = React.useState<string | null>(null);
-  const api = React.useMemo<ToastRef>(
-    () => ({
-      showToast: (options) => {
-        const next = options.labelOptions[0]?.label;
-        setLabel(typeof next === 'string' ? next : null);
-      },
-      closeToast: () => {
-        setLabel(null);
-      },
-    }),
-    [],
-  );
-  const toastRef = React.useRef<ToastRef | null>(api);
-  toastRef.current = api;
-  const value = React.useMemo(() => ({ toastRef }), []);
+
+  React.useEffect(() => {
+    const mockedToast = jest.mocked(toast);
+    mockedToast.mockImplementation((options) => {
+      setLabel(typeof options.title === 'string' ? options.title : null);
+      return '';
+    });
+    return () => {
+      mockedToast.mockReset();
+    };
+  }, []);
 
   return (
-    <ToastContext.Provider value={value}>
+    <>
       {children}
       {label === null ? null : <Text>{label}</Text>}
-    </ToastContext.Provider>
+    </>
   );
 }
 
@@ -529,6 +528,11 @@ export function renderRewardsSettingsView(
         Promise.resolve({ success: true }),
       'RewardsMoneyController:registerReferee': () => Promise.resolve(),
       'RewardsMoneyController:canChangeRewardsMoneyEnvUrl': () => false,
+      // The settings toggle reads the host on every build, including when
+      // the switch is locked. A missing stub throws and the error boundary
+      // replaces the referral section.
+      'RewardsMoneyController:getRewardsMoneyEnvUrl': () =>
+        'https://rewards-money.dev-api.cx.metamask.io',
       ...options.handlers,
     },
   });
@@ -571,13 +575,7 @@ function WaysToEarnAfterReferralLoad() {
     );
   }
 
-  return (
-    <WaysToEarnTab
-      profileId={profileId}
-      referralMe={referralMe}
-      isSubscribed={false}
-    />
-  );
+  return <WaysToEarnTab profileId={profileId} referralMe={referralMe} />;
 }
 
 export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
@@ -616,15 +614,34 @@ export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
   HOST: 'referral-invite-host',
 } as const;
 
-function ReferralInviteJourneyHost() {
-  const navigation = useNavigation<AppNavigationProp>();
+/**
+ * Host screen that opens a modal route on mount and shows a labelled marker
+ * while it is focused, so a journey can assert it is back on the screen below.
+ */
+function createModalJourneyHost(
+  modalRoute:
+    | typeof Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
+    | typeof Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  hostTestId: string,
+  label: string,
+) {
+  return function ModalJourneyHost() {
+    const navigation = useNavigation<AppNavigationProp>();
+    const isFocused = useIsFocused();
 
-  React.useEffect(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_MONEY_INVITE_SHEET);
-  }, [navigation]);
+    React.useEffect(() => {
+      navigation.navigate(modalRoute);
+    }, [navigation]);
 
-  return <Text testID={REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST}>Swap</Text>;
+    return isFocused ? <Text testID={hostTestId}>{label}</Text> : null;
+  };
 }
+
+const ReferralInviteJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+  REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST,
+  'Swap',
+);
 
 /**
  * Deeplink invite sheet pushed over a destination, with the accepted splash
@@ -670,7 +687,7 @@ export function renderRewardsMoneyInviteSheet(
 
   return {
     ...renderScreenWithRoutes(
-      ReferralInviteJourneyHost as unknown as React.ComponentType,
+      ReferralInviteJourneyHost,
       { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
       [
         {
@@ -683,6 +700,48 @@ export function renderRewardsMoneyInviteSheet(
     ),
     engine,
   };
+}
+
+export const CLAIMS_PAUSED_JOURNEY_TEST_IDS = {
+  HOST: 'claims-paused-host',
+} as const;
+
+const ClaimsPausedJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST,
+  'Earnings',
+);
+
+/**
+ * Claims paused sheet, or the balance breakdown, pushed over a host screen with
+ * the in-app browser registered as a params probe. The sheet reads the terms
+ * copy from the referral-me entry in Redux. Closing it returns to the host.
+ */
+export function renderRewardsMoneyClaimsPausedModal(
+  params: RewardsMoneyClaimsPausedModalParams,
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const state = rewardsMoneyViewState(options);
+
+  function ClaimsPausedScreen() {
+    return <RewardsMoneyClaimsPausedModal route={{ params }} />;
+  }
+
+  return renderScreenWithRoutes(
+    ClaimsPausedJourneyHost,
+    { name: 'ClaimsPausedHost' },
+    [
+      {
+        name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        Component: ClaimsPausedScreen,
+      },
+      {
+        name: Routes.BROWSER.HOME,
+        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
+      },
+    ],
+    { state },
+  );
 }
 
 function ReferralSplashJourneyDestination() {

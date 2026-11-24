@@ -1,9 +1,6 @@
+import { POLYMARKET_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
-  KALSHI_STATIC_VENUE_CATALOG,
-  POLYMARKET_STATIC_VENUE_CATALOG,
-} from '../config/venueCatalogs';
-import {
-  PREDICT_FEED_KEYS,
   PREDICT_VENUE_ACTIONS,
   type PredictFeedId,
   type PredictVenueId,
@@ -13,6 +10,7 @@ import type { PredictVenueCapabilities } from './types';
 import {
   canPerformVenueAction,
   getVenueCapabilitySource,
+  getVenueEnvironment,
   getVenueFeedId,
   isVenueSearchSupported,
   resolveSurfaceFeeds,
@@ -52,6 +50,7 @@ describe('resolveVenueCapabilities', () => {
         descriptor: {
           venueId: 'polymarket',
           displayName: 'Polymarket',
+          environment: 'production',
           actions: ['buy', 'sell', 'claim', 'deposit', 'withdraw'],
           feeds: {
             trending: 'trending',
@@ -64,6 +63,7 @@ describe('resolveVenueCapabilities', () => {
           },
           categories: [],
           searchSupported: true,
+          screens: [],
         },
       });
     });
@@ -200,7 +200,7 @@ describe('capability selectors', () => {
       PREDICT_VENUE_ACTIONS.filter((action) =>
         canPerformVenueAction(ready, action),
       ),
-    ).toEqual(['buy', 'sell']);
+    ).toEqual(['buy', 'sell', 'deposit', 'withdraw']);
   });
 
   it('maps present Feed keys to Feed IDs and absent ones to undefined', () => {
@@ -214,8 +214,41 @@ describe('capability selectors', () => {
     expect(isVenueSearchSupported(ready)).toBe(true);
   });
 
+  it('returns the Venue environment when ready and undefined otherwise', () => {
+    expect(getVenueEnvironment(ready)).toBe('production');
+    const sandbox = resolveVenueCapabilities(
+      KALSHI,
+      read({
+        data: { ...KALSHI_STATIC_VENUE_CATALOG, environment: 'sandbox' },
+      }),
+    );
+    expect(getVenueEnvironment(sandbox)).toBe('sandbox');
+  });
+
+  it('keeps browsing, trading, and withdrawals available while disabling deposit when environment is omitted', () => {
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    const legacy = resolveVenueCapabilities(
+      KALSHI,
+      read({ data: legacyCatalog }),
+    );
+
+    expect(legacy.status).toBe('ready');
+    expect(getVenueEnvironment(legacy)).toBeUndefined();
+    expect(canPerformVenueAction(legacy, 'deposit')).toBe(false);
+    expect(
+      PREDICT_VENUE_ACTIONS.filter((action) =>
+        canPerformVenueAction(legacy, action),
+      ),
+    ).toEqual(['buy', 'sell', 'withdraw']);
+    expect(getVenueFeedId(legacy, 'nfl-games')).toBe(
+      'sports-football-nfl-games',
+    );
+    expect(isVenueSearchSupported(legacy)).toBe(true);
+  });
+
   it.each(NOT_READY)(
-    'enables no action, Feed, or search while $status ($reason)',
+    'enables no action, Feed, search, or environment while $status ($reason)',
     (capabilities) => {
       expect(
         PREDICT_VENUE_ACTIONS.some((action) =>
@@ -223,9 +256,12 @@ describe('capability selectors', () => {
         ),
       ).toBe(false);
       expect(
-        PREDICT_FEED_KEYS.some((key) => getVenueFeedId(capabilities, key)),
+        Object.keys(KALSHI_STATIC_VENUE_CATALOG.feeds).some((key) =>
+          getVenueFeedId(capabilities, key),
+        ),
       ).toBe(false);
       expect(isVenueSearchSupported(capabilities)).toBe(false);
+      expect(getVenueEnvironment(capabilities)).toBeUndefined();
     },
   );
 });
@@ -238,10 +274,12 @@ describe('resolveSurfaceFeeds', () => {
     descriptor: {
       venueId: 'test-venue' as PredictVenueId,
       displayName: 'Test Venue',
+      environment: 'production',
       actions: [],
       feeds: feeds as Record<string, PredictFeedId>,
       categories: [],
       searchSupported: false,
+      screens: [],
     },
   });
 
@@ -258,7 +296,6 @@ describe('resolveSurfaceFeeds', () => {
 
     expect(result).toEqual([
       { sectionId: 'now', feedKey: 'trending', feedId: 'venue-trending' },
-      { sectionId: 'macro', feedKey: 'politics', feedId: 'venue-politics' },
       { sectionId: 'rwas', feedKey: 'politics', feedId: 'venue-politics' },
     ]);
   });
@@ -272,7 +309,7 @@ describe('resolveSurfaceFeeds', () => {
     expect(result).toEqual([]);
   });
 
-  it('shows Kalshi V1 its football sections, Politics, and the Sports, Macro and RWAs tabs', () => {
+  it('shows Kalshi V1 its football slots and the Sports and RWAs tabs', () => {
     const kalshi = resolveVenueCapabilities(
       KALSHI,
       read({ data: KALSHI_STATIC_VENUE_CATALOG }),
@@ -288,29 +325,11 @@ describe('resolveSurfaceFeeds', () => {
       'nfl-games',
       'college-football-games',
     ]);
-    // Macro and RWAs read the `politics` key, the Politics Category's Feed.
+    // RWAs reads the `politics` key, the Politics Category's Feed.
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.exploreTabs)).toEqual([
-      'macro',
       'rwas',
       'sports',
     ]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.campaignRows)).toEqual([]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.nextHomeSections)).toEqual([
-      'sports-football-nfl',
-      'sports-football-ncaa',
-      'politics',
-    ]);
-  });
-
-  it('shows Polymarket no Politics topic Feed, so no Politics section', () => {
-    const polymarket = resolveVenueCapabilities(POLYMARKET, read());
-
-    expect(
-      resolveSurfaceFeeds(
-        polymarket,
-        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
-      ).map(({ sectionId }) => sectionId),
-    ).toEqual([]);
   });
 
   it('keeps every surface Polymarket shows today', () => {
@@ -329,13 +348,9 @@ describe('resolveSurfaceFeeds', () => {
     ]);
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.exploreTabs)).toEqual([
       'now',
-      'macro',
       'rwas',
       'crypto',
       'sports',
-    ]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.campaignRows)).toEqual([
-      'predict-the-pitch',
     ]);
   });
 });

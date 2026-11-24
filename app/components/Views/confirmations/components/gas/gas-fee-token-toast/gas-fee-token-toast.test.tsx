@@ -1,4 +1,5 @@
 import React from 'react';
+import { toast } from '@metamask/design-system-react-native';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { Hex } from '@metamask/utils';
 
@@ -7,10 +8,6 @@ import {
   useSelectedGasFeeToken,
 } from '../../../hooks/gas/useGasFeeToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
 import { GasFeeTokenToast } from './gas-fee-token-toast';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import initialRootState, {
@@ -21,11 +18,13 @@ import { GasFeeToken } from '@metamask/transaction-controller';
 import { toHex } from '@metamask/controller-utils';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: mockCloseToast },
-};
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../hooks/gas/useGasFeeToken', () => ({
   useSelectedGasFeeToken: jest.fn(),
@@ -49,6 +48,8 @@ const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
   tokenAddress: NATIVE_TOKEN_ADDRESS,
 };
 
+const mockToast = toast as unknown as jest.Mock;
+
 function renderToastHook(
   state: RootState = initialRootState,
   { gasFeeToken }: { gasFeeToken?: GasFeeToken } = {},
@@ -58,12 +59,7 @@ function renderToastHook(
   (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
     chainId: '0x1',
   });
-  return renderWithProvider(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <GasFeeTokenToast />
-    </ToastContext.Provider>,
-    { state },
-  );
+  return renderWithProvider(<GasFeeTokenToast />, { state });
 }
 
 describe('GasFeeTokenToast', () => {
@@ -127,68 +123,33 @@ describe('GasFeeTokenToast', () => {
 
   it('does nothing if no gasFeeToken', () => {
     renderToastHook(initialRootState, { gasFeeToken: undefined });
-    expect(mockShowToast).not.toHaveBeenCalled();
-  });
-
-  it('does nothing if no toast ref', () => {
-    (useSelectedGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      chainId: '0x1',
-    });
-
-    renderWithProvider(<GasFeeTokenToast />, { state: initialRootState });
-
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
   });
 
   it('does nothing if token has not changed (same as prevRef)', () => {
     renderToastHook(TOKENS_CONTROLLER_STATE, {
       gasFeeToken: GAS_FEE_TOKEN_MOCK,
     });
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
   });
 
-  it('calls showToast when token changes', () => {
+  it('calls toast when token changes', () => {
     (useSelectedGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
 
     const { rerender } = renderToastHook(TOKENS_CONTROLLER_STATE, {
       gasFeeToken: GAS_FEE_TOKEN_USDC_MOCK,
     });
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockToast).toHaveBeenCalledTimes(1);
 
     rerender(<GasFeeTokenToast />);
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [
-          {
-            label: `You're paying this network fee with ${matchingTokenSymbol}.`,
-            isBold: true,
-          },
-        ],
-        variant: ToastVariants.Network,
-        networkImageSource: { uri: matchingTokenImage },
+        title: `You're paying this network fee with ${matchingTokenSymbol}.`,
         hasNoTimeout: false,
+        startAccessory: expect.anything(),
       }),
     );
-  });
-
-  it('calls closeToast when close button is pressed', () => {
-    (useSelectedGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
-
-    renderToastHook(TOKENS_CONTROLLER_STATE, {
-      gasFeeToken: GAS_FEE_TOKEN_USDC_MOCK,
-    });
-
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
-
-    const closeButtonOptions =
-      mockShowToast.mock.calls[0][0].closeButtonOptions;
-    expect(closeButtonOptions).toBeDefined();
-
-    closeButtonOptions.onPress();
-
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
   });
 
   it('uses default chainId when chainId is undefined', () => {
@@ -200,14 +161,10 @@ describe('GasFeeTokenToast', () => {
       chainId: undefined,
     });
 
-    renderWithProvider(
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <GasFeeTokenToast />
-      </ToastContext.Provider>,
-      { state: TOKENS_CONTROLLER_STATE },
-    );
+    renderWithProvider(<GasFeeTokenToast />, {
+      state: TOKENS_CONTROLLER_STATE,
+    });
 
-    // The component should still work with undefined chainId, defaulting to '0x1'
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockToast).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,3 +1,5 @@
+import type { TokenListResponse } from '../api-response-types';
+
 export const TOKEN_API_TOKENS_RESPONSE = [
   {
     address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
@@ -340,4 +342,4 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     aggregators: ['metamask', 'coinGecko'],
     occurrences: 2,
   },
-];
+] satisfies TokenListResponse;

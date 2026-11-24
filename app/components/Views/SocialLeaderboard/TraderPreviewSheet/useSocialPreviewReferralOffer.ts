@@ -9,9 +9,12 @@ import {
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
-import { useGeoRewardsMetadata } from '../../../UI/Rewards/hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../../UI/Rewards/hooks/useReferralMe';
 import { MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS } from '../../../UI/Rewards/components/Money/PendingMoneyReferralInvite';
+import {
+  resolveInviteTermsLink,
+  type InviteTermsLink,
+} from '../../../UI/Rewards/utils/inviteTermsLink';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 const LOG_PREFIX = '[TraderPreviewSheet]';
@@ -42,14 +45,19 @@ export interface SocialPreviewReferralOffer {
   status: SocialPreviewReferralOfferStatus;
   /** The link's pending Money referral code, offered or not. */
   pendingReferralCode: string | null;
+  /** Server copy for what accepting earns, once the code is offered. */
+  benefitTitle: string | null;
+  /** The invite "Learn more" link, once the code is offered and has one. */
+  termsLink: InviteTermsLink | null;
 }
 
 /**
  * Whether the trader preview should offer the link's Money referral code.
  * Uses the same checks as the standalone invite: basic functionality, the
  * Rewards Money flag, a fresh referral me showing the user can still be
- * referred, and an allowed region. A read slower than the invite's load
- * budget, or one that fails, offers nothing.
+ * referred, and an allowed region. Only a read that succeeded counts: one
+ * slower than the invite's load budget, one that fails, or one that leaves an
+ * errored entry offers nothing.
  */
 export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
   const store = useStore<RootState>();
@@ -63,11 +71,12 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
   const canCheck = Boolean(
     pendingReferralCode && isBasicFunctionalityEnabled && isRewardsMoneyEnabled,
   );
-  useGeoRewardsMetadata({ enabled: canCheck });
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
   const [status, setStatus] = useState<SocialPreviewReferralOfferStatus>(
     canCheck ? 'checking' : 'none',
   );
+  const [benefitTitle, setBenefitTitle] = useState<string | null>(null);
+  const [termsLink, setTermsLink] = useState<InviteTermsLink | null>(null);
 
   useEffect(() => {
     if (!canCheck) {
@@ -98,10 +107,13 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
         }
         clearTimeout(budgetTimer);
         const state = store.getState();
-        const referralMe =
+        const entry =
           result.status === 'settled'
-            ? selectReferralMeEntry(state, result.profileId)?.data
-            : null;
+            ? selectReferralMeEntry(state, result.profileId)
+            : undefined;
+        // A failed read settles with `error` set but keeps the previous
+        // payload, which may predate the user being referred.
+        const referralMe = entry && !entry.error ? entry.data : null;
         let skipReason: SocialPreviewReferralSkipReason | null = null;
         if (!referralMe) {
           skipReason =
@@ -113,8 +125,14 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
         }
         if (skipReason) {
           logSkippedReferral(referralCode, skipReason);
+          setStatus('none');
+          return;
         }
-        setStatus(skipReason ? 'none' : 'offered');
+        setBenefitTitle(
+          referralMe?.localized_text?.invitedBenefitTitle?.trim() || null,
+        );
+        setTermsLink(resolveInviteTermsLink(referralMe?.localized_text));
+        setStatus('offered');
       })
       .catch(() => {
         if (!cancelled) {
@@ -136,5 +154,5 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
     store,
   ]);
 
-  return { status, pendingReferralCode };
+  return { status, pendingReferralCode, benefitTitle, termsLink };
 };

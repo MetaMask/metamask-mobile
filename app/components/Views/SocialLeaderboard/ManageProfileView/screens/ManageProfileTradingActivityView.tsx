@@ -11,6 +11,7 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Switch } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { getProfileSaveErrorCopy } from '../errors/profileApiErrorMessageKeys';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
@@ -68,10 +69,11 @@ const ManageProfileTradingActivityView: React.FC = () => {
           trading_privacy: value ? 'public' : 'private',
         });
         trackProfileEdited();
-      } catch {
+      } catch (error) {
         setOptimisticTradingActivity(undefined);
         setErrorMessage(
-          strings('social_leaderboard.manage_profile.save_error'),
+          getProfileSaveErrorCopy(error) ??
+            strings('social_leaderboard.manage_profile.save_error'),
         );
       } finally {
         setIsUpdating(false);
@@ -106,7 +108,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
             </Text>
             {/* No track colors: the platform switch is the same green used on
                 social onboarding. A design-system Switch would wrap this
-                control and replace its accessibility label. */}
+                control in its own row layout. */}
             <Switch
               value={isTradingActivityPublic}
               disabled={!isControllerBacked || isUpdating}

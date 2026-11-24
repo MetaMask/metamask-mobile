@@ -97,6 +97,108 @@ describe('MoneyBalanceSummary', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the Premium tag when isPremium is true', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary apy={7.1} displayState={balanceState()} isPremium />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).toHaveTextContent('Premium');
+  });
+
+  it('hides the Premium tag when isPremium is false', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the upgrading pill when pendingVaultTransition is upgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={5}
+        displayState={balanceState()}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+  });
+
+  it('renders the downgrading pill when pendingVaultTransition is downgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={7.1}
+        displayState={balanceState()}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+  });
+
+  it('hides the pending pill when pendingVaultTransition is omitted', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the upgrading pill when the vault rate has not resolved', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={balanceState()}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('renders the downgrading pill when the vault rate has not resolved', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={unavailableState('$2,384.34')}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('hides the pending pill in the no-account state', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={{ kind: 'noAccount' }}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the APY row when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
@@ -218,6 +320,46 @@ describe('MoneyBalanceSummary', () => {
       expect(
         getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('loading state', () => {
+    it('renders a skeleton instead of the balance', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={{ kind: 'loading' }} />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the APY row visible while loading', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={{ kind: 'loading' }} />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
+    });
+
+    it('does not render a pressable balance even when onBalancePress is provided', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={{ kind: 'loading' }}
+          onBalancePress={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      ).not.toBeOnTheScreen();
     });
   });
 

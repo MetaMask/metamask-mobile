@@ -38,6 +38,8 @@ import {
   QuoteStreamCompleteReason,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
@@ -73,6 +75,22 @@ import { RecurringScheduleFieldsSelectorsIDs } from '../../components/RecurringS
 
 const HOUR_MS = 60 * 60 * 1000;
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+const SOLANA_RECIPIENT = 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
+const SOL_SOURCE: BridgeToken = {
+  address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+  chainId: SolScope.Mainnet,
+  decimals: 9,
+  symbol: 'SOL',
+  name: 'Solana',
+};
+const SOLANA_USDC_DEST: BridgeToken = {
+  address:
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  chainId: SolScope.Mainnet,
+  decimals: 6,
+  symbol: 'USDC',
+  name: 'USD Coin',
+};
 
 const createStockRwaToken = ({
   nowMs,
@@ -107,7 +125,7 @@ const createStockRwaToken = ({
           },
         }
       : {}),
-  } as BridgeToken['rwaData'],
+  },
 });
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
@@ -182,8 +200,8 @@ describeForPlatforms('BridgeView', () => {
   describe('tabs', () => {
     it('opens the Recurring tab with the schedule from route params', async () => {
       const state = initialStateBridge().build();
-      const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+      const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -210,7 +228,7 @@ describeForPlatforms('BridgeView', () => {
       ).toHaveDisplayValue('2');
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON),
-      ).toHaveTextContent(strings('bridge.recurring.unit.week'));
+      ).toHaveTextContent(strings('bridge.recurring.unit_plural.week'));
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
       ).toHaveDisplayValue('8');
@@ -220,6 +238,10 @@ describeForPlatforms('BridgeView', () => {
         repeatCount: '8',
         priceRange: undefined,
       });
+      expect(store.getState().user.bridgeRecurringTabSeen).toBe(true);
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
     });
 
     it('falls back to Market when a route requests the disabled Recurring tab', async () => {
@@ -235,10 +257,10 @@ describeForPlatforms('BridgeView', () => {
               },
             },
           },
-        } as unknown as DeepPartial<RootState>)
+        })
         .build();
-      const { getByTestId, queryByTestId } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+      const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -257,6 +279,7 @@ describeForPlatforms('BridgeView', () => {
       expect(
         queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
       ).not.toBeOnTheScreen();
+      expect(store.getState().user.bridgeRecurringTabSeen).toBe(false);
     });
 
     it('does not record a limit tab visit when a route requests the disabled Limit tab', async () => {
@@ -272,10 +295,10 @@ describeForPlatforms('BridgeView', () => {
               },
             },
           },
-        } as unknown as DeepPartial<RootState>)
+        })
         .build();
       const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -546,6 +569,48 @@ describeForPlatforms('BridgeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides the recurring discovery dot and records the visit after the recurring tab is opened', async () => {
+      const { getByTestId, queryByTestId, store } = renderBridgeView();
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+        ).not.toBeOnTheScreen();
+      });
+      expect(store.getState().user.bridgeRecurringTabSeen).toBe(true);
+      expect(store.getState().user.bridgeLimitTabSeen).toBe(false);
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show the recurring discovery dot once the recurring tab has been seen', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView({
+        overrides: { user: { bridgeRecurringTabSeen: true } },
+      });
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
+    });
+
     it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 
@@ -559,6 +624,9 @@ describeForPlatforms('BridgeView', () => {
       expect(
         getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.recurring'));
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).toHaveProp('accessibilityLabel', strings('bridge.tabs.new_badge'));
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
       await settlePager(getByTestId);
@@ -615,11 +683,11 @@ describeForPlatforms('BridgeView', () => {
       const state = initialStateBridge({ deterministicFiat: true })
         .withOverrides({
           bridge: { ...DEFAULT_BRIDGE },
-        } as unknown as DeepPartial<RootState>)
+        })
         .build();
 
       const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -658,7 +726,7 @@ describeForPlatforms('BridgeView', () => {
         address: '0x55d398326f99059ff775485246999027b3197955',
         chainId: '0x38',
         decimals: 18,
-        symbol: 'USDT',
+        symbol: 'BSC-USD',
         name: 'Tether USD',
       };
       const bscNative: BridgeToken = {
@@ -727,6 +795,148 @@ describeForPlatforms('BridgeView', () => {
       );
       expect(store.getState().bridge.sourceAmount).toBeUndefined();
     });
+
+    it('requests Recurring quotes for the source wallet after leaving a Solana pair with a Solana recipient', async () => {
+      const updateQuoteSpy = jest.spyOn(
+        Engine.context.BridgeController,
+        'updateBridgeQuoteRequestParams',
+      );
+      const { getByTestId, store } = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            ...DEFAULT_BRIDGE,
+            sourceToken: SOL_SOURCE,
+            destToken: SOLANA_USDC_DEST,
+            sourceAmount: '1',
+            destAddress: SOLANA_RECIPIENT,
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await settlePager(getByTestId);
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken).toEqual(
+          expect.objectContaining(ETH_SOURCE),
+        );
+      });
+      expect(store.getState().bridge.destToken).toEqual(
+        expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+      );
+
+      updateQuoteSpy.mockClear();
+      act(() => {
+        store.dispatch(setSourceAmount('1'));
+      });
+
+      await waitFor(() => {
+        expect(updateQuoteSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcChainId: '1',
+            destChainId: '1',
+            srcTokenAmount: '1000000000000000000',
+          }),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+      const sourceWalletAddress = selectSourceWalletAddress(store.getState());
+      expect(sourceWalletAddress).toBeDefined();
+      expect(updateQuoteSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ destWalletAddress: SOLANA_RECIPIENT }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(updateQuoteSpy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ destWalletAddress: sourceWalletAddress }),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it.each([
+      {
+        tabName: 'Limit',
+        tabTestId: BridgeViewSelectorsIDs.LIMIT_TAB,
+        containerTestId: BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER,
+        unsupportedBannerTestId:
+          BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+        unavailableBannerTestId:
+          BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
+      },
+      {
+        tabName: 'Recurring',
+        tabTestId: BridgeViewSelectorsIDs.RECURRING_TAB,
+        containerTestId: BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER,
+        unsupportedBannerTestId:
+          BridgeViewSelectorsIDs.RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER,
+        unavailableBannerTestId:
+          BridgeViewSelectorsIDs.RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER,
+      },
+    ])(
+      'shows no fee token error on the pressed $tabName page while it still has the Market Solana pair',
+      async ({
+        tabTestId,
+        containerTestId,
+        unsupportedBannerTestId,
+        unavailableBannerTestId,
+      }) => {
+        netInfoMock.__setMockNetInfo({
+          type: 'wifi',
+          isInternetReachable: true,
+        });
+        const { findByTestId, getByTestId, queryByTestId, store } =
+          defaultBridgeWithTokens({
+            bridge: { sourceToken: USDT_DEST, destToken: USDC_DEST },
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: {
+                      enabled: true,
+                      enabledChainIds: ['eip155:1'],
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+        // Loads the shared fee token list, so the tab page has it on its
+        // first render when it is pressed again below.
+        fireEvent.press(getByTestId(tabTestId));
+        await settlePager(getByTestId);
+        expect(await findByTestId(unsupportedBannerTestId)).toBeOnTheScreen();
+
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+        await settlePager(getByTestId);
+        await waitFor(() => {
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+          ).toBeOnTheScreen();
+        });
+        act(() => {
+          store.dispatch(setSourceToken(SOL_SOURCE));
+          store.dispatch(setDestToken(SOLANA_USDC_DEST));
+        });
+
+        // The pressed page mounts before the pager settles, which is when
+        // the tab replaces the unsupported pair.
+        fireEvent.press(getByTestId(tabTestId));
+
+        expect(getByTestId(containerTestId)).toBeOnTheScreen();
+        expect(store.getState().bridge.sourceToken).toEqual(
+          expect.objectContaining({ symbol: 'SOL' }),
+        );
+        expect(queryByTestId(unavailableBannerTestId)).not.toBeOnTheScreen();
+        expect(queryByTestId(unsupportedBannerTestId)).not.toBeOnTheScreen();
+      },
+    );
 
     it('preserves the token pair and source amount across every tab', async () => {
       const { getByTestId, store } = defaultBridgeWithTokens();
@@ -879,7 +1089,7 @@ describeForPlatforms('BridgeView', () => {
         sourceToken: ETH_SOURCE,
         destToken: undefined,
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     const closeBanner = queryByTestId(
       CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON,
@@ -914,7 +1124,7 @@ describeForPlatforms('BridgeView', () => {
         sourceToken: ETH_SOURCE,
         destToken: undefined,
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     fireEvent(
       getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
@@ -939,7 +1149,7 @@ describeForPlatforms('BridgeView', () => {
         sourceToken: ETH_SOURCE,
         destToken: USDC_DEST,
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     fireEvent.press(
       getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
@@ -1018,9 +1228,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as DeepPartial<RootState>)
       .build();
     const bridgeControllerState = (
-      (state as unknown as DeepPartial<RootState>).engine?.backgroundState as
-        | Record<string, unknown>
-        | undefined
+      state.engine?.backgroundState as Record<string, unknown> | undefined
     )?.BridgeController as
       | {
           recommendedQuote: Record<string, unknown>;
@@ -1048,7 +1256,7 @@ describeForPlatforms('BridgeView', () => {
 
     const { getByTestId, getByText, queryByText, findByText } =
       renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
       );
@@ -1065,6 +1273,84 @@ describeForPlatforms('BridgeView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the quoted dest money amount when dest has no fiat rate', async () => {
+    const moneyDest: BridgeToken = {
+      address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+      chainId: '0x1',
+      decimals: 6,
+      symbol: 'MUSD',
+      name: 'Money',
+      isMoneyToken: true,
+    };
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withBridgeRecommendedQuoteEvmSimple({
+        destTokenAddress: moneyDest.address,
+      })
+      .withOverrides({
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          sourceAmount: '1',
+          destToken: moneyDest,
+          selectedDestChainId: '0x1',
+          isDestTokenManuallySet: true,
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              inputPrimaryDenomination: 'token_amount',
+            },
+            TokenRatesController: {
+              marketData: {},
+            },
+            AssetsController: {
+              assetsPrice: {},
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+    const bridgeControllerState = (
+      state.engine?.backgroundState as Record<string, unknown> | undefined
+    )?.BridgeController as
+      | {
+          recommendedQuote: Record<string, unknown>;
+          quotes: Record<string, unknown>[];
+        }
+      | undefined;
+    const recommendedQuote = bridgeControllerState?.recommendedQuote;
+    const quoteWithTrade = merge({}, recommendedQuote, {
+      quote: {
+        aggregator: 'test-bridge',
+        protocols: ['test-bridge'],
+        steps: [],
+      },
+      trade: {
+        value: '0xde0b6b3a7640000',
+        gasLimit: 0,
+        effectiveGas: 0,
+      },
+    });
+
+    if (bridgeControllerState) {
+      bridgeControllerState.recommendedQuote = quoteWithTrade;
+      bridgeControllerState.quotes = [quoteWithTrade];
+    }
+
+    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('1');
+    });
+    expect(queryByText('$0.00')).toBeNull();
+    expect(getByText(strings('bridge.money_name'))).toBeOnTheScreen();
+  });
+
   it('resets source cursor to the end when input is focused again', async () => {
     const { getByTestId, getByText, findByDisplayValue } =
       defaultBridgeWithTokens({
@@ -1073,7 +1359,7 @@ describeForPlatforms('BridgeView', () => {
           sourceToken: ETH_SOURCE,
           destToken: undefined,
         },
-      } as unknown as Record<string, unknown>);
+      });
     const sourceInput = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT);
 
     fireEvent(sourceInput, 'selectionChange', {
@@ -1108,7 +1394,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     expect(await findByText('0 ETH')).toBeOnTheScreen();
   });
@@ -1127,7 +1413,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     expect(await findByText('0.05426 ETH')).toBeOnTheScreen();
     expect(queryByText('0.05427 ETH')).toBeNull();
@@ -1159,7 +1445,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
     updateQuoteSpy.mockClear();
     fireEvent(
@@ -1265,7 +1551,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     // The confirm button may render in both the bottom content area and inside
     // the SwapsKeypad (which stays open until the user taps outside the input).
@@ -1291,7 +1577,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     act(() => {
       store.dispatch(setSlippage('5'));
@@ -1314,16 +1600,15 @@ describeForPlatforms('BridgeView', () => {
     const state = initialStateBridge()
       .withOverrides({
         bridge: { sourceToken: ETH_SOURCE },
-      } as unknown as Record<string, unknown>)
+      })
       .build() as unknown as Record<string, unknown>;
     const { findByText } = renderScreenWithRoutes(
-      BridgeView as unknown as React.ComponentType,
+      BridgeView,
       { name: Routes.BRIDGE.ROOT },
       [
         {
           name: Routes.BRIDGE.TOKEN_SELECTOR,
-          Component:
-            TokenSelectorProbe as unknown as React.ComponentType<unknown>,
+          Component: TokenSelectorProbe,
         },
       ],
       { state },
@@ -1358,7 +1643,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       expect(
         await findByText(strings('bridge.quote_stream_complete_retry')),
@@ -1548,7 +1833,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       expect(
         await findByText(toSentenceCase(strings('bridge.network_fee'))),
@@ -1599,7 +1884,7 @@ describeForPlatforms('BridgeView', () => {
 
       const fetchSpy = jest
         .spyOn(globalThis, 'fetch')
-        .mockImplementation((url, init) => {
+        .mockImplementation(async (url, init) => {
           const urlStr =
             typeof url === 'string' ? url : (url as URL).toString();
           if (urlStr.includes('/getTokens/search')) {
@@ -1613,12 +1898,12 @@ describeForPlatforms('BridgeView', () => {
             if (body.query === 'USDT') {
               return Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve(searchResponse),
+                json: async () => Promise.resolve(searchResponse),
               } as Response);
             }
             return Promise.resolve({
               ok: true,
-              json: () =>
+              json: async () =>
                 Promise.resolve({
                   data: [],
                   count: 0,
@@ -1630,7 +1915,7 @@ describeForPlatforms('BridgeView', () => {
           if (urlStr.includes('/getTokens/popular')) {
             return Promise.resolve({
               ok: true,
-              json: () => Promise.resolve([]),
+              json: async () => Promise.resolve([]),
             } as Response);
           }
           return Promise.reject(new Error(`Unmocked fetch: ${urlStr}`));
@@ -1739,7 +2024,7 @@ describeForPlatforms('BridgeView', () => {
           },
           destToken: undefined,
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       const sourceArea = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA);
       const destArea = getByTestId(
@@ -1772,7 +2057,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       expect(
         getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
@@ -1794,7 +2079,7 @@ describeForPlatforms('BridgeView', () => {
           destToken: USDT_DEST,
           sourceAmount: '1',
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       const sourceArea = await findByTestId(
         BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,

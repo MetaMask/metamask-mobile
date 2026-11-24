@@ -9,6 +9,7 @@ import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLe
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type { SocialV1FeedAuthor } from '../../../../components/UI/SocialFeed/types';
 import { toWholePercent } from '../../../../components/UI/SocialFeed/utils/feedCardStats';
+import { isProfileVerified } from '../../../../components/UI/SocialFeed/utils/profileVerified';
 import { buildTraderProfileQueryKey } from '../../../../util/social/traderProfileQueries';
 import { resolvePositionAuthorProfileId } from '../../../../util/social/positionOwnership';
 
@@ -16,14 +17,13 @@ const LOG_PREFIX = '[socialPositionSheetDeeplink]';
 
 const fetchSocialTraderProfile = async (
   traderId: string,
-  logPrefix: string,
 ): Promise<TraderProfileResponse | undefined> => {
   try {
     return await ReactQueryService.queryClient.query<TraderProfileResponse>({
       queryKey: buildTraderProfileQueryKey(traderId),
     });
   } catch (error) {
-    DevLogger.log(`${logPrefix} Failed to resolve the post author:`, error);
+    DevLogger.log(`${LOG_PREFIX} Failed to resolve the post author:`, error);
     return undefined;
   }
 };
@@ -50,17 +50,14 @@ const toSocialPositionAuthor = (
     pnl30d: stats.pnl30d,
     tradeCount30d: stats.tradeCount30d,
     followerCount,
+    verified: isProfileVerified(profile),
   };
 };
 
 const resolveSocialPositionAuthor = async (
   traderId: string,
-  logPrefix: string,
 ): Promise<SocialV1FeedAuthor> =>
-  toSocialPositionAuthor(
-    traderId,
-    await fetchSocialTraderProfile(traderId, logPrefix),
-  );
+  toSocialPositionAuthor(traderId, await fetchSocialTraderProfile(traderId));
 
 /**
  * Fetches the position a link names. A hidden, removed or moderated position
@@ -68,14 +65,13 @@ const resolveSocialPositionAuthor = async (
  */
 const fetchSocialPosition = async (
   positionId: string,
-  logPrefix: string,
 ): Promise<Position | undefined> => {
   try {
     return await ReactQueryService.queryClient.query<Position>({
       queryKey: ['SocialService:fetchPositionById', { positionId }],
     });
   } catch (error) {
-    DevLogger.log(`${logPrefix} Failed to fetch the position:`, error);
+    DevLogger.log(`${LOG_PREFIX} Failed to fetch the position:`, error);
     return undefined;
   }
 };
@@ -95,11 +91,10 @@ export interface SharedSocialPosition {
 export const resolveSharedSocialPosition = async (
   positionId: string,
   traderId: string,
-  logPrefix: string,
 ): Promise<SharedSocialPosition | undefined> => {
   const [position, traderProfile] = await Promise.all([
-    fetchSocialPosition(positionId, logPrefix),
-    fetchSocialTraderProfile(traderId, logPrefix),
+    fetchSocialPosition(positionId),
+    fetchSocialTraderProfile(traderId),
   ]);
   if (!position) {
     return undefined;
@@ -119,11 +114,11 @@ export const resolveSharedSocialPosition = async (
   }
 
   DevLogger.log(
-    `${logPrefix} The link's trader does not own the position; showing its owner`,
+    `${LOG_PREFIX} The link's trader does not own the position; showing its owner`,
   );
   return {
     position,
-    author: await resolveSocialPositionAuthor(authorProfileId, logPrefix),
+    author: await resolveSocialPositionAuthor(authorProfileId),
     isOwnerMismatch: true,
   };
 };
@@ -142,7 +137,7 @@ export const openSharedPositionOnProfile = (
     traderId,
     source: 'deep_link',
   });
-  resolveSharedSocialPosition(positionId, traderId, LOG_PREFIX)
+  resolveSharedSocialPosition(positionId, traderId)
     .then((shared) => {
       if (!shared) {
         return;

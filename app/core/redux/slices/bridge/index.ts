@@ -309,6 +309,7 @@ const slice = createSlice({
       state.destToken = undefined;
       state.selectedDestChainId = undefined;
       state.isDestTokenManuallySet = false;
+      state.destAddress = undefined;
       clearSlippageState(state);
     },
     incrementBridgeBalanceRefreshKey: (state) => {

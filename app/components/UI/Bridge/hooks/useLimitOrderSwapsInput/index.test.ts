@@ -479,7 +479,7 @@ describe('useLimitOrderSwapInputs', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(
           expect.objectContaining({
-            symbol: 'USDT',
+            symbol: 'BSC-USD',
             chainId: '0x38',
           }),
         ),

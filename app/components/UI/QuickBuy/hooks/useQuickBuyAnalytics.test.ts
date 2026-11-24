@@ -384,6 +384,25 @@ describe('useQuickBuyAnalytics', () => {
       );
     });
 
+    it('marks shared events as copy trades when only a copy-trade origin is set', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT, undefined, {
+          commentId: 'comment-1',
+        }),
+      );
+
+      act(() => {
+        result.current.trackQuoteSelected(0, 1);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.IS_COPY_TRADE]: true,
+        }),
+      );
+    });
+
     it('does not include trade_type when tradeMode is not provided', () => {
       const { result } = renderHook(() =>
         useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
@@ -425,6 +444,7 @@ describe('useQuickBuyAnalytics', () => {
         {
           foo: 'bar',
           [QuickBuyEventProperties.SOURCE]: ANALYTICS_CONTEXT.source,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: false,
         },
       );
     });
@@ -443,6 +463,7 @@ describe('useQuickBuyAnalytics', () => {
         {
           tx: '0xhash',
           [QuickBuyEventProperties.SOURCE]: ANALYTICS_CONTEXT.source,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: false,
         },
       );
     });

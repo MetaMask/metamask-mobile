@@ -52,7 +52,7 @@ describe('MoneyTabPressTracker', () => {
       if (selector === selectMoneyEntryContext) {
         return {
           accessBlockReason: undefined,
-          isOnboardingRedirectNeeded: false,
+          isSplashRedirectNeeded: false,
         };
       }
       return undefined;
@@ -87,7 +87,7 @@ describe('MoneyTabPressTracker', () => {
     });
   });
 
-  describe('when onboarding has been seen', () => {
+  describe('when the splash has been seen', () => {
     it('registered function calls trackButtonClicked with GO_TO_MONEY_HOME intent and MONEY_HOME redirect', () => {
       const onRegister = jest.fn();
       render(<MoneyTabPressTracker onRegister={onRegister} />);
@@ -106,20 +106,20 @@ describe('MoneyTabPressTracker', () => {
     });
   });
 
-  describe('when onboarding has not been seen', () => {
+  describe('when the splash has not been seen', () => {
     beforeEach(() => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectMoneyEntryContext) {
           return {
             accessBlockReason: undefined,
-            isOnboardingRedirectNeeded: true,
+            isSplashRedirectNeeded: true,
           };
         }
         return undefined;
       });
     });
 
-    it('registered function calls trackButtonClicked with GO_TO_MONEY_ONBOARDING intent and MONEY_ONBOARDING redirect', () => {
+    it('registered function calls trackButtonClicked with GO_TO_MONEY_SPLASH intent and MONEY_SPLASH redirect', () => {
       const onRegister = jest.fn();
       render(<MoneyTabPressTracker onRegister={onRegister} />);
 
@@ -130,40 +130,9 @@ describe('MoneyTabPressTracker', () => {
 
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
         label_key: 'bottom_nav.money',
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
-      });
-    });
-  });
-
-  describe('when onboarding flag is disabled', () => {
-    beforeEach(() => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectMoneyEntryContext) {
-          return {
-            accessBlockReason: undefined,
-            isOnboardingRedirectNeeded: false,
-          };
-        }
-        return undefined;
-      });
-    });
-
-    it('registered function calls trackButtonClicked with GO_TO_MONEY_HOME intent even when onboarding not seen', () => {
-      const onRegister = jest.fn();
-      render(<MoneyTabPressTracker onRegister={onRegister} />);
-
-      const registeredFn = onRegister.mock.calls[0][0] as () => void;
-      act(() => {
-        registeredFn();
-      });
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
-        label_key: 'bottom_nav.money',
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       });
     });
   });

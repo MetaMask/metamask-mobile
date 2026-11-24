@@ -4,10 +4,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   FontWeight,
+  IconName,
   KeyValueRow,
   KeyValueRowVariant,
   SectionDivider,
@@ -20,6 +20,13 @@ import {
   formatMusdBaseUnits,
   isPositiveBaseUnits,
 } from '../../utils/formatUtils';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../../reducers';
+import { selectReferralMeLocalizedText } from '../../../../../reducers/rewardsMoney/selectors';
+import { selectSessionProfileId } from '../../../../../selectors/identity';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-money-claims-paused-modal',
@@ -30,6 +37,9 @@ export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   TOTALS: 'rewards-money-claims-paused-modal-totals',
   CLOSE: 'rewards-money-claims-paused-modal-close',
   GOT_IT: 'rewards-money-claims-paused-modal-got-it',
+  TERMS: 'rewards-money-claims-paused-modal-terms',
+  TERMS_DIVIDER: 'rewards-money-claims-paused-modal-terms-divider',
+  TERMS_DESCRIPTION: 'rewards-money-claims-paused-modal-terms-description',
 } as const;
 
 /**
@@ -147,6 +157,7 @@ interface RewardsMoneyClaimsPausedModalProps {
 const RewardsMoneyClaimsPausedModal: React.FC<
   RewardsMoneyClaimsPausedModalProps
 > = ({ route }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     title,
     description,
@@ -156,17 +167,35 @@ const RewardsMoneyClaimsPausedModal: React.FC<
   } = route.params;
   const isBalanceBreakdown = variant === 'breakdown';
   const navigation = useNavigation<AppNavigationProp>();
+  const profileId = useSelector(selectSessionProfileId);
+  const localizedText = useSelector((state: RootState) =>
+    selectReferralMeLocalizedText(state, profileId),
+  );
+  const termsDescription = localizedText?.termsDescription?.trim() ?? '';
+  const termsLearnMore = localizedText?.termsLearnMore?.trim() ?? '';
+  const termsUrl = localizedText?.termsUrl?.trim() ?? '';
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleTerms = useCallback(() => {
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: termsUrl,
+        timestamp: Date.now(),
+      },
+    });
+  }, [navigation, termsUrl]);
 
   return (
     <BottomSheet
       onClose={handleClose}
       testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CLOSE,
@@ -174,7 +203,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
         testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {isBalanceBreakdown ? null : (
         <Box
           twClassName="px-4"
@@ -208,13 +237,42 @@ const RewardsMoneyClaimsPausedModal: React.FC<
       {totals && labels ? (
         <ClaimsPausedTotalsRows totals={totals} labels={labels} />
       ) : null}
+      {termsDescription.length > 0 ? (
+        <>
+          <SectionDivider
+            marginVertical={4}
+            testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TERMS_DIVIDER}
+          />
+          <Box twClassName="px-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              testID={
+                REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TERMS_DESCRIPTION
+              }
+            >
+              {termsDescription}
+            </Text>
+          </Box>
+        </>
+      ) : null}
       <BottomSheetFooter
-        primaryButtonProps={{
-          children: strings('rewards.upcoming_rewards.cta_label'),
-          onPress: handleClose,
-          size: ButtonSize.Lg,
-          testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.GOT_IT,
-        }}
+        primaryButtonProps={
+          termsUrl.length > 0
+            ? {
+                children: termsLearnMore,
+                onPress: handleTerms,
+                size: ButtonSize.Lg,
+                endIconName: IconName.ArrowSquareOut,
+                testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TERMS,
+              }
+            : {
+                children: strings('rewards.upcoming_rewards.cta_label'),
+                onPress: handleClose,
+                size: ButtonSize.Lg,
+                testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.GOT_IT,
+              }
+        }
         twClassName="px-4 pt-4"
       />
     </BottomSheet>

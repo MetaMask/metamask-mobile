@@ -14,6 +14,7 @@ import {
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
+  type AccountState,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -221,6 +222,10 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
+let mockLiveAccount: Pick<
+  AccountState,
+  'crossMarginSummary' | 'spotCollateral'
+> | null = null;
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
@@ -411,6 +416,10 @@ jest.mock('../../../../hooks/stream', () => ({
     },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
+  usePerpsLiveAccount: () => ({
+    account: mockLiveAccount,
+    isInitialLoading: false,
+  }),
 }));
 
 let mockIsInitialized = true;
@@ -592,6 +601,17 @@ jest.mock('../../../../hooks/usePerpsSavePendingConfig', () => ({
   usePerpsSavePendingConfig: jest.fn(),
 }));
 
+const mockSavedMarginModes = new Map<string, 'isolated' | 'cross'>();
+const mockSaveMarginMode = jest.fn();
+jest.mock('../../../../hooks/usePerpsSavedMarginMode', () => ({
+  usePerpsSavedMarginMode: (symbol: string, providerId?: string) => ({
+    savedMarginMode: mockSavedMarginModes.get(`${providerId ?? ''}:${symbol}`),
+    saveMarginMode: (marginMode: 'isolated' | 'cross') => {
+      mockSaveMarginMode(symbol, marginMode, providerId);
+    },
+  }),
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -758,6 +778,7 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
+    mockLiveAccount = null;
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
     mockTakerFeeRate = undefined;
@@ -799,6 +820,7 @@ describe('usePerpsProOrderForm', () => {
     mockExecuteOrder.mockResolvedValue({ success: true });
     mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
     mockMarginModeLockRefreshing = false;
+    mockSavedMarginModes.clear();
     mockChaseOrders = [];
     mockGetChaseOrders.mockResolvedValue([]);
   });
@@ -3954,6 +3976,12 @@ describe('usePerpsProOrderForm', () => {
       act(() => {
         result.current.onMarginModeSelect('cross');
       });
+
+      expect(mockSaveMarginMode).toHaveBeenCalledWith(
+        'BTC',
+        'cross',
+        'hyperliquid',
+      );
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
@@ -3995,6 +4023,103 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('shows no liquidation estimate for a Cross order', () => {
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
+    // 50 collateral - 20 existing - 2.25 new maintenance leaves 27.75.
+    it.each([
+      ['long', '$75,949'],
+      ['short', '$103,704'],
+    ] as const)(
+      'estimates a Cross %s liquidation price from the cross account',
+      (direction, expected) => {
+        mockOrderForm.direction = direction;
+        mockLiveAccount = {
+          spotCollateral: '0',
+          crossMarginSummary: {
+            accountValue: '50',
+            maintenanceMargin: '20',
+            marginUsed: '40',
+            notional: '1600',
+          },
+        };
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('cross');
+        });
+
+        expect(result.current.summary.liquidationPrice).toBe(expected);
+      },
+    );
+
+    it('shows no Cross liquidation estimate on a venue other than Hyperliquid', () => {
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: 'lighter' },
+        {},
+        undefined,
+        true,
+      );
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('waits for market max leverage before estimating a Cross liquidation price', () => {
+      mockMarketData = null;
+      mockMarketDataLoading = true;
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('keeps the Cross liquidation price unknown until the account publishes spot collateral', () => {
+      mockLiveAccount = {
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
       const { result } = renderWithCrossMargin();
 
       act(() => {
@@ -4617,6 +4742,86 @@ describe('usePerpsProOrderForm', () => {
       expect(mockRefreshMarginModeLock).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps the saved Cross margin mode after the cross position closes', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
+      const { result, rerender } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('cross');
+
+      mockExistingPosition = null;
+      rerender({});
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isMarginModeLocked).toBe(false);
+    });
+
+    it('keeps a saved Cross margin mode after an account switch', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      const { result, rerender } = renderWithCrossMargin();
+
+      mockSelectedAddress = '0xaccount-b';
+      rerender({});
+
+      expect(result.current.marginMode).toBe('cross');
+    });
+
+    it('uses Isolated for a market with no saved margin mode', () => {
+      mockSavedMarginModes.set('hyperliquid:ETH', 'cross');
+
+      const { result } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
+    it('drops a saved Cross margin mode after fresh metadata restricts Cross', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      mockMarketData = { szDecimals: 3, maxLeverage: 40, onlyIsolated: true };
+      const { result, rerender } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('isolated');
+
+      mockMarketData = { szDecimals: 3, maxLeverage: 40 };
+      rerender({});
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
+    it('applies a saved Cross margin mode once the cross-margin gate opens in the same mount', () => {
+      mockSavedMarginModes.set('hyperliquid:BTC', 'cross');
+      const { result, rerender } = renderHook(
+        ({ isCrossMarginAvailable }: { isCrossMarginAvailable: boolean }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: true,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: jest.fn().mockResolvedValue('hyperliquid'),
+            chaseProviderId: 'hyperliquid',
+            isCrossMarginAvailable,
+          }),
+        { initialProps: { isCrossMarginAvailable: false } },
+      );
+
+      expect(result.current.marginMode).toBe('isolated');
+
+      rerender({ isCrossMarginAvailable: true });
+
+      expect(result.current.marginMode).toBe('cross');
+    });
+
     it('keeps the picker free without an open position', () => {
       const { result } = renderWithCrossMargin();
 
@@ -4793,22 +4998,48 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
-    it('shows an error toast when the separate TP/SL update fails', async () => {
-      // Arrange
+    it('shows retryable copy when a separate TP/SL update returns unclassified text', async () => {
+      const diagnostic = 'nope';
       mockOrderForm.takeProfitPrice = '95000';
       mockUpdatePositionTPSL.mockResolvedValue({
         success: false,
-        error: 'nope',
+        error: diagnostic,
       });
       const { result } = renderProForm();
 
-      // Act
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
 
-      // Assert
-      expect(updateTPSLError).toHaveBeenCalledWith('nope');
+      expect(updateTPSLError).toHaveBeenCalledWith(
+        strings('perps.errors.unknownError'),
+      );
+      expect(updateTPSLError).not.toHaveBeenCalledWith(diagnostic);
+    });
+
+    it('translates a separate TP/SL failure from its provider error code', async () => {
+      const diagnostic =
+        'Hyperliquid signer 0xabc returned an internal stack trace';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: diagnostic,
+        errorCode: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+          provider: 'hyperliquid',
+        },
+      });
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(updateTPSLError).toHaveBeenCalledWith(
+        strings('perps.errors.clientReinitializing'),
+      );
+      expect(updateTPSLError).not.toHaveBeenCalledWith(diagnostic);
     });
   });
 

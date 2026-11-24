@@ -28,22 +28,26 @@ export function* backfillSocialLoginMarketingConsentSaga() {
 
   if (hasMarketingConsent) {
     try {
-      yield call([analytics, analytics.identify], {
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-      });
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-      )
-        .addProperties({
+      // Marketing consent signals only go out while MetaMetrics is on, the
+      // same way the settings screen gates them.
+      if (analytics.isEnabled()) {
+        yield call([analytics, analytics.identify], {
           [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-          is_metrics_opted_in: true,
-          location: 'saga_backfill_marketing_consent',
-          updated_after_onboarding: true,
-          account_type: getSocialAccountType(authConnection, false),
-        })
-        .build();
+        });
+        const event = AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+        )
+          .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+            is_metrics_opted_in: true,
+            location: 'saga_backfill_marketing_consent',
+            updated_after_onboarding: true,
+            account_type: getSocialAccountType(authConnection, false),
+          })
+          .build();
 
-      yield call([analytics, analytics.trackEvent], event);
+        yield call([analytics, analytics.trackEvent], event);
+      }
 
       yield put(setDataCollectionForMarketing(true));
     } catch (error) {
