@@ -3,20 +3,21 @@ import type {
   KeyringControllerWithKeyringV2UnsafeAction,
 } from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
-import type {
-  Identifier,
-  MfaRecoveryControllerAbortAction,
-  MfaRecoveryControllerAuthenticateIdentifierAction,
-  MfaRecoveryControllerGetIdentifiersAction,
-  MfaRecoveryControllerGetPhaseAction,
-  MfaRecoveryControllerGetRecoverySecretAction,
-  MfaRecoveryControllerRegisterAction,
-  MfaRecoveryControllerResumeAction,
-  MfaRecoveryControllerUpdateIdentifiersAction,
-  RecoveryIdentifiers,
+import {
+  MIN_IDENTIFIERS,
+  MutationRejectedError,
+  type Identifier,
+  type MfaRecoveryControllerActions,
+  type MfaRecoveryControllerAuthenticateIdentifierAction,
+  type MfaRecoveryControllerGetIdentifiersAction,
+  type MfaRecoveryControllerGetPhaseAction,
+  type MfaRecoveryControllerGetRecoverySecretAction,
+  type MfaRecoveryControllerRegisterAction,
+  type MfaRecoveryControllerResumeAction,
+  type MfaRecoveryControllerUpdateIdentifiersAction,
+  type RecoveryIdentifiers,
 } from '@metamask/mfa-recovery-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
-import type { MfaApproval } from '@metamask/profile-sync-controller/sdk';
 import type {
   SecretMetadata,
   SeedlessOnboardingControllerAuthenticateForRecoveryAction,
@@ -31,40 +32,40 @@ import type {
 import { bytesToHex } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { authEnv } from '../../apiEnv';
-import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
+import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import {
   isProvablePasskeyIdentifier,
   withPasskeyVerifier,
 } from '../../Engine/controllers/mfa-recovery-controller/auth/passkey-identifier-auth-provider';
 import {
-  getCubistConfig,
-  getToprfRecoveryConfig,
-} from '../../Engine/controllers/mfa-recovery-controller/config';
-import { RECOVERY_SECRET_LENGTH } from '../../Engine/controllers/mfa-recovery-controller/constants';
-import {
-  createSrpSiweSigner,
-  getPrimarySrpSeed,
+  createSrpSiweSignerFromMessenger,
   type SiweSigner,
 } from '../../Engine/controllers/mfa-recovery-controller/auth/srp-siwe-signer';
-import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
-import { linkSocialLogin } from '../social-login/link-social-login';
 import {
-  getCandidateIdentifiers,
-  isSameIdentifier,
-  MIN_CUBIST_IDENTIFIERS,
-  type CubistIdentifierChangeResult,
-} from './recovery-identifiers';
+  getToprfRecoveryConfig,
+  RECOVERY_SECRET_LENGTH,
+} from '../../Engine/controllers/mfa-recovery-controller/config';
+import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
+import { setDevSocialLinkEmail } from '../social-login/devSocialLinkEmail';
+import { linkSocialLogin } from '../social-login/link-social-login';
 import {
   findSocialIdentifier,
   getMfaRecoveryStatus,
   getRegistrationIdentifiers,
-  type MfaRecoveryStatus,
+  isSameIdentifier,
+  type CubistIdentifierChangeResult,
   type MfaRecoverySetupResult,
+  type MfaRecoveryStatus,
 } from './recovery-setup';
 
 const SERVICE_NAME = 'MfaRecoveryService';
 
 const APPROVAL_REQUEST_HASH_LENGTH = 32;
+
+type MfaRecoveryControllerIsTrustedAction = Extract<
+  MfaRecoveryControllerActions,
+  { type: 'MfaRecoveryController:isTrusted' }
+>;
 
 type AllowedActions =
   | AuthenticationController.AuthenticationControllerGetVerificationTokenAction
@@ -75,6 +76,7 @@ type AllowedActions =
   | MfaRecoveryControllerGetIdentifiersAction
   | MfaRecoveryControllerGetPhaseAction
   | MfaRecoveryControllerGetRecoverySecretAction
+  | MfaRecoveryControllerIsTrustedAction
   | MfaRecoveryControllerRegisterAction
   | MfaRecoveryControllerResumeAction
   | MfaRecoveryControllerUpdateIdentifiersAction
@@ -108,11 +110,9 @@ export interface MfaRecoveryServiceOptions {
   getSocialLinkEmail?: () => Promise<string | undefined>;
 }
 
-/** The identifiers a run reads and writes with. */
-export interface MfaRecoveryRunIdentifiers {
-  siweIdentifier: Identifier;
-  /** The passkey Auth approved; proven with the platform passkey sheet. */
-  passkeyIdentifier: Identifier;
+export interface MfaRecoverySetupOptions {
+  /** Reject with {@link IdentifierNotApprovedError} if Auth approved no trusted passkey. */
+  requirePasskey?: boolean;
 }
 
 export type RecoveryIdentifierType = 'passkey' | 'social';
@@ -122,6 +122,20 @@ export interface FindRecoveryIdentifierOptions {
   identifierType: RecoveryIdentifierType;
   /** Whether the social provider can issue a nonce-bound ID token. */
   canProveSocialIdentifier: boolean;
+}
+
+/** Auth approved no identifier of the requested type for this profile. */
+export class IdentifierNotApprovedError extends MfaRecoveryControllerError {
+  readonly identifierType: Identifier['type'];
+
+  constructor(identifierType: Identifier['type']) {
+    super(
+      `Auth has no approved ${identifierType} identifier for this profile`,
+      'identifier_not_approved',
+    );
+    this.name = 'IdentifierNotApprovedError';
+    this.identifierType = identifierType;
+  }
 }
 
 /**
@@ -139,23 +153,10 @@ export class MfaRecoveryService {
 
   readonly #siweSigner: SiweSigner;
 
-  #prepared?: Promise<PreparedRun>;
-
   constructor(options: MfaRecoveryServiceOptions) {
     this.#messenger = options.messenger;
     this.#options = options;
-    this.#siweSigner = createSrpSiweSigner({
-      getSeed: async () =>
-        await getPrimarySrpSeed({
-          getState: () => this.#messenger.call('KeyringController:getState'),
-          withKeyringV2Unsafe: async (selector, operation) =>
-            this.#messenger.call(
-              'KeyringController:withKeyringV2Unsafe',
-              selector,
-              operation,
-            ),
-        }),
-    });
+    this.#siweSigner = createSrpSiweSignerFromMessenger(this.#messenger);
   }
 
   /**
@@ -164,11 +165,6 @@ export class MfaRecoveryService {
    */
   async getSiweAddress(): Promise<string> {
     return await this.#siweSigner.getAddress();
-  }
-
-  /** EIP-191 `personal_sign` of `message` with the SIWE signing key. */
-  async signSiweMessage(message: string): Promise<string> {
-    return await this.#siweSigner.signMessage(message);
   }
 
   /** Recovery is set up once the vault is envelope-managed. */
@@ -189,16 +185,17 @@ export class MfaRecoveryService {
     );
   }
 
-  /** The passkeys Auth approved that Cubist does not have enrolled yet. */
+  /** The trusted passkeys Auth approved that Cubist does not have enrolled yet. */
   async getUnenrolledPasskeyIdentifiers(): Promise<Identifier[]> {
     const { identifiers, authIdentifiers } = await this.#messenger.call(
       'MfaRecoveryController:getIdentifiers',
     );
-    return authIdentifiers.filter(
+    const unenrolled = authIdentifiers.filter(
       (candidate) =>
         candidate.type === 'passkey' &&
         !identifiers.some((enrolled) => isSameIdentifier(enrolled, candidate)),
     );
+    return await this.#filterTrusted(unenrolled);
   }
 
   /**
@@ -252,29 +249,17 @@ export class MfaRecoveryService {
 
   /** Mints an approval for the TOPRF nodes; needs a verification session. */
   async mintAal2Token(): Promise<string> {
-    const { approval } = await this.#requestApproval(
-      [getToprfRecoveryConfig().aal2Audience],
-      false,
+    const { approval } = await this.#messenger.call(
+      'AuthenticationController:requestMfaApproval',
+      {
+        requestHash: bytesToHex(randomBytes(APPROVAL_REQUEST_HASH_LENGTH)),
+        audiences: [getToprfRecoveryConfig().aal2Audience],
+        requireVerification: true,
+        includeIdentifiers: false,
+        reason: { operation: this.#options.approvalOperation },
+      },
     );
     return approval;
-  }
-
-  /** Returns the recovery identifiers Auth holds for the canonical profile. */
-  async getAuthIdentifiers(): Promise<Identifier[]> {
-    const { identifiers = [] } = await this.#requestApproval(
-      [getCubistConfig().authAudience],
-      true,
-    );
-    return identifiers;
-  }
-
-  /**
-   * Verifies the user, resumes any pending escrow operation, and resolves the
-   * identifiers a recovery run uses.
-   */
-  async prepareRun(): Promise<MfaRecoveryRunIdentifiers> {
-    const { address, authIdentifiers } = await this.#prepare();
-    return toRunIdentifiers(authIdentifiers, address);
   }
 
   /**
@@ -360,38 +345,36 @@ export class MfaRecoveryService {
   }
 
   /**
-   * Prepares the unlocked social wallet for passwordless recovery using the
-   * identifiers Auth already approved (SIWE, social, and any passkeys),
-   * avoiding an extra `getIdentifiers` round-trip before setup.
-   */
-  async setUpWithCandidates(): Promise<MfaRecoverySetupResult> {
-    if (this.#seedlessState().envelope) {
-      return 'already_enabled';
-    }
-    const { authIdentifiers } = await this.#prepare();
-    const passkeys = authIdentifiers.filter(
-      (identifier) => identifier.type === 'passkey',
-    );
-    return await this.setUp(passkeys);
-  }
-
-  /**
    * Prepares the unlocked social wallet for passwordless recovery: registers
-   * one Recovery Secret for SIWE, Auth's social identifier, and `identifiers`,
-   * then seals the vault with it. An existing Cubist registration is read with
-   * SIWE, never overwritten. The current password still unlocks the wallet.
-   * Does nothing when the vault is already sealed.
+   * one Recovery Secret for SIWE, Auth's social identifier, and any trusted
+   * passkeys Auth approved, then seals the vault with it. An existing Cubist
+   * registration is read with SIWE, never overwritten. The current password
+   * still unlocks the wallet. Does nothing when the vault is already sealed.
    */
-  async setUp(
-    identifiers: readonly Identifier[] = [],
-  ): Promise<MfaRecoverySetupResult> {
+  async setUp({
+    requirePasskey = false,
+  }: MfaRecoverySetupOptions = {}): Promise<MfaRecoverySetupResult> {
     if (this.#seedlessState().envelope) {
       return 'already_enabled';
     }
 
-    const { address, authIdentifiers: approved } = await this.#prepare();
-    let authIdentifiers = approved;
-    if (!findSocialIdentifier(authIdentifiers, this.#seedlessState())) {
+    const address = await this.getSiweAddress();
+    await this.verifyMfa();
+    await this.#resumePendingOperation();
+
+    let { epoch, authIdentifiers } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
+    let trustedAuth = await this.#filterTrusted(authIdentifiers);
+
+    if (
+      requirePasskey &&
+      !trustedAuth.some((identifier) => identifier.type === 'passkey')
+    ) {
+      throw new IdentifierNotApprovedError('passkey');
+    }
+
+    if (!findSocialIdentifier(trustedAuth, this.#seedlessState())) {
       const socialLinkEmail = (
         await this.#options.getSocialLinkEmail?.()
       )?.trim();
@@ -400,21 +383,29 @@ export class MfaRecoveryService {
           ? socialLinkEmail
           : undefined,
       );
-      authIdentifiers = await this.getAuthIdentifiers();
+      ({ epoch, authIdentifiers } = await this.#messenger.call(
+        'MfaRecoveryController:getIdentifiers',
+      ));
+      trustedAuth = await this.#filterTrusted(authIdentifiers);
     }
-    const { siweIdentifier } = toRunIdentifiers(authIdentifiers, address);
+
+    // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
+    // signature, so fall back to the SRP signing key's identifier.
+    const siweIdentifier =
+      trustedAuth.find((identifier) => identifier.type === 'siwe') ??
+      createSiweIdentifier(address);
+    const passkeys = trustedAuth.filter(
+      (identifier) => identifier.type === 'passkey',
+    );
     const registrationIdentifiers = getRegistrationIdentifiers(
-      authIdentifiers,
+      trustedAuth,
       siweIdentifier,
-      identifiers,
+      passkeys,
       this.#seedlessState(),
     );
 
     let recoverySecret = new Uint8Array(0);
     try {
-      const { epoch } = await this.#messenger.call(
-        'MfaRecoveryController:getIdentifiers',
-      );
       if (epoch > 0) {
         // A previous attempt already stored the secret. Registering again asks
         // for version 1, which Cubist rejects.
@@ -453,9 +444,10 @@ export class MfaRecoveryService {
   async linkSocialLogin(verifierId?: string): Promise<void> {
     await this.verifyMfa();
     const messenger = this.#messenger;
+    const seedlessState = this.#seedlessState();
     await linkSocialLogin({
       env: authEnv(),
-      seedlessState: this.#seedlessState(),
+      seedlessState,
       getSocialAccessToken: async () =>
         messenger.call('SeedlessOnboardingController:getAccessToken'),
       getVerifiedAccessToken: () =>
@@ -463,24 +455,7 @@ export class MfaRecoveryService {
           ?.accessToken,
       verifierId,
     });
-  }
-
-  /**
-   * Returns the identifier each type would be added with. Auth's identifiers
-   * win, with fallbacks to the SRP signing key and the seedless login.
-   */
-  async getCandidateIdentifiers(): Promise<Identifier[]> {
-    const { authIdentifiers } = await this.#messenger.call(
-      'MfaRecoveryController:getIdentifiers',
-    );
-    const candidates = getCandidateIdentifiers(
-      authIdentifiers,
-      await this.getSiweAddress(),
-      this.#seedlessState(),
-    );
-    return Object.values(candidates).filter(
-      (identifier): identifier is Identifier => identifier !== undefined,
-    );
+    setDevSocialLinkEmail(verifierId, seedlessState.socialLoginEmail);
   }
 
   /**
@@ -534,9 +509,9 @@ export class MfaRecoveryService {
         'identifier_not_enrolled',
       );
     }
-    if (remaining.length < MIN_CUBIST_IDENTIFIERS) {
+    if (remaining.length < MIN_IDENTIFIERS) {
       throw new MfaRecoveryControllerError(
-        `Cubist needs at least ${MIN_CUBIST_IDENTIFIERS} identifiers`,
+        `Cubist needs at least ${MIN_IDENTIFIERS} identifiers`,
         'too_few_identifiers',
       );
     }
@@ -549,47 +524,38 @@ export class MfaRecoveryService {
     return { identifierType: target.type, change: 'removed', epoch: newEpoch };
   }
 
-  /**
-   * Resolves the run's SIWE address and Auth identifiers once per instance, so
-   * `prepareRun` followed by `setUp` resumes and reads only once. A failed
-   * attempt is not cached, so a retry runs again.
-   */
-  async #prepare(): Promise<PreparedRun> {
-    this.#prepared ??= this.#runPrepare().catch((error: unknown) => {
-      this.#prepared = undefined;
-      throw error;
-    });
-    return this.#prepared;
-  }
-
-  async #runPrepare(): Promise<PreparedRun> {
-    const address = await this.getSiweAddress();
-    await this.verifyMfa();
-    await this.#resumePendingOperation();
-    return { address, authIdentifiers: await this.getAuthIdentifiers() };
-  }
-
-  async #requestApproval(
-    audiences: string[],
-    includeIdentifiers: boolean,
-  ): Promise<MfaApproval> {
-    return await this.#messenger.call(
-      'AuthenticationController:requestMfaApproval',
-      {
-        requestHash: bytesToHex(randomBytes(APPROVAL_REQUEST_HASH_LENGTH)),
-        audiences,
-        requireVerification: true,
-        includeIdentifiers,
-        reason: { operation: this.#options.approvalOperation },
-      },
+  async #filterTrusted(
+    identifiers: readonly Identifier[],
+  ): Promise<Identifier[]> {
+    const checks = await Promise.all(
+      identifiers.map(async (identifier) => ({
+        identifier,
+        trusted: await this.#messenger.call(
+          'MfaRecoveryController:isTrusted',
+          identifier,
+        ),
+      })),
     );
+    return checks
+      .filter(({ trusted }) => trusted)
+      .map(({ identifier }) => identifier);
   }
 
   async #resumePendingOperation(): Promise<void> {
     if (
       (await this.#messenger.call('MfaRecoveryController:getPhase')) !== 'idle'
     ) {
-      await this.#messenger.call('MfaRecoveryController:resume');
+      try {
+        await this.#messenger.call('MfaRecoveryController:resume');
+      } catch (error) {
+        if (error instanceof MutationRejectedError) {
+          Logger.log('MfaRecovery cleared unapplied pending operation', {
+            message: error.message,
+          });
+          return;
+        }
+        throw error;
+      }
     }
   }
 
@@ -624,55 +590,6 @@ export class MfaRecoveryService {
 
 function randomBytes(length: number): Uint8Array {
   return globalThis.crypto.getRandomValues(new Uint8Array(length));
-}
-
-function toRunIdentifiers(
-  authIdentifiers: readonly Identifier[],
-  siweAddress: string,
-): MfaRecoveryRunIdentifiers {
-  return {
-    // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
-    // signature, so fall back to the SRP signing key's identifier.
-    siweIdentifier:
-      authIdentifiers.find((identifier) => identifier.type === 'siwe') ??
-      createSiweIdentifier(siweAddress),
-    // Lazy: a run that uses SIWE must not fail when no passkey is approved.
-    get passkeyIdentifier(): Identifier {
-      return findAuthIdentifier(authIdentifiers, 'passkey');
-    },
-  };
-}
-
-/** The run's SIWE address and the identifiers Auth approved for it. */
-interface PreparedRun {
-  address: string;
-  authIdentifiers: Identifier[];
-}
-
-/** Auth approved no identifier of the requested type for this profile. */
-export class IdentifierNotApprovedError extends MfaRecoveryControllerError {
-  readonly identifierType: Identifier['type'];
-
-  constructor(identifierType: Identifier['type']) {
-    super(
-      `Auth has no approved ${identifierType} identifier for this profile`,
-      'identifier_not_approved',
-    );
-    this.name = 'IdentifierNotApprovedError';
-    this.identifierType = identifierType;
-  }
-}
-
-/** Picks the identifier of the given type that Auth approved for this profile. */
-function findAuthIdentifier(
-  identifiers: readonly Identifier[],
-  type: Identifier['type'],
-): Identifier {
-  const identifier = identifiers.find((candidate) => candidate.type === type);
-  if (identifier === undefined) {
-    throw new IdentifierNotApprovedError(type);
-  }
-  return identifier;
 }
 
 /** Reuses Auth's copy of an enrolled identifier, which keeps its verifier. */

@@ -49,8 +49,7 @@ export async function setupPasswordlessRecovery(
   }
 
   try {
-    const { passkeyIdentifier } = await service.prepareRun();
-    return await service.setUp([passkeyIdentifier]);
+    return await service.setUp({ requirePasskey: true });
   } catch (error) {
     throw toSetupError(error);
   }

@@ -3,7 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type {
   KeyringControllerGetStateAction,
@@ -12,7 +15,10 @@ import type {
 import type {
   MfaRecoveryControllerMessenger,
   RecoveryRegistrationLockProviderMessenger,
+  UserStorageTrustedIdentifierStoreMessenger,
 } from '@metamask/mfa-recovery-controller';
+import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { applyDevSocialLinkEmail } from '../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { MfaRecoveryServiceMessenger } from '../../MfaRecovery/services/mfa-recovery-service';
 import type { RootMessenger } from '../types';
 
@@ -31,9 +37,20 @@ export function getMfaRecoveryControllerMessenger(
     actions: [
       'AuthenticationController:refreshCanonicalProfileId',
       'AuthenticationController:requestMfaApproval',
+      'SeedlessOnboardingController:getState',
     ],
     messenger,
   });
+  if (isMfaDevBuild()) {
+    const originalCall = messenger.call.bind(messenger);
+    messenger.call = ((actionType, ...args) => {
+      const result = originalCall(actionType, ...args);
+      if (actionType === 'SeedlessOnboardingController:getState') {
+        return applyDevSocialLinkEmail(result as { socialLoginEmail?: string });
+      }
+      return result;
+    }) as typeof messenger.call;
+  }
   return messenger;
 }
 
@@ -44,7 +61,10 @@ type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerExchangeSocialAccessTokenAction
   | KeyringControllerGetStateAction
   | KeyringControllerWithKeyringV2UnsafeAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | UserStorageController.UserStorageControllerPerformGetStorageAllFeatureEntriesAction
+  | UserStorageController.UserStorageControllerPerformSetStorageAction
+  | UserStorageController.UserStorageControllerPerformDeleteStorageAction;
 
 export type MfaRecoveryControllerInitMessenger = Messenger<
   'MfaRecoveryControllerInitialization',
@@ -72,6 +92,9 @@ export function getMfaRecoveryControllerInitMessenger(
       'KeyringController:getState',
       'KeyringController:withKeyringV2Unsafe',
       'RemoteFeatureFlagController:getState',
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performSetStorage',
+      'UserStorageController:performDeleteStorage',
     ],
     messenger,
   });
@@ -96,6 +119,25 @@ export function getRecoveryRegistrationLockProviderMessenger(
   return messenger;
 }
 
+/** Returns the messenger for the user-storage trusted identifier store. */
+export function getUserStorageTrustedIdentifierStoreMessenger(
+  initMessenger: MfaRecoveryControllerInitMessenger,
+): UserStorageTrustedIdentifierStoreMessenger {
+  const messenger: UserStorageTrustedIdentifierStoreMessenger = new Messenger({
+    namespace: 'UserStorageTrustedIdentifierStore',
+    parent: initMessenger,
+  });
+  initMessenger.delegate({
+    actions: [
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performSetStorage',
+      'UserStorageController:performDeleteStorage',
+    ],
+    messenger,
+  });
+  return messenger;
+}
+
 /** The controller actions the MFA recovery service may call. */
 export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'AuthenticationController:getVerificationToken',
@@ -106,6 +148,7 @@ export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'MfaRecoveryController:getIdentifiers',
   'MfaRecoveryController:getPhase',
   'MfaRecoveryController:getRecoverySecret',
+  'MfaRecoveryController:isTrusted',
   'MfaRecoveryController:register',
   'MfaRecoveryController:resume',
   'MfaRecoveryController:updateIdentifiers',

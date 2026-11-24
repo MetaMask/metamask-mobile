@@ -1,4 +1,5 @@
 import Engine from '../../../core/Engine';
+import Logger from '../../Logger';
 import {
   createSocialLoginControllerAdapter,
   mobileMfaControllerAdapter,
@@ -19,13 +20,25 @@ jest.mock('../../../core/Engine', () => ({
       beginSocialLoginVerification: jest.fn(),
       completeSocialLoginVerification: jest.fn(),
     },
+    MfaRecoveryController: {
+      trustIdentifier: jest.fn(),
+    },
   },
 }));
 
+jest.mock('../../Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
 const controller = jest.mocked(Engine.context.AuthenticationController);
+const mfaRecoveryController = jest.mocked(Engine.context.MfaRecoveryController);
 const reason = { operation: 'qa.test' };
 
 describe('mobileMfaControllerAdapter', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('forwards refreshEnrolledCredentials', async () => {
     controller.refreshEnrolledCredentials.mockResolvedValue([]);
 
@@ -52,6 +65,98 @@ describe('mobileMfaControllerAdapter', () => {
     expect(controller.completeCredentialEnrollment).toHaveBeenCalledWith(
       request,
     );
+    expect(mfaRecoveryController.trustIdentifier).not.toHaveBeenCalled();
+  });
+
+  it('trusts a newly enrolled passkey attestation after Auth accepts it', async () => {
+    const enrolled = [
+      { id: 'cred-1', type: 'passkey' as const, status: 'active' as const },
+    ];
+    controller.completeCredentialEnrollment.mockResolvedValueOnce(enrolled);
+    mfaRecoveryController.trustIdentifier.mockResolvedValueOnce(undefined);
+    const request = {
+      flowId: 'flow',
+      proof: {
+        type: 'passkey' as const,
+        attestation: {
+          id: 'cred-1',
+          rawId: 'cred-1',
+          type: 'public-key' as const,
+          response: {
+            attestationObject: 'YXR0ZXN0YXRpb24',
+            clientDataJSON: 'Y2xpZW50',
+          },
+        },
+      },
+      reason,
+    };
+
+    const result =
+      await mobileMfaControllerAdapter.completeCredentialEnrollment(request);
+
+    expect(result).toBe(enrolled);
+    expect(mfaRecoveryController.trustIdentifier).toHaveBeenCalledWith({
+      type: 'passkey',
+      attestationObject: 'YXR0ZXN0YXRpb24',
+    });
+  });
+
+  it('does not trust the passkey when Auth enrollment fails', async () => {
+    const error = new Error('auth rejected');
+    controller.completeCredentialEnrollment.mockRejectedValueOnce(error);
+    const request = {
+      flowId: 'flow',
+      proof: {
+        type: 'passkey' as const,
+        attestation: {
+          id: 'cred-1',
+          rawId: 'cred-1',
+          type: 'public-key' as const,
+          response: {
+            attestationObject: 'YXR0ZXN0YXRpb24',
+            clientDataJSON: 'Y2xpZW50',
+          },
+        },
+      },
+      reason,
+    };
+
+    await expect(
+      mobileMfaControllerAdapter.completeCredentialEnrollment(request),
+    ).rejects.toBe(error);
+    expect(mfaRecoveryController.trustIdentifier).not.toHaveBeenCalled();
+  });
+
+  it('logs and still resolves enrolled credentials if trusting the passkey fails', async () => {
+    const enrolled = [
+      { id: 'cred-1', type: 'passkey' as const, status: 'active' as const },
+    ];
+    const trustError = new Error('storage unavailable');
+    controller.completeCredentialEnrollment.mockResolvedValueOnce(enrolled);
+    mfaRecoveryController.trustIdentifier.mockRejectedValueOnce(trustError);
+    const request = {
+      flowId: 'flow',
+      proof: {
+        type: 'passkey' as const,
+        attestation: {
+          id: 'cred-1',
+          rawId: 'cred-1',
+          type: 'public-key' as const,
+          response: {
+            attestationObject: 'YXR0ZXN0YXRpb24',
+            clientDataJSON: 'Y2xpZW50',
+          },
+        },
+      },
+      reason,
+    };
+
+    await expect(
+      mobileMfaControllerAdapter.completeCredentialEnrollment(request),
+    ).resolves.toBe(enrolled);
+    expect(Logger.error).toHaveBeenCalledWith(trustError, {
+      tags: { feature: 'mfa', operation: reason.operation },
+    });
   });
 
   it('forwards beginCredentialVerification with its request', async () => {

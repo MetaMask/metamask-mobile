@@ -1,21 +1,55 @@
 import { mnemonicToSeed } from '@metamask/key-tree';
+import {
+  CubistEscrowProvider,
+  MfaRecoveryController,
+  RecoveryRegistrationLockProvider,
+  UserStorageTrustedIdentifierStore,
+} from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
-import { getRecoveryRegistrationLockProviderMessenger } from '../../messengers/mfa-recovery-controller-messenger';
+import {
+  getRecoveryRegistrationLockProviderMessenger,
+  getUserStorageTrustedIdentifierStoreMessenger,
+} from '../../messengers/mfa-recovery-controller-messenger';
+import { RecoveryIdentifierRouter } from './auth/identifier-auth-provider';
+import { createCubistSessionTokenProvider } from './auth/session-token-provider';
 import { createSrpSiweSigner } from './auth/srp-siwe-signer';
-import { isMfaRecoveryConfigured } from './config';
-import { createMfaRecoveryController } from './create-mfa-recovery-controller';
+import {
+  getRegistrationUrl,
+  isMfaRecoveryConfigured,
+  tryGetCubistEscrowConfig,
+} from './config';
+import { createCubistClientGetter } from './cubist-escrow-provider';
 import { mfaRecoveryControllerInit } from './index';
+
+jest.mock('@metamask/mfa-recovery-controller', () => ({
+  CubistEscrowProvider: jest.fn().mockImplementation(() => ({
+    applyMutation: jest.fn(),
+  })),
+  MfaRecoveryController: jest.fn(),
+  RecoveryRegistrationLockProvider: jest.fn(),
+  UserStorageTrustedIdentifierStore: jest.fn(),
+}));
 
 jest.mock('../../../../selectors/featureFlagController/mfaRecovery', () => ({
   selectMfaRecoveryEnabled: { resultFunc: jest.fn() },
 }));
 
 jest.mock('./config', () => ({
+  getRegistrationUrl: jest.fn(),
   isMfaRecoveryConfigured: jest.fn(),
+  tryGetCubistEscrowConfig: jest.fn(),
 }));
 
-jest.mock('./create-mfa-recovery-controller', () => ({
-  createMfaRecoveryController: jest.fn(),
+jest.mock('./auth/session-token-provider', () => ({
+  createCubistSessionTokenProvider: jest.fn(),
+}));
+
+jest.mock('./cubist-escrow-provider', () => ({
+  createCubistClientGetter: jest.fn(),
+}));
+
+jest.mock('./auth/identifier-auth-provider', () => ({
+  RecoveryIdentifierRouter: jest.fn(),
 }));
 
 jest.mock('../../../../util/identity/mfa/passkeyAdapter', () => ({
@@ -24,11 +58,21 @@ jest.mock('../../../../util/identity/mfa/passkeyAdapter', () => ({
 
 jest.mock('../../messengers/mfa-recovery-controller-messenger', () => ({
   getRecoveryRegistrationLockProviderMessenger: jest.fn(),
+  getUserStorageTrustedIdentifierStoreMessenger: jest.fn(),
 }));
 
-const mockCreate = jest.mocked(createMfaRecoveryController);
+const mockMfaRecoveryController = jest.mocked(MfaRecoveryController);
+const mockLockProvider = jest.mocked(RecoveryRegistrationLockProvider);
+const mockTrustedStore = jest.mocked(UserStorageTrustedIdentifierStore);
+const mockEscrowProvider = jest.mocked(CubistEscrowProvider);
+const mockCreateTokenProvider = jest.mocked(createCubistSessionTokenProvider);
+const mockCreateClientGetter = jest.mocked(createCubistClientGetter);
+const mockIdentifierRouter = jest.mocked(RecoveryIdentifierRouter);
 const mockGetLockProviderMessenger = jest.mocked(
   getRecoveryRegistrationLockProviderMessenger,
+);
+const mockGetTrustedIdentifierStoreMessenger = jest.mocked(
+  getUserStorageTrustedIdentifierStoreMessenger,
 );
 const mockSelectEnabled = jest.mocked(selectMfaRecoveryEnabled.resultFunc);
 const mockIsConfigured = jest.mocked(isMfaRecoveryConfigured);
@@ -40,36 +84,82 @@ describe('mfaRecoveryControllerInit', () => {
     call: jest.fn(),
   };
   const lockProviderMessenger = { kind: 'lock-provider' };
+  const trustedIdentifierStoreMessenger = { kind: 'trusted-identifier-store' };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreate.mockReturnValue(controller as never);
+    mockMfaRecoveryController.mockImplementation(() => controller as never);
     mockGetLockProviderMessenger.mockReturnValue(
       lockProviderMessenger as never,
     );
+    mockGetTrustedIdentifierStoreMessenger.mockReturnValue(
+      trustedIdentifierStoreMessenger as never,
+    );
+    jest
+      .mocked(getRegistrationUrl)
+      .mockReturnValue('https://registration.example');
+    jest.mocked(tryGetCubistEscrowConfig).mockReturnValue({
+      wrapPublicKey: new Uint8Array([1]),
+      receiptPublicKey: new Uint8Array([2]),
+      authAudience: 'aud',
+    });
     mockSelectEnabled.mockReturnValue(true);
     mockIsConfigured.mockReturnValue(true);
   });
 
-  it('creates the controller with pendingOperation cleared from persisted state', () => {
+  it('preserves an object pendingOperation from persisted state and wires messengers', () => {
+    const pendingOperation = { phase: 'writing', mutation: { id: 'm1' } };
     const { controller: created } = mfaRecoveryControllerInit({
       controllerMessenger,
       initMessenger,
       persistedState: {
         MfaRecoveryController: {
-          pendingOperation: { encrypted: true },
-          other: 'keep',
+          pendingOperation,
+          lockId: 'lock-1',
         },
       },
     } as never);
 
     expect(created).toBe(controller);
     expect(mockGetLockProviderMessenger).toHaveBeenCalledWith(initMessenger);
-    expect(mockCreate).toHaveBeenCalledWith(
+    expect(mockGetTrustedIdentifierStoreMessenger).toHaveBeenCalledWith(
+      initMessenger,
+    );
+    expect(mockLockProvider).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseUrl: 'https://registration.example',
+        messenger: lockProviderMessenger,
+      }),
+    );
+    expect(mockTrustedStore).toHaveBeenCalledWith({
+      messenger: trustedIdentifierStoreMessenger,
+    });
+    expect(mockEscrowProvider).toHaveBeenCalledWith(
+      expect.objectContaining({ authAudience: 'aud' }),
+    );
+    expect(mockMfaRecoveryController).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger: controllerMessenger,
-        lockProviderMessenger,
-        state: { pendingOperation: null, other: 'keep' },
+        state: { pendingOperation, lockId: 'lock-1' },
+      }),
+    );
+  });
+
+  it('clears a legacy encrypted string pendingOperation from persisted state', () => {
+    mfaRecoveryControllerInit({
+      controllerMessenger,
+      initMessenger,
+      persistedState: {
+        MfaRecoveryController: {
+          pendingOperation: '{"data":"ciphertext"}',
+          lockId: 'lock-1',
+        },
+      },
+    } as never);
+
+    expect(mockMfaRecoveryController).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: { pendingOperation: null, lockId: 'lock-1' },
       }),
     );
   });
@@ -81,7 +171,7 @@ describe('mfaRecoveryControllerInit', () => {
       persistedState: {},
     } as never);
 
-    expect(mockCreate).toHaveBeenCalledWith(
+    expect(mockMfaRecoveryController).toHaveBeenCalledWith(
       expect.objectContaining({ state: undefined }),
     );
   });
@@ -92,7 +182,7 @@ describe('mfaRecoveryControllerInit', () => {
       initMessenger,
       persistedState: {},
     } as never);
-    const { isEnabled } = mockCreate.mock.calls[0][0];
+    const { isEnabled } = mockCreateClientGetter.mock.calls[0][0];
     initMessenger.call.mockReturnValue({
       remoteFeatureFlags: { mfaRecovery: { enabled: true } },
     });
@@ -117,7 +207,7 @@ describe('mfaRecoveryControllerInit', () => {
       initMessenger,
       persistedState: {},
     } as never);
-    const options = mockCreate.mock.calls[0][0];
+    const options = mockCreateTokenProvider.mock.calls[0][0];
 
     initMessenger.call.mockReturnValueOnce({ isUnlocked: true });
     expect(options.isUnlocked()).toBe(true);
@@ -191,7 +281,7 @@ describe('mfaRecoveryControllerInit', () => {
         initMessenger,
         persistedState: {},
       } as never);
-      const { siweSigner } = mockCreate.mock.calls[0][0];
+      const { siweSigner } = mockIdentifierRouter.mock.calls[0][0];
       const expectedSigner = createSrpSiweSigner({
         getSeed: async () => new Uint8Array(seed),
       });
@@ -218,7 +308,7 @@ describe('mfaRecoveryControllerInit', () => {
         initMessenger,
         persistedState: {},
       } as never);
-      const { siweSigner } = mockCreate.mock.calls[0][0];
+      const { siweSigner } = mockIdentifierRouter.mock.calls[0][0];
       mockKeyring(false);
 
       await expect(siweSigner.getAddress()).rejects.toMatchObject({

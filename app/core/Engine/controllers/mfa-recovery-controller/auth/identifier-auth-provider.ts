@@ -1,22 +1,86 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { bytesToHex } from '@metamask/utils';
+import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
 import type {
+  Identifier,
   KeyBoundIdentifierLogin,
   KeyBoundIdentifierTokenRequest,
   RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
-import { SIWE_CHAIN_ID, SIWE_DOMAIN } from '../constants';
+import { SIWE_CHAIN_ID, SIWE_DOMAIN } from '../config';
 import { MfaRecoveryControllerError } from '../errors';
-import { keyBoundDigest } from './key-bound-nonce';
 import {
   PlatformPasskeyIdentifierAuthProvider,
   type PasskeyAssertionGetter,
 } from './passkey-identifier-auth-provider';
-import {
-  SocialIdentifierAuthProvider,
-  type SocialIdTokenProvider,
-} from './social-identifier-auth-provider';
 import type { SiweSigner } from './srp-siwe-signer';
+
+/** Maps Seedless social login connections to their escrow OIDC issuer URLs. */
+export const SOCIAL_IDENTIFIER_ISSUERS: Record<string, string> = {
+  google: 'https://accounts.google.com',
+  apple: 'https://appleid.apple.com',
+};
+
+/** Builds a SIWE recovery identifier for an Ethereum address. */
+export function createSiweIdentifier(address: string): Identifier {
+  return {
+    type: 'siwe',
+    namespace: `${SIWE_DOMAIN}:${SIWE_CHAIN_ID}`,
+    value: address.toLowerCase(),
+    verifier: { domain: SIWE_DOMAIN, chainId: SIWE_CHAIN_ID },
+  };
+}
+
+/**
+ * Computes the SHA-256 digest binding a recovery request's proof public key,
+ * request hash, and expiry, as the escrow verifies in SIWE and social nonces.
+ */
+export async function keyBoundDigest(
+  proofPublicKey: Uint8Array,
+  requestHash: string,
+  notAfter: number,
+): Promise<Uint8Array> {
+  return await sha256(
+    stringToBytes(
+      JSON.stringify([bytesToHex(proofPublicKey), requestHash, notAfter]),
+    ),
+  );
+}
+
+/** Issues an OIDC ID token for the wallet's social login bound to `nonce`. */
+export type SocialIdTokenProvider = (nonce: string) => Promise<string>;
+
+/** Proves social identifiers with a key-bound OIDC ID token. */
+export class SocialIdentifierAuthProvider
+  implements RecoveryIdentifierAuthProvider
+{
+  readonly #getIdToken: SocialIdTokenProvider;
+
+  constructor({ getIdToken }: { getIdToken: SocialIdTokenProvider }) {
+    this.#getIdToken = getIdToken;
+  }
+
+  async getKeyBoundIdentifierLogin(
+    params: KeyBoundIdentifierTokenRequest,
+  ): Promise<KeyBoundIdentifierLogin> {
+    const nonce = bytesToHex(
+      await keyBoundDigest(
+        params.proofPublicKey,
+        params.requestHash,
+        params.notAfter,
+      ),
+    );
+    const idToken = await this.#getIdToken(nonce);
+    return {
+      token: {
+        identifier: params.identifier,
+        proofPublicKey: params.proofPublicKey,
+        requestHash: params.requestHash,
+        notAfter: params.notAfter,
+        providerAssertion: idToken,
+      },
+    };
+  }
+}
 
 /**
  * Signs key-bound SIWE identifier proofs with the primary SRP's

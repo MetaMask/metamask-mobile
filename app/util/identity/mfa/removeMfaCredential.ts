@@ -9,6 +9,9 @@ import Engine from '../../../core/Engine';
  * verification from `verifyOrEnroll` with another type of method: the server
  * refuses one with the same type, and the last method.
  *
+ * For passkeys, stops trusting the credential in MFA recovery before removing
+ * it from Auth so a later approval cannot add it back.
+ *
  * @param credential - The method to remove.
  * @param reason - The operation, for tracing.
  */
@@ -16,6 +19,9 @@ export const removeMfaCredential = async (
   credential: EnrolledCredential,
   reason: TokenReason,
 ): Promise<void> => {
+  if (credential.type === 'passkey') {
+    await Engine.context.MfaRecoveryController.untrustPasskey(credential.id);
+  }
   await Engine.context.AuthenticationController.removeCredential({
     credentialId: credential.id,
     reason,

@@ -1,9 +1,7 @@
-import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { MfaRecoveryControllerError } from '../Engine/controllers/mfa-recovery-controller/errors';
 import {
   IdentifierNotApprovedError,
   type MfaRecoveryService,
-  type MfaRecoveryRunIdentifiers,
 } from './services/mfa-recovery-service';
 import { LinkSocialLoginError } from './social-login/link-social-login';
 import { createMfaRecoveryService } from './engineBindings';
@@ -15,34 +13,10 @@ import {
 
 jest.mock('./engineBindings', () => ({ createMfaRecoveryService: jest.fn() }));
 
-const PASSKEY: Identifier = {
-  type: 'passkey',
-  namespace: 'metamask.io',
-  value: 'cred-1',
-};
-
-const SIWE: Identifier = {
-  type: 'siwe',
-  namespace: 'eip155',
-  value: '0xabc',
-};
-
 const mockService = {
   getStatus: jest.fn(),
-  prepareRun: jest.fn(),
   setUp: jest.fn(),
 };
-
-function runIdentifiers(
-  passkey: () => Identifier = () => PASSKEY,
-): MfaRecoveryRunIdentifiers {
-  return {
-    siweIdentifier: SIWE,
-    get passkeyIdentifier(): Identifier {
-      return passkey();
-    },
-  };
-}
 
 async function setupError(
   verifyMfa: () => Promise<void> = jest.fn(),
@@ -59,7 +33,6 @@ describe('setupPasswordlessRecovery', () => {
       .mocked(createMfaRecoveryService)
       .mockReturnValue(mockService as unknown as MfaRecoveryService);
     mockService.getStatus.mockReturnValue('NotEnabled');
-    mockService.prepareRun.mockResolvedValue(runIdentifiers());
     mockService.setUp.mockResolvedValue('enabled');
   });
 
@@ -74,12 +47,11 @@ describe('setupPasswordlessRecovery', () => {
     });
   });
 
-  it('sets up recovery with the approved passkey', async () => {
+  it('sets up recovery requiring an approved passkey', async () => {
     const result = await setupPasswordlessRecovery(jest.fn());
 
     expect(result).toBe('enabled');
-    expect(mockService.prepareRun).toHaveBeenCalledTimes(1);
-    expect(mockService.setUp).toHaveBeenCalledWith([PASSKEY]);
+    expect(mockService.setUp).toHaveBeenCalledWith({ requirePasskey: true });
   });
 
   it('returns the service result when setUp finds the vault sealed', async () => {
@@ -98,22 +70,18 @@ describe('setupPasswordlessRecovery', () => {
 
     expect(result).toBe('already_enabled');
     expect(verifyMfa).not.toHaveBeenCalled();
-    expect(mockService.prepareRun).not.toHaveBeenCalled();
     expect(mockService.setUp).not.toHaveBeenCalled();
   });
 
   it('reports passkey_not_enrolled when Auth approved no passkey', async () => {
-    mockService.prepareRun.mockResolvedValue(
-      runIdentifiers(() => {
-        throw new IdentifierNotApprovedError('passkey');
-      }),
+    mockService.setUp.mockRejectedValue(
+      new IdentifierNotApprovedError('passkey'),
     );
 
     const error = await setupError();
 
     expect(error).toBeInstanceOf(PasswordlessRecoverySetupError);
     expect(error).toMatchObject({ code: 'passkey_not_enrolled' });
-    expect(mockService.setUp).not.toHaveBeenCalled();
   });
 
   it('keeps the code and names the error the service threw', async () => {
@@ -162,7 +130,7 @@ describe('setupPasswordlessRecovery', () => {
   });
 
   it('wraps verification failures with their code', async () => {
-    mockService.prepareRun.mockRejectedValue(
+    mockService.setUp.mockRejectedValue(
       Object.assign(new Error('verify blew up'), { code: 'verify_failed' }),
     );
 

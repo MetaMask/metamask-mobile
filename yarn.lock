@@ -9213,7 +9213,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@levischuck/tiny-cbor@npm:^0.3.3":
+"@levischuck/tiny-cbor@npm:^0.3.3, @levischuck/tiny-cbor@npm:^0.3.6":
   version: 0.3.6
   resolution: "@levischuck/tiny-cbor@npm:0.3.6"
   checksum: 10/3adcabfba4740b72ffabd87da45130e12a31c2e9f929f24ccc7495cda9eafc449f7bb24ada414f86d9011b4d9d582737fbc3cfd1d0c8c8ee7f85f29bc48999a3
@@ -9628,24 +9628,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/auth-network-utils@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@metamask/auth-network-utils@npm:0.4.0"
-  dependencies:
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/hashes": "npm:^1.7.1"
-    "@toruslabs/bs58": "npm:^1.0.0"
-    "@toruslabs/constants": "npm:^15.0.0"
-    "@toruslabs/eccrypto": "npm:^6.2.0"
-    bn.js: "npm:^5.2.2"
-    elliptic: "npm:^6.6.1"
-    json-stable-stringify-without-jsonify: "npm:^1.0.1"
-    loglevel: "npm:^1.9.2"
-  checksum: 10/db528a23607dc010c0c6ab94cd1d7042041cabbb0f3ca0e11745f23dcdb733d79b72ed1ca16733d96a97aa953c8af8a5c190f2287c2131862cccb2a9991a9006
-  languageName: node
-  linkType: hard
-
-"@metamask/auth-network-utils@npm:^0.5.0":
+"@metamask/auth-network-utils@npm:0.5.0":
   version: 0.5.0
   resolution: "@metamask/auth-network-utils@npm:0.5.0"
   dependencies:
@@ -10980,11 +10963,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mfa-recovery-controller@npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-e87f806f2":
-  version: 0.1.0-preview-e87f806f2
-  resolution: "@metamask-previews/mfa-recovery-controller@npm:0.1.0-preview-e87f806f2"
+"@metamask/mfa-recovery-controller@npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-b17282bb1":
+  version: 0.1.0-preview-b17282bb1
+  resolution: "@metamask-previews/mfa-recovery-controller@npm:0.1.0-preview-b17282bb1"
   dependencies:
     "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
+    "@levischuck/tiny-cbor": "npm:^0.3.6"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
@@ -10992,8 +10976,9 @@ __metadata:
     "@metamask/seedless-onboarding-controller": "npm:^12.1.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.2"
+    "@noble/hashes": "npm:^1.8.0"
     json-stable-stringify: "npm:^1.3.0"
-  checksum: 10/7e3720406222fd712cf3dda53bf031d4a9de9f34f826fe53d86024cdac3c9e01844b9daacdb7999c7c5fe3f70c35e4e95d4795c573fbcce6149875fa713be830
+  checksum: 10/8c5ae67ae0b5b4b0bbf1c88c77c71ab1c36a649e135c75011ae4fb04153311a020cab85c2a2d2495fd0bab689a83fc3d57c294c745f18226e7e0ae2aabc05372
   languageName: node
   linkType: hard
 
@@ -38520,7 +38505,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^1.0.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
-    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-e87f806f2"
+    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-b17282bb1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"

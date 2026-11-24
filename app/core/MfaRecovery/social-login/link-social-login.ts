@@ -1,10 +1,10 @@
 import { keccak_256 as keccak256 } from '@noble/hashes/sha3';
 import { getEnvUrls, type Env } from '@metamask/profile-sync-controller/sdk';
 import { bytesToHex } from '@metamask/utils';
+import { redactForDisplay } from '../redactForDisplay';
 
 const PAIR_IDENTIFIER_PATH = '/api/v2/profile/pair/identifier';
 const HTTP_CONFLICT = 409;
-const MAX_REASON_LENGTH = 120;
 
 const IDENTIFIER_TYPE_BY_AUTH_CONNECTION: Readonly<Record<string, string>> = {
   google: 'GOOGLE',
@@ -114,13 +114,6 @@ function chooseEmail(
     : { email: candidates[0], matchesSubject: false };
 }
 
-function redact(text: string): string {
-  return text
-    .replace(/[^\s"'@]+@[^\s"'@]+/gu, '<email>')
-    .replace(/[A-Za-z0-9+/_=-]{24,}/gu, '<redacted>')
-    .slice(0, MAX_REASON_LENGTH);
-}
-
 async function readReason(response: Response): Promise<string> {
   try {
     const text = await response.text();
@@ -135,13 +128,13 @@ async function readReason(response: Response): Promise<string> {
           (value): value is string => typeof value === 'string',
         );
         if (reason) {
-          return redact(reason);
+          return redactForDisplay(reason);
         }
       }
     } catch {
       // Not JSON. Use the raw text below.
     }
-    return redact(text);
+    return redactForDisplay(text);
   } catch {
     return 'no reason given';
   }

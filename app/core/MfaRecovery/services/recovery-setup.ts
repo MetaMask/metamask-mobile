@@ -1,37 +1,24 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
-import type {
-  SeedlessOnboardingController,
-  SeedlessOnboardingControllerState,
-} from '@metamask/seedless-onboarding-controller';
-import { SOCIAL_IDENTIFIER_ISSUERS } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
+import type { SeedlessOnboardingControllerState } from '@metamask/seedless-onboarding-controller';
+import { SOCIAL_IDENTIFIER_ISSUERS } from '../../Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
-import { isSameIdentifier } from './recovery-identifiers';
-
-/** The seedless controller methods and state the recovery flows read. */
-export type MfaRecoverySeedless = Pick<
-  SeedlessOnboardingController,
-  | 'authenticateForRecovery'
-  | 'migrateToEnvelope'
-  | 'runMigrations'
-  | 'getAccessToken'
-  | 'recoverWithRecoverySecret'
-  | 'resetPasswordWithVaultKeys'
-> & {
-  state: Pick<
-    SeedlessOnboardingControllerState,
-    | 'envelope'
-    | 'recoverySession'
-    | 'authConnection'
-    | 'userId'
-    | 'vault'
-    | 'socialLoginEmail'
-  >;
-};
 
 /** Recovery is set up once the vault is envelope-managed. */
 export type MfaRecoveryStatus = 'Enabled' | 'NotEnabled';
 
 export type MfaRecoverySetupResult = 'already_enabled' | 'enabled';
+
+export interface CubistIdentifierChangeResult {
+  identifierType: string;
+  change: 'added' | 'removed';
+  epoch: number;
+}
+
+export function isSameIdentifier(a: Identifier, b: Identifier): boolean {
+  return (
+    a.type === b.type && a.namespace === b.namespace && a.value === b.value
+  );
+}
 
 /** Derives the recovery status from the seedless controller state. */
 export function getMfaRecoveryStatus(

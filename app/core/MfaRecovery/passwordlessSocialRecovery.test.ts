@@ -3,7 +3,7 @@ import {
   SecretMetadata,
   SecretType,
 } from '@metamask/seedless-onboarding-controller';
-import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
+import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/config';
 import type { MfaRecoveryService } from './services/mfa-recovery-service';
 import {
   PasswordlessRecoveryError,

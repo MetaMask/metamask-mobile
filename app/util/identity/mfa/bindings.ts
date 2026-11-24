@@ -3,6 +3,7 @@ import type {
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../core/Engine';
+import Logger from '../../Logger';
 import { MfaFlowError } from './engine/errors';
 import type { MfaControllerAdapter } from './engine/types';
 
@@ -11,10 +12,29 @@ export const mobileMfaControllerAdapter: MfaControllerAdapter = {
     Engine.context.AuthenticationController.refreshEnrolledCredentials(),
   beginCredentialEnrollment: (request) =>
     Engine.context.AuthenticationController.beginCredentialEnrollment(request),
-  completeCredentialEnrollment: (request) =>
-    Engine.context.AuthenticationController.completeCredentialEnrollment(
-      request,
-    ),
+  completeCredentialEnrollment: async (request) => {
+    const credentials =
+      await Engine.context.AuthenticationController.completeCredentialEnrollment(
+        request,
+      );
+    if (request.proof.type === 'passkey') {
+      try {
+        await Engine.context.MfaRecoveryController.trustIdentifier({
+          type: 'passkey',
+          attestationObject:
+            request.proof.attestation.response.attestationObject,
+        });
+      } catch (error) {
+        Logger.error(
+          error instanceof Error
+            ? error
+            : new Error('Failed to trust enrolled passkey for MFA recovery'),
+          { tags: { feature: 'mfa', operation: request.reason.operation } },
+        );
+      }
+    }
+    return credentials;
+  },
   beginCredentialVerification: (request) =>
     Engine.context.AuthenticationController.beginCredentialVerification(
       request,

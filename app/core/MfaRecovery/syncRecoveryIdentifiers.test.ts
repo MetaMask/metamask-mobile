@@ -35,7 +35,6 @@ function createService({
   const service = {
     getStatus: jest.fn().mockReturnValue(status),
     setUp: jest.fn().mockResolvedValue('enabled'),
-    setUpWithCandidates: jest.fn().mockResolvedValue('enabled'),
     addIdentifier: jest.fn().mockResolvedValue({}),
     getUnenrolledPasskeyIdentifiers: jest
       .fn()
@@ -96,12 +95,13 @@ describe('syncRecoveryAfterEnroll', () => {
     });
   });
 
-  it('sets recovery up with the candidate identifiers on first enrollment', async () => {
+  it('sets recovery up on first enrollment', async () => {
     const service = createService({ status: 'NotEnabled' });
 
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
-    expect(service.setUpWithCandidates).toHaveBeenCalledTimes(1);
+    expect(service.setUp).toHaveBeenCalledTimes(1);
+    expect(service.setUp).toHaveBeenCalledWith();
     expect(service.addIdentifier).not.toHaveBeenCalled();
   });
 
@@ -111,7 +111,7 @@ describe('syncRecoveryAfterEnroll', () => {
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
     expect(service.addIdentifier).toHaveBeenCalledWith(NEW_PASSKEY);
-    expect(service.setUpWithCandidates).not.toHaveBeenCalled();
+    expect(service.setUp).not.toHaveBeenCalled();
   });
 
   it('adds each passkey Cubist does not have, one at a time', async () => {
@@ -132,7 +132,7 @@ describe('syncRecoveryAfterEnroll', () => {
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
     expect(service.addIdentifier).not.toHaveBeenCalled();
-    expect(service.setUpWithCandidates).not.toHaveBeenCalled();
+    expect(service.setUp).not.toHaveBeenCalled();
   });
 
   it('does nothing for a non-passkey method once recovery is set up', async () => {
@@ -142,7 +142,7 @@ describe('syncRecoveryAfterEnroll', () => {
 
     expect(service.getUnenrolledPasskeyIdentifiers).not.toHaveBeenCalled();
     expect(service.addIdentifier).not.toHaveBeenCalled();
-    expect(service.setUpWithCandidates).not.toHaveBeenCalled();
+    expect(service.setUp).not.toHaveBeenCalled();
   });
 
   it('propagates add failures to the caller', async () => {
@@ -156,7 +156,7 @@ describe('syncRecoveryAfterEnroll', () => {
 
   it('propagates setup failures to the caller', async () => {
     const service = createService({ status: 'NotEnabled' });
-    service.setUpWithCandidates.mockRejectedValue(new Error('setup failed'));
+    service.setUp.mockRejectedValue(new Error('setup failed'));
 
     await expect(
       syncRecoveryAfterEnroll('totp', { verifyMfa }),
