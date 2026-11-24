@@ -15,7 +15,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconSize,
   Spinner,
   Text,
@@ -35,6 +34,8 @@ import { useCardTransactions } from '../../hooks/useCardTransactions';
 import type { CardScreensStackParamList } from '../../types/navigation';
 import { formatCardTransactionDate } from '../../utils/cardTransactionDisplayInfo';
 import CardTransactionRow from '../../components/CardTransactionRow/CardTransactionRow';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface TransactionSection {
   title: string;
@@ -81,6 +82,7 @@ const CardTransactionHistory = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedOpen = useRef(false);
 
@@ -236,7 +238,9 @@ const CardTransactionHistory = () => {
       style={[styles.safeArea, { paddingTop: insets.top }]}
       twClassName="flex-1 bg-background-default"
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('card.transactions.title')}
         includesTopInset={false}
         twClassName="bg-background-default"

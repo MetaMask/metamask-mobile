@@ -8,6 +8,7 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
+  dismissToWalletHomePlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
@@ -36,7 +37,11 @@ const PREDICT_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Predict withdraw'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Multi-step CI path (Trade→Predict, pay picker, keypad, confirm, wallet
+  // settle, Activity filter/details) finishes near the old 250s budget and
+  // Playwright kills mid-tapActivity (dead UiAutomator session). 300s matches
+  // perps-withdraw / predict-withdraw-to-money-account (#38563 headroom).
+  appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest(
     'withdraws Predict balance to Polygon pUSD',
@@ -89,7 +94,13 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict withdraw'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PredictHome.tapBackButton();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+          if (currentDeviceDetails.platform === 'android') {
+            await dismissToWalletHomePlaywright(
+              resolveE2EWaitTimeoutMs(30_000),
+            );
+          } else {
+            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+          }
           await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();

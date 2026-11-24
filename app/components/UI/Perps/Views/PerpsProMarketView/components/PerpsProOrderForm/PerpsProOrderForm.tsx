@@ -8,8 +8,6 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   Checkbox,
   FilterButton,
   FontWeight,
@@ -19,6 +17,7 @@ import {
   IconSize,
   KeyValueRow,
   SegmentedControl,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -49,6 +48,7 @@ import {
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
+import PerpsDirectionButton from '../../../../components/PerpsDirectionButton';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -240,9 +240,13 @@ const OrderSummary = ({
   fee,
   originalFee,
   feeDiscountPercentage,
+  feeDiscountKind,
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
+  feeDisplayMode,
+  takerFeeRate,
+  makerFeeRate,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     {twapSummary ? (
@@ -325,10 +329,14 @@ const OrderSummary = ({
           fee={fee}
           originalFee={originalFee}
           feeDiscountPercentage={feeDiscountPercentage}
+          feeDiscountKind={feeDiscountKind}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
+          feeDisplayMode={feeDisplayMode}
+          takerFeeRate={takerFeeRate}
+          makerFeeRate={makerFeeRate}
         />
       }
       keyEndButtonIconProps={buttonIcon(
@@ -490,6 +498,7 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  marginModeTag,
   onMarginModePress,
   leverageLabel,
   onLeveragePress,
@@ -507,6 +516,7 @@ const PerpsProOrderForm = ({
   onUseMidPricePress,
   chaseMaxDistance = '',
   onChaseMaxDistanceChange = () => undefined,
+  onChaseMaxDistanceFocus,
   chaseMaxDistanceUnit = 'usd',
   onChaseMaxDistanceUnitChange = () => undefined,
   chaseReferencePrice = PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -784,6 +794,29 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked || !onMarginModePress}
               twClassName="flex-1 rounded-xl bg-muted"
               textProps={{ variant: TextVariant.BodySm }}
+              endAccessory={
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  accessible={false}
+                >
+                  {marginModeTag ? (
+                    <Tag
+                      severity={marginModeTag.severity}
+                      testID={ids.MARGIN_MODE_TAG}
+                    >
+                      {marginModeTag.label}
+                    </Tag>
+                  ) : null}
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={IconColor.IconDefault}
+                    testID={`${ids.MARGIN_MODE_BUTTON}-chevron`}
+                  />
+                </Box>
+              }
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -794,6 +827,12 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked || !onLeveragePress}
               twClassName="flex-1 rounded-xl bg-muted px-2"
               textProps={{ variant: TextVariant.BodySm }}
+              endIconName={IconName.ArrowDown}
+              endIconProps={{
+                size: IconSize.Sm,
+                color: IconColor.IconDefault,
+                testID: `${ids.LEVERAGE_BUTTON}-chevron`,
+              }}
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
@@ -909,6 +948,7 @@ const PerpsProOrderForm = ({
                   label={`${strings('perps.order.chase.max_distance')} (${chaseMaxDistanceUnit === 'usd' ? 'USD' : '%'})`}
                   value={chaseMaxDistance}
                   onChangeText={onChaseMaxDistanceChange}
+                  onFocus={onChaseMaxDistanceFocus}
                   testID={ids.CHASE_MAX_DISTANCE_INPUT}
                   isDisabled={isScaleFormLocked}
                   variant="inline-labeled"
@@ -1011,12 +1051,8 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <ButtonSemantic
-            severity={
-              placeOrderIntent === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
+          <PerpsDirectionButton
+            direction={placeOrderIntent}
             size={ButtonBaseSize.Lg}
             isFullWidth
             isDisabled={isPlaceOrderDisabled}
@@ -1025,7 +1061,7 @@ const PerpsProOrderForm = ({
             testID={ids.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}
-          </ButtonSemantic>
+          </PerpsDirectionButton>
           {isScaleOrder ? (
             <ScalePreview model={scaleOrder} summary={summary} />
           ) : null}

@@ -18,7 +18,9 @@ const SocialV1FeedPostList: React.FC<SocialV1FeedPostListProps> = ({
   dividerKeyPrefix,
   renderPost,
 }) => (
-  <>
+  // A real view, not a fragment, so a parent's `gap` spaces the list as one
+  // block instead of landing between every post and divider.
+  <Box>
     {posts.map((post, index) => (
       <Fragment key={post.id}>
         {index > 0 ? (
@@ -32,7 +34,7 @@ const SocialV1FeedPostList: React.FC<SocialV1FeedPostListProps> = ({
         <Box twClassName="px-4">{renderPost(post)}</Box>
       </Fragment>
     ))}
-  </>
+  </Box>
 );
 
 export default SocialV1FeedPostList;

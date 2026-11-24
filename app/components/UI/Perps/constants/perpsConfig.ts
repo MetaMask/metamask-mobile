@@ -17,7 +17,6 @@ import {
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
-  PERPS_LEARN_MORE_URL,
   PERPS_TROUBLESHOOT_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
@@ -56,6 +55,13 @@ export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
  * Native tokens (ETH, BNB, etc.) bypass this check.
  */
 export const PERPS_MIN_AGGREGATORS_FOR_TRUST = 2;
+
+/**
+ * Decimal places shown for a taker/maker fee rate percentage (e.g.
+ * `0.00143` → `"0.143"`). Used by `PerpsFeesDisplay`'s percentage mode
+ * (Perps Fee Display Format A/B test).
+ */
+export const PERPS_FEE_RATE_DISPLAY_DECIMALS = 3;
 
 /**
  * Checks if an asset is trustworthy for displaying the Perps Discovery Banner.
@@ -195,6 +201,30 @@ export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
  * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
  */
 export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+
+/** Cross margin account ratio at and above which the account is elevated risk. */
+export const CROSS_MARGIN_RATIO_WARNING_THRESHOLD = 0.5;
+
+/** Cross margin account ratio above which the account is critical risk. */
+export const CROSS_MARGIN_RATIO_DANGER_THRESHOLD = 0.75;
+
+/** Throttle for the cross margin summary's account and position streams. */
+export const CROSS_MARGIN_SUMMARY_THROTTLE_MS = 1000;
+
+/** Cross margin summary throttle on a 2G or 3G connection. */
+export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS = 3000;
+
+/**
+ * Cross margin summary throttle on a 2G or 3G connection with low-end
+ * hardware, the UX matrix's "rare poll" cell.
+ */
+export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS = 5000;
+
+/**
+ * Hit slop for `ButtonIconSize.Xs` info buttons. The icon is a 20pt box, so
+ * 12pt on each side restores a 44pt target without growing the icon.
+ */
+export const PERPS_INFO_BUTTON_HIT_SLOP = 12;
 
 /**
  * Share of position notional kept back from the removable-margin maximum.
@@ -388,14 +418,15 @@ export const SUPPORT_CONFIG = {
 
 /**
  * Service interruption (outage) banner configuration
- * The FAQ link points users at the Perps help-center hub while trading is
- * degraded. The support link opens the Perps troubleshoot article through
- * the consent flow, separate from the general contact-support button.
+ * The FAQ link opens the Perps disruption article so users can manage
+ * positions while trading is degraded. The support link opens the MetaMask
+ * help center through the consent flow, the same destination as the general
+ * contact-support button.
  */
 export const SERVICE_INTERRUPTION_CONFIG = {
-  FaqUrl: PERPS_LEARN_MORE_URL,
+  FaqUrl: PERPS_TROUBLESHOOT_URL,
   FaqTitleKey: 'perps.service_interruption.faq_title',
-  SupportUrl: PERPS_TROUBLESHOOT_URL,
+  SupportUrl: METAMASK_SUPPORT_URL,
 } as const;
 
 /**
@@ -525,3 +556,18 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
 } as const;
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
+
+/** Perps home Live trades tab. */
+export const PERPS_LIVE_TRADES_CONFIG = {
+  MaxTrades: 5,
+  /** Only trades from traders above this win rate are shown. */
+  MinWinRatePercent: 50,
+  /** Win rates at or above this are highlighted. */
+  HighlightWinRatePercent: 70,
+  /** At most one new trade is added per interval. */
+  RevealIntervalMs: 1_000,
+  /** Live updates start this far before the section scrolls into view. */
+  NearViewportMarginPx: 200,
+  AvatarSize: 40,
+  AnimationDurationMs: 250,
+} as const;

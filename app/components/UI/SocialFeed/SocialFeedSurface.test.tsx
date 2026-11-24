@@ -6,6 +6,12 @@ import {
   useSocialFeedSurface,
 } from './SocialFeedSurface';
 
+jest.mock('./socialFeedTracking', () => ({
+  SocialFeedTrackingProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  socialFeedTracksLocation: () => false,
+}));
+
 const Probe: React.FC = () => {
   const { location, showMockedFields } = useSocialFeedSurface();
   return (

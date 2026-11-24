@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
-import { parseCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -23,7 +23,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconSize,
   Spinner,
   Text,
@@ -57,10 +56,11 @@ import { getTokenImageSource } from '../../utils';
 import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { showRecurringOrderCanceledToast } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import {
-  RecurringOrderStatus,
+  RecurringOrderState,
   type RecurringSwap,
 } from '../../api/recurringOrders.types';
 import { useRecurringSwaps } from '../../hooks/useRecurringSwaps';
+import { useRecurringOrder } from '../../hooks/useRecurringOrder';
 import {
   formatRecurringExecutionPrice,
   formatRecurringInterval,
@@ -79,6 +79,9 @@ import { RecurringSwapRow } from './RecurringSwapRow';
 import { useCancelRecurringOrder } from '../../hooks/useCancelRecurringOrder';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 
 const LOAD_MORE_SCROLL_THRESHOLD = 100;
 
@@ -139,10 +142,11 @@ function RecurringTokenSummary({
 }
 
 function RecurringOrderDetailsView() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const { order } = useParams<RecurringOrderDetailsRouteParams>();
+  const { order: routeOrder } = useParams<RecurringOrderDetailsRouteParams>();
   const [isCancelSheetVisible, setIsCancelSheetVisible] = useState(false);
   const currentCurrency = useSelector(selectCurrentCurrency) ?? 'USD';
   const currencyRates = useSelector(selectCurrencyRates);
@@ -153,7 +157,19 @@ function RecurringOrderDetailsView() {
     isSubmitting,
     reset: resetCancelMutation,
   } = useCancelRecurringOrder();
-  const swapsQuery = useRecurringSwaps({ orderId: order.orderId });
+  const networkTier = useNetworkTier();
+  const isRemoteDataEnabled = networkTier !== 'NONE';
+  const orderQuery = useRecurringOrder({
+    orderId: routeOrder.id,
+    accountAddress: routeOrder.account,
+    enabled: isRemoteDataEnabled,
+  });
+  const order = orderQuery.order ?? routeOrder;
+  const swapsQuery = useRecurringSwaps({
+    orderId: order.id,
+    accountAddress: order.account,
+    enabled: isRemoteDataEnabled,
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -229,11 +245,11 @@ function RecurringOrderDetailsView() {
   const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
   const filledPercent = getRecurringOrderFilledPercent(order);
   const filledAmount = formatRecurringTokenAmount(
-    order.srcFilled.amount,
+    order.fillData.src.amount,
     order.src.asset.decimals,
   );
   const totalSourceAmount = formatRecurringTokenAmount(
-    order.srcTotal.amount,
+    order.totalAmount,
     order.src.asset.decimals,
   );
   const sizePerOrder = formatRecurringTokenAmount(
@@ -241,7 +257,7 @@ function RecurringOrderDetailsView() {
     order.src.asset.decimals,
   );
   const totalReceived = formatRecurringTokenAmount(
-    order.destFilled.amount,
+    order.fillData.dest.amount,
     order.dest.asset.decimals,
   );
   const interval = formatRecurringInterval(order.schedule);
@@ -249,10 +265,13 @@ function RecurringOrderDetailsView() {
     interval,
     count: order.schedule.repeatCount,
   });
-  const sourceChainId = formatChainIdToHex(
-    parseCaipAssetType(order.src.asset.assetId).chainId,
-  );
-  const nativeCurrency = networkConfigurations[sourceChainId]?.nativeCurrency;
+  const sourceAssetId = order.src.asset.assetId;
+  const sourceChainId = isCaipAssetType(sourceAssetId)
+    ? formatChainIdToHex(parseCaipAssetType(sourceAssetId).chainId)
+    : undefined;
+  const nativeCurrency = sourceChainId
+    ? networkConfigurations[sourceChainId]?.nativeCurrency
+    : undefined;
   const currencyRate = nativeCurrency
     ? currencyRates?.[nativeCurrency]
     : undefined;
@@ -267,7 +286,7 @@ function RecurringOrderDetailsView() {
     usdToCurrentCurrencyRate,
   });
   const averageExecutionPrice = formatRecurringExecutionPrice({
-    priceUsd: order.averageExecutionPriceUsd,
+    priceUsd: order.fillData.averageExecutionPriceUsd,
     currentCurrency,
     usdToCurrentCurrencyRate,
   });
@@ -278,7 +297,9 @@ function RecurringOrderDetailsView() {
       style={tw.style('flex-1 bg-default')}
       testID={RecurringOrderDetailsViewSelectorsIDs.SCREEN}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.tabs.recurring')}
         includesTopInset
         onBack={handleBack}
@@ -372,12 +393,12 @@ function RecurringOrderDetailsView() {
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.start_date')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {formatRecurringOrderDate(order.startsAt)}
+              {formatRecurringOrderDate(order.timingData.createdAt)}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.end_date')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {formatRecurringOrderDate(order.endsAt)}
+              {formatRecurringOrderDate(order.timingData.endsAt)}
             </Text>
           </DetailRow>
         </Box>
@@ -403,7 +424,7 @@ function RecurringOrderDetailsView() {
               color={TextColor.TextAlternative}
             >
               {strings('bridge.recurring.history_progress', {
-                filledOrderCount: order.filledSwapsCount,
+                filledOrderCount: order.fillData.count,
                 totalOrderCount: order.schedule.repeatCount,
               })}
             </Text>
@@ -466,7 +487,7 @@ function RecurringOrderDetailsView() {
             <Box gap={3}>
               {swapsQuery.swaps.map((swap) => (
                 <RecurringSwapRow
-                  key={swap.swapId}
+                  key={swap.id}
                   swap={swap}
                   sourceToken={sourceToken}
                   destinationToken={destinationToken}
@@ -489,7 +510,7 @@ function RecurringOrderDetailsView() {
         </Box>
       </ScrollView>
 
-      {order.status === RecurringOrderStatus.Open ? (
+      {order.isCancellable ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}
@@ -504,7 +525,7 @@ function RecurringOrderDetailsView() {
         </Box>
       ) : null}
 
-      {order.status === RecurringOrderStatus.Completed ? (
+      {order.state !== RecurringOrderState.Open ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}

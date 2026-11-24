@@ -4,6 +4,7 @@ import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import PredictScreenStack, { PredictModalStack } from './index';
 
@@ -34,6 +35,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
+  ...jest.requireActual('../selectors/featureFlags'),
   selectPredictWithAnyTokenEnabledFlag: () =>
     mockSelectPredictWithAnyTokenEnabledFlag(),
   selectPredictPortfolioEnabledFlag: () =>
@@ -110,6 +112,11 @@ jest.mock('../views/PredictUnavailableModal', () => {
   return () => <View testID="predict-unavailable-modal" />;
 });
 
+jest.mock('../views/PredictMarketUnavailableModal', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-market-unavailable-modal" />;
+});
+
 jest.mock('../views/PredictAddFundsModal/PredictAddFundsModal', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-add-funds-modal" />;
@@ -150,6 +157,26 @@ const renderWithNavigation = (component: React.ReactElement) =>
   render(
     <NavigationContainer ref={navigationRef}>{component}</NavigationContainer>,
   );
+
+/**
+ * Mounts the modal stack the way `MainNavigator` registers it: as the
+ * `PredictModals` screen of a parent stack, so it receives the params a
+ * caller navigates with.
+ */
+const renderModalStackInApp = () => {
+  const ParentStack = createNativeStackNavigator();
+  const Home = () => null;
+
+  return renderWithNavigation(
+    <ParentStack.Navigator>
+      <ParentStack.Screen name="Home" component={Home} />
+      <ParentStack.Screen
+        name={Routes.PREDICT.MODALS.ROOT}
+        component={PredictModalStack}
+      />
+    </ParentStack.Navigator>,
+  );
+};
 
 describe('PredictScreenStack', () => {
   beforeEach(() => {
@@ -294,51 +321,99 @@ describe('PredictModalStack', () => {
     navigationRef = React.createRef();
   });
 
-  it('renders with initial route UNAVAILABLE', () => {
-    renderWithNavigation(<PredictModalStack />);
+  /** Opens the modal stack from the app navigator, as every caller does. */
+  const openModalStack = async (params?: Record<string, unknown>) => {
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.MODALS.ROOT, params);
+    });
+  };
+
+  it('opens UNAVAILABLE when the caller names no screen', async () => {
+    renderModalStackInApp();
+
+    await openModalStack();
 
     expect(screen.getByTestId('predict-unavailable-modal')).toBeOnTheScreen();
   });
 
-  it('navigates to ADD_FUNDS_SHEET', async () => {
-    renderWithNavigation(<PredictModalStack />);
+  /** Opens the stack on `namedScreen`, then dismisses it. */
+  const visitAndDismiss = async (
+    params: Record<string, unknown>,
+    testId: string,
+  ) => {
+    await openModalStack(params);
+
+    expect(screen.getByTestId(testId)).toBeOnTheScreen();
+    expect(screen.queryByTestId('predict-unavailable-modal')).toBeNull();
 
     await act(async () => {
-      navigationRef.current?.navigate(Routes.PREDICT.MODALS.ADD_FUNDS_SHEET);
+      navigationRef.current?.goBack();
     });
+  };
+
+  it.each([
+    [
+      Routes.PREDICT.MODALS.MARKET_UNAVAILABLE,
+      'predict-market-unavailable-modal',
+    ],
+    [Routes.PREDICT.MODALS.ADD_FUNDS_SHEET, 'predict-add-funds-modal'],
+  ])(
+    'opens %s on every presentation, not only the first',
+    async (namedScreen, testId) => {
+      renderModalStackInApp();
+
+      /** One params object, as `PREDICT_LINK_NOT_FOUND.params` is per link. */
+      const params = { screen: namedScreen };
+
+      await visitAndDismiss(params, testId);
+      await visitAndDismiss(params, testId);
+    },
+  );
+
+  it('navigates to MARKET_UNAVAILABLE', async () => {
+    renderModalStackInApp();
+
+    await openModalStack({ screen: Routes.PREDICT.MODALS.MARKET_UNAVAILABLE });
+
+    expect(
+      screen.getByTestId('predict-market-unavailable-modal'),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to ADD_FUNDS_SHEET', async () => {
+    renderModalStackInApp();
+
+    await openModalStack({ screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET });
 
     expect(screen.getByTestId('predict-add-funds-modal')).toBeOnTheScreen();
   });
 
   it('navigates to ACTIVITY_DETAIL', async () => {
-    renderWithNavigation(<PredictModalStack />);
+    renderModalStackInApp();
 
-    await act(async () => {
-      navigationRef.current?.navigate(Routes.PREDICT.ACTIVITY_DETAIL);
+    await openModalStack({
+      screen: Routes.PREDICT.ACTIVITY_DETAIL,
+      params: { activity: { type: 'buy' } },
     });
 
     expect(screen.getByTestId('predict-activity-detail')).toBeOnTheScreen();
   });
 
   it('navigates to redesigned confirmation in modal stack', async () => {
-    renderWithNavigation(<PredictModalStack />);
+    renderModalStackInApp();
 
-    await act(async () => {
-      navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      );
+    await openModalStack({
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
 
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
 
   it('navigates to no-header confirmation in modal stack', async () => {
-    renderWithNavigation(<PredictModalStack />);
+    renderModalStackInApp();
 
-    await act(async () => {
-      navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
-      );
+    await openModalStack({
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
     });
 
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();

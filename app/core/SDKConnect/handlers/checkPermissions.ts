@@ -1,6 +1,7 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
+import { providerErrors } from '@metamask/rpc-errors';
 import {
   Caip25EndowmentPermissionName,
   Caip25CaveatType,
@@ -41,6 +42,16 @@ export const checkPermissions = async ({
       `checkPermissions initialConnection=${connection.initialConnection} method=${message?.method} lastAuthorized=${lastAuthorized}`,
       connection.originatorInfo,
     );
+
+    // Permissions outlive the SDK session record, so an expired session must
+    // not fall through to the permitted-accounts shortcut below.
+    if ((connection.validUntil ?? 0) <= Date.now()) {
+      DevLogger.log(
+        `checkPermissions channel=${connection.channelId} session expired`,
+      );
+      connection.onTerminate({ channelId: connection.channelId });
+      throw providerErrors.unauthorized('SDK session expired');
+    }
 
     const permittedAccounts = getPermittedAccounts(connection.channelId);
     DevLogger.log(`checkPermissions permittedAccounts`, permittedAccounts);

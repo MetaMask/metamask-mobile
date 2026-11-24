@@ -3,7 +3,6 @@ import {
   getLimitOrder,
   type GetLimitOrderParams,
 } from '../api/limitOrders/getLimitOrder';
-import { LIMIT_ORDERS_STALE_TIME } from '../constants/limitOrders';
 
 /**
  * Query key of a single limit order. Fetched straight from the API rather than
@@ -36,6 +35,8 @@ export function useLimitOrder({
   return useQuery({
     queryKey: getLimitOrderQueryKey({ orderId, accountAddress }),
     queryFn: () => getLimitOrder({ orderId, accountAddress }),
-    staleTime: LIMIT_ORDERS_STALE_TIME,
+    // The order keeps changing server side (fill attempts, state), so it is
+    // fetched again every time it is shown rather than read from the cache.
+    staleTime: 0,
   });
 }

@@ -10,6 +10,11 @@ import {
 import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('react-native-reanimated', () =>
   jest.requireActual('react-native-reanimated/mock'),
 );

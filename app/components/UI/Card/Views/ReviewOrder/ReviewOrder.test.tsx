@@ -96,6 +96,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard: () => null,
     Box: ({
       children,

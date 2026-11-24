@@ -7,9 +7,11 @@ import {
   configurePredictNextFeeds,
   makePredictNextEvent,
   messengerCall,
+  mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { type PredictEvent } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictSearchScreenTestIds } from './PredictSearchScreen.testIds';
@@ -23,7 +25,7 @@ const configureSearch = (
   results: Record<string, readonly PredictEvent[] | Error>,
 ) => {
   const base = messengerCall.getMockImplementation();
-  messengerCall.mockImplementation(
+  mockPredictNextMessenger(
     (action: string, venueId: string, params: { q: string }) => {
       if (action !== 'PredictMarketDataService:searchEvents') {
         return base?.(action, venueId, params);
@@ -52,9 +54,9 @@ describe('PredictSearchScreen', () => {
 
   it('opens from the Home header search button', async () => {
     const view = renderPredictNext();
-    await view.findByTestId(PredictHomeTestIds.HOME);
 
-    fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
+    // The entry appears once the Venue's capabilities report search support.
+    fireEvent.press(await view.findByTestId(PredictHomeTestIds.SEARCH));
 
     expect(
       await view.findByTestId(PredictSearchScreenTestIds.VIEW),
@@ -88,6 +90,28 @@ describe('PredictSearchScreen', () => {
     ]);
   });
 
+  it('shows a binary non-game result as the default card with Yes and No rows', async () => {
+    const event = makePredictNextEvent('search-5', 'NFL Win Total');
+    configureSearch({ total: [event] });
+    const view = renderPredictSearchScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictSearchScreenTestIds.IDLE);
+
+    typeQuery(view, 'total');
+
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, event.id),
+    );
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'yes')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'no')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).queryByTestId(PredictHomeTestIds.category(event.id)),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows an empty state naming the query, and returns to idle when cleared', async () => {
     configureSearch({});
     const view = renderPredictSearchScreen({ venueId: KALSHI_VENUE_ID });
@@ -110,7 +134,7 @@ describe('PredictSearchScreen', () => {
 
   it('keeps the skeleton up and never flashes the empty state while a fresh search is in flight', async () => {
     const base = messengerCall.getMockImplementation();
-    messengerCall.mockImplementation((action: string, ...args: unknown[]) =>
+    mockPredictNextMessenger((action: string, ...args: unknown[]) =>
       action === 'PredictMarketDataService:searchEvents'
         ? new Promise(() => undefined)
         : base?.(action, ...args),

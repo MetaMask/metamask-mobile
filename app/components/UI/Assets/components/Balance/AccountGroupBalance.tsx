@@ -15,18 +15,22 @@ import {
   selectWalletHomeOnboardingSkipInitialBalanceWait,
   selectWalletHomeOnboardingSteps,
 } from '../../../../../selectors/onboarding';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import {
+  FontFamily,
   SensitiveText,
   SensitiveTextLength,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
+import usePrevious from '../../../../hooks/usePrevious';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
@@ -101,6 +105,7 @@ const AccountGroupBalance = ({
     [chainIdsForBalance],
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const previousPrivacyMode = usePrevious(privacyMode);
   const groupBalance = useSelector(groupBalanceSelector) as {
     groupId: string;
     totalBalanceInUserCurrency: number;
@@ -112,6 +117,7 @@ const AccountGroupBalance = ({
   );
   const balanceChange1d = useSelector(balanceChange1dSelector);
   const selectedChainId = useSelector(selectEvmChainId);
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const hasBalanceFetched = useAccountGroupBalanceFetchState();
 
@@ -123,10 +129,18 @@ const AccountGroupBalance = ({
   );
 
   const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
-  const userCurrency = groupBalance?.userCurrency || 'USD';
+  const userCurrency = groupBalance?.userCurrency || currentCurrency;
   const displayBalance = formatCurrency(totalBalance, userCurrency);
+  const zeroBalance = formatCurrency(0, userCurrency);
+  const skipBalanceAnimation = Boolean(previousPrivacyMode) && !privacyMode;
 
-  const isLoading = !groupBalance || !hasBalanceFetched;
+  // Soft-gate like extension: keep a non-zero balance visible while the
+  // latched load is still settling so returning users are not blanked by
+  // background Snap/RPC work.
+  const isLoading =
+    !groupBalance ||
+    (!hasBalanceFetched &&
+      (groupBalance.totalBalanceInUserCurrency ?? 0) === 0);
   const awaitBalanceForPostOnboardingSteps =
     isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
@@ -174,16 +188,27 @@ const AccountGroupBalance = ({
         testID="balance-container"
         style={styles.balanceContainer}
       >
-        <Skeleton hideChildren={isLoading}>
+        {privacyMode ? (
           <SensitiveText
-            isHidden={privacyMode}
+            fontFamily={FontFamily.Hero}
+            isHidden
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.AmountDisplayLg}
           >
             {displayBalance}
           </SensitiveText>
-        </Skeleton>
+        ) : (
+          <AnimatedBalanceText
+            accessible={false}
+            key={groupBalance?.groupId ?? 'loading'}
+            isLoading={isLoading}
+            loadingValue={zeroBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            value={displayBalance}
+            animated={!skipBalanceAnimation}
+          />
+        )}
 
         {balanceChange1d && (
           <Skeleton hideChildren={isLoading}>

@@ -24,6 +24,8 @@ permissions:
   contents: read
   pull-requests: read
 
+cache-mode: none
+
 jobs:
   resolve-context:
     name: Resolve OTA context
@@ -51,7 +53,9 @@ jobs:
     needs: [resolve-context, validate-ota-pr]
     permissions:
       contents: read
+      pull-requests: read # release PR merge state in push-eas-update.yml
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
       pr_number: ${{ needs.resolve-context.outputs.pr_number }}

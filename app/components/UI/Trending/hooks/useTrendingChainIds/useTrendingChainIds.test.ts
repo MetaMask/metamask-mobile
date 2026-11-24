@@ -35,24 +35,7 @@ jest.mock('../../utils/trendingNetworksList', () => {
   };
 });
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/stellarAccountsEnabled',
-  () => ({
-    selectIsStellarAccountsEnabled: jest.fn(),
-  }),
-);
-
-import { selectIsStellarAccountsEnabled } from '../../../../../selectors/featureFlagController/stellarAccountsEnabled';
-
-const mockSelectIsStellarAccountsEnabled =
-  selectIsStellarAccountsEnabled as unknown as jest.Mock;
-
 describe('useTrendingChainIds', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockSelectIsStellarAccountsEnabled.mockReturnValue(false);
-  });
-
   it('returns provided chain IDs when they are not empty', () => {
     const providedChainIds = [NetworkToCaipChainId.POLYGON] as CaipChainId[];
 
@@ -63,20 +46,7 @@ describe('useTrendingChainIds', () => {
     expect(result.current).toEqual(providedChainIds);
   });
 
-  it('excludes Stellar when Stellar accounts feature is disabled', () => {
-    mockSelectIsStellarAccountsEnabled.mockReturnValue(false);
-
-    const { result } = renderHookWithProvider(() => useTrendingChainIds());
-
-    expect(result.current).toEqual([
-      NetworkToCaipChainId.ETHEREUM,
-      NetworkToCaipChainId.BASE,
-    ]);
-  });
-
-  it('includes Stellar when Stellar accounts feature is enabled', () => {
-    mockSelectIsStellarAccountsEnabled.mockReturnValue(true);
-
+  it('includes Stellar in trending network chain IDs', () => {
     const { result } = renderHookWithProvider(() => useTrendingChainIds());
 
     expect(result.current).toEqual([
@@ -92,6 +62,7 @@ describe('useTrendingChainIds', () => {
     expect(result.current).toEqual([
       NetworkToCaipChainId.ETHEREUM,
       NetworkToCaipChainId.BASE,
+      NetworkToCaipChainId.STELLAR,
     ]);
   });
 });

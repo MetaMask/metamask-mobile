@@ -98,6 +98,33 @@ describe('useLimitOrders', () => {
     );
   });
 
+  it('includes the asset and custom limit in the service query key', () => {
+    mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
+
+    renderHook(() =>
+      useLimitOrders({
+        walletAddress: WALLET_ADDRESS,
+        states: OPEN_STATES,
+        assetId: 'eip155:1/slip44:60',
+        limit: 1,
+      }),
+    );
+
+    expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: [
+          'LimitOrdersDataService:getLimitOrders',
+          {
+            walletAddress: WALLET_ADDRESS,
+            states: OPEN_STATES,
+            assetId: 'eip155:1/slip44:60',
+            limit: 1,
+          },
+        ],
+      }),
+    );
+  });
+
   it('flattens orders from every loaded page', () => {
     const queryResult = createQueryResult({
       pages: [createPage('order-1'), createPage('order-2')],

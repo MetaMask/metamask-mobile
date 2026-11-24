@@ -17,6 +17,8 @@ export const BridgeSessionContext = createContext<{
   renderedTab: BridgeTabKey;
   setSelectedTab: (tab: BridgeTabKey) => void;
   setRenderedTab: (tab: BridgeTabKey) => void;
+  limitOrdersTab?: OrdersTabKey;
+  setLimitOrdersTab?: (tab: OrdersTabKey) => void;
   recurringOrdersTab?: OrdersTabKey;
   setRecurringOrdersTab?: (tab: OrdersTabKey) => void;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -41,6 +43,7 @@ export const BridgeSessionProvider = ({
   // of holding up that feedback.
   const [selectedTab, setSelectedTab] = useState(BridgeTabKey.Market);
   const [renderedTab, setRenderedTab] = useState(BridgeTabKey.Market);
+  const [limitOrdersTab, setLimitOrdersTab] = useState(OrdersTabKey.OpenOrders);
   const [recurringOrdersTab, setRecurringOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
   );
@@ -67,6 +70,8 @@ export const BridgeSessionProvider = ({
       renderedTab,
       setSelectedTab,
       setRenderedTab,
+      limitOrdersTab,
+      setLimitOrdersTab,
       recurringOrdersTab,
       setRecurringOrdersTab,
       latestSourceBalance,
@@ -76,6 +81,7 @@ export const BridgeSessionProvider = ({
     [
       selectedTab,
       renderedTab,
+      limitOrdersTab,
       recurringOrdersTab,
       latestSourceBalance,
       quoteParams,

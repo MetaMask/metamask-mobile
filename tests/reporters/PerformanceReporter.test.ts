@@ -52,14 +52,6 @@ jest.mock('./utils/DeviceInfoExtractor', () => ({
   },
 }));
 
-jest.mock('./providers/browserstack/BrowserStackEnricher', () => ({
-  BrowserStackEnricher: jest.fn().mockImplementation(() => ({
-    enrichSession: jest.fn().mockResolvedValue(undefined),
-    canHandle: jest.fn(() => true),
-    getProviderName: jest.fn(() => 'browserstack'),
-  })),
-}));
-
 jest.mock('./providers/testmu/TestMuAIEnricher', () => ({
   TestMuAIEnricher: jest.fn().mockImplementation(() => ({
     enrichSession: jest.fn().mockResolvedValue(undefined),
@@ -93,7 +85,6 @@ import PerformanceReporter from './PerformanceReporter';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
-import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
 import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { clearQualityGateFailures } from '../framework/quality-gates';
@@ -555,60 +546,6 @@ describe('PerformanceReporter', () => {
       expect(fs.writeFileSync).toHaveBeenCalled();
     });
 
-    it('enriches sessions for BrowserStack runs', async () => {
-      const result = makeResult({
-        attachments: [
-          makeSessionAttachment({ projectName: 'browserstack-android' }),
-          makeMetricsAttachment(),
-        ],
-      });
-      reporter.onTestEnd(makeTest() as never, result as never);
-
-      await reporter.onEnd();
-
-      expect(BrowserStackEnricher).toHaveBeenCalled();
-    });
-
-    it('enriches sessions when project name ends with browserstack', async () => {
-      const result = makeResult({
-        attachments: [
-          makeSessionAttachment({
-            projectName: 'browserstack-android',
-          }),
-          makeMetricsAttachment(),
-        ],
-      });
-      reporter.onTestEnd(
-        makeTest({
-          parent: { project: { name: 'browserstack-android' } },
-        }) as never,
-        result as never,
-      );
-
-      await reporter.onEnd();
-
-      expect(BrowserStackEnricher).toHaveBeenCalled();
-    });
-
-    it('enriches sessions for onboarding BrowserStack projects', async () => {
-      const result = makeResult({
-        attachments: [
-          makeSessionAttachment({ projectName: 'android-onboarding' }),
-          makeMetricsAttachment(),
-        ],
-      });
-      reporter.onTestEnd(
-        makeTest({
-          parent: { project: { name: 'android-onboarding' } },
-        }) as never,
-        result as never,
-      );
-
-      await reporter.onEnd();
-
-      expect(BrowserStackEnricher).toHaveBeenCalled();
-    });
-
     it('creates reports directory if it does not exist', async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(false);
       const result = makeResult({
@@ -672,14 +609,6 @@ describe('PerformanceReporter', () => {
         );
       });
 
-      it('does not use the BrowserStack enricher', async () => {
-        recordTestMuTest();
-
-        await reporter.onEnd();
-
-        expect(BrowserStackEnricher).not.toHaveBeenCalled();
-      });
-
       it('writes HTML and CSV reports with a -testmu suffix for a TestMu device', async () => {
         (DeviceInfoExtractor.extract as jest.Mock).mockReturnValueOnce({
           name: 'Pixel 8 Pro',
@@ -708,7 +637,7 @@ describe('PerformanceReporter', () => {
       });
     });
 
-    it('does not enrich sessions for non-BrowserStack runs', async () => {
+    it('does not enrich local emulator sessions with TestMu', async () => {
       const result = makeResult({
         attachments: [
           makeSessionAttachment({ projectName: 'local-android' }),
@@ -722,13 +651,7 @@ describe('PerformanceReporter', () => {
 
       await reporter.onEnd();
 
-      // BrowserStackEnricher should still be constructed but enrichSession should not be called
-      // because the project name doesn't include "browserstack"
-      const enricherInstance = (BrowserStackEnricher as unknown as jest.Mock)
-        .mock.results[0];
-      if (enricherInstance) {
-        expect(enricherInstance.value.enrichSession).not.toHaveBeenCalled();
-      }
+      expect(TestMuAIEnricher).not.toHaveBeenCalled();
     });
   });
 });

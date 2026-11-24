@@ -104,6 +104,28 @@ describe('TraderPositionPnl', () => {
     ).toBeOnTheScreen();
   });
 
+  it('toggles the expanded state from either position row', () => {
+    const onToggleExpanded = jest.fn();
+    const { getByTestId } = render(
+      <TraderPositionPnl
+        positionValue="$103.31"
+        pnl={defaultPnl}
+        onToggleExpanded={onToggleExpanded}
+      />,
+    );
+
+    fireEvent.press(getByTestId('token-details-trader-position-pnl-rows'));
+    fireEvent.press(getByTestId('token-details-trader-position-pnl-value'));
+    fireEvent.press(
+      getByTestId('token-details-trader-position-pnl-unrealized-pnl-label'),
+    );
+
+    expect(onToggleExpanded).toHaveBeenCalledTimes(3);
+    expect(onToggleExpanded).toHaveBeenNthCalledWith(1, true);
+    expect(onToggleExpanded).toHaveBeenNthCalledWith(2, true);
+    expect(onToggleExpanded).toHaveBeenNthCalledWith(3, true);
+  });
+
   it('uses the error color for negative PnL', () => {
     const { getByTestId, UNSAFE_getAllByType } = render(
       <TraderPositionPnl

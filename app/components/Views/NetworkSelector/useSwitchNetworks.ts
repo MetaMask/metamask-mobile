@@ -9,12 +9,7 @@ import {
 } from '@metamask/controller-utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { FUNGIBLE_ASSET_TYPES } from '../../../core/Assets/accountGroupAssetLoader';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  CaipChainId,
-  ///: END:ONLY_INCLUDE_IF
-  Hex,
-} from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -45,9 +40,7 @@ interface UseSwitchNetworksProps {
 interface UseSwitchNetworksReturn {
   onSetRpcTarget: (networkConfiguration: NetworkConfiguration) => Promise<void>;
   onNetworkChange: (type: InfuraNetworkType) => Promise<void>;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange: (chainId: CaipChainId) => Promise<void>;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 /**
@@ -110,15 +103,6 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
-        (
-          SelectedNetworkController as typeof SelectedNetworkController & {
-            update: (
-              fn: (state: { activeDappNetwork: string | null }) => void,
-            ) => void;
-          }
-        ).update((state: { activeDappNetwork: string | null }) => {
-          state.activeDappNetwork = networkConfigurationId;
-        });
         dismissModal?.();
       } else {
         trace({
@@ -178,15 +162,6 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-        (
-          SelectedNetworkController as typeof SelectedNetworkController & {
-            update: (
-              fn: (state: { activeDappNetwork: string | null }) => void,
-            ) => void;
-          }
-        ).update((state: { activeDappNetwork: string | null }) => {
-          state.activeDappNetwork = type;
-        });
         dismissModal?.();
       } else {
         const networkConfiguration =
@@ -244,8 +219,6 @@ export function useSwitchNetworks({
     ],
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
   const onNonEvmNetworkChange = useCallback(
     async (chainId: CaipChainId) => {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
@@ -255,13 +228,10 @@ export function useSwitchNetworks({
     },
     [dismissModal],
   );
-  ///: END:ONLY_INCLUDE_IF
 
   return {
     onSetRpcTarget,
     onNetworkChange,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
   };
 }

@@ -12,7 +12,7 @@ describe('SocialLivePriceStore', () => {
     jest.useRealTimers();
   });
 
-  it('emits the first price immediately with no trend', () => {
+  it('emits the first price immediately', () => {
     const store = new SocialLivePriceStore(1000);
     const listener = jest.fn();
     store.subscribe(KEY, listener);
@@ -20,7 +20,7 @@ describe('SocialLivePriceStore', () => {
     store.publish(KEY, 100);
 
     expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.get(KEY)).toStrictEqual({ price: 100, trend: null });
+    expect(store.get(KEY)).toStrictEqual({ price: 100 });
   });
 
   it('throttles to one emit per window and keeps the newest price', () => {
@@ -36,16 +36,7 @@ describe('SocialLivePriceStore', () => {
     jest.advanceTimersByTime(1000);
 
     expect(listener).toHaveBeenCalledTimes(2);
-    expect(store.get(KEY)).toStrictEqual({ price: 99, trend: 'down' });
-  });
-
-  it('marks a rise as up', () => {
-    const store = new SocialLivePriceStore(0);
-
-    store.publish(KEY, 100);
-    store.publish(KEY, 105);
-
-    expect(store.get(KEY)?.trend).toBe('up');
+    expect(store.get(KEY)).toStrictEqual({ price: 99 });
   });
 
   it('does not notify for an unchanged price', () => {
@@ -98,9 +89,23 @@ describe('SocialLivePriceStore', () => {
     const listener = jest.fn();
     const unsubscribe = store.subscribe(KEY, listener);
 
+    store.publish(KEY, 100);
     unsubscribe();
     store.publish(KEY, 100);
 
-    expect(listener).not.toHaveBeenCalled();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases queued price state after the final unsubscribe', () => {
+    const store = new SocialLivePriceStore(1000);
+    const listener = jest.fn();
+    const unsubscribe = store.subscribe(KEY, listener);
+
+    store.publish(KEY, 100);
+    store.publish(KEY, 110);
+    unsubscribe();
+    jest.advanceTimersByTime(1000);
+
+    expect(store.get(KEY)).toBeUndefined();
   });
 });

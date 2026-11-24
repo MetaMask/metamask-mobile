@@ -3,8 +3,8 @@ import { defineConfig } from './framework/config';
 
 /**
  * Playwright config for TestMu AI HyperExecute performance runs.
- * Separate from playwright.config.ts so the BrowserStack projects stay unchanged.
- * Android only: iOS performance builds are still supplied as BrowserStack URLs.
+ * Cloud performance tests are Android-only and live here, separate from the
+ * local emulator and simulator projects in playwright.config.ts.
  */
 export default defineConfig({
   testDir: './',
@@ -51,6 +51,25 @@ export default defineConfig({
       name: 'testmu-android-onboarding',
       testMatch: '**/performance/onboarding/**/*.spec.ts',
       testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.TESTMU_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'testmu-android-dev-onboarding',
+      testMatch: '**/performance/dev-onboarding/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {

@@ -1,11 +1,7 @@
 import type { SocialLivePriceKey } from './types';
 
-export type SocialLivePriceTrend = 'up' | 'down';
-
 export interface SocialLivePriceEntry {
   price: number;
-  /** Direction from the previously emitted price; `null` for the first one. */
-  trend: SocialLivePriceTrend | null;
 }
 
 type Listener = () => void;
@@ -86,7 +82,7 @@ export class SocialLivePriceStore {
     return () => {
       listeners?.delete(listener);
       if (listeners?.size === 0) {
-        this.#listeners.delete(key);
+        this.#releaseKey(key);
       }
     };
   }
@@ -98,17 +94,25 @@ export class SocialLivePriceStore {
     this.#pending.clear();
   }
 
+  #releaseKey(key: SocialLivePriceKey): void {
+    const timer = this.#timers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      this.#timers.delete(key);
+    }
+    this.#pending.delete(key);
+    this.#entries.delete(key);
+    this.#lastEmitAt.delete(key);
+    this.#listeners.delete(key);
+  }
+
   #emit(key: SocialLivePriceKey, price: number): void {
     this.#lastEmitAt.set(key, Date.now());
     const previous = this.#entries.get(key);
     if (previous?.price === price) {
       return;
     }
-    let trend: SocialLivePriceTrend | null = null;
-    if (previous != null) {
-      trend = price > previous.price ? 'up' : 'down';
-    }
-    this.#entries.set(key, { price, trend });
+    this.#entries.set(key, { price });
     this.#listeners.get(key)?.forEach((listener) => listener());
   }
 }

@@ -1,15 +1,15 @@
+import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 import {
   fetchTokenAsset,
-  PEPE_ASSET_FIXTURE,
   resolveTokenAssetDetails,
+  tokenAssetQueryOptions,
   type TokenAssetRecord,
 } from './tokenAssetQuery';
 
-const OTHER_ASSET_ID =
-  'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
+const ASSET_ID = 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
 
-const otherAsset = {
-  assetId: OTHER_ASSET_ID,
+const asset = {
+  assetId: ASSET_ID,
   symbol: 'DAI',
   name: 'Dai',
   decimals: 18,
@@ -36,7 +36,10 @@ const otherAsset = {
     devHeldPercent: null,
     insiderHeldPercent: null,
     sniperHeldPercent: null,
+    holdersCount: null,
+    top10HeldPercent: null,
   },
+  holders: null,
 } as TokenAssetRecord;
 
 describe('fetchTokenAsset', () => {
@@ -50,18 +53,78 @@ describe('fetchTokenAsset', () => {
   it('returns the asset whose id matches the request', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => [otherAsset],
+      json: async () => [asset],
     });
 
-    const result = await fetchTokenAsset(OTHER_ASSET_ID);
+    const result = await fetchTokenAsset(ASSET_ID);
 
-    expect(result).toStrictEqual(otherAsset);
+    expect(result).toStrictEqual(asset);
     const url = mockFetch.mock.calls[0][0] as string;
     expect(url).toContain('/v2/assets?');
     expect(url).toContain('includeLaunchpadData=true');
+    expect(url).toContain('includeTopHolders=true');
     expect(url).toContain('includeRwaData=true');
     expect(url).toContain('includeMarketData=true');
-    expect(url).toContain(encodeURIComponent(OTHER_ASSET_ID));
+    expect(url).toContain(encodeURIComponent(ASSET_ID));
+  });
+
+  // Only the Token Details V1 surface passes a `baseUrl`, and it sources that
+  // from remote config. Everything else relies on this default, so a dev host
+  // configured for the memecoin page cannot move another caller.
+  it('calls the production host when no base url is given', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [asset],
+    });
+
+    await fetchTokenAsset(ASSET_ID);
+
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url.startsWith(`${TOKEN_API_BASE_URL}/v2/assets?`)).toBe(true);
+  });
+
+  it('keys the default query on the production host', () => {
+    expect(tokenAssetQueryOptions(ASSET_ID).queryKey).toStrictEqual([
+      'token-details',
+      'v2-assets',
+      ASSET_ID,
+      TOKEN_API_BASE_URL,
+    ]);
+  });
+
+  it('keeps the holder count and drops the holder list', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          ...asset,
+          holders: {
+            count: 42,
+            top10Percent: '100.000',
+            top: [{ address: '0xabc', balance: '1' }],
+          },
+        },
+      ],
+    });
+
+    const result = await fetchTokenAsset(ASSET_ID);
+
+    expect(result).toStrictEqual({
+      ...asset,
+      holders: { count: 42 },
+    });
+  });
+
+  it('returns null holders when the assets payload omits them', async () => {
+    const { holders: _holders, ...assetWithoutHolders } = asset;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [assetWithoutHolders],
+    });
+
+    const result = await fetchTokenAsset(ASSET_ID);
+
+    expect(result?.holders).toBeNull();
   });
 
   it('returns null when the response does not include the asset', async () => {
@@ -70,7 +133,7 @@ describe('fetchTokenAsset', () => {
       json: async () => [],
     });
 
-    const result = await fetchTokenAsset(OTHER_ASSET_ID);
+    const result = await fetchTokenAsset(ASSET_ID);
 
     expect(result).toBeNull();
   });
@@ -81,62 +144,27 @@ describe('fetchTokenAsset', () => {
       status: 500,
     });
 
-    await expect(fetchTokenAsset(OTHER_ASSET_ID)).rejects.toThrow(
+    await expect(fetchTokenAsset(ASSET_ID)).rejects.toThrow(
       'Token assets API error: 500',
     );
   });
 });
 
 describe('resolveTokenAssetDetails', () => {
-  it('returns the fixture when the PEPE request fails', () => {
-    const result = resolveTokenAssetDetails(
-      PEPE_ASSET_FIXTURE.assetId,
-      undefined,
-      true,
-    );
+  it('returns the record when the request succeeds', () => {
+    const result = resolveTokenAssetDetails(ASSET_ID, asset, false);
 
-    expect(result).toStrictEqual(PEPE_ASSET_FIXTURE);
+    expect(result).toStrictEqual(asset);
   });
 
-  it('keeps fixture fields when the PEPE payload has null content', () => {
-    const result = resolveTokenAssetDetails(
-      PEPE_ASSET_FIXTURE.assetId,
-      {
-        ...otherAsset,
-        assetId: PEPE_ASSET_FIXTURE.assetId,
-        symbol: 'PEPE',
-        launchpadData: {
-          ...otherAsset.launchpadData,
-          description: null,
-          protocol: 'PonsV2',
-        },
-        marketData: {
-          ...otherAsset.marketData,
-          price: null,
-          liquidity: 9,
-        },
-      } as TokenAssetRecord,
-      false,
-    );
+  it('returns null when the record is undefined and no error', () => {
+    const result = resolveTokenAssetDetails(ASSET_ID, undefined, false);
 
-    expect(result?.launchpadData?.description).toBe(
-      PEPE_ASSET_FIXTURE.launchpadData?.description,
-    );
-    expect(result?.launchpadData?.protocol).toBe('PonsV2');
-    expect(result?.marketData?.price).toBe(
-      PEPE_ASSET_FIXTURE.marketData?.price,
-    );
-    expect(result?.marketData?.liquidity).toBe(9);
+    expect(result).toBeNull();
   });
 
-  it('returns the raw record for a non-PEPE asset', () => {
-    const result = resolveTokenAssetDetails(OTHER_ASSET_ID, otherAsset, false);
-
-    expect(result).toStrictEqual(otherAsset);
-  });
-
-  it('returns null for a non-PEPE asset when the request fails', () => {
-    const result = resolveTokenAssetDetails(OTHER_ASSET_ID, undefined, true);
+  it('returns null when the request fails', () => {
+    const result = resolveTokenAssetDetails(ASSET_ID, asset, true);
 
     expect(result).toBeNull();
   });

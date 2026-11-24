@@ -49,6 +49,16 @@ included in the performance metric. Recovery is also suppressed while any
 started measurement). Recovery events should be reviewed and converted into
 stable Page Object selectors instead of being silently accepted forever.
 
+### Where it is enabled
+
+The TestMu performance lane (`performance-test-runner.yml`) sets
+`AI_LOCATOR_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` (from the
+`E2E_CLAUDE_API_KEY` secret). `run-testmu-hyperexecute.sh` forwards both to the
+HyperExecute VM, where the tests run: the key goes through the job secret file
+and the flag through the generated YAML `env`. Each scenario logs whether
+recovery is enabled. Without the key, for example on fork PRs, recovery stays
+off and the primary error is rethrown.
+
 ### Secret screens
 
 Recovery must never upload SRP words, private keys, or reveal-seed UI to the

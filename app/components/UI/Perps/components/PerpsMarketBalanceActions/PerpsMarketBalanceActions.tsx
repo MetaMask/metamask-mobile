@@ -9,13 +9,13 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   KeyValueRow,
   KeyValueRowVariant,
   SectionDivider,
   SensitiveText,
   SensitiveTextLength,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -27,6 +27,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
+import PerpsAvailableBalanceLabel from '../PerpsAvailableBalanceLabel';
 import { BigNumber } from 'bignumber.js';
 import {
   INITIAL_AMOUNT_UI_PROGRESS,
@@ -261,7 +262,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                twClassName="gap-3 px-4 pt-1"
+                twClassName="gap-3 px-4 pt-1 pb-3"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">
@@ -298,7 +299,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             <Box twClassName="px-4 pt-2 pb-4">
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                   isHidden={privacyMode}
@@ -307,29 +309,12 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   {formatPerpsBalance(totalBalance)}
                 </SensitiveText>
               </Animated.View>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                style={tw.style('mt-1')}
-                testID={
-                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                }
-              >
-                <SensitiveText
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
-                >
-                  {formatPerpsBalance(spendableBalance)}
-                </SensitiveText>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {' '}
-                  {strings('perps.available')}
-                </Text>
-              </Box>
+              <PerpsAvailableBalanceLabel
+                spendableBalance={spendableBalance}
+                isHidden={privacyMode}
+                variant={TextVariant.BodyMd}
+                twClassName="mt-1"
+              />
               {/* Action Buttons */}
               {showActionButtons && (
                 <Box

@@ -6,6 +6,7 @@ import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
@@ -48,7 +49,7 @@ import {
   getNativeTokenAddress,
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
@@ -178,9 +179,7 @@ export const TokenListItem = React.memo(
     const tokenMarketData = useSelector(selectTokenMarketData);
     const currencyRates = useSelector(selectCurrencyRates);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF
 
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
@@ -272,14 +271,12 @@ export const TokenListItem = React.memo(
         return undefined;
       }
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
       const multichainRate =
         multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
       if (multichainRate !== undefined) {
         return multichainRate;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       // EVM: convert token price from native currency to fiat
       if (!nativeCurrency) {
@@ -322,9 +319,7 @@ export const TokenListItem = React.memo(
       currencyRates,
       nativeCurrency,
       showFiatOnTestnets,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssetsRates,
-      ///: END:ONLY_INCLUDE_IF
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
@@ -583,7 +578,10 @@ export const TokenListItem = React.memo(
         onLongPress={() => {
           const onLongPress =
             asset.isNative || isMusdAsset ? null : showRemoveMenu;
-          onLongPress?.(asset);
+          if (onLongPress) {
+            fireImpact(ImpactMoment.SecondaryCTA);
+            onLongPress(asset);
+          }
         }}
         activeOpacity={0.7}
         style={styles.itemWrapper}

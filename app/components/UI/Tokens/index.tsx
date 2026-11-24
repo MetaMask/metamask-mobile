@@ -8,35 +8,46 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import {
-  InteractionManager,
-  ScrollView,
-  type RefreshControlProps,
-} from 'react-native';
+import { ScrollView, type RefreshControlProps } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { goToAddEvmToken } from './util';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Box } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  TabEmptyState,
+  TextFieldSearch,
+} from '@metamask/design-system-react-native';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectSortedAssetsBySelectedAccountGroup,
+} from '../../../selectors/assets/assets-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
+import { useTokenListFilteringEvent } from './hooks/useTokenListFilteringEvent';
+import { useFilteredTokenKeys } from './hooks/useFilteredTokenKeys';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TokensEmptyState } from '../TokensEmptyState';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
+import { useAssetsHaveLoaded } from '../Assets/hooks/useAssetsHaveLoaded';
+import { shouldShowAssetsLoadingSkeleton } from '../Assets/utils/shouldShowAssetsLoadingSkeleton';
+
+// Same delay as the Explore search, so typing does not re-filter on every key.
+const SEARCH_DEBOUNCE_MS = 200;
 
 interface TokensProps {
   /**
@@ -75,6 +86,64 @@ interface TokensProps {
   hideSecondaryPriceRow?: boolean;
 }
 
+type TokensEmptyContentProps = Pick<
+  TokensProps,
+  | 'isFullView'
+  | 'showOnlyMusd'
+  | 'hasMusdBalanceOnAnyChain'
+  | 'listHeaderComponent'
+  | 'listFooterComponent'
+  | 'refreshControl'
+> & { bottomInset: number };
+
+const TokensEmptyContent = ({
+  isFullView,
+  showOnlyMusd,
+  hasMusdBalanceOnAnyChain,
+  listHeaderComponent,
+  listFooterComponent,
+  refreshControl,
+  bottomInset,
+}: TokensEmptyContentProps) => {
+  const tw = useTailwind();
+
+  const cashEmptyDescription =
+    showOnlyMusd && hasMusdBalanceOnAnyChain
+      ? strings('homepage.sections.money_empty_description_network_filter')
+      : showOnlyMusd
+        ? strings('homepage.sections.money_empty_description')
+        : undefined;
+
+  const emptyState = (
+    <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+      {cashEmptyDescription !== undefined ? (
+        <TokensEmptyState description={cashEmptyDescription} />
+      ) : (
+        <TokensEmptyState />
+      )}
+    </Box>
+  );
+
+  if (listHeaderComponent || listFooterComponent || refreshControl) {
+    return (
+      <ScrollView
+        style={tw`flex-1`}
+        contentContainerStyle={
+          isFullView ? { paddingBottom: bottomInset } : undefined
+        }
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
+        {listHeaderComponent}
+        {emptyState}
+        {listFooterComponent}
+      </ScrollView>
+    );
+  }
+
+  return emptyState;
+};
+
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   (
     {
@@ -89,12 +158,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation<AppNavigationProp>();
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
-
-    const currentChainId = useSelector(selectChainId);
 
     const [refreshing, setRefreshing] = useState(false);
     const { refresh: refreshTokensForGroup } = useRefreshTokens();
@@ -103,13 +169,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectMoneyHubEnabledFlag,
     );
 
-    const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const assetsHaveLoaded = useAssetsHaveLoaded();
+    const assetsByChain = useSelector(selectAssetsBySelectedAccountGroup);
     const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
       selectSortedAssetsBySelectedAccountGroup,
     );
+    const isTokenListLoading = shouldShowAssetsLoadingSkeleton({
+      assetsHaveLoaded,
+      assetsByChain,
+      musdOnly: showOnlyMusd,
+    });
 
     // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
     // in the Money hub.
@@ -123,6 +195,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       [sortedTokenKeys, showOnlyMusd, shouldExcludeMusdFromMainList],
     );
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
+    const isDebouncing = searchQuery.trim() !== debouncedQuery.trim();
+    const searchedTokenKeys = useFilteredTokenKeys(
+      tokenKeysForList,
+      debouncedQuery,
+    );
+    const clearSearch = useCallback(() => setSearchQuery(''), []);
+
     const [, forceUpdate] = useState(0);
 
     // Force re-render when coming back into focus to ensure the component
@@ -131,20 +212,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     useFocusEffect(
       useCallback(() => {
         forceUpdate((n) => n + 1);
-      }, []),
+      }, [forceUpdate]),
     );
 
-    // Mark as loaded once we have data (even if empty)
     useEffect(() => {
-      if (!hasInitialLoad && sortedTokenKeys) {
-        InteractionManager.runAfterInteractions(() => {
-          setHasInitialLoad(true);
-        });
-      }
-    }, [sortedTokenKeys, hasInitialLoad]);
-
-    useEffect(() => {
-      if (!isFullView || !hasInitialLoad || hasTrackedScreenViewRef.current)
+      if (!isFullView || !assetsHaveLoaded || hasTrackedScreenViewRef.current)
         return;
       hasTrackedScreenViewRef.current = true;
       trackEvent(
@@ -159,7 +231,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       );
     }, [
       isFullView,
-      hasInitialLoad,
+      assetsHaveLoaded,
       tokenKeysForList.length,
       showOnlyMusd,
       trackEvent,
@@ -177,35 +249,40 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
-
       try {
-        // Wait for interactions to complete first for better performance
-        await new Promise<void>((resolve) => {
-          InteractionManager.runAfterInteractions(() => {
-            resolve();
-          });
-        });
-
-        // Then await the actual refresh
         await refreshTokensForGroup();
       } finally {
         setRefreshing(false);
       }
     }, [refreshTokensForGroup]);
 
+    // One event per settled, non-empty query (never per keystroke).
+    const lastTrackedQueryRef = useRef('');
+    const trackFiltering = useTokenListFilteringEvent();
+    const resultCount = searchedTokenKeys.length;
+    useEffect(() => {
+      const query = debouncedQuery.trim().toLowerCase();
+      if (!isFullView || !assetsHaveLoaded || !query) {
+        lastTrackedQueryRef.current = '';
+        return;
+      }
+      if (query === lastTrackedQueryRef.current) return;
+      lastTrackedQueryRef.current = query;
+      trackFiltering('searched', {
+        searchQuery: query,
+        extra: { query_length: query.length, result_count: resultCount },
+      });
+    }, [
+      debouncedQuery,
+      isFullView,
+      assetsHaveLoaded,
+      resultCount,
+      trackFiltering,
+    ]);
+
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
     }));
-
-    const goToAddToken = useCallback(() => {
-      goToAddEvmToken({
-        navigation,
-        trackEvent,
-        createEventBuilder,
-        getDecimalChainId,
-        currentChainId,
-      });
-    }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
     const handleScamWarningModal = useCallback(
       (chainId: string | null) => {
@@ -223,7 +300,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
-      if (!hasInitialLoad) {
+      // Soft-gate like extension: unsettled loads with real balances skip the
+      // skeleton. When there is still nothing to show, always render a skeleton
+      // (including Cash's hideLoadingSkeleton path) so the list does not go
+      // blank after CashTokensFullView drops its one-tick placeholder.
+      if (isTokenListLoading) {
+        return (
+          <Box twClassName={isFullView ? 'px-4' : undefined}>
+            <TokenListSkeleton />
+          </Box>
+        );
+      }
+
+      if (isDebouncing) {
         if (hideLoadingSkeleton) {
           return null;
         }
@@ -234,10 +323,29 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
+      if (tokenKeysForList.length > 0 && searchedTokenKeys.length === 0) {
+        return (
+          <Box twClassName="flex-1 items-center justify-center px-6 py-12">
+            <TabEmptyState
+              icon={
+                <Icon
+                  name={IconName.Search}
+                  size={IconSize.Xl}
+                  color={IconColor.IconMuted}
+                />
+              }
+              description={strings('wallet.no_tokens_match_search')}
+              actionButtonText={strings('wallet.clear_search')}
+              onAction={clearSearch}
+            />
+          </Box>
+        );
+      }
+
       if (tokenKeysForList.length > 0) {
         return (
           <TokenList
-            tokenKeys={tokenKeysForList}
+            tokenKeys={searchedTokenKeys}
             refreshing={refreshing}
             onRefresh={onRefresh}
             showRemoveMenu={showRemoveMenu}
@@ -252,49 +360,27 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
-      const cashEmptyDescription =
-        showOnlyMusd && hasMusdBalanceOnAnyChainProp
-          ? strings('homepage.sections.money_empty_description_network_filter')
-          : showOnlyMusd
-            ? strings('homepage.sections.money_empty_description')
-            : undefined;
-
-      const emptyState = (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          {cashEmptyDescription !== undefined ? (
-            <TokensEmptyState description={cashEmptyDescription} />
-          ) : (
-            <TokensEmptyState />
-          )}
-        </Box>
+      return (
+        <TokensEmptyContent
+          isFullView={isFullView}
+          showOnlyMusd={showOnlyMusd}
+          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChainProp}
+          listHeaderComponent={listHeaderComponent}
+          listFooterComponent={listFooterComponent}
+          refreshControl={refreshControl}
+          bottomInset={bottomInset}
+        />
       );
-
-      if (listHeaderComponent || listFooterComponent || refreshControl) {
-        return (
-          <ScrollView
-            style={tw`flex-1`}
-            contentContainerStyle={
-              isFullView ? { paddingBottom: bottomInset } : undefined
-            }
-            showsVerticalScrollIndicator={false}
-            refreshControl={refreshControl}
-          >
-            {listHeaderComponent}
-            {emptyState}
-            {listFooterComponent}
-          </ScrollView>
-        );
-      }
-
-      return emptyState;
     }, [
-      hasInitialLoad,
+      isTokenListLoading,
+      isDebouncing,
       hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
+      searchedTokenKeys,
+      clearSearch,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
-      tw,
       refreshing,
       onRefresh,
       showRemoveMenu,
@@ -312,12 +398,28 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
+        {isFullView && !showOnlyMusd && (
+          <Box twClassName="px-4 pt-1 pb-2">
+            <TextFieldSearch
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onPressClearButton={clearSearch}
+              placeholder={strings('wallet.search_tokens')}
+              inputAccessibilityLabel={strings('wallet.search_tokens')}
+              inputProps={{
+                autoComplete: 'off',
+                autoCorrect: false,
+                autoCapitalize: 'none',
+                testID: WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT,
+              }}
+            />
+          </Box>
+        )}
         {!showOnlyMusd && (
-          <TokenListControlBar
-            goToAddToken={goToAddToken}
-            showAddToken={!showOnlyMusd}
-            hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-3` : undefined}
+          <BaseControlBar
+            networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            searchQuery={searchQuery}
+            style={isFullView ? tw`px-4 pb-3 pt-2` : undefined}
           />
         )}
         {tokenContent}

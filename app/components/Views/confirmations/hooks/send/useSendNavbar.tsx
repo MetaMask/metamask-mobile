@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import { ConfirmationHeader } from '../../components/UI/navbar/navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSendActions } from './useSendActions';
@@ -62,27 +62,39 @@ export function useSendNavbar() {
   }, [navigation, navigationForStack, nestedStackState, parentNavigation]);
 
   return {
-    Amount: getHeaderCompactStandardNavbarOptions({
-      title: strings('send.title'),
-      onBack: handleBackPress,
-      onClose: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      closeButtonProps: { testID: 'send-navbar-close-button' },
-      includesTopInset: true,
-    }),
-    Asset: getHeaderCompactStandardNavbarOptions({
-      onBack: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      title: strings('send.title'),
-      includesTopInset: true,
-    }),
-    Recipient: getHeaderCompactStandardNavbarOptions({
-      title: strings('send.title'),
-      onBack: handleBackPress,
-      onClose: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      closeButtonProps: { testID: 'send-navbar-close-button' },
-      includesTopInset: true,
-    }),
+    Amount: {
+      header: () => (
+        <ConfirmationHeader
+          title={strings('send.title')}
+          onBack={handleBackPress}
+          onClose={handleCancelPress}
+          backButtonProps={{ testID: 'send-navbar-back-button' }}
+          closeButtonProps={{ testID: 'send-navbar-close-button' }}
+          includesTopInset
+        />
+      ),
+    },
+    Asset: {
+      header: () => (
+        <ConfirmationHeader
+          title={strings('send.title')}
+          onBack={handleCancelPress}
+          backButtonProps={{ testID: 'send-navbar-back-button' }}
+          includesTopInset
+        />
+      ),
+    },
+    Recipient: {
+      header: () => (
+        <ConfirmationHeader
+          title={strings('send.title')}
+          onBack={handleBackPress}
+          onClose={handleCancelPress}
+          backButtonProps={{ testID: 'send-navbar-back-button' }}
+          closeButtonProps={{ testID: 'send-navbar-close-button' }}
+          includesTopInset
+        />
+      ),
+    },
   };
 }

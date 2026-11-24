@@ -7,7 +7,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './VerifyIdentity.styles';
@@ -32,11 +31,13 @@ import {
   useParams,
   navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface V2VerifyIdentityParams {
   amount?: string;
@@ -54,6 +55,7 @@ export const createV2VerifyIdentityNavDetails =
   createNavigationDetails<V2VerifyIdentityParams>(Routes.RAMP.VERIFY_IDENTITY);
 
 const V2VerifyIdentity = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -191,7 +193,9 @@ const V2VerifyIdentity = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.verify_identity.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

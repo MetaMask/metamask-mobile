@@ -27,9 +27,8 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
 import ReduxService from '../../../core/redux';
 import type { ReduxStore } from '../../../core/redux/types';
-import { InteractionManager, Platform } from 'react-native';
+import { InteractionManager, Platform, StyleSheet } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { passwordRequirementsMet } from '../../../util/password';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
@@ -91,6 +90,7 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -596,14 +596,16 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('helper text is always visible below the password field', async () => {
+    it('hides the length help text once the password reaches the minimum length', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       const helperText = strings('choose_password.must_be_at_least', {
         number: 8,
       });
 
-      expect(component.getByText(helperText)).toBeOnTheScreen();
+      expect(
+        component.getByText(helperText).props.accessibilityElementsHidden,
+      ).toBe(false);
 
       await act(async () => {
         fireEvent.changeText(
@@ -614,13 +616,27 @@ describe('ChoosePassword', () => {
         );
       });
 
-      expect(component.getByText(helperText)).toBeOnTheScreen();
+      const hiddenHelp = component.getByText(helperText, {
+        includeHiddenElements: true,
+      });
+      expect(hiddenHelp.props.accessibilityElementsHidden).toBe(true);
+      expect(hiddenHelp).toHaveStyle({ opacity: 0 });
     });
 
     it('helper text remains visible after blurring the password field with a short password', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       const { passwordInput } = getFormElements(component);
+
+      const helperText = strings('choose_password.must_be_at_least', {
+        number: 8,
+      });
+      const defaultColor = StyleSheet.flatten(
+        component.getByText(helperText).props.style,
+      )?.color;
+      const defaultFieldStyle = JSON.stringify(
+        StyleSheet.flatten(passwordInput.parent?.props.style),
+      );
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'short');
@@ -629,11 +645,15 @@ describe('ChoosePassword', () => {
         fireEvent(passwordInput, 'blur');
       });
 
+      const dangerHelp = component.getByText(helperText);
+      expect(dangerHelp).toBeOnTheScreen();
+      expect(dangerHelp.props.accessibilityElementsHidden).toBe(false);
+      expect(StyleSheet.flatten(dangerHelp.props.style)?.color).not.toBe(
+        defaultColor,
+      );
       expect(
-        component.getByText(
-          strings('choose_password.must_be_at_least', { number: 8 }),
-        ),
-      ).toBeOnTheScreen();
+        JSON.stringify(StyleSheet.flatten(passwordInput.parent?.props.style)),
+      ).not.toBe(defaultFieldStyle);
     });
 
     it('helper text remains visible after refocusing the password field', async () => {
@@ -677,34 +697,19 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
+      const { confirmPasswordInput, submitButton } = getFormElements(component);
       await fillForm(component, 'Test123456!', 'DifferentPassword123!');
-      fireEvent.press(
-        component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      );
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'blur');
+      });
 
       expect(
         component.getByText(strings('choose_password.password_error')),
       ).toBeOnTheScreen();
+      expect(submitButton).toBeDisabled();
     });
 
-    it('does not show a password mismatch error before confirm reaches the minimum length', async () => {
-      const component = renderWithProviders(<ChoosePassword />);
-      await waitForInit();
-
-      const { passwordInput, confirmPasswordInput } =
-        getFormElements(component);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'Test123456!');
-        fireEvent.changeText(confirmPasswordInput, 'x');
-      });
-
-      expect(
-        component.queryByText(strings('choose_password.password_error')),
-      ).toBeNull();
-    });
-
-    it('keeps submit enabled and validates mismatched passwords on press', async () => {
+    it('keeps submit disabled when passwords do not match', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
@@ -713,13 +718,13 @@ describe('ChoosePassword', () => {
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
-      expect(submitButton).toBeEnabled();
+      expect(submitButton).toBeDisabled();
+      expect(
+        component.queryByText(strings('choose_password.password_error')),
+      ).toBeNull();
 
       fireEvent.press(submitButton);
 
-      expect(
-        component.getByText(strings('choose_password.password_error')),
-      ).toBeOnTheScreen();
       expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
 
@@ -760,27 +765,36 @@ describe('ChoosePassword', () => {
       expect(component.queryByDisplayValue('StrongPassword123!@#')).toBeNull();
     });
 
-    it('tracks WALLET_SETUP_FAILURE event when password is too short', async () => {
-      // Mock passwordRequirementsMet to return false so the failure tracking
-      // fires even with a valid-length password (required to keep the submit
-      // button enabled while still triggering the validation branch).
-      jest.mocked(passwordRequirementsMet).mockReturnValueOnce(false);
+    it('keeps submit disabled and does not create a wallet when the password is too short', async () => {
+      jest.mocked(passwordRequirementsMet).mockReturnValue(false);
 
-      const component = renderWithProviders(<ChoosePassword />);
-      await waitForInit();
+      try {
+        const component = renderWithProviders(<ChoosePassword />);
+        await waitForInit();
+        await fillForm(component, 'Test1234');
 
-      await fillAndSubmitForm(component, 'Test1234');
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+        expect(submitButton).toBeDisabled();
 
-      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
-      expect(mockTrackOnboarding).toHaveBeenCalled();
+        fireEvent.press(submitButton);
 
-      const trackingEvent = mockTrackOnboarding.mock
-        .calls[0][0] as AnalyticsTrackingEvent;
-      expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
-      expect(trackingEvent.properties).toEqual({
-        wallet_setup_type: 'import',
-        error_type: strings('choose_password.password_length_error'),
-      });
+        expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
+        expect(mockTrackOnboarding).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.WALLET_CREATION_ATTEMPTED,
+          }),
+          expect.any(Function),
+        );
+      } finally {
+        jest
+          .mocked(passwordRequirementsMet)
+          .mockImplementation(
+            jest.requireActual('../../../util/password')
+              .passwordRequirementsMet,
+          );
+      }
     });
   });
 
@@ -1050,10 +1064,6 @@ describe('ChoosePassword', () => {
         'newWalletAndKeychain',
       );
       mockNewWalletAndKeychain.mockResolvedValue(undefined);
-      jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
-
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1127,8 +1137,10 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
+      const { confirmPasswordInput } = getFormElements(component);
       await fillForm(component, VALID_PASSWORD, 'DifferentPassword123!');
       await act(async () => {
+        fireEvent(confirmPasswordInput, 'blur');
         fireEvent.press(
           component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
         );
@@ -1519,17 +1531,20 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(true),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1560,9 +1575,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
@@ -1585,8 +1597,14 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(true),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1611,9 +1629,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
@@ -1624,8 +1639,14 @@ describe('ChoosePassword', () => {
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(true),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1650,17 +1671,20 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        false,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(false),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1701,9 +1725,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
@@ -1712,7 +1733,6 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });
@@ -1738,9 +1758,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'apple',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       // Do NOT press the checkbox so isSelected = false → opt-in = false
       const component = renderWithProviders(<ChoosePassword />);
@@ -1749,7 +1766,6 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });

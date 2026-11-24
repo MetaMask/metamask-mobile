@@ -16,7 +16,9 @@ export const mockSentinelFeeTokens: SentinelFeeTokensByChain = {
   'eip155:1': [
     {
       assetId: 'eip155:1/slip44:60',
-      symbol: 'DUM0',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
     },
   ],
 };

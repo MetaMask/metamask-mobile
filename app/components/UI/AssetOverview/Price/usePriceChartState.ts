@@ -39,7 +39,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { TextColor } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
-import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -129,7 +128,6 @@ export interface UsePriceChartStateParams {
   timePeriod?: TimePeriod;
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
 }
 
@@ -148,7 +146,6 @@ export const usePriceChartState = ({
   prices = [],
   setTimePeriod,
   onPriceDirectionChange,
-  useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: UsePriceChartStateParams) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -418,7 +415,9 @@ export const usePriceChartState = ({
   );
 
   const assetIdRef = useRef(assetId);
-  assetIdRef.current = assetId;
+  useEffect(() => {
+    assetIdRef.current = assetId;
+  });
 
   const visibilityTraceStartedRef = useRef<string | null>(null);
   /** Matches pending manual trace so {@link endTrace} uses the same `TraceName` as {@link trace}. */
@@ -642,7 +641,7 @@ export const usePriceChartState = ({
   const wsEnabled =
     chartType === ChartType.Line ? lineWsEnabled : candleWsEnabled;
 
-  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  /** OHLCV or WebView init still in flight. Controls stay visible; only the chart skeletons. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
   /** First visit only; time-range / interval refresh keeps selector and bars visible. */
@@ -790,40 +789,52 @@ export const usePriceChartState = ({
     return firstVisible.close;
   }, [ohlcvData, visibleFromMs, isTechnicalIndicatorsEnabled, lastBarTime]);
 
-  // Store last good compare price to show during loading
-  const stableComparePriceRef = useRef<number | null>(null);
-  const stableSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+  // Last good compare price, used while loading or before the series key commits.
+  const [stableComparePrice, setStableComparePrice] = useState<number | null>(
+    currentComparePrice,
+  );
+  const [stableSeriesKey, setStableSeriesKey] = useState(ohlcvSeriesKey);
 
-  // Update stable compare price when chart finishes loading AND series matches
   useEffect(() => {
-    if (stableSeriesKeyRef.current !== ohlcvSeriesKey) {
-      stableSeriesKeyRef.current = ohlcvSeriesKey;
-    } else if (!chartLoading && currentComparePrice !== null) {
-      stableComparePriceRef.current = currentComparePrice;
+    if (stableSeriesKey !== ohlcvSeriesKey) {
+      setStableSeriesKey(ohlcvSeriesKey);
+    } else if (
+      !chartLoading &&
+      currentComparePrice !== null &&
+      stableComparePrice !== currentComparePrice
+    ) {
+      setStableComparePrice(currentComparePrice);
     }
-  }, [chartLoading, currentComparePrice, ohlcvSeriesKey]);
+  }, [
+    chartLoading,
+    currentComparePrice,
+    ohlcvSeriesKey,
+    stableSeriesKey,
+    stableComparePrice,
+  ]);
 
-  // Use stable while (loading OR series mismatch), otherwise use current
-  // TODO(ASSETS-3745): reads a ref during render, which is unsafe under
-  // concurrent rendering. Preserved verbatim here — behaviour change is out of
-  // scope for the compound-component refactor.
   const dynamicComparePrice =
-    (chartLoading || stableSeriesKeyRef.current !== ohlcvSeriesKey) &&
-    stableComparePriceRef.current !== null
-      ? stableComparePriceRef.current
+    (chartLoading || stableSeriesKey !== ohlcvSeriesKey) &&
+    stableComparePrice !== null
+      ? stableComparePrice
       : currentComparePrice;
 
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
   const realtimeClose = wsEnabled ? latestBar?.close : undefined;
 
-  // Hold the last WS price during time-range transitions to avoid stale API flicker
-  // TODO(ASSETS-3745): writes and reads a ref during render. Preserved verbatim.
-  const lastRealtimeRef = useRef<number | undefined>(undefined);
-  if (realtimeClose !== undefined) {
-    lastRealtimeRef.current = realtimeClose;
+  // Hold the last WS price during time-range transitions to avoid stale API flicker.
+  const [realtimeHold, setRealtimeHold] = useState(() => ({
+    tracked: realtimeClose,
+    last: realtimeClose,
+  }));
+  if (realtimeHold.tracked !== realtimeClose) {
+    setRealtimeHold({
+      tracked: realtimeClose,
+      last: realtimeClose !== undefined ? realtimeClose : realtimeHold.last,
+    });
   }
-  const stablePrice = realtimeClose ?? lastRealtimeRef.current;
+  const stablePrice = realtimeClose ?? realtimeHold.last;
 
   const displayPrice =
     crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
@@ -886,11 +897,12 @@ export const usePriceChartState = ({
     realtimeClose,
   ]);
 
+  const ambientErrorRed = theme.colors.error.default;
+
   const initialAmbientColor = useMemo(() => {
-    if (!useAmbientColor) return undefined;
     if (initialPriceDiff === null) return undefined;
-    return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
+    return initialPriceDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
+  }, [initialPriceDiff, ambientSuccessGreen, ambientErrorRed]);
 
   const tokenDetailsLegendOverlay = useMemo(
     () =>
@@ -902,10 +914,9 @@ export const usePriceChartState = ({
 
   // Dynamic ambient color for price diff text only - changes during crosshair hover
   const ambientColor = useMemo(() => {
-    if (!useAmbientColor) return undefined;
     if (displayDiff === null) return ambientSuccessGreen;
-    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+    return displayDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
+  }, [displayDiff, ambientSuccessGreen, ambientErrorRed]);
 
   /**
    * True when in candlestick mode and the advanced chart cannot display data.
@@ -949,19 +960,14 @@ export const usePriceChartState = ({
       : strings(TIME_RANGE_LABELS[timeRange]);
 
   const lineAmbientColor = useMemo(() => {
-    if (!useAmbientColor || !isLineMode) return undefined;
-    return lineTitleDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, isLineMode, lineTitleDiff, ambientSuccessGreen]);
+    if (!isLineMode) return undefined;
+    return lineTitleDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
+  }, [isLineMode, lineTitleDiff, ambientSuccessGreen, ambientErrorRed]);
 
-  const getLinePriceDiffStyle = useCallback(() => {
-    if (lineAmbientColor) {
-      return { color: lineAmbientColor };
-    }
-    if (isLightMode && lineTitleDiff > 0) {
-      return { color: LIGHT_MODE_SUCCESS_GREEN };
-    }
-    return undefined;
-  }, [lineAmbientColor, isLightMode, lineTitleDiff]);
+  const getLinePriceDiffStyle = useCallback(
+    () => (lineAmbientColor ? { color: lineAmbientColor } : undefined),
+    [lineAmbientColor],
+  );
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !showCandleEmptyState) {
@@ -973,19 +979,12 @@ export const usePriceChartState = ({
     ? toDateFormat(crosshairData.time)
     : dateLabel;
 
-  const getPriceDiffStyle = () => {
-    if (ambientColor) {
-      return { color: ambientColor };
-    }
-    if (isLightMode && displayDiff !== null && displayDiff > 0) {
-      return { color: LIGHT_MODE_SUCCESS_GREEN };
-    }
-    return undefined;
-  };
+  const getPriceDiffStyle = () => ({ color: ambientColor });
 
-  // TODO(ASSETS-3745): writes a ref during render. Preserved verbatim.
   const showCandleEmptyStateRef = useRef(showCandleEmptyState);
-  showCandleEmptyStateRef.current = showCandleEmptyState;
+  useEffect(() => {
+    showCandleEmptyStateRef.current = showCandleEmptyState;
+  });
 
   useEffect(() => {
     if (!showCandleEmptyState) {
@@ -1128,6 +1127,7 @@ export const usePriceChartState = ({
 
     // Ambient colours
     ambientColor,
+    ambientErrorRed,
     initialAmbientColor,
     lineAmbientColor,
     tokenDetailsLegendOverlay,

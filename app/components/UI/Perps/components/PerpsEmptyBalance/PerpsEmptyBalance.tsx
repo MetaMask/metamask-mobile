@@ -3,6 +3,7 @@ import {
   Box,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   Text,
   TextColor,
   TextVariant,
@@ -24,9 +25,10 @@ const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="px-4 pt-2 pb-4">
+    <Box twClassName="px-4 -mt-2">
       <Text
-        variant={TextVariant.DisplayLg}
+        variant={TextVariant.AmountDisplayLg}
+        fontFamily={FontFamily.Hero}
         color={TextColor.TextDefault}
         testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
       >

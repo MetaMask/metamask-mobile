@@ -80,6 +80,7 @@ jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
+    useRoute: () => ({ params: { searchQuery: 'eth' } }),
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: jest.fn(),
@@ -304,6 +305,7 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
     openModal,
     openRpcModal,
     tabLabel,
+    searchQuery,
   }: {
     openModal: (args: {
       caipChainId: string;
@@ -313,9 +315,11 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
     }) => void;
     openRpcModal?: (args: { chainId: string; networkName: string }) => void;
     tabLabel: string;
+    searchQuery?: string;
   }) => (
     <RNView testID="network-multi-selector">
       <RNText testID="tab-label">{tabLabel}</RNText>
+      <RNText testID="search-query">{searchQuery}</RNText>
       <RNTouchableOpacity
         testID="open-modal-button"
         onPress={() =>
@@ -1017,6 +1021,14 @@ describe('NetworkManager Component', () => {
           </Provider>,
         );
       }).not.toThrow();
+    });
+  });
+
+  describe('analytics context', () => {
+    it('passes the route search query to NetworkMultiSelector', () => {
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId('search-query')).toHaveTextContent('eth');
     });
   });
 

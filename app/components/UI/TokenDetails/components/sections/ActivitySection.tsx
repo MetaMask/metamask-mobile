@@ -15,8 +15,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   getGroupedActivityListItemKey,
   groupActivityListItems,
@@ -31,8 +29,6 @@ import {
 } from '../../../Transactions/AssetDetailsActivityListItem.utils';
 import { filterDuplicateOutgoingTransactions } from '../../../Transactions/utils';
 import ActivityHeader from '../../../../Views/Asset/ActivityHeader';
-import { useUnifiedTxActions } from '../../../../Views/ActivityList/useUnifiedTxActions';
-import { CancelSpeedupModal } from '../../../../Views/confirmations/components/modals/cancel-speedup-modal';
 import { useTokenTransactions } from '../../hooks/useTokenTransactions';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 
@@ -178,30 +174,13 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     isNonEvmAsset,
   } = useTokenTransactions(token);
 
-  const {
-    speedUpIsOpen,
-    cancelIsOpen,
-    confirmDisabled,
-    existingTx,
-    onSpeedUpAction,
-    onCancelAction,
-    onSpeedUpCancelCompleted,
-    speedUpTransaction,
-    cancelTransaction,
-  } = useUnifiedTxActions();
-
   const accountImportTime = useSelector(
     (state: RootState) =>
       selectSelectedInternalAccount(state)?.metadata.importTime,
   );
-  const groupEvmAccountAddress = useSelector(
-    (state: RootState) =>
-      selectSelectedAccountGroupEvmInternalAccount(state)?.address,
-  );
   const networkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const allTokens = useSelector(selectAllTokens);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const {
@@ -277,12 +256,8 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
               tokenChainId={chainId}
               navigation={navigation}
               accountImportTime={accountImportTime}
-              groupEvmAccountAddress={groupEvmAccountAddress}
               networkConfigurations={networkConfigurationsByChainId}
-              allTokens={allTokens}
               bridgeHistory={bridgeHistory}
-              onSpeedUpAction={onSpeedUpAction}
-              onCancelAction={onCancelAction}
             />
           );
         })}
@@ -299,17 +274,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           </Box>
         ) : null}
       </Box>
-
-      {existingTx ? (
-        <CancelSpeedupModal
-          isVisible={speedUpIsOpen || cancelIsOpen}
-          isCancel={cancelIsOpen}
-          tx={existingTx}
-          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
-          onClose={onSpeedUpCancelCompleted}
-          confirmDisabled={confirmDisabled}
-        />
-      ) : null}
     </>
   );
 };

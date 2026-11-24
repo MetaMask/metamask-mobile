@@ -104,7 +104,8 @@ function normalizeSpecPath(filePath) {
 
 /**
  * Folds Playwright JSON test durations (ms) into `{ spec: { android, ios } }`
- * with times in seconds.
+ * with times in seconds. Every attempt is included: a failed try still occupies
+ * the shard until the passing retry finishes.
  *
  * @param {object} report
  * @param {'android' | 'ios'} platform
@@ -120,12 +121,13 @@ function aggregateTimingsFromPlaywrightJson(report, platform, acc) {
           continue;
         }
         const results = test.results ?? [];
-        const last = results[results.length - 1];
-        const durationMs = last?.duration;
-        if (!Number.isFinite(durationMs) || durationMs <= 0) continue;
-        const timeSec = durationMs / 1000;
-        const entry = acc[specPath] ?? (acc[specPath] = {});
-        entry[platform] = (entry[platform] ?? 0) + timeSec;
+        for (const result of results) {
+          const durationMs = result?.duration;
+          if (!Number.isFinite(durationMs) || durationMs <= 0) continue;
+          const timeSec = durationMs / 1000;
+          const entry = acc[specPath] ?? (acc[specPath] = {});
+          entry[platform] = (entry[platform] ?? 0) + timeSec;
+        }
       }
     }
     for (const child of suite.suites ?? []) {
@@ -194,6 +196,109 @@ function countDefinedTests(source) {
   return (source.match(new RegExp(TEST_CALL_SOURCE, 'g')) ?? []).length;
 }
 
+const MAX_TIMING_SAMPLES = 20;
+const SHARD_TIMING_PERCENTILE = 0.75;
+const TIMING_PLATFORMS = ['android', 'ios'];
+
+/**
+ * Nearest-rank percentile. p75 is the shard weight: one slow run does not
+ * permanently pin a spec, and a single fast run does not hide its usual cost.
+ *
+ * @param {number[]} values
+ * @param {number} p
+ * @returns {number | undefined}
+ */
+function percentile(values, p) {
+  const sorted = values
+    .filter((value) => typeof value === 'number' && Number.isFinite(value) && value > 0)
+    .sort((a, b) => a - b);
+  if (sorted.length === 0) return undefined;
+  const rank = Math.ceil(p * sorted.length);
+  return sorted[Math.min(sorted.length, Math.max(1, rank)) - 1];
+}
+
+/**
+ * @param {unknown} value
+ * @returns {number[]}
+ */
+function asSampleList(value) {
+  if (Array.isArray(value)) {
+    return value.filter(
+      (sample) => typeof sample === 'number' && Number.isFinite(sample) && sample > 0,
+    );
+  }
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return [value];
+  }
+  return [];
+}
+
+/**
+ * Reads retained samples, or seeds one sample from a legacy scalar map.
+ *
+ * @param {object | null | undefined} parsed
+ * @returns {Record<string, { android?: number[], ios?: number[] }>}
+ */
+function timingSamplesFromQaStats(parsed) {
+  const stored = parsed?.e2e_test_time_samples;
+  if (stored && typeof stored === 'object') {
+    return mergePlatformTimingSamples(stored, {}, MAX_TIMING_SAMPLES);
+  }
+
+  const legacy = parsed?.e2e_test_times;
+  if (!legacy || typeof legacy !== 'object') return {};
+  return mergePlatformTimingSamples({}, legacy, MAX_TIMING_SAMPLES);
+}
+
+/**
+ * Keeps each platform's own history. An Android-only collection appends
+ * Android samples and leaves the retained iOS samples in place.
+ *
+ * @param {Record<string, { android?: number[] | number, ios?: number[] | number }>} previous
+ * @param {Record<string, { android?: number[] | number, ios?: number[] | number }>} current
+ * @param {number} [maxSamples]
+ * @returns {Record<string, { android?: number[], ios?: number[] }>}
+ */
+function mergePlatformTimingSamples(previous, current, maxSamples = MAX_TIMING_SAMPLES) {
+  const specs = new Set([
+    ...Object.keys(previous ?? {}),
+    ...Object.keys(current ?? {}),
+  ]);
+  const merged = {};
+
+  for (const spec of specs) {
+    const platforms = {};
+    for (const platform of TIMING_PLATFORMS) {
+      const history = asSampleList(previous?.[spec]?.[platform]);
+      const latest = asSampleList(current?.[spec]?.[platform]);
+      if (history.length === 0 && latest.length === 0) continue;
+      platforms[platform] = [...history, ...latest].slice(-maxSamples);
+    }
+    if (Object.keys(platforms).length > 0) merged[spec] = platforms;
+  }
+
+  return merged;
+}
+
+/**
+ * @param {Record<string, { android?: number[], ios?: number[] }>} samples
+ * @param {number} [p]
+ * @returns {Record<string, { android?: number, ios?: number }>}
+ */
+function summarizeTimingSamples(samples, p = SHARD_TIMING_PERCENTILE) {
+  const timings = {};
+  for (const [spec, platforms] of Object.entries(samples ?? {})) {
+    const summary = {};
+    for (const platform of TIMING_PLATFORMS) {
+      const value = percentile(asSampleList(platforms?.[platform]), p);
+      if (value === undefined) continue;
+      summary[platform] = Math.round(value * 1000) / 1000;
+    }
+    if (Object.keys(summary).length > 0) timings[spec] = summary;
+  }
+  return timings;
+}
+
 export {
   getE2EArtifactDimensions,
   countExecutedTestsFromPlaywrightJson,
@@ -201,4 +306,10 @@ export {
   aggregateTimingsFromPlaywrightJson,
   countSkips,
   countDefinedTests,
+  MAX_TIMING_SAMPLES,
+  SHARD_TIMING_PERCENTILE,
+  percentile,
+  timingSamplesFromQaStats,
+  mergePlatformTimingSamples,
+  summarizeTimingSamples,
 };

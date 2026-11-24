@@ -7,6 +7,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontFamily,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,9 +48,8 @@ interface LivePriceHeaderProps {
    * Visual size of the price/change row.
    * - `default`: compact, muted price (used inside the market header).
    * - `large`: prominent price shown below the market header (Lite).
-   * - `prominent`: smaller prominent price used by the Pro market header
-   * (Figma Heading/Lg, 24px) — same stacked layout as `large`, but a step
-   * down in scale to fit Pro's denser summary row.
+   * - `prominent`: prominent price used by the Pro market header.
+   * Same stacked layout and AmountDisplayLg Hero type as `large`.
    */
   size?: 'default' | 'large' | 'prominent';
 }
@@ -95,12 +95,9 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   size = 'default',
 }) => {
   const isLarge = size === 'large' || size === 'prominent';
-  const priceVariant =
-    size === 'large'
-      ? TextVariant.DisplayLg
-      : size === 'prominent'
-        ? TextVariant.HeadingLg
-        : TextVariant.BodySm;
+  const priceVariant = isLarge
+    ? TextVariant.AmountDisplayLg
+    : TextVariant.BodySm;
   const priceColor = isLarge
     ? TextColor.TextDefault
     : TextColor.TextAlternative;
@@ -223,6 +220,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
     <View style={[styles.container, isLarge ? stackedLayout : inlineLayout]}>
       <Text
         variant={priceVariant}
+        fontFamily={isLarge ? FontFamily.Hero : undefined}
         color={priceColor}
         style={styles.price}
         numberOfLines={1}

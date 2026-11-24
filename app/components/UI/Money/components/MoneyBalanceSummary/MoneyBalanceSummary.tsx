@@ -4,9 +4,12 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
+  IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -15,11 +18,14 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../DottedUnderline';
 import TextShimmer from '../TextShimmer';
+import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
 import { useTheme } from '../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 interface MoneyBalanceSummaryProps {
   displayState: MoneyBalanceDisplayState;
   /**
@@ -45,6 +51,17 @@ interface MoneyBalanceSummaryProps {
    * leaves this unset and keeps its title in the header.
    */
   showTitle?: boolean;
+  /**
+   * When true, shows a Premium tag next to the APY (funds in premium vault).
+   */
+  isPremium?: boolean;
+  /**
+   * In-flight vault migration pill. Shown on balance and unavailable states
+   * even when the vault rate has not resolved. Only Money home should pass this.
+   */
+  pendingVaultTransition?:
+    | typeof MoneyVaultStatus.Upgrading
+    | typeof MoneyVaultStatus.Downgrading;
 }
 
 const MoneyBalanceSummary = ({
@@ -54,6 +71,8 @@ const MoneyBalanceSummary = ({
   privacyMode = false,
   onBalancePress,
   showTitle = false,
+  isPremium = false,
+  pendingVaultTransition,
 }: MoneyBalanceSummaryProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -64,39 +83,74 @@ const MoneyBalanceSummary = ({
     displayState.kind === 'balance' || displayState.kind === 'unavailable';
   const hasApy = showApy && isPositiveNumberOrZero(apy);
 
-  const apyLabel = hasApy ? (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      testID={MoneyBalanceSummaryTestIds.APY}
-    >
-      <Pressable
-        onPress={onApyInfoPress}
-        style={({ pressed }) => pressed && tw.style('opacity-50')}
-        testID={MoneyBalanceSummaryTestIds.APY_PRESSABLE}
+  const pendingPill =
+    showApy && pendingVaultTransition ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+        testID={MoneyBalanceSummaryTestIds.UPGRADE_PILL}
       >
-        <DottedUnderline color={colors.success.default}>
-          <TextShimmer>
+        <PendingSpinner size={IconSize.Xs} />
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+        >
+          {strings(
+            pendingVaultTransition === MoneyVaultStatus.Upgrading
+              ? 'money.apy_upgrading_pill'
+              : 'money.apy_downgrading_pill',
+          )}
+        </Text>
+      </Box>
+    ) : null;
+
+  const apyLabel =
+    hasApy || pendingPill ? (
+      <Box twClassName="gap-1">
+        {hasApy ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+            testID={MoneyBalanceSummaryTestIds.APY}
+          >
+            <Pressable
+              onPress={onApyInfoPress}
+              style={({ pressed }) => pressed && tw.style('opacity-50')}
+              testID={MoneyBalanceSummaryTestIds.APY_PRESSABLE}
+            >
+              <DottedUnderline color={colors.success.default}>
+                <TextShimmer>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.SuccessDefault}
+                    numberOfLines={1}
+                  >
+                    {strings('money.apy_label', { percentage: apy })}
+                  </Text>
+                </TextShimmer>
+              </DottedUnderline>
+            </Pressable>
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              numberOfLines={1}
+              color={TextColor.TextAlternative}
             >
-              {strings('money.apy_label', { percentage: apy })}
+              {strings('money.apy_currency_suffix')}
             </Text>
-          </TextShimmer>
-        </DottedUnderline>
-      </Pressable>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-      >
-        {strings('money.apy_currency_suffix')}
-      </Text>
-    </Box>
-  ) : undefined;
+            {isPremium ? (
+              <Tag testID={MoneyBalanceSummaryTestIds.PREMIUM_TAG}>
+                {strings('money.apy_premium_tag')}
+              </Tag>
+            ) : null}
+          </Box>
+        ) : null}
+        {pendingPill}
+      </Box>
+    ) : undefined;
 
   const wrapPressable = (content: React.ReactNode) =>
     onBalancePress ? (
@@ -115,8 +169,8 @@ const MoneyBalanceSummary = ({
       case 'balance':
         return wrapPressable(
           <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
@@ -139,8 +193,8 @@ const MoneyBalanceSummary = ({
         // with no cache the slot shows a dash. Both pair with the BannerAlert.
         return wrapPressable(
           <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
             color={TextColor.TextAlternative}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
@@ -159,17 +213,29 @@ const MoneyBalanceSummary = ({
     return (
       <TitleHub
         testID={MoneyBalanceSummaryTestIds.CONTAINER}
-        twClassName="px-4 pb-3"
+        // TitleHub hardcodes gap-1. gap-0 is listed after it so the amount's
+        // 24px margin is the only space under the title.
+        twClassName="px-4 pb-3 gap-0"
         title={strings('money.title')}
         titleProps={{ testID: MoneyBalanceSummaryTestIds.TITLE }}
         amount={renderBalanceSlot()}
+        amountWrapperProps={{
+          twClassName: 'mt-6',
+          testID: MoneyBalanceSummaryTestIds.AMOUNT,
+        }}
         bottomLabel={apyLabel}
+        bottomLabelWrapperProps={{ twClassName: 'mt-1' }}
       />
     );
   }
 
+  // The tab title lives in HeaderRoot, which centers a 32px line in a 56px
+  // bar and leaves 12px under "Money". 4px here makes that gap 16px.
   return (
-    <Box twClassName="px-4 gap-1" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
+    <Box
+      twClassName="px-4 pt-1 gap-1"
+      testID={MoneyBalanceSummaryTestIds.CONTAINER}
+    >
       {renderBalanceSlot()}
       {apyLabel}
     </Box>

@@ -7,16 +7,11 @@ import TraderPositionPnlSection from './TraderPositionPnlSection';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
 
 const mockOpenComposer = jest.fn();
-const mockSocialLeaderboardEnabled = jest.fn(() => true);
-const mockUseSocialV1 = jest.fn(() => true);
+const mockIsSocialV1Enabled = jest.fn(() => true);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: () => mockSocialLeaderboardEnabled(),
-}));
-
-jest.mock('../../../../hooks', () => ({
-  useABTest: () => ({ variant: { useSocialV1: mockUseSocialV1() } }),
+  useSelector: () => mockIsSocialV1Enabled(),
 }));
 
 jest.mock(
@@ -77,8 +72,7 @@ describe('TraderPositionPnlSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     footerProps.length = 0;
-    mockSocialLeaderboardEnabled.mockReturnValue(true);
-    mockUseSocialV1.mockReturnValue(true);
+    mockIsSocialV1Enabled.mockReturnValue(true);
     mockUseStickyQuickBuy.mockReturnValue({
       onQuickBuyPress: jest.fn(),
       openQuickBuy: jest.fn(),
@@ -97,6 +91,7 @@ describe('TraderPositionPnlSection', () => {
       pnl: { amount: '+$50.00', percentage: '+50.00%', isProfit: true },
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
 
     renderSection();
@@ -149,6 +144,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition,
         isLoading: false,
+        isPositionLoading: false,
       });
     });
 
@@ -174,6 +170,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition: null,
         isLoading: false,
+        isPositionLoading: false,
       });
 
       renderSection();
@@ -181,18 +178,8 @@ describe('TraderPositionPnlSection', () => {
       expect(positionProp()?.expandedDetails).not.toHaveProperty('onShare');
     });
 
-    it('hides Share to feed in the Social V1 control arm', () => {
-      mockUseSocialV1.mockReturnValue(false);
-
-      renderSection();
-
-      expect(positionProp()).toEqual(
-        expect.objectContaining({ expandedDetails }),
-      );
-    });
-
-    it('hides Share to feed when Social is off', () => {
-      mockSocialLeaderboardEnabled.mockReturnValue(false);
+    it('hides Share to feed when Social V1 is off', () => {
+      mockIsSocialV1Enabled.mockReturnValue(false);
 
       renderSection();
 
@@ -202,23 +189,23 @@ describe('TraderPositionPnlSection', () => {
     });
   });
 
-  it('passes a loading header through before a value arrives', () => {
+  it('hides the position row while loading when there is no value yet', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: true,
+      isPositionLoading: true,
     });
 
     renderSection();
 
-    expect(positionProp()).toEqual(
-      expect.objectContaining({ isLoading: true, positionValue: undefined }),
-    );
+    expect(positionProp()).toBeUndefined();
   });
 
   it('hides the position row when there is no value and no load in flight', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
 
     renderSection();
@@ -230,12 +217,50 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
     mockUseTokenBalance.mockReturnValue({
       balance: '0',
       fiatBalance: '$0.00',
       tokenFormattedBalance: '0 PEPE',
     } as ReturnType<typeof useTokenBalance>);
+
+    renderSection();
+
+    expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(false);
+  });
+
+  it.each(['12.5', '1,500', '1,234,567.8', '<0.00001'])(
+    'marks the footer as having a balance for the formatted balance %s',
+    (balance) => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        sharePosition: null,
+        isLoading: false,
+        isPositionLoading: false,
+      });
+      mockUseTokenBalance.mockReturnValue({
+        balance,
+        fiatBalance: '$1.00',
+        tokenFormattedBalance: `${balance} PEPE`,
+      } as ReturnType<typeof useTokenBalance>);
+
+      renderSection();
+
+      expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(true);
+    },
+  );
+
+  it('marks the footer as having no balance when the balance is undefined', () => {
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: false,
+      isPositionLoading: false,
+    });
+    mockUseTokenBalance.mockReturnValue({
+      balance: undefined,
+      fiatBalance: undefined,
+      tokenFormattedBalance: undefined,
+    } as unknown as ReturnType<typeof useTokenBalance>);
 
     renderSection();
 

@@ -49,6 +49,17 @@ describe('PredictNext portfolio hooks', () => {
     expect(nextCursor).toBeUndefined();
   });
 
+  it('keys Positions by the status filter and sort order', () => {
+    usePositions(venueId, { limit: 3, status: ['open'], sort: 'value' });
+    const options = mockedUseInfiniteQuery.mock.calls[0][0];
+
+    expect(options.queryKey).toEqual([
+      'PredictPortfolioService:getPositions',
+      venueId,
+      { limit: 3, status: ['open'], sort: 'value' },
+    ]);
+  });
+
   it('forwards the enabled gate to the Positions query', () => {
     usePositions(venueId, { limit: 20 }, { enabled: false });
     const options = mockedUseInfiniteQuery.mock.calls[0][0];

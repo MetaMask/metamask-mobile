@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { makeMutable } from 'react-native-reanimated';
 import HeaderGlass, { FLOATING_HEADER_FADE_TEST_ID } from './HeaderGlass';
@@ -16,6 +16,12 @@ jest.mock('./HeaderGlassBackdrop', () => {
 });
 
 const backdropProps = () => jest.mocked(HeaderGlassBackdrop).mock.calls[0][0];
+const styles = StyleSheet.create({
+  floatingWrapper: {
+    top: 72,
+    paddingHorizontal: 16,
+  },
+});
 
 describe('HeaderGlass', () => {
   beforeEach(() => {
@@ -79,6 +85,31 @@ describe('HeaderGlass', () => {
       top: 0,
       paddingTop: 47,
     });
+  });
+
+  it('applies custom positioning to the floating wrapper', () => {
+    const { getByTestId } = render(
+      <HeaderGlass containerStyle={styles.floatingWrapper} testID="header">
+        <Text>Header</Text>
+      </HeaderGlass>,
+    );
+
+    expect(getByTestId('header')).toHaveStyle({
+      position: 'absolute',
+      top: 72,
+      paddingHorizontal: 16,
+    });
+  });
+
+  it('stays in flow without a backdrop when it is not floating', () => {
+    const { getByTestId, queryByTestId } = render(
+      <HeaderGlass isFloating={false} backdrop="static" testID="header">
+        <Text>Header</Text>
+      </HeaderGlass>,
+    );
+
+    expect(getByTestId('header')).not.toHaveStyle({ position: 'absolute' });
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
   });
 
   it('reports its layout so the screen can inset its content', () => {

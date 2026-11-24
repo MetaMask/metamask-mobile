@@ -73,6 +73,53 @@ describe('usePerpsMarketData', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
   });
 
+  it('reads provider metadata when venue restrictions are required', async () => {
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockResolvedValueOnce([{ ...mockMarketData, onlyIsolated: true }]);
+
+    const { result } = renderHook(() =>
+      usePerpsMarketData({
+        asset: 'BTC',
+        providerId: 'hyperliquid',
+        useProviderMetadata: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(1, { symbols: ['BTC'] });
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(2, {
+      symbols: ['BTC'],
+      skipFilters: true,
+    });
+    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+    expect(result.current.marketData?.onlyIsolated).toBe(true);
+    expect(result.current.isProviderMetadataAvailable).toBe(true);
+  });
+
+  it('keeps allowed market data but marks provider metadata unavailable when its read fails', async () => {
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockRejectedValueOnce(new Error('Provider unavailable'));
+
+    const { result } = renderHook(() =>
+      usePerpsMarketData({
+        asset: 'BTC',
+        providerId: 'hyperliquid',
+        useProviderMetadata: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.marketData).toEqual(mockMarketData);
+    expect(result.current.error).toBeNull();
+    expect(result.current.isProviderMetadataAvailable).toBe(false);
+  });
+
   it('should handle asset not found', async () => {
     mockGetMarkets.mockResolvedValue([
       { name: 'ETH', szDecimals: 6, maxLeverage: 40, marginTableId: 2 },
@@ -111,7 +158,7 @@ describe('usePerpsMarketData', () => {
     expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 
-  it('should refetch data when calling refetch', async () => {
+  it('refetches market data when refetch is called', async () => {
     mockGetMarkets.mockResolvedValue([mockMarketData]);
 
     const { result } = renderHook(() => usePerpsMarketData('BTC'));
@@ -120,8 +167,9 @@ describe('usePerpsMarketData', () => {
       expect(mockGetMarkets).toHaveBeenCalledTimes(1);
     });
 
-    // Call refetch
-    result.current.refetch();
+    await act(async () => {
+      await result.current.refetch();
+    });
 
     await waitFor(() => {
       expect(mockGetMarkets).toHaveBeenCalledTimes(2);

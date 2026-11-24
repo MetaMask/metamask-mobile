@@ -66,6 +66,7 @@ describe('useImmersveSpendingPrerequisites', () => {
       type: 'kyc',
       url: 'https://verify.immersve.com',
       ctaHint: undefined,
+      reasons: [],
     });
   });
 

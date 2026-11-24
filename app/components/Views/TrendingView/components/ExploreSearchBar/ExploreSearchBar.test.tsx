@@ -406,4 +406,102 @@ describe('ExploreSearchBar', () => {
       expect(getByText('Search sites')).toBeDefined();
     });
   });
+
+  describe('glass', () => {
+    it('keeps the muted button pill by default', () => {
+      const { queryByTestId } = render(
+        <ExploreSearchBar type="button" onPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the button pill as a glass capsule and keeps it pressable', () => {
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar type="button" onPress={mockOnPress} isGlass />,
+      );
+
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).toHaveStyle({ height: 48 });
+
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      );
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the search field fill and border by default', () => {
+      const { getByTestId, queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId('textfieldsearch')).toHaveStyle({
+        height: 48,
+        borderWidth: 1,
+      });
+    });
+
+    it('draws the search field on a glass capsule without its own fill or border', () => {
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          isGlass
+        />,
+      );
+
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).toHaveStyle({ height: 48 });
+      expect(getByTestId('textfieldsearch')).toHaveStyle({
+        height: 48,
+        borderWidth: 0,
+        backgroundColor: 'transparent',
+      });
+    });
+
+    it('keeps typing, clear and cancel working on glass', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery="eth"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          isGlass
+        />,
+      );
+
+      fireEvent.changeText(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'ethe',
+      );
+      fireEvent.press(getByTestId('explore-search-clear-button'));
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      );
+
+      expect(mockOnSearchChange).toHaveBeenNthCalledWith(1, 'ethe');
+      expect(mockOnSearchChange).toHaveBeenNthCalledWith(2, '');
+      expect(mockOnCancel).toHaveBeenCalledTimes(1);
+    });
+  });
 });

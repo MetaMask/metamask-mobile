@@ -1,4 +1,4 @@
-# Compares BrowserStack app profiling for a failed performance scenario against
+# Compares TestMu app profiling for a failed performance scenario against
 # the last green baseline on main, then posts a diff comment on the PR.
 #
 # Automatic: run-performance-e2e.yml posts this for failed PR scenarios.

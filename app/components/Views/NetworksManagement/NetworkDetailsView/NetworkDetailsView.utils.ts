@@ -18,7 +18,6 @@ export const formatNetworkRpcUrl = (rpcUrl: string): string =>
 export function networkFormBaselineSnapshot(prev: NetworkFormState): string {
   return JSON.stringify([
     prev.rpcUrl ?? null,
-    prev.failoverRpcUrls ?? null,
     prev.blockExplorerUrl ?? null,
     prev.nickname ?? null,
     prev.chainId ?? null,
@@ -47,7 +46,6 @@ export function appendRpcItemToFormState(
     ...prev,
     rpcUrls: [...prev.rpcUrls, newRpcUrl],
     rpcUrl: newRpcUrl.url,
-    failoverRpcUrls: undefined,
     rpcName: newRpcUrl.name,
     rpcUrlForm: '',
     rpcNameForm: '',
@@ -58,7 +56,6 @@ export function appendRpcItemToFormState(
 export function applyRpcSelectionToFormState(
   prev: NetworkFormState,
   url: string,
-  failoverUrls: string[] | undefined,
   name: string,
   type: string,
 ): NetworkFormState {
@@ -67,7 +64,6 @@ export function applyRpcSelectionToFormState(
     ...prev,
     rpcName: nameToUse,
     rpcUrl: url,
-    failoverRpcUrls: failoverUrls,
   };
 }
 
@@ -83,7 +79,6 @@ export function removeRpcUrlFromFormState(
       ...prev,
       rpcUrls: updated,
       rpcUrl: updated[0].url,
-      failoverRpcUrls: updated[0].failoverUrls,
       rpcName: updated[0].name,
     };
   }
@@ -93,7 +88,6 @@ export function removeRpcUrlFromFormState(
       rpcUrls: updated,
       rpcUrl: undefined,
       rpcName: undefined,
-      failoverRpcUrls: undefined,
     };
   }
   return {

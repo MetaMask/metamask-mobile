@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './PerpsTradingCampaignLeaderboard';
@@ -89,6 +90,25 @@ describe('PerpsTradingCampaignLeaderboard', () => {
     expect(getByTestId(TEST_IDS.LIST)).toBeDefined();
     expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
     expect(getByTestId(TEST_IDS.POWERED_BY)).toBeDefined();
+  });
+
+  it('uses the alternative text color for the Powered by prefix', () => {
+    const { UNSAFE_getByProps } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+
+    expect(
+      UNSAFE_getByProps({ testID: TEST_IDS.POWERED_BY_PREFIX }).props.color,
+    ).toBe(TextColor.TextAlternative);
+  });
+
+  it('keeps the HyperTracker logo visible next to the muted prefix', () => {
+    const { getByTestId } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} />,
+    );
+
+    expect(getByTestId(TEST_IDS.POWERED_BY)).toBeDefined();
+    expect(getByTestId(TEST_IDS.HYPERTRACKER_LOGO)).toBeDefined();
   });
 
   it('navigates to in-app browser with HyperTracker attribution URL when brand is pressed', () => {
@@ -241,7 +261,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-250`)).toBeDefined();
     });
 
-    const twentyFiveEntries = Array.from({ length: 25 }, (_, i) =>
+    const twentyEntries = Array.from({ length: 20 }, (_, i) =>
       createPerpsEntry({
         rank: i + 1,
         referralCode: `R${String(i + 1).padStart(3, '0')}`,
@@ -253,7 +273,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsTradingCampaignLeaderboard
           {...defaultProps}
-          entries={twentyFiveEntries}
+          entries={twentyEntries}
           currentUserReferralCode="USER"
           userPosition={{
             rank: 21,
@@ -273,11 +293,96 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-20`)).toBeDefined();
     });
 
+    it('full mode shows ranks through numberOfWinners when the API sends more than the default', () => {
+      const thirtyEntries = Array.from({ length: 30 }, (_, i) =>
+        createPerpsEntry({
+          rank: i + 1,
+          referralCode: `W${String(i + 1).padStart(3, '0')}`,
+          pnl: 3000 - i,
+        }),
+      );
+      const { getByTestId, queryByTestId, UNSAFE_queryAllByProps } = render(
+        <PerpsTradingCampaignLeaderboard
+          {...defaultProps}
+          entries={thirtyEntries}
+          numberOfWinners={30}
+          currentUserReferralCode="USER"
+          userPosition={{
+            rank: 25,
+            neighbors: [
+              createPerpsEntry({ rank: 24, referralCode: 'N024' }),
+              createPerpsEntry({ rank: 25, referralCode: 'USER' }),
+              createPerpsEntry({ rank: 26, referralCode: 'N026' }),
+            ],
+          }}
+        />,
+      );
+
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-21`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-30`)).toBeDefined();
+      expect(queryByTestId(TEST_IDS.NEIGHBOR_SEPARATOR)).toBeNull();
+      expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(30);
+    });
+
+    it('full mode shows a 30-row board and crowns only numberOfWinners when that count is smaller', () => {
+      const thirtyEntries = Array.from({ length: 30 }, (_, i) =>
+        createPerpsEntry({
+          rank: i + 1,
+          referralCode: `W${String(i + 1).padStart(3, '0')}`,
+          pnl: 3000 - i,
+        }),
+      );
+      const { getByTestId, UNSAFE_queryAllByProps } = render(
+        <PerpsTradingCampaignLeaderboard
+          {...defaultProps}
+          entries={thirtyEntries}
+          numberOfWinners={5}
+        />,
+      );
+
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-20`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-30`)).toBeDefined();
+      expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(5);
+    });
+
+    it('shows the neighbor strip when numberOfWinners is larger than the returned rows', () => {
+      const fifteenEntries = Array.from({ length: 15 }, (_, i) =>
+        createPerpsEntry({
+          rank: i + 1,
+          referralCode: `W${String(i + 1).padStart(3, '0')}`,
+          pnl: 1500 - i,
+        }),
+      );
+      const { getByTestId, queryByTestId } = render(
+        <PerpsTradingCampaignLeaderboard
+          {...defaultProps}
+          entries={fifteenEntries}
+          numberOfWinners={30}
+          currentUserReferralCode="USER"
+          userPosition={{
+            rank: 22,
+            neighbors: [
+              createPerpsEntry({ rank: 21, referralCode: 'N021' }),
+              createPerpsEntry({ rank: 22, referralCode: 'USER' }),
+              createPerpsEntry({ rank: 23, referralCode: 'N023' }),
+            ],
+          }}
+        />,
+      );
+
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-15`)).toBeDefined();
+      expect(queryByTestId(`${TEST_IDS.ENTRY_ROW}-16`)).toBeNull();
+      expect(getByTestId(TEST_IDS.NEIGHBOR_SEPARATOR)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-22`)).toBeDefined();
+    });
+
     it('full mode shows 20 top rows when user rank is 23 (standard strip)', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsTradingCampaignLeaderboard
           {...defaultProps}
-          entries={twentyFiveEntries}
+          entries={twentyEntries}
           currentUserReferralCode="USER"
           userPosition={{
             rank: 23,

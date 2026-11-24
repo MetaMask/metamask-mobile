@@ -1,17 +1,8 @@
 import { CaipChainId, Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
+import { ChainId, toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Network } from '../../components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  BtcScope,
-  SolScope,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-  XlmScope,
-} from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -45,12 +36,86 @@ export function getFailoverUrlsForInfuraNetwork(
   return [];
 }
 
+/**
+ * Failover URLs for each chain that has them configured, keyed by chain ID.
+ * This is the single source of truth for RPC failover: it is passed to
+ * `NetworkController` as the `failoverUrls` constructor option (core applies
+ * those URLs only to endpoints whose hostname ends with `.infura.io`) and read
+ * by the network details UI.
+ *
+ * @returns Failover URLs keyed by chain ID.
+ */
+export function getFailoverUrlsByChainId(): Record<Hex, string[]> {
+  return {
+    [ChainId.mainnet]: getFailoverUrlsForInfuraNetwork('ethereum-mainnet'),
+    [ChainId['linea-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('linea-mainnet'),
+    [ChainId['arbitrum-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
+    [ChainId['avalanche-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
+    [ChainId['optimism-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
+    [ChainId['polygon-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
+    [ChainId['base-mainnet']]: getFailoverUrlsForInfuraNetwork('base-mainnet'),
+    [ChainId['bsc-mainnet']]: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
+    [ChainId['zksync-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('zksync-mainnet'),
+    [ChainId['megaeth-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('megaeth-mainnet'),
+    [ChainId['sei-mainnet']]: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
+    [ChainId['monad-mainnet']]:
+      getFailoverUrlsForInfuraNetwork('monad-mainnet'),
+    // HyperEVM, Arc and Robinhood Chain are not part of the `ChainId` enum.
+    [toHex(999)]: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
+    [toHex(5042)]: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
+    [toHex(4663)]: getFailoverUrlsForInfuraNetwork('robinhood-mainnet'),
+  };
+}
+
+/**
+ * Failover URLs configured for a chain, or an empty array if none.
+ *
+ * @param chainId - The hex chain ID.
+ * @returns The failover URLs for the chain.
+ */
+export function getFailoverUrlsForChainId(
+  chainId: string | undefined,
+): string[] {
+  return (chainId && getFailoverUrlsByChainId()[chainId as Hex]) || [];
+}
+
+/**
+ * Failover URLs that `NetworkController` applies to an RPC endpoint. Core only
+ * fails over endpoints whose hostname ends with `.infura.io`.
+ *
+ * @param chainId - The hex chain ID.
+ * @param rpcUrl - The RPC endpoint URL.
+ * @returns The failover URLs for the endpoint, or an empty array if none.
+ */
+export function getFailoverUrlsForEndpoint(
+  chainId: string | undefined,
+  rpcUrl: string | undefined,
+): string[] {
+  if (!rpcUrl) {
+    return [];
+  }
+  try {
+    if (!new URL(rpcUrl).hostname.endsWith('.infura.io')) {
+      return [];
+    }
+  } catch {
+    return [];
+  }
+  return getFailoverUrlsForChainId(chainId);
+}
+
 export const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
     ticker: 'AVAX',
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
@@ -62,7 +127,6 @@ export const PopularList = [
     chainId: toHex('42161'),
     nickname: 'Arbitrum',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
@@ -74,7 +138,6 @@ export const PopularList = [
     chainId: toHex('56'),
     nickname: 'BNB Chain',
     rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -87,7 +150,6 @@ export const PopularList = [
     chainId: toHex('8453'),
     nickname: 'Base',
     rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('base-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -100,7 +162,6 @@ export const PopularList = [
     chainId: toHex('999'),
     nickname: 'HyperEVM',
     rpcUrl: `https://hyperevm-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
     ticker: 'HYPE',
     warning: true,
     rpcPrefs: {
@@ -113,7 +174,6 @@ export const PopularList = [
     chainId: toHex('10'),
     nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
@@ -125,7 +185,6 @@ export const PopularList = [
     chainId: toHex('137'),
     nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
     ticker: 'POL',
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
@@ -137,7 +196,6 @@ export const PopularList = [
     chainId: toHex('324'),
     nickname: 'zkSync Era',
     rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('zksync-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -150,7 +208,6 @@ export const PopularList = [
     chainId: toHex('1329'),
     nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
@@ -163,7 +220,6 @@ export const PopularList = [
     chainId: toHex('143'),
     nickname: 'Monad',
     rpcUrl: `https://monad-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('monad-mainnet'),
     ticker: 'MON',
     warning: true,
     rpcPrefs: {
@@ -176,7 +232,6 @@ export const PopularList = [
     chainId: toHex('4326'),
     nickname: 'MegaETH',
     rpcUrl: `https://megaeth-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('megaeth-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -189,7 +244,6 @@ export const PopularList = [
     chainId: toHex('4217'),
     nickname: 'Tempo',
     rpcUrl: `https://rpc.tempo.xyz/`,
-    failoverRpcUrls: [],
     ticker: 'USD',
     warning: true,
     rpcPrefs: {
@@ -202,7 +256,6 @@ export const PopularList = [
     chainId: toHex('5042'),
     nickname: 'Arc',
     rpcUrl: `https://arc-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
     ticker: 'USDC',
     warning: true,
     rpcPrefs: {
@@ -215,7 +268,6 @@ export const PopularList = [
     chainId: toHex('4663'),
     nickname: 'Robinhood Chain',
     rpcUrl: `https://robinhood-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('robinhood-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -228,7 +280,6 @@ export const PopularList = [
     chainId: toHex('50'),
     nickname: 'XDC Network',
     rpcUrl: `https://xdc-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
     ticker: 'XDC',
     warning: true,
     rpcPrefs: {
@@ -272,14 +323,12 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
       return require('../../images/bitcoin-testnet-logo.png');
     case BtcScope.Signet:
       return require('../../images/bitcoin-signet-logo.svg');
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     case TrxScope.Mainnet:
       return require('../../images/tron.png');
     case TrxScope.Nile:
       return require('../../images/tron.png');
     case TrxScope.Shasta:
       return require('../../images/tron.png');
-    ///: END:ONLY_INCLUDE_IF(tron)
     case XlmScope.Pubnet:
       return require('../../images/xlm.png');
     default:

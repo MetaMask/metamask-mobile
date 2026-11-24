@@ -23,8 +23,12 @@ import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
   type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
+import type { QuickBuyTradeMode } from '../../../../UI/QuickBuy/types';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
-import { usePostSwapShareReopen } from '../../PostSwapShareBottomSheet';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../../PostTradeShareBottomSheet';
 import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
@@ -49,7 +53,7 @@ export interface TraderPositionBuyCtaProps {
   /** `true` when the trader has closed the position (sell); `false` when open. */
   isTraderPositionClosed?: boolean;
   /** Whether this position was opened from the Social V1 surface. */
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
   /**
    * Fires the follow-trading CTA-clicked analytics and marks the CTA as clicked
    * so the parent's "dismissed" event is suppressed. Called for both variants.
@@ -77,7 +81,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   source,
   originalEntryPoint,
   isTraderPositionClosed,
-  postSwapShare,
+  postTradeShare,
   onBuyCtaClicked,
   buyButtonTestID,
 }) => {
@@ -90,6 +94,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const isFocused = useIsFocused();
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [retryTradeMode, setRetryTradeMode] = useState<
+    QuickBuyTradeMode | undefined
+  >();
   // Treatment tapped Buy before the destination metadata finished resolving —
   // hold the intent and navigate once it settles (rather than falling back).
   const [isSwapPending, setIsSwapPending] = useState(false);
@@ -167,21 +174,30 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
+    setRetryTradeMode(undefined);
   }, []);
 
   const handlePostSwapReopen = useCallback(
-    (reopenTarget: QuickBuyTarget) => {
+    (
+      reopenTarget: QuickBuyTarget,
+      _copyTradeOrigin?: unknown,
+      tradeMode?: QuickBuyTradeMode,
+    ) => {
       if (
         target &&
         target.tokenAddress === reopenTarget.tokenAddress &&
         target.chain === reopenTarget.chain
       ) {
+        setRetryTradeMode(tradeMode);
         setIsQuickBuyVisible(true);
       }
     },
     [target],
   );
-  usePostSwapShareReopen(handlePostSwapReopen);
+  usePostTradeShareReopen(
+    handlePostSwapReopen,
+    postTradeShare ? PostTradeShareOwner.traderPosition : undefined,
+  );
 
   return (
     <>
@@ -207,7 +223,11 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         source={source}
         originalEntryPoint={originalEntryPoint}
         isTraderPositionClosed={isTraderPositionClosed}
-        postSwapShare={postSwapShare}
+        postTradeShare={postTradeShare}
+        postTradeShareOwner={
+          postTradeShare ? PostTradeShareOwner.traderPosition : undefined
+        }
+        initialTradeMode={retryTradeMode}
       />
     </>
   );

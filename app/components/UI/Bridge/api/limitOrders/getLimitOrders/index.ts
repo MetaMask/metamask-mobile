@@ -18,6 +18,7 @@ export async function getLimitOrders({
   walletAddress,
   states,
   chainId,
+  assetId,
   limit,
   cursor,
 }: GetLimitOrdersQuery): Promise<GetLimitOrdersResponse> {
@@ -40,6 +41,10 @@ export async function getLimitOrders({
 
   if (chainId) {
     searchParams.set('chainIds', chainId);
+  }
+
+  if (assetId) {
+    searchParams.set('assetId', assetId);
   }
 
   if (limit !== undefined) {

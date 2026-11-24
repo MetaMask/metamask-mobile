@@ -81,10 +81,6 @@ describe('useMoneyAccountDepositAndOrder', () => {
   });
 
   it('mounts the money account fallback with the current pay state', () => {
-    jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
-      availableTokens: [],
-      hasTokens: true,
-    });
     jest
       .mocked(useTransactionPayFiatPayment)
       .mockReturnValue({ selectedPaymentMethodId: 'card' } as never);
@@ -96,9 +92,9 @@ describe('useMoneyAccountDepositAndOrder', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
     expect(useAutomaticMoneyAccountPayTokenMock).toHaveBeenCalledWith({
+      availableTokens: [],
       disable: false,
       hasFiatPaymentSelected: true,
-      hasTokenBalance: true,
       payTokenSelected: true,
     });
   });

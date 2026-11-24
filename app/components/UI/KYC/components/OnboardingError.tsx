@@ -3,67 +3,58 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
-  BoxAlignItems,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
-  HeaderStandard,
-  IconAlertSeverity,
-  TitleAlert,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
-  TextColor,
-  TextVariant,
+  ListItemVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import VbaOnboardingPlaceholder from './OnboardingPlaceholder';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 
-export const VbaOnboardingErrorSelectorsIDs = {
-  CONTAINER: 'vba-onboarding-error-container',
-  BACK_BUTTON: 'vba-onboarding-error-back-button',
-  ILLUSTRATION: 'vba-onboarding-error-illustration',
-  LIST: 'vba-onboarding-error-list',
-  ITEM: 'vba-onboarding-error-item',
-  PRIMARY_BUTTON: 'vba-onboarding-error-primary-button',
-  SECONDARY_BUTTON: 'vba-onboarding-error-secondary-button',
+export const KycOnboardingErrorSelectorsIDs = {
+  CONTAINER: 'kyc-onboarding-error-container',
+  BACK_BUTTON: 'kyc-onboarding-error-back-button',
+  LIST: 'kyc-onboarding-error-list',
+  ITEM: 'kyc-onboarding-error-item',
+  PRIMARY_BUTTON: 'kyc-onboarding-error-primary-button',
+  SECONDARY_BUTTON: 'kyc-onboarding-error-secondary-button',
 } as const;
 
-export interface VbaOnboardingErrorItem {
+export interface KycOnboardingErrorItem {
   id: string;
   icon: IconName;
   title: string;
   description: string;
 }
 
-export interface VbaOnboardingErrorAction {
+export interface KycOnboardingErrorAction {
   label: string;
   onPress: () => void | Promise<void>;
   testID?: string;
 }
 
-export interface VbaOnboardingErrorProps {
+export interface KycOnboardingErrorProps {
   title: string;
   description: string;
   /**
-   * Checklist rows in the gray list. Omit this when the view has no rows.
+   * Checklist rows shown under the title. Omit this when the view has no rows.
    */
-  items?: VbaOnboardingErrorItem[];
-  primaryAction: VbaOnboardingErrorAction;
+  items?: KycOnboardingErrorItem[];
+  primaryAction: KycOnboardingErrorAction;
   /**
    * Optional second button, such as a help action under the primary button.
    */
-  secondaryAction?: VbaOnboardingErrorAction;
-  /**
-   * Header graphic. Defaults to a placeholder SVG until a Rive animation replaces it.
-   */
-  illustration?: React.ReactNode;
+  secondaryAction?: KycOnboardingErrorAction;
   /**
    * Overrides the scroll container testID when an existing screen keeps its own id.
    */
@@ -80,41 +71,37 @@ export interface VbaOnboardingErrorProps {
 
 type PendingAction = 'primary' | 'secondary';
 
-const VbaOnboardingErrorItemRow = ({
+const KycOnboardingErrorItemRow = ({
   item,
 }: {
-  item: VbaOnboardingErrorItem;
+  item: KycOnboardingErrorItem;
 }) => (
   <ListItem
+    variant={ListItemVariant.TwoLines}
     avatar={
-      <Icon name={item.icon} size={IconSize.Md} color={IconColor.IconDefault} />
+      <AvatarIcon iconName={item.icon} severity={AvatarIconSeverity.Neutral} />
     }
     title={item.title}
     description={item.description}
-    descriptionProps={{
-      variant: TextVariant.BodySm,
-      fontWeight: FontWeight.Regular,
-      color: TextColor.TextAlternative,
-    }}
-    testID={`${VbaOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
+    testID={`${KycOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
   />
 );
 
 /**
- * VBA onboarding action screen. Callers supply the copy, optional checklist,
- * and one or two buttons. Centered status copy stays on VbaOnboardingStatusScreen.
+ * KYC error screen. Callers supply the copy, optional checklist, and one or
+ * two buttons.
  */
-const VbaOnboardingError = ({
+const KycOnboardingError = ({
   title,
   description,
   items = [],
   primaryAction,
   secondaryAction,
-  illustration,
-  testID = VbaOnboardingErrorSelectorsIDs.CONTAINER,
-  backButtonTestID = VbaOnboardingErrorSelectorsIDs.BACK_BUTTON,
+  testID = KycOnboardingErrorSelectorsIDs.CONTAINER,
+  backButtonTestID = KycOnboardingErrorSelectorsIDs.BACK_BUTTON,
   onBack,
-}: VbaOnboardingErrorProps) => {
+}: KycOnboardingErrorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -136,6 +123,11 @@ const VbaOnboardingError = ({
         return;
       }
 
+      fireImpact(
+        action === 'primary'
+          ? ImpactMoment.PrimaryCTA
+          : ImpactMoment.SecondaryCTA,
+      );
       setPendingAction(action);
       try {
         await onPress();
@@ -166,7 +158,9 @@ const VbaOnboardingError = ({
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: backButtonTestID,
@@ -174,37 +168,18 @@ const VbaOnboardingError = ({
         includesTopInset
       />
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
+        contentContainerStyle={tw.style('flex-grow pb-6')}
         testID={testID}
       >
-        <TitleAlert
-          {...{
-            severity: IconAlertSeverity.Info,
-            title,
-            description,
-            titleProps: { twClassName: 'text-center' },
-            // TitleAlert draws an IconAlert. These screens replace that glyph
-            // with an 88pt frame. The artwork sits on the bottom edge, and the
-            // 20pt margin plus TitleAlert's 4pt gap is the 24pt space above the title.
-            topAccessory: (
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.End}
-                twClassName="mb-5 h-[88px] w-full"
-                testID={VbaOnboardingErrorSelectorsIDs.ILLUSTRATION}
-              >
-                {illustration ?? <VbaOnboardingPlaceholder />}
-              </Box>
-            ),
-          }}
+        <TitleStandard
+          title={title}
+          bottomLabel={description}
+          twClassName="px-4 pb-4"
         />
         {items.length > 0 ? (
-          <Box
-            twClassName="mt-6 overflow-hidden rounded-3xl bg-muted"
-            testID={VbaOnboardingErrorSelectorsIDs.LIST}
-          >
+          <Box testID={KycOnboardingErrorSelectorsIDs.LIST}>
             {items.map((item) => (
-              <VbaOnboardingErrorItemRow key={item.id} item={item} />
+              <KycOnboardingErrorItemRow key={item.id} item={item} />
             ))}
           </Box>
         ) : null}
@@ -219,7 +194,7 @@ const VbaOnboardingError = ({
           onPress={handlePrimaryPress}
           testID={
             primaryAction.testID ??
-            VbaOnboardingErrorSelectorsIDs.PRIMARY_BUTTON
+            KycOnboardingErrorSelectorsIDs.PRIMARY_BUTTON
           }
         >
           {primaryAction.label}
@@ -234,7 +209,7 @@ const VbaOnboardingError = ({
             onPress={handleSecondaryPress}
             testID={
               secondaryAction.testID ??
-              VbaOnboardingErrorSelectorsIDs.SECONDARY_BUTTON
+              KycOnboardingErrorSelectorsIDs.SECONDARY_BUTTON
             }
           >
             {secondaryAction.label}
@@ -245,4 +220,4 @@ const VbaOnboardingError = ({
   );
 };
 
-export default VbaOnboardingError;
+export default KycOnboardingError;

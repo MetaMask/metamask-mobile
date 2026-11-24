@@ -37,10 +37,8 @@ import {
   selectEnabledNetworksByNamespace,
   selectEVMEnabledNetworks,
 } from '../../../selectors/networkEnablementController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
@@ -269,7 +267,6 @@ const mapStateToProps = (state) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectSortedTransactions(state);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   let allTransactions = evmTransactions;
   if (
     selectedInternalAccount &&
@@ -282,7 +279,6 @@ const mapStateToProps = (state) => {
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     );
   }
-  ///: END:ONLY_INCLUDE_IF
 
   return {
     conversionRate: selectConversionRate(state),

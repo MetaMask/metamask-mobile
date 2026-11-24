@@ -13,6 +13,11 @@ import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 // Mock all dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: jest.fn() })),
 }));
@@ -113,9 +118,12 @@ describe('PerpsCloseAllPositionsView', () => {
     totalMargin: 1000,
     totalPnl: 100,
     totalFees: 10,
+    originalTotalFees: 12,
     receiveAmount: 1090,
     totalEstimatedPoints: 50,
     avgFeeDiscountPercentage: 5,
+    feeSource: undefined,
+    feeDiscountKind: 'vip' as const,
     avgBonusBips: 10,
     avgMetamaskFeeRate: 0.01,
     avgProtocolFeeRate: 0.00045,

@@ -1,7 +1,12 @@
 import { getLocalHost } from './FixtureUtils.ts';
 import Koa, { Context } from 'koa';
 import { createLogger } from '../logger.ts';
-import { E2ECommandTypes, Resource, ServerStatus } from '../types.ts';
+import {
+  E2ECommandTypes,
+  type ExportedAppState,
+  Resource,
+  ServerStatus,
+} from '../types.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
 
 const logger = createLogger({
@@ -19,18 +24,46 @@ export interface CommandQueueItem {
   args: Record<string, unknown>;
 }
 
+type StateExportKind = 'state' | 'appState';
+
+/** Command, endpoints and messages for each state export the app can POST. */
+const STATE_EXPORTS: Record<
+  StateExportKind,
+  {
+    command: E2ECommandTypes;
+    path: string;
+    notFound: string;
+    getterName: string;
+  }
+> = {
+  state: {
+    command: E2ECommandTypes.exportState,
+    path: '/exported-state',
+    notFound: 'No exported state available',
+    getterName: 'getExportedState',
+  },
+  appState: {
+    command: E2ECommandTypes.exportAppState,
+    path: '/exported-app-state',
+    notFound: 'No exported app state available',
+    getterName: 'getExportedAppState',
+  },
+};
+
+const STATE_EXPORT_KINDS = Object.keys(STATE_EXPORTS) as StateExportKind[];
+
 class CommandQueueServer implements Resource {
   private _app: Koa;
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: CommandQueueItem[];
-  private _exportedState: Record<string, unknown> | null;
+  private _exports: Record<StateExportKind, Record<string, unknown> | null>;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
   constructor() {
     this._app = new Koa();
     this._queue = [];
-    this._exportedState = null;
+    this._exports = { state: null, appState: null };
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -57,22 +90,25 @@ class CommandQueueServer implements Resource {
         return;
       }
 
-      if (this._isExportedStatePost(ctx)) {
-        const body = await this._parseJsonBody(ctx);
-        this._exportedState = body as Record<string, unknown>;
-        ctx.status = 200;
-        ctx.body = { success: true };
-        return;
-      }
-
-      if (this._isExportedStateGet(ctx)) {
-        if (this._exportedState === null) {
-          ctx.status = 404;
-          ctx.body = { error: 'No exported state available' };
+      for (const kind of STATE_EXPORT_KINDS) {
+        const { path, notFound } = STATE_EXPORTS[kind];
+        if (ctx.method === 'POST' && ctx.path === path) {
+          const body = await this._parseJsonBody(ctx);
+          this._exports[kind] = body as Record<string, unknown>;
+          ctx.status = 200;
+          ctx.body = { success: true };
           return;
         }
-        ctx.body = this._exportedState;
-        return;
+        if (ctx.method === 'GET' && ctx.path === `${path}.json`) {
+          const exported = this._exports[kind];
+          if (exported === null) {
+            ctx.status = 404;
+            ctx.body = { error: notFound };
+            return;
+          }
+          ctx.body = exported;
+          return;
+        }
       }
     });
   }
@@ -185,30 +221,62 @@ class CommandQueueServer implements Resource {
   }
 
   requestStateExport() {
-    this._exportedState = null;
-    this._queue.push({
-      type: E2ECommandTypes.exportState,
-      args: {},
-    });
+    this._requestExport('state');
+  }
+
+  /**
+   * Asks the app for the same sanitized document as its in-app state log
+   * export, plus the fields its controller metadata leaves out.
+   */
+  requestAppStateExport() {
+    this._requestExport('appState');
   }
 
   async getExportedState(
     timeout = 10000,
     pollInterval = 500,
   ): Promise<Record<string, unknown>> {
+    return this._waitForExport('state', timeout, pollInterval);
+  }
+
+  async getExportedAppState(
+    timeout = 10000,
+    pollInterval = 500,
+  ): Promise<ExportedAppState> {
+    return (await this._waitForExport(
+      'appState',
+      timeout,
+      pollInterval,
+    )) as unknown as ExportedAppState;
+  }
+
+  private _requestExport(kind: StateExportKind) {
+    this._exports[kind] = null;
+    this._queue.push({
+      type: STATE_EXPORTS[kind].command,
+      args: {},
+    });
+  }
+
+  private async _waitForExport(
+    kind: StateExportKind,
+    timeout: number,
+    pollInterval: number,
+  ): Promise<Record<string, unknown>> {
     const deadline = Date.now() + timeout;
 
     while (Date.now() < deadline) {
-      if (this._exportedState !== null) {
-        const state = this._exportedState;
-        this._exportedState = null;
-        return state;
+      const exported = this._exports[kind];
+      if (exported !== null) {
+        this._exports[kind] = null;
+        return exported;
       }
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
 
+    const { getterName, path } = STATE_EXPORTS[kind];
     throw new Error(
-      `getExportedState timed out after ${timeout}ms — the app did not POST to /exported-state. ` +
+      `${getterName} timed out after ${timeout}ms — the app did not POST to ${path}. ` +
         'Ensure the command queue server is running and the app is polling /queue.json.',
     );
   }
@@ -219,14 +287,6 @@ class CommandQueueServer implements Resource {
 
   private _isDebugRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/debug.json';
-  }
-
-  private _isExportedStatePost(ctx: Context) {
-    return ctx.method === 'POST' && ctx.path === '/exported-state';
-  }
-
-  private _isExportedStateGet(ctx: Context) {
-    return ctx.method === 'GET' && ctx.path === '/exported-state.json';
   }
 
   private _parseJsonBody(ctx: Context): Promise<unknown> {

@@ -44,7 +44,7 @@ export interface WalletHeaderNativeHeaderParams {
 
 /**
  * The interim wallet header as a native iOS 26 bar: the account picker on the
- * left, Activity, Search and Menu grouped on the right. Returns whether the
+ * left, Search, Activity and Menu grouped on the right. Returns whether the
  * native bar is on, so the caller skips the JS `WalletHeader`.
  */
 export const useWalletHeaderNativeHeader = ({

@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -10,8 +9,16 @@ import React, {
 import { Animated, PixelRatio, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, StackActions } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  useNavigation,
+  useRoute,
+  StackActions,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Fit,
@@ -30,21 +37,13 @@ import {
 } from '@rive-app/react-native';
 
 import { strings } from '../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 
 import {
   selectIsMetamaskNotificationsEnabled,
@@ -241,10 +240,11 @@ const markOnboardingSeen = () =>
  */
 const SocialLeaderboardOnboarding: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<RootStackParamList, 'SocialLeaderboardOnboarding'>>();
   const styles = useMemo(() => createStyles(), []);
   const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
-  const { toastRef } = useContext(ToastContext);
 
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const isNotificationsEnabled = useSelector(
@@ -581,8 +581,30 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     });
   }, [stepIndex, track]);
 
+  const returnToSocialTab = useCallback(
+    (extraParams?: { showNotificationsBanner?: boolean }) => {
+      navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.SOCIAL.TAB,
+          params: {
+            source: ONBOARDING_SOURCE,
+            ...extraParams,
+          },
+        },
+        { pop: true },
+      );
+    },
+    [navigation],
+  );
+
   const exitToLeaderboard = useCallback(
     (extraParams?: { showNotificationsBanner?: boolean }) => {
+      if (route.params?.returnToTab) {
+        returnToSocialTab(extraParams);
+        return;
+      }
+
       navigation.dispatch(
         StackActions.replace(getFollowTradingHomeRoute(), {
           source: ONBOARDING_SOURCE,
@@ -590,7 +612,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         }),
       );
     },
-    [navigation],
+    [navigation, returnToSocialTab, route.params?.returnToTab],
   );
 
   const goToLeaderboard = useCallback(
@@ -617,8 +639,18 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   const handleClose = useCallback(() => {
     void markOnboardingSeen();
     trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.DISMISSED);
+    if (route.params?.returnToTab) {
+      returnToSocialTab();
+      return;
+    }
+
     navigation.goBack();
-  }, [navigation, trackInteraction]);
+  }, [
+    navigation,
+    returnToSocialTab,
+    route.params?.returnToTab,
+    trackInteraction,
+  ]);
 
   // Forward navigation. The "Next" button (Trade slide) AND the artboard's
   // forward tap-zone (right margin) both fire `next`, from whichever slide is
@@ -672,40 +704,24 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     swallowNextCompletionRef.current = true;
   }, [setStep, trackInteraction]);
 
-  // Confirm the enable with a toast (rendered by the global ToastContext, so it
+  // Confirm the enable with a toast (Toaster is mounted at the app root, so it
   // survives the route replace and lands on the leaderboard). Only shown when
   // permission was granted; the OS-denied case is handled on the leaderboard via
   // a persistent nudge banner (a toast disappears too quickly to catch), so the
   // user is never ejected mid-onboarding and always sees the actionable prompt.
   const showNotificationsEnabledToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings(
-            'notifications.push_onboarding.new_user.toast.notifications_on.title',
-          ),
-          isBold: true,
-        },
-      ],
-      descriptionOptions: {
-        description: strings(
-          'notifications.push_onboarding.new_user.toast.notifications_on.description',
-        ),
-      },
-      startAccessory: (
-        <View style={styles.toastAccessory}>
-          <Icon
-            name={IconName.Confirmation}
-            size={IconSize.Lg}
-            color={IconColor.Success}
-          />
-        </View>
+    toast({
+      title: strings(
+        'notifications.push_onboarding.new_user.toast.notifications_on.title',
       ),
-      customBottomOffset: TAB_BAR_HEIGHT,
+      description: strings(
+        'notifications.push_onboarding.new_user.toast.notifications_on.description',
+      ),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, styles.toastAccessory]);
+  }, []);
 
   // "Allow notifications" (terminal): enable notifications, then complete. The
   // button appears on either Notify slide (step 3 or 3.1) while prompting is
@@ -800,7 +816,17 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         return;
       }
 
-      Logger.error(new Error(description));
+      const riveErrorObj = new Error(description);
+      Logger.error(
+        riveErrorObj,
+        buildSocialLoggerErrorOptions({
+          surface: 'leaderboard_onboarding',
+          operation: 'rive_runtime',
+          extraMessage: description,
+          source: 'SocialLeaderboardOnboarding',
+          error: riveErrorObj,
+        }),
+      );
       if (hasCompletedRef.current) {
         return;
       }

@@ -68,7 +68,7 @@ describe('SamplePetNamesForm', () => {
   it('persists pet name using SamplePetnamesController', async () => {
     // Arrange
     const mockAssignPetname = Engine.context.SamplePetnamesController
-      .assignPetname as jest.Mock;
+      ?.assignPetname as jest.Mock;
 
     const { getByTestId } = renderWithProvider(
       <SamplePetNamesForm
@@ -135,7 +135,7 @@ describe('SamplePetNamesForm', () => {
     });
 
     const mockAssignPetname = Engine.context.SamplePetnamesController
-      .assignPetname as jest.Mock;
+      ?.assignPetname as jest.Mock;
 
     const { getByTestId } = renderWithProvider(
       <SamplePetNamesForm
@@ -175,7 +175,7 @@ describe('SamplePetNamesForm', () => {
     });
 
     const mockAssignPetname = Engine.context.SamplePetnamesController
-      .assignPetname as jest.Mock;
+      ?.assignPetname as jest.Mock;
 
     const { getByTestId } = renderWithProvider(
       <SamplePetNamesForm

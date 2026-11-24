@@ -86,6 +86,21 @@ describe('PerpsController Messenger', () => {
     );
   });
 
+  it('delegates the subscription benefits action so the perps fee waiver can hydrate', () => {
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const delegateSpy = jest.spyOn(baseControllerMessenger, 'delegate');
+
+    getPerpsControllerMessenger(baseControllerMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['SubscriptionController:getBenefits']),
+      }),
+    );
+  });
+
   it('delegates AUS notification-preference actions to the perps controller messenger', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,

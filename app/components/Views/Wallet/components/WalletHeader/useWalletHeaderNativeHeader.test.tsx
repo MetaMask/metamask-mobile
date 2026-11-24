@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent, renderHook } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -100,6 +101,21 @@ describe('useWalletHeaderNativeHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it('orders Search, Activity and Menu to match the legacy header', () => {
+    const buttonIds = [
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+    ];
+    const { getAllByTestId } = renderRightItem();
+
+    const renderedIds = getAllByTestId(
+      new RegExp(`^(${buttonIds.join('|')})$`),
+    ).map((button) => button.props.testID);
+
+    expect(renderedIds).toEqual(buttonIds);
+  });
+
   it('drops Activity when Money is geo-fenced', () => {
     const { queryByTestId } = renderRightItem({ isMoneyAccountVisible: false });
 
@@ -154,5 +170,23 @@ describe('useWalletHeaderNativeHeader', () => {
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
       {},
     );
+  });
+
+  it('keeps the named picker in the bar, with no avatar', () => {
+    const [accountItem] = renderNativeHeader().leftItems;
+    if (accountItem?.type !== 'custom') {
+      throw new Error('Expected a custom account picker item');
+    }
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      accountItem.element,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+    ).not.toBeOnTheScreen();
   });
 });

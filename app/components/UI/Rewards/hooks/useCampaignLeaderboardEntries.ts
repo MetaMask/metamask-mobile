@@ -1,8 +1,13 @@
 import { useMemo } from 'react';
 
-const MAX_ENTRIES_LIMIT = 20;
+/** Historical full-board depth for campaigns that do not pass `boardSize`. */
+const DEFAULT_BOARD_SIZE = 20;
 const SPLIT_VIEW_TOP_COUNT_PREVIEW = 3;
-const FULL_SPLIT_TOP_REDUCED_AT_RANKS: readonly number[] = [21, 22];
+/**
+ * Ranks immediately past the board whose neighbor window overlaps the tail.
+ * The top strip drops two rows so those neighbors are not drawn twice.
+ */
+const SPLIT_VIEW_OVERLAP_RANK_OFFSETS = [1, 2] as const;
 
 export interface CampaignLeaderboardUserPosition<TEntry> {
   rank: number;
@@ -17,6 +22,12 @@ interface UseCampaignLeaderboardEntriesParams<
   maxEntries?: number;
   userPosition?: TUserPosition | null;
   canShowSplitView?: boolean;
+  /**
+   * Full-leaderboard depth. A smaller `maxEntries` still previews that many
+   * rows. Defaults to 20 so campaigns that do not pass it keep the historical
+   * cap. Perps passes the returned row count, floored at 20.
+   */
+  boardSize?: number;
 }
 
 export const useCampaignLeaderboardEntries = <
@@ -27,13 +38,20 @@ export const useCampaignLeaderboardEntries = <
   maxEntries,
   userPosition,
   canShowSplitView = true,
+  boardSize,
 }: UseCampaignLeaderboardEntriesParams<TEntry, TUserPosition>) => {
   const isPreview = maxEntries != null;
+  const resolvedBoardSize =
+    typeof boardSize === 'number' &&
+    Number.isFinite(boardSize) &&
+    boardSize >= 1
+      ? boardSize
+      : DEFAULT_BOARD_SIZE;
 
   const effectiveMaxEntries =
-    maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT
+    maxEntries != null && maxEntries <= resolvedBoardSize
       ? maxEntries
-      : MAX_ENTRIES_LIMIT;
+      : resolvedBoardSize;
 
   const splitViewTopCount = useMemo(() => {
     if (isPreview) {
@@ -41,12 +59,15 @@ export const useCampaignLeaderboardEntries = <
     }
     const rank = userPosition?.rank;
     if (rank == null) {
-      return MAX_ENTRIES_LIMIT;
+      return resolvedBoardSize;
     }
-    return FULL_SPLIT_TOP_REDUCED_AT_RANKS.includes(rank)
-      ? MAX_ENTRIES_LIMIT - 2
-      : MAX_ENTRIES_LIMIT;
-  }, [isPreview, userPosition?.rank]);
+    const overlapsBoardTail = SPLIT_VIEW_OVERLAP_RANK_OFFSETS.some(
+      (offset) => rank === resolvedBoardSize + offset,
+    );
+    return overlapsBoardTail
+      ? Math.max(resolvedBoardSize - 2, 0)
+      : resolvedBoardSize;
+  }, [isPreview, resolvedBoardSize, userPosition?.rank]);
 
   const showSplitView = useMemo(() => {
     if (!userPosition || !canShowSplitView) return false;

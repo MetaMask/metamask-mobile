@@ -60,11 +60,11 @@ describe('fetchSentinelFeeTokens', () => {
     expect(requestInit?.headers).not.toHaveProperty('Content-Type');
   });
 
-  it('returns normalized Sentinel fee tokens', async () => {
+  it('returns Sentinel fee-token metadata', async () => {
     const result = await fetchSentinelFeeTokens();
 
     expect(result).toStrictEqual({
-      'eip155:1': [{ assetId: USDC_ASSET_ID, symbol: 'USDC' }],
+      'eip155:1': [USDC_TOKEN],
     });
   });
 
@@ -78,11 +78,13 @@ describe('fetchSentinelFeeTokens', () => {
 
   it('throws when the API returns a malformed payload', async () => {
     fetchSpy.mockResolvedValue(
-      createResponse({ 'eip155:1': [{ ...USDC_TOKEN, assetId: 'not-caip' }] }),
+      createResponse({
+        'eip155:1': [{ ...USDC_TOKEN, assetId: 'not-caip' }],
+      }),
     );
 
     await expect(fetchSentinelFeeTokens()).rejects.toThrow(
-      'invalid asset ID for eip155:1',
+      /Invalid Sentinel fee tokens response/u,
     );
   });
 });

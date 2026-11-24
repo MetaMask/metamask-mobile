@@ -383,22 +383,27 @@ class BitcoinTestDapp {
 
   /**
    * Detect whether MetaMask's Bitcoin wallet-standard provider has registered
-   * in the page via the app-ready / register-wallet handshake.
+   * in the page. Wallets answer `wallet-standard:app-ready` synchronously by
+   * calling `event.detail.register(wallet)`, so the event must carry that API.
    */
   private async isBitcoinWalletRegistered(): Promise<boolean> {
     const count = await this.evaluate<number>(
       `(() => {
         let n = 0;
-        const handler = (event) => {
-          try {
-            event.detail.callback({ register() { n += 1; } });
-          } catch (_) {}
+        const register = (...wallets) => {
+          for (const wallet of wallets) {
+            const chains = Array.isArray(wallet?.chains) ? wallet.chains : [];
+            if (chains.some((chain) => String(chain).startsWith('bitcoin:'))) {
+              n += 1;
+            }
+          }
+          return () => {};
         };
-        window.addEventListener('wallet-standard:register-wallet', handler);
         try {
-          window.dispatchEvent(new Event('wallet-standard:app-ready'));
+          window.dispatchEvent(
+            new CustomEvent('wallet-standard:app-ready', { detail: { register } }),
+          );
         } catch (_) {}
-        window.removeEventListener('wallet-standard:register-wallet', handler);
         return n;
       })()`,
     );
@@ -452,33 +457,36 @@ class BitcoinTestDapp {
    * wallets=[] ("No wallet available") until reload. Reload remounts the
    * effect; re-tapping Connect alone cannot.
    *
-   * Blind reload loops (3 Connect attempts) still flake when the provider is
-   * slower than the remount. Wait for wallet-standard registration, then
-   * remount so the mount effect captures a non-empty wallets list before
-   * Connect. Retry that provider-ready remount path up to maxAttempts.
+   * Each remount races provider injection, so one provider-ready remount can
+   * still land on wallets=[]. Wait for wallet-standard registration, remount,
+   * and retry until the wallet option appears or the time budget runs out.
    */
-  private async openWalletSelectionModal(): Promise<void> {
+  private async openWalletSelectionModal(
+    timeoutMs = 2 * CONNECT_TIMEOUT_MS,
+  ): Promise<void> {
     const walletOptionSelector = `button${sel(
       walletSelectionModal.walletOption,
     )}`;
     const connectSelector = `button${sel(header.connect)}`;
-    const maxAttempts = 5;
+    const deadline = Date.now() + timeoutMs;
+    const remaining = () => Math.max(0, deadline - Date.now());
+    let attempts = 0;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (attempt > 1) {
+    while (remaining() > 0) {
+      if (attempts > 0) {
         await this.closeWalletSelectionModalBestEffort();
       }
+      attempts += 1;
 
       // Provider must be present *before* remount so the dapp's one-shot
       // useEffect sees MetaMask Bitcoin instead of wallets=[].
-      await this.waitForBitcoinWalletRegistered(attempt === 1 ? 15_000 : 8_000);
+      await this.waitForBitcoinWalletRegistered(Math.min(15_000, remaining()));
       await this.reloadDapp();
 
       await this.click(connectSelector);
-      const waitMs = attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 12_000;
       const outcome = await this.waitForWalletModalOutcome(
         walletOptionSelector,
-        waitMs,
+        Math.max(POLL_MS, Math.min(12_000, remaining())),
       );
       if (outcome === 'wallet') {
         return;
@@ -486,7 +494,7 @@ class BitcoinTestDapp {
     }
 
     throw new Error(
-      `Timed out waiting for "${walletOptionSelector}" to appear after ${maxAttempts} provider-ready reload + connect attempt(s)`,
+      `Timed out waiting for "${walletOptionSelector}" to appear after ${attempts} provider-ready reload + connect attempt(s) in ${timeoutMs}ms`,
     );
   }
 

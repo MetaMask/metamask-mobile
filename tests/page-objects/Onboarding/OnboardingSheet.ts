@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
+import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/Onboarding/OnboardingSheet/OnboardingSheet.testIds';
 import type { AppiumElement } from '../../framework/AppiumElement';
 
 class OnboardingSheet {
@@ -53,6 +53,18 @@ class OnboardingSheet {
   async tapImportSeedButton(): Promise<void> {
     await Gestures.waitAndTap(this.importSeedButton, {
       elemDescription: 'Import Seed Button in Onboarding Sheet',
+    });
+  }
+
+  get importFromExtensionButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON,
+    );
+  }
+
+  async tapImportFromExtensionButton(): Promise<void> {
+    await Gestures.waitAndTap(this.importFromExtensionButton, {
+      elemDescription: 'Import from MetaMask extension button',
     });
   }
 }

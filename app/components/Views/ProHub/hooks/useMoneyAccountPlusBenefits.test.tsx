@@ -5,12 +5,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   PRODUCT_TYPES,
   SUBSCRIPTION_STATUSES,
+  SubscriptionControllerErrorMessage,
   type SubscriptionBenefitsState,
   type Subscription,
 } from '@metamask/subscription-controller';
 import type { RootState } from '../../../../reducers';
 import configureStore from '../../../../util/test/configureStore';
 import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
+import Logger from '../../../../util/Logger';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
@@ -23,9 +26,16 @@ import {
   useMoneyAccountPlusBenefits,
 } from './useMoneyAccountPlusBenefits';
 
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     SubscriptionController: {
+      getBenefits: jest.fn(),
+    },
+    SubscriptionService: {
       getBenefits: jest.fn(),
     },
   },
@@ -64,6 +74,11 @@ const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockGetBenefits = jest.mocked(
   Engine.context.SubscriptionController.getBenefits,
 );
+const subscriptionService = Engine.context.SubscriptionService;
+if (!subscriptionService) {
+  throw new Error('SubscriptionService mock is missing');
+}
+const mockGetPausedBenefits = jest.mocked(subscriptionService.getBenefits);
 
 const BENEFITS: SubscriptionBenefitsState = {
   billingPeriodId: 'bp_2026_08_15',
@@ -76,7 +91,6 @@ const BENEFITS: SubscriptionBenefitsState = {
   },
   perps: {
     builderFeeBips: '0',
-    builderCode: 'code',
     capMicroUsd: 1_000_000_000,
     consumedMicroUsd: 240_000_000,
     remainingMicroUsd: 760_000_000,
@@ -88,6 +102,16 @@ const BENEFITS: SubscriptionBenefitsState = {
     consumedTxCount: 0,
     remainingTxCount: 1,
     exhausted: false,
+  },
+};
+
+const PAUSED_BENEFITS_RESPONSE = {
+  eligible: false,
+  billingPeriodId: BENEFITS.billingPeriodId,
+  products: {
+    swaps: { ...BENEFITS.swaps, feeBips: null },
+    perps: { ...BENEFITS.perps, builderFeeBips: null },
+    predict: { ...BENEFITS.predict, builderCode: null },
   },
 };
 
@@ -156,19 +180,35 @@ const renderBenefits = (state: RootState) => {
   applyAuthFromState(state);
 
   const queryClient = createQueryClient();
+  const store = configureStore(state);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={configureStore(state)}>
+    <Provider store={store}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </Provider>
   );
 
-  return renderHook(() => useMoneyAccountPlusBenefits(), { wrapper: Wrapper });
+  return {
+    store,
+    ...renderHook(() => useMoneyAccountPlusBenefits(), { wrapper: Wrapper }),
+  };
+};
+
+const setSubscriptionStatus = (status: Subscription['status']) => {
+  Object.assign(Engine, {
+    state: {
+      SubscriptionController: {
+        subscriptions: [createPlusSubscription(status)],
+        trialedProducts: [],
+      },
+    },
+  });
 };
 
 describe('useMoneyAccountPlusBenefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Reflect.deleteProperty(Engine, 'state');
     mockAccess(MoneyAccountPlusAccess.Subscriber);
     mockSelectIsSignedIn.mockReturnValue(true);
     mockSelectIsUnlocked.mockReturnValue(true);
@@ -229,6 +269,129 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
     expect(result.current.items).toEqual([]);
+  });
+
+  it.each([SUBSCRIPTION_STATUSES.paused, SUBSCRIPTION_STATUSES.unpaid])(
+    'shows paused usage for a %s membership without treating it as a waiver',
+    async (subscriptionStatus) => {
+      mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+
+      const { result } = renderBenefits(
+        createState({
+          benefits: BENEFITS,
+          subscriptionStatus,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.status).toBe(
+          MoneyAccountPlusBenefitsStatus.Ready,
+        ),
+      );
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(mockGetPausedBenefits).toHaveBeenCalledTimes(1);
+      expect(result.current.benefitsPaused).toBe(true);
+      expect(result.current.items).toHaveLength(3);
+      expect(result.current.items[0]).toEqual(
+        expect.objectContaining({ id: 'swaps', used: 310, allowance: 500 }),
+      );
+    },
+  );
+
+  it('hides member pricing when a paused membership has no benefit window', async () => {
+    mockGetPausedBenefits.mockResolvedValue({
+      eligible: false,
+      billingPeriodId: null,
+      products: {
+        swaps: {
+          feeBips: null,
+          remainingMicroUsd: null,
+          exhausted: false,
+        },
+        perps: {
+          builderFeeBips: null,
+          remainingMicroUsd: null,
+          exhausted: false,
+        },
+        predict: {
+          builderCode: null,
+          remainingTxCount: null,
+          exhausted: false,
+        },
+      },
+    });
+
+    const { result } = renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.items).toEqual([]);
+    expect(result.current.benefitsPaused).toBe(false);
+  });
+
+  it('shows paused usage for an unpaid membership that is not a hub subscriber', async () => {
+    mockAccess(MoneyAccountPlusAccess.Eligible);
+    mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.unpaid,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.benefitsPaused).toBe(true));
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.items).toHaveLength(3);
+  });
+
+  it.each([SUBSCRIPTION_STATUSES.pastDue, SUBSCRIPTION_STATUSES.awaitingFunds])(
+    'hides the section without fetching for a %s plan with no entitlement',
+    (subscriptionStatus) => {
+      mockAccess(MoneyAccountPlusAccess.Eligible);
+
+      const { result } = renderBenefits(createState({ subscriptionStatus }));
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(mockGetPausedBenefits).not.toHaveBeenCalled();
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
+    },
+  );
+
+  it('fetches paused usage again when the billing period changes but the status stays paused', async () => {
+    mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+    const { result, store } = renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() => expect(result.current.benefitsPaused).toBe(true));
+    expect(mockGetPausedBenefits).toHaveBeenCalledTimes(1);
+
+    Object.assign(Engine, {
+      state: {
+        SubscriptionController: {
+          subscriptions: [
+            {
+              ...createPlusSubscription(SUBSCRIPTION_STATUSES.paused),
+              currentPeriodEnd: '2026-10-15T12:00:00.000Z',
+            },
+          ],
+          trialedProducts: [],
+        },
+      },
+    });
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'SubscriptionController' }));
+    });
+
+    await waitFor(() => expect(mockGetPausedBenefits).toHaveBeenCalledTimes(2));
   });
 
   it('hides the section for an entitled past_due subscriber even before subscriptions settle', () => {
@@ -306,6 +469,160 @@ describe('useMoneyAccountPlusBenefits', () => {
       'swaps',
       'perps',
     ]);
+  });
+
+  it('shows pending confirmation when a provisional subscriber is not eligible yet', async () => {
+    mockGetBenefits.mockRejectedValue(
+      new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+    );
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Pending,
+      ),
+    );
+
+    expect(result.current.items).toEqual([]);
+    expect(result.current.resetsOn).toBeUndefined();
+  });
+
+  it('refetches benefits when a provisional membership becomes active', async () => {
+    let rejectConfirmedRequest: (error: Error) => void = () => undefined;
+    mockGetBenefits.mockRejectedValueOnce(
+      new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+    );
+    mockGetBenefits.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectConfirmedRequest = reject;
+        }),
+    );
+
+    const { result, store } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Pending,
+      ),
+    );
+    expect(mockGetBenefits).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    setSubscriptionStatus(SUBSCRIPTION_STATUSES.active);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'SubscriptionController' }));
+    });
+
+    expect(mockGetBenefits).toHaveBeenCalledTimes(2);
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    await act(async () => {
+      rejectConfirmedRequest(
+        new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+      );
+      // React Query notifies observers on a timeout. Flush it inside act.
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 0);
+      });
+    });
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Unavailable,
+      ),
+    );
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([SUBSCRIPTION_STATUSES.active, SUBSCRIPTION_STATUSES.trialing])(
+    'reports unavailable when a %s subscriber is not eligible',
+    async (subscriptionStatus) => {
+      mockGetBenefits.mockRejectedValue(
+        new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+      );
+
+      const { result } = renderBenefits(
+        createState({
+          subscriptionStatus,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.status).toBe(
+          MoneyAccountPlusBenefitsStatus.Unavailable,
+        ),
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: SubscriptionControllerErrorMessage.UserNotSubscribed,
+        }),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            operation: 'benefits_not_eligible',
+          }),
+        }),
+      );
+    },
+  );
+
+  it('shows pending confirmation when a provisional benefits response is incomplete', async () => {
+    const incompleteResponse = new Error(
+      'At path: products.perps.builderCode -- Expected a string, but received: undefined',
+    );
+    incompleteResponse.name = 'StructError';
+    mockGetBenefits.mockRejectedValue(incompleteResponse);
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Pending,
+      ),
+    );
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('keeps the error state when a confirmed subscriber gets an incomplete benefits response', async () => {
+    const incompleteResponse = new Error(
+      'At path: products.perps.builderCode -- Expected a string, but received: undefined',
+    );
+    incompleteResponse.name = 'StructError';
+    mockGetBenefits.mockRejectedValue(incompleteResponse);
+
+    const { result } = renderBenefits(createState());
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
+    );
+  });
+
+  it('keeps the error state when a provisional subscriber hits a real load failure', async () => {
+    mockGetBenefits.mockRejectedValue(new Error('network down'));
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
+    );
   });
 
   it('reports error when the fetch fails and no cache exists', async () => {

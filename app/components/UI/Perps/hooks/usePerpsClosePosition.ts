@@ -6,14 +6,19 @@ import Logger from '../../../../util/Logger';
 import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
+  PERPS_ERROR_CODES,
   type OrderResult,
   type OrdinaryOrderType,
+  type PerpsProviderType,
   type Position,
   type TrackingData,
 } from '@metamask/perps-controller';
 import {
   handlePerpsError,
+  isPerpsErrorCode,
+  type PerpsErrorInput,
   isNoPositionFoundError,
+  isPostOnlyWindowError,
 } from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
@@ -38,6 +43,24 @@ import {
 } from '../constants/perpsCufTags';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
+import ToastService from '../../../../core/ToastService';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../../util/social/postTradePromptStorage';
+import type { PostTradePrompt } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import {
+  buildPerpsPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
+import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import { getCopyTradeOid } from '../utils/copyTradeIntent';
+import {
+  completePerpsPostTradeShare,
+  failPerpsPostTradeShare,
+  openPerpsPostTradeShareSession,
+  withPerpsCloseFill,
+} from '../utils/perpsPostTradeShare';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -63,12 +86,24 @@ interface ClosePositionParams {
     priceAtCalculation?: number;
     maxSlippageBps?: number;
   };
+
+  /**
+   * Post-trade prompt for a full market close the caller found eligible.
+   * A share or claim sheet replaces the close toasts while it is open.
+   * `preview` has no exit price or P&L; they are derived from the fill.
+   */
+  postTradeShare?: {
+    prompt: PostTradePrompt;
+    preview: SocialPostPerpsPreview;
+    providerId: PerpsProviderType;
+  };
 }
 
 // Closes in flight per account, provider, network and symbol. Module scope: the
 // close screen dismisses before the request settles, so screen state can't guard it.
 const closesInFlight = new Set<string>();
 const closeLockListeners = new Set<() => void>();
+const SENTRY_CLOSE_POSITION_ERROR_MESSAGE = 'Perps close position failed';
 let closeLockVersion = 0;
 
 const getCloseKey = (
@@ -176,6 +211,7 @@ export const usePerpsClosePosition = (
         trackingData,
         marketPrice,
         slippage,
+        postTradeShare,
       } = params;
       const closeKey = getCloseKey(
         accountAddress,
@@ -194,41 +230,63 @@ export const usePerpsClosePosition = (
         return undefined;
       }
       const isFullClose = size === undefined || size === '';
+      const postTradePrompt = postTradeShare?.prompt;
+      let shareSessionId: string | undefined;
 
-      // Failure toast varies by order type and full/partial close. Shared so
-      // both the { success: false } branch and the rejected-promise catch
-      // surface the same feedback — otherwise a thrown close would leave the
-      // submission/in-progress toast up with no failure indication.
-      const showCloseFailureToast = () => {
-        if (orderType === 'market' && isFullClose) {
-          // Market full close failed
-          showToast(
-            PerpsToastOptions.positionManagement.closePosition.marketClose.full
-              .closeFullPositionFailed,
-          );
-        } else if (orderType === 'market') {
-          // Market partial close failed
-          showToast(
-            PerpsToastOptions.positionManagement.closePosition.marketClose
-              .partial.closePartialPositionFailed,
-          );
-        } else if (isFullClose) {
-          // Limit full close failed
-          showToast(
-            PerpsToastOptions.positionManagement.closePosition.limitClose.full
-              .fullPositionCloseFailed,
-          );
-        } else {
-          // Limit partial close failed
-          showToast(
-            PerpsToastOptions.positionManagement.closePosition.limitClose
-              .partial.partialPositionCloseFailed,
-          );
+      const showCloseFailureToast = (failure?: PerpsErrorInput) => {
+        if (failPerpsPostTradeShare(shareSessionId)) {
+          return;
         }
+        let toast;
+        if (orderType === 'market') {
+          toast = isFullClose
+            ? PerpsToastOptions.positionManagement.closePosition.marketClose
+                .full.closeFullPositionFailed
+            : PerpsToastOptions.positionManagement.closePosition.marketClose
+                .partial.closePartialPositionFailed;
+        } else {
+          toast = isFullClose
+            ? PerpsToastOptions.positionManagement.closePosition.limitClose.full
+                .fullPositionCloseFailed
+            : PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.partialPositionCloseFailed;
+        }
+
+        const shouldExplainFailure =
+          isPostOnlyWindowError(failure) ||
+          (orderType === 'market' &&
+            (isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED) ||
+              isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
+              isPerpsErrorCode(failure, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED)));
+
+        if (!shouldExplainFailure) {
+          showToast(toast);
+          return;
+        }
+
+        showToast({
+          ...toast,
+          labelOptions: [
+            {
+              label: strings('perps.close_position.failed_to_close_position'),
+              isBold: true,
+            },
+            { label: '\n' },
+            {
+              label: handlePerpsError({
+                error: failure,
+                fallbackMessage: strings(
+                  'perps.close_position.your_position_is_still_active',
+                ),
+              }),
+            },
+          ],
+        });
       };
       // Guard against double-toasting: the { success: false } branch shows the
       // failure toast then throws, so the catch must not show it again.
       let failureToastShown = false;
+      let rawCloseError: string | undefined;
 
       // Confirmation CUF (market close): ends when the stream shows the
       // position reduced or absent. Limit closes rest until filled, so their
@@ -251,6 +309,7 @@ export const usePerpsClosePosition = (
       // request landed. Nothing failed on the user's side, so reconcile the
       // stale local state and say so instead of raising a close failure.
       const reconcileAlreadyClosed = () => {
+        completePerpsPostTradeShare(shareSessionId, { orderId: undefined });
         if (closeCufOpId) {
           endPerpsCufTrace({
             id: closeCufOpId,
@@ -287,7 +346,24 @@ export const usePerpsClosePosition = (
           ? strings('perps.market.long')
           : strings('perps.market.short');
 
-        if (orderType === 'market') {
+        if (
+          postTradeShare &&
+          (postTradePrompt?.kind === 'share_sheet' ||
+            postTradePrompt?.kind === 'claim_sheet')
+        ) {
+          shareSessionId = openPerpsPostTradeShareSession({
+            asset: postTradeShare.preview.tradeSymbol,
+            direction: postTradeShare.preview.direction,
+            preview: postTradeShare.preview,
+            variant:
+              postTradePrompt.kind === 'claim_sheet'
+                ? 'create_profile'
+                : 'share',
+          });
+        }
+
+        // A pending share sheet stands in for the in-progress toasts.
+        if (!shareSessionId && orderType === 'market') {
           // Market closing full position
           if (isFullClose) {
             showToast(
@@ -379,16 +455,63 @@ export const usePerpsClosePosition = (
           if (closeCufOpId) {
             acceptPerpsCufRequest(closeCufOpId);
           }
+          const orderId = postTradeShare
+            ? getCopyTradeOid(orderType, result)
+            : undefined;
+          const filledPreview = postTradeShare
+            ? withPerpsCloseFill(postTradeShare.preview, {
+                position,
+                providerId: postTradeShare.providerId,
+                averagePrice: result.averagePrice,
+                filledSize: result.filledSize,
+              })
+            : undefined;
+          const shared = completePerpsPostTradeShare(shareSessionId, {
+            orderId,
+            preview: filledPreview,
+          });
+          if (orderId && postTradePrompt?.kind === 'share_sheet') {
+            incrementShareSheetCount(
+              postTradePrompt.countKey.address,
+              postTradePrompt.countKey.product,
+            );
+          }
+          if (orderId && postTradePrompt?.kind === 'claim_sheet') {
+            markClaimSheetSeen('perps');
+          }
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
-          if (orderType === 'market') {
+          // A completed share sheet stands in for the success toast.
+          if (!shared && orderType === 'market') {
             // Market closed full position
             if (isFullClose) {
-              showToast(
+              const successToast =
                 PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionSuccess(
                   position,
                   marketPrice,
-                ),
+                );
+              showToast(
+                orderId &&
+                  filledPreview &&
+                  postTradePrompt?.kind === 'post_to_feed_toast'
+                  ? {
+                      ...successToast,
+                      linkButtonOptions: {
+                        label: strings(
+                          'social_leaderboard.post_trade_share.post_to_feed',
+                        ),
+                        onPress: () => {
+                          ToastService.toastRef?.current?.closeToast();
+                          openPostTradeComposer(
+                            buildPerpsPostTradeComposerParams({
+                              orderId,
+                              preview: filledPreview,
+                            }),
+                          );
+                        },
+                      },
+                    }
+                  : successToast,
               );
             }
             // Market closed partial position
@@ -405,14 +528,22 @@ export const usePerpsClosePosition = (
           // Call success callback
           options?.onSuccess?.(result);
         } else {
-          showCloseFailureToast();
+          const failureInput: PerpsErrorInput = {
+            error:
+              result.error ?? strings('perps.close_position.error_unknown'),
+            errorCode: result.errorCode,
+            errorDetails: result.errorDetails,
+            maxSlippageBps: slippage?.maxSlippageBps,
+          };
+          showCloseFailureToast(failureInput);
           failureToastShown = true;
 
           // Use centralized error handler for all errors
           const errorMessage = handlePerpsError({
-            error: result.error,
+            error: failureInput,
             fallbackMessage: strings('perps.close_position.error_unknown'),
           });
+          rawCloseError = result.error ?? errorMessage;
 
           // Rejected request, not an exception: classify before the throw so
           // the catch's EXCEPTION end no-ops (matches TPSL/cancel paths).
@@ -442,7 +573,10 @@ export const usePerpsClosePosition = (
         // { success: false } branch, so surface the failure toast here unless it
         // was already shown for a returned failure.
         if (!failureToastShown) {
-          showCloseFailureToast();
+          showCloseFailureToast({
+            error: err instanceof Error ? err.message : String(err),
+            maxSlippageBps: slippage?.maxSlippageBps,
+          });
         }
 
         if (closeCufOpId) {
@@ -463,38 +597,44 @@ export const usePerpsClosePosition = (
           'usePerpsClosePosition: Error closing position',
           closeError,
         );
-        Logger.error(closeError, {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsClosePosition',
-            action: 'close_position',
-            operation: 'position_management',
-          },
-          context: {
-            name: 'usePerpsClosePosition',
-            data: {
-              symbol: position.symbol,
-              positionSize: position.size,
-              requestedSize: size,
-              orderType,
-              isFullClose,
-              limitPrice,
-              marketPrice,
-              trackingSource: trackingData?.source,
-              tradeAction: trackingData?.tradeAction,
-              inputMethod: trackingData?.inputMethod,
-              totalFee: trackingData?.totalFee,
-              realizedPnl: trackingData?.realizedPnl,
-              receivedAmount: trackingData?.receivedAmount,
-              rawError:
-                err instanceof Error
-                  ? undefined
-                  : err === undefined
-                    ? 'undefined'
-                    : String(err),
+        Logger.error(
+          new Error(SENTRY_CLOSE_POSITION_ERROR_MESSAGE, {
+            cause: closeError,
+          }),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsClosePosition',
+              action: 'close_position',
+              operation: 'position_management',
+            },
+            context: {
+              name: 'usePerpsClosePosition',
+              data: {
+                symbol: position.symbol,
+                positionSize: position.size,
+                requestedSize: size,
+                orderType,
+                isFullClose,
+                limitPrice,
+                marketPrice,
+                trackingSource: trackingData?.source,
+                tradeAction: trackingData?.tradeAction,
+                inputMethod: trackingData?.inputMethod,
+                totalFee: trackingData?.totalFee,
+                realizedPnl: trackingData?.realizedPnl,
+                receivedAmount: trackingData?.receivedAmount,
+                rawError:
+                  rawCloseError ??
+                  (err instanceof Error
+                    ? err.message
+                    : err === undefined
+                      ? 'undefined'
+                      : String(err)),
+              },
             },
           },
-        });
+        );
         setError(closeError);
 
         // Call error callback

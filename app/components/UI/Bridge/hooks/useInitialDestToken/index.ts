@@ -20,6 +20,7 @@ import { useEffect, useRef } from 'react';
 export const useInitialDestToken = (
   initialSourceToken?: BridgeToken,
   initialDestToken?: BridgeToken,
+  initializationKey?: string,
 ) => {
   const dispatch = useDispatch();
   const selectedChainId = useSelector(selectChainId);
@@ -28,18 +29,23 @@ export const useInitialDestToken = (
   const sourceToken = useSelector(selectSourceToken);
   const bip44DefaultPair = useSelector(selectBip44DefaultPair);
   const hasInitializedRef = useRef(false);
+  const initializationKeyRef = useRef<string | undefined>(undefined);
 
   const isSwap =
     bridgeViewMode === BridgeViewMode.Swap ||
     bridgeViewMode === BridgeViewMode.Unified;
 
   useEffect(() => {
-    if (hasInitializedRef.current) {
+    if (
+      hasInitializedRef.current &&
+      initializationKeyRef.current === initializationKey
+    ) {
       return;
     }
 
     if (initialDestToken) {
       hasInitializedRef.current = true;
+      initializationKeyRef.current = initializationKey;
       dispatch(setDestToken(initialDestToken));
       return;
     }
@@ -49,6 +55,7 @@ export const useInitialDestToken = (
     }
 
     hasInitializedRef.current = true;
+    initializationKeyRef.current = initializationKey;
 
     // If dest token is already set in Redux (pre-populated before navigation), skip initialization
     if (destToken) {
@@ -111,6 +118,7 @@ export const useInitialDestToken = (
   }, [
     bridgeViewMode,
     initialDestToken,
+    initializationKey,
     dispatch,
     initialSourceToken,
     sourceToken,

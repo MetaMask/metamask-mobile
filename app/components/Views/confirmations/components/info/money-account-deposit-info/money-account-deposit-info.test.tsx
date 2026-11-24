@@ -40,7 +40,9 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
+    ({ 'confirm.title.money_account_deposit_header': 'Add to MetaMask Money' })[
+      key
+    ] ?? key,
 }));
 
 jest.mock('../../../../../UI/Ramp/hooks/useEnsureCompatibleProvider', () => ({
@@ -93,7 +95,7 @@ describe('MoneyAccountDepositInfo', () => {
     render(<MoneyAccountDepositInfo />);
 
     expect(mockUseNavbar).toHaveBeenCalledTimes(1);
-    expect(mockUseNavbar).toHaveBeenCalledWith('Add funds', true);
+    expect(mockUseNavbar).toHaveBeenCalledWith('Add to MetaMask Money', true);
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {

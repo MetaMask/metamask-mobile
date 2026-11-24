@@ -8,6 +8,11 @@ import {
   resetHomepageSearchPasteStateForTests,
   useHomepageSearchPaste,
 } from './useHomepageSearchPaste';
+import {
+  HOMEPAGE_SEARCH_AB_KEY,
+  HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_SEARCH_VARIANTS,
+} from './abTestConfig';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (effect: () => void) => {
@@ -109,6 +114,14 @@ describe('useHomepageSearchPaste', () => {
       expect(result.current.showPastePill).toBe(false);
     });
     expect(mockClipboardManager.hasString).not.toHaveBeenCalled();
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      HOMEPAGE_SEARCH_AB_KEY,
+      HOMEPAGE_SEARCH_VARIANTS,
+      {
+        ...HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+        trackExposure: false,
+      },
+    );
   });
 
   it('does not read or show Paste when the search header is disabled', async () => {
@@ -144,8 +157,28 @@ describe('useHomepageSearchPaste', () => {
     });
 
     expect(onPaste).toHaveBeenCalledWith('0xabc', undefined);
-    expect(trackHomepageSearchPaste).toHaveBeenCalledWith();
+    expect(trackHomepageSearchPaste).toHaveBeenCalledWith(undefined);
     expect(result.current.showPastePill).toBe(false);
+  });
+
+  it('tracks the paste with the current search session id when one is provided', async () => {
+    const { result } = renderHook(() =>
+      useHomepageSearchPaste({
+        enabled: true,
+        onPaste: jest.fn(),
+        getSearchSessionId: () => 'search-session-id',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showPastePill).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.handlePastePress();
+    });
+
+    expect(trackHomepageSearchPaste).toHaveBeenCalledWith('search-session-id');
   });
 
   it('hides Paste when reading clipboard content fails', async () => {

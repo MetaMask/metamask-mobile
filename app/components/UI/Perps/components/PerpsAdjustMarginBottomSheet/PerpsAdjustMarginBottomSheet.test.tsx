@@ -1,19 +1,47 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   HeaderSubpage,
+  IconColor,
+  IconName,
   SegmentedControl,
 } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   PerpsAdjustMarginBottomSheetSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
+
+let mockCrossMarginEnabled = false;
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mocked(useSelector).mockImplementation((selector: unknown) => {
+  if (selector === selectPerpsCrossMarginEnabledFlag) {
+    return mockCrossMarginEnabled;
+  }
+  throw new Error('Unexpected selector in PerpsAdjustMarginBottomSheet');
+});
 
 const mockGoBack = jest.fn();
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
+const mockHandleAddFunds = jest.fn().mockResolvedValue(undefined);
+const mockUsePerpsHomeActions = jest.fn((_options?: unknown) => ({
+  handleAddFunds: mockHandleAddFunds,
+  isEligibilityModalVisible: false,
+  closeEligibilityModal: jest.fn(),
+  isEligible: true,
+  isProcessing: false,
+  error: null,
+  handleWithdraw: jest.fn(),
+  showEligibilityModal: jest.fn(),
+}));
 const mockUsePerpsAdjustMarginData = jest.fn();
 const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
@@ -39,6 +67,11 @@ let mockMarginAdjustmentOptions:
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack }),
+  useFocusEffect: () => undefined,
+}));
+
+jest.mock('../../hooks/usePerpsHomeActions', () => ({
+  usePerpsHomeActions: (options?: unknown) => mockUsePerpsHomeActions(options),
 }));
 
 jest.mock('../../hooks/usePerpsMarginAdjustment', () => ({
@@ -217,6 +250,7 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
 
 describe('PerpsAdjustMarginBottomSheet', () => {
   beforeEach(() => {
+    mockCrossMarginEnabled = false;
     jest.clearAllMocks();
     mockMarginAdjustmentOptions = undefined;
     mockLivePriceHeaderProps = undefined;
@@ -231,6 +265,41 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         inputAmount: number;
       }) => createMarginData(mode, inputAmount),
     );
+  });
+
+  it('opens the perp deposit flow from the available-to-add row', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    const depositIcon = screen.UNSAFE_getByProps({ name: IconName.AddCircle });
+    expect(depositIcon.props.name).toBe(IconName.AddCircle);
+    expect(depositIcon.props.color).toBe(IconColor.IconAlternative);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+      ),
+    );
+
+    expect(mockHandleAddFunds).toHaveBeenCalledTimes(1);
+    expect(mockUsePerpsHomeActions).toHaveBeenCalledWith({
+      buttonLocation: 'add_margin',
+      openConfirmationInPlace: true,
+      onBeforeOpenConfirmation: expect.any(Function),
+    });
+  });
+
+  it('hides the deposit entry point while removing margin', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+      ),
+    ).toBeNull();
   });
 
   it('renders add mode in the bottom sheet', () => {
@@ -920,4 +989,48 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       'perps.adjust_margin.amount_accessibility_label, 200.00',
     );
   });
+
+  it('hides the margin mode label while cross margin is disabled', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).toBeNull();
+  });
+
+  it.each(['isolated', 'cross'] as const)(
+    'labels margin in position as %s when cross margin is enabled',
+    (marginMode) => {
+      mockCrossMarginEnabled = true;
+      const modePosition = {
+        ...position,
+        leverage: { value: 10, type: marginMode },
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...createMarginData('add'),
+        position: modePosition,
+      });
+
+      render(
+        <PerpsAdjustMarginBottomSheet
+          position={modePosition}
+          initialMode="add"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+        ),
+      ).toHaveTextContent(
+        marginMode === 'cross'
+          ? 'perps.margin_mode.cross_title'
+          : 'perps.margin_mode.isolated_title',
+      );
+    },
+  );
 });

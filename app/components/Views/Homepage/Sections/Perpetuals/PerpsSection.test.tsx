@@ -1,4 +1,5 @@
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
@@ -12,6 +13,7 @@ import {
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { HomepagePerpsSelectorsIDs } from '../../Homepage.testIds';
+import { createPerpsCrossMarginSummaryMock } from '../../../../UI/Perps/__mocks__/perpsHooksMocks';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import type {
   PerpsLoadingLifecycle,
@@ -157,6 +159,14 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
   })),
 }));
 
+const mockUsePerpsCrossMarginSummary = jest.fn();
+jest.mock('../../../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: (...args: unknown[]) =>
+    mockUsePerpsCrossMarginSummary(...args),
+}));
+
+const noCrossMarginSummary = createPerpsCrossMarginSummaryMock();
+
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
   return function MockSkeletonPlaceholder({
@@ -244,29 +254,31 @@ jest.mock('./hooks/useHomepageSparklines', () => ({
   })),
 }));
 
+const mockPerpsMarketTileCard = jest.fn();
 jest.mock('./components/PerpsMarketTileCard', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      market,
-      testID,
-      onPress,
-      showFavoriteTag,
-    }: {
+    default: (props: {
       market: { symbol: string };
       testID?: string;
       onPress?: (m: { symbol: string }) => void;
       showFavoriteTag?: boolean;
-    }) => (
-      <TouchableOpacity
-        testID={testID ?? `perps-market-tile-${market.symbol}`}
-        onPress={() => onPress?.(market)}
-      >
-        <Text>{market.symbol}</Text>
-        {showFavoriteTag && <View testID={`favorite-badge-${market.symbol}`} />}
-      </TouchableOpacity>
-    ),
+    }) => {
+      mockPerpsMarketTileCard(props);
+      const { market, testID, onPress, showFavoriteTag } = props;
+      return (
+        <TouchableOpacity
+          testID={testID ?? `perps-market-tile-${market.symbol}`}
+          onPress={() => onPress?.(market)}
+        >
+          <Text>{market.symbol}</Text>
+          {showFavoriteTag && (
+            <View testID={`favorite-badge-${market.symbol}`} />
+          )}
+        </TouchableOpacity>
+      );
+    },
   };
 });
 
@@ -376,6 +388,7 @@ const spyOnUsePerpsFeed = () =>
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsCrossMarginSummary.mockReturnValue(noCrossMarginSummary);
     mockGetActivePerpsLoadingSessionContext.mockReturnValue({
       id: 'session-id-1',
       marketSource: 'provider',
@@ -652,6 +665,84 @@ describe('PerpsSection', () => {
     expect(screen.getByText('ETH 40X position')).toBeOnTheScreen();
   });
 
+  describe('cross margin ratio banner', () => {
+    it('shows the banner when the cross margin ratio is above 50%', () => {
+      mockUsePerpsCrossMarginSummary.mockReturnValue({
+        ...noCrossMarginSummary,
+        isCrossMarginEnabled: true,
+        hasCrossExposure: true,
+        accountRatio: 0.63,
+        tone: 'warning',
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.getByTestId(HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.crossMarginRatio.description', { ratio: '63%' }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the banner from the account ratio when the position list is empty', () => {
+      mockUsePerpsCrossMarginSummary.mockReturnValue({
+        ...noCrossMarginSummary,
+        isCrossMarginEnabled: true,
+        hasCrossExposure: true,
+        accountRatio: 0.8,
+        tone: 'danger',
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.getByTestId(HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+      ).toBeOnTheScreen();
+      expect(mockUsePerpsCrossMarginSummary).toHaveBeenCalledWith({
+        throttleMs: expect.any(Number),
+      });
+    });
+
+    it('hides the banner when the cross margin ratio is safe', () => {
+      mockUsePerpsCrossMarginSummary.mockReturnValue({
+        ...noCrossMarginSummary,
+        isCrossMarginEnabled: true,
+        hasCrossExposure: true,
+        accountRatio: 0.2,
+        tone: 'safe',
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.queryByTestId(
+          HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   it('shows aggregate unrealized P&L row when user has filled positions', () => {
     usePerpsLivePositions.mockReturnValue({
       positions: [makePosition()],
@@ -755,7 +846,10 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'home_section' },
+      params: {
+        source: 'home_section',
+        button_location: 'perps_section_header',
+      },
     });
   });
 
@@ -782,7 +876,10 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'home_section' },
+      params: {
+        source: 'home_section',
+        button_location: 'perps_section_header',
+      },
     });
   });
 
@@ -1053,6 +1150,41 @@ describe('PerpsSection', () => {
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.getByText('SOL')).toBeOnTheScreen();
+    });
+
+    it('passes the device tiers to each trending tile', () => {
+      const deviceCapability = {
+        hardwareTier: 'LOW' as const,
+        networkTier: 'SLOW_CELLULAR' as const,
+        networkTierResolved: true,
+      };
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+          makeTrendingMarket({ symbol: 'ETH', volumeNumber: 3000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          deviceCapability={deviceCapability}
+        />,
+      );
+
+      for (const symbol of ['BTC', 'ETH']) {
+        expect(mockPerpsMarketTileCard).toHaveBeenCalledWith(
+          expect.objectContaining({
+            market: expect.objectContaining({ symbol }),
+            deviceCapability,
+          }),
+        );
+      }
     });
 
     it('refreshes the market list on pull-to-refresh when the trending carousel is showing', async () => {
@@ -1450,6 +1582,7 @@ describe('PerpsSection', () => {
         screen: Routes.PERPS.PERPS_HOME,
         params: {
           source: 'home_section',
+          button_location: 'perps_section_header',
           transactionActiveAbTests: activeAbTests,
         },
       });
@@ -1555,7 +1688,10 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'home_section' },
+        params: {
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
       });
     });
 
@@ -2059,7 +2195,10 @@ describe('PerpsSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
         source: 'home_section',
         redirectScreen: Routes.PERPS.PERPS_HOME,
-        redirectParams: { source: 'home_section' },
+        redirectParams: {
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
       });
     });
 

@@ -4,19 +4,16 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
+import { createPerpsCrossMarginSummaryMock } from '../../UI/Perps/__mocks__/perpsHooksMocks';
 import { SectionRefreshHandle } from './types';
 import {
-  HOMEPAGE_EARN_SECTION_AB_KEY,
-  HOMEPAGE_EARN_SECTION_VARIANTS,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
-  HomepageEarnSectionVariant,
   HomepagePerpsPillsEmptyVariant,
   PERPS_SECTION_PRIORITY_AB_KEY,
   PERPS_SECTION_PRIORITY_VARIANTS,
   PerpsSectionPriorityVariant,
 } from './abTestConfig';
-
 interface MockABTestResult {
   variant: unknown;
   variantName: string;
@@ -69,24 +66,6 @@ jest.mock('../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
     Reflect.apply(mockUseABTest, undefined, args),
 }));
-
-const mockHomepageEarnSection = jest.fn();
-jest.mock('./Sections/EarnSection', () => {
-  const ReactLib = jest.requireActual<typeof import('react')>('react');
-  const { View } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-
-  return {
-    __esModule: true,
-    HomepageEarnSection: ReactLib.forwardRef(
-      (props: Record<string, unknown>, _ref: React.Ref<unknown>) => {
-        mockHomepageEarnSection(props);
-        return <View testID="homepage-earn-section-mock" />;
-      },
-    ),
-  };
-});
-
 const mockUseOwnedNfts = jest.fn((): Nft[] => []);
 jest.mock('./Sections/NFTs/hooks', () => ({
   useOwnedNfts: () => mockUseOwnedNfts(),
@@ -135,6 +114,14 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   })),
 }));
 
+const mockUsePerpsCrossMarginSummary = jest.fn(() =>
+  createPerpsCrossMarginSummaryMock(),
+);
+
+jest.mock('../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => mockUsePerpsCrossMarginSummary(),
+}));
+
 jest.mock('../../UI/Perps/hooks', () => ({
   useIsActivePerpsTrader: jest.fn(() => false),
   usePerpsLivePositions: jest.fn(() => ({
@@ -159,6 +146,32 @@ jest.mock('../../UI/Perps/hooks', () => ({
     refresh: jest.fn(),
     isRefreshing: false,
   })),
+}));
+
+const mockUseSocialTopTradersEligible = jest.fn(
+  (_enabled: boolean, _hydrateProfile: boolean) => false,
+);
+jest.mock('./hooks/useIsSocialTopTradersEligible', () => ({
+  useIsSocialTopTradersEligible: (enabled: boolean, hydrateProfile: boolean) =>
+    mockUseSocialTopTradersEligible(enabled, hydrateProfile),
+}));
+
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = 'WIFI';
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+  useNetworkTierState: () => ({
+    tier: mockNetworkTier,
+    isResolved: mockNetworkTier !== null,
+  }),
 }));
 
 jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
@@ -264,6 +277,12 @@ jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
   selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
 }));
 
+const mockHasSocialV1Access = jest.fn(() => false);
+jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual('../../../selectors/featureFlagController/socialV1'),
+  selectHasSocialV1Access: () => mockHasSocialV1Access(),
+}));
+
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
   selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
@@ -298,6 +317,23 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations', () => ({
     isPending: false,
   })),
 }));
+
+const mockHomepagePerpsHomeSlot = jest.fn();
+jest.mock('./Sections/Perpetuals/HomepagePerpsHomeSlot', () => {
+  const ReactLib = jest.requireActual('react');
+  const { default: ActualHomepagePerpsHomeSlot } = jest.requireActual(
+    './Sections/Perpetuals/HomepagePerpsHomeSlot',
+  );
+  return {
+    __esModule: true,
+    default: ReactLib.forwardRef(
+      (props: Record<string, unknown>, ref: unknown) => {
+        mockHomepagePerpsHomeSlot(props);
+        return <ActualHomepagePerpsHomeSlot {...props} ref={ref} />;
+      },
+    ),
+  };
+});
 
 const mockBalanceBreakdownSection = jest.fn();
 jest.mock('./Sections/BalanceBreakdown', () => {
@@ -366,13 +402,6 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
   return mockUseHomeViewedEvent.mock.calls;
 }
 
-let mockHomepageEarnSectionVisible = false;
-jest.mock('../../UI/Earn/selectors/visibility', () => ({
-  selectIsHomepageEarnSectionVisible: jest.fn(
-    () => mockHomepageEarnSectionVisible,
-  ),
-}));
-
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
@@ -392,23 +421,6 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 const mockEnableAllPopularNetworks = jest.fn();
 let mockPopularNetworks: string[] = [];
 const mockIsNetworkEnabled = jest.fn(() => true);
-let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
-let mockNetworkTier:
-  | 'NONE'
-  | 'SLOW_CELLULAR'
-  | 'FAST_CELLULAR'
-  | 'WIFI'
-  | null = 'WIFI';
-jest.mock('../../../util/deviceCapability', () => ({
-  getHardwareTier: () => mockHardwareTier,
-}));
-jest.mock('../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => mockNetworkTier,
-  useNetworkTierState: () => ({
-    tier: mockNetworkTier,
-    isResolved: mockNetworkTier !== null,
-  }),
-}));
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -476,31 +488,16 @@ describe('Homepage', () => {
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
+    mockHasSocialV1Access.mockReturnValue(false);
+    mockUseSocialTopTradersEligible.mockReturnValue(false);
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'WIFI';
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
     mockHardwareTier = 'MID';
     mockNetworkTier = 'WIFI';
-    mockHomepageEarnSectionVisible = false;
   });
-
-  const mockEarnSectionExperiment = (
-    enabled: boolean,
-    variantName: HomepageEarnSectionVariant,
-  ) => {
-    mockHomepageEarnSectionVisible = enabled;
-    mockUseABTest.mockImplementation((key: string) => {
-      if (key === HOMEPAGE_EARN_SECTION_AB_KEY) {
-        return {
-          variant: HOMEPAGE_EARN_SECTION_VARIANTS[variantName],
-          variantName,
-          isActive: true,
-        };
-      }
-
-      return defaultUseABTestImplementation(key);
-    });
-  };
 
   it('uses one enabled Perps connection provider for the homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
@@ -509,6 +506,19 @@ describe('Homepage', () => {
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
       isEnabled: true,
     });
+  });
+
+  it('passes the device tiers to the Perps section', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockHomepagePerpsHomeSlot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deviceCapability: expect.objectContaining({
+          hardwareTier: 'MID',
+          networkTier: 'WIFI',
+        }),
+      }),
+    );
   });
 
   it('keeps the shared provider inert when Perps is disabled', () => {
@@ -561,7 +571,14 @@ describe('Homepage', () => {
       screen.getByTestId('balance-breakdown-section-mock'),
     ).toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
-      balanceBreakdownSectionProps,
+      expect.objectContaining({
+        ...balanceBreakdownSectionProps,
+        deviceCapability: expect.objectContaining({
+          hardwareTier: expect.anything(),
+          networkTier: expect.anything(),
+          networkTierResolved: expect.any(Boolean),
+        }),
+      }),
     );
   });
 
@@ -572,49 +589,6 @@ describe('Homepage', () => {
       screen.queryByTestId('balance-breakdown-section-mock'),
     ).not.toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
-  });
-
-  describe('Earn section experiment', () => {
-    it('keeps the Earn section hidden for the control variant', () => {
-      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Control);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      expect(
-        screen.queryByTestId('homepage-earn-section-mock'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders the Earn section for the treatment variant', () => {
-      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Treatment);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      expect(
-        screen.getByTestId('homepage-earn-section-mock'),
-      ).toBeOnTheScreen();
-      expect(mockHomepageEarnSection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sectionIndex: 2,
-          totalSectionsLoaded: 6,
-        }),
-      );
-    });
-
-    it('keeps the Earn section hidden when its feature flag is disabled', () => {
-      mockEarnSectionExperiment(false, HomepageEarnSectionVariant.Treatment);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      expect(
-        screen.queryByTestId('homepage-earn-section-mock'),
-      ).not.toBeOnTheScreen();
-      expect(mockUseABTest).toHaveBeenCalledWith(
-        HOMEPAGE_EARN_SECTION_AB_KEY,
-        HOMEPAGE_EARN_SECTION_VARIANTS,
-        expect.objectContaining({ trackExposure: false }),
-      );
-    });
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
@@ -794,6 +768,141 @@ describe('Homepage', () => {
         expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
     });
+
+    it('moves Top Traders before the Tokens and Perps sections for eligible users', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockHasSocialV1Access.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, true);
+    });
+
+    it('keeps Top Traders below allocation when network capability resolves after the first render', () => {
+      mockHardwareTier = 'MID';
+      mockNetworkTier = null;
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockHasSocialV1Access.mockReturnValue(true);
+
+      const rendered = renderWithProvider(<Homepage />, {
+        state: stateWithPreferences,
+      });
+
+      mockNetworkTier = 'WIFI';
+      rendered.rerender(<Homepage />);
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+    });
+
+    it('uses cached eligibility without profile hydration on low-end devices', () => {
+      mockHardwareTier = 'LOW';
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockHasSocialV1Access.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
+    it('skips profile hydration on low-end devices while network capability is unknown', () => {
+      mockHardwareTier = 'LOW';
+      mockNetworkTier = null;
+      mockHasSocialV1Access.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
+    it('skips profile hydration on mid-tier devices while network capability is unresolved', () => {
+      mockHardwareTier = 'MID';
+      mockNetworkTier = null;
+      mockHasSocialV1Access.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
+    it('keeps Top Traders below Tokens for ineligible Social V1 treatment users', () => {
+      mockHasSocialV1Access.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+    });
+
+    it('keeps Perps before Tokens below Top Traders when Perps priority also applies', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      const perpsHooksMock = jest.mocked(
+        jest.requireMock<typeof import('../../UI/Perps/hooks')>(
+          '../../UI/Perps/hooks',
+        ),
+      );
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+      mockHasSocialV1Access.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant:
+              PERPS_SECTION_PRIORITY_VARIANTS[
+                PerpsSectionPriorityVariant.Treatment
+              ],
+            variantName: PerpsSectionPriorityVariant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(2);
+
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+    });
+
+    it('keeps Top Traders in its default position for eligible control users', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(
+        false,
+        false,
+      );
+    });
   });
 
   describe('section indices — Watchlist enabled', () => {
@@ -908,7 +1017,7 @@ describe('Homepage', () => {
       expect(sectionIndexOf('tokens')).toBe(1);
     });
 
-    it('keeps Tokens first when NetInfo resolves after the initial render', () => {
+    it('moves Perps above Tokens when NetInfo resolves after the initial render', () => {
       mockNetworkTier = null;
       setVariant(PerpsSectionPriorityVariant.Treatment);
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
@@ -922,8 +1031,8 @@ describe('Homepage', () => {
       mockNetworkTier = 'WIFI';
       rendered.rerender(<Homepage />);
 
-      expect(latestSectionIndexOf('tokens')).toBe(0);
-      expect(latestSectionIndexOf('perps')).toBe(1);
+      expect(latestSectionIndexOf('perps')).toBe(0);
+      expect(latestSectionIndexOf('tokens')).toBe(1);
     });
 
     it('does not mount Perps before primary content is ready after offline recovery', () => {

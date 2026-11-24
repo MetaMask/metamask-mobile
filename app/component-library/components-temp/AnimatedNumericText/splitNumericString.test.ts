@@ -67,6 +67,36 @@ describe('splitNumericString', () => {
       expected: { prefix: '--', numeric: '', suffix: '' },
       value: '--',
     },
+    {
+      description: 'subscript digits after a decimal',
+      expected: { prefix: '$', numeric: '0.0₇5', suffix: '' },
+      value: '$0.0₇5',
+    },
+    {
+      description: 'a signed subscript amount',
+      expected: { prefix: '+$', numeric: '0.0₅614', suffix: '' },
+      value: '+$0.0₅614',
+    },
+    {
+      description: 'a glued magnitude letter',
+      expected: { prefix: '-$', numeric: '1.2M', suffix: '' },
+      value: '-$1.2M',
+    },
+    {
+      description: 'a thousands magnitude letter',
+      expected: { prefix: '+$', numeric: '3K', suffix: '' },
+      value: '+$3K',
+    },
+    {
+      description: 'a percent suffix',
+      expected: { prefix: '+', numeric: '182.00', suffix: '%' },
+      value: '+182.00%',
+    },
+    {
+      description: 'a magnitude letter followed by more letters',
+      expected: { prefix: '', numeric: '5', suffix: 'METH' },
+      value: '5METH',
+    },
   ])('splits $description', ({ expected, value }) => {
     expect(splitNumericString(value)).toEqual(expected);
   });

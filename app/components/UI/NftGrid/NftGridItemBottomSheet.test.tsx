@@ -2,8 +2,13 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import NftGridItemBottomSheet from './NftGridItemBottomSheet';
-import { Nft } from '@metamask/assets-controllers';
+import { Nft, Source } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
 
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
@@ -17,6 +22,10 @@ jest.mock('react-native', () => ({
     const { View } = jest.requireActual('react-native');
     return visible ? <View>{children}</View> : null;
   },
+}));
+
+jest.mock('@metamask/assets-controllers', () => ({
+  Source: { Custom: 'custom', Dapp: 'dapp', Detected: 'detected' },
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -39,6 +48,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { forwardRef } = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
     ),
@@ -157,6 +168,7 @@ describe('NftGridItemBottomSheet', () => {
       '0x123',
       '456',
       'mainnet',
+      { source: Source.Detected },
     );
   });
 

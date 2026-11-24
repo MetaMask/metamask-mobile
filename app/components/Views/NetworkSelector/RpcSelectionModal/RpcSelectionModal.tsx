@@ -2,11 +2,12 @@ import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text from '../../../../component-library/components/Texts/Text/Text';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -15,7 +16,6 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import Networks, { getNetworkImageSource } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -36,6 +36,8 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -63,6 +65,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   networkConfigurations,
   styles,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
@@ -152,13 +155,9 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
     networkConfigurations[chainId as `0x${string}`]?.rpcEndpoints || [];
 
   return (
-    <BottomSheet
-      ref={rpcMenuSheetRef}
-      onClose={closeRpcModal}
-      shouldNavigateBack={false}
-    >
-      <BottomSheetHeader style={styles.baseHeader}>
-        <Text variant={TextVariant.HeadingMD}>
+    <BottomSheet ref={rpcMenuSheetRef} onClose={closeRpcModal}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} style={styles.baseHeader}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('app_settings.select_rpc_url')}{' '}
         </Text>
         <Cell
@@ -173,11 +172,11 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
           }}
           style={styles.cellBorder}
         >
-          <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
+          <Text style={styles.alternativeText} variant={TextVariant.BodyMd}>
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.rpcMenu}>
         {rpcEndpoints.map(
           ({

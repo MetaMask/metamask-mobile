@@ -9,7 +9,10 @@ import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import type {
+  ConfirmationLaunchSource,
+  ConfirmationLoader,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import {
   PERPS_CONSTANTS,
@@ -43,6 +46,17 @@ export interface UsePerpsHomeActionsOptions {
   onError?: (error: Error, action: PerpsHomeActionType) => void;
   /** Button location for tracking deposit entry point */
   buttonLocation?: string;
+  /**
+   * Push the deposit confirmation on the current navigator instead of
+   * re-targeting the Perps root. The adjust-margin sheet uses this so the
+   * confirmation covers that sheet and dismissing it returns there.
+   */
+  openConfirmationInPlace?: boolean;
+  /**
+   * Runs immediately before the in-place confirmation is pushed, so the
+   * caller can paint over the sheet it is leaving visible underneath.
+   */
+  onBeforeOpenConfirmation?: () => void;
 }
 
 export interface UsePerpsHomeActionsReturn {
@@ -101,9 +115,29 @@ export const usePerpsHomeActions = (
   const [error, setError] = useState<Error | null>(null);
   const { track } = usePerpsEventTracking();
 
-  const { onAddFundsSuccess, onWithdrawSuccess, onError, buttonLocation } =
-    options || {};
+  const {
+    onAddFundsSuccess,
+    onWithdrawSuccess,
+    onError,
+    buttonLocation,
+    openConfirmationInPlace,
+    onBeforeOpenConfirmation,
+  } = options || {};
   const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
+  // Blocks a second in-place push until this screen is focused again.
+  // StackActions.push always adds a route, and dismissing the deposit only
+  // goes back once.
+  const inPlaceConfirmationOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (!openConfirmationInPlace) {
+      return undefined;
+    }
+
+    return navigation.addListener('focus', () => {
+      inPlaceConfirmationOpenRef.current = false;
+    });
+  }, [navigation, openConfirmationInPlace]);
 
   const clearDepositPrepSession = useCallback(() => {
     depositPrepSessionRef.current?.dispose();
@@ -128,7 +162,18 @@ export const usePerpsHomeActions = (
   );
 
   const handleAddFunds = useCallback(() => {
+    // Set this before `gate` awaits, so a second tap during compliance or
+    // the paint delay cannot push another confirmation.
+    if (openConfirmationInPlace) {
+      if (inPlaceConfirmationOpenRef.current) {
+        return Promise.resolve();
+      }
+      inPlaceConfirmationOpenRef.current = true;
+    }
+
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+
+    let didOpenConfirmation = false;
 
     return gate(async () => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -150,10 +195,29 @@ export const usePerpsHomeActions = (
 
       DevLogger.log('[usePerpsHomeActions] Starting add funds flow');
 
-      navigateToConfirmation({
-        loader: 'customAmount' as ConfirmationLoader,
-        stack: Routes.PERPS.ROOT,
-      });
+      if (openConfirmationInPlace) {
+        onBeforeOpenConfirmation?.();
+        // Let the caller paint over the sheet before the confirmation opens.
+        // A page sheet would otherwise show that sheet's top in the gap.
+        if (onBeforeOpenConfirmation) {
+          await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => resolve());
+            });
+          });
+        }
+        navigateToConfirmation({
+          loader: 'customAmount' as ConfirmationLoader,
+          launchedFrom: 'perps-adjust-margin' as ConfirmationLaunchSource,
+          pushOnCurrentStack: true,
+        });
+        didOpenConfirmation = true;
+      } else {
+        navigateToConfirmation({
+          loader: 'customAmount' as ConfirmationLoader,
+          stack: Routes.PERPS.ROOT,
+        });
+      }
 
       if (!depositPrepSessionRef.current) {
         depositPrepSessionRef.current = createDepositPrepSession();
@@ -198,6 +262,10 @@ export const usePerpsHomeActions = (
           },
         },
       );
+    }).finally(() => {
+      if (openConfirmationInPlace && !didOpenConfirmation) {
+        inPlaceConfirmationOpenRef.current = false;
+      }
     });
   }, [
     gate,
@@ -209,6 +277,8 @@ export const usePerpsHomeActions = (
     onError,
     track,
     buttonLocation,
+    openConfirmationInPlace,
+    onBeforeOpenConfirmation,
     showEligibilityModal,
   ]);
 

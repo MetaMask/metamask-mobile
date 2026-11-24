@@ -1,26 +1,41 @@
-import { Box } from '@metamask/design-system-react-native';
+import { Box, TagSeverity } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type {
-  OrderType,
-  PerpsMarketData,
-  PerpsProviderType,
-  TriggerOrderType,
+import {
+  getPerpsDisplaySymbol,
+  type MarginMode,
+  type OrderType,
+  type PerpsMarketData,
+  type PerpsProviderType,
+  type TriggerOrderType,
 } from '@metamask/perps-controller';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
+import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
+import PerpsCrossMarginConfirmBottomSheet from '../../../components/PerpsCrossMarginConfirmBottomSheet';
+import { usePerpsCrossMarginSummary } from '../../../hooks/usePerpsCrossMarginSummary';
+import {
+  getCrossMarginRatioAlert,
+  getCrossMarginRatioAlertLabel,
+} from '../../../utils/crossMarginSummary';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsCrossMarginEnabledFlag,
-  selectPerpsTerminalBackendEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -59,6 +74,8 @@ export interface PerpsProOrderFormPanelProps {
   onExpandOrderBook?: () => void;
   onRequestScrollBy?: (delta: number) => void;
   scrollViewRef?: React.RefObject<ScrollView | null>;
+  /** Height covered by a header floating over the scroll view's top edge. */
+  scrollViewTopInset?: number;
 }
 
 /**
@@ -75,6 +92,7 @@ const PerpsProOrderFormPanel = ({
   onExpandOrderBook,
   onRequestScrollBy,
   scrollViewRef,
+  scrollViewTopInset,
 }: PerpsProOrderFormPanelProps) => {
   const isProModeActive = useIsPerpsProModeActive();
   const isTriggeredOrdersEnabled = useSelector(
@@ -90,13 +108,12 @@ const PerpsProOrderFormPanel = ({
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
-  // Terminal market data drops the no-Cross asset restriction, so Cross stays
-  // off with it. Hyperliquid refuses Cross on HIP-3 dexes (non-null source).
-  const usesTerminal = useSelector(selectPerpsTerminalBackendEnabledFlag);
+  // Hyperliquid refuses Cross on HIP-3 dexes (non-null source). The form then
+  // reads the asset's isolated-only restriction from the venue, whichever
+  // backend serves the market list.
   const isCrossMarginAvailable =
     isProModeActive &&
     isCrossMarginFlagEnabled &&
-    !usesTerminal &&
     selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
     !market.marketSource;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
@@ -256,11 +273,14 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeDiscountKind,
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
+    marginModeLockReason,
     refreshMarginModeLock,
     onMarginModeSelect,
+    onLockedMarginModePress,
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
@@ -285,6 +305,10 @@ const PerpsProOrderFormPanel = ({
     isCrossMarginAvailable,
   });
 
+  // The order book and form share one provider, so a focused field can be
+  // filled by an order-book tap without switching order type.
+  const { setActivePriceField } = usePerpsOrderContext();
+
   const { styles } = useStyles(createStyles, {});
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
@@ -292,7 +316,55 @@ const PerpsProOrderFormPanel = ({
     refreshMarginModeLock();
     setIsMarginModeVisible(true);
   }, [refreshMarginModeLock]);
-  const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+  // Switching to Cross needs the trader to acknowledge its risks first. The
+  // confirm sheet opens once the margin mode sheet has finished closing.
+  const isCrossConfirmPendingRef = useRef(false);
+  const [isCrossConfirmVisible, setIsCrossConfirmVisible] = useState(false);
+  const closeMarginMode = useCallback(() => {
+    setIsMarginModeVisible(false);
+    if (isCrossConfirmPendingRef.current) {
+      isCrossConfirmPendingRef.current = false;
+      setIsCrossConfirmVisible(true);
+    }
+  }, []);
+  const handleMarginModeSelect = useCallback(
+    (nextMarginMode: MarginMode) => {
+      if (nextMarginMode === 'cross' && marginMode !== 'cross') {
+        isCrossConfirmPendingRef.current = true;
+        return;
+      }
+      onMarginModeSelect(nextMarginMode);
+    },
+    [marginMode, onMarginModeSelect],
+  );
+  const closeCrossConfirm = useCallback(
+    () => setIsCrossConfirmVisible(false),
+    [],
+  );
+  const confirmCrossMargin = useCallback(() => {
+    setIsCrossConfirmVisible(false);
+    onMarginModeSelect('cross');
+  }, [onMarginModeSelect]);
+
+  const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
+    usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });
+  const privacyMode = useSelector(selectPrivacyMode);
+  const crossMarginAlert = getCrossMarginRatioAlert(crossMarginTone);
+  const marginModeTag = useMemo(
+    () =>
+      marginMode === 'cross' &&
+      crossMarginRatio !== undefined &&
+      crossMarginAlert
+        ? {
+            label: getCrossMarginRatioAlertLabel(crossMarginRatio, privacyMode),
+            severity:
+              crossMarginAlert === 'danger'
+                ? TagSeverity.Danger
+                : TagSeverity.Warning,
+          }
+        : undefined,
+    [crossMarginAlert, crossMarginRatio, marginMode, privacyMode],
+  );
   const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
   const openTwapDuration = useCallback(
     () => setIsTwapDurationVisible(true),
@@ -309,39 +381,56 @@ const PerpsProOrderFormPanel = ({
     }
   }, [orderType]);
 
+  const keyboardScrollOptions = {
+    onRequestScrollBy,
+    scrollViewRef,
+    viewportTopInset: scrollViewTopInset,
+  };
   const {
     cardRef: sizeCardRef,
     onFocus: onSizeCardFocus,
     onBlur: onSizeCardBlur,
     realign: onSizeFieldPress,
-  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+  } = usePerpsProKeyboardScroll(keyboardScrollOptions);
 
   // Each Scale row owns its measurement so focus navigation can realign the
   // newly focused row instead of measuring the full four-row card.
-  const scaleStartKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
-  const scaleEndKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
-  const scaleTotalOrdersKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
-  const scaleSizeSkewKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
+  const scaleStartKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
+  const scaleEndKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
+  const scaleTotalOrdersKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
+  const scaleSizeSkewKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
 
   // Limit and trigger share the order-type card because only one is visible.
   const {
     cardRef: orderTypeCardRef,
-    onFocus: onLimitPriceFocus,
+    onFocus: onPriceCardFocus,
     onBlur: onLimitPriceCardBlur,
     realign: onLimitPriceFieldPress,
-  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+  } = usePerpsProKeyboardScroll(keyboardScrollOptions);
+
+  // Each price field records itself as the order-book target. Limit and
+  // trigger share one keyboard-scroll instance; stop-limit shows both.
+  const onLimitPriceFocus = useCallback(() => {
+    setActivePriceField('limit');
+    onPriceCardFocus();
+  }, [onPriceCardFocus, setActivePriceField]);
+
+  const onTriggerPriceFocus = useCallback(() => {
+    setActivePriceField('trigger');
+    onPriceCardFocus();
+  }, [onPriceCardFocus, setActivePriceField]);
+
+  const onChaseMaxDistanceFocus = useCallback(() => {
+    setActivePriceField('chaseMaxDistance');
+  }, [setActivePriceField]);
 
   // Composed, not replaced: the form's own handlers clear the slider preview
   // and drive the focused-size styling.
@@ -387,6 +476,7 @@ const PerpsProOrderFormPanel = ({
             ? 'perps.margin_mode.cross_title'
             : 'perps.pro_order_form.isolated',
         )}
+        marginModeTag={marginModeTag}
         onMarginModePress={openMarginMode}
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
@@ -394,8 +484,20 @@ const PerpsProOrderFormPanel = ({
         scaleOrder={scaleOrder}
         activeChaseCount={activeChaseCount}
         scaleKeyboardScroll={{
-          startPrice: scaleStartKeyboardScroll,
-          endPrice: scaleEndKeyboardScroll,
+          startPrice: {
+            ...scaleStartKeyboardScroll,
+            onFocus: () => {
+              setActivePriceField('scaleStart');
+              scaleStartKeyboardScroll.onFocus();
+            },
+          },
+          endPrice: {
+            ...scaleEndKeyboardScroll,
+            onFocus: () => {
+              setActivePriceField('scaleEnd');
+              scaleEndKeyboardScroll.onFocus();
+            },
+          },
           totalOrders: scaleTotalOrdersKeyboardScroll,
           sizeSkew: scaleSizeSkewKeyboardScroll,
         }}
@@ -406,6 +508,7 @@ const PerpsProOrderFormPanel = ({
         onChaseMaxDistanceUnitChange={onChaseMaxDistanceUnitChange}
         chaseReferencePrice={chaseReferencePrice}
         onChaseMaxDistanceChange={onChaseMaxDistanceChange}
+        onChaseMaxDistanceFocus={onChaseMaxDistanceFocus}
         onLimitPriceChange={onLimitPriceChange}
         onLimitPriceFocus={onLimitPriceFocus}
         onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}
@@ -414,7 +517,7 @@ const PerpsProOrderFormPanel = ({
         onUseMidPricePress={onUseMidPricePress}
         triggerPrice={triggerPrice}
         onTriggerPriceChange={onTriggerPriceChange}
-        onTriggerPriceFocus={onLimitPriceFocus}
+        onTriggerPriceFocus={onTriggerPriceFocus}
         onTriggerPriceBlur={onTriggerPriceBlurWithKeyboardScroll}
         onTriggerPriceFieldPress={onLimitPriceFieldPress}
         priceCardMessage={priceCardMessage}
@@ -530,6 +633,7 @@ const PerpsProOrderFormPanel = ({
                     protocolFeeRate: feeProtocolFeeRate,
                     originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
                     feeDiscountPercentage,
+                    feeDiscountKind,
                   }
                 : undefined
             }
@@ -552,11 +656,27 @@ const PerpsProOrderFormPanel = ({
         >
           <PerpsMarginModeBottomSheet
             isVisible
+            marketLabel={`${getPerpsDisplaySymbol(market.symbol)}-USDC`}
             onClose={closeMarginMode}
             selectedMarginMode={marginMode}
             isCrossMarginAvailable={isCrossMarginAvailableForMarket}
             isMarginModeLocked={isMarginModeLocked}
-            onMarginModeSelect={onMarginModeSelect}
+            lockReason={marginModeLockReason}
+            onLockedOptionPress={onLockedMarginModePress}
+            crossMarginRatio={crossMarginRatio}
+            onMarginModeSelect={handleMarginModeSelect}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isCrossConfirmVisible && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeCrossConfirm}
+        >
+          <PerpsCrossMarginConfirmBottomSheet
+            isVisible
+            onClose={closeCrossConfirm}
+            onConfirm={confirmCrossMargin}
           />
         </PerpsProModalPortal>
       )}

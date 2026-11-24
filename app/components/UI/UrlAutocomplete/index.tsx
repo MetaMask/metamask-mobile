@@ -55,7 +55,10 @@ import {
 } from '../../Views/TrendingView/search/useExploreSearch';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
-import type { PredictMarket } from '../Predict/types';
+import {
+  usePredictSearchResults,
+  type PredictSearchResult,
+} from '../PredictNext';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
@@ -63,6 +66,10 @@ import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  SECTION_LOADING_INDICATOR_TEST_ID,
+  sectionHeaderTestId,
+} from './UrlAutocomplete.testIds';
 
 export * from './types';
 
@@ -157,22 +164,13 @@ const transformPerpsResult = (market: PerpsMarketData): PerpsSearchResult => ({
 });
 
 /**
- * Transform PredictMarket to PredictionsSearchResult
+ * Tag a Predict search result with its autocomplete category
  */
 const transformPredictionsResult = (
-  market: PredictMarket,
+  result: PredictSearchResult,
 ): PredictionsSearchResult => ({
+  ...result,
   category: UrlAutocompleteCategory.Predictions,
-  id: market.id,
-  providerId: market.providerId,
-  slug: market.slug,
-  title: market.title,
-  description: market.description,
-  endDate: market.endDate,
-  image: market.image,
-  status: market.status,
-  liquidity: market.liquidity,
-  volume: market.volume,
 });
 
 /**
@@ -209,6 +207,8 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
   // Bridge Explore `useExploreSearch` ({ sections }) to the record shape this UI expects
   const exploreResult = useExploreSearch(searchQuery);
+  // Predictions come from Predict's own search source, not Explore's section
+  const predictions = usePredictSearchResults(searchQuery);
   const {
     data: omniSearchData,
     isLoading: omniSearchLoading,
@@ -232,6 +232,11 @@ const SearchContent: React.FC<SearchContentProps> = ({
           Boolean(tokensSec?.isLoading) || Boolean(stocksSec?.isLoading);
         continue;
       }
+      if (sectionId === 'predictions') {
+        data.predictions = predictions.results;
+        isLoading.predictions = predictions.isLoading;
+        continue;
+      }
       const sec = byFeedId.get(sectionId);
       data[sectionId] = sec?.items ?? [];
       isLoading[sectionId] = sec?.isLoading ?? false;
@@ -242,7 +247,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
       isLoading: isLoading as Record<SearchFeedId, boolean>,
       sectionsOrder: order,
     };
-  }, [exploreResult]);
+  }, [exploreResult, predictions]);
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {
@@ -336,9 +341,9 @@ const SearchContent: React.FC<SearchContentProps> = ({
               .map(transformPerpsResult);
             break;
           case 'predictions':
-            transformedData = (sectionData as PredictMarket[])
-              .filter((market) => market?.id)
-              .map(transformPredictionsResult);
+            transformedData = (sectionData as PredictSearchResult[]).map(
+              transformPredictionsResult,
+            );
             break;
         }
 
@@ -388,12 +393,18 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: ResultsWithCategory }) => (
-      <View style={styles.categoryWrapper}>
+      <View
+        style={styles.categoryWrapper}
+        testID={sectionHeaderTestId(section.category)}
+      >
         <Text style={styles.category}>
           {strings(`autocomplete.${section.category}`)}
         </Text>
         {section.isLoading && (
-          <ActivityIndicator testID="loading-indicator" size="small" />
+          <ActivityIndicator
+            testID={SECTION_LOADING_INDICATOR_TEST_ID}
+            size="small"
+          />
         )}
       </View>
     ),

@@ -19,12 +19,14 @@ interface RewardsThemeImageComponentProps {
   themeImage: ThemeImage;
   style?: StyleProp<ImageStyle>;
   resizeMode?: ImageResizeMode;
+  accessibilityLabel?: string;
 }
 
 const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
   themeImage,
   style,
   resizeMode = 'contain',
+  accessibilityLabel,
 }) => {
   const theme = useTheme();
 
@@ -61,6 +63,7 @@ const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
           source={{ uri: imageSource }}
           resizeMode={resizeMode}
           style={style}
+          accessibilityLabel={accessibilityLabel}
           onLoad={() => setImgLoading(false)}
           onError={() => setImgLoading('error')}
           testID="theme-image"

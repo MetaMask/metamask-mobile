@@ -1,7 +1,7 @@
 import {
   getQuotesReceivedProperties,
+  SwapFeatureTag,
   type MetaMetricsSwapsEventSource,
-  type QuoteMetadata,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
@@ -16,10 +16,6 @@ import {
   selectSlippage,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  AMBIENT_PRICE_COLOR_VARIANTS,
-} from '../../../components/UI/TokenDetails/components/abTestConfig';
 import {
   CHAIN_VALUE_ORDER_AB_KEY,
   CHAIN_VALUE_ORDER_VARIANTS,
@@ -36,6 +32,11 @@ import {
 } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { useUnifiedSwapBridgeContext } from '../../../components/UI/Bridge/hooks/useUnifiedSwapBridgeContext';
+import {
+  isSocialTradeSource,
+  recordSocialTrade,
+} from '../../social/socialActivityStorage';
+import { captureException } from '@sentry/react-native';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -61,10 +62,6 @@ export default function useSubmitBridgeTx() {
   const unifiedSwapBridgeContext = useUnifiedSwapBridgeContext();
   const abTestContext = useSelector(selectAbTestContext);
   const {
-    variantName: ambientColorVariantName,
-    isActive: isAmbientColorAbActive,
-  } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
-  const {
     variantName: chainValueOrderVariantName,
     isActive: isChainValueOrderAbActive,
   } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
@@ -78,15 +75,6 @@ export default function useSubmitBridgeTx() {
   const activeAbTests = useMemo(() => {
     const tests: TransactionActiveAbTestEntry[] = [];
 
-    if (isAmbientColorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          AMBIENT_PRICE_COLOR_AB_KEY,
-          ambientColorVariantName,
-        ),
-      );
-    }
-
     if (isChainValueOrderAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -97,12 +85,7 @@ export default function useSubmitBridgeTx() {
     }
 
     return tests.length > 0 ? tests : undefined;
-  }, [
-    isAmbientColorAbActive,
-    ambientColorVariantName,
-    isChainValueOrderAbActive,
-    chainValueOrderVariantName,
-  ]);
+  }, [isChainValueOrderAbActive, chainValueOrderVariantName]);
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -147,32 +130,45 @@ export default function useSubmitBridgeTx() {
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        if (quoteResponse.quote.intent) {
-          return await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse,
-            accountAddress: walletAddress,
-            location,
-            abTests,
-            activeAbTests: mergedActiveAbTests,
-            tokenSecurityTypeDestination,
-            inputPrimaryDenomination,
-            quotesReceivedContext,
-            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+        try {
+          const submittedTransaction = quoteResponse.quote.intent
+            ? await Engine.context.BridgeStatusController.submitIntent({
+                quoteResponse,
+                accountAddress: walletAddress,
+                location,
+                abTests,
+                activeAbTests: mergedActiveAbTests,
+                tokenSecurityTypeDestination,
+                inputPrimaryDenomination,
+                quotesReceivedContext,
+                migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+              })
+            : await Engine.context.BridgeStatusController.submitTx({
+                accountAddress: walletAddress,
+                quoteResponses: [quoteResponse],
+                isStxEnabled: stxEnabled,
+                quotesReceivedContext,
+                location,
+                abTests,
+                activeAbTests: mergedActiveAbTests,
+                tokenSecurityTypeDestination,
+                inputPrimaryDenomination,
+                migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+              });
+
+          if (isSocialTradeSource(location)) {
+            recordSocialTrade();
+          }
+
+          return submittedTransaction;
+        } catch (error) {
+          captureException(error as Error, {
+            tags: {
+              feature: SwapFeatureTag.SWAP,
+            },
           });
+          throw error;
         }
-        return await Engine.context.BridgeStatusController.submitTx(
-          walletAddress,
-          quoteResponse,
-          stxEnabled,
-          quotesReceivedContext,
-          location,
-          abTests,
-          mergedActiveAbTests,
-          tokenSecurityTypeDestination,
-          undefined, // batchSellTrades
-          inputPrimaryDenomination,
-          BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-        );
       },
     );
   };

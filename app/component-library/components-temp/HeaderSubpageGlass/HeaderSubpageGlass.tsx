@@ -6,6 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import HeaderGlass, { type HeaderGlassOptions } from '../HeaderGlass';
+import { glassHeaderTwClassName } from '../HeaderGlass/glassHeaderTwClassName';
 import {
   resolveEndAccessoryGlass,
   resolveStartAccessoryGlass,
@@ -27,12 +28,22 @@ const HeaderSubpageGlass = ({
   isGlass = true,
   backdrop,
   fadeInDistance,
+  isFloating,
   scrollY,
   onLayout,
+  twClassName,
   ...props
 }: HeaderSubpageGlassProps) => {
+  const headerClassName = glassHeaderTwClassName(twClassName);
+
   if (!isGlass) {
-    return <HeaderSubpage {...props} onLayout={onLayout} />;
+    return (
+      <HeaderSubpage
+        {...props}
+        onLayout={onLayout}
+        twClassName={headerClassName}
+      />
+    );
   }
 
   return (
@@ -41,9 +52,11 @@ const HeaderSubpageGlass = ({
       backdrop={backdrop}
       scrollDistance={scrollY}
       fadeInDistance={fadeInDistance}
+      isFloating={isFloating}
     >
       <HeaderSubpage
         {...props}
+        twClassName={headerClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />

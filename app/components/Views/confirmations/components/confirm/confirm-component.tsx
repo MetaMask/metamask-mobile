@@ -55,6 +55,7 @@ import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
 import { ConfirmationAlerts } from '../alerts/confirmation-alerts';
+import { ConfirmationAlertMetrics } from '../alerts/confirmation-alert-metrics';
 
 const DEFAULT_BOTTOM_SHEET_HEIGHT = 60;
 
@@ -102,6 +103,12 @@ export enum ConfirmationLaunchSource {
    * the landing returns to it instead of stacking a second copy on top.
    */
   RewardsMoneyHome = 'rewards-money-home',
+  /**
+   * The adjust-margin sheet. That sheet stays on the stack under the deposit
+   * confirmation, so finishing the deposit should dismiss the confirmation
+   * and land back on the sheet.
+   */
+  PerpsAdjustMargin = 'perps-adjust-margin',
 }
 
 export interface ConfirmationParams {
@@ -158,6 +165,7 @@ const ConfirmWrapped = ({
       >
         <ConfirmationAssetPollingProvider>
           <ConfirmationAlerts>
+            <ConfirmationAlertMetrics />
             <QRHardwareContextProvider>
               <Title />
               <ScrollView

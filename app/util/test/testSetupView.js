@@ -9,10 +9,15 @@
 /* eslint-disable react/display-name */
 
 const { NativeModules } = require('react-native');
+const { configure } = require('@testing-library/react-native');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
 const { installTimerLeakGuard } = require('./timerLeakGuard');
 const { installSocketLeakGuard } = require('./socketLeakGuard');
+
+// CV tests render real views behind nock/HTTP mocks on loaded CI shards, so
+// the 1s default is too short; per-test `{ timeout }` bumps are no longer needed.
+configure({ asyncUtilTimeout: 5000 });
 
 installTimerLeakGuard();
 installSocketLeakGuard();
@@ -612,7 +617,17 @@ jest.mock('@react-native-cookies/cookies', () => ({
 jest.mock('@metamask/react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
-  return { WebView: (props) => <View {...props} /> };
+  const postMessage = jest.fn();
+  const WebView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      postMessage,
+      injectJavaScript: jest.fn(),
+      reload: jest.fn(),
+    }));
+    return <View {...props} />;
+  });
+  WebView.postMessage = postMessage;
+  return { WebView };
 });
 
 // Mock @metamask/react-native-search-api
@@ -685,6 +700,11 @@ jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  startInactiveSpan: jest.fn(() => ({ end: jest.fn() })),
+  extendAppStart: jest.fn(),
+  getExtendedAppStartSpan: jest.fn(),
+  finishExtendedAppStart: jest.fn(() => Promise.resolve()),
+  spanIsSampled: jest.fn(() => true),
   startTransaction: jest.fn(),
   lastEventId: jest.fn(),
   getGlobalScope: jest.fn(() => ({
@@ -909,8 +929,11 @@ jest.mock('../../components/Base/RemoteImage', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
   const PropTypes = require('prop-types');
-  const { View } = require('react-native');
+  const { Pressable, View } = require('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
+  const {
+    DesignSystemBottomSheetMockSelectorsIDs,
+  } = require('../../../tests/component-view/designSystemBottomSheetMock.testIds');
 
   const BottomSheet = React.forwardRef(
     (
@@ -919,6 +942,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         onClose,
         onOpen,
         goBack,
+        isInteractable = true,
         style,
         twClassName: _twClassName,
         testID,
@@ -932,17 +956,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       React.useEffect(() => {
         onOpenRef.current?.();
       }, []);
+      // Backdrop press and onCloseBottomSheet share this dismiss sequence.
+      const closeSheet = (callback) => {
+        const hasCallback = Boolean(callback);
+        onClose?.(hasCallback);
+        goBack?.();
+        callback?.();
+      };
       React.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: (callback) => {
           onOpen?.();
           callback?.();
         },
-        onCloseBottomSheet: (callback) => {
-          const hasCallback = Boolean(callback);
-          onClose?.(hasCallback);
-          goBack?.();
-          callback?.();
-        },
+        onCloseBottomSheet: closeSheet,
       }));
       return React.createElement(
         View,
@@ -952,6 +978,10 @@ jest.mock('@metamask/design-system-react-native', () => {
           accessibilityLabel,
         },
         children,
+        React.createElement(Pressable, {
+          testID: DesignSystemBottomSheetMockSelectorsIDs.CLOSE,
+          onPress: isInteractable ? () => closeSheet() : undefined,
+        }),
       );
     },
   );
@@ -961,6 +991,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     onClose: PropTypes.func,
     onOpen: PropTypes.func,
     goBack: PropTypes.func,
+    isInteractable: PropTypes.bool,
     style: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.array,

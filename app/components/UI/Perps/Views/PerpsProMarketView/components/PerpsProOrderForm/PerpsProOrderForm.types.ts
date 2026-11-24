@@ -1,5 +1,7 @@
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
+import type { TagSeverity } from '@metamask/design-system-react-native';
 import type { View } from 'react-native';
 
 export interface ScaleOrderRung {
@@ -63,8 +65,19 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
+  /**
+   * Fee display format A/B test. `'dollar'` (default)
+   * renders `fee`/`originalFee` as today; `'percentage'` renders
+   * `takerFeeRate`/`makerFeeRate` as "Taker X.XXX% / Maker Y.YYY%" instead.
+   */
+  feeDisplayMode?: 'dollar' | 'percentage';
+  /** Taker-side combined fee rate as a decimal. Only used in `percentage` mode. */
+  takerFeeRate?: number;
+  /** Maker-side combined fee rate as a decimal. Only used in `percentage` mode. */
+  makerFeeRate?: number;
   /**
    * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
    * per suborder in place of Est Liquidation and Slippage.
@@ -132,6 +145,8 @@ export interface PerpsProOrderFormProps {
   isOrderBookCollapsed?: boolean;
   onExpandOrderBook?: () => void;
   marginModeLabel: string;
+  /** Optional tag next to the margin mode label, e.g. the cross margin ratio. */
+  marginModeTag?: { label: string; severity: TagSeverity };
   /** Called when the user taps the Isolated margin-mode chip. */
   onMarginModePress?: () => void;
   leverageLabel: string;
@@ -156,6 +171,7 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   chaseMaxDistance?: string;
   onChaseMaxDistanceChange?: (value: string) => void;
+  onChaseMaxDistanceFocus?: () => void;
   chaseMaxDistanceUnit?: 'usd' | 'percent';
   onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
   chaseReferencePrice?: string;

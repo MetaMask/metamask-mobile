@@ -22,8 +22,9 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
+  /** Draws the controls under the chart as glass; the screen passes its flag. */
+  isGlass?: boolean;
 }
 
 /**
@@ -31,10 +32,10 @@ export interface PriceAdvancedProps {
  * their own sections between the two should compose `Price.Provider`,
  * `Price.Header`, and `Price.Chart` directly.
  */
-const PriceAdvanced = (props: PriceAdvancedProps) => (
+const PriceAdvanced = ({ isGlass, ...props }: PriceAdvancedProps) => (
   <PriceProvider {...props}>
     <PriceHeader />
-    <PriceChartSection />
+    <PriceChartSection uniformSpacing isGlass={isGlass} />
   </PriceProvider>
 );
 

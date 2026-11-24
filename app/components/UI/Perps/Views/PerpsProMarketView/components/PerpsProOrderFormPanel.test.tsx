@@ -10,6 +10,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import { createPerpsCrossMarginSummaryMock } from '../../../__mocks__/perpsHooksMocks';
 
 jest.mock('../../../components/PerpsRebateBanner', () => ({
   __esModule: true,
@@ -32,7 +33,7 @@ import {
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
 import { selectPerpsProvider } from '../../../selectors/perpsController';
-
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 const mockUseSelector = jest.fn();
 const selectorValues = new Map<unknown, unknown>();
 const mockUsePerpsProvider = jest.fn();
@@ -53,6 +54,10 @@ jest.mock('../../../hooks/usePerpsProvider', () => ({
   usePerpsProvider: (params: unknown) => mockUsePerpsProvider(params),
 }));
 
+const mockCrossMarginSummary = createPerpsCrossMarginSummaryMock();
+jest.mock('../../../hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => mockCrossMarginSummary,
+}));
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 jest.mock('../../../../../../util/haptics');
@@ -60,9 +65,15 @@ jest.mock('../../../../../../util/haptics');
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 // Provider is a passthrough; the orchestration hook is mocked below so the
-// container test focuses purely on prop/sheet wiring.
+// container test focuses purely on prop/sheet wiring. `setActivePriceField`
+// is captured so the panel's focus-composition wiring can be
+// asserted without needing a real PerpsOrderProvider.
+const mockSetActivePriceField = jest.fn();
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
+  usePerpsOrderContext: () => ({
+    setActivePriceField: mockSetActivePriceField,
+  }),
 }));
 
 const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
@@ -167,6 +178,8 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   isCrossMarginAvailableForMarket: false,
   refreshMarginModeLock: jest.fn(),
   onMarginModeSelect: jest.fn(),
+  marginModeLockReason: undefined,
+  onLockedMarginModePress: jest.fn(),
 };
 
 // Mutated in place by tests; fully restored in beforeEach via Object.assign so
@@ -299,6 +312,38 @@ describe('PerpsProOrderFormPanel', () => {
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
+    Object.assign(mockCrossMarginSummary, {
+      accountRatio: undefined,
+      tone: undefined,
+    });
+  });
+
+  describe('cross margin ratio tag', () => {
+    beforeEach(() => {
+      Object.assign(mockHookResult, {
+        marginMode: 'cross',
+        isCrossMarginAvailableForMarket: true,
+      });
+      Object.assign(mockCrossMarginSummary, {
+        accountRatio: 0.8,
+        tone: 'danger',
+      });
+    });
+
+    it('shows the critical ratio on the margin mode tag', () => {
+      renderPanel();
+
+      expect(screen.getByText('80%')).toBeOnTheScreen();
+    });
+
+    it('masks the ratio while privacy mode is on', () => {
+      selectorValues.set(selectPrivacyMode, true);
+
+      renderPanel();
+
+      expect(screen.getByText('••••••')).toBeOnTheScreen();
+      expect(screen.queryByText('80%')).not.toBeOnTheScreen();
+    });
   });
 
   it('renders the order form panel and presentational form', () => {
@@ -818,5 +863,70 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+
+  describe('focused price field composition', () => {
+    const getMountedInput = (testID: string) =>
+      screen.getByTestId(testID, { includeHiddenElements: true });
+
+    it('marks the limit price as the active field on focus', () => {
+      mockHookResult.orderType = 'limit';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('limit');
+    });
+
+    it('marks the trigger price as the active field on focus', () => {
+      mockHookResult.orderType = 'stop_market';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.TRIGGER_PRICE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('trigger');
+    });
+
+    it('marks the Scale start price as the active field on focus', () => {
+      mockHookResult.orderType = 'scale';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.SCALE_START_PRICE),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('scaleStart');
+    });
+
+    it('marks the Scale end price as the active field on focus', () => {
+      mockHookResult.orderType = 'scale';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.SCALE_END_PRICE),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('scaleEnd');
+    });
+
+    it('marks Chase max distance as the active field on focus', () => {
+      mockHookResult.orderType = 'chase';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.CHASE_MAX_DISTANCE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('chaseMaxDistance');
+    });
   });
 });

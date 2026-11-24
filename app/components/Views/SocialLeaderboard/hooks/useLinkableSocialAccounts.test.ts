@@ -4,47 +4,82 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectUnifiedBalancesByAccountGroup } from '../../../UI/PortfolioBalance/selectUnifiedBalancesByAccountGroup';
+import {
+  selectAccountToGroupMap,
+  selectSelectedAccountGroupId,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
-import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
-import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
+import { selectProfileEntropySourceIds } from '../../../../selectors/identity';
+import {
+  selectProfileWalletSections,
+  selectWallets,
+} from '../../../../selectors/multichainAccounts/wallets';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { renderShortAddress } from '../../../../util/address';
+import { clearPortfolioTotalCache } from '../../../UI/PortfolioBalance/portfolioBalance';
 import { useLinkableSocialAccounts } from './useLinkableSocialAccounts';
+import { useNonTokenContribution } from '../../../UI/PortfolioBalance/useNonTokenContribution';
+
+jest.mock('../../../UI/PortfolioBalance/useNonTokenContribution', () => ({
+  useNonTokenContribution: jest.fn(),
+}));
+
+jest.mock(
+  '../../../UI/PortfolioBalance/selectUnifiedBalancesByAccountGroup',
+  () => {
+    const selector = jest.fn();
+    return {
+      selectUnifiedBalancesByAccountGroup: () => selector,
+    };
+  },
+);
+
+jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({ popularNetworks: [] as string[] }),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useGetFormattedTokensPerChain', () => ({
-  useGetFormattedTokensPerChain: () => ({}),
-}));
-
-jest.mock('../../../hooks/useGetTotalFiatBalanceCrossChains', () => ({
-  useGetTotalFiatBalanceCrossChains: jest.fn(),
-}));
-
 const EVM_ADDRESS_1 = '0x1111111111111111111111111111111111111111';
 const EVM_ADDRESS_2 = '0x2222222222222222222222222222222222222222';
 const SOLANA_ADDRESS = 'So11111111111111111111111111111111111111112';
+const GROUP_1_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+const PRIMARY_ENTROPY_SOURCE_ID = 'primary';
 
 const evmAccount1 = {
   id: 'evm-1',
   address: EVM_ADDRESS_1,
   type: 'eip155:eoa',
-  metadata: { name: 'Internal One' },
+  scopes: ['eip155:0'],
+  metadata: { name: 'Internal One', keyring: { type: 'HD Key Tree' } },
+  options: { entropySource: PRIMARY_ENTROPY_SOURCE_ID },
 };
 const evmAccount2 = {
   id: 'evm-2',
   address: EVM_ADDRESS_2,
   type: 'eip155:eoa',
-  metadata: { name: '' },
+  scopes: ['eip155:0'],
+  metadata: { name: '', keyring: { type: 'HD Key Tree' } },
+  options: { entropySource: PRIMARY_ENTROPY_SOURCE_ID },
+};
+const group1SolanaAccount = {
+  id: 'sol-group-1',
+  address: GROUP_1_SOLANA_ADDRESS,
+  type: 'solana:data-account',
+  scopes: [SOLANA_MAINNET],
+  metadata: { name: 'Solana Account 1' },
 };
 const solanaAccount = {
   id: 'sol-1',
   address: SOLANA_ADDRESS,
   type: 'solana:data-account',
+  scopes: [SOLANA_MAINNET],
   metadata: { name: 'Solana' },
 };
 
@@ -52,26 +87,81 @@ interface SelectorValues {
   evmAccounts: unknown[];
   accountsById: Record<string, unknown>;
   accountSections: unknown[];
+  profileEntropySourceIds?: string[];
+  wallets?: unknown[];
   seedAddressByGroupId: Record<string, string>;
+  accountToGroupMap?: Record<string, { id: string }>;
+  selectedGroupId?: string;
+  privacyMode?: boolean;
+  unifiedBalances?: Record<
+    string,
+    {
+      totalBalanceInUserCurrency: number;
+      userCurrency: string;
+    }
+  >;
 }
+
+const buildBalances = (
+  entries: { groupId: string; total: number; currency?: string }[],
+) =>
+  Object.fromEntries(
+    entries.map(({ groupId, total, currency = 'usd' }) => [
+      groupId,
+      {
+        totalBalanceInUserCurrency: total,
+        userCurrency: currency,
+      },
+    ]),
+  );
+
+const noExtras = { totalFiat: 0, isLoading: false };
+
+const unifiedBalanceSelector = selectUnifiedBalancesByAccountGroup();
 
 const mockSelectors = ({
   evmAccounts,
   accountsById,
   accountSections,
+  profileEntropySourceIds = [PRIMARY_ENTROPY_SOURCE_ID],
+  wallets = [],
   seedAddressByGroupId,
+  accountToGroupMap = {},
+  selectedGroupId,
+  privacyMode = false,
+  unifiedBalances = {},
 }: SelectorValues) => {
   const values = new Map<unknown, unknown>([
     [selectInternalEvmAccounts, evmAccounts],
     [selectInternalAccountsById, accountsById],
-    [selectVisibleAccountGroupsByWallet, accountSections],
+    [selectProfileWalletSections, accountSections],
+    [selectProfileEntropySourceIds, profileEntropySourceIds],
+    [selectWallets, wallets],
     [selectAllAccountGroupIconSeedAddresses, seedAddressByGroupId],
-    [selectEVMEnabledNetworks, []],
-    [selectCurrentCurrency, 'usd'],
+    [selectAccountToGroupMap, accountToGroupMap],
+    [selectSelectedAccountGroupId, selectedGroupId],
+    [selectPrivacyMode, privacyMode],
+    [unifiedBalanceSelector, unifiedBalances],
   ]);
   (useSelector as jest.Mock).mockImplementation((selector) =>
     values.get(selector),
   );
+};
+
+const group1 = {
+  id: 'group-1',
+  accounts: [evmAccount1.id, group1SolanaAccount.id],
+  metadata: { name: 'Account 1' },
+};
+const group2 = {
+  id: 'group-2',
+  accounts: [evmAccount2.id],
+  metadata: { name: '' },
+};
+const groupSol = {
+  id: 'group-sol',
+  accounts: [solanaAccount.id],
+  metadata: { name: 'Solana only' },
 };
 
 const defaultSelectors: SelectorValues = {
@@ -79,16 +169,14 @@ const defaultSelectors: SelectorValues = {
   accountsById: {
     [evmAccount1.id]: evmAccount1,
     [evmAccount2.id]: evmAccount2,
+    [group1SolanaAccount.id]: group1SolanaAccount,
     [solanaAccount.id]: solanaAccount,
   },
   accountSections: [
     {
-      title: 'Wallet 1',
-      data: [
-        { id: 'group-1', metadata: { name: 'Account 1' } },
-        { id: 'group-2', metadata: { name: '' } },
-        { id: 'group-sol', metadata: { name: 'Solana only' } },
-      ],
+      id: 'entropy:wallet-1',
+      name: 'Wallet 1',
+      groups: [group1, group2, groupSol],
     },
   ],
   seedAddressByGroupId: {
@@ -101,13 +189,15 @@ const defaultSelectors: SelectorValues = {
 describe('useLinkableSocialAccounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useGetTotalFiatBalanceCrossChains as jest.Mock).mockReturnValue({
-      [EVM_ADDRESS_1]: { totalFiatBalance: 12.5 },
-    });
+    clearPortfolioTotalCache();
+    jest.mocked(useNonTokenContribution).mockReturnValue(noExtras);
   });
 
-  it('names each row after its account group and resolves it to the EVM account', () => {
-    mockSelectors(defaultSelectors);
+  it('labels each row with its account group total', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      unifiedBalances: buildBalances([{ groupId: 'group-1', total: 12.5 }]),
+    });
 
     const { result } = renderHook(() => useLinkableSocialAccounts());
 
@@ -116,7 +206,62 @@ describe('useLinkableSocialAccounts', () => {
       name: 'Account 1',
       address: EVM_ADDRESS_1,
       balanceLabel: '$12.50',
+      linkedAddresses: [
+        `eip155:1:${EVM_ADDRESS_1}`,
+        `${SOLANA_MAINNET}:${GROUP_1_SOLANA_ADDRESS}`,
+      ],
+      accountGroup: group1,
+      walletTitle: 'Wallet 1',
     });
+  });
+
+  it('counts every address in the group, not only its EVM address', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      unifiedBalances: buildBalances([{ groupId: 'group-1', total: 100 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('$100.00');
+  });
+
+  it('leaves the label blank for a zero balance', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      unifiedBalances: buildBalances([{ groupId: 'group-1', total: 0 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('');
+  });
+
+  it('leaves the label blank when the group has no balance entry yet', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      unifiedBalances: {},
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current.map((account) => account.balanceLabel)).toEqual([
+      '',
+      '',
+    ]);
+  });
+
+  it('uses the balance currency rather than the display currency setting', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      unifiedBalances: buildBalances([
+        { groupId: 'group-1', total: 12.5, currency: 'eur' },
+      ]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toContain('€');
   });
 
   it('falls back to the short address when neither the group nor the account has a name', () => {
@@ -129,6 +274,9 @@ describe('useLinkableSocialAccounts', () => {
       name: renderShortAddress(EVM_ADDRESS_2),
       address: EVM_ADDRESS_2,
       balanceLabel: '',
+      linkedAddresses: [`eip155:1:${EVM_ADDRESS_2}`],
+      accountGroup: group2,
+      walletTitle: 'Wallet 1',
     });
   });
 
@@ -143,7 +291,19 @@ describe('useLinkableSocialAccounts', () => {
     ]);
   });
 
-  it('falls back to the internal EVM accounts when there are no account groups', () => {
+  it('does not fall back to internal accounts when the tree has only non-entropy wallets', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      accountSections: [],
+      wallets: [{ id: 'keyring:wallet-1' }],
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('falls back to profile mnemonic accounts before the account tree hydrates', () => {
     mockSelectors({ ...defaultSelectors, accountSections: [] });
 
     const { result } = renderHook(() => useLinkableSocialAccounts());
@@ -152,5 +312,158 @@ describe('useLinkableSocialAccounts', () => {
       'Internal One',
       renderShortAddress(EVM_ADDRESS_2),
     ]);
+    expect(result.current[0].accountGroup).toBeNull();
+    expect(result.current[0].walletTitle).toBe('');
+  });
+
+  it('keeps each row on the wallet section it was read from', () => {
+    const secondWalletGroup = {
+      id: 'group-3',
+      accounts: [evmAccount2.id],
+      metadata: { name: 'Second' },
+    };
+    mockSelectors({
+      ...defaultSelectors,
+      accountSections: [
+        { id: 'entropy:wallet-1', name: 'Wallet 1', groups: [group1] },
+        {
+          id: 'entropy:wallet-2',
+          name: 'Wallet 2',
+          groups: [secondWalletGroup],
+        },
+      ],
+      seedAddressByGroupId: {
+        'group-1': EVM_ADDRESS_1,
+        'group-3': EVM_ADDRESS_2,
+      },
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(
+      result.current.map((account) => ({
+        id: account.id,
+        walletTitle: account.walletTitle,
+        accountGroup: account.accountGroup,
+      })),
+    ).toEqual([
+      {
+        id: evmAccount1.id,
+        walletTitle: 'Wallet 1',
+        accountGroup: group1,
+      },
+      {
+        id: evmAccount2.id,
+        walletTitle: 'Wallet 2',
+        accountGroup: secondWalletGroup,
+      },
+    ]);
+  });
+
+  it('leaves imported accounts and unconfirmed SRPs out of the pre-tree fallback', () => {
+    const importedAccount = {
+      id: 'imported-1',
+      address: '0x3333333333333333333333333333333333333333',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+      metadata: { name: 'Imported', keyring: { type: 'Simple Key Pair' } },
+      options: { entropySource: PRIMARY_ENTROPY_SOURCE_ID },
+    };
+    const unpairedAccount = {
+      id: 'unpaired-1',
+      address: '0x4444444444444444444444444444444444444444',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+      metadata: { name: 'Other SRP', keyring: { type: 'HD Key Tree' } },
+      options: { entropySource: 'unpaired' },
+    };
+    const unnamedHdAccount = {
+      id: 'unnamed-hd',
+      address: '0x5555555555555555555555555555555555555555',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+      metadata: { name: 'No entropy id', keyring: { type: 'HD Key Tree' } },
+      options: {},
+    };
+
+    mockSelectors({
+      ...defaultSelectors,
+      accountSections: [],
+      evmAccounts: [
+        evmAccount1,
+        importedAccount,
+        unpairedAccount,
+        unnamedHdAccount,
+      ],
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current.map((account) => account.id)).toEqual([
+      evmAccount1.id,
+    ]);
+  });
+
+  it('still resolves a balance through the account-to-group map on that fallback', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      accountSections: [],
+      accountToGroupMap: { [evmAccount1.id]: { id: 'group-1' } },
+      unifiedBalances: buildBalances([{ groupId: 'group-1', total: 42 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('$42.00');
+  });
+
+  it('adds perps, predictions, DeFi, and money to the selected account', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      selectedGroupId: 'group-1',
+      unifiedBalances: buildBalances([
+        { groupId: 'group-1', total: 12.5 },
+        { groupId: 'group-2', total: 5 },
+      ]),
+    });
+    jest.mocked(useNonTokenContribution).mockReturnValue({
+      totalFiat: 17.5,
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current.map((account) => account.balanceLabel)).toEqual([
+      '$30.00',
+      '$5.00',
+    ]);
+  });
+
+  it('keeps the aggregated token total while perps or predictions are loading', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      selectedGroupId: 'group-1',
+      unifiedBalances: buildBalances([{ groupId: 'group-1', total: 12.5 }]),
+    });
+    jest.mocked(useNonTokenContribution).mockReturnValue({
+      totalFiat: 0,
+      isLoading: true,
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('$12.50');
+  });
+
+  it('returns a blank label when balances are hidden', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      privacyMode: true,
+      unifiedBalances: buildBalances([{ groupId: 'group-1', total: 12.5 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('');
   });
 });

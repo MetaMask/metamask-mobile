@@ -15,6 +15,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigationState: jest.fn(),
 }));
 
+let mockGlassHeadersEnabled = false;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockGlassHeadersEnabled,
+}));
+
 jest.mock('./useSendActions', () => ({
   useSendActions: () => ({
     handleCancelPress: mockHandleCancelPress,
@@ -66,6 +73,7 @@ describe('useSendNavbar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGlassHeadersEnabled = false;
     mockParentStackState([{ name: 'Send' }]);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useNavigationState as jest.Mock).mockReturnValue(
@@ -230,6 +238,22 @@ describe('useSendNavbar', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockParentNavigate).not.toHaveBeenCalled();
+    });
+
+    it('keeps back and close working when glassHeaders is on', () => {
+      mockGlassHeadersEnabled = true;
+
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Amount } = result.current;
+
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+
+      fireEvent.press(getByTestId('send-navbar-close-button'));
+      fireEvent.press(getByTestId('send-navbar-back-button'));
+
+      expect(mockHandleCancelPress).toHaveBeenCalled();
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('calls handleCancelPress when close button is pressed', () => {

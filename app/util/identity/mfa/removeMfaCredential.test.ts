@@ -1,9 +1,27 @@
+import Engine from '../../../core/Engine';
 import { removeMfaCredential } from './removeMfaCredential';
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: { removeCredential: jest.fn() },
+  },
+}));
+
 describe('removeMfaCredential', () => {
-  it('rejects until the server supports removal', async () => {
-    await expect(
-      removeMfaCredential({ type: 'passkey', status: 'active' }),
-    ).rejects.toThrow('Removing MFA methods is not supported yet');
+  it('removes the method by its id', async () => {
+    const removeCredential = jest.mocked(
+      Engine.context.AuthenticationController.removeCredential,
+    );
+    removeCredential.mockResolvedValue([]);
+
+    await removeMfaCredential(
+      { id: 'totp', type: 'totp', status: 'active' },
+      { operation: 'settings.removeAuthenticatorApp' },
+    );
+
+    expect(removeCredential).toHaveBeenCalledWith({
+      credentialId: 'totp',
+      reason: { operation: 'settings.removeAuthenticatorApp' },
+    });
   });
 });

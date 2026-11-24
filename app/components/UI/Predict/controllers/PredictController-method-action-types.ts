@@ -378,6 +378,25 @@ export type PredictControllerGetBalanceAction = {
   handler: PredictController['getBalance'];
 };
 
+/**
+ * Checks whether the gas station can pay a withdraw of `amountRaw` in pUSD.
+ *
+ * The withdraw confirmation simulates an unsigned `pUSD.transfer` from the
+ * EOA, which holds no pUSD, so its gas fee token list is always empty before
+ * `beforeSign` swaps in the Safe call. This quotes gas fee tokens for the
+ * real Safe call instead. Deposit-wallet withdraws always return `true`
+ * because the relayer pays their gas.
+ *
+ * @param params - The parameters.
+ * @param params.address - The EOA that owns the Predict account.
+ * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+ * @returns `true` when pUSD can pay the withdraw gas.
+ */
+export type PredictControllerIsWithdrawGasFeeTokenAvailableAction = {
+  type: `PredictController:isWithdrawGasFeeTokenAvailable`;
+  handler: PredictController['isWithdrawGasFeeTokenAvailable'];
+};
+
 export type PredictControllerPrepareWithdrawAction = {
   type: `PredictController:prepareWithdraw`;
   handler: PredictController['prepareWithdraw'];
@@ -461,6 +480,7 @@ export type PredictControllerMethodActions =
   | PredictControllerClearPendingDepositAction
   | PredictControllerGetAccountStateAction
   | PredictControllerGetBalanceAction
+  | PredictControllerIsWithdrawGasFeeTokenAvailableAction
   | PredictControllerPrepareWithdrawAction
   | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction

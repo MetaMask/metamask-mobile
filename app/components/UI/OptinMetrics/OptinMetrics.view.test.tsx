@@ -25,6 +25,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 
 const ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected';
+const METRICS_OPT_OUT = 'Metrics Opt Out';
 
 beforeAll(() => {
   jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation(
@@ -88,8 +89,9 @@ function renderOptinMetrics(
   );
 }
 
-function findAnalyticsPreferenceEvent(
+function findTrackedEvent(
   trackEventSpy: jest.SpyInstance,
+  eventName: string,
 ): Record<string, unknown> | undefined {
   const calledEvents = trackEventSpy.mock.calls.map((c) => c[0]);
   return calledEvents.find(
@@ -97,8 +99,14 @@ function findAnalyticsPreferenceEvent(
       typeof e === 'object' &&
       e !== null &&
       'name' in e &&
-      (e as Record<string, unknown>).name === ANALYTICS_PREFERENCE_SELECTED,
+      (e as Record<string, unknown>).name === eventName,
   ) as Record<string, unknown> | undefined;
+}
+
+function findAnalyticsPreferenceEvent(
+  trackEventSpy: jest.SpyInstance,
+): Record<string, unknown> | undefined {
+  return findTrackedEvent(trackEventSpy, ANALYTICS_PREFERENCE_SELECTED);
 }
 
 describeForPlatforms('OptinMetrics new-wallet analytics (CV)', () => {
@@ -137,7 +145,7 @@ describeForPlatforms('OptinMetrics new-wallet analytics (CV)', () => {
     }
   });
 
-  it('dispatches "Analytics Preference Selected" with is_metrics_opted_in=false when user unchecks the metrics checkbox', async () => {
+  it('does not dispatch "Analytics Preference Selected" when user unchecks the metrics checkbox', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
     try {
       const { getByTestId } = renderOptinMetrics(AccountType.Metamask, {
@@ -156,17 +164,10 @@ describeForPlatforms('OptinMetrics new-wallet analytics (CV)', () => {
       );
 
       await waitFor(() => {
-        const preferenceEvent = findAnalyticsPreferenceEvent(trackEventSpy);
-        expect(preferenceEvent).toBeDefined();
-        expect(preferenceEvent).toMatchObject({
-          name: ANALYTICS_PREFERENCE_SELECTED,
-          properties: expect.objectContaining({
-            is_metrics_opted_in: false,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-          }),
-        });
+        expect(findTrackedEvent(trackEventSpy, METRICS_OPT_OUT)).toBeDefined();
       });
+
+      expect(findAnalyticsPreferenceEvent(trackEventSpy)).toBeUndefined();
     } finally {
       trackEventSpy.mockRestore();
     }
@@ -209,7 +210,7 @@ describeForPlatforms('OptinMetrics import-wallet analytics (CV)', () => {
     }
   });
 
-  it('dispatches "Analytics Preference Selected" with is_metrics_opted_in=false when imported user unchecks the metrics checkbox', async () => {
+  it('does not dispatch "Analytics Preference Selected" when imported user unchecks the metrics checkbox', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
     try {
       const { getByTestId } = renderOptinMetrics(AccountType.Imported, {
@@ -228,17 +229,10 @@ describeForPlatforms('OptinMetrics import-wallet analytics (CV)', () => {
       );
 
       await waitFor(() => {
-        const preferenceEvent = findAnalyticsPreferenceEvent(trackEventSpy);
-        expect(preferenceEvent).toBeDefined();
-        expect(preferenceEvent).toMatchObject({
-          name: ANALYTICS_PREFERENCE_SELECTED,
-          properties: expect.objectContaining({
-            is_metrics_opted_in: false,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-          }),
-        });
+        expect(findTrackedEvent(trackEventSpy, METRICS_OPT_OUT)).toBeDefined();
       });
+
+      expect(findAnalyticsPreferenceEvent(trackEventSpy)).toBeUndefined();
     } finally {
       trackEventSpy.mockRestore();
     }

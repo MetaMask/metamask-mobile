@@ -1,7 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import type { RecurringPriceRange as ApiRecurringPriceRange } from '../api/recurringOrders.types';
+import type { RecurringOrderPriceRange } from '../api/recurringOrders.types';
 import { formatCurrency } from './currencyUtils';
 import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
 
@@ -38,7 +38,7 @@ export const PRICE_RANGE_MISSING_VALUE = '--';
 export function convertPriceRangeToUsd(
   priceRange: RecurringPriceRange | undefined,
   fiatToUsdRate: number | undefined,
-): ApiRecurringPriceRange | undefined {
+): RecurringOrderPriceRange | undefined {
   if (!priceRange) {
     return undefined;
   }
@@ -74,8 +74,8 @@ export function convertPriceRangeToUsd(
   }
 
   return {
-    tokenSide: priceRange.tokenSide,
-    currency: USD_PRICE_RANGE_CURRENCY,
+    side: priceRange.tokenSide === 'source' ? 'src' : 'dest',
+    currency: 'USD',
     min,
     max,
   };

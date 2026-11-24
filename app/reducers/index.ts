@@ -34,12 +34,12 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
-///: END:ONLY_INCLUDE_IF
+import type { SampleCounterState } from '../features/SampleFeature/reducers/sample-counter';
 import cardReducer from '../core/redux/slices/card';
 import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
+import socialEarlyAccessReducer from '../core/redux/slices/socialEarlyAccess';
 import rewardsReducer, { RewardsState } from './rewards';
+import rewardsMoneyReducer, { RewardsMoneyState } from './rewardsMoney';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
 import headlessOrderContextsReducer from '../core/redux/slices/headlessOrderContexts';
@@ -126,18 +126,30 @@ export interface RootState {
   banners: BannersState;
   card: StateFromReducer<typeof cardReducer>;
   moneyBalance: StateFromReducer<typeof moneyBalanceReducer>;
+  socialEarlyAccess: StateFromReducer<typeof socialEarlyAccessReducer>;
   performance?: PerformanceState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
-  ///: END:ONLY_INCLUDE_IF
+  // Only registered when INCLUDE_SAMPLE_FEATURE=true.
+  sampleCounter?: SampleCounterState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
+  rewardsMoney: RewardsMoneyState;
   attribution: StateFromReducer<typeof attributionReducer>;
   headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
   terminalOrderAnalytics: StateFromReducer<
     typeof terminalOrderAnalyticsReducer
   >;
 }
+
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise the reducer is dead-code-eliminated
+// and never added to persisted state.
+const sampleCounterReducer:
+  | Reducer<SampleCounterState | undefined>
+  | undefined =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../features/SampleFeature/reducers/sample-counter').default
+    : undefined;
 
 const baseReducers = {
   legalNotices: legalNoticesReducer,
@@ -172,13 +184,13 @@ const baseReducers = {
   banners: bannersReducer,
   card: cardReducer,
   moneyBalance: moneyBalanceReducer,
+  socialEarlyAccess: socialEarlyAccessReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  sampleCounter: sampleCounterReducer,
-  ///: END:ONLY_INCLUDE_IF
+  ...(sampleCounterReducer && { sampleCounter: sampleCounterReducer }),
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
+  rewardsMoney: rewardsMoneyReducer,
 };
 
 if (isTestEnvironment) {

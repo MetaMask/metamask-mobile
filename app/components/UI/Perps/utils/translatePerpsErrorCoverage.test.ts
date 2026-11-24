@@ -27,12 +27,14 @@ const resolveTranslation = (i18nKey: string): string | undefined => {
 };
 
 describe('ERROR_CODE_TO_I18N_KEY', () => {
-  it('offers raising max slippage and a limit order for IOC cancellation', () => {
+  it('maps IOC cancellation to user-facing slippage copy', () => {
     const key = ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.IOC_CANCEL];
 
     const message = resolveTranslation(key);
 
-    expect(message).toContain('Increase max slippage');
+    expect(key).toBe('perps.errors.iocCancel');
+    expect(message).not.toContain(PERPS_ERROR_CODES.IOC_CANCEL);
+    expect(message).toContain('slippage tolerance');
     expect(message).toContain('limit order');
   });
 
@@ -122,9 +124,24 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     expect(unmapped).toStrictEqual([]);
   });
 
-  it('maps the v20 price-moved code to the slippage recovery copy', () => {
+  it('maps the v23 and v24 provider-route and TP/SL leg codes', () => {
+    const legReplaceCopy = resolveTranslation(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+    );
+
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+    ).toBe('perps.errors.tpslLegReplaceUnsupported');
+    expect(legReplaceCopy).toContain('together instead');
+    expect(legReplaceCopy).not.toContain('Try again');
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED],
+    ).toBe('perps.errors.providerRouteRequired');
+  });
+
+  it('maps the v20 price-moved code to detailed price movement copy', () => {
     expect(ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PRICE_MOVED]).toBe(
-      'perps.errors.slippageExceeded',
+      'perps.errors.priceMoved',
     );
   });
 
