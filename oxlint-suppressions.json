@@ -14093,11 +14093,6 @@
       "count": 1
     }
   },
-  "app/components/UI/TokenDetails/hooks/useTokenSecurityData.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/TokenDetails/hooks/useTokenStats.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
