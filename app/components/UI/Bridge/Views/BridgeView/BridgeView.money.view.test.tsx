@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MoneyAccountAction } from '@metamask/bridge-controller';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -160,7 +161,16 @@ describeForPlatforms('BridgeView money swap flows', () => {
     Date.now = () => new Date().getTime();
     getSubmitTx().mockReset();
     getSubmitTx().mockResolvedValue({
-      success: true,
+      status: TransactionStatus.confirmed,
+      chainId: '0x1',
+      networkClientId: 'network-client-id',
+      time: Date.now(),
+      txParams: {
+        to: '0xabc',
+        from: '0xabc',
+        data: '0xabc',
+        value: '0xabc',
+      },
       id: 'tx-1',
       hash: '0xabc',
     });
