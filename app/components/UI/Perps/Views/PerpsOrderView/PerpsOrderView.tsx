@@ -41,6 +41,7 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -526,6 +527,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // away, so the deposit branch does not navigate a second time when its own
   // await settles.
   const hasPlacedOrderAfterDepositRef = useRef(false);
+  // Set by the deposit branch once it has committed to leaving this screen
+  // with the order deferred to the deposit tracker. The tracker's later
+  // re-entry (`handlePlaceOrder(true)`) then fires long after this screen is
+  // gone, while the user is on some other screen, so it must still place the
+  // order but not navigate back to this order's market.
+  const hasLeftAfterDepositRef = useRef(false);
   // Set once the Trade sheet has been dismissed (`handleTradeSheetClose`) or
   // the view unmounts, so `handlePlaceOrder` can bail after an `await` (e.g.
   // validation still in flight) instead of placing an order the user can no
@@ -1409,7 +1416,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderId && prompt?.kind === 'post_to_feed_toast'
               ? {
                   ...confirmedToast,
-                  linkButtonOptions: {
+                  // Link variant renders in the toast's trailing slot, on the right.
+                  closeButtonOptions: {
+                    variant: ButtonVariants.Link,
                     label: strings(
                       'social_leaderboard.post_trade_share.post_to_feed',
                     ),
@@ -1465,6 +1474,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               direction: orderForm.direction,
               ...(Number.isFinite(amountUsd) ? { amountUsd } : {}),
               ...(orderId ? { orderId } : {}),
+              ...(copyTradeOrigin ? { postId: copyTradeOrigin.commentId } : {}),
+              ...(copyTradeOrigin?.authorId
+                ? { authorTraderId: copyTradeOrigin.authorId }
+                : {}),
               metamaskFeeUsd: feeResults.metamaskFee,
             }),
           );
@@ -2107,6 +2120,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Deposit confirmed: the order is placed once funds arrive, so leaving
         // now is a real commitment, not an abandoned order.
         hasPlacedOrderRef.current = true;
+        // The credit can take up to 90 s to arrive, so the re-entry that
+        // places the order runs long after this screen is gone; record the
+        // departure here so that re-entry skips its navigation (see
+        // `submitOrder`).
+        hasLeftAfterDepositRef.current = true;
         if (isClosedByUserRef.current) {
           // The user closed the sheet (before or during the confirmation), so
           // `handleTradeSheetClose` has navigated; a second `goBack` here
@@ -2233,7 +2251,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             analyticsSource: shareAnalyticsSource,
           });
         }
-        navigateToMarketAfterOrder();
+        // A deposit-path re-entry (`forceTrade`) that fires after the deposit
+        // branch already left this screen (`hasLeftAfterDepositRef`) — or
+        // after the user closed the Trade sheet mid-confirmation
+        // (`isClosedByUserRef`, set only by `handleTradeSheetClose`, which
+        // has already navigated away) — runs while the user is elsewhere, so
+        // it must not pull them back to this order's market. Funds arriving
+        // while the user is still here (neither has happened yet) keep the
+        // usual navigation. `isDismissedRef` is deliberately not used here:
+        // the unmount that a deposit confirmation itself triggers also sets
+        // it while the user is still looking at the sheet.
+        if (
+          !(
+            forceTrade &&
+            (hasLeftAfterDepositRef.current || isClosedByUserRef.current)
+          )
+        ) {
+          navigateToMarketAfterOrder();
+        }
 
         // Execute order using the new hook
         // Only include TP/SL if they have valid, non-empty values

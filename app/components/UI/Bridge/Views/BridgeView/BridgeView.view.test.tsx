@@ -107,7 +107,7 @@ const createStockRwaToken = ({
           },
         }
       : {}),
-  } as BridgeToken['rwaData'],
+  },
 });
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
@@ -183,7 +183,7 @@ describeForPlatforms('BridgeView', () => {
     it('opens the Recurring tab with the schedule from route params', async () => {
       const state = initialStateBridge().build();
       const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -210,7 +210,7 @@ describeForPlatforms('BridgeView', () => {
       ).toHaveDisplayValue('2');
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON),
-      ).toHaveTextContent(strings('bridge.recurring.unit.week'));
+      ).toHaveTextContent(strings('bridge.recurring.unit_plural.week'));
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
       ).toHaveDisplayValue('8');
@@ -239,10 +239,10 @@ describeForPlatforms('BridgeView', () => {
               },
             },
           },
-        } as unknown as DeepPartial<RootState>)
+        })
         .build();
       const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -277,10 +277,10 @@ describeForPlatforms('BridgeView', () => {
               },
             },
           },
-        } as unknown as DeepPartial<RootState>)
+        })
         .build();
       const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -665,11 +665,11 @@ describeForPlatforms('BridgeView', () => {
       const state = initialStateBridge({ deterministicFiat: true })
         .withOverrides({
           bridge: { ...DEFAULT_BRIDGE },
-        } as unknown as DeepPartial<RootState>)
+        })
         .build();
 
       const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -929,7 +929,7 @@ describeForPlatforms('BridgeView', () => {
         sourceToken: ETH_SOURCE,
         destToken: undefined,
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     const closeBanner = queryByTestId(
       CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON,
@@ -964,7 +964,7 @@ describeForPlatforms('BridgeView', () => {
         sourceToken: ETH_SOURCE,
         destToken: undefined,
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     fireEvent(
       getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
@@ -989,7 +989,7 @@ describeForPlatforms('BridgeView', () => {
         sourceToken: ETH_SOURCE,
         destToken: USDC_DEST,
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     fireEvent.press(
       getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
@@ -1068,9 +1068,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as DeepPartial<RootState>)
       .build();
     const bridgeControllerState = (
-      (state as unknown as DeepPartial<RootState>).engine?.backgroundState as
-        | Record<string, unknown>
-        | undefined
+      state.engine?.backgroundState as Record<string, unknown> | undefined
     )?.BridgeController as
       | {
           recommendedQuote: Record<string, unknown>;
@@ -1098,7 +1096,7 @@ describeForPlatforms('BridgeView', () => {
 
     const { getByTestId, getByText, queryByText, findByText } =
       renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeView,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
       );
@@ -1115,6 +1113,84 @@ describeForPlatforms('BridgeView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the quoted dest money amount when dest has no fiat rate', async () => {
+    const moneyDest: BridgeToken = {
+      address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+      chainId: '0x1',
+      decimals: 6,
+      symbol: 'MUSD',
+      name: 'Money',
+      isMoneyToken: true,
+    };
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withBridgeRecommendedQuoteEvmSimple({
+        destTokenAddress: moneyDest.address,
+      })
+      .withOverrides({
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          sourceAmount: '1',
+          destToken: moneyDest,
+          selectedDestChainId: '0x1',
+          isDestTokenManuallySet: true,
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              inputPrimaryDenomination: 'token_amount',
+            },
+            TokenRatesController: {
+              marketData: {},
+            },
+            AssetsController: {
+              assetsPrice: {},
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+    const bridgeControllerState = (
+      state.engine?.backgroundState as Record<string, unknown> | undefined
+    )?.BridgeController as
+      | {
+          recommendedQuote: Record<string, unknown>;
+          quotes: Record<string, unknown>[];
+        }
+      | undefined;
+    const recommendedQuote = bridgeControllerState?.recommendedQuote;
+    const quoteWithTrade = merge({}, recommendedQuote, {
+      quote: {
+        aggregator: 'test-bridge',
+        protocols: ['test-bridge'],
+        steps: [],
+      },
+      trade: {
+        value: '0xde0b6b3a7640000',
+        gasLimit: 0,
+        effectiveGas: 0,
+      },
+    });
+
+    if (bridgeControllerState) {
+      bridgeControllerState.recommendedQuote = quoteWithTrade;
+      bridgeControllerState.quotes = [quoteWithTrade];
+    }
+
+    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('1');
+    });
+    expect(queryByText('$0.00')).toBeNull();
+    expect(getByText(strings('bridge.money_name'))).toBeOnTheScreen();
+  });
+
   it('resets source cursor to the end when input is focused again', async () => {
     const { getByTestId, getByText, findByDisplayValue } =
       defaultBridgeWithTokens({
@@ -1123,7 +1199,7 @@ describeForPlatforms('BridgeView', () => {
           sourceToken: ETH_SOURCE,
           destToken: undefined,
         },
-      } as unknown as Record<string, unknown>);
+      });
     const sourceInput = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT);
 
     fireEvent(sourceInput, 'selectionChange', {
@@ -1158,7 +1234,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     expect(await findByText('0 ETH')).toBeOnTheScreen();
   });
@@ -1177,7 +1253,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     expect(await findByText('0.05426 ETH')).toBeOnTheScreen();
     expect(queryByText('0.05427 ETH')).toBeNull();
@@ -1209,7 +1285,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
     updateQuoteSpy.mockClear();
     fireEvent(
@@ -1315,7 +1391,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     // The confirm button may render in both the bottom content area and inside
     // the SwapsKeypad (which stays open until the user taps outside the input).
@@ -1341,7 +1417,7 @@ describeForPlatforms('BridgeView', () => {
           },
         },
       },
-    } as unknown as Record<string, unknown>);
+    });
 
     act(() => {
       store.dispatch(setSlippage('5'));
@@ -1364,16 +1440,15 @@ describeForPlatforms('BridgeView', () => {
     const state = initialStateBridge()
       .withOverrides({
         bridge: { sourceToken: ETH_SOURCE },
-      } as unknown as Record<string, unknown>)
+      })
       .build() as unknown as Record<string, unknown>;
     const { findByText } = renderScreenWithRoutes(
-      BridgeView as unknown as React.ComponentType,
+      BridgeView,
       { name: Routes.BRIDGE.ROOT },
       [
         {
           name: Routes.BRIDGE.TOKEN_SELECTOR,
-          Component:
-            TokenSelectorProbe as unknown as React.ComponentType<unknown>,
+          Component: TokenSelectorProbe,
         },
       ],
       { state },
@@ -1408,7 +1483,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       expect(
         await findByText(strings('bridge.quote_stream_complete_retry')),
@@ -1598,7 +1673,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       expect(
         await findByText(toSentenceCase(strings('bridge.network_fee'))),
@@ -1649,7 +1724,7 @@ describeForPlatforms('BridgeView', () => {
 
       const fetchSpy = jest
         .spyOn(globalThis, 'fetch')
-        .mockImplementation((url, init) => {
+        .mockImplementation(async (url, init) => {
           const urlStr =
             typeof url === 'string' ? url : (url as URL).toString();
           if (urlStr.includes('/getTokens/search')) {
@@ -1663,12 +1738,12 @@ describeForPlatforms('BridgeView', () => {
             if (body.query === 'USDT') {
               return Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve(searchResponse),
+                json: async () => Promise.resolve(searchResponse),
               } as Response);
             }
             return Promise.resolve({
               ok: true,
-              json: () =>
+              json: async () =>
                 Promise.resolve({
                   data: [],
                   count: 0,
@@ -1680,7 +1755,7 @@ describeForPlatforms('BridgeView', () => {
           if (urlStr.includes('/getTokens/popular')) {
             return Promise.resolve({
               ok: true,
-              json: () => Promise.resolve([]),
+              json: async () => Promise.resolve([]),
             } as Response);
           }
           return Promise.reject(new Error(`Unmocked fetch: ${urlStr}`));
@@ -1789,7 +1864,7 @@ describeForPlatforms('BridgeView', () => {
           },
           destToken: undefined,
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       const sourceArea = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA);
       const destArea = getByTestId(
@@ -1822,7 +1897,7 @@ describeForPlatforms('BridgeView', () => {
             },
           },
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       expect(
         getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
@@ -1844,7 +1919,7 @@ describeForPlatforms('BridgeView', () => {
           destToken: USDT_DEST,
           sourceAmount: '1',
         },
-      } as unknown as Record<string, unknown>);
+      });
 
       const sourceArea = await findByTestId(
         BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,

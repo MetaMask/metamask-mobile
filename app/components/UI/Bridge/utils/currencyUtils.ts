@@ -1,5 +1,24 @@
+import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
+
+const FIAT_PRICE_SIGNIFICANT_DIGITS = 4;
+
+/**
+ * Returns the decimal places needed to preserve four significant digits for
+ * sub-unit fiat prices while keeping standard fiat values at two decimals.
+ */
+export function getFiatPriceDecimals(
+  price: BigNumber.Value | undefined,
+): number {
+  const value = new BigNumber(price ?? NaN);
+  if (!value.isFinite() || value.lte(0) || value.gte(1) || value.e === null) {
+    return FIAT_INPUT_DECIMALS;
+  }
+
+  return FIAT_PRICE_SIGNIFICANT_DIGITS - 1 - value.e;
+}
 
 /**
  * Formats a minimum received amount, always rounding down to ensure users

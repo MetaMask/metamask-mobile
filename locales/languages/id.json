@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Salin {{field}}",
       "copied_label": "Disalin {{field}}",
-      "copy_all_button": "Salin semua detailnya",
-      "copied_all_label": "Detail bank telah disalin",
       "button": "Selesai",
       "waiting_for_details": "Detail akun Anda akan segera muncul di sini.",
       "loading_details": "Memuat detail akun",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "Tambah",
-      "transfer": "Kirim",
       "card": "Kartu",
       "details": "Detail"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "Hubungi dukungan"
     },
     "transfer_sheet": {
-      "title": "Kirim dana ke",
-      "between_accounts": "Akun lain",
       "perps_account": "Akun perp",
       "predictions_account": "Akun Predictions",
       "send_external": "Alamat eksternal",

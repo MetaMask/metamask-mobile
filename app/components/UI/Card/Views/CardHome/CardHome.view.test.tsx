@@ -478,27 +478,23 @@ describe('CardHome', () => {
       });
     });
 
-    describe('when unauthenticated (teaser mode)', () => {
-      it('shows CardAuthentication when Change Asset is pressed while unauthenticated', async () => {
-        const { getByTestId, findByTestId, queryByTestId } = renderCardHomeView(
-          {
-            overrides: {
-              engine: {
-                backgroundState: {
-                  CardController: { isAuthenticated: false },
-                },
+    describe('when unauthenticated', () => {
+      it('sends a logged-out cardholder to Card login', async () => {
+        const { findByTestId, queryByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: { isAuthenticated: false },
               },
             },
-            extraRoutes: [
-              {
-                name: Routes.CARD.AUTHENTICATION,
-                Component: CardAuthentication,
-              },
-            ],
           },
-        );
-
-        fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
+          extraRoutes: [
+            {
+              name: Routes.CARD.AUTHENTICATION,
+              Component: CardAuthentication,
+            },
+          ],
+        });
 
         expect(
           await findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),

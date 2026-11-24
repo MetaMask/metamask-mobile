@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} कॉपी करें",
       "copied_label": "{{field}} कॉपी किया गया",
-      "copy_all_button": "सभी डिटेल्स कॉपी करें",
-      "copied_all_label": "कॉपी की गई बैंक डिटेल्स",
       "button": "हो गया",
       "waiting_for_details": "आपके अकाउंट की डिटेल्स जल्द ही यहां दिखाई देंगी।",
       "loading_details": "अकाउंट की डिटेल्स लोड हो रही हैं",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "जोड़ें",
-      "transfer": "भेजें",
       "card": "कार्ड",
       "details": "विवरण"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
-      "title": "इनको फंड भेजें",
-      "between_accounts": "दूसरा अकाउंट",
       "perps_account": "पर्प्स अकाउंट",
       "predictions_account": "प्रेडिक्शंस अकाउंट",
       "send_external": "बाहरी पता",

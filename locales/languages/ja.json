@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}}をコピー",
       "copied_label": "{{field}}をコピーしました",
-      "copy_all_button": "すべての情報をコピー",
-      "copied_all_label": "銀行情報をコピーしました",
       "button": "完了",
       "waiting_for_details": "口座情報がまもなくこちらに表示されます。",
       "loading_details": "口座情報を読み込んでいます",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "追加",
-      "transfer": "送金",
       "card": "カード",
       "details": "詳細"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "サポートへのお問い合わせ"
     },
     "transfer_sheet": {
-      "title": "送金先",
-      "between_accounts": "別のアカウント",
       "perps_account": "パーペチュアルアカウント",
       "predictions_account": "予測市場アカウント",
       "send_external": "外部アドレス",

@@ -1,22 +1,51 @@
+import type { PredictVenueCapabilities } from '../capabilities';
+import type {
+  PredictFeedId,
+  PredictVenueFeedScreen,
+  PredictVenueId,
+} from '../types';
 import {
-  PREDICT_SURFACE_FEED_KEYS,
-  type PredictVenueCapabilities,
-} from '../capabilities';
-import type { PredictFeedId, PredictVenueId } from '../types';
-import {
-  FEED_SCREENS,
   NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
   SPORTS_FEED_SCREEN_ID,
-  TRENDING_FEED_SCREEN_ID,
   getFeedScreen,
   getFeedScreenTab,
-  resolveFeedScreenTabs,
+  getKnownFeedScreenTitle,
   type FeedScreenTab,
 } from './feedScreens';
 
+const KALSHI_SCREENS: PredictVenueFeedScreen[] = [
+  {
+    id: 'sports-football-nfl',
+    title: 'Sports',
+    subtitle: 'NFL',
+    tabs: [
+      { id: 'games', title: 'Games', feed: 'nfl-games' },
+      { id: 'props', title: 'Props', feed: 'nfl-props' },
+    ],
+  },
+  {
+    id: 'sports',
+    title: 'Sports',
+    tabs: [
+      { id: 'nfl', title: 'NFL', feed: 'nfl-games' },
+      { id: 'ncaaf', title: 'NCAAF', feed: 'college-football-games' },
+    ],
+  },
+  {
+    id: 'politics',
+    title: 'Politics',
+    tabs: [
+      { id: 'trump', title: 'Trump', feed: 'politics-trump' },
+      { id: 'congress', title: 'Congress', feed: 'politics-congress' },
+      { id: 'iran', title: 'Iran', feed: 'politics-iran' },
+    ],
+  },
+];
+
 const readyCapabilities = (
   feeds: Record<string, string>,
+  screens: PredictVenueFeedScreen[] = KALSHI_SCREENS,
 ): PredictVenueCapabilities => ({
   status: 'ready',
   descriptor: {
@@ -26,53 +55,29 @@ const readyCapabilities = (
     feeds: feeds as Record<string, PredictFeedId>,
     categories: [],
     searchSupported: false,
+    screens,
   },
 });
 
 describe('feedScreens', () => {
   describe('getFeedScreen', () => {
-    it('returns the matching Feed Screen definition', () => {
-      const result = getFeedScreen(NFL_FEED_SCREEN_ID);
-
-      expect(result).toBe(FEED_SCREENS[NFL_FEED_SCREEN_ID]);
-    });
-
-    it.each(['missing-feed-screen', 'toString'])(
-      'returns undefined for the unknown Feed Screen ID %s',
-      (feedScreenId) => {
-        const result = getFeedScreen(feedScreenId);
-
-        expect(result).toBeUndefined();
-      },
-    );
-  });
-
-  describe('resolveFeedScreenTabs', () => {
-    it('gives every Feed Screen tab a Feed key in the surface table', () => {
-      for (const [feedScreenId, definition] of Object.entries(FEED_SCREENS)) {
-        const tabKeys =
-          PREDICT_SURFACE_FEED_KEYS.nextFeedScreenTabs[
-            feedScreenId as keyof typeof FEED_SCREENS
-          ];
-
-        expect(definition.tabs.map(({ id }) => id).sort()).toEqual(
-          Object.keys(tabKeys).sort(),
-        );
-      }
-    });
-
-    it('resolves each supported tab to the Venue Feed ID in definition order', () => {
+    it('labels a known screen and its tabs, resolving each tab to the Venue Feed ID in catalog order', () => {
       const capabilities = readyCapabilities({
         'nfl-props': 'venue-nfl-props',
         'nfl-games': 'venue-nfl-games',
       });
 
-      const result = resolveFeedScreenTabs(NFL_FEED_SCREEN_ID, capabilities);
+      const result = getFeedScreen(NFL_FEED_SCREEN_ID, capabilities);
 
-      expect(result).toEqual([
-        { id: 'games', label: 'Games', feedId: 'venue-nfl-games' },
-        { id: 'props', label: 'Props', feedId: 'venue-nfl-props' },
-      ]);
+      expect(result).toEqual({
+        id: NFL_FEED_SCREEN_ID,
+        title: 'Sports',
+        selectionLabel: 'NFL',
+        tabs: [
+          { id: 'games', label: 'Games', feedId: 'venue-nfl-games' },
+          { id: 'props', label: 'Props', feedId: 'venue-nfl-props' },
+        ],
+      });
     });
 
     it('resolves the Politics topic tabs in Trump, Congress, Iran order', () => {
@@ -82,94 +87,94 @@ describe('feedScreens', () => {
         'politics-congress': 'politics-congress',
       });
 
-      const result = resolveFeedScreenTabs(
-        POLITICS_FEED_SCREEN_ID,
-        capabilities,
-      );
+      const result = getFeedScreen(POLITICS_FEED_SCREEN_ID, capabilities);
 
-      expect(result).toEqual([
+      expect(result?.title).toBe('Politics');
+      expect(result?.selectionLabel).toBeUndefined();
+      expect(result?.tabs).toEqual([
         { id: 'trump', label: 'Trump', feedId: 'politics-trump' },
         { id: 'congress', label: 'Congress', feedId: 'politics-congress' },
         { id: 'iran', label: 'Iran', feedId: 'politics-iran' },
       ]);
     });
 
-    it('resolves the Sports league tabs to each league Games Feed, NFL first', () => {
-      const capabilities = readyCapabilities({
-        'college-football-games': 'sports-football-ncaa-games',
-        'nfl-games': 'sports-football-nfl-games',
-        'nfl-props': 'sports-football-nfl-win-totals',
-      });
-
-      const result = resolveFeedScreenTabs(SPORTS_FEED_SCREEN_ID, capabilities);
-
-      expect(result).toEqual([
-        { id: 'nfl', label: 'NFL', feedId: 'sports-football-nfl-games' },
-        { id: 'ncaaf', label: 'NCAAF', feedId: 'sports-football-ncaa-games' },
-      ]);
-    });
-
-    it('resolves the Trending tabs to the Games Feeds Home Trending ranks, NFL first', () => {
-      const capabilities = readyCapabilities({
-        'college-football-games': 'sports-football-ncaa-games',
-        'nfl-games': 'sports-football-nfl-games',
-        politics: 'politics-trump',
-      });
-
-      const result = resolveFeedScreenTabs(
-        TRENDING_FEED_SCREEN_ID,
-        capabilities,
+    it('shows a screen and tab added only on the server under their server titles', () => {
+      const capabilities = readyCapabilities(
+        { 'nba-games': 'venue-nba-games', 'nfl-games': 'venue-nfl-games' },
+        [
+          {
+            id: 'sports-basketball-nba',
+            title: 'Basketball',
+            subtitle: 'NBA',
+            tabs: [{ id: 'games', title: 'Matchups', feed: 'nba-games' }],
+          },
+          {
+            id: 'sports',
+            title: 'Sports',
+            tabs: [
+              { id: 'nfl', title: 'NFL', feed: 'nfl-games' },
+              { id: 'nba', title: 'NBA', feed: 'nba-games' },
+            ],
+          },
+        ],
       );
 
-      expect(getFeedScreen(TRENDING_FEED_SCREEN_ID)?.title).toBe('Trending');
-      expect(result).toEqual([
-        { id: 'nfl', label: 'NFL', feedId: 'sports-football-nfl-games' },
-        { id: 'ncaaf', label: 'NCAAF', feedId: 'sports-football-ncaa-games' },
-      ]);
-    });
-
-    it('resolves no Trending tab for a Venue without either Games Feed', () => {
-      // A `trending` key alone backs no PredictNext Feed Screen tab.
-      const capabilities = readyCapabilities({
-        trending: 'trending',
-        'politics-trump': 'politics-trump',
+      expect(getFeedScreen('sports-basketball-nba', capabilities)).toEqual({
+        id: 'sports-basketball-nba',
+        title: 'Basketball',
+        selectionLabel: 'NBA',
+        tabs: [{ id: 'games', label: 'Matchups', feedId: 'venue-nba-games' }],
       });
-
-      const result = resolveFeedScreenTabs(
-        TRENDING_FEED_SCREEN_ID,
-        capabilities,
-      );
-
-      expect(result).toEqual([]);
+      expect(getFeedScreen(SPORTS_FEED_SCREEN_ID, capabilities)?.tabs).toEqual([
+        { id: 'nfl', label: 'NFL', feedId: 'venue-nfl-games' },
+        { id: 'nba', label: 'NBA', feedId: 'venue-nba-games' },
+      ]);
     });
 
     it('omits a tab whose Feed key the Venue lacks', () => {
       const capabilities = readyCapabilities({ 'nfl-props': 'venue-props' });
 
-      const result = resolveFeedScreenTabs(NFL_FEED_SCREEN_ID, capabilities);
+      const result = getFeedScreen(NFL_FEED_SCREEN_ID, capabilities);
 
-      expect(result).toEqual([
+      expect(result?.tabs).toEqual([
         { id: 'props', label: 'Props', feedId: 'venue-props' },
       ]);
     });
+
+    it('returns undefined for a screen with no tab the Venue supports', () => {
+      const capabilities = readyCapabilities({ trending: 'trending' });
+
+      expect(
+        getFeedScreen(SPORTS_FEED_SCREEN_ID, capabilities),
+      ).toBeUndefined();
+    });
+
+    it.each(['missing-feed-screen', 'trending', 'toString', 'constructor'])(
+      'returns undefined for the Feed Screen %s the catalog lacks',
+      (feedScreenId) => {
+        const capabilities = readyCapabilities({ 'nfl-games': 'venue-games' });
+
+        expect(getFeedScreen(feedScreenId, capabilities)).toBeUndefined();
+      },
+    );
 
     it.each<PredictVenueCapabilities>([
       { status: 'loading' },
       { status: 'unavailable', reason: 'unknown_venue' },
       { status: 'unavailable', reason: 'invalid_catalog' },
       { status: 'unavailable', reason: 'error', retry: jest.fn() },
-    ])('resolves no tabs while capabilities are $status', (capabilities) => {
-      const result = resolveFeedScreenTabs(NFL_FEED_SCREEN_ID, capabilities);
+    ])('returns undefined while capabilities are $status', (capabilities) => {
+      expect(getFeedScreen(NFL_FEED_SCREEN_ID, capabilities)).toBeUndefined();
+    });
+  });
 
-      expect(result).toEqual([]);
+  describe('getKnownFeedScreenTitle', () => {
+    it('returns the localized title of a screen the app knows', () => {
+      expect(getKnownFeedScreenTitle(POLITICS_FEED_SCREEN_ID)).toBe('Politics');
     });
 
-    it('resolves no tabs for an unknown Feed Screen', () => {
-      const capabilities = readyCapabilities({ 'nfl-games': 'venue-games' });
-
-      const result = resolveFeedScreenTabs('missing-feed-screen', capabilities);
-
-      expect(result).toEqual([]);
+    it('returns an empty title for a screen the app does not know', () => {
+      expect(getKnownFeedScreenTitle('sports-basketball-nba')).toBe('');
     });
   });
 

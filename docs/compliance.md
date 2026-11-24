@@ -55,7 +55,7 @@ To enable compliance:
 ### Feature flag selector
 
 ```typescript
-import { selectComplianceEnabled } from 'app/selectors/featureFlagController/compliance';
+import { selectComplianceEnabled } from '#app/selectors/featureFlagController/compliance';
 
 const isEnabled = useSelector(selectComplianceEnabled);
 ```
@@ -74,8 +74,8 @@ The selector resolves the remote `{ enabled, minimumVersion }` payload via `vali
 4. If not blocked: executes `action` and returns its result.
 
 ```tsx
-import { useComplianceGate } from 'app/components/UI/Compliance';
-import { selectSelectedInternalAccountAddress } from 'app/selectors/accountsController';
+import { useComplianceGate } from '#app/components/UI/Compliance';
+import { selectSelectedInternalAccountAddress } from '#app/selectors/accountsController';
 
 function MyFlow() {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -115,7 +115,7 @@ const handleTrade = useCallback(
 Use `isBlocked` directly when you need to conditionally render UI rather than gate an action:
 
 ```tsx
-import { useComplianceGate } from 'app/components/UI/Compliance';
+import { useComplianceGate } from '#app/components/UI/Compliance';
 
 function SendConfirmation({ recipientAddress }: { recipientAddress: string }) {
   const { isBlocked } = useComplianceGate(recipientAddress);
@@ -131,8 +131,8 @@ function SendConfirmation({ recipientAddress }: { recipientAddress: string }) {
 ### Option 3: Redux selectors (for non-component code)
 
 ```typescript
-import { selectIsWalletBlocked } from 'app/selectors/complianceController';
-import { store } from 'app/store';
+import { selectIsWalletBlocked } from '#app/selectors/complianceController';
+import { store } from '#app/store';
 
 const isBlocked = selectIsWalletBlocked('0x1234...')(store.getState());
 ```
@@ -140,7 +140,7 @@ const isBlocked = selectIsWalletBlocked('0x1234...')(store.getState());
 ### Option 4: Direct Engine access (for controller-to-controller or middleware code)
 
 ```typescript
-import Engine from 'app/core/Engine';
+import Engine from '#app/core/Engine';
 
 // Check one or more wallets (always returns an array)
 const statuses =
@@ -206,7 +206,7 @@ To test `gate()` behaviour, also mock `AccessRestrictedContext` and the Engine:
 const mockShowAccessRestrictedModal = jest.fn();
 
 jest.mock(
-  'app/components/UI/Compliance/contexts/AccessRestrictedContext',
+  '#app/components/UI/Compliance/contexts/AccessRestrictedContext',
   () => ({
     useAccessRestrictedModal: () => ({
       showAccessRestrictedModal: mockShowAccessRestrictedModal,
@@ -216,7 +216,7 @@ jest.mock(
   }),
 );
 
-jest.mock('app/core/Engine', () => ({
+jest.mock('#app/core/Engine', () => ({
   context: {
     ComplianceController: {
       checkWalletsCompliance: jest.fn().mockResolvedValue([{ blocked: true }]),

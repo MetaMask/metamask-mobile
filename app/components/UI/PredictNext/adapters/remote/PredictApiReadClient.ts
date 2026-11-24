@@ -26,6 +26,10 @@ import type {
   PredictVenueId,
 } from '../../types';
 import {
+  commitOutcomeFromBody,
+  type PredictCommitOutcome,
+} from '../../errors/commitOutcome';
+import {
   sendSigned,
   sendSignedRead,
   VenueReadBudgetExhaustedError,
@@ -251,18 +255,28 @@ export class PredictHttpError extends Error {
   readonly status: number;
   /** Canonical error code from the response body, when the backend sends one. */
   readonly bodyCode?: string;
+  /** What this call did, from the body's `outcome`. `not_placed` is the
+   * API's guarantee that it changed nothing. Every other answer, including
+   * no body or no field, is `unknown`. */
+  readonly outcome: PredictCommitOutcome;
   /** The deposit a funding refusal names, when the body carries one. Never
    * the rest of the body. */
   readonly deposit?: unknown;
   /** Dispatch evidence for local transport failures; absent for HTTP errors. */
   readonly requestSent?: boolean;
 
-  constructor(status: number, bodyCode?: string, deposit?: unknown) {
+  constructor(
+    status: number,
+    bodyCode?: string,
+    deposit?: unknown,
+    outcome: PredictCommitOutcome = 'unknown',
+  ) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
     this.bodyCode = bodyCode;
     this.deposit = deposit;
+    this.outcome = outcome;
   }
 }
 
@@ -970,8 +984,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    const send = (signed: SignedOperation): Promise<Response> =>
-      this.#fetch(url.toString(), {
+    const send = (signed: SignedOperation): Promise<Response> => {
+      if (options?.signal?.aborted) {
+        return Promise.reject(abortedError());
+      }
+      return this.#fetch(url.toString(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -986,6 +1003,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         body: buildBody(signed),
         signal: options?.signal,
       });
+    };
     try {
       const response = await sendSigned(
         {
@@ -1030,6 +1048,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         response.status,
         errorCodeFromBody(body),
         depositFromBody(body),
+        commitOutcomeFromBody(body),
       );
     }
     try {

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} kopieren",
       "copied_label": "{{field}} kopiert",
-      "copy_all_button": "Alle Daten kopieren",
-      "copied_all_label": "Bankdaten wurden kopiert",
       "button": "Fertig",
       "waiting_for_details": "Ihre Kontodaten werden in Kürze hier angezeigt.",
       "loading_details": "Kontodaten werden geladen",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "Hinzufügen",
-      "transfer": "Senden",
       "card": "Karte",
       "details": "Details"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
-      "title": "Geld überweisen an",
-      "between_accounts": "Ein anderes Konto",
       "perps_account": "Perps-Konto",
       "predictions_account": "Predictions-Konto",
       "send_external": "Externe Adresse",

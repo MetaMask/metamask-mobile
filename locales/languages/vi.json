@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Sao chép {{field}}",
       "copied_label": "Đã sao chép {{field}}",
-      "copy_all_button": "Sao chép tất cả thông tin",
-      "copied_all_label": "Đã sao chép thông tin ngân hàng",
       "button": "Hoàn tất",
       "waiting_for_details": "Thông tin tài khoản của bạn sẽ sớm xuất hiện tại đây.",
       "loading_details": "Đang tải thông tin tài khoản",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "Thêm",
-      "transfer": "Gửi",
       "card": "Thẻ",
       "details": "Chi tiết"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "Liên hệ bộ phận hỗ trợ"
     },
     "transfer_sheet": {
-      "title": "Gửi tiền đến",
-      "between_accounts": "Tài khoản khác",
       "perps_account": "Tài khoản hợp đồng vĩnh cửu",
       "predictions_account": "Tài khoản dự đoán",
       "send_external": "Địa chỉ bên ngoài",

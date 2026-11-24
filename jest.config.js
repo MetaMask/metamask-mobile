@@ -56,6 +56,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'd3-transition',
   'internmap',
   'lodash-es',
+  // nock 15.x is ESM-only ("type": "module"), and so are its @mswjs/interceptors
+  // runtime dependencies; Jest must transpile all of them for require().
+  'nock',
+  '@mswjs/interceptors',
+  '@open-draft/until',
+  'rettime',
   'react-native-wagmi-charts',
   'react-native-nitro-modules',
   '@notifee',

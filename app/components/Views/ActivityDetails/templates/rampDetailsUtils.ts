@@ -1,7 +1,7 @@
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
-import { renderFiat } from '../../../../util/number/bigint';
+import { getFormatters } from '../../../hooks/useFormatters';
 import {
   getRampOrderTransactionHash,
   mapRampOrderStatus,
@@ -10,8 +10,6 @@ import {
 } from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
 import { mapRampsOrderStatus } from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
 import I18n, { strings } from '../../../../../locales/i18n';
-
-type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
 
 export function isRampSellOrder(order: FiatOrder) {
   return mapRampOrderType(order.orderType) === 'sell';
@@ -40,34 +38,55 @@ export function getRampActivityExplorerChainId(network: string) {
   return network;
 }
 
+const ISO_CURRENCY_CODE = /^[a-z]{3}$/iu;
+
+function appendCurrency(text: string, currency: string | undefined) {
+  return currency ? `${text} ${currency}` : text;
+}
+
 export function formatRampActivityFiatAmount(
   amount: string | number | undefined,
-  currency: string,
+  currency: string | undefined,
 ): string | undefined {
   if (amount === undefined || amount === null || amount === '') {
     return undefined;
   }
   const numericAmount = Number(amount);
-  if (Number.isNaN(numericAmount)) {
-    return `${amount} ${currency}`;
+  if (!Number.isFinite(numericAmount)) {
+    return appendCurrency(String(amount), currency);
   }
-  return renderFiat(
-    numericAmount,
-    currency.toLowerCase() as RenderFiatCurrencyCode,
-  );
+  const formatters = getFormatters();
+  if (!currency || !ISO_CURRENCY_CODE.test(currency)) {
+    // Intl rejects these codes, and client-utils would then drop the code instead of showing it.
+    return appendCurrency(
+      formatters.formatNumber(numericAmount, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      currency,
+    );
+  }
+  return formatters.formatCurrencyWithMinThreshold(numericAmount, currency);
 }
 
 export function formatRampActivityFiatTotal(
   amount: string | number,
   fee: string | number | undefined,
-  currency: string,
+  currency: string | undefined,
 ) {
   const amountNumber = Number(amount);
-  const feeNumber = fee === undefined ? 0 : Number(fee);
-  if (Number.isNaN(amountNumber) || Number.isNaN(feeNumber)) {
+  if (!Number.isFinite(amountNumber)) {
     return formatRampActivityFiatAmount(amount, currency);
   }
-  return formatRampActivityFiatAmount(amountNumber - feeNumber, currency);
+  const feeNumber = fee === undefined ? 0 : Number(fee);
+  if (!Number.isFinite(feeNumber)) {
+    return undefined;
+  }
+  // Received money can't be negative; without the clamp a tiny negative total renders as "<$0.01".
+  return formatRampActivityFiatAmount(
+    Math.max(0, amountNumber - feeNumber),
+    currency,
+  );
 }
 
 export function valueOrUnavailable(value: string | undefined) {

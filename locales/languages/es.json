@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Copiar {{field}}",
       "copied_label": "Se copió {{field}}",
-      "copy_all_button": "Copiar todos los datos",
-      "copied_all_label": "Datos bancarios copiados",
       "button": "Hecho",
       "waiting_for_details": "Los datos de tu cuenta aparecerán aquí en breve.",
       "loading_details": "Cargando los datos de la cuenta",
@@ -9986,7 +9984,6 @@
     },
     "action": {
       "add": "Agregar",
-      "transfer": "Enviar",
       "card": "Tarjeta",
       "details": "Detalles"
     },
@@ -10108,8 +10105,6 @@
       "contact_support": "Contactar a soporte"
     },
     "transfer_sheet": {
-      "title": "Enviar fondos a",
-      "between_accounts": "Otra cuenta",
       "perps_account": "Cuenta de Perps",
       "predictions_account": "Cuenta de Predicciones",
       "send_external": "Dirección externa",

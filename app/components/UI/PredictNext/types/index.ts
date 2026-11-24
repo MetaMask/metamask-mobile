@@ -254,28 +254,72 @@ export const PREDICT_VENUE_ACTIONS = [
 export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
 
 /**
- * Stable, kebab-case product keys for discovery Feeds. A surface section or
- * tab names a key, never a concrete Feed ID; each Venue's catalog maps the
- * keys it supports to its own Feed IDs. Keys outside this list are dropped
- * when a catalog is parsed.
+ * Stable, kebab-case product key for a discovery Feed, for example
+ * `nfl-games`. The Predict API owns the vocabulary (PRED-1522), so any
+ * kebab-case key a catalog serves is accepted (PRED-1526). A surface section
+ * or tab names a key, never a concrete Feed ID; each Venue's catalog maps the
+ * keys it supports to its own Feed IDs.
  */
-export const PREDICT_FEED_KEYS = [
-  'trending',
-  'live',
-  'sports',
-  'crypto',
-  'politics',
-  'crypto-up-down-live',
-  'world-cup',
-  'nfl-games',
-  'nfl-props',
-  'college-football-games',
-  'college-football-props',
-  'politics-trump',
-  'politics-congress',
-  'politics-iran',
-] as const;
-export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
+export type PredictFeedKey = string;
+
+/** One tab of a Feed Screen: it shows the Feed its `feed` key names. */
+export interface PredictVenueFeedScreenTab {
+  /** Kebab-case, unique within its screen: deep links select a tab by it. */
+  id: string;
+  /** The server's label, shown when the app has no localized one. */
+  title: string;
+  /** A Feed key of the same catalog. */
+  feed: PredictFeedKey;
+}
+
+/** A titled screen of tabs, each on one Feed (PRED-1525). */
+export interface PredictVenueFeedScreen {
+  /** Kebab-case and unique: deep links use it, and a Category opens the
+   * screen whose `id` is its Feed key. */
+  id: string;
+  title: string;
+  subtitle?: string;
+  /** In display order; never empty. */
+  tabs: readonly PredictVenueFeedScreenTab[];
+}
+
+/**
+ * One PredictNext Home section (PRED-1527). `screen` names the Feed Screen
+ * its header opens; the header opens nothing while the Venue's `screens` lack
+ * it. Feed keys are keys of the same catalog's `feeds`.
+ */
+export type PredictHomeSection =
+  /** The Trending carousel, ranked from the Games of its source Feeds. */
+  | {
+      kind: 'trending';
+      /** In read order; never empty. */
+      sources: readonly PredictFeedKey[];
+      screen?: string;
+    }
+  /** A row of the Games of one Feed. */
+  | {
+      kind: 'games-row';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen?: string;
+    }
+  /** The catalog's `categories`, as chips. */
+  | { kind: 'categories' }
+  /** A preview of one Feed's first Events. */
+  | {
+      kind: 'feed-preview';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen: string;
+    };
+
+/** PredictNext Home, as the Venue catalog lays it out. */
+export interface PredictVenueHome {
+  /** In display order; at most eight, reading at most eight Feeds. */
+  sections: readonly PredictHomeSection[];
+}
 
 /** The support part of a Venue descriptor: the wire shape of the Venue
  * catalog (`GET /v1/venues/{venueId}/catalog`). */
@@ -287,6 +331,11 @@ export interface PredictVenueCatalog {
    * Every key is in `feeds`, and the Category opens on that Feed. */
   categories: readonly PredictFeedKey[];
   searchSupported: boolean;
+  /** The Venue's Feed Screens. Empty when the catalog serves none. */
+  screens: readonly PredictVenueFeedScreen[];
+  /** PredictNext Home's sections. Undefined when the catalog serves no
+   * usable `home`, and Home then shows no Feed sections. */
+  home?: PredictVenueHome;
 }
 
 export interface PredictBalance {
