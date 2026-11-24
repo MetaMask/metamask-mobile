@@ -424,7 +424,8 @@ export function useMoneyActivityValuations({
           group.targets.map(getTargetIdentity).sort(compareStrings),
         ],
         enabled: enabled && moneyAddress !== '' && canFetch,
-        initialData: group.cached,
+        initialData: () =>
+          usableEntries(group.targets, readCachedVaultShareValuations()),
         initialDataUpdatedAt: 0,
         staleTime: 0,
         retry: false,

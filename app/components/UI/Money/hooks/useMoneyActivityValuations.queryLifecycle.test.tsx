@@ -215,4 +215,110 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     unmount();
     client.clear();
   });
+
+  it('retains fetched historical amounts while a replacement query fetches an added target', async () => {
+    const premiumActivity = {
+      ...activity,
+      token: {
+        ...activity.token,
+        address: PREMIUM_VAULT,
+        symbol: 'pvmUSD',
+      },
+    };
+    const existingPremiumActivity = {
+      ...premiumActivity,
+      hash: OTHER_TX_HASH,
+    };
+    const initialResponse = vaultShareValuationResponse(
+      [
+        cardValuation(),
+        {
+          ...cardValuation('968399997', PREMIUM_VAULT),
+          hash: OTHER_TX_HASH,
+        },
+      ],
+      ACCOUNT,
+    );
+    const replacementResponse = vaultShareValuationResponse(
+      [
+        cardValuation(),
+        {
+          ...cardValuation('968399997', PREMIUM_VAULT),
+          hash: OTHER_TX_HASH,
+        },
+        cardValuation('968399998', PREMIUM_VAULT),
+      ],
+      ACCOUNT,
+    );
+    let persistedEntries: ReturnType<typeof readCachedVaultShareValuations> =
+      [];
+    let valuationCallCount = 0;
+    let resolveReplacement: (value: unknown) => void = () => undefined;
+    const replacementPending = new Promise<unknown>((resolve) => {
+      resolveReplacement = resolve;
+    });
+    mockReadCache.mockImplementation(() => persistedEntries);
+    mockWriteCache.mockImplementation(async (entries) => {
+      persistedEntries = entries;
+    });
+    mockEngineCall.mockImplementation(async (action: string) => {
+      if (action !== 'MoneyAccountApiDataService:fetchVaultShareValuations') {
+        return { rate: '1.017488' };
+      }
+      valuationCallCount += 1;
+      return valuationCallCount === 1 ? initialResponse : replacementPending;
+    });
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const { result, rerender, unmount } = renderHook(
+      ({ pages }: { pages: AccountsApiActivity[][] }) =>
+        useMoneyActivityValuations({
+          pageActivities: pages,
+          moneyAddress: ACCOUNT,
+          vaultShareTokens: VAULT_SHARE_TOKENS,
+          enabled: true,
+        }),
+      {
+        initialProps: { pages: [[activity, existingPremiumActivity]] },
+        wrapper: ({ children }) => (
+          <QueryWrapper client={client}>{children}</QueryWrapper>
+        ),
+      },
+    );
+
+    await waitFor(() =>
+      expect(result.current.getDisplayAmount(activity)).toEqual({
+        type: 'historical',
+        value: '968399999',
+        decimals: 6,
+      }),
+    );
+
+    rerender({
+      pages: [[activity, existingPremiumActivity], [premiumActivity]],
+    });
+    await waitFor(() => expect(valuationCallCount).toBe(2));
+
+    expect(result.current.getDisplayAmount(activity)).toEqual({
+      type: 'historical',
+      value: '968399999',
+      decimals: 6,
+    });
+
+    await act(async () => {
+      resolveReplacement(replacementResponse);
+      await replacementPending;
+    });
+    await waitFor(() =>
+      expect(result.current.getDisplayAmount(premiumActivity)).toEqual({
+        type: 'historical',
+        value: '968399998',
+        decimals: 6,
+      }),
+    );
+
+    unmount();
+    client.clear();
+  });
 });
