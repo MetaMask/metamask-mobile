@@ -43,8 +43,6 @@ import { PredictFeedScreen } from '../../../app/components/UI/PredictNext/views/
 import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen';
 import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
 import { PredictDepositScreen } from '../../../app/components/UI/PredictNext/views/PredictDeposit/PredictDepositScreen';
-import { DepositEnvironmentOverride } from '../../../app/components/UI/PredictNext/views/PredictDeposit/internal/DepositEnvironment';
-import type { PredictDepositEnvironment } from '../../../app/components/UI/PredictNext/config/depositEnvironment';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
 import { PredictWithdrawScreen } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
@@ -276,13 +274,16 @@ const ConfirmationSheetProbe = () => {
 
 /**
  * The Kalshi deposit screen, opened from a Home probe as Home opens it, so
- * leaving the screen lands back on that probe. `environment` replaces the
- * build's deposit environment (a test build reads as the dev API: Base
- * Sepolia, simulated transfer), so a test can drive the wallet transfer.
+ * leaving the screen lands back on that probe. Feed its Venue catalog through
+ * {@link configurePredictNextCatalog}.
  */
 export const renderPredictDepositScreen = (
   params: PredictNextDepositParams,
-  { environment }: { environment?: PredictDepositEnvironment } = {},
+  {
+    queryClient,
+  }: {
+    queryClient?: QueryClient;
+  } = {},
 ) => {
   const HomeProbe = () => {
     const navigation =
@@ -292,22 +293,19 @@ export const renderPredictDepositScreen = (
     }, [navigation]);
     return <Text testID={getRouteProbeTestId(PredictNextRoutes.HOME)} />;
   };
-  const DepositScreen = () => (
-    <DepositEnvironmentOverride value={environment}>
-      <PredictDepositScreen />
-    </DepositEnvironmentOverride>
-  );
   return renderScreenWithRoutes(
     HomeProbe,
     { name: PredictNextRoutes.HOME },
     [
-      { name: PredictNextRoutes.DEPOSIT, Component: DepositScreen },
+      { name: PredictNextRoutes.DEPOSIT, Component: PredictDepositScreen },
       {
         name: Routes.CONFIRMATION_REQUEST_MODAL,
         Component: ConfirmationSheetProbe,
       },
     ],
     { state: initialStatePredictNext().build() },
+    undefined,
+    queryClient,
   );
 };
 

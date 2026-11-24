@@ -5035,28 +5035,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyEnableOnboardingStepperAnimation: {
-    name: 'moneyEnableOnboardingStepperAnimation',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyEnableSplash: {
-    name: 'moneyEnableSplash',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.21.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   nativeTabBarEnabled: {
     name: 'nativeTabBarEnabled',
     type: FeatureFlagType.Remote,
@@ -6475,6 +6453,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '7.78.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  chartsServerMigration: {
+    name: 'chartsServerMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.22.0',
     },
     status: FeatureFlagStatus.Active,
   },

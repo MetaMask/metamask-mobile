@@ -334,12 +334,12 @@ describe('SocialPostComposerView', () => {
     ).toBeDisabled();
   });
 
-  it('keeps text past 250 characters and disables Post', () => {
+  it('keeps text past 2500 characters and disables Post', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(260),
+      'a'.repeat(2501),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -348,23 +348,23 @@ describe('SocialPostComposerView', () => {
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props.value,
-    ).toHaveLength(260);
+    ).toHaveLength(2501);
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
     ).toHaveTextContent(
-      'social_leaderboard.composer.character_count:{"count":260,"limit":250}',
+      'social_leaderboard.composer.character_count:{"count":2501,"limit":2500}',
     );
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
   });
 
-  it('keeps Post enabled at 250 characters', () => {
+  it('keeps Post enabled at 2500 characters', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(250),
+      'a'.repeat(2500),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -374,6 +374,34 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeEnabled();
+  });
+
+  it('counts each emoji as one character and keeps Post enabled at 2500 emoji', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      '😀'.repeat(2500),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveTextContent(
+      'social_leaderboard.composer.character_count:{"count":2500,"limit":2500}',
+    );
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+    expect(
+      screen.queryByTestId(
+        SocialPostComposerViewSelectorsIDs.POST_BUTTON_BLOCKED,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('rejects comments that contain a url', () => {
@@ -449,6 +477,25 @@ describe('SocialPostComposerView', () => {
       'submit_blocked',
       { blocked_submit_reason: 'empty_caption' },
     );
+  });
+
+  it('records a blocked submit when the caption is longer than 2500 characters', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'a'.repeat(2501),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    pressBlockedPost();
+
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'submit_blocked',
+      { blocked_submit_reason: 'too_long' },
+    );
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
   });
 
   it('enables the Post button once the comment has text', () => {
