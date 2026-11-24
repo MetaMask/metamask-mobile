@@ -3,6 +3,7 @@ import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import KalshiPrototypeCodeScreen from './KalshiPrototypeCodeScreen';
+import { maskEmail } from '../../../../Views/Mfa/labels';
 import { MfaFlowSelectorsIDs } from '../../../../Views/Mfa/Mfa.testIds';
 import {
   GEORGE_COPY,
@@ -61,6 +62,23 @@ describe('KalshiPrototypeCodeScreen', () => {
       fireEvent.press(getByTestId('kalshi-prototype-code-back'));
 
       expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the email entry from the use-a-different-email button', () => {
+      const onUseDifferentEmail = jest.fn();
+      const { getByTestId, onBack } = renderScreen({ onUseDifferentEmail });
+
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK));
+
+      expect(onUseDifferentEmail).toHaveBeenCalledTimes(1);
+      expect(onBack).not.toHaveBeenCalled();
+    });
+
+    it('shows the entered address, masked', () => {
+      const { getByText } = renderScreen({ email: 'connor@example.com' });
+      expect(
+        getByText(maskEmail('connor@example.com'), { exact: false }),
+      ).toBeOnTheScreen();
     });
 
     it('goes back from the use-a-different-email button', () => {

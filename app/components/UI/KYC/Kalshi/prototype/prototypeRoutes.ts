@@ -16,6 +16,7 @@ export const KalshiPrototypeRoutes = {
   PARTNER_TERMS: 'KalshiPrototypePartnerTerms',
   VENDOR_TERMS: 'KalshiPrototypeVendorTerms',
   EMAIL_CODE: 'KalshiPrototypeEmailCode',
+  EMAIL_ENTRY: 'KalshiPrototypeEmailEntry',
   PHONE_ENTRY: 'KalshiPrototypePhoneEntry',
   PHONE_COUNTRY: 'KalshiPrototypePhoneCountry',
   PHONE_CODE: 'KalshiPrototypePhoneCode',
@@ -31,7 +32,9 @@ export type KalshiPrototypeParamList = {
   // The consent page fetches the catalog, so the partners page has no loader.
   KalshiPrototypePartnerTerms: { disclaimers: KycCatalogDisclaimerLink[] };
   KalshiPrototypeVendorTerms: undefined;
-  KalshiPrototypeEmailCode: undefined;
+  // The address the code went to, once the user has entered a different one.
+  KalshiPrototypeEmailCode: { email?: string } | undefined;
+  KalshiPrototypeEmailEntry: undefined;
   KalshiPrototypePhoneEntry: undefined;
   // Ramp's phone country sheet, opened from the phone field.
   KalshiPrototypePhoneCountry: PhoneCountrySelectorModalParams;
@@ -45,6 +48,7 @@ export type KalshiPrototypeStepRoute = Exclude<
   (typeof KalshiPrototypeRoutes)[keyof typeof KalshiPrototypeRoutes],
   | typeof KalshiPrototypeRoutes.PARTNER_TERMS
   | typeof KalshiPrototypeRoutes.PHONE_COUNTRY
+  | typeof KalshiPrototypeRoutes.EMAIL_ENTRY
 >;
 
 /**

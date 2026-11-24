@@ -52,6 +52,7 @@ import KalshiPrototypeUkycCheck from './KalshiPrototypeUkycCheck';
 import KalshiPrototypeVendorTerms from './KalshiPrototypeTerms';
 import KalshiPrototypeCodeScreen from './KalshiPrototypeCodeScreen';
 import KalshiPrototypePhoneEntry from './KalshiPrototypePhoneEntry';
+import KalshiPrototypeEmailEntry from './KalshiPrototypeEmailEntry';
 import PhoneCountrySelectorModal from '../../../Ramp/Views/Modals/PhoneCountrySelectorModal';
 import {
   clearNativeStackNavigatorOptions,
@@ -231,6 +232,14 @@ const VendorTermsStep = () => {
 const EmailCodeStep = () => {
   const navigation = useFlowNavigation();
   const remountKey = useRemountKeyWhenCovered();
+  const route =
+    useRoute<
+      RouteProp<
+        KalshiPrototypeParamList,
+        typeof KalshiPrototypeRoutes.EMAIL_CODE
+      >
+    >();
+  const email = route.params?.email;
   const handleSubmit = useCallback(
     async (code: string) => {
       const step = await vendor.verifyEmailOtp({ vendor: 'kalshi', code });
@@ -241,19 +250,41 @@ const EmailCodeStep = () => {
     [navigation],
   );
   const handleResend = useCallback(async () => {
-    await vendor.sendEmailOtp({ vendor: 'kalshi' });
-  }, []);
+    await vendor.sendEmailOtp({ vendor: 'kalshi', email });
+  }, [email]);
+  const handleUseDifferentEmail = useCallback(
+    () => navigation.navigate(KalshiPrototypeRoutes.EMAIL_ENTRY),
+    [navigation],
+  );
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   return (
     <KalshiPrototypeCodeScreen
-      key={remountKey}
+      key={`${remountKey}-${email ?? ''}`}
       channel="email"
+      email={email}
+      onUseDifferentEmail={handleUseDifferentEmail}
       onSubmit={handleSubmit}
       onResend={handleResend}
       onBack={handleBack}
     />
   );
+};
+
+/** A different email for the Kalshi code, back on the code screen once sent. */
+const EmailEntryStep = () => {
+  const navigation = useFlowNavigation();
+  const handleSend = useCallback(
+    async (email: string) => {
+      await vendor.sendEmailOtp({ vendor: 'kalshi', email });
+      // Back to the code screen, now showing the new address.
+      navigation.navigate(KalshiPrototypeRoutes.EMAIL_CODE, { email });
+    },
+    [navigation],
+  );
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
+  return <KalshiPrototypeEmailEntry onSend={handleSend} onBack={handleBack} />;
 };
 
 /** The Kalshi phone number, pushing the phone code once it is sent. */
@@ -469,6 +500,10 @@ const KalshiPrototypeFlowStack = () => {
       <Stack.Screen
         name={KalshiPrototypeRoutes.EMAIL_CODE}
         component={EmailCodeStep}
+      />
+      <Stack.Screen
+        name={KalshiPrototypeRoutes.EMAIL_ENTRY}
+        component={EmailEntryStep}
       />
       <Stack.Screen
         name={KalshiPrototypeRoutes.PHONE_ENTRY}

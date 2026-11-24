@@ -30,6 +30,10 @@ interface KalshiPrototypeCodeScreenProps {
   onResend?: () => Promise<void>;
   /** Leaves the screen. */
   onBack: () => void;
+  /** The address the email code went to; the fake account's by default. */
+  email?: string;
+  /** Opens the screen for entering a different email. */
+  onUseDifferentEmail?: () => void;
 }
 
 /**
@@ -47,6 +51,8 @@ const KalshiPrototypeCodeScreen = ({
   onSubmit,
   onResend,
   onBack,
+  email: enteredEmail = PROTOTYPE_EMAIL,
+  onUseDifferentEmail,
 }: KalshiPrototypeCodeScreenProps) => {
   const tw = useTailwind();
   const [busy, setBusy] = useState(false);
@@ -64,13 +70,13 @@ const KalshiPrototypeCodeScreen = ({
   );
 
   const isEmail = channel === 'email';
-  const email = isEmail ? PROTOTYPE_EMAIL : undefined;
+  const email = isEmail ? enteredEmail : undefined;
   // Kalshi's code copy, with the fake email address masked the way the shared
   // view masks it.
   const description = isEmail
     ? PROTOTYPE_COPY.emailCode.body.replace(
         '{maskedEmail}',
-        maskEmail(PROTOTYPE_EMAIL),
+        maskEmail(enteredEmail),
       )
     : PROTOTYPE_COPY.phoneCode.body;
 
@@ -82,8 +88,8 @@ const KalshiPrototypeCodeScreen = ({
     useDifferentEmail: isEmail
       ? {
           label: PROTOTYPE_COPY.useDifferentEmail,
-          // Back to the screen that sent the code, like the header's back.
-          onPress: onBack,
+          // To the email entry screen, or back when there is none.
+          onPress: onUseDifferentEmail ?? onBack,
           // The full-width secondary button under the resend button.
           asButton: true,
         }
