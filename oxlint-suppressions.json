@@ -22620,7 +22620,7 @@
   },
   "app/core/SDKConnect/SDKConnect.ts": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/no-misused-promises": {
       "count": 1
