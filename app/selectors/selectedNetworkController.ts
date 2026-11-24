@@ -165,6 +165,7 @@ export const makeSelectNetworkImageSource = () =>
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
+      getRegistryNetworkImagesByChainId,
     ],
     (
       networkConfigurations,
@@ -173,6 +174,7 @@ export const makeSelectNetworkImageSource = () =>
       chainId,
       hostname,
       chainIdToUse,
+      networkImageUrls,
     ) => {
       if (!hostname) return providerNetworkImageSource;
 
@@ -180,14 +182,20 @@ export const makeSelectNetworkImageSource = () =>
 
       const networkConfig = networkConfigurations[relevantChainId];
       if (networkConfig) {
-        return getNetworkImageSource({ chainId: networkConfig.chainId });
+        return getNetworkImageSource(
+          { chainId: networkConfig.chainId },
+          networkImageUrls,
+        );
       }
-      return getNetworkImageSource({
-        // @ts-expect-error The utils/network file is still JS
-        networkType: NetworkList[networkClientIdForDomain]?.networkType,
-        // @ts-expect-error The utils/network file is still JS
-        chainId: NetworkList[networkClientIdForDomain]?.chainId,
-      });
+      return getNetworkImageSource(
+        {
+          // @ts-expect-error The utils/network file is still JS
+          networkType: NetworkList[networkClientIdForDomain]?.networkType,
+          // @ts-expect-error The utils/network file is still JS
+          chainId: NetworkList[networkClientIdForDomain]?.chainId,
+        },
+        networkImageUrls,
+      );
     },
   );
 
