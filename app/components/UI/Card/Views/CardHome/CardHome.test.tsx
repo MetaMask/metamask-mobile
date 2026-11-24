@@ -876,6 +876,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.setup_pending.creating.title': 'Creating your card',
       'card.card_home.setup_pending.creating.description':
         'This only takes a moment.',
+      'card.card_home.setup_pending.checking.title': 'Checking your card',
+      'card.card_home.setup_pending.checking.description':
+        "We'll update this screen when it's ready.",
       'card.card_home.setup_pending.signed_out_pending.title':
         'Setting up your card',
       'card.card_home.setup_pending.signed_out_pending.description':
@@ -2875,7 +2878,7 @@ describe('CardHome Component', () => {
     expect(
       screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Setting up your card')).toBeOnTheScreen();
+    expect(screen.getByText('Checking your card')).toBeOnTheScreen();
     expect(screen.queryByText('Creating your card')).toBeNull();
   });
 

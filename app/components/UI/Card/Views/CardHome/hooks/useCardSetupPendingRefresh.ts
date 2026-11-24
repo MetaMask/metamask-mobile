@@ -124,11 +124,11 @@ export const useCardSetupPendingRefresh = ({
 
   const queryClient = useQueryClient();
   const onboardingId = useSelector(selectOnboardingId);
-  const refreshRegistrationStatus = useCallback(() => {
+  const refreshRegistrationStatus = useCallback(async () => {
     if (!onboardingId) {
-      return Promise.resolve();
+      return;
     }
-    return queryClient.invalidateQueries({
+    await queryClient.invalidateQueries({
       queryKey: cardQueries.dashboard.keys.registrationStatus(onboardingId),
     });
   }, [onboardingId, queryClient]);

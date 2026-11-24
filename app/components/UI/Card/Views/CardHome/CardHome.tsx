@@ -669,12 +669,15 @@ const CardHome = () => {
       provisioningView,
     ],
   );
-  if (
-    waitingState.kind === 'waiting' &&
-    waitingState.step !== 'immersve-reconciling'
-  ) {
-    lastSettledWaitingStepRef.current = waitingState.step;
-  }
+  useEffect(() => {
+    if (waitingState.kind !== 'waiting') {
+      lastSettledWaitingStepRef.current = null;
+      return;
+    }
+    if (waitingState.step !== 'immersve-reconciling') {
+      lastSettledWaitingStepRef.current = waitingState.step;
+    }
+  }, [waitingState]);
 
   // Re-checks while a pending state is up, so it moves on by itself: a
   // faster cadence while the card is being created, the slow one while
@@ -1035,7 +1038,9 @@ const CardHome = () => {
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
-              onRefresh={handleRefresh}
+              onRefresh={() => {
+                void handleRefresh();
+              }}
               colors={[theme.colors.primary.default]}
               tintColor={theme.colors.icon.default}
               testID={CardHomeSelectors.SETUP_PENDING_REFRESH_CONTROL}

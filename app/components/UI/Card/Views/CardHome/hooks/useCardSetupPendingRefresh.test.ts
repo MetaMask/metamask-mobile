@@ -59,9 +59,7 @@ describe('useCardSetupPendingRefresh', () => {
       .spyOn(AppState, 'addEventListener')
       .mockImplementation((_type, handler) => {
         appStateHandler = handler as (state: string) => void;
-        return { remove: mockRemove } as unknown as ReturnType<
-          typeof AppState.addEventListener
-        >;
+        return { remove: mockRemove };
       });
   });
 

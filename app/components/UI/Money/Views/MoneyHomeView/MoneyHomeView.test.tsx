@@ -475,6 +475,8 @@ jest.mock('../../../Card/Views/CardHome/hooks/useCardEnableCard', () => ({
     provisioningView: 'provisioning',
     setupStep: null,
     isEnableCardPending: false,
+    isProvisioningPollActive: false,
+    recheck: jest.fn(),
     markCardFlowOpened: jest.fn(),
   })),
 }));
@@ -881,6 +883,8 @@ describe('MoneyHomeView', () => {
       provisioningView: 'provisioning',
       setupStep: null,
       isEnableCardPending: false,
+      isProvisioningPollActive: false,
+      recheck: jest.fn(),
       markCardFlowOpened: jest.fn(),
     });
     mockUseCardHomeData.mockReturnValue({
@@ -4036,6 +4040,8 @@ describe('MoneyHomeView', () => {
         provisioningView: 'provisioning',
         setupStep: null,
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
+        recheck: jest.fn(),
         markCardFlowOpened,
       });
       mockSelectHasCard.mockReturnValue(true);
@@ -4254,6 +4260,8 @@ describe('MoneyHomeView', () => {
         provisioningView: 'hidden',
         setupStep: 'kyc',
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
+        recheck: jest.fn(),
         markCardFlowOpened: jest.fn(),
       });
 
@@ -4320,6 +4328,8 @@ describe('MoneyHomeView', () => {
         provisioningView: 'hidden',
         setupStep: 'kyc',
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
+        recheck: jest.fn(),
         markCardFlowOpened,
       });
 

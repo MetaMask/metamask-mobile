@@ -2,6 +2,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import CardHomeStatusView, {
+  CARD_HOME_WAITING_COPY,
   CardHomeStatusViewSelectors,
   resolveCardHomeWaitingCopyStep,
 } from './CardHomeStatusView';
@@ -154,9 +155,12 @@ describe('resolveCardHomeWaitingCopyStep', () => {
     ).toBe('creating-card');
   });
 
-  it('uses the neutral copy when a reconcile check is the first step', () => {
+  it('uses the neutral checking copy when a reconcile check is the first step', () => {
     expect(resolveCardHomeWaitingCopyStep('immersve-reconciling', null)).toBe(
-      'signed-out-kyc-pending',
+      'immersve-reconciling',
+    );
+    expect(CARD_HOME_WAITING_COPY['immersve-reconciling'].titleKey).toBe(
+      'card.card_home.setup_pending.checking.title',
     );
   });
 

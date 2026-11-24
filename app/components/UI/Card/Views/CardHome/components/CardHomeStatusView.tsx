@@ -235,8 +235,8 @@ export default CardHomeStatusView;
  * steps. The Immersve review uses the identity-review copy. The in-flight
  * reconcile check does not use the creating copy: that flash is what made
  * "Creating your card" appear before the check had resolved. Its map entry
- * is the neutral fallback; `resolveCardHomeWaitingCopyStep` prefers the last
- * settled step when there is one.
+ * uses the neutral checking copy; `resolveCardHomeWaitingCopyStep` prefers
+ * the last settled step when there is one.
  */
 export const CARD_HOME_WAITING_COPY: Record<
   CardHomeWaitingStep,
@@ -260,9 +260,8 @@ export const CARD_HOME_WAITING_COPY: Record<
     descriptionKey: 'card.card_home.setup_pending.creating.description',
   },
   'immersve-reconciling': {
-    titleKey: 'card.card_home.setup_pending.signed_out_pending.title',
-    descriptionKey:
-      'card.card_home.setup_pending.signed_out_pending.description',
+    titleKey: 'card.card_home.setup_pending.checking.title',
+    descriptionKey: 'card.card_home.setup_pending.checking.description',
   },
 };
 
@@ -277,5 +276,5 @@ export const resolveCardHomeWaitingCopyStep = (
   if (lastSettledStep && lastSettledStep !== 'immersve-reconciling') {
     return lastSettledStep;
   }
-  return 'signed-out-kyc-pending';
+  return 'immersve-reconciling';
 };
