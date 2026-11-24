@@ -750,26 +750,29 @@ describe('V2OtpCode', () => {
       }
     };
 
+    let openURL: jest.SpyInstance;
+
     beforeEach(() => {
       mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
+      openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    });
+
+    afterEach(() => {
+      openURL.mockRestore();
     });
 
     it('opens Transak support once resend attempts are exhausted', async () => {
-      const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
       const { getByText } = renderWithTheme(<V2OtpCode />);
 
       await exhaustResendAttempts(getByText);
       fireEvent.press(getByText('deposit.otp_code.contact_support'));
 
       expect(openURL).toHaveBeenCalledWith('https://support.transak.com');
-      openURL.mockRestore();
     });
 
     it('logs when the support URL cannot be opened', async () => {
       const openError = new Error('cannot open');
-      const openURL = jest
-        .spyOn(Linking, 'openURL')
-        .mockRejectedValue(openError);
+      openURL.mockRejectedValue(openError);
       const { getByText } = renderWithTheme(<V2OtpCode />);
 
       await exhaustResendAttempts(getByText);
@@ -781,7 +784,6 @@ describe('V2OtpCode', () => {
         openError,
         'Failed to open Transak support URL',
       );
-      openURL.mockRestore();
     });
   });
 });
