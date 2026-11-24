@@ -88,6 +88,7 @@ describe('profileOnboardingDraft', () => {
   it('builds a display name from a CamelCase handle', () => {
     expect(displayNameFromUsername('BonkTurboQueen')).toBe('Bonk Turbo Queen');
     expect(displayNameFromUsername('GmZenWolf')).toBe('Gm Zen Wolf');
+    expect(displayNameFromUsername('ETHMaxi')).toBe('Eth Maxi');
   });
 
   it('puts a space before the number in a numbered handle', () => {
@@ -98,6 +99,7 @@ describe('profileOnboardingDraft', () => {
     expect(displayNameFromUsername('bonk_turbo_queen_343')).toBe(
       'Bonk Turbo Queen 343',
     );
+    expect(displayNameFromUsername('CryptoKing99')).toBe('Crypto King 99');
   });
 
   it('keeps digits inside typed handles attached as before', () => {
