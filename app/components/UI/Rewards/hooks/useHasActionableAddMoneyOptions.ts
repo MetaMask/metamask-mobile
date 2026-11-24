@@ -11,7 +11,7 @@ import { useMoneyAccountDepositAssetId } from '../../Money/hooks/useMoneyAccount
  * option. Mirrors the sheet's own disable/hide gates:
  * - Convert crypto → non-zero token balance
  * - Deposit funds → fiat deposit enabled + region provider
- * - USDC quick deposit is covered by the token-balance check
+ * - Stablecoin quick deposit is covered by the token-balance check
  */
 export function useHasActionableAddMoneyOptions(): boolean {
   const { enabledTransactionTypes } = useMMPayFiatConfig();

@@ -8,24 +8,24 @@ import {
  *
  * - `card` never prefills
  * - otherwise requires remote kill-switch AND A/B treatment (`prefillEnabled`)
- * - `forceAddMusd`: when true, `addMusd` and `addUsdc` always enable (loader path). Amount autofill for those intents stays on the dedicated 100% path in `useTransactionCustomAmount`.
+ * - `forceFullBalanceIntent`: when true, full-balance intents always enable (loader path). Amount autofill for those intents stays on the dedicated 100% path in `useTransactionCustomAmount`.
  */
 export function isMoneyAccountDepositPrefillEnabled({
   remotePrefillEnabled,
   abTestPrefillEnabled,
   intent,
-  forceAddMusd = false,
+  forceFullBalanceIntent = false,
 }: {
   remotePrefillEnabled: boolean;
   abTestPrefillEnabled: boolean;
   intent?: MoneyAccountDepositIntent;
-  forceAddMusd?: boolean;
+  forceFullBalanceIntent?: boolean;
 }): boolean {
   if (intent === 'card') {
     return false;
   }
 
-  if (forceAddMusd && isFullBalanceDepositIntent(intent)) {
+  if (forceFullBalanceIntent && isFullBalanceDepositIntent(intent)) {
     return true;
   }
 

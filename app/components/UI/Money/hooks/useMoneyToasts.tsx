@@ -29,7 +29,7 @@ interface DepositToastKeys {
   failedBody: string;
 }
 
-const CONVERT_DEPOSIT_TOAST_KEYS: DepositToastKeys = {
+const CONVERSION_TOAST_KEYS: DepositToastKeys = {
   inProgressTitle: 'money.toasts.deposit_in_progress_title_convert',
   inProgressBody: 'money.toasts.in_progress_body',
   successTitle: 'money.toasts.deposit_success_title_convert',
@@ -38,9 +38,9 @@ const CONVERT_DEPOSIT_TOAST_KEYS: DepositToastKeys = {
 };
 
 const DEPOSIT_TOAST_KEYS: Record<DepositIntent, DepositToastKeys> = {
-  convert: CONVERT_DEPOSIT_TOAST_KEYS,
-  addUsdc: CONVERT_DEPOSIT_TOAST_KEYS,
-  addUsdt: CONVERT_DEPOSIT_TOAST_KEYS,
+  convert: CONVERSION_TOAST_KEYS,
+  addUsdc: CONVERSION_TOAST_KEYS,
+  addUsdt: CONVERSION_TOAST_KEYS,
   addMusd: {
     inProgressTitle: 'money.toasts.deposit_in_progress_title_add_musd',
     inProgressBody: 'money.toasts.in_progress_body',

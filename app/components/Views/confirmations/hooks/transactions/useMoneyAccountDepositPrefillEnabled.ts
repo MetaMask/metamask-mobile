@@ -35,9 +35,7 @@ export function useMoneyAccountDepositPrefillEnabled(): (
         remotePrefillEnabled,
         abTestPrefillEnabled: depositPrefillVariant.prefillEnabled,
         intent,
-        // Loader should show PrefillCustomAmount for full-balance intents.
-        // Amount autofill stays at 100% in useTransactionCustomAmount.
-        forceAddMusd: true,
+        forceFullBalanceIntent: true,
       }),
     [depositPrefillVariant.prefillEnabled, remotePrefillEnabled],
   );

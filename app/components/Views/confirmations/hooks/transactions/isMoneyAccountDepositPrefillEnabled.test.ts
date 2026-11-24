@@ -38,27 +38,19 @@ describe('isMoneyAccountDepositPrefillEnabled', () => {
     ).toBe(false);
   });
 
-  it('force-enables addUsdc when forceAddMusd is true (loader path)', () => {
-    expect(
-      isMoneyAccountDepositPrefillEnabled({
-        remotePrefillEnabled: false,
-        abTestPrefillEnabled: false,
-        intent: 'addUsdc',
-        forceAddMusd: true,
-      }),
-    ).toBe(true);
-  });
-
-  it('force-enables addMusd when forceAddMusd is true (loader path)', () => {
-    expect(
-      isMoneyAccountDepositPrefillEnabled({
-        remotePrefillEnabled: false,
-        abTestPrefillEnabled: false,
-        intent: 'addMusd',
-        forceAddMusd: true,
-      }),
-    ).toBe(true);
-  });
+  it.each(['addUsdc', 'addUsdt', 'addMusd'] as const)(
+    'force-enables %s when forceFullBalanceIntent is true (loader path)',
+    (intent) => {
+      expect(
+        isMoneyAccountDepositPrefillEnabled({
+          remotePrefillEnabled: false,
+          abTestPrefillEnabled: false,
+          intent,
+          forceFullBalanceIntent: true,
+        }),
+      ).toBe(true);
+    },
+  );
 
   it('returns false for card even when kill-switch and treatment are enabled', () => {
     expect(

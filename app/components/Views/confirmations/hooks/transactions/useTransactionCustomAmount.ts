@@ -73,7 +73,7 @@ export function useTransactionCustomAmount({
     transactionMeta,
     MONEY_ACCOUNT_DEPOSIT_TYPES,
   );
-  const isAddMusdFlow =
+  const isFullBalanceDepositFlow =
     isMoneyAccountDeposit &&
     isFullBalanceDepositIntent(
       getMoneyAccountDepositIntent(transactionMeta?.batchId),
@@ -96,7 +96,9 @@ export function useTransactionCustomAmount({
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
-  const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
+  const [isPrefillPending, setIsPrefillPending] = useState(
+    isFullBalanceDepositFlow,
+  );
   const hasPrefilled = useRef(false);
   const userHasEditedRef = useRef(false);
   // Dispatching the metric per keystroke triggers a store-wide selector sweep;
@@ -515,7 +517,7 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     if (
-      isAddMusdFlow &&
+      isFullBalanceDepositFlow &&
       !isMembershipSubscription &&
       balanceUsd &&
       balanceUsd > 0 &&
@@ -534,7 +536,7 @@ export function useTransactionCustomAmount({
       setIsPrefillPending(false);
     }
   }, [
-    isAddMusdFlow,
+    isFullBalanceDepositFlow,
     isMembershipSubscription,
     balanceUsd,
     setConfirmationMetric,
