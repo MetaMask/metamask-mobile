@@ -19492,6 +19492,11 @@
       "count": 1
     }
   },
+  "app/components/Views/confirmations/hooks/pay/debug/useIsMmPayDebugVisible.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "app/components/Views/confirmations/hooks/pay/debug/useMmPayQuoteDebug.ts": {
     "typescript/no-base-to-string": {
       "count": 1
@@ -21844,6 +21849,9 @@
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 4
     },
     "typescript/promise-function-async": {
       "count": 4
