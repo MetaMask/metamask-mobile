@@ -3,10 +3,14 @@
  * `true` counts: a missing or `null` value, as older social-api builds send,
  * means not verified.
  *
- * Takes any object because `@metamask/social-controllers` does not type
- * `verified` on its profile shapes yet; social-api sends it all the same.
+ * Accepts any object so callers can pass the various profile shapes.
+ * `verified` is optional on those types.
  */
 export const isProfileVerified = (
   profile: object | null | undefined,
-): boolean =>
-  (profile as { verified?: unknown } | null | undefined)?.verified === true;
+): boolean => {
+  if (profile == null || !('verified' in profile)) {
+    return false;
+  }
+  return profile.verified === true;
+};
