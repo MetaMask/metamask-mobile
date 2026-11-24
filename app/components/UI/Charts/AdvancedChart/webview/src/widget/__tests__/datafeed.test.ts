@@ -8,7 +8,8 @@ import {
 } from '../datafeed';
 import {
   __resetStateForTests,
-  getRealtimeCallbacks,
+  getRealtimeListeners,
+  setCurrentResolution,
   setOhlcvData,
   setOhlcvPagination,
   setRnBackedPagination,
@@ -238,7 +239,7 @@ describe('customDatafeed', () => {
     expect(onResult).toHaveBeenCalledWith([]);
   });
 
-  it('subscribeBars / unsubscribeBars manage the realtime callback map', () => {
+  it('subscribeBars / unsubscribeBars manage the realtime listener map', () => {
     const onTick = jest.fn();
     customDatafeed.subscribeBars(
       stubSymbolInfo,
@@ -246,9 +247,12 @@ describe('customDatafeed', () => {
       onTick,
       'guid-1',
     );
-    expect(getRealtimeCallbacks()['guid-1']).toBe(onTick);
+    expect(getRealtimeListeners()['guid-1']).toEqual({
+      resolution: '5',
+      onTick,
+    });
     customDatafeed.unsubscribeBars('guid-1');
-    expect(getRealtimeCallbacks()['guid-1']).toBeUndefined();
+    expect(getRealtimeListeners()['guid-1']).toBeUndefined();
   });
 });
 
@@ -291,5 +295,28 @@ describe('forwardRealtimeTick', () => {
     forwardRealtimeTick({ time: 1, open: 1, high: 1, low: 1, close: 1 });
     expect(a).toHaveBeenCalled();
     expect(b).toHaveBeenCalled();
+  });
+
+  it('sends ticks only to listeners on the current resolution while an old subscription lingers', () => {
+    const oldHourly = jest.fn();
+    const newFourHourly = jest.fn();
+    customDatafeed.subscribeBars(stubSymbolInfo, '60', oldHourly, 'g-60');
+    setCurrentResolution('240');
+    customDatafeed.subscribeBars(stubSymbolInfo, '240', newFourHourly, 'g-240');
+
+    forwardRealtimeTick({ time: 1, open: 1, high: 1, low: 1, close: 1 });
+
+    expect(newFourHourly).toHaveBeenCalledTimes(1);
+    expect(oldHourly).not.toHaveBeenCalled();
+  });
+
+  it('treats a unit without its 1 multiplier as the same resolution', () => {
+    const daily = jest.fn();
+    setCurrentResolution('1D');
+    customDatafeed.subscribeBars(stubSymbolInfo, 'D', daily, 'g-d');
+
+    forwardRealtimeTick({ time: 1, open: 1, high: 1, low: 1, close: 1 });
+
+    expect(daily).toHaveBeenCalledTimes(1);
   });
 });

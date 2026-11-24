@@ -761,9 +761,13 @@ function sharedFrameParentLine(sharedFrame) {
   return `_Shared hot frame:_ ${sharedFrameLabel(sharedFrame)} became the top frame in ${sharedFrame.scenarios.length} scenarios that got slower (up to ${maxRatio}× last week's median JS work), reported once instead of per scenario.`;
 }
 
+function weeklyIssueLinkLabel(issue) {
+  return issue.jiraKey || `#${issue.number}`;
+}
+
 /**
- * GitHub issues the scheduled checks opened during the reported week. Absent
- * (`report.issues` undefined) when the weekly run did not query GitHub, so
+ * Jira tickets the scheduled checks opened during the reported week. Absent
+ * (`report.issues` undefined) when the weekly run did not query Jira, so
  * the section is omitted rather than claiming "none".
  */
 function weeklyIssuesSlackLines(report) {
@@ -772,18 +776,20 @@ function weeklyIssuesSlackLines(report) {
     return [];
   }
   if (issues.error) {
-    return ['', `_GitHub issues opened this week:_ could not be listed (${issues.error})`];
+    return ['', `_Jira tickets opened this week:_ could not be listed (${issues.error})`];
   }
   if (issues.items.length === 0) {
-    return ['', '_GitHub issues opened this week:_ none'];
+    return ['', '_Jira tickets opened this week:_ none'];
   }
   const open = issues.items.filter((issue) => issue.state === 'open').length;
   const lines = [
     '',
-    `*GitHub issues opened this week:* ${issues.items.length} (${open} still open)`,
+    `*Jira tickets opened this week:* ${issues.items.length} (${open} still open)`,
   ];
   for (const issue of issues.items) {
-    lines.push(`• <${issue.url}|#${issue.number}> ${weeklyIssueBrief(issue)}`);
+    lines.push(
+      `• <${issue.url}|${weeklyIssueLinkLabel(issue)}> ${weeklyIssueBrief(issue)}`,
+    );
   }
   return lines;
 }
@@ -793,7 +799,7 @@ function weeklyIssuesMarkdownLines(report) {
   if (!issues) {
     return [];
   }
-  const lines = ['## GitHub issues opened this week', ''];
+  const lines = ['## Jira tickets opened this week', ''];
   if (issues.error) {
     lines.push(`Could not be listed: ${issues.error}`, '');
     return lines;
@@ -803,7 +809,8 @@ function weeklyIssuesMarkdownLines(report) {
     return lines;
   }
   for (const issue of issues.items) {
-    lines.push(`- [#${issue.number}](${issue.url}) ${weeklyIssueBrief(issue)}`);
+    const label = weeklyIssueLinkLabel(issue);
+    lines.push(`- [${label}](${issue.url}) ${weeklyIssueBrief(issue)}`);
   }
   lines.push('');
   return lines;
@@ -1000,8 +1007,8 @@ export function buildWeeklyReport({
   lastWeekRunsAvailable = lastWeekRunCount,
   thisWeekDays = [],
   lastWeekDays = [],
-  // `{ items }` or `{ error }` from the GitHub issue lookup; undefined when
-  // the weekly run did not query GitHub.
+  // `{ items }` or `{ error }` from the Jira ticket lookup; undefined when
+  // the weekly run did not query Jira.
   issues = undefined,
 }) {
   const bySpike = collapseSharedSpikes(

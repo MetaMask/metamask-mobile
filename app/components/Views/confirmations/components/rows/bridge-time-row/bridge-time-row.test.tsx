@@ -137,4 +137,14 @@ describe('BridgeTimeRow', () => {
 
     expect(queryByText('1 min')).toBeNull();
   });
+
+  it('renders "Less than 1 min" for moneyAccountDeposit when duration is up to 30 seconds or same-chain', () => {
+    useTransactionPayTotalsMock.mockReturnValue({
+      estimatedDuration: 20,
+    } as TransactionPayTotals);
+
+    const { getByText } = render({ type: TransactionType.moneyAccountDeposit });
+
+    expect(getByText('Less than 1 min')).toBeOnTheScreen();
+  });
 });

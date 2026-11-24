@@ -28,8 +28,10 @@ import {
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectSlowNetworkBannerEnabled } from '../../../selectors/featureFlagController/slowNetworkBanner';
-import { getHardwareTier } from '../../../util/deviceCapability';
-import { getNetworkTierSnapshot } from '../../../util/deviceCapability/latencyStore';
+import {
+  getHardwareTier,
+  getNetworkTierSnapshot,
+} from '../../../util/deviceCapability';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 jest.mock('@react-navigation/native');
@@ -39,8 +41,6 @@ jest.mock('../../../hooks/useNetworkLatency');
 jest.mock('../../../selectors/featureFlagController/slowNetworkBanner');
 jest.mock('../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(),
-}));
-jest.mock('../../../util/deviceCapability/latencyStore', () => ({
   getNetworkTierSnapshot: jest.fn(),
 }));
 jest.mock('../../../core/AppStateEventListener', () => ({
@@ -541,7 +541,7 @@ describe('useNetworkConnectionBanner', () => {
       );
     });
 
-    it('sends the dismissed event with how long the banner was visible', () => {
+    it('sends the hidden event with the user trigger and how long the banner was visible', () => {
       latencyMock.mockReturnValue('SLOW');
       const { result } = renderHookWithProviders();
 
@@ -551,17 +551,18 @@ describe('useNetworkConnectionBanner', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_DISMISSED,
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         banner_type: 'slow',
         hardware_tier: 'MID',
         network_tier: 'WIFI',
-        visible_duration_ms: 3_500,
+        trigger: 'user',
+        duration_ms: 3_500,
       });
     });
 
-    it('sends the cleared event when latency recovers while the banner shows', () => {
+    it('sends the hidden event with the auto trigger when latency recovers while the banner shows', () => {
       latencyMock.mockReturnValue('SLOW');
       const { rerender } = renderHookWithProviders();
 
@@ -570,14 +571,14 @@ describe('useNetworkConnectionBanner', () => {
       rerender(undefined);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ visible_duration_ms: 12_000 }),
+        expect.objectContaining({ trigger: 'auto', duration_ms: 12_000 }),
       );
     });
 
-    it('does not send the cleared event when latency recovers after a dismissal', () => {
+    it('sends only the user hidden event when latency recovers after a dismissal', () => {
       latencyMock.mockReturnValue('SLOW');
       const { result, rerender } = renderHookWithProviders();
 
@@ -587,12 +588,15 @@ describe('useNetworkConnectionBanner', () => {
       latencyMock.mockReturnValue('OK');
       rerender(undefined);
 
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ trigger: 'user' }),
+      );
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ trigger: 'auto' }),
       );
     });
 
-    it('hides the banner without a cleared event when the device goes offline', () => {
+    it('hides the banner without a hidden event when the device goes offline', () => {
       latencyMock.mockReturnValue('SLOW');
       const { result, rerender } = renderHookWithProviders();
 
@@ -602,7 +606,7 @@ describe('useNetworkConnectionBanner', () => {
 
       expect(result.current.isSlowNetwork).toBe(false);
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
       );
     });
 
@@ -629,7 +633,7 @@ describe('useNetworkConnectionBanner', () => {
         ),
       ).toHaveLength(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ visible_duration_ms: 7_000 }),
+        expect.objectContaining({ duration_ms: 7_000 }),
       );
     });
 
@@ -660,7 +664,7 @@ describe('useNetworkConnectionBanner', () => {
         ),
       ).toHaveLength(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ visible_duration_ms: 3_000 }),
+        expect.objectContaining({ duration_ms: 3_000 }),
       );
     });
 
@@ -689,7 +693,7 @@ describe('useNetworkConnectionBanner', () => {
         ),
       ).toHaveLength(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ visible_duration_ms: 5_000 }),
+        expect.objectContaining({ duration_ms: 5_000 }),
       );
     });
 

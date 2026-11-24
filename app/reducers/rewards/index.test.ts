@@ -2261,6 +2261,38 @@ describe('rewardsReducer', () => {
         mockBenefitsPayload.benefits,
       );
     });
+
+    it('clears an earlier error when a read succeeds', () => {
+      const failed = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      const state = rewardsReducer(
+        failed,
+        setBenefits({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          benefits: mockBenefitsPayload,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(false);
+    });
+
+    it('marks the subscription as loaded, including for an empty list', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefits({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          benefits: { ...mockBenefitsPayload, benefits: [] },
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(true);
+    });
   });
 
   describe('setBenefitsLoading', () => {
@@ -2274,6 +2306,38 @@ describe('rewardsReducer', () => {
       );
       expect(state.benefits[TEST_SUBSCRIPTION_ID]?.loading).toBe(true);
     });
+
+    it('keeps a stored error while the next read is in flight', () => {
+      const failed = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      const state = rewardsReducer(
+        failed,
+        setBenefitsLoading({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          loading: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(true);
+    });
+
+    it('leaves the subscription not loaded while the first read is in flight', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefitsLoading({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          loading: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(false);
+    });
   });
 
   describe('setBenefitsError', () => {
@@ -2286,6 +2350,30 @@ describe('rewardsReducer', () => {
         }),
       );
       expect(state.benefits[TEST_SUBSCRIPTION_ID]?.error).toBe(true);
+    });
+
+    it('marks the subscription as loaded when the read fails', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: true,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(true);
+    });
+
+    it('does not mark the subscription as loaded when the error is cleared', () => {
+      const state = rewardsReducer(
+        initialState,
+        setBenefitsError({
+          subscriptionId: TEST_SUBSCRIPTION_ID,
+          error: false,
+        }),
+      );
+
+      expect(state.benefits[TEST_SUBSCRIPTION_ID]?.hasLoaded).toBe(false);
     });
   });
 

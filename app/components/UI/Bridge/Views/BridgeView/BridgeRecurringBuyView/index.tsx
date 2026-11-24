@@ -370,7 +370,7 @@ const BridgeRecurringBuyViewContent = ({
         <ScrollView
           testID={BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL}
           style={tw.style('flex-1 min-h-0')}
-          contentContainerStyle={tw.style('grow-0')}
+          contentContainerStyle={tw.style('grow')}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleScroll}
@@ -382,98 +382,107 @@ const BridgeRecurringBuyViewContent = ({
             />
           }
         >
-          <SwapsInputs
-            inputRef={inputRef}
-            sourceToken={sourceToken}
-            sourceAmountInput={sourceAmountInput}
-            destToken={destToken}
-            destTokenAmount={destTokenAmount}
-            isDestAmountLoading={isDestAmountLoading}
-            isFlipDisabled={isFlipDisabled}
-            onSourceInputPress={focusAmount}
-            onSourceTokenPress={handleSourceTokenPress}
-            onSourceMaxPress={handleSourceMaxPress}
-            onFlipPress={handleFlipTokensPress}
-            onDestInputPress={closeKeypad}
-            onDestTokenPress={handleDestTokenPress}
-            sourceTokenAreaTestID={
-              BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA
-            }
-            destTokenAreaTestID={
-              BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA
-            }
-            sourceAmountTypeToggleTestID={
-              BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
-            }
-            hideDestAmount
-            destAmountReplacementLabelTestID={
-              BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
-            }
-          />
-
-          <Box twClassName="-mt-1">
-            <RecurringScheduleFields
-              ref={scheduleFieldsRef}
-              onEveryPress={focusEvery}
-              onRepeatPress={focusRepeat}
-              onDismissKeypad={dismissInputAndKeypad}
-              onUnitPress={handleUnitPress}
-              onRepeatInfoPress={handleRepeatInfoPress}
+          <Box
+            twClassName="flex-1"
+            testID={BridgeViewSelectorsIDs.RECURRING_BUY_DISMISS_AREA}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={dismissInputAndKeypad}
+          >
+            <SwapsInputs
+              inputRef={inputRef}
+              sourceToken={sourceToken}
+              sourceAmountInput={sourceAmountInput}
+              destToken={destToken}
+              destTokenAmount={destTokenAmount}
+              isDestAmountLoading={isDestAmountLoading}
+              isFlipDisabled={isFlipDisabled}
+              onSourceInputPress={focusAmount}
+              onSourceTokenPress={handleSourceTokenPress}
+              onSourceMaxPress={handleSourceMaxPress}
+              onFlipPress={handleFlipTokensPress}
+              onDestInputPress={closeKeypad}
+              onDestTokenPress={handleDestTokenPress}
+              sourceTokenAreaTestID={
+                BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA
+              }
+              destTokenAreaTestID={
+                BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA
+              }
+              sourceAmountTypeToggleTestID={
+                BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
+              }
+              hideDestAmount
+              destAmountReplacementLabelTestID={
+                BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
+              }
             />
 
-            <Box
-              testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
-              onLayout={handleBannersLayout}
-              twClassName={hasVisibleBanner ? 'mt-2' : undefined}
-              onTouchEnd={dismissInputAndKeypad}
-            >
-              <SwapsBanners
-                gap={2}
-                onAdjustSourceAmount={handleSourcePresetAmountSelect}
+            <Box twClassName="-mt-1">
+              <RecurringScheduleFields
+                ref={scheduleFieldsRef}
+                onEveryPress={focusEvery}
+                onRepeatPress={focusRepeat}
+                onDismissKeypad={dismissInputAndKeypad}
+                onUnitPress={handleUnitPress}
+                onRepeatInfoPress={handleRepeatInfoPress}
+              />
+
+              <Box
+                testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
+                onLayout={handleBannersLayout}
+                twClassName={hasVisibleBanner ? 'mt-2' : undefined}
+                onTouchEnd={dismissInputAndKeypad}
               >
-                <HardwareWalletUnsupportedBanner />
-                <QuoteErrorBanner />
-                <TokenWarningBanner />
-                <DestAssetRequireActivateBanner />
-                <InsufficientNativeReserveBanner />
-                <MissingQuoteAndAssetsPriceDataBanner />
-                <SentinelFeeTokenErrorBanner
-                  reason={feeTokenValidation.reason}
-                  unsupportedPairMessage={strings(
-                    'bridge.recurring.unsupported_fee_token_pair',
-                    {
-                      supportedTokens:
-                        feeTokenValidation.reason === 'unsupported-pair'
-                          ? feeTokenValidation.supportedTokenSymbols.join(', ')
-                          : '',
-                    },
-                  )}
-                  unavailableMessage={strings(
-                    'bridge.recurring.fee_tokens_unavailable',
-                  )}
-                  retryLabel={strings('bridge.recurring.try_again')}
-                  onRetry={feeTokenValidation.retry}
-                  testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
-                />
-              </SwapsBanners>
+                <SwapsBanners
+                  gap={2}
+                  onAdjustSourceAmount={handleSourcePresetAmountSelect}
+                >
+                  <HardwareWalletUnsupportedBanner />
+                  <QuoteErrorBanner />
+                  <TokenWarningBanner />
+                  <DestAssetRequireActivateBanner />
+                  <InsufficientNativeReserveBanner />
+                  <MissingQuoteAndAssetsPriceDataBanner />
+                  <SentinelFeeTokenErrorBanner
+                    reason={feeTokenValidation.reason}
+                    unsupportedPairMessage={strings(
+                      'bridge.recurring.unsupported_fee_token_pair',
+                      {
+                        supportedTokens:
+                          feeTokenValidation.reason === 'unsupported-pair'
+                            ? feeTokenValidation.supportedTokenSymbols.join(
+                                ', ',
+                              )
+                            : '',
+                      },
+                    )}
+                    unavailableMessage={strings(
+                      'bridge.recurring.fee_tokens_unavailable',
+                    )}
+                    retryLabel={strings('bridge.recurring.try_again')}
+                    onRetry={feeTokenValidation.retry}
+                    testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
+                  />
+                </SwapsBanners>
+              </Box>
             </Box>
-          </Box>
 
-          <PriceRangeRow
-            token={priceRange ? priceRangeToken : undefined}
-            minLabel={priceRangeMinLabel}
-            maxLabel={priceRangeMaxLabel}
-            onPress={handlePriceRangePress}
-          />
-
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <OrdersTabs
-              enabledChainIds={enabledChainIds}
-              openOrders={openOrders}
-              history={history}
-              activeTab={recurringOrdersTab}
-              onTabChange={setRecurringOrdersTab}
+            <PriceRangeRow
+              token={priceRange ? priceRangeToken : undefined}
+              minLabel={priceRangeMinLabel}
+              maxLabel={priceRangeMaxLabel}
+              onPress={handlePriceRangePress}
             />
+
+            <Box onTouchEnd={dismissInputAndKeypad}>
+              <OrdersTabs
+                enabledChainIds={enabledChainIds}
+                openOrders={openOrders}
+                history={history}
+                activeTab={recurringOrdersTab}
+                onTabChange={setRecurringOrdersTab}
+              />
+            </Box>
           </Box>
         </ScrollView>
 

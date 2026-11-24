@@ -5,6 +5,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type {
+  PredictDepositOperation,
   PredictFundingPlan,
   PredictHex,
   PredictTimestamp,
@@ -20,6 +21,11 @@ const TERMINAL_FAILURE_STATUSES: ReadonlySet<TransactionStatus> = new Set([
   TransactionStatus.failed,
   TransactionStatus.rejected,
   TransactionStatus.dropped,
+]);
+
+const RESUME_CANCEL_STATUSES: ReadonlySet<TransactionStatus> = new Set([
+  TransactionStatus.failed,
+  TransactionStatus.rejected,
 ]);
 
 const SUBMITTED_STATUSES: ReadonlySet<TransactionStatus> = new Set([
@@ -77,6 +83,20 @@ export type ExistingDepositTransfer =
 export type MatchedDepositTransaction =
   | { kind: 'submitted'; transfer: SubmittedDepositTransfer }
   | { kind: 'pending'; transactionMeta: TransactionMeta };
+
+export type DepositResumeMatch =
+  | { kind: 'report'; txHash: PredictHex; chainId: number }
+  | {
+      kind: 'cancel';
+      status: TransactionStatus.rejected | TransactionStatus.failed;
+    }
+  | { kind: 'pending'; transactionMeta: TransactionMeta }
+  | { kind: 'none' };
+
+export interface MatchDepositTransferForResumeParams {
+  transactions: readonly TransactionMeta[];
+  deposit: PredictDepositOperation;
+}
 
 export interface FindMatchingDepositTransactionParams {
   transactions: readonly TransactionMeta[];
@@ -237,6 +257,134 @@ export const findMatchingDepositTransaction = ({
     };
   }
   return { kind: 'pending', transactionMeta: best };
+};
+
+const rankResumeCandidate = (tx: TransactionMeta): number => {
+  if (tx.status === TransactionStatus.confirmed && isValidTxHash(tx.hash)) {
+    return 4;
+  }
+  if (tx.status === TransactionStatus.submitted && isValidTxHash(tx.hash)) {
+    return 3;
+  }
+  if (PENDING_STATUSES.has(tx.status)) {
+    return 2;
+  }
+  if (RESUME_CANCEL_STATUSES.has(tx.status)) {
+    return 1;
+  }
+  return 0;
+};
+
+/**
+ * Matches an `awaiting_transfer` deposit against `TransactionController` state
+ * on service resume. Checks chain, USDC token contract, zero native value,
+ * ERC-20 `transfer(depositAddress, amount)` calldata, and the exact
+ * `requestId` (`predict-deposit:<operationId>`). Untagged or differently tagged
+ * transactions are left alone so reused deposit addresses or unrelated failed
+ * attempts never report or cancel the wrong operation.
+ *
+ * Priority: confirmed/submitted with hash (`report`) > pending (`pending`) >
+ * rejected/failed (`cancel`). A deposit with no matching transaction returns
+ * `none` so the user can continue or cancel from the status sheet.
+ */
+export const matchDepositTransferForResume = ({
+  transactions,
+  deposit,
+}: MatchDepositTransferForResumeParams): DepositResumeMatch => {
+  if (deposit.status !== 'awaiting_transfer') {
+    return { kind: 'none' };
+  }
+  const target =
+    deposit.next?.kind === 'wallet_transfer'
+      ? {
+          chainId: deposit.next.chainId,
+          tokenContract: deposit.next.tokenContract,
+          depositAddress: deposit.next.depositAddress,
+          amount: deposit.next.amount,
+        }
+      : deposit.depositAddress !== null
+        ? {
+            chainId: deposit.chainId,
+            tokenContract: deposit.tokenContract,
+            depositAddress: deposit.depositAddress,
+            amount: deposit.amount,
+          }
+        : undefined;
+  if (!target) {
+    return { kind: 'none' };
+  }
+  const expectedBaseUnits = toUsdcBaseUnits(target.amount);
+  if (expectedBaseUnits === undefined) {
+    return { kind: 'none' };
+  }
+  const expectedRequestId = depositTransferRequestId(deposit.operationId);
+  const expectedToken = target.tokenContract.toLowerCase();
+  const expectedRecipient = target.depositAddress.toLowerCase();
+
+  let best: TransactionMeta | undefined;
+  let bestRank = 0;
+
+  for (const tx of transactions) {
+    const rank = rankResumeCandidate(tx);
+    if (rank === 0) {
+      continue;
+    }
+    if (
+      tx.type !== undefined &&
+      tx.type !== TransactionType.tokenMethodTransfer
+    ) {
+      continue;
+    }
+    if (readChainId(tx.chainId) !== target.chainId) {
+      continue;
+    }
+    if (tx.txParams?.to?.toLowerCase() !== expectedToken) {
+      continue;
+    }
+    if (!isZeroNativeValue(tx.txParams?.value)) {
+      continue;
+    }
+    const decoded = decodeUsdcTransfer(tx.txParams?.data);
+    if (
+      !decoded ||
+      decoded.recipient !== expectedRecipient ||
+      decoded.baseUnits !== expectedBaseUnits
+    ) {
+      continue;
+    }
+    if (tx.requestId !== expectedRequestId) {
+      continue;
+    }
+    if (
+      !best ||
+      rank > bestRank ||
+      (rank === bestRank && (tx.time ?? 0) > (best.time ?? 0))
+    ) {
+      best = tx;
+      bestRank = rank;
+    }
+  }
+
+  if (!best) {
+    return { kind: 'none' };
+  }
+  if (SUBMITTED_STATUSES.has(best.status) && isValidTxHash(best.hash)) {
+    return {
+      kind: 'report',
+      txHash: best.hash,
+      chainId: readChainId(best.chainId) ?? target.chainId,
+    };
+  }
+  if (PENDING_STATUSES.has(best.status)) {
+    return { kind: 'pending', transactionMeta: best };
+  }
+  if (
+    best.status === TransactionStatus.rejected ||
+    best.status === TransactionStatus.failed
+  ) {
+    return { kind: 'cancel', status: best.status };
+  }
+  return { kind: 'none' };
 };
 
 /**

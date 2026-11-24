@@ -54,6 +54,7 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
 let mockRouteParams: {
   showNotificationsBanner?: boolean;
   initialTab?: SocialShellTab;
+  source?: string;
 } = {};
 
 jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
@@ -434,9 +435,17 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
 describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     mockRouteParams = {};
     mockIsFocused = true;
     act(() => {
@@ -765,6 +774,14 @@ describe('SocialV1View', () => {
     expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
   });
 
+  it('holds the pages back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockSocialFeed).not.toHaveBeenCalled();
+  });
+
   it('renders Trending through the shared virtualized feed', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -884,6 +901,29 @@ describe('SocialV1View', () => {
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the composer with the source the Social screen was opened from', () => {
+    mockRouteParams = { source: 'home_banner' };
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: 'home_banner',
+    });
+  });
+
+  it('opens the composer without a source when the screen has none', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: undefined,
+    });
   });
 
   it('opens Rewards from the gift button', () => {
