@@ -209,7 +209,10 @@ export function usePerpsMarginAdjustment(
         });
 
         const errorMessage = translatePerpsError(error);
-        trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
+        trackAdjustment(
+          PERPS_EVENT_VALUE.STATUS.FAILED,
+          ensureError(error).message,
+        );
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(

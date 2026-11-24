@@ -119,19 +119,9 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
     chainId: 'eip155:42161',
     contractAddress: '0x1234567890123456789012345678901234567890',
   }),
-  createErrorResult: jest.fn(
-    (error: unknown, defaultResponse: Record<string, unknown>) => ({
-      ...defaultResponse,
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      ...(error !== null &&
-      typeof error === 'object' &&
-      'errorCode' in error &&
-      (error as { errorCode?: unknown }).errorCode !== undefined
-        ? { errorCode: (error as { errorCode?: unknown }).errorCode }
-        : {}),
-    }),
-  ),
+  createErrorResult: jest.requireActual(
+    '@metamask/perps-controller/utils/hyperLiquidValidation',
+  ).createErrorResult,
 }));
 
 import {

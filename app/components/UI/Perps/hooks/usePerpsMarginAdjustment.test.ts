@@ -502,7 +502,7 @@ describe('usePerpsMarginAdjustment', () => {
         {
           action: 'add',
           asset: 'ETH',
-          error_message: 'perps.errors.networkErrorSimple',
+          error_message: 'Network error',
           status: 'failed',
         },
       );

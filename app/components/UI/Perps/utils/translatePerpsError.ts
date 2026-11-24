@@ -623,25 +623,10 @@ export interface OrderEditRejection {
  *
  * @param error - The failed edit result, or its error text.
  */
-function readErrorText(error: unknown): string | undefined {
-  if (typeof error === 'string') {
-    return error;
-  }
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    hasProperty(error, 'error') &&
-    typeof error.error === 'string'
-  ) {
-    return error.error;
-  }
-  return undefined;
-}
-
 export function normalizeOrderEditRejection(
   error?: unknown,
 ): OrderEditRejection {
-  const message = readErrorText(error);
+  const message = normalizePerpsError(error)?.error;
   return isPostOnlyWouldCrossError(error)
     ? {
         reason: 'post_only_would_cross',
@@ -723,8 +708,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
       case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
       case PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED:
-        errorParams.providerId =
-          context?.providerId || (normalizedError.providerId ?? 'Unknown');
+        // getErrorInterpolationData already resolved providerId.
         break;
       // Add other error codes that need parameters as they arise
       default:
