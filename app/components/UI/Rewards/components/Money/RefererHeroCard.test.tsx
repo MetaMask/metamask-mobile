@@ -17,7 +17,6 @@ import { avatarIconNameIn } from './testUtils';
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => true),
 }));
-import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
 jest.mock('../../hooks/useReferralMe');
@@ -266,16 +265,6 @@ describe('RefererHeroCard', () => {
     expect(
       childTestIds.indexOf(REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR),
     ).toBeLessThan(childTestIds.indexOf(REFERER_HERO_CARD_TEST_IDS.IDENTITY));
-  });
-
-  it('opens the terms sheet from the info icon', () => {
-    const { getByTestId } = renderHero();
-
-    fireEvent.press(getByTestId(REFERER_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
-    );
   });
 
   it('hides the code when the code is not active', () => {

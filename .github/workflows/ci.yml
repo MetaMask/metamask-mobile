@@ -436,22 +436,16 @@ jobs:
   # file set from eslint.config.mjs and bin-packs by size. Per-file cache
   # stays off the persisted paths: #33370 reverted it because cross-file and
   # type-aware rules go stale.
+  #
+  # Pinned to GitHub-hosted runners. After Oxlint, four lint shards finish in
+  # about two minutes and no longer need Namespace 8x16 capacity. Keep this
+  # job off the runner_provider switch so a Namespace default does not pull
+  # it back onto paid Namespace profiles.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
     permissions:
       contents: read
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+    runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -460,27 +454,13 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        with:
-          fetch-depth: 2
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 2
-      - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+          cache: yarn
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -497,11 +477,9 @@ jobs:
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # Namespace ci-linux is 8x16. 13312 leaves about 3 GB for the rest of
-          # the process and the runner; a higher heap trades the V8 heap error
-          # for the kernel OOM killer. ubuntu-latest matches the other test
-          # jobs at 20480. Local yarn lint stays at 12288.
-          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '13312' || '20480' }}
+          # ubuntu-latest matches the other GitHub-hosted test jobs. Local
+          # yarn lint stays at 12288.
+          LINT_HEAP_MB: 20480
       - name: Require clean working directory
         shell: bash
         run: |
@@ -517,11 +495,7 @@ jobs:
   lint:
     name: Run `lint`
     permissions: {}
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    runs-on: ubuntu-latest
     needs:
       - get_requirements
       - lint-shards

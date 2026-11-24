@@ -9986,11 +9986,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.56.1":
-  version: 0.56.1
-  resolution: "@metamask/design-system-react-native@npm:0.56.1"
+"@metamask/design-system-react-native@npm:^0.58.0":
+  version: 0.58.0
+  resolution: "@metamask/design-system-react-native@npm:0.58.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.45.0"
+    "@metamask/design-system-shared": "npm:^0.47.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.14.0
@@ -10004,18 +10004,18 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/86e531ac2a87ac5dd1d872ebba82126dadd65583b1659495d5ae7add89ac29bde3e8528373de833a8fe85d14593655ffda3d33366b7e5a5ee69e221c2093a4ed
+  checksum: 10/104942fbc566aed7eeeb673b6eec31ec481d6717fd61001e70b134669c1edfb8dad02d641f8460f94eb9175f0ccac25db3cd48d387509bf853be5a3e8515a4ea
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.45.0":
-  version: 0.45.0
-  resolution: "@metamask/design-system-shared@npm:0.45.0"
+"@metamask/design-system-shared@npm:^0.47.0":
+  version: 0.47.0
+  resolution: "@metamask/design-system-shared@npm:0.47.0"
   dependencies:
     "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/522922b87353a5b0b16adc5157bcfbea153741d6818a60516280d5aa5a2eeb0ae55e22240eba37febe4198f9e553fc2ef9aa7f277ea9ad4d7de7db2e412a6243
+  checksum: 10/bfcafbaa18c529f10cb1b2a3c6f95784e0e0e9a0aad605ae0888498607f0c25f2fa9755a198217fad7a43a52a4802528544b9915ff3ef30e4aac9d148ce835c8
   languageName: node
   linkType: hard
 
@@ -38354,7 +38354,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.56.1"
+    "@metamask/design-system-react-native": "npm:^0.58.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.14.0"
     "@metamask/design-tokens": "npm:^13.0.0"
     "@metamask/device-mcp": "npm:^0.8.0"
@@ -50378,17 +50378,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^6.21.3, undici@npm:^6.22.0":
-  version: 6.28.1
-  resolution: "undici@npm:6.28.1"
-  checksum: 10/a64d5972054604918448ffa1bbaa867ecd1ae9ed5aa75344a794550cc048a79949fd95ca196b961463384c49d77e924adb3643758a2aa809e43db5377a390941
+"undici@npm:6.29.1":
+  version: 6.29.1
+  resolution: "undici@npm:6.29.1"
+  checksum: 10/92acb64ec190fe3499dec69830fdfc48e28f6f19627bad7563cfd57c37b4e95379c12b8ac15a2e6a8739eaac358f17503a229c160d3dc8774141b1e270d8aa57
   languageName: node
   linkType: hard
 
-"undici@npm:^7.19.0":
-  version: 7.29.0
-  resolution: "undici@npm:7.29.0"
-  checksum: 10/ca73639071bdcbc41e57be1800847fa18f86f8fbf7a5641ff9899f7bbb6f5cecdd593e225f5fd94e31703dcbfaea4a722a3b81cab90c5c4e2b406aec1ae55732
+"undici@npm:7.30.1":
+  version: 7.30.1
+  resolution: "undici@npm:7.30.1"
+  checksum: 10/306a28e4c715652a0e2cd59bcc98cf8b6083b989151054fafaac27bdab6f2bc7e0f33f5847f72f5ba257971226372d04705e0e984b26b42a03271d5a35eb99b1
   languageName: node
   linkType: hard
 
