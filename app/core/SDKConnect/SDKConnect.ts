@@ -280,7 +280,7 @@ export class SDKConnect {
   public async removeAll() {
     const removeAllPromise = removeAll(this);
     // Force close loading status
-    removeAllPromise.finally(() => this.hideLoadingState());
+    void removeAllPromise.finally(() => this.hideLoadingState());
     return removeAllPromise;
   }
 
