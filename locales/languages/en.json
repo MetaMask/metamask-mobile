@@ -1281,7 +1281,8 @@
       "more_info_help": "Need help verifying?",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening identity verification. Please try again.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "cancel": "Cancel"
     },
     "kyc_taking_longer": {
       "title": "Verifying identity",

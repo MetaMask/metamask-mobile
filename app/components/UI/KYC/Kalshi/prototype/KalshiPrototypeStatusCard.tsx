@@ -153,9 +153,7 @@ const KalshiPrototypeStatusCard = ({
   const copy = PROTOTYPE_COPY.card[state];
   const config = CARD_STATE_CONFIG[state];
   const handlePress =
-    state === 'cantVerify'
-      ? () => Linking.openURL(SUPPORT_URL)
-      : onPress;
+    state === 'cantVerify' ? () => Linking.openURL(SUPPORT_URL) : onPress;
 
   return (
     <BannerCompact

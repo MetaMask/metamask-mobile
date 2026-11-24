@@ -130,9 +130,7 @@ describe('KalshiPrototypeStatusCard', () => {
     );
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    const openURL = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined);
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     fireEvent.press(
       getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CONTAINER),
     );

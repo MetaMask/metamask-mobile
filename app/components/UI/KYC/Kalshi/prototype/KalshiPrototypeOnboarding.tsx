@@ -27,6 +27,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import KycPending from '../../Views/Status/KycPending';
 import KycIdentityVerified from '../../Views/Status/IdentityVerified';
+import KycRejected from '../../Views/Status/KycRejected';
+import { showKycSumSubLaunchError } from '../../Views/SumSub/SumSubKyc';
 import VerifyIdentity from '../../Views/SumSub/VerifyIdentity';
 import PartnerTerms from '../../Views/SumSub/PartnerTerms';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
@@ -41,6 +43,7 @@ import {
   getKalshiPrototypeRuntime,
   getKalshiPrototypeVendorOnboarding,
   prototypeCompleteSumsub,
+  retryKalshiPrototypeSumsub,
 } from './prototypeRuntime';
 import {
   KalshiPrototypeRoutes,
@@ -396,23 +399,34 @@ const StepUpStep = () => {
  */
 const SumsubStep = () => {
   const navigation = useFlowNavigation();
+  const onLeave = useFlowExit();
   const [isPresented, setIsPresented] = useState(false);
-  const hasLaunchedRef = useRef(false);
+  const [hasError, setHasError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const launchedAttemptRef = useRef(-1);
 
   useEffect(() => {
-    if (hasLaunchedRef.current) {
+    if (launchedAttemptRef.current === attempt) {
       return undefined;
     }
-    hasLaunchedRef.current = true;
-    // The launch promise stays open until the mock's Continue ends it, the
-    // way the SDK hand-off stays open until the user finishes.
-    void vendor.launchProviderFlow();
-    const timer = setTimeout(
-      () => setIsPresented(true),
-      PROTOTYPE_SUMSUB_LAUNCH_DELAY_MS,
-    );
+    launchedAttemptRef.current = attempt;
+    // Developer Options can make the launch fail, the way `useLaunchSumSub`
+    // fails on a consent or provider error: the same error view, no code.
+    const willFail = getKalshiPrototypeRuntime().failSumsubLaunch;
+    if (!willFail) {
+      // The launch promise stays open until the mock's Continue ends it, the
+      // way the SDK hand-off stays open until the user finishes.
+      void vendor.launchProviderFlow();
+    }
+    const timer = setTimeout(() => {
+      if (willFail) {
+        setHasError(true);
+      } else {
+        setIsPresented(true);
+      }
+    }, PROTOTYPE_SUMSUB_LAUNCH_DELAY_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [attempt]);
 
   const handleContinue = useCallback(() => {
     prototypeCompleteSumsub('submitted');
@@ -421,7 +435,27 @@ const SumsubStep = () => {
     }
   }, [navigation]);
 
-  if (!isPresented) {
+  const handleRetry = useCallback(() => {
+    setHasError(false);
+    setAttempt((value) => value + 1);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    onLeave();
+  }, [navigation, onLeave]);
+
+  useEffect(() => {
+    if (hasError) {
+      // KycSumSub's own native retry dialog, over the loader.
+      showKycSumSubLaunchError({ onRetry: handleRetry, onCancel: handleBack });
+    }
+  }, [hasError, handleRetry, handleBack]);
+
+  if (!isPresented || hasError) {
     return <KalshiPrototypeLoading />;
   }
   return <KalshiPrototypeSumsubScreen onContinue={handleContinue} />;
@@ -435,13 +469,15 @@ const SumsubStep = () => {
 const DecisionStep = () => {
   const onLeave = useFlowExit();
   const runtime = useKalshiPrototypeRuntime();
-  const isApproved = runtime.script?.vendor.status === 'approved';
+  const navigation = useFlowNavigation();
+  const status = runtime.script?.vendor.status;
+  const isApproved = status === 'approved';
 
   // The review comes back after a fixed wait, so the verifying screen can be
   // looked at and closed. Closing leaves the review pending, and the card
   // shows Verifying your identity.
   useEffect(() => {
-    if (isApproved) {
+    if (status !== 'pending') {
       return undefined;
     }
     let stopped = false;
@@ -458,8 +494,24 @@ const DecisionStep = () => {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [isApproved]);
+  }, [status]);
 
+  if (status === 'rejected') {
+    // VBA's terminal rejection: KycRejected with Contact support.
+    return <KycRejected action="contactSupport" onAction={onLeave} />;
+  }
+  if (status === 'retry') {
+    // VBA's retry rejection: KycRejected with Try again, back into Sumsub.
+    return (
+      <KycRejected
+        action="retry"
+        onAction={() => {
+          retryKalshiPrototypeSumsub();
+          navigation.replace(KalshiPrototypeRoutes.SUMSUB);
+        }}
+      />
+    );
+  }
   if (isApproved) {
     return (
       <KycIdentityVerified

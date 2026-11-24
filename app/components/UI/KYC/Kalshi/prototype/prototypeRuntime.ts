@@ -45,6 +45,8 @@ export interface PrototypeRuntimeState {
    * "Couldn't send your code" dialog. Survives a scenario switch.
    */
   failCodeSends: boolean;
+  /** Developer Options: the Sumsub launch fails, as `useLaunchSumSub` would. */
+  failSumsubLaunch: boolean;
 }
 
 const IDLE: PrototypeRuntimeState = {
@@ -54,6 +56,7 @@ const IDLE: PrototypeRuntimeState = {
   sumsubOpen: false,
   cardDismissed: false,
   failCodeSends: false,
+  failSumsubLaunch: false,
 };
 
 let runtime: PrototypeRuntimeState = IDLE;
@@ -182,6 +185,7 @@ export const activateKalshiPrototypeScenario = (
     sumsubOpen: false,
     cardDismissed: false,
     failCodeSends: runtime.failCodeSends,
+    failSumsubLaunch: runtime.failSumsubLaunch,
   });
 };
 
@@ -230,7 +234,7 @@ export const dismissKalshiPrototypeCard = () => {
  * @param outcome - What the review settles on.
  */
 export const resolveKalshiPrototypeDecision = (
-  outcome: Extract<KycStepStatus, 'approved' | 'rejected'>,
+  outcome: Extract<KycStepStatus, 'approved' | 'rejected' | 'retry'>,
 ) => {
   const script = runtime.script;
   if (
@@ -245,6 +249,29 @@ export const resolveKalshiPrototypeDecision = (
     script: {
       ...script,
       vendor: { ...script.vendor, status: outcome },
+    },
+  });
+};
+
+/** Developer Options: make the next Sumsub launches fail, or stop failing. */
+export const setKalshiPrototypeSumsubLaunchFail = (fail: boolean) => {
+  setRuntime({ ...runtime, failSumsubLaunch: fail });
+};
+
+/**
+ * KycRejected's Try again for a retry decision: back to the Sumsub step,
+ * still marked retry, the way kyc-api reopens the provider.
+ */
+export const retryKalshiPrototypeSumsub = () => {
+  const script = runtime.script;
+  if (!script) {
+    return;
+  }
+  setRuntime({
+    ...runtime,
+    script: {
+      ...script,
+      vendor: { ...script.vendor, step: 'sumsub', status: 'retry' },
     },
   });
 };

@@ -138,10 +138,13 @@ export const PROTOTYPE_COPY = {
     reset: 'Reset prototype',
     failCodeSends: '[PROTO] Fail Kalshi code sends',
     failCodeSendsOn: '[PROTO] Code sends fail: on (tap to turn off)',
+    failSumsubLaunch: '[PROTO] Fail the Sumsub launch',
+    failSumsubLaunchOn: '[PROTO] Sumsub launch fails: on (tap to turn off)',
     resolveReview: {
       title: '[PROTO] Resolve the pending review',
       verified: 'Resolve review: verified',
       cantVerify: "Resolve review: can't verify",
+      retry: 'Resolve review: asks to try again',
     },
   },
   picker: {
@@ -261,8 +264,7 @@ export const PROTOTYPE_COPY = {
     // Kalshi's product in place of bank transfers.
     cantVerify: {
       title: 'We can’t verify your identity',
-      description:
-        'Prediction markets aren’t available to you right now.',
+      description: 'Prediction markets aren’t available to you right now.',
       // The VBA can't-verify card's button (money.vba_home_card.kyc_decision.cta).
       action: 'Learn more',
     },

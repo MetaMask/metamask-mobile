@@ -23,6 +23,7 @@ import {
   resetKalshiPrototype,
   resolveKalshiPrototypeDecision,
   setKalshiPrototypeCodeSendsFail,
+  setKalshiPrototypeSumsubLaunchFail,
 } from './prototypeRuntime';
 import { useKalshiPrototypeRuntime } from './useKalshiPrototype';
 import { KalshiPrototypeDevSectionSelectorsIDs } from './KalshiPrototypeDevSection.testIds';
@@ -103,6 +104,15 @@ const KalshiPrototypeDeveloperOptionsSection = () => {
           >
             {copy.resolveReview.cantVerify}
           </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={() => resolveKalshiPrototypeDecision('retry')}
+            testID={KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_RETRY}
+          >
+            {copy.resolveReview.retry}
+          </Button>
         </Box>
       ) : null}
       <Button
@@ -113,6 +123,19 @@ const KalshiPrototypeDeveloperOptionsSection = () => {
         testID={KalshiPrototypeDevSectionSelectorsIDs.FAIL_CODE_SENDS}
       >
         {runtime.failCodeSends ? copy.failCodeSendsOn : copy.failCodeSends}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={() =>
+          setKalshiPrototypeSumsubLaunchFail(!runtime.failSumsubLaunch)
+        }
+        testID={KalshiPrototypeDevSectionSelectorsIDs.FAIL_SUMSUB_LAUNCH}
+      >
+        {runtime.failSumsubLaunch
+          ? copy.failSumsubLaunchOn
+          : copy.failSumsubLaunch}
       </Button>
       <Button
         variant={ButtonVariant.Secondary}
