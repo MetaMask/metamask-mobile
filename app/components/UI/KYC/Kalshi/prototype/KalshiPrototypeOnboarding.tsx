@@ -60,6 +60,7 @@ import {
 } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 import KalshiPrototypeSumsubScreen from './KalshiPrototypeSumsubScreen';
 import KalshiPrototypeLoading from './KalshiPrototypeLoading';
+import KalshiPrototypeStepUp from './KalshiPrototypeStepUp';
 
 const vendor = getKalshiPrototypeVendorOnboarding();
 
@@ -361,6 +362,22 @@ const PhoneCodeStep = () => {
 };
 
 /**
+ * The Level 2 step-up page. Continue swaps it for Sumsub; Not now and back
+ * leave the flow, and the card still shows We need more info.
+ */
+const StepUpStep = () => {
+  const navigation = useFlowNavigation();
+  const onLeave = useFlowExit();
+  const handleContinue = useCallback(
+    () => navigation.replace(KalshiPrototypeRoutes.SUMSUB),
+    [navigation],
+  );
+  return (
+    <KalshiPrototypeStepUp onContinue={handleContinue} onNotNow={onLeave} />
+  );
+};
+
+/**
  * The Sumsub step: the fox loader while the fake presentation "launches",
  * then the mock view, mirroring how `KycSumSub` holds its loader until the
  * SDK presents itself. Its Continue replaces it with the decision.
@@ -533,6 +550,10 @@ const KalshiPrototypeFlowStack = () => {
       <Stack.Screen
         name={KalshiPrototypeRoutes.PHONE_CODE}
         component={PhoneCodeStep}
+      />
+      <Stack.Screen
+        name={KalshiPrototypeRoutes.STEP_UP}
+        component={StepUpStep}
       />
       <Stack.Screen
         name={KalshiPrototypeRoutes.SUMSUB}

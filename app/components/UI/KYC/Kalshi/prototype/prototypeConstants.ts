@@ -211,6 +211,13 @@ export const PROTOTYPE_COPY = {
    * wait and done cards reuse George's waiting and done copy, and the rest
    * is placeholder.
    */
+  /** Kalshi Level 2 step-up (Paper 6SR), before Sumsub opens. */
+  stepUp: {
+    title: 'Verify your ID to keep trading',
+    body: 'Kalshi needs to confirm your identity before you can continue. It takes a few minutes.',
+    continue: 'Continue',
+    notNow: 'Not now',
+  },
   card: {
     getStarted: {
       title: 'Get started in a few steps',

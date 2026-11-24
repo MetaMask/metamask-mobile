@@ -20,6 +20,7 @@ export const KalshiPrototypeRoutes = {
   PHONE_ENTRY: 'KalshiPrototypePhoneEntry',
   PHONE_COUNTRY: 'KalshiPrototypePhoneCountry',
   PHONE_CODE: 'KalshiPrototypePhoneCode',
+  STEP_UP: 'KalshiPrototypeStepUp',
   SUMSUB: 'KalshiPrototypeSumsub',
   DECISION: 'KalshiPrototypeDecision',
 } as const;
@@ -39,6 +40,7 @@ export type KalshiPrototypeParamList = {
   // Ramp's phone country sheet, opened from the phone field.
   KalshiPrototypePhoneCountry: PhoneCountrySelectorModalParams;
   KalshiPrototypePhoneCode: { phoneNumber?: string } | undefined;
+  KalshiPrototypeStepUp: undefined;
   KalshiPrototypeSumsub: undefined;
   KalshiPrototypeDecision: undefined;
 };
@@ -84,7 +86,11 @@ export const getKalshiPrototypeRouteForScript = (
         ? KalshiPrototypeRoutes.PHONE_CODE
         : KalshiPrototypeRoutes.PHONE_ENTRY;
     case 'sumsub':
-      return KalshiPrototypeRoutes.SUMSUB;
+      // A Level 2 step-up explains the extra check first, live or when the
+      // user comes back from the card before finishing ID and selfie.
+      return script.scenario === 'stepUpRequired'
+        ? KalshiPrototypeRoutes.STEP_UP
+        : KalshiPrototypeRoutes.SUMSUB;
     case 'decision':
       return KalshiPrototypeRoutes.DECISION;
     default:

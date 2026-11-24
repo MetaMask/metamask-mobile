@@ -1,3 +1,4 @@
+import { Linking } from 'react-native';
 // PROTOTYPE-DO-NOT-MERGE
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
@@ -106,7 +107,7 @@ describe('KalshiPrototypeStatusCard', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
-  it('renders the can-not-verify row static and dismissible', () => {
+  it('renders the can-not-verify row with Learn more, dismissible, and opening support', () => {
     const onPress = jest.fn();
     const onClose = jest.fn();
     const copy = copyOf('cantVerify');
@@ -119,8 +120,7 @@ describe('KalshiPrototypeStatusCard', () => {
     );
 
     expect(getByText(copy.title)).toBeOnTheScreen();
-    const row = getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CONTAINER);
-    expect(row.props.accessibilityRole).toBeUndefined();
+    expect(getByText(copy.action)).toBeOnTheScreen();
     expect(
       getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CLOSE_BUTTON),
     ).toBeOnTheScreen();
@@ -129,7 +129,16 @@ describe('KalshiPrototypeStatusCard', () => {
       getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CLOSE_BUTTON),
     );
     expect(onClose).toHaveBeenCalledTimes(1);
+
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    fireEvent.press(
+      getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CONTAINER),
+    );
+    expect(openURL).toHaveBeenCalledWith('https://support.metamask.io');
     expect(onPress).not.toHaveBeenCalled();
+    openURL.mockRestore();
   });
 
   it('renders the verified row static and dismissible', () => {

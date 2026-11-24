@@ -56,10 +56,10 @@ describe('getKalshiPrototypeRouteForScript', () => {
     );
   });
 
-  it('opens the step-up scenario straight on the Sumsub step', () => {
+  it('opens the step-up scenario on the step-up page before Sumsub', () => {
     expect(
       getKalshiPrototypeRouteForScript(enterScenario('stepUpRequired')),
-    ).toBe(KalshiPrototypeRoutes.SUMSUB);
+    ).toBe(KalshiPrototypeRoutes.STEP_UP);
   });
 
   it('opens the card-state scenarios on the decision screen', () => {
