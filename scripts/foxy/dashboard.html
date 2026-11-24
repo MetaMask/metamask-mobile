@@ -434,12 +434,6 @@
   .vlegend dd .ex { display: block; margin-top: 2px; font-size: 11.5px; color: var(--color-text-muted); }
   .vl-f { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--color-border-muted); font-size: 11.5px; line-height: 1.4; color: var(--color-text-muted); }
   @media (prefers-reduced-motion: reduce) { .vlegend.open { animation: none; } }
-  .audmenu { display: none; position: fixed; z-index: 40; width: min(280px, calc(100vw - 16px)); flex-direction: column; gap: 2px; padding: 6px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); box-shadow: 0 16px 40px rgba(0, 0, 0, .55); }
-  .audmenu.open { display: flex; }
-  .audmenu button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 8px 10px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text-default); text-align: left; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .audmenu button:hover { background: var(--fill-2); }
-  .audmenu button:focus-visible { outline-offset: -2px; }
-  .audmenu button .d { font-size: 11.5px; font-weight: 400; color: var(--color-text-muted); }
   .aud-none { color: var(--color-text-muted); font-style: italic; white-space: nowrap; }
   .sub-h { margin: 12px 0 4px; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
 
@@ -528,6 +522,34 @@
   .hfoot .sp { flex: 1; } .hfoot .hint2 { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-muted); font-size: 12px; }
   .chk { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--color-text-alternative); font-size: 13px; }
   .chk input { width: 16px; height: 16px; padding: 0; accent-color: var(--color-primary-default); cursor: pointer; }
+  dialog.xdlg { width: min(460px, calc(100vw - 24px)); max-width: none; padding: 0; border: 1px solid var(--color-border-muted); border-radius: 22px; background: var(--color-background-default); color: var(--color-text-default); box-shadow: 0 24px 80px rgba(0, 0, 0, .8); overflow: hidden; }
+  dialog.xdlg[open] { display: flex; flex-direction: column; }
+  dialog.xdlg::backdrop { background: rgba(0, 0, 0, .6); backdrop-filter: blur(3px); }
+  .xhead { display: flex; align-items: center; padding: 16px 16px 4px 20px; }
+  .xhead h2 { flex: 1; margin: 0; font-size: 17px; }
+  .xscope { display: flex; align-items: center; gap: 8px; padding: 4px 20px 12px; font-size: 13px; color: var(--color-text-muted); }
+  .xscope b { color: var(--color-text-default); font-weight: 600; }
+  .xopts { display: flex; flex-direction: column; gap: 6px; padding: 0 12px; }
+  .xopt { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 1px 12px; align-items: center; padding: 10px 14px; border-radius: 14px; cursor: pointer; background: var(--fill-1); }
+  .xopt:hover { background: var(--fill-2); }
+  .xopt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .xopt .xt { font-size: 13.5px; font-weight: 600; }
+  .xopt .xd { grid-column: 1; font-size: 12px; line-height: 1.35; color: var(--color-text-muted); }
+  .xopt .xtag { grid-row: 1 / span 2; grid-column: 2; font: 11.5px var(--font-family-mono); color: var(--color-text-muted); }
+  .xopt:has(input:checked) { background: color-mix(in srgb, var(--color-primary-default) 16%, transparent); box-shadow: inset 0 0 0 1.5px var(--color-primary-default); }
+  .xopt:has(input:checked) .xt { color: var(--color-primary-default); }
+  .xopt:has(input:focus-visible) { outline: 2px solid var(--color-primary-default); outline-offset: 1px; }
+  .xfilter { padding: 12px 20px 0; }
+  .xfilter[hidden] { display: none; }
+  .xfoot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 16px 16px; }
+  .xfoot .btn { border-radius: var(--r-ctl); min-width: 88px; justify-content: center; }
+  dialog.xdlg { opacity: 0; transform: translateY(10px) scale(.98); transition: opacity .18s ease, transform .24s var(--ease-out), overlay .24s allow-discrete, display .24s allow-discrete; }
+  dialog.xdlg[open] { opacity: 1; transform: none; }
+  @starting-style { dialog.xdlg[open] { opacity: 0; transform: translateY(10px) scale(.98); } }
+  dialog.xdlg::backdrop { opacity: 0; transition: opacity .2s ease, overlay .2s allow-discrete, display .2s allow-discrete; }
+  dialog.xdlg[open]::backdrop { opacity: 1; }
+  @starting-style { dialog.xdlg[open]::backdrop { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { dialog.xdlg, dialog.xdlg::backdrop { transition: none; } }
   .btn.primary { color: var(--color-primary-default); border-color: var(--color-primary-default); background: var(--color-primary-muted); font-weight: 600; }
   @media (max-width: 720px) { .hfoot .hint2 { display: none; } }
   .hbody { flex: 1; min-height: 0; display: grid; grid-template-columns: 210px minmax(0, 1fr); }
@@ -1082,9 +1104,7 @@
     <div class="menu-row"><span class="mr-l" id="themeLabel">Theme</span><div class="themes" id="themeGrid" role="radiogroup" aria-labelledby="themeLabel"></div></div>
     <div class="sep" role="separator"></div>
     <button id="reset" class="btn" title="Restore default column order and widths"><svg class="ic"><use href="#i-reset"/></svg><span>Reset Columns</span></button>
-    <button id="export" class="btn" data-label="Copy Markdown" data-icon="#i-clipboard" title="Copy what you are looking at as a markdown table"><svg class="ic"><use href="#i-clipboard"/></svg><span>Copy Markdown</span></button>
-    <button id="exportCsv" class="btn" data-label="Download CSV" data-icon="#i-tb-download" title="Download what you are looking at as a CSV for a spreadsheet: one row per request on Timeline, one per endpoint on Endpoints (filters apply)"><svg class="ic"><use href="#i-tb-download"/></svg><span>Download CSV</span></button>
-    <button id="exportJson" class="btn" data-label="Download Capture" data-icon="#i-tb-download" title="Download the whole capture as JSON: every request in full, the markers and the phases (ignores filters)"><svg class="ic"><use href="#i-tb-download"/></svg><span>Download Capture</span></button>
+    <button id="export" class="btn" aria-haspopup="dialog" title="Export the capture: JSON, CSV or a markdown table"><svg class="ic"><use href="#i-tb-download"/></svg><span>Export…</span></button>
     <div class="sep" role="separator"></div>
     <button id="clear" class="btn danger" title="Clear all captured requests"><svg class="ic"><use href="#i-trash"/></svg><span>Clear</span></button>
     <div class="build" id="buildInfo" hidden></div>
@@ -1134,15 +1154,18 @@
   <table id="endpoints" hidden><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table>
 </main>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<div id="audMenu" class="audmenu" role="menu" aria-label="Export audit">
-  <button role="menuitem" data-aud="md"><span>Copy Markdown table</span><span class="d">One row per endpoint, ready for the ticket</span></button>
-  <button role="menuitem" data-aud="agent"><span>Download for agent</span><span class="d">JSON with verdicts, reasons and call sites</span></button>
-</div>
 <div id="vLegend" class="vlegend" role="dialog" aria-label="What the verdicts mean">
   <div class="vl-h">Verdicts</div>
   <dl></dl>
   <div class="vl-f">Per phase: one endpoint can differ between phases.</div>
 </div>
+<dialog id="exportDlg" class="xdlg" aria-labelledby="xTitle">
+  <div class="xhead"><h2 id="xTitle">Export</h2><button type="button" class="btn icon-btn sm" id="xClose" aria-label="Close" title="Close (Esc)"><svg class="ic"><use href="#i-close"/></svg></button></div>
+  <div class="xscope" id="xScope"></div>
+  <div class="xopts" id="xOpts" role="radiogroup" aria-label="Format"></div>
+  <label class="chk xfilter" id="xFilter" hidden><input type="checkbox" id="xFilterOn" /><span></span></label>
+  <div class="xfoot"><button type="button" class="btn" id="xCancel">Cancel</button><button type="button" class="btn primary" id="xGo"></button></div>
+</dialog>
 <dialog id="help" aria-label="Foxy Guide">
   <button id="helpClose" class="btn icon-btn help-x" aria-label="Close guide" title="Close (Esc)"><svg class="ic"><use href="#i-close"/></svg></button>
   <div class="hbody"><nav class="hnav" id="helpNav" aria-label="Help topics"></nav><div class="hcontent" id="helpBody" tabindex="-1"></div></div>
@@ -1602,7 +1625,7 @@ function endControl(p, cls) {
   return '';
 }
 /** What the download button says. The last phase is still collecting, so it gives what has arrived so far. */
-const exportTip = (p) => `Download this phase's requests as JSON${p.end === Infinity ? ' (still capturing: everything so far)' : ''}`;
+const exportTip = (p) => `Export this phase: JSON, CSV or a markdown table${p.end === Infinity ? ' (still capturing: everything so far)' : ''}`;
 /** Downloads every request of one phase, in full (headers, bodies, call chain, owners). The server does the cutting, so Pause and the filters do not change what is in the file. */
 async function downloadFromServer(url, fallbackName) {
   const res = await fetch(url);
@@ -1612,14 +1635,6 @@ async function downloadFromServer(url, fallbackName) {
   const a = Object.assign(document.createElement('a'), { href, download: name });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(href), 10000);
-}
-async function exportPhaseFile(id, btn) {
-  const use = btn?.querySelector('use'), show = (href) => { if (btn?.isConnected && use) use.setAttribute('href', href); };
-  try {
-    await downloadFromServer('/api/export/phase?marker=' + encodeURIComponent(id), 'foxy-phase.json');
-    show('#i-check');
-  } catch { show('#i-close'); }
-  setTimeout(() => show('#i-tb-download'), 1400);
 }
 const phaseChip = (p) => `<span class="chip" data-phase="${esc(p.id)}" style="--c:${p.color}" title="Phase: ${esc(p.label)} (click to show only this phase)"><span class="t">${esc(p.label)}</span></span>`;
 
@@ -1791,7 +1806,6 @@ const setAudit = (p, k, patch) => {
 };
 const auditPhase = () => (ui.audit && ui.phase ? phases.find((p) => p.id === ui.phase) : null); // the phase being audited, if any
 const phaseOfGroup = (g) => phaseByKey.get(g.list[0].key);
-let auditFlash = ''; // the Export button's label for a moment after an export ("Copied!")
 const auditChip = (p, k) => {
   const v = VERDICTS.find((x) => x.id === auditOf(p, k).v);
   return v ? `<span class="chip" style="--c:${v.c}" title="${esc(v.tip)}"><span class="t">${v.label}</span></span>` : '<span class="aud-none">no verdict</span>';
@@ -2322,7 +2336,7 @@ function renderEndpointDetail(g, cols) {
         ${aph ? `<section class="panel vpanel"><h3>Verdict<span class="n" style="margin-left:8px">${esc(aph.label)}</span><button type="button" class="icon-btn sm vhelp" aria-haspopup="true" aria-expanded="false" aria-controls="vLegend" aria-label="What do the verdicts mean?" title="What do the verdicts mean?"><svg class="ic"><use href="#i-help"/></svg></button></h3>
           <div class="seg vseg" role="group" aria-label="Verdict">${VERDICTS.map((x) => `<button data-verdict="${x.id}" class="${v.v === x.id ? 'active' : ''}" aria-pressed="${v.v === x.id}" style="--c:${x.c}" title="${esc(x.tip)}"><i class="dot" style="background:${x.c}"></i>${x.label}</button>`).join('')}</div>
           <textarea class="note" data-note="${esc(g.k)}" rows="3" aria-label="Reason for the verdict" placeholder="Why? For example: only needed once the user opens Swap, so fetch it then.">${esc(v.note || '')}</textarea>
-          <div class="hint">Saved in this browser for this phase only, and included when you <b>Copy Markdown</b> on this tab.</div></section>` : ''}
+          <div class="hint">Saved in this browser for this phase only, and included in the phase export (markdown, CSV, agent JSON).</div></section>` : ''}
         <section class="panel"><h3>What Changes Between Calls</h3>${paramsPanel(g)}</section>
         <section class="panel"><h3>Who Calls It</h3>${callers}</section>
       </div>
@@ -2392,9 +2406,9 @@ function auditAgentJson(ph) {
 }
 
 /** Client-side markdown for the Endpoints tab, including verdicts and notes. */
-function endpointsMarkdown() {
+function endpointsMarkdown(list = [...reqs.values()].filter(match)) {
   const c = (x) => String(x ?? '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
-  const groups = buildGroups([...reqs.values()].filter(match)).sort((a, b) => a.first - b.first);
+  const groups = buildGroups(list).sort((a, b) => a.first - b.first);
   const head = '| First +s | Phase | Endpoint | Code owner | Calls | Identical dupes | Statuses | Avg ms | Call site | Verdict | Notes |\n|---|---|---|---|---|---|---|---|---|---|---|';
   const phaseTable = phases.length
     ? `Phases (each marker starts a phase that lasts until the next one):\n\n| Phase | Starts (+s) | Requests | New endpoints | Identical dupes | Failed |\n|---|---|---|---|---|---|\n${phases.map((p) => `| ${c(p.label)} | ${sec(p.start)} | ${p.n} | ${p.newEps} | ${p.dupes} | ${p.failed} |`).join('\n')}\n\n`
@@ -2406,7 +2420,7 @@ function endpointsMarkdown() {
   return `${phaseTable}${head}\n${rows.join('\n')}\n`;
 }
 
-// ---- CSV: what is on screen (filters apply), one row per request on Timeline and one per endpoint on Endpoints ----
+// ---- CSV: one row per request, or one per endpoint (with its verdict and reason) ----
 const fileStamp = () => new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
 /** One CSV cell. Text that starts with = + - @ is prefixed with an apostrophe so a spreadsheet never runs it as a formula (a typed reason can say anything). */
 function csvCell(x) {
@@ -2419,18 +2433,17 @@ function csvCell(x) {
 }
 const toCsv = (head, rows) => `\ufeff${[head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`; // BOM: Excel reads the UTF-8
 const ownersText = (r) => (r.codeOwners || []).map(team).join(' ') || r.callSiteInfo?.pkg || '';
-function timelineCsv() {
+function requestsCsv(list = [...reqs.values()].filter(match)) {
   const head = ['ID', 'Time (s)', 'Clock', 'Phase', 'Method', 'Host', 'Path', 'Query', 'Status', 'Error', 'Duration (ms)', 'Size (bytes)', 'Identical dupe', 'Code owners', 'Via', 'Call site', 'Started from'];
-  const list = [...reqs.values()].filter(match).sort((a, b) => a.relMs - b.relMs);
-  return toCsv(head, list.map((r) => [
+  return toCsv(head, [...list].sort((a, b) => a.relMs - b.relMs).map((r) => [
     r.id, Number(sec(r.relMs)), clock(r.ts), phaseByKey.get(r.key)?.label || '', r.method, r.host, r.path, r.query || '',
     r.status ?? '', r.error || '', r.durationMs == null ? null : Math.round(r.durationMs), r.sizeBytes ?? null, dupeCounts.get(reqKey(r)) > 1,
     ownersText(r), (r.ownerCodeOwners || []).map(team).join(' '), siteText(r.callSiteInfo), siteText(r.ownerInfo),
   ]));
 }
-function endpointsCsv() {
+function endpointsCsv(list = [...reqs.values()].filter(match)) {
   const head = ['Phase', 'Endpoint', 'Method', 'Host', 'Path', 'Calls', 'Identical dupes', 'Failed', 'Statuses', 'Avg (ms)', 'P95 (ms)', 'Bytes', 'First call (s)', 'Code owners', 'Call site', 'Verdict', 'Reason'];
-  const groups = buildGroups([...reqs.values()].filter(match)).sort((a, b) => a.first - b.first);
+  const groups = buildGroups(list).sort((a, b) => a.first - b.first);
   return toCsv(head, groups.map((g) => {
     const v = auditOf(phaseOfGroup(g), g.k), site = [...g.sites.values()][0]?.info;
     return [
@@ -2440,6 +2453,61 @@ function endpointsCsv() {
     ];
   }));
 }
+
+// ---- Export dialog: every download button opens it. Pick a format, then Export. ----
+const xdlg = $('#exportDlg');
+let xScope = null, xFmt = '';
+const phaseReqs = (ph) => [...reqs.values()].filter((r) => phaseByKey.get(r.key)?.id === ph.id);
+/** The formats on offer for a scope. `run` does the work and returns the label to flash. */
+function exportFormats(scope) {
+  const ph = scope.kind === 'phase' ? phases.find((p) => p.id === scope.id) : null;
+  const slug = ph ? slugOf(ph.label) : 'capture', stamp = fileStamp();
+  const list = () => (ph ? phaseReqs(ph) : $('#xFilterOn').checked ? [...reqs.values()].filter(match) : [...reqs.values()]);
+  const save = (text, name, type) => { downloadText(text, name, type); return 'Saved'; };
+  const json = {
+    id: 'json', title: 'JSON, full detail', tag: '.json', verb: 'Download JSON',
+    desc: ph ? `Every request with headers, bodies and the call chain, plus the phase totals${ph.end === Infinity ? ' (still capturing: what has arrived so far)' : ''}.` : 'The whole session: every request in full, the markers and the phases. Ignores filters.',
+    run: async () => { await downloadFromServer(ph ? '/api/export/phase?marker=' + encodeURIComponent(ph.id) : '/api/export/capture', 'foxy-export.json'); return 'Saved'; },
+  };
+  const csvReq = { id: 'csv-req', title: 'CSV, one row per request', tag: '.csv', verb: 'Download CSV', desc: 'Time, phase, method, host, path, status, duration, size, owners and call site. Opens in a spreadsheet.', run: () => save(requestsCsv(list()), `foxy-${slug}-requests-${stamp}.csv`, 'text/csv;charset=utf-8') };
+  const csvEp = { id: 'csv-ep', title: 'CSV, one row per endpoint', tag: '.csv', verb: 'Download CSV', desc: 'Calls, dupes, failures, timings, owners and call site, with the verdict and reason you gave each one.', run: () => save(endpointsCsv(list()), `foxy-${slug}-endpoints-${stamp}.csv`, 'text/csv;charset=utf-8') };
+  const md = { id: 'md', title: 'Markdown table', tag: 'copies', verb: 'Copy Markdown', desc: 'A table to paste into the ticket.', run: async () => { await copyText(ph ? auditMarkdown(ph) : endpointsMarkdown(list())); return 'Copied!'; } };
+  if (!ph) return [json, csvReq, csvEp, md];
+  const agent = { id: 'agent', title: 'JSON for an agent', tag: '.json', verb: 'Download JSON', desc: 'Verdicts, reasons and call sites, with instructions an AI agent can act on.', run: () => save(auditAgentJson(ph), `foxy-audit-${slug}.json`, 'application/json') };
+  return [json, csvReq, csvEp, md, agent];
+}
+function xRender() {
+  const fmts = exportFormats(xScope);
+  if (!fmts.some((f) => f.id === xFmt)) xFmt = fmts[0].id;
+  $('#xOpts').innerHTML = fmts.map((f) => `<label class="xopt"><input type="radio" name="xfmt" value="${f.id}" ${f.id === xFmt ? 'checked' : ''} /><span class="xt">${esc(f.title)}</span><span class="xtag">${esc(f.tag)}</span><span class="xd">${esc(f.desc)}</span></label>`).join('');
+  const go = $('#xGo'); go.textContent = fmts.find((f) => f.id === xFmt).verb;
+}
+function openExport(scope) {
+  const ph = scope.kind === 'phase' ? phases.find((p) => p.id === scope.id) : null;
+  if (scope.kind === 'phase' && !ph) { toast('That phase is gone'); return; }
+  xScope = scope; xFmt = localStorage.getItem(`foxy.export.fmt.${scope.kind}`) || '';
+  $('#xScope').innerHTML = ph
+    ? `<i class="ph-dot" style="background:${ph.color}"></i><b>${esc(ph.label)}</b><span>${ph.n} request${ph.n === 1 ? '' : 's'}${ph.end === Infinity ? ', still capturing' : ''}</span>`
+    : `<b>Whole capture</b><span>${reqs.size} request${reqs.size === 1 ? '' : 's'}${markers.length ? `, ${markers.length} marker${markers.length === 1 ? '' : 's'}` : ''}</span>`;
+  const narrowed = !ph && [...reqs.values()].filter(match).length !== reqs.size;
+  $('#xFilter').hidden = !narrowed; $('#xFilterOn').checked = false;
+  if (narrowed) $('#xFilter span').textContent = `Only what my filters show (${[...reqs.values()].filter(match).length} of ${reqs.size}). Applies to CSV and Markdown; the full JSON always has everything.`;
+  const go = $('#xGo'); go.disabled = false; go.classList.remove('ok');
+  xRender();
+  if (!xdlg.open) xdlg.showModal();
+  xdlg.querySelector('input[name="xfmt"]:checked')?.focus();
+}
+$('#xOpts').addEventListener('change', (e) => { xFmt = e.target.value; localStorage.setItem(`foxy.export.fmt.${xScope.kind}`, xFmt); xRender(); xdlg.querySelector('input[name="xfmt"]:checked')?.focus(); });
+$('#xGo').onclick = async () => {
+  const go = $('#xGo'), fmt = exportFormats(xScope).find((f) => f.id === xFmt); if (!fmt) return;
+  go.disabled = true;
+  try { go.textContent = await fmt.run(); go.classList.add('ok'); setTimeout(() => { if (xdlg.open) xdlg.close(); }, 650); }
+  catch { go.textContent = 'Failed'; setTimeout(() => { go.disabled = false; xRender(); }, 1400); }
+};
+$('#xCancel').onclick = $('#xClose').onclick = () => xdlg.close();
+xdlg.addEventListener('click', (e) => { if (e.target === xdlg) xdlg.close(); }); // the backdrop
+xdlg.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('input[type="radio"]')) { e.preventDefault(); $('#xGo').click(); } });
+$('#export').onclick = () => openExport({ kind: 'capture' });
 
 let auditAnim = null, auditAnimTimer = 0; // 'in' / 'out' while the Verdict column and panels are animating
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2456,17 +2524,16 @@ function toggleAudit() {
 function renderAuditCtl() {
   const el = $('#auditCtl'), here = Boolean(ui.phase) && tab === 'endpoints' && phases.some((p) => p.id === ui.phase);
   el.hidden = !here;
-  if (!here) { $('#audMenu').classList.remove('open'); return; }
+  if (!here) return;
   if (!el.firstElementChild) {
-    el.innerHTML = `<span id="auditSlot" class="aud-slot" inert><span class="aud-slot-in"><button id="auditExport" type="button" aria-haspopup="menu" aria-expanded="false" title="Export this phase's audit">${icon('tb-download')}<span></span></button></span></span>`
+    el.innerHTML = `<span id="auditSlot" class="aud-slot" inert><span class="aud-slot-in"><button id="auditExport" type="button" aria-haspopup="dialog" title="Export this phase: audit, CSV or JSON">${icon('tb-download')}<span></span></button></span></span>`
       + '<button id="auditBtn" type="button" class="aud-switch" role="switch"><span class="aud-track"><i></i></span><span>Audit</span></button>';
   }
   const on = ui.audit && auditAnim !== 'out', sw = $('#auditBtn'), slot = $('#auditSlot');
   sw.setAttribute('aria-checked', String(on));
   sw.title = on ? 'Stop auditing this phase' : 'Audit this phase: shows the Verdict column and, in each endpoint, a verdict and reason';
   slot.classList.toggle('on', on); slot.inert = !on;
-  $('#auditExport span').textContent = auditFlash || 'Export Audit';
-  if (!on) { $('#audMenu').classList.remove('open'); $('#auditExport').setAttribute('aria-expanded', 'false'); }
+  $('#auditExport span').textContent = 'Export Audit';
 }
 
 function renderBar() {
@@ -2482,7 +2549,7 @@ function renderBar() {
   const o = ui.owner;
   const ph = ui.phase && phases.find((p) => p.id === ui.phase);
   $('#phasePill').innerHTML = ph ? `<span class="ownerpill">Phase ${phaseChip(ph)}<button id="phaseClear" aria-label="Show all phases" title="Show all phases">×</button></span>` : '';
-  if (!(ui.audit && ph && tab === 'endpoints')) { $('#audMenu').classList.remove('open'); $('#vLegend').classList.remove('open'); }
+  if (!(ui.audit && ph && tab === 'endpoints')) $('#vLegend').classList.remove('open');
   $('#ownerPill').innerHTML = o ? `<span class="ownerpill">${o.type === 'team' ? 'Owner' : 'Package'} ${o.type === 'team' ? teamChip(o.value) : partyChip(o.value)}<button id="ownerClear" aria-label="Clear owner filter" title="Clear">×</button></span>` : '';
   renderAuditCtl();
 }
@@ -2623,25 +2690,9 @@ document.addEventListener('click', (e) => { if ($('#vLegend').classList.contains
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#vLegend').classList.contains('open')) { setVLegend(false); $('#endpoints .vhelp')?.focus(); } });
 addEventListener('resize', () => setVLegend(false));
 addEventListener('scroll', () => { if ($('#vLegend').classList.contains('open')) setVLegend(false); }, true); // it is anchored to the button, so scrolling closes it
-function setAudMenu(on) {
-  const m = $('#audMenu'), b = $('#auditExport');
-  m.classList.toggle('open', on && Boolean(b)); b?.setAttribute('aria-expanded', String(on && Boolean(b)));
-  if (on && b) { const r = b.getBoundingClientRect(); m.style.top = `${r.bottom + 6}px`; m.style.right = `${Math.max(8, innerWidth - r.right)}px`; }
-}
-$('#audMenu').addEventListener('click', async (e) => {
-  const b = e.target.closest('button[data-aud]'), ph = auditPhase(); if (!b || !ph) return;
-  setAudMenu(false);
-  try {
-    if (b.dataset.aud === 'md') { await copyText(auditMarkdown(ph)); auditFlash = 'Copied!'; }
-    else { downloadText(auditAgentJson(ph), `foxy-audit-${slugOf(ph.label)}.json`, 'application/json'); auditFlash = 'Exported'; }
-  } catch { auditFlash = 'Failed'; }
-  render(); setTimeout(() => { auditFlash = ''; render(); }, 1400);
-});
-document.addEventListener('click', (e) => { if ($('#audMenu').classList.contains('open') && !e.target.closest('#audMenu, #auditExport')) setAudMenu(false); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#audMenu').classList.contains('open')) { setAudMenu(false); $('#auditExport')?.focus(); } });
 $('#auditCtl').addEventListener('click', (e) => {
   if (e.target.closest('#auditBtn')) toggleAudit();
-  else if (e.target.closest('#auditExport')) setAudMenu(!$('#audMenu').classList.contains('open'));
+  else if (e.target.closest('#auditExport') && ui.phase) openExport({ kind: 'phase', id: ui.phase });
 });
 $('#phasePill').addEventListener('click', (e) => {
   if (e.target.closest('#phaseClear')) { ui.phase = null; render(); }
@@ -2722,7 +2773,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('#filter').focus(); }
   else if (e.key === 'Escape' && document.activeElement === $('#filter')) { $('#filter').value = ''; filter = ''; $('#filter').blur(); render(); }
   else if (e.key === 'Escape' && mkpop.classList.contains('open')) { setMark(false); markBtn.focus(); }
-  else if (!e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open) {
+  else if (!e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open && !$('#exportDlg').open) {
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); setMark(true); }
     else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (!e.repeat) toggleLatestPhase(); }
     else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); if (!e.repeat) togglePause(); }
@@ -2733,14 +2784,14 @@ document.addEventListener('keydown', (e) => {
 $('#timeline').addEventListener('click', (e) => {
   if (chipFilter(e)) return;
   const um = e.target.closest('tr.unmarked');
-  if (um) { const b = e.target.closest('[data-act="export"]'); if (b) exportPhaseFile(um.dataset.pid, b); return; }
+  if (um) { const b = e.target.closest('[data-act="export"]'); if (b) openExport({ kind: 'phase', id: um.dataset.pid }); return; }
   const phRow = e.target.closest('tr.phase');
   if (phRow) { // header click collapses; its buttons do their own thing
     const id = phRow.dataset.pid, act = e.target.closest('[data-act]')?.dataset.act || 'toggle';
     if (act === 'toggle') { collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id); render(); }
     else if (act === 'focus') { ui.phase = ui.phase === id ? null : id; render(); }
     else if (act === 'edit') setMark(true, id);
-    else if (act === 'export') exportPhaseFile(id, e.target.closest('[data-act]'));
+    else if (act === 'export') openExport({ kind: 'phase', id });
     else if (act === 'end' || act === 'reopen') endMarker(id, act === 'end');
     return;
   }
@@ -2755,31 +2806,6 @@ $('#tabEndpoints').onclick = () => navigate(() => { tab = 'endpoints'; render();
 $('#filter').oninput = (e) => { filter = e.target.value.toLowerCase(); render(); };
 $('#clear').onclick = async () => { await fetch('/api/clear', { method: 'POST' }); };
 $('#reset').onclick = () => { timelineGrid.reset(render); endpointsGrid.reset(render); };
-/** Flashes a menu export button's label and icon for a moment ("Copied!", "Saved", "Failed"), then puts it back. */
-function flashExport(b, text, icon2) {
-  const label = b.querySelector('span'), ic = b.querySelector('use');
-  b.classList.toggle('ok', icon2 === '#i-check'); label.textContent = text; ic.setAttribute('href', icon2);
-  clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('ok'); label.textContent = b.dataset.label; ic.setAttribute('href', b.dataset.icon); }, 1400);
-}
-$('#export').onclick = async () => {
-  const b = $('#export');
-  try { await copyText(tab === 'endpoints' ? endpointsMarkdown() : await (await fetch('/api/export')).text()); flashExport(b, 'Copied!', '#i-check'); }
-  catch { flashExport(b, 'Failed', '#i-close'); }
-};
-$('#exportCsv').onclick = () => {
-  const b = $('#exportCsv');
-  try {
-    const [csv, name] = tab === 'endpoints' ? [endpointsCsv(), 'endpoints'] : [timelineCsv(), 'requests'];
-    const ph = ui.phase && phases.find((p) => p.id === ui.phase);
-    downloadText(csv, `foxy-${name}${ph ? '-' + slugOf(ph.label) : ''}-${fileStamp()}.csv`, 'text/csv;charset=utf-8');
-    flashExport(b, 'Saved', '#i-check');
-  } catch { flashExport(b, 'Failed', '#i-close'); }
-};
-$('#exportJson').onclick = async () => {
-  const b = $('#exportJson');
-  try { await downloadFromServer('/api/export/capture', 'foxy-capture.json'); flashExport(b, 'Saved', '#i-check'); }
-  catch { flashExport(b, 'Failed', '#i-close'); }
-};
 /*ART-START*/
 const ART = {
   "concept": " time <span class=\"m\">───────────────────────────────────────────────────────────────</span><span class=\"m\">▶</span>\n\n  <span class=\"o\">◆ App launched</span>        <span class=\"b\">◆ Onboarding visible</span>      <span class=\"l\">◆ Wallet created</span>\n  <span class=\"o\">│</span>                     <span class=\"b\">│</span>                         <span class=\"l\">│</span>\n  <span class=\"o\">│</span><span class=\"o\">◀───── phase 1 ─────▶</span><span class=\"b\">│</span><span class=\"b\">◀─────── phase 2 ───────▶</span><span class=\"l\">│</span><span class=\"l\">◀─── phase 3 ────▶</span>\n  <span class=\"o\">│</span><span class=\"o\"> ▃▇█▅▂▁▁▁</span>            <span class=\"b\">│</span><span class=\"b\"> ▁▁▂▁▁▁▁▁▁▁▁▁</span>            <span class=\"l\">│</span><span class=\"l\"> ▂▅█▇▄▂▁▁</span>\n  <span class=\"o\">│</span><span class=\"m\"> busy boot</span>           <span class=\"b\">│</span><span class=\"m\"> quiet = good</span>            <span class=\"l\">│</span><span class=\"m\"> post-onboarding</span>",
@@ -2810,7 +2836,7 @@ const HELP = [
     ${step(1, 'Run the App Against Foxy', '<p>Start Foxy with <code>yarn foxy</code>, set <code>FOXY="true"</code> in <code>.js.env</code>, restart Metro and launch the app. Requests stream in live.</p>')}
     ${step(2, 'Label What You Are Doing', `<p>Drop <b>markers</b> as you use the app (${kb('M')}). They split the capture into phases such as <i>Onboarding visible</i> and <i>Wallet ready</i>.</p><p>${goto('markers', '🚩 How Markers Work')}</p>`)}
     ${step(3, 'Find the Waste', `<p>Look for identical duplicates, failures, third-party chatter and anything requested before it is needed. The <b>Endpoints</b> view groups calls by URL so repeats are obvious.</p><p>${goto('timeline', '📜 Reading the Timeline')} ${goto('endpoints', '🧭 Endpoints & Verdicts')}</p>`)}
-    ${step(4, 'Decide and Share', '<p>Give each endpoint a verdict (Keep, Defer, Move, Drop) and a reason, then <b>Copy Markdown</b> from the menu to paste the table into the ticket. Verdicts are per phase: open <b>Endpoints</b>, focus a phase and turn on <b>Audit</b> to see the Verdict column and give verdicts for that phase.</p>')}` },
+    ${step(4, 'Decide and Share', '<p>Give each endpoint a verdict (Keep, Defer, Move, Drop) and a reason, then <b>Export</b> the phase as a markdown table to paste into the ticket. Verdicts are per phase: open <b>Endpoints</b>, focus a phase and turn on <b>Audit</b> to see the Verdict column and give verdicts for that phase.</p>')}` },
 
   { id: 'markers', em: '🚩', title: 'Markers & Phases', html: () => `
     <h2>Markers &amp; Phases</h2>
@@ -2820,7 +2846,7 @@ const HELP = [
     ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker. Long idle stretches are shortened to a hatched <b>⋯</b> break so activity gets the room, and choosing the <b>◎</b> target on a phase zooms the strip to it.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
     ${step(3, 'Zoom Into One Phase', `<p>Click the <b>◎</b> target on a header (or the one in the markers panel) and Foxy shows just that phase, in the Timeline <i>and</i> in Endpoints. A pill appears under the toolbar; click <b>×</b> to bring everything back.</p><p>The <b>Phase</b> column in Endpoints shows where each endpoint <i>first</i> appeared. Click a phase chip to filter by it.</p>`)}
     ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. When a flow is over, press the stop button on its phase: anything after that moment is <i>Between phases</i> instead of counting toward it. Nothing in the app needs to change.</p>')}
-    ${step(5, 'Take It With You', `<p>The <b>download</b> icon on a phase saves every request in it, in full, as JSON. The last phase is still collecting, so it saves what has arrived so far.</p><p>The menu has three more exports: <b>Copy Markdown</b> (a phases table plus an Endpoints table with a Phase column), <b>Download CSV</b> (what you are looking at, filters included: a row per request on Timeline, per endpoint on Endpoints) and <b>Download Capture</b> (the whole session as JSON, ignoring filters).</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
+    ${step(5, 'Take It With You', `<p>Every <b>download</b> icon opens one <b>Export</b> dialog: pick a format (JSON, CSV by request or by endpoint, a markdown table, or JSON for an agent), then tap the button at the bottom. <b>Export…</b> in the menu does the same for the whole capture. The last phase is still collecting, so it exports what has arrived so far.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
     <h3>What the Numbers in a Phase Mean</h3>
     <ul>
       <li><b>requests</b>: calls made while the phase was active.</li>
@@ -2858,7 +2884,7 @@ const HELP = [
       <li><b>What changes between calls</b>: the query parameters that vary and the ones that never do.</li>
     </ul>
     <h3>Verdicts</h3>
-    <p><b style="color:#b9f302">Keep</b> it is needed now · <b style="color:#f0b034">Defer</b> fetch it later (after unlock, on first use) · <b style="color:#8b99ff">Move</b> needed, but elsewhere in the flow · <b style="color:#ff7584">Drop</b> not needed. Add a reason. The <b>?</b> beside the Verdict title opens a quick legend of the four. Verdicts belong to a phase: focus one, then turn on <b>Audit</b> beside the phase pill to show the Verdict column and the Verdict panel. They are saved in this browser and included in <b>Copy Markdown</b>.</p>` },
+    <p><b style="color:#b9f302">Keep</b> it is needed now · <b style="color:#f0b034">Defer</b> fetch it later (after unlock, on first use) · <b style="color:#8b99ff">Move</b> needed, but elsewhere in the flow · <b style="color:#ff7584">Drop</b> not needed. Add a reason. The <b>?</b> beside the Verdict title opens a quick legend of the four. Verdicts belong to a phase: focus one, then turn on <b>Audit</b> beside the phase pill to show the Verdict column and the Verdict panel. They are saved in this browser and included in the markdown and CSV exports.</p>` },
 
   { id: 'filters', em: '🎛️', title: 'Filters & Duplicates', html: () => `
     <h2>Filters &amp; Duplicates</h2>
@@ -2989,7 +3015,7 @@ $('#mkList').addEventListener('click', (e) => {
   if (e.target.closest('#mkLearn')) { openHelp('markers'); return; }
   const b = e.target.closest('button[data-act]'); if (!b) return;
   if (b.dataset.act === 'del') api('/api/marker/' + encodeURIComponent(b.dataset.id), 'DELETE');
-  else if (b.dataset.act === 'export') exportPhaseFile(b.dataset.id, b);
+  else if (b.dataset.act === 'export') openExport({ kind: 'phase', id: b.dataset.id });
   else if (b.dataset.act === 'end' || b.dataset.act === 'reopen') endMarker(b.dataset.id, b.dataset.act === 'end');
   else navigate(() => { ui.phase = ui.phase === b.dataset.id ? null : b.dataset.id; tab = 'timeline'; render(); });
 });
@@ -3142,7 +3168,7 @@ $('#advPills').addEventListener('click', (e) => {
 document.addEventListener('click', (e) => { if (fltpop.classList.contains('open') && !e.composedPath().some((n) => n === fltpop || n === fltBtn)) setFlt(false); });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && fltpop.classList.contains('open')) { setFlt(false); fltBtn.focus(); }
-  else if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open) { e.preventDefault(); setFlt(!fltpop.classList.contains('open')); }
+  else if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open && !$('#exportDlg').open) { e.preventDefault(); setFlt(!fltpop.classList.contains('open')); }
 });
 
 const withId = (x) => ({ ...x, id: x.id ?? `t${x.ts}` }); // older servers did not send ids
