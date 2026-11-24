@@ -1,6 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import Animated, {
-  LinearTransition,
   ReduceMotion,
   useAnimatedStyle,
   useReducedMotion,
@@ -34,18 +33,6 @@ const ENTRY_SPRING = {
 
 /** Delays kept per event, so asking twice for one entrance does not stagger it twice. */
 const MAX_SCHEDULED_ENTRANCES = 50;
-
-/**
- * Glides the list's rows whenever one changes size or position, including the
- * rows pushed down by an entrance. Runs in the mounting layer, without a Yoga
- * pass per frame.
- */
-export const FEED_ROW_LAYOUT_TRANSITION = LinearTransition.springify(
-  FEED_ITEM_ENTRY_DURATION_MS,
-).dampingRatio(1);
-export const FEED_ROW_LAYOUT_TRANSITION_LOW = LinearTransition.springify(
-  FEED_ROW_SLIDE_MS_LOW,
-).dampingRatio(1);
 
 /**
  * Returns the delay each new entrance should wait so consecutive starts are
@@ -152,8 +139,7 @@ export interface FeedItemEntryAnimationProps {
 
 /**
  * "Focus In" entrance for rows that arrive over the socket: the row mounts at
- * its full height, fades in, rises 20px and settles from 97% scale. The rows
- * below glide down through the list's `FEED_ROW_LAYOUT_TRANSITION`.
+ * its full height, fades in, rises 20px and settles from 97% scale.
  *
  * Entering animations only run on mount, so a row that is already on screen
  * when it gets an event id never animates; the id is marked played instead,

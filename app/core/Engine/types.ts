@@ -912,12 +912,6 @@ export type RootMessenger<
   AllowedEvents extends GlobalEvents = GlobalEvents,
 > = Messenger<'Root', AllowedActions, AllowedEvents>;
 
-export const getRootMessenger = (): RootMessenger =>
-  new Messenger<'Root', GlobalActions, GlobalEvents>({
-    namespace: 'Root',
-    captureException,
-  });
-
 /**
  * All mobile controllers, keyed by name
  */
@@ -1259,11 +1253,6 @@ type MessengerClientPersistedState = Partial<{
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
   >]: Partial<NonNullable<MessengerClientsByName[Name]>['state']>;
 }>;
-
-/**
- * Map of messenger client messengers by name.
- */
-export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
  * Request to initialize and return a messenger client instance.
