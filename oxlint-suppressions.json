@@ -20221,6 +20221,11 @@
       "count": 1
     }
   },
+  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "app/components/Views/confirmations/utils/transaction.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -23371,11 +23376,6 @@
   "app/selectors/cardController.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 7
-    }
-  },
-  "app/selectors/configRegistry.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/selectors/configRegistry.ts": {
@@ -27031,11 +27031,6 @@
   "tests/websocket/server.test.ts": {
     "typescript/no-base-to-string": {
       "count": 2
-    }
-  },
-  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   }
 }
