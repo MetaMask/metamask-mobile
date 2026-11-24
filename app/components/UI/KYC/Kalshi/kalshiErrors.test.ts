@@ -18,7 +18,7 @@ describe('describeKalshiError', () => {
         "kalshi_signed_request_a2t_invalid": "MetaMask couldn’t prove your Kalshi sign-in. Try again.",
         "kalshi_signed_request_a2t_missing": "MetaMask couldn’t prove your Kalshi sign-in. Try again.",
         "kalshi_signed_request_body_invalid": "MetaMask couldn’t send this request to Kalshi. Try again. (kalshi_signed_request_body_invalid)",
-        "kalshi_signed_request_email_mismatch": "MetaMask couldn’t send this request to Kalshi. Try again. (kalshi_signed_request_email_mismatch)",
+        "kalshi_signed_request_email_mismatch": "Kalshi has to be linked to the email you confirmed with MetaMask. Enter that address and try again.",
         "kalshi_signed_request_path_not_allowed": "MetaMask couldn’t send this request to Kalshi. Try again. (kalshi_signed_request_path_not_allowed)",
         "kalshi_signed_request_rejected": "Kalshi couldn’t confirm this request. Try again.",
         "kalshi_signed_request_required": "MetaMask couldn’t send this request to Kalshi. Try again. (kalshi_signed_request_required)",
