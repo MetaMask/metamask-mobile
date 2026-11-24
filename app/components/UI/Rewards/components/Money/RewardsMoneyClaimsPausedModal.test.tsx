@@ -70,6 +70,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  locale: 'en-US',
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.upcoming_rewards.cta_label': 'Got it',

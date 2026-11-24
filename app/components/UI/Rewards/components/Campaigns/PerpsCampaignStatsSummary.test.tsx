@@ -28,6 +28,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  locale: 'en-US',
   strings: (key: string, params?: { pnlGap?: string; place?: string }) => {
     if (params?.pnlGap) return `${key}:${params.pnlGap}`;
     if (params?.place) return `${key}:${params.place}`;

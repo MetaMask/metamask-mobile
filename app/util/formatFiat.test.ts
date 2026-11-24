@@ -102,6 +102,40 @@ describe('formatFiat', () => {
     });
   });
 
+  describe('shared formatter parity', () => {
+    it.each([
+      ['en-US', '12', 'CAD', undefined, '$12'],
+      ['en-US', '1200', 'JPY', undefined, '¥1,200'],
+      ['de-DE', '12', 'EUR', undefined, '12\u00a0€'],
+      ['de-DE', '1234.5', 'EUR', undefined, '1.234,50\u00a0€'],
+      ['de-DE', '0.004', 'EUR', undefined, '<0,01\u00a0€'],
+      ['en-US', '0.004', 'USD', 2, '<$0.01'],
+      ['en-US', '3', 'usd', undefined, '$3'],
+    ] as const)(
+      'formats %s %s %s (fraction digits: %s) as %s',
+      (locale, amount, currency, fractionDigits, expected) => {
+        I18n.locale = locale;
+
+        const result = formatFiat(
+          new BigNumber(amount),
+          currency,
+          fractionDigits,
+        );
+
+        expect(result).toBe(expected);
+      },
+    );
+
+    it('keeps the currency code for codes Intl does not accept', () => {
+      expect(formatFiat(new BigNumber(3), 'USDC')).toBe('3 USDC');
+      expect(formatFiat(new BigNumber(0.004), 'USDC')).toBe('<0.01 USDC');
+    });
+
+    it('returns the amount and "undefined" when no currency is given', () => {
+      expect(formatFiat(new BigNumber(1000))).toBe('1000 undefined');
+    });
+  });
+
   describe('edge cases', () => {
     it('handles very small non-zero amounts', () => {
       expect(formatFiat(new BigNumber(0.001), 'USD')).toBe('<$0.01');
