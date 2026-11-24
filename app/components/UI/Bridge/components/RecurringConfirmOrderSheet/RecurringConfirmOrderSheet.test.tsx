@@ -118,6 +118,7 @@ function renderSheet({
   isPriceRangeConversionReady = true,
   isSubmitting = false,
   onConfirm = jest.fn(),
+  onEditPriceTolerancePress = jest.fn(),
   onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
@@ -130,6 +131,7 @@ function renderSheet({
   isPriceRangeConversionReady?: boolean;
   isSubmitting?: boolean;
   onConfirm?: () => void;
+  onEditPriceTolerancePress?: () => void;
   onDelegationFeeInfoPress?: () => void;
   state?: DeepPartial<RootState>;
   latestSourceBalance?:
@@ -155,6 +157,7 @@ function renderSheet({
         isPriceRangeConversionReady={isPriceRangeConversionReady}
         isSubmitting={isSubmitting}
         onConfirm={onConfirm}
+        onEditPriceTolerancePress={onEditPriceTolerancePress}
         onDelegationFeeInfoPress={onDelegationFeeInfoPress}
         goBack={goBack}
       />
@@ -517,6 +520,17 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE),
     ).toHaveTextContent(`${strings('bridge.cost_tolerance')}2%`);
+  });
+
+  it('opens the price tolerance editor from the edit button', () => {
+    const onEditPriceTolerancePress = jest.fn();
+    const { getByTestId } = renderSheet({ onEditPriceTolerancePress });
+
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE_EDIT),
+    );
+
+    expect(onEditPriceTolerancePress).toHaveBeenCalledTimes(1);
   });
 
   it('shows the per-order network fee from the quote', () => {

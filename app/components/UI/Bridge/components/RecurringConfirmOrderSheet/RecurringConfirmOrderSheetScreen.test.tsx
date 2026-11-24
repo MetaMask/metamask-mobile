@@ -61,6 +61,7 @@ const expectAdvancedOrderProperties = (
 };
 
 const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 const mockAutoUpgradeEIP7702Account = jest.fn();
 const mockCreateRecurringOrder = jest.fn();
@@ -77,6 +78,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    replace: mockReplace,
     goBack: mockGoBack,
   }),
 }));
@@ -158,6 +160,7 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isPriceRangeConversionReady,
     isSubmitting,
     onConfirm,
+    onEditPriceTolerancePress,
     onDelegationFeeInfoPress,
     goBack,
   }: {
@@ -165,6 +168,7 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isPriceRangeConversionReady: boolean;
     isSubmitting: boolean;
     onConfirm: () => void;
+    onEditPriceTolerancePress: () => void;
     onDelegationFeeInfoPress: () => void;
     goBack: () => void;
   }) => {
@@ -195,6 +199,14 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
           null,
           isSubmitting ? 'Submitting' : 'Confirm',
         ),
+      ),
+      ReactModule.createElement(
+        Pressable,
+        {
+          testID: 'edit-price-tolerance',
+          onPress: onEditPriceTolerancePress,
+        },
+        ReactModule.createElement(Text, null, 'Edit price tolerance'),
       ),
       ReactModule.createElement(
         Pressable,
@@ -347,6 +359,24 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
     });
+  });
+
+  it('replaces the confirmation modal with the recurring price tolerance editor', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('edit-price-tolerance'));
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL,
+      {
+        sourceModal: {
+          screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+          params: {
+            location: MetaMetricsSwapsEventSource.TokenView,
+          },
+        },
+      },
+    );
   });
 
   it('passes the delegation fee estimate to the confirmation sheet', () => {

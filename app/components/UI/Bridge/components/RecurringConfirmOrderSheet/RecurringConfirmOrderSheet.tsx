@@ -198,6 +198,7 @@ const RecurringConfirmOrderSheet = ({
   isPriceRangeConversionReady,
   isSubmitting,
   onConfirm,
+  onEditPriceTolerancePress,
   onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
@@ -448,6 +449,16 @@ const RecurringConfirmOrderSheet = ({
           label={strings('bridge.cost_tolerance')}
           value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
           testID={RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE}
+          trailing={
+            <ButtonIcon
+              iconName={IconName.Edit}
+              size={ButtonIconSize.Sm}
+              onPress={onEditPriceTolerancePress}
+              testID={
+                RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE_EDIT
+              }
+            />
+          }
         />
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_network_fee_per_order')}

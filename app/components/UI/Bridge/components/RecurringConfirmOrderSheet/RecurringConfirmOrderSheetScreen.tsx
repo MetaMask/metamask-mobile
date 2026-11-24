@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
@@ -51,7 +51,7 @@ import {
 import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
 
 export const RecurringConfirmOrderSheetScreen = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const dispatch = useDispatch();
   const { location } = useParams<RecurringConfirmOrderModalParams>();
   const sourceToken = useSelector(selectSourceToken);
@@ -235,6 +235,18 @@ export const RecurringConfirmOrderSheetScreen = () => {
     usdPriceRange,
   ]);
 
+  const handleEditPriceTolerancePress = useCallback(() => {
+    navigation.replace(
+      Routes.BRIDGE.MODALS.RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL,
+      {
+        sourceModal: {
+          screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+          params: { location },
+        },
+      },
+    );
+  }, [location, navigation]);
+
   const handleDelegationFeeInfoPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
@@ -249,6 +261,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       isPriceRangeConversionReady={isPriceRangeConversionReady}
       isSubmitting={isSubmitting}
       onConfirm={handleConfirm}
+      onEditPriceTolerancePress={handleEditPriceTolerancePress}
       onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
       goBack={navigation.goBack}
     />
