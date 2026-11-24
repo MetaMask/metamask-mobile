@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -47,13 +47,23 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const { autoUpdateDestToken } = useAutoUpdateDestToken();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  const moneyUpgradeAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      moneyUpgradeAbortRef.current?.abort();
+    },
+    [],
+  );
+
   /**
    * Attempt to setup CHOMP for the money account
    */
   const handleMoneySelection = useCallback(() => {
+    moneyUpgradeAbortRef.current?.abort();
     const abortController = new AbortController();
+    moneyUpgradeAbortRef.current = abortController;
     dispatch(upgradeMoneyAccount(abortController.signal));
-    return () => abortController.abort();
   }, [dispatch]);
 
   const handleTokenPress = useCallback(

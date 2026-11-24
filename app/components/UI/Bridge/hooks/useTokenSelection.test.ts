@@ -149,7 +149,7 @@ const defaultSelectorState: SelectorState = {
   networkConfigurations: {
     '0x1': { name: 'Ethereum Mainnet' },
     '0xa': { name: 'OP Mainnet' },
-  } as Record<string, unknown>,
+  },
 };
 
 const renderTokenSelectionHook = (
@@ -257,6 +257,28 @@ describe('useTokenSelection', () => {
         type: 'upgradeMoneyAccount',
         signal: expect.any(AbortSignal),
       });
+    });
+
+    it('aborts the money account upgrade when the token selector unmounts', async () => {
+      const moneyToken = createMockToken({
+        address: '0xmoney',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      });
+      const { result, unmount } = renderTokenSelectionHook(
+        TokenSelectorType.Source,
+      );
+
+      await act(async () => {
+        await result.current.handleTokenPress(moneyToken);
+      });
+
+      const signal = mockUpgradeMoneyAccount.mock.calls[0][0];
+      expect(signal.aborted).toBe(false);
+
+      unmount();
+
+      expect(signal.aborted).toBe(true);
     });
 
     it('does not swap when dest network is disabled', async () => {

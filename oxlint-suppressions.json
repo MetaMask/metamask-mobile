@@ -2228,11 +2228,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Bridge/hooks/useTokenSelection.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/Bridge/hooks/useTokenSelection.ts": {
     "typescript/await-thenable": {
       "count": 1
@@ -20221,6 +20216,11 @@
       "count": 1
     }
   },
+  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "app/components/Views/confirmations/utils/transaction.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -27021,11 +27021,6 @@
   "tests/websocket/server.test.ts": {
     "typescript/no-base-to-string": {
       "count": 2
-    }
-  },
-  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   }
 }
