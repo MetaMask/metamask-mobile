@@ -2800,8 +2800,15 @@ document.addEventListener('keydown', (e) => {
     else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (!e.repeat) toggleLatestPhase(); }
     else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); if (!e.repeat) togglePause(); }
     else if (e.key === '?') { e.preventDefault(); openHelp(); }
+    else if (e.key === 'Escape' && !anyPopupOpen() && (tab === 'timeline' ? open : openEp)) { e.preventDefault(); foldOpenRow(); }
   }
 });
+/** Something that Esc closes is showing (the menu, the markers, filters or verdict panels, or the verdict legend). */
+const anyPopupOpen = () => [fltpop, actions, mkpop].some((el) => el.classList.contains('open')) || $('#vLegend').classList.contains('open');
+/** Esc with nothing else to close folds the row you opened, in the tab you are on (not a step to go Back from). */
+function foldOpenRow() {
+  navigate(() => { if (tab === 'timeline') open = null; else openEp = null; render(); }, false);
+}
 
 $('#timeline').addEventListener('click', (e) => {
   if (chipFilter(e)) return;
@@ -2933,7 +2940,7 @@ const HELP = [
       <tr><td>${kb('F')}</td><td>Open the filters panel</td></tr>
       <tr><td>${kb('/')}</td><td>Focus the filter box (${kb('Esc')} clears it)</td></tr>
       <tr><td>${kb('?')}</td><td>Open this guide</td></tr>
-      <tr><td>${kb('Esc')}</td><td>Close the panel, menu or guide</td></tr>
+      <tr><td>${kb('Esc')}</td><td>Close the panel, menu or guide; with none open, fold the open row</td></tr>
       <tr><td>${kb('←')} ${kb('→')}</td><td>On a column edge: resize it</td></tr>
       <tr><td>${kb('Enter')}</td><td>On a call in Endpoints: open it in the Timeline</td></tr>
     </table>` },
