@@ -263,6 +263,8 @@ const EmailCodeStep = () => {
       key={`${remountKey}-${email ?? ''}`}
       channel="email"
       email={email}
+      // Once the Kalshi account email is in, there is no other to switch to.
+      hideUseDifferentEmail={email !== undefined}
       onUseDifferentEmail={handleUseDifferentEmail}
       onSubmit={handleSubmit}
       onResend={handleResend}
