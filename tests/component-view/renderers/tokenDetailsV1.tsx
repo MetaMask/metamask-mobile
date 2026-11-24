@@ -2,7 +2,7 @@ import '../mocks';
 import React from 'react';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
-import { renderScreenWithRoutes } from '../render';
+import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import { TokenDetails } from '../../../app/components/UI/TokenDetails/Views/TokenDetails';
 import ContractSecurityScreen from '../../../app/components/UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
@@ -53,6 +53,14 @@ export function renderTokenDetailsV1View(
         name: Routes.CONTRACT_SECURITY,
         Component:
           ContractSecurityScreen as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.WEBVIEW.MAIN,
+        Component: createRouteParamsProbe(Routes.WEBVIEW.MAIN),
+      },
+      {
+        name: Routes.ACTIVITY_DETAILS,
+        Component: createRouteParamsProbe(Routes.ACTIVITY_DETAILS),
       },
     ],
     { state: builder.build() },

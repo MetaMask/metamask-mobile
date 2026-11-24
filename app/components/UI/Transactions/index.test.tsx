@@ -4,12 +4,6 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { UnconnectedTransactions, mapStateToProps } from '.';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import {
-  findBlockExplorerForNonEvmChainId,
-  findBlockExplorerUrlForChain,
-  getBlockExplorerName,
-} from '../../../util/networks';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -99,16 +93,6 @@ jest.mock('./AssetDetailsActivityListItem', () => ({
   __esModule: true,
   default: 'AssetDetailsActivityListItem',
 }));
-jest.mock('../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: jest.fn(),
-}));
-jest.mock('../../../util/networks', () => ({
-  findBlockExplorerForNonEvmChainId: jest.fn(),
-  findBlockExplorerUrlForChain: jest.fn(),
-  getBlockExplorerName: jest.fn(),
-  getHexEvmChainId: jest.fn((chainId: string) => chainId),
-  isMainnetByChainId: jest.fn(),
-}));
 jest.mock('../../../util/activity-adapters', () => ({
   ...jest.requireActual('../../../util/activity-adapters'),
   getGroupedActivityListItemKey: jest.fn((item) => item.type),
@@ -120,15 +104,6 @@ jest.mock('./AssetDetailsActivityListItem.utils', () => ({
     mockMapTransactionToActivityItem(...args),
 }));
 jest.mock('../../../util/Logger', () => ({ error: jest.fn() }));
-jest.mock('../../../util/analytics/analytics', () => ({
-  analytics: { trackEvent: jest.fn() },
-}));
-jest.mock('../../../util/analytics/externalLinkTracking', () => ({
-  trackBlockExplorerLinkClicked: jest.fn(),
-}));
-jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
-  AnalyticsEventBuilder: { createEventBuilder: jest.fn() },
-}));
 jest.mock('../../../component-library/components-temp/TabEmptyState', () => ({
   TabEmptyState: () => null,
 }));
@@ -233,8 +208,6 @@ describe('UnconnectedTransactions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetNavigationMocks();
-    (isNonEvmChainId as jest.Mock).mockReturnValue(false);
-    (getBlockExplorerName as jest.Mock).mockReturnValue('Etherscan');
     mockMapTransactionToActivityItem.mockImplementation(({ transaction }) => ({
       type: 'activity',
       id: transaction.id,
@@ -279,59 +252,6 @@ describe('UnconnectedTransactions', () => {
       });
 
       expect(onScrollThroughContent).toHaveBeenCalledWith(42);
-    });
-  });
-
-  describe('block explorer', () => {
-    it('opens the asset chain explorer from the footer', () => {
-      const transaction = { id: 'transaction', time: 1 };
-      (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(
-        'https://polygonscan.com',
-      );
-      (getBlockExplorerName as jest.Mock).mockReturnValue('Polygonscan');
-
-      renderTransactions({
-        tokenChainId: '0x89',
-        transactions: [transaction],
-      });
-      fireEvent.press(screen.getByTestId('transactions-footer-view-explorer'));
-
-      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
-        params: {
-          title: 'Polygonscan',
-          url: 'https://polygonscan.com/address/0x123',
-        },
-        screen: 'SimpleWebview',
-      });
-    });
-
-    it('looks up the non-EVM explorer for a non-EVM token chain', () => {
-      (isNonEvmChainId as jest.Mock).mockReturnValue(true);
-      (findBlockExplorerForNonEvmChainId as jest.Mock).mockReturnValue(
-        'https://solscan.io',
-      );
-
-      renderTransactions({ tokenChainId: 'solana:mainnet' });
-
-      expect(findBlockExplorerForNonEvmChainId).toHaveBeenCalledWith(
-        'solana:mainnet',
-      );
-      expect(findBlockExplorerUrlForChain).not.toHaveBeenCalled();
-    });
-
-    it('hides the explorer link when the asset chain has no explorer', () => {
-      const transaction = { id: 'transaction', time: 1 };
-      (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(undefined);
-
-      renderTransactions({
-        tokenChainId: '0x89',
-        transactions: [transaction],
-      });
-
-      expect(
-        screen.queryByTestId('transactions-footer-view-explorer'),
-      ).not.toBeOnTheScreen();
-      expect(mockNavigation.push).not.toHaveBeenCalled();
     });
   });
 
