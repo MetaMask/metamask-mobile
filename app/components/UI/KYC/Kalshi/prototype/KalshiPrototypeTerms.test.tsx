@@ -126,24 +126,22 @@ describe('KalshiPrototypeVendorTerms', () => {
       ).toBeNull();
     });
 
-    it('keeps Agree and continue off until both boxes are ticked', async () => {
+    it('puts the MetaMask sharing consent in the footer, with one checkbox', async () => {
       const { getByTestId } = await renderPage({ isCatchUp: true });
-      const button = () =>
-        getByTestId(KalshiPrototypeTermsSelectorsIDs.AGREE_BUTTON);
 
+      expect(
+        getByTestId(KalshiPrototypeTermsSelectorsIDs.AGREEMENT),
+      ).toHaveTextContent(
+        /I consent to MetaMask sharing my identity information with Kalshi\. I also agree to Kalshi's/,
+      );
       fireEvent(
         getByTestId(KalshiPrototypeTermsSelectorsIDs.CONSENT_CHECKBOX),
         'change',
         true,
       );
-      expect(button()).toBeDisabled();
-
-      fireEvent(
-        getByTestId(KalshiPrototypeTermsSelectorsIDs.SHARING_CONSENT_CHECKBOX),
-        'change',
-        true,
-      );
-      expect(button()).toBeEnabled();
+      expect(
+        getByTestId(KalshiPrototypeTermsSelectorsIDs.AGREE_BUTTON),
+      ).toBeEnabled();
     });
   });
 });

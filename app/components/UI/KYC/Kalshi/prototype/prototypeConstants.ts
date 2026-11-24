@@ -192,9 +192,11 @@ export const PROTOTYPE_COPY = {
     catchUp: {
       title: "Agree to Kalshi's terms",
       body: "Kalshi needs you to agree to these before it can open your account. You've already agreed to MetaMask's terms when you verified your identity.",
-      metamaskGroupTitle: 'MetaMask',
+      /** Footer: MetaMask's consent, kept apart from Kalshi's terms. */
       sharingConsent:
-        'I consent to MetaMask sharing my identity information with Kalshi so Kalshi can verify me and open my account.',
+        'By tapping Agree and continue, I consent to MetaMask sharing my identity information with Kalshi. ',
+      agreementBefore:
+        "I also agree to Kalshi's Member Agreements and Rulebooks and acknowledge Kalshi's ",
     },
     scrollToContinue: 'Scroll to continue',
     agreeToConsentAbove: 'Agree to consent above',

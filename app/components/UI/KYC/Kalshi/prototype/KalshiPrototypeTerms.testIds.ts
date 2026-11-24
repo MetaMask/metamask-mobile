@@ -7,7 +7,6 @@ export const KalshiPrototypeTermsSelectorsIDs = {
   DOCUMENT_LINK: 'kalshi-prototype-terms-document',
   SOCURE_BODY: 'kalshi-prototype-terms-socure',
   CONSENT_ROW: 'kalshi-prototype-terms-consent-row',
-  SHARING_CONSENT_CHECKBOX: 'kalshi-prototype-terms-sharing-checkbox',
   CONSENT_CHECKBOX: 'kalshi-prototype-terms-consent-checkbox',
   CONSENT_TERMS_LINK: 'kalshi-prototype-terms-consent-terms',
   CONSENT_PRIVACY_LINK: 'kalshi-prototype-terms-consent-privacy',

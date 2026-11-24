@@ -127,8 +127,8 @@ interface KalshiPrototypeVendorTermsProps {
   onBack: () => void;
   /**
    * A returning UKYC user, who skipped steps 1 and 2: no step count, the
-   * catch-up title and body, and MetaMask's Kalshi sharing consent, which
-   * must be ticked too.
+   * catch-up title and body, and MetaMask's Kalshi sharing consent as its
+   * own sentence in the footer, given by tapping, as on step 1.
    */
   isCatchUp?: boolean;
 }
@@ -154,9 +154,7 @@ const KalshiPrototypeVendorTermsPage = ({
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [hasSocureConsent, setHasSocureConsent] = useState(false);
-  const [hasSharingConsent, setHasSharingConsent] = useState(false);
-  const sharingCheckboxRef = useRef<{ toggle: () => void }>(null);
-  const hasAllConsents = hasSocureConsent && (!isCatchUp || hasSharingConsent);
+  const hasAllConsents = hasSocureConsent;
   const [isAdvancing, setIsAdvancing] = useState(false);
   const checkboxRef = useRef<{ toggle: () => void }>(null);
   const [consentRowY, setConsentRowY] = useState<number>();
@@ -170,11 +168,6 @@ const KalshiPrototypeVendorTermsPage = ({
 
   const toggleSocureConsent = useCallback(
     () => checkboxRef.current?.toggle(),
-    [],
-  );
-
-  const toggleSharingConsent = useCallback(
-    () => sharingCheckboxRef.current?.toggle(),
     [],
   );
 
@@ -298,7 +291,7 @@ const KalshiPrototypeVendorTermsPage = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Start}
             twClassName="mx-4 mt-4 gap-3"
-            onLayout={isCatchUp ? undefined : handleConsentRowLayout}
+            onLayout={handleConsentRowLayout}
             testID={KalshiPrototypeTermsSelectorsIDs.CONSENT_ROW}
           >
             <Checkbox
@@ -332,43 +325,6 @@ const KalshiPrototypeVendorTermsPage = ({
               </Text>
             </Box>
           </Box>
-
-          {isCatchUp ? (
-            <>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                twClassName="px-4 pb-2 pt-6"
-              >
-                {copy.catchUp.metamaskGroupTitle}
-              </Text>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                twClassName="mx-4 gap-3"
-                onLayout={handleConsentRowLayout}
-              >
-                <Checkbox
-                  ref={sharingCheckboxRef}
-                  isSelected={hasSharingConsent}
-                  onChange={setHasSharingConsent}
-                  testID={
-                    KalshiPrototypeTermsSelectorsIDs.SHARING_CONSENT_CHECKBOX
-                  }
-                />
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    onPress={toggleSharingConsent}
-                    suppressHighlighting
-                  >
-                    {copy.catchUp.sharingConsent}
-                  </Text>
-                </Box>
-              </Box>
-            </>
-          ) : null}
         </ScrollView>
 
         <Box twClassName="gap-4 border-t border-muted px-4 pb-2 pt-4">
@@ -378,7 +334,8 @@ const KalshiPrototypeVendorTermsPage = ({
             twClassName="text-center"
             testID={KalshiPrototypeTermsSelectorsIDs.AGREEMENT}
           >
-            {copy.agreement.before}
+            {isCatchUp ? copy.catchUp.sharingConsent : null}
+            {isCatchUp ? copy.catchUp.agreementBefore : copy.agreement.before}
             <InlineLink
               label={copy.agreement.privacyPolicy}
               url={privacyPolicyUrl}
