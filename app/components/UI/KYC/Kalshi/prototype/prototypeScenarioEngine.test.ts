@@ -61,7 +61,7 @@ describe('prototypeScenarioEngine', () => {
 
     it('refuses every code that is not the prototype code', () => {
       expect(() =>
-        checkEmailCode(linkedState('newUserHasMfa'), '000000'),
+        checkEmailCode(linkedState('newUserHasMfa'), '111111'),
       ).toThrow(prototypeCodeError());
       expect(() =>
         checkPhoneCode(linkedState('newUserHasMfa'), '654321'),
