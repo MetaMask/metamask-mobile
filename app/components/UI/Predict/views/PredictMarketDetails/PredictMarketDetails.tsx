@@ -61,6 +61,25 @@ import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransiti
 
 interface PredictMarketDetailsProps {}
 
+type TabContentState = 'hidden' | 'skeleton' | 'content';
+
+const getTabContentState = ({
+  isLoading,
+  isUnavailable,
+  hasMarket,
+  isReady,
+}: {
+  isLoading: boolean;
+  isUnavailable: boolean;
+  hasMarket: boolean;
+  isReady: boolean;
+}): TabContentState => {
+  if (isLoading || isUnavailable || !hasMarket) {
+    return 'hidden';
+  }
+  return isReady ? 'content' : 'skeleton';
+};
+
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
@@ -509,6 +528,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
   }
 
+  const tabContentState = getTabContentState({
+    isLoading: isResolvedMarketLoading,
+    isUnavailable: isMarketUnavailable,
+    hasMarket: Boolean(market),
+    isReady: isDeferredReady,
+  });
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
@@ -586,39 +612,36 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         )}
 
-        {/* Tab content - only show when market is loaded */}
-        {!isResolvedMarketLoading &&
-          !isMarketUnavailable &&
-          market &&
-          (isDeferredReady ? (
-            <PredictMarketDetailsTabContent
-              activeTab={activeTab}
-              tabsReady={tabsReady}
-              tabs={tabs}
-              market={market}
-              activePositions={activePositions}
-              claimablePositions={claimablePositions}
-              onPolymarketResolution={handlePolymarketResolution}
-              singleOutcomeMarket={singleOutcomeMarket}
-              multipleOutcomes={multipleOutcomes}
-              multipleOpenOutcomesPartiallyResolved={
-                multipleOpenOutcomesPartiallyResolved
-              }
-              winningOutcome={winningOutcome}
-              losingOutcome={losingOutcome}
-              winningOutcomeToken={winningOutcomeToken}
-              losingOutcomeToken={losingOutcomeToken}
-              openOutcomes={openOutcomes}
-              closedOutcomes={closedOutcomes}
-              entryPoint={entryPoint}
-              isResolvedExpanded={isResolvedExpanded}
-              onResolvedExpandedToggle={setIsResolvedExpanded}
-            />
-          ) : (
-            <Box twClassName="px-3">
-              <PredictDetailsContentSkeleton />
-            </Box>
-          ))}
+        {tabContentState === 'content' && (
+          <PredictMarketDetailsTabContent
+            activeTab={activeTab}
+            tabsReady={tabsReady}
+            tabs={tabs}
+            market={market}
+            activePositions={activePositions}
+            claimablePositions={claimablePositions}
+            onPolymarketResolution={handlePolymarketResolution}
+            singleOutcomeMarket={singleOutcomeMarket}
+            multipleOutcomes={multipleOutcomes}
+            multipleOpenOutcomesPartiallyResolved={
+              multipleOpenOutcomesPartiallyResolved
+            }
+            winningOutcome={winningOutcome}
+            losingOutcome={losingOutcome}
+            winningOutcomeToken={winningOutcomeToken}
+            losingOutcomeToken={losingOutcomeToken}
+            openOutcomes={openOutcomes}
+            closedOutcomes={closedOutcomes}
+            entryPoint={entryPoint}
+            isResolvedExpanded={isResolvedExpanded}
+            onResolvedExpandedToggle={setIsResolvedExpanded}
+          />
+        )}
+        {tabContentState === 'skeleton' && (
+          <Box twClassName="px-3">
+            <PredictDetailsContentSkeleton />
+          </Box>
+        )}
       </ScrollView>
 
       {!isMarketUnavailable && (
