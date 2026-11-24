@@ -237,7 +237,7 @@ export const usePredictMarketData = (
       setError(null);
       return;
     }
-    fetchMarketData(false);
+    void fetchMarketData(false);
   }, [category, customQueryParams, fetchMarketData, enabled]);
 
   return {
