@@ -19,7 +19,7 @@ import com.facebook.react.bridge.Promise
 import io.metamask.R
 
 /**
- * The Android privacy cover. [io.metamask.MainActivity] shows it from `onPause`
+ * The Android privacy cover. [io.metamask.MainActivity] shows it from `onStop`
  * and [PrivacyCoverModule] hides it once resume routing resolves.
  *
  * Theme fill plus the centered splash fox, matching the iOS cover. Recents stays

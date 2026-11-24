@@ -4,10 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { setCashbackLedger } from '../../../../reducers/rewardsMoney';
-import {
-  CASHBACK_LEDGER_ORIGIN_TYPES,
-  useCashbackLedger,
-} from './useCashbackLedger';
+import { useCashbackLedger } from './useCashbackLedger';
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
@@ -93,7 +90,11 @@ describe('useCashbackLedger', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:getEarningsLedger',
       {
-        originTypes: CASHBACK_LEDGER_ORIGIN_TYPES,
+        originTypes: [
+          'SWAPS_FEE_CASHBACK',
+          'PERPS_FEE_CASHBACK',
+          'PREDICT_FEE_CASHBACK',
+        ],
         cursor: undefined,
         includeClaims: false,
         forceFresh: false,
@@ -139,7 +140,11 @@ describe('useCashbackLedger', () => {
       2,
       'RewardsMoneyController:getEarningsLedger',
       {
-        originTypes: CASHBACK_LEDGER_ORIGIN_TYPES,
+        originTypes: [
+          'SWAPS_FEE_CASHBACK',
+          'PERPS_FEE_CASHBACK',
+          'PREDICT_FEE_CASHBACK',
+        ],
         cursor: 'cursor-2',
         includeClaims: false,
         forceFresh: undefined,

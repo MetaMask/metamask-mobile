@@ -4,4 +4,5 @@ export interface HomePack {
   name: string;
   subtitle: string;
   counterLabel: string;
+  priceLabel: string;
 }

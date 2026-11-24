@@ -151,12 +151,21 @@ export const PredictDepositScreen = (): React.JSX.Element => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
   const fundingWallet = useSelector(selectEvmAddress) as PredictHex | undefined;
-  const environment = useDepositEnvironment();
+  const environmentResolution = useDepositEnvironment(venueId);
+  const environment =
+    environmentResolution.status === 'ready'
+      ? environmentResolution.environment
+      : undefined;
+  const isEnvironmentReady = environmentResolution.status === 'ready';
+  const isSimulated = environment?.transferMode === 'simulated';
   const isOffline = useNetworkTier() === 'NONE';
   const balance = useUsdcBalance({
-    network: environment.network,
+    network: environment?.network,
     address: fundingWallet,
-    enabled: !isOffline,
+    enabled:
+      environmentResolution.status !== 'unavailable' &&
+      !isSimulated &&
+      !isOffline,
   });
   const flow = useDepositFlow({
     venueId,
@@ -172,9 +181,13 @@ export const PredictDepositScreen = (): React.JSX.Element => {
 
   const isComplete = isCompleteDepositAmount(input);
   const isBelowMinimum = isComplete && !meetsDepositMinimum(input);
-  const isShort = exceedsBalance(input, balance);
+  const isShort =
+    isEnvironmentReady && !isSimulated && exceedsBalance(input, balance);
   const canContinue =
-    Boolean(fundingWallet) && meetsDepositMinimum(input) && !isShort;
+    isEnvironmentReady &&
+    Boolean(fundingWallet) &&
+    meetsDepositMinimum(input) &&
+    !isShort;
 
   const editAmount = useCallback((next: string) => {
     setInput(sanitizeDepositInput(next));
@@ -195,6 +208,12 @@ export const PredictDepositScreen = (): React.JSX.Element => {
         isCancelling: false,
         cancelFailed: false,
       });
+      return;
+    }
+    if (outcome.kind === 'already_resolved') {
+      if (outcome.deposit.status === 'failed') {
+        setNotice('failed');
+      }
       return;
     }
     setNotice(noticeFor(outcome));
@@ -238,7 +257,12 @@ export const PredictDepositScreen = (): React.JSX.Element => {
 
   const isAmountStage = stage.kind === 'amount';
   let alertText: string | undefined;
-  if (isShort) {
+  if (environmentResolution.status === 'unavailable') {
+    alertText =
+      environmentResolution.reason === 'error'
+        ? strings('predict_next.deposit.unavailable_error')
+        : strings('predict_next.deposit.unavailable');
+  } else if (isShort && environment) {
     alertText = strings('predict_next.deposit.not_enough_usdc', {
       network: environment.network.networkName,
     });
@@ -261,18 +285,57 @@ export const PredictDepositScreen = (): React.JSX.Element => {
     }
   }, [noticeText]);
 
-  const caption = alertText ? (
-    <Text
-      color={TextColor.ErrorDefault}
-      twClassName="text-center"
-      accessibilityRole="alert"
-      testID={PredictDepositScreenTestIds.ALERT}
-    >
-      {alertText}
-    </Text>
-  ) : (
-    <BalanceCaption balance={balance} />
-  );
+  let caption: React.JSX.Element;
+  if (alertText) {
+    caption = (
+      <Box twClassName="items-center gap-1">
+        <Text
+          color={TextColor.ErrorDefault}
+          twClassName="text-center"
+          accessibilityRole="alert"
+          testID={PredictDepositScreenTestIds.ALERT}
+        >
+          {alertText}
+        </Text>
+        {environmentResolution.status === 'unavailable' &&
+        environmentResolution.reason === 'error' ? (
+          <Button
+            variant={ButtonVariant.Tertiary}
+            onPress={environmentResolution.retry}
+            testID={PredictDepositScreenTestIds.RETRY}
+          >
+            {strings('predict_next.deposit.retry')}
+          </Button>
+        ) : null}
+      </Box>
+    );
+  } else if (environmentResolution.status === 'loading') {
+    caption = (
+      <Skeleton
+        height={20}
+        width={160}
+        testID={PredictDepositScreenTestIds.BALANCE_LOADING}
+      />
+    );
+  } else if (isSimulated) {
+    caption = (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        testID={PredictDepositScreenTestIds.SIMULATED_CAPTION}
+      >
+        {strings('predict_next.deposit.simulated_sandbox')}
+      </Text>
+    );
+  } else {
+    caption = <BalanceCaption balance={balance} />;
+  }
+
+  const sheetHasSubmittedTransfer = sheet
+    ? flow.hasSubmittedTransfer(sheet.deposit)
+    : false;
+  const canContinueSheet =
+    isEnvironmentReady || (Boolean(fundingWallet) && sheetHasSubmittedTransfer);
 
   return (
     <SafeAreaView
@@ -304,7 +367,9 @@ export const PredictDepositScreen = (): React.JSX.Element => {
             <Box twClassName="min-h-[24px] items-center px-4">{caption}</Box>
           </Box>
           <Box twClassName="gap-4 px-4 pb-4">
-            <DepositPayWithRow network={environment.network} />
+            {environment ? (
+              <DepositPayWithRow network={environment.network} />
+            ) : null}
             {noticeText ? (
               <Text
                 variant={TextVariant.BodySm}
@@ -355,7 +420,10 @@ export const PredictDepositScreen = (): React.JSX.Element => {
       {sheet ? (
         <DepositInProgressSheet
           deposit={sheet.deposit}
-          hasSubmittedTransfer={flow.hasSubmittedTransfer(sheet.deposit)}
+          hasSubmittedTransfer={sheetHasSubmittedTransfer}
+          environmentResolution={environmentResolution}
+          canContinue={canContinueSheet}
+          canCancel={Boolean(fundingWallet)}
           isCancelling={sheet.isCancelling}
           cancelFailed={sheet.cancelFailed}
           onContinue={continueOpenDeposit}

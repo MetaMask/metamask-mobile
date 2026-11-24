@@ -35,7 +35,13 @@ export const useCopyTradeToPerps = (
       leverage,
       isCopyTrade: true,
       ...(commentId
-        ? { copyTradeOrigin: { commentId, asset: tradeSymbol } }
+        ? {
+            copyTradeOrigin: {
+              commentId,
+              asset: tradeSymbol,
+              authorId: item.author.id,
+            },
+          }
         : {}),
     });
   }, [commentId, item, openPerpsOrder]);

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} 복사",
       "copied_label": "{{field}} 복사됨",
-      "copy_all_button": "상세 정보 모두 복사",
-      "copied_all_label": "은행 계좌 정보가 복사됨",
       "button": "완료",
       "waiting_for_details": "계정 세부 정보가 곧 여기에 표시됩니다.",
       "loading_details": "계정 세부 정보 불러오는 중",
