@@ -17,6 +17,9 @@ import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components
 import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
 import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyClaimsPausedModal, {
+  type RewardsMoneyClaimsPausedModalParams,
+} from '../../../app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
 import ReduxService from '../../../app/core/redux/ReduxService';
@@ -603,15 +606,34 @@ export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
   HOST: 'referral-invite-host',
 } as const;
 
-function ReferralInviteJourneyHost() {
-  const navigation = useNavigation<AppNavigationProp>();
+/**
+ * Host screen that opens a modal route on mount and shows a labelled marker
+ * while it is focused, so a journey can assert it is back on the screen below.
+ */
+function createModalJourneyHost(
+  modalRoute:
+    | typeof Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
+    | typeof Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  hostTestId: string,
+  label: string,
+) {
+  return function ModalJourneyHost() {
+    const navigation = useNavigation<AppNavigationProp>();
+    const isFocused = useIsFocused();
 
-  React.useEffect(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_MONEY_INVITE_SHEET);
-  }, [navigation]);
+    React.useEffect(() => {
+      navigation.navigate(modalRoute);
+    }, [navigation]);
 
-  return <Text testID={REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST}>Swap</Text>;
+    return isFocused ? <Text testID={hostTestId}>{label}</Text> : null;
+  };
 }
+
+const ReferralInviteJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+  REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST,
+  'Swap',
+);
 
 /**
  * Deeplink invite sheet pushed over a destination, with the accepted splash
@@ -657,7 +679,7 @@ export function renderRewardsMoneyInviteSheet(
 
   return {
     ...renderScreenWithRoutes(
-      ReferralInviteJourneyHost as unknown as React.ComponentType,
+      ReferralInviteJourneyHost,
       { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
       [
         {
@@ -670,6 +692,48 @@ export function renderRewardsMoneyInviteSheet(
     ),
     engine,
   };
+}
+
+export const CLAIMS_PAUSED_JOURNEY_TEST_IDS = {
+  HOST: 'claims-paused-host',
+} as const;
+
+const ClaimsPausedJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST,
+  'Earnings',
+);
+
+/**
+ * Claims paused sheet, or the balance breakdown, pushed over a host screen with
+ * the in-app browser registered as a params probe. The sheet reads the terms
+ * copy from the referral-me entry in Redux. Closing it returns to the host.
+ */
+export function renderRewardsMoneyClaimsPausedModal(
+  params: RewardsMoneyClaimsPausedModalParams,
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const state = rewardsMoneyViewState(options);
+
+  function ClaimsPausedScreen() {
+    return <RewardsMoneyClaimsPausedModal route={{ params }} />;
+  }
+
+  return renderScreenWithRoutes(
+    ClaimsPausedJourneyHost,
+    { name: 'ClaimsPausedHost' },
+    [
+      {
+        name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        Component: ClaimsPausedScreen,
+      },
+      {
+        name: Routes.BROWSER.HOME,
+        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
+      },
+    ],
+    { state },
+  );
 }
 
 function ReferralSplashJourneyDestination() {
