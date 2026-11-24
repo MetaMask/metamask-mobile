@@ -4405,7 +4405,8 @@ export const usePerpsProOrderForm = ({
         chaseProviderId === null)) ||
     isChaseMaxDistanceInvalid ||
     isPlacing ||
-    isAwaitingPositionModifyPreview ||
+    // The Cross stop-loss check does not use the preview.
+    (marginMode !== 'cross' && isAwaitingPositionModifyPreview) ||
     isChasePreflightPending ||
     isScalePlacementPending ||
     isMarketDataBlocking ||

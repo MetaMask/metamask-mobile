@@ -459,6 +459,10 @@ export function buildPerpsIntegrationHarness(
     getCachedAbstractionMode: jest.fn().mockReturnValue(null),
     // `null` sends the cross liquidation preview to its venue read.
     getFreshCrossMarginContext: jest.fn().mockReturnValue(null),
+    // `null` sends the margin-mode lock to its venue reads.
+    getCachedOpenOrdersForDex: jest.fn().mockReturnValue(null),
+    getCachedActiveTwapOrders: jest.fn().mockReturnValue(null),
+    getCachedActiveAssetLeverage: jest.fn().mockReturnValue(null),
     getCachedPrice: jest.fn((symbol: string) => cachedPrices[symbol]),
     getLastAllMidsSnapshot: jest.fn().mockReturnValue(null),
     setDexMetaCache: jest.fn(),

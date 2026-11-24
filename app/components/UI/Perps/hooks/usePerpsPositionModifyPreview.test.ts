@@ -414,6 +414,68 @@ describe('usePerpsPositionModifyPreview', () => {
     });
   });
 
+  describe('Cross positions', () => {
+    const crossPosition = isolatedPosition({
+      leverage: { type: 'cross', value: 5 },
+      liquidationPrice: null,
+    });
+    const renderPreview = (initialProps: {
+      position: Position;
+      accountKey?: string;
+      priceTick?: number;
+    }) =>
+      renderHook(
+        (props: typeof initialProps) =>
+          usePerpsPositionModifyPreview({
+            direction: 'long',
+            size: '1',
+            price: '2000',
+            leverage: 5,
+            reduceOnly: false,
+            ...props,
+          }),
+        { initialProps },
+      );
+
+    it('drops an isolated projection when the position becomes Cross', async () => {
+      const { result, rerender } = renderPreview({
+        position: isolatedPosition(),
+      });
+      await waitFor(() => expect(result.current.preview.status).toBe('open'));
+      mockPreviewPositionModify.mockReturnValue(new Promise(() => undefined));
+
+      rerender({ position: crossPosition });
+
+      expect(result.current.preview).toEqual({ status: 'none' });
+    });
+
+    it('projects again when the account figures move', async () => {
+      const { rerender } = renderPreview({
+        position: crossPosition,
+        accountKey: 'a',
+      });
+      await waitFor(() =>
+        expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1),
+      );
+
+      rerender({ position: crossPosition, accountKey: 'b' });
+
+      await waitFor(() =>
+        expect(mockPreviewPositionModify).toHaveBeenCalledTimes(2),
+      );
+    });
+
+    it('ignores account figures for an isolated position', async () => {
+      const position = isolatedPosition();
+      const { result, rerender } = renderPreview({ position, accountKey: 'a' });
+      await waitFor(() => expect(result.current.preview.status).toBe('open'));
+
+      rerender({ position, accountKey: 'b' });
+
+      expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('debounceMs', () => {
     beforeEach(() => {
       jest.useFakeTimers();

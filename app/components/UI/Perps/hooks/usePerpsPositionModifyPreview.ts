@@ -193,12 +193,12 @@ export const usePerpsPositionModifyPreview = (
 
   const previewTarget =
     enabled && position
-      ? `${providerId ?? position.providerId ?? ''}:${position.symbol}`
+      ? `${providerId ?? position.providerId ?? ''}:${position.symbol}:${position.leverage.type}`
       : null;
 
   useEffect(() => {
-    // A different position invalidates the retained preview, so the next
-    // request counts as a first load again. Order/price changes do not.
+    // A different position or margin mode invalidates the retained preview, so
+    // the next request counts as a first load again. Order/price changes do not.
     setPreview(IDLE_PREVIEW);
     setHasSettledPreview(false);
   }, [previewTarget]);
