@@ -12,11 +12,13 @@ import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
-  KycDisclaimer,
+  KycConsentRecord,
   OnboardingVendorState,
 } from '@metamask/kyc-controller';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -38,6 +40,7 @@ import { describeKalshiError, shouldRefreshAfter } from './kalshiErrors';
 import { deriveKalshiScreen, type KalshiScreen } from './kalshiScreen';
 import { runKalshiSignedAction } from './kalshiVendorRequestSigner';
 import { nextWaitingPollDelayMs } from './waitingPoll';
+import VbaFoxLoader from '../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 
 const VENDOR = KALSHI_KYC_VENDOR.id;
 
@@ -48,12 +51,33 @@ export const KalshiOnboardingTestIds = {
   SECONDARY: 'kalshi-onboarding-secondary',
   ERROR: 'kalshi-onboarding-error',
   RESEND: 'kalshi-onboarding-resend',
+  LOADER: 'kalshi-onboarding-loader',
 } as const;
 
 const selectKalshiFlow = (
   state: RootState,
 ): OnboardingVendorState | undefined =>
   state.engine.backgroundState.VendorOnboardingController?.vendors?.[VENDOR];
+
+interface TermsDocument {
+  key: string;
+  title: string;
+  url: string;
+}
+
+interface TermsPage {
+  id: 'idos' | 'kycProvider' | 'kalshi';
+  title: string;
+  documents: TermsDocument[];
+}
+
+interface TermsCatalog {
+  pages: TermsPage[];
+  idOS: KycConsentRecord[];
+  kycProvider: KycConsentRecord[];
+  vendorDisclaimerIds: string[];
+  country: string;
+}
 
 const toKeys = (
   documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
@@ -84,13 +108,31 @@ const errorMessage = (error: unknown): string => {
   return 'Something went wrong.';
 };
 
+const TERMS_PAGE_COPY: Record<
+  TermsPage['id'],
+  { title: string; body: string }
+> = {
+  idos: {
+    title: 'idOS terms',
+    body: 'idOS stores your verified identity and shares it only with your consent.',
+  },
+  kycProvider: {
+    title: 'SumSub terms',
+    body: 'SumSub checks your ID and selfie for idOS.',
+  },
+  kalshi: {
+    title: 'Kalshi terms',
+    body: 'Review Kalshi’s agreements to open a Kalshi account.',
+  },
+};
+
 const SCREEN_COPY: Record<
   Exclude<KalshiScreen, 'loading'>,
   { title: string; body: string }
 > = {
   terms: {
-    title: 'Kalshi terms',
-    body: 'Review and accept Kalshi’s terms to open a Kalshi account.',
+    title: 'Terms',
+    body: 'Review and accept the terms to continue.',
   },
   email: {
     title: 'Your email',
@@ -98,7 +140,7 @@ const SCREEN_COPY: Record<
   },
   confirm: {
     title: 'Confirm with MetaMask',
-    body: 'MetaMask confirms it’s you. Next you’ll choose the email Kalshi uses.',
+    body: 'MetaMask confirms it’s you. Then you choose the email for Kalshi.',
   },
   email_code: {
     title: 'Check your email',
@@ -146,8 +188,8 @@ const FIELDS: Partial<
 /**
  * Kalshi onboarding through `VendorOnboardingController`. One screen that shows
  * whatever step kyc-api says the user is on, so it resumes wherever they left
- * off, on any device. The phone keeps the MFA token, the typed Kalshi email
- * and the phone-code field only while this screen is open.
+ * off, on any device. The phone keeps the terms the user accepted and the
+ * code fields only while this screen is open.
  */
 const KalshiOnboarding = () => {
   const tw = useTailwind();
@@ -155,34 +197,76 @@ const KalshiOnboarding = () => {
   const { verifyOrEnroll } = useMfa();
   const flowState = useSelector(selectKalshiFlow);
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
-  const [emailEntry, setEmailEntry] = useState(false);
+  /**
+   * The MFA token, held until the Kalshi email opens the session. Kept in a
+   * ref so it never reaches state or storage.
+   */
+  const aal2Token = useRef<string | undefined>(undefined);
+  /** Tracks the saved flag so a retry can see it even from an older render. */
+  const mfaCompleted = useRef(false);
+  mfaCompleted.current = flowState?.mfaCompleted === true;
   const [editingEmail, setEditingEmail] = useState(false);
-  /** Held from MetaMask MFA until the Kalshi email is submitted. */
-  const [aal2Token, setAal2Token] = useState<string>();
-  /** Carried into the field on the next screen change, then forgotten. */
-  const prefill = useRef<string | undefined>(undefined);
-  const [linkedEmail, setLinkedEmail] = useState<string>();
+  /** The email the field starts with: the MetaMask email, then the last one sent. */
+  const emailDefault = useRef<string | undefined>(undefined);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [terms, setTerms] = useState<KycDisclaimer[]>();
+  const [terms, setTerms] = useState<TermsCatalog>();
+  /** The terms page showing. Nothing is sent until the last one is accepted. */
+  const [termsPage, setTermsPage] = useState(0);
+  /**
+   * Set when Confirm is pressed and cleared only once the terms page is
+   * ready. The step arrives from the controller a moment after the button
+   * stops waiting, and that gap was painting Confirm again.
+   */
+  const [awaitingTerms, setAwaitingTerms] = useState(false);
   const step = flowState?.step;
   const status = flowState?.status ?? 'none';
   const screen = deriveKalshiScreen(step, status, {
-    emailEntry,
+    emailSent: Boolean(flowState?.sessionId),
     editingEmail,
     phoneCodeSent,
   });
+  // Hold one screen from the confirm press until the terms page is ready.
+  // The saved step and the terms catalog arrive as later updates, and each
+  // one was painting its own page.
+  const holding =
+    awaitingTerms ||
+    (screen === 'confirm' && busy) ||
+    (screen === 'terms' && !terms && !error);
   const { VendorOnboardingController } = Engine.context;
 
-  // Each screen starts with an empty field.
-  // The field is per screen, so it starts empty on every change — unless
-  // something deliberately carried a value over, like going back to correct
-  // a mistyped email.
+  // Each screen starts with an empty field, except the email, which starts
+  // with the MetaMask email and can be changed.
   useEffect(() => {
-    setInput(prefill.current ?? '');
-    prefill.current = undefined;
+    setInput(screen === 'email' ? (emailDefault.current ?? '') : '');
   }, [screen]);
+
+  // The relay opens the Kalshi account with the verified MetaMask email, so
+  // that is what the field starts with. The screen can mount long after MFA
+  // ran, so it asks for the email instead of remembering it from MFA.
+  useEffect(() => {
+    if (screen !== 'email' || emailDefault.current) {
+      return undefined;
+    }
+    let cancelled = false;
+    VendorOnboardingController.getPartnerEmail({ vendor: VENDOR })
+      .then((email) => {
+        if (cancelled || !email || emailDefault.current) {
+          return;
+        }
+        emailDefault.current = email;
+        setInput((typed) => typed || email);
+      })
+      .catch((caught) => {
+        Logger.error(caught as Error, {
+          tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [screen, VendorOnboardingController]);
 
   // Ask kyc-api for the step. For opening the screen and for polling.
   const refresh = useCallback(async () => {
@@ -198,6 +282,15 @@ const KalshiOnboarding = () => {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!awaitingTerms) {
+      return;
+    }
+    if (error || (screen === 'terms' && terms)) {
+      setAwaitingTerms(false);
+    }
+  }, [awaitingTerms, error, screen, terms]);
 
   // Every controller action saves the step it ended on, so there is nothing
   // to read after one.
@@ -226,19 +319,51 @@ const KalshiOnboarding = () => {
     [refresh],
   );
 
-  // Terms catalog.
+  // Terms catalog: idOS and SumSub documents for the country, and Kalshi's.
+  // The country catalog needs no session, so the terms come before one exists.
   useEffect(() => {
     if (screen !== 'terms' || terms) {
       return;
     }
     run(async () => {
       const country = await getGeoCountry();
-      setTerms(
-        await getKycService().fetchVendorDisclaimers({
-          vendor: VENDOR,
-          country,
-        }),
-      );
+      const [session, vendorDocuments] = await Promise.all([
+        getKycService().fetchSessionDisclaimersByCountry({ country }),
+        getKycService().fetchVendorDisclaimers({ vendor: VENDOR, country }),
+      ]);
+      const fromCatalog = (
+        documents: (KycCatalogDocument | KycConsentDocument)[],
+      ): TermsDocument[] =>
+        documents.map(({ key, title, url }) => ({ key, title, url }));
+      const pages: TermsPage[] = [
+        {
+          id: 'idos' as const,
+          title: TERMS_PAGE_COPY.idos.title,
+          documents: fromCatalog(session.idOS),
+        },
+        {
+          id: 'kycProvider' as const,
+          title: TERMS_PAGE_COPY.kycProvider.title,
+          documents: fromCatalog(session.kycProvider),
+        },
+        {
+          id: 'kalshi' as const,
+          title: TERMS_PAGE_COPY.kalshi.title,
+          documents: vendorDocuments.map(({ id, display_name, url }) => ({
+            key: id,
+            title: display_name,
+            url,
+          })),
+        },
+      ].filter(({ documents }) => documents.length > 0);
+      setTermsPage(0);
+      setTerms({
+        pages,
+        idOS: toKeys(session.idOS),
+        kycProvider: toKeys(session.kycProvider),
+        vendorDisclaimerIds: vendorDocuments.map(({ id }) => id),
+        country,
+      });
     });
   }, [run, screen, terms]);
 
@@ -267,106 +392,148 @@ const KalshiOnboarding = () => {
     };
   }, [refresh, screen]);
 
-  const acceptTerms = () =>
-    run(async () => {
-      const country = await getGeoCountry();
-      await VendorOnboardingController.acceptTerms({
+  // The user accepts one page at a time on the phone. Nothing is sent until
+  // the last page, then everything goes in one call.
+  const acceptTermsPage = () => {
+    if (!terms) {
+      return undefined;
+    }
+    if (termsPage < terms.pages.length - 1) {
+      setTermsPage(termsPage + 1);
+      return undefined;
+    }
+    return run(() =>
+      VendorOnboardingController.submitTerms({
         vendor: VENDOR,
-        country,
-        disclaimerIds: (terms ?? []).map(({ id }) => id),
-      });
-    });
-
-  // MetaMask MFA first. The token is held until the user submits the Kalshi
-  // email, which is what creates the session.
-  const confirmWithMetaMask = () =>
-    run(async () => {
-      const result = await verifyOrEnroll({
-        methods: ['email_otp'],
-        verifyWith: 'email_otp',
-        reason: { operation: 'ukyc.kalshi.verifyEmail', presentation: 'card' },
-      });
-      const token = result.token?.accessToken;
-      if (!token) {
-        throw new Error('MetaMask couldn’t confirm your email.');
-      }
-      const emailCredential = result.credentials?.find(
-        (credential) => credential.type === 'email_otp',
-      );
-      const verified =
-        emailCredential?.type === 'email_otp'
-          ? emailCredential.email
-          : undefined;
-      prefill.current = verified ?? '';
-      setAal2Token(token);
-      setEmailEntry(true);
-    });
+        country: terms.country,
+        disclaimerIds: terms.vendorDisclaimerIds,
+        idOS: toKeys(terms.idOS),
+        kycProvider: toKeys(terms.kycProvider),
+        // Demo choice. Whether the user is asked is a product decision.
+        credentialReusabilityConsentGiven: false,
+      }),
+    );
+  };
 
   /**
-   * Submits the Kalshi email.
+   * MetaMask MFA, which comes before any session. The token stays in memory
+   * until the Kalshi email opens the session, and the phone tells kyc-api MFA
+   * is done so the next step is the terms.
    *
-   * Before a session exists this creates one, and the phone signs the
-   * enrollment intent and `users/link` into that request. On the code step
-   * it signs a new `users/link` for a corrected address.
+   * A second tap skips MFA. The token is already held, and opening the
+   * MetaMask prompt again is what fails after a confirm that did not move
+   * the step.
    */
-  const submitEmail = () =>
-    run(async () => {
-      const email = input.trim();
-      if (editingEmail || step === 'kalshi_email_link') {
-        await runKalshiSignedAction(() =>
-          VendorOnboardingController.resendEmailCode({
-            vendor: VENDOR,
-            email,
-          }),
-        );
-        setEditingEmail(false);
-      } else {
-        if (!aal2Token) {
-          throw new Error('MetaMask couldn’t confirm your email.');
+  const confirmWithMetaMask = () => {
+    setAwaitingTerms(true);
+    return run(async () => {
+      try {
+        if (!aal2Token.current && !mfaCompleted.current) {
+          const result = await verifyOrEnroll({
+            methods: ['email_otp'],
+            verifyWith: 'email_otp',
+            reason: {
+              operation: 'ukyc.kalshi.verifyEmail',
+              presentation: 'card',
+            },
+          });
+          const token = result.token?.accessToken;
+          if (!token) {
+            throw new Error('MetaMask couldn’t confirm your email.');
+          }
+          const emailCredential = result.credentials?.find(
+            (credential) => credential.type === 'email_otp',
+          );
+          if (emailCredential?.type === 'email_otp' && !emailDefault.current) {
+            emailDefault.current = emailCredential.email;
+          }
+          aal2Token.current = token;
         }
+        const next = await VendorOnboardingController.recordMfaCompleted({
+          vendor: VENDOR,
+        });
+        if (next === 'mfa') {
+          throw new Error(
+            'MetaMask confirmed you, but setup didn’t move on. Try again.',
+          );
+        }
+        if (next !== 'terms') {
+          setAwaitingTerms(false);
+        }
+      } catch (caught) {
+        setAwaitingTerms(false);
+        throw caught;
+      }
+    });
+  };
+
+  /**
+   * Runs MFA again when the token from the confirm step is gone, which
+   * happens when the screen was left and opened again.
+   */
+  const ensureAal2Token = async (): Promise<string> => {
+    const held = aal2Token.current;
+    if (held) {
+      return held;
+    }
+    const result = await verifyOrEnroll({
+      methods: ['email_otp'],
+      verifyWith: 'email_otp',
+      reason: { operation: 'ukyc.kalshi.verifyEmail', presentation: 'card' },
+    });
+    const token = result.token?.accessToken;
+    if (!token) {
+      throw new Error('MetaMask couldn’t confirm your email.');
+    }
+    aal2Token.current = token;
+    return token;
+  };
+
+  /**
+   * Signs `users/link` for the address typed here. Before a session exists
+   * this opens it, with the enrollment intent, and the address has to be the
+   * verified MetaMask email: the relay rejects any other. On the code step it
+   * sends a new code on the same session.
+   */
+  const sendEmailCode = (email: string) =>
+    run(async () => {
+      if (flowState?.sessionId) {
+        await runKalshiSignedAction(() =>
+          VendorOnboardingController.sendEmailOtp({ vendor: VENDOR, email }),
+        );
+      } else {
+        const token = await ensureAal2Token();
         await runKalshiSignedAction(() =>
           VendorOnboardingController.startSession({
             vendor: VENDOR,
-            aal2Token,
+            aal2Token: token,
             email,
           }),
         );
-        setEmailEntry(false);
+        aal2Token.current = undefined;
       }
-      setLinkedEmail(email);
+      setEditingEmail(false);
+      emailDefault.current = email;
     });
 
-  /**
-   * Goes back to the email field so a mistyped address can be corrected.
-   *
-   * The session already exists. Submitting signs a new `users/link` on it.
-   */
-  const editLinkEmail = () => {
-    prefill.current = linkedEmail ?? '';
+  const submitEmail = () => sendEmailCode(input.trim());
+
+  /** Goes back to the email field so a mistyped address can be corrected. */
+  const editEmail = () => {
     setEditingEmail(true);
   };
 
   /**
-   * Sends the email code again. Signs a new `users/link` for the address the
-   * session was created with. After a reinstall the phone no longer knows it,
-   * so the user types it again.
+   * Sends the code again to the address last sent. After a reinstall the
+   * phone no longer knows it, so the user types it again.
    */
   const resendEmailCode = () =>
-    linkedEmail
-      ? run(() =>
-          runKalshiSignedAction(() =>
-            VendorOnboardingController.resendEmailCode({
-              vendor: VENDOR,
-              email: linkedEmail,
-            }),
-          ),
-        )
-      : editLinkEmail();
+    emailDefault.current ? sendEmailCode(emailDefault.current) : editEmail();
 
   const submitEmailCode = () =>
     run(() =>
       runKalshiSignedAction(() =>
-        VendorOnboardingController.submitEmailCode({
+        VendorOnboardingController.verifyEmailOtp({
           vendor: VENDOR,
           code: input.trim(),
         }),
@@ -375,7 +542,7 @@ const KalshiOnboarding = () => {
 
   const submitPhone = () =>
     run(async () => {
-      await VendorOnboardingController.submitPhone({
+      await VendorOnboardingController.sendPhoneOtp({
         vendor: VENDOR,
         phoneNumber: input.trim(),
       });
@@ -384,7 +551,7 @@ const KalshiOnboarding = () => {
 
   const submitPhoneCode = () =>
     run(() =>
-      VendorOnboardingController.submitPhoneCode({
+      VendorOnboardingController.verifyPhoneOtp({
         vendor: VENDOR,
         code: input.trim(),
       }),
@@ -392,19 +559,6 @@ const KalshiOnboarding = () => {
 
   const launchSumSub = () =>
     run(async () => {
-      const catalog = await VendorOnboardingController.fetchSessionDisclaimers({
-        vendor: VENDOR,
-      });
-      const documents = [...catalog.idOS, ...catalog.kycProvider];
-      if (!documents.every(({ consented }) => consented)) {
-        await VendorOnboardingController.acceptSessionDisclaimers({
-          vendor: VENDOR,
-          idOS: toKeys(catalog.idOS),
-          kycProvider: toKeys(catalog.kycProvider),
-          // Demo choice. Whether the user is asked is a product decision.
-          credentialReusabilityConsentGiven: false,
-        });
-      }
       const outcome = await VendorOnboardingController.launchProviderFlow({
         vendor: VENDOR,
         locale: toSumSubLocale(I18n.locale),
@@ -426,13 +580,21 @@ const KalshiOnboarding = () => {
           return undefined;
         case 'terms':
           return terms
-            ? { label: 'Accept and continue', onPress: acceptTerms }
+            ? {
+                label:
+                  termsPage < terms.pages.length - 1
+                    ? 'Accept and continue'
+                    : 'Accept and submit',
+                onPress: acceptTermsPage,
+              }
             : undefined;
         case 'email':
           return { label: 'Continue', onPress: submitEmail };
         case 'confirm':
           return {
-            label: 'Confirm with MetaMask',
+            label: flowState?.mfaCompleted
+              ? 'Continue'
+              : 'Confirm with MetaMask',
             onPress: confirmWithMetaMask,
           };
         case 'email_code':
@@ -451,19 +613,33 @@ const KalshiOnboarding = () => {
       }
       // The handlers close over the current input and terms.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [screen, terms, input, linkedEmail, aal2Token, navigation]);
+    }, [screen, terms, termsPage, input, navigation, flowState?.mfaCompleted]);
 
   const secondary: { label: string; onPress: () => void } | undefined =
-    screen === 'email_code'
-      ? { label: 'Use another email', onPress: editLinkEmail }
-      : screen === 'phone_code'
-        ? {
-            label: 'Use another number',
-            onPress: () => setPhoneCodeSent(false),
-          }
-        : undefined;
+    screen === 'terms' && termsPage > 0
+      ? { label: 'Back', onPress: () => setTermsPage(termsPage - 1) }
+      : screen === 'email_code'
+        ? { label: 'Use another email', onPress: editEmail }
+        : screen === 'phone_code'
+          ? {
+              label: 'Use another number',
+              onPress: () => setPhoneCodeSent(false),
+            }
+          : undefined;
 
-  const copy = screen === 'loading' ? undefined : SCREEN_COPY[screen];
+  const currentTermsPage = terms?.pages[termsPage];
+  const copy = holding
+    ? undefined
+    : screen === 'loading'
+      ? undefined
+      : screen === 'confirm' && flowState?.mfaCompleted
+        ? {
+            title: 'Confirm with MetaMask',
+            body: 'MetaMask confirmed you. Continue to the terms.',
+          }
+        : screen === 'terms' && currentTermsPage
+          ? TERMS_PAGE_COPY[currentTermsPage.id]
+          : SCREEN_COPY[screen];
 
   return (
     <SafeAreaView
@@ -479,35 +655,51 @@ const KalshiOnboarding = () => {
           Back
         </Button>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {step ?? '…'}
+          {holding ? '…' : (step ?? '…')}
         </Text>
       </Box>
-      <ScrollView contentContainerStyle={tw.style('px-4 pb-4')}>
-        {copy && (
-          <>
-            <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
-              {copy.title}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              twClassName="mt-2"
-            >
-              {copy.body}
-            </Text>
-          </>
+      <ScrollView
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style(
+          'px-4 pb-4',
+          holding && 'flex-grow justify-center',
+        )}
+      >
+        {holding ? (
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+          >
+            <VbaFoxLoader testID={KalshiOnboardingTestIds.LOADER} />
+          </Box>
+        ) : (
+          copy && (
+            <>
+              <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
+                {copy.title}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="mt-2"
+              >
+                {copy.body}
+              </Text>
+            </>
+          )
         )}
 
-        {screen === 'terms' &&
-          terms?.map((disclaimer) => (
+        {!holding &&
+          screen === 'terms' &&
+          currentTermsPage?.documents.map((document) => (
             <Button
-              key={disclaimer.id}
+              key={document.key}
               variant={ButtonVariant.Tertiary}
               size={ButtonSize.Sm}
               twClassName="mt-3 self-start"
-              onPress={() => Linking.openURL(disclaimer.url)}
+              onPress={() => Linking.openURL(document.url)}
             >
-              {disclaimer.display_name}
+              {document.title}
             </Button>
           ))}
 
@@ -539,7 +731,7 @@ const KalshiOnboarding = () => {
         )}
       </ScrollView>
       <Box twClassName="p-4 gap-2">
-        {primary && (
+        {primary && !holding && (
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

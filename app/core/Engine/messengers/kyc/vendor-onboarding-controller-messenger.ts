@@ -15,7 +15,11 @@ import type { RootMessenger } from '../../types';
 const VENDOR_ONBOARDING_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:getStep',
   'KycService:acceptVendorTerms',
-  'KycService:postOnboardingStep',
+  'KycService:fetchSessionDisclaimersByCountry',
+  'KycService:sendEmailOtp',
+  'KycService:verifyEmailOtp',
+  'KycService:sendPhoneOtp',
+  'KycService:verifyPhoneOtp',
   'KycService:getGeoCountry',
   'KycService:getSessionStatusForVendor',
   'KycService:createUkycSession',

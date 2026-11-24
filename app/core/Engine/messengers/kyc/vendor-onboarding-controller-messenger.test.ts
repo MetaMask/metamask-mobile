@@ -25,7 +25,11 @@ describe('getVendorOnboardingControllerMessenger', () => {
         actions: expect.arrayContaining([
           'KycService:getStep',
           'KycService:acceptVendorTerms',
-          'KycService:postOnboardingStep',
+          'KycService:fetchSessionDisclaimersByCountry',
+          'KycService:sendEmailOtp',
+          'KycService:verifyEmailOtp',
+          'KycService:sendPhoneOtp',
+          'KycService:verifyPhoneOtp',
           'KycService:createUkycSession',
           'KycService:submitSessionDisclaimers',
           'KycService:createJourney',

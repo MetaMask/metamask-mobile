@@ -1,7 +1,7 @@
 import {
   getKycKalshiErrorCode,
   type KycKalshiErrorCode,
-  type KycVendorRequestSigner,
+  type KalshiRequestSigner,
 } from '@metamask/kyc-controller';
 import { v4 as uuidv4 } from 'uuid';
 // Engine init injects this signer, so it imports the signing modules
@@ -147,7 +147,7 @@ export const runKalshiSignedAction = async <Result>(
  * @returns The signer.
  */
 export const createKalshiVendorRequestSigner =
-  (): KycVendorRequestSigner =>
+  (): KalshiRequestSigner =>
   async ({ requests }) => {
     const engine = getEngine();
     const [a2t, key] = await Promise.all([

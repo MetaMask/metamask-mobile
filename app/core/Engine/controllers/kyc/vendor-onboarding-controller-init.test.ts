@@ -114,8 +114,8 @@ describe('vendorOnboardingControllerInit', () => {
     vendorOnboardingControllerInit(getInitRequestMock());
 
     expect(createKalshiVendorRequestSigner).toHaveBeenCalledTimes(1);
-    expect(getLastConstructorArgs()?.vendorRequestSigners).toStrictEqual({
-      kalshi: expect.any(Function),
-    });
+    expect(getLastConstructorArgs()?.kalshiRequestSigner).toStrictEqual(
+      expect.any(Function),
+    );
   });
 });

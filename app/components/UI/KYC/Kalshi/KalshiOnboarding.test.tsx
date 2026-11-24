@@ -38,19 +38,21 @@ jest.mock('../../../../core/Engine', () => {
     context: {
       VendorOnboardingController: {
         refreshStep: jest.fn(),
-        acceptTerms: jest.fn(),
+        recordMfaCompleted: jest.fn(),
+        submitTerms: jest.fn(),
         startSession: jest.fn(),
+        getPartnerEmail: jest.fn(),
         fetchSessionDisclaimers: jest.fn(),
-        acceptSessionDisclaimers: jest.fn(),
         launchProviderFlow: jest.fn(),
-        submitPhone: jest.fn(),
-        submitPhoneCode: jest.fn(),
-        submitEmailCode: jest.fn(),
-        resendEmailCode: jest.fn(),
+        sendPhoneOtp: jest.fn(),
+        verifyPhoneOtp: jest.fn(),
+        verifyEmailOtp: jest.fn(),
+        sendEmailOtp: jest.fn(),
       },
       KycService: {
         getGeoCountry: jest.fn(),
         fetchVendorDisclaimers: jest.fn(),
+        fetchSessionDisclaimersByCountry: jest.fn(),
       },
     },
   };
@@ -66,7 +68,7 @@ const service = Engine.context.KycService as unknown as Record<
   jest.Mock
 >;
 
-const TERMS = [
+const KALSHI_TERMS = [
   { id: 'tos-v1', url: 'https://kalshi.example/tos', display_name: 'Terms' },
   {
     id: 'privacy-v1',
@@ -75,7 +77,12 @@ const TERMS = [
   },
 ];
 
-const render = (step?: KycStep, status: KycStepStatus = 'none') =>
+const render = (
+  step?: KycStep,
+  status: KycStepStatus = 'none',
+  sessionId: string | null = 'sid-1',
+  mfaCompleted = false,
+) =>
   renderWithProvider(<KalshiOnboarding />, {
     state: {
       engine: {
@@ -86,7 +93,8 @@ const render = (step?: KycStep, status: KycStepStatus = 'none') =>
                   kalshi: {
                     step,
                     status,
-                    sessionId: 'sid-1',
+                    sessionId,
+                    mfaCompleted,
                   },
                 }
               : {},
@@ -106,18 +114,36 @@ const typeInto = (screen: ReturnType<typeof render>, value: string) =>
   );
 
 /**
- * Walks through MetaMask MFA to the Kalshi email field.
+ * Confirms with MetaMask on `mfa`.
  *
- * The email field is the phone's own state on `mfa`.
+ * @returns The rendered screen, still on the confirm step.
+ */
+async function confirmWithMetaMask() {
+  const screen = render('mfa');
+  fireEvent.press(primary(screen));
+  await waitFor(() => expect(flow.recordMfaCompleted).toHaveBeenCalled());
+  return screen;
+}
+
+/**
+ * The Kalshi email step, before a session exists.
  *
  * @returns The rendered screen, showing the email field.
  */
-async function reachEmail() {
-  const screen = render('mfa');
-  fireEvent.press(primary(screen));
-  await screen.findByText(
-    'Kalshi creates your account with this email and sends you a code. It can differ from your MetaMask email.',
-  );
+async function reachEmailEntry() {
+  const screen = render('kalshi_email_link', 'none', null);
+  await screen.findByText('Your email');
+  return screen;
+}
+
+/**
+ * Opens the code step the session's `users/link` sent the code for.
+ *
+ * @returns The rendered screen, showing the code field.
+ */
+async function reachEmailCode() {
+  const screen = render('kalshi_email_link');
+  await screen.findByText('Check your email');
   return screen;
 }
 
@@ -126,25 +152,42 @@ describe('KalshiOnboarding', () => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     flow.refreshStep.mockResolvedValue('terms');
+    flow.getPartnerEmail.mockResolvedValue(undefined);
     for (const name of [
-      'acceptTerms',
+      'recordMfaCompleted',
+      'submitTerms',
       'startSession',
-      'acceptSessionDisclaimers',
-      'submitPhone',
-      'submitPhoneCode',
-      'submitEmailCode',
-      'resendEmailCode',
+      'sendPhoneOtp',
+      'verifyPhoneOtp',
+      'verifyEmailOtp',
+      'sendEmailOtp',
     ]) {
       flow[name].mockResolvedValue('sumsub');
     }
     flow.launchProviderFlow.mockResolvedValue('submitted');
-    flow.fetchSessionDisclaimers.mockResolvedValue({
-      idOS: [{ key: 'idos', version: '1', consented: false }],
-      kycProvider: [{ key: 'sumsub', version: '2', consented: false }],
+    service.fetchSessionDisclaimersByCountry.mockResolvedValue({
+      idOS: [
+        {
+          key: 'idos',
+          version: '1',
+          title: 'idOS Terms of Use',
+          url: 'https://idos.example/t',
+          consented: false,
+        },
+      ],
+      kycProvider: [
+        {
+          key: 'sumsub',
+          version: '2',
+          title: 'SumSub Terms of Use',
+          url: 'https://sumsub.example/t',
+          consented: false,
+        },
+      ],
       credentialReusabilityConsentGiven: false,
     });
     service.getGeoCountry.mockResolvedValue('USA');
-    service.fetchVendorDisclaimers.mockResolvedValue(TERMS);
+    service.fetchVendorDisclaimers.mockResolvedValue(KALSHI_TERMS);
     mockVerifyOrEnroll.mockResolvedValue({
       token: { accessToken: 'aal2' },
       credentials: [],
@@ -168,57 +211,182 @@ describe('KalshiOnboarding', () => {
     await waitFor(() => expect(flow.refreshStep).toHaveBeenCalled());
     expect(
       screen.getByText(
-        'MetaMask confirms it’s you. Next you’ll choose the email Kalshi uses.',
+        'MetaMask confirms it’s you. Then you choose the email for Kalshi.',
       ),
     ).toBeOnTheScreen();
   });
 
   describe('terms', () => {
-    it('loads the Kalshi terms for the user’s country and links to them', async () => {
+    const acceptAllPages = async (screen: ReturnType<typeof render>) => {
+      await screen.findByText('idOS terms');
+      fireEvent.press(primary(screen));
+      await screen.findByText('SumSub terms');
+      fireEvent.press(primary(screen));
+      await screen.findByText('Kalshi terms');
+      fireEvent.press(primary(screen));
+    };
+
+    it('does not show the confirm page again while terms are still loading', async () => {
+      let resolveMfa: (step: string) => void = () => undefined;
+      flow.recordMfaCompleted.mockReturnValue(
+        new Promise((resolve) => {
+          resolveMfa = resolve;
+        }),
+      );
+      const screen = render('mfa');
+
+      fireEvent.press(primary(screen));
+      expect(
+        await screen.findByTestId(KalshiOnboardingTestIds.LOADER),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveMfa('terms');
+      });
+
+      expect(
+        screen.getByTestId(KalshiOnboardingTestIds.LOADER),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('Confirm with MetaMask')).toBeNull();
+    });
+
+    it('stays on one screen until the terms pages are ready', async () => {
+      let resolveTerms: (value: unknown) => void = () => undefined;
+      service.fetchVendorDisclaimers.mockReturnValue(
+        new Promise((resolve) => {
+          resolveTerms = resolve;
+        }),
+      );
       const screen = render('terms');
 
-      expect(await screen.findByText('Terms')).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(KalshiOnboardingTestIds.LOADER),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('Terms')).toBeNull();
+      expect(screen.queryByText('idOS terms')).toBeNull();
+
+      await act(async () => {
+        resolveTerms(KALSHI_TERMS);
+      });
+
+      expect(await screen.findByText('idOS terms')).toBeOnTheScreen();
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.LOADER)).toBeNull();
+    });
+
+    it('shows the idOS, SumSub and Kalshi terms one page at a time', async () => {
+      const screen = render('terms');
+
+      expect(await screen.findByText('idOS terms')).toBeOnTheScreen();
+      fireEvent.press(primary(screen));
+      expect(await screen.findByText('SumSub terms')).toBeOnTheScreen();
+      fireEvent.press(primary(screen));
+      expect(await screen.findByText('Kalshi terms')).toBeOnTheScreen();
       expect(service.fetchVendorDisclaimers).toHaveBeenCalledWith({
         vendor: 'kalshi',
         country: 'USA',
       });
-      fireEvent.press(screen.getByText('Privacy'));
-      expect(Linking.openURL).toHaveBeenCalledWith('https://kalshi.example/p');
     });
 
-    it('records the acceptance with kyc-api', async () => {
+    it('links to the documents on the page', async () => {
       const screen = render('terms');
-      await screen.findByText('Terms');
+      await screen.findByText('idOS terms');
 
+      fireEvent.press(screen.getByText('idOS Terms of Use'));
+      expect(Linking.openURL).toHaveBeenCalledWith('https://idos.example/t');
+    });
+
+    it('goes back a page without sending anything', async () => {
+      const screen = render('terms');
+      await screen.findByText('idOS terms');
       fireEvent.press(primary(screen));
+      await screen.findByText('SumSub terms');
 
-      await waitFor(() =>
-        expect(flow.acceptTerms).toHaveBeenCalledWith({
-          vendor: 'kalshi',
-          country: 'USA',
-          disclaimerIds: ['tos-v1', 'privacy-v1'],
-        }),
-      );
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
+
+      expect(await screen.findByText('idOS terms')).toBeOnTheScreen();
+      expect(flow.submitTerms).not.toHaveBeenCalled();
+    });
+
+    it('sends every acceptance in one call after the last page', async () => {
+      const screen = render('terms');
+
+      await acceptAllPages(screen);
+
+      await waitFor(() => expect(flow.submitTerms).toHaveBeenCalledTimes(1));
+      expect(flow.submitTerms.mock.calls[0][0]).toMatchInlineSnapshot(`
+        {
+          "country": "USA",
+          "credentialReusabilityConsentGiven": false,
+          "disclaimerIds": [
+            "tos-v1",
+            "privacy-v1",
+          ],
+          "idOS": [
+            {
+              "key": "idos",
+              "version": "1",
+            },
+          ],
+          "kycProvider": [
+            {
+              "key": "sumsub",
+              "version": "2",
+            },
+          ],
+          "vendor": "kalshi",
+        }
+      `);
     });
   });
 
   describe('confirm with MetaMask', () => {
-    it('holds the MFA token, then creates the session with the typed email', async () => {
-      mockVerifyOrEnroll.mockResolvedValue({
-        token: { accessToken: 'aal2' },
-        credentials: [{ type: 'email_otp', email: 'mm@b.co' }],
-      });
+    it('says MFA is done and retries the step without asking again', async () => {
+      flow.recordMfaCompleted.mockResolvedValue('mfa');
+      const screen = render('mfa', 'none', null, true);
+
+      expect(
+        screen.getByText('MetaMask confirmed you. Continue to the terms.'),
+      ).toBeOnTheScreen();
+      fireEvent.press(primary(screen));
+
+      expect(
+        await screen.findByText(/setup didn’t move on/u),
+      ).toBeOnTheScreen();
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(flow.recordMfaCompleted).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not ask MetaMask again after a confirm that stayed on MFA', async () => {
+      flow.recordMfaCompleted.mockResolvedValue('mfa');
       const screen = render('mfa');
 
       fireEvent.press(primary(screen));
+      expect(
+        await screen.findByText(/setup didn’t move on/u),
+      ).toBeOnTheScreen();
 
-      expect(await screen.findByDisplayValue('mm@b.co')).toBeOnTheScreen();
-      expect(flow.startSession).not.toHaveBeenCalled();
-      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
-        expect.objectContaining({ methods: ['email_otp'] }),
+      fireEvent.press(primary(screen));
+
+      await waitFor(() =>
+        expect(flow.recordMfaCompleted).toHaveBeenCalledTimes(2),
       );
+      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
+    });
 
+    it('records that MFA is done without opening a session', async () => {
+      const screen = await confirmWithMetaMask();
+
+      expect(flow.recordMfaCompleted).toHaveBeenCalledWith({
+        vendor: 'kalshi',
+      });
+      expect(flow.startSession).not.toHaveBeenCalled();
+      expect(screen.queryByText('Your email')).toBeNull();
+    });
+
+    it('opens the session with the MFA token and the typed email', async () => {
+      const screen = await reachEmailEntry();
       typeInto(screen, '  kalshi@b.co ');
+
       fireEvent.press(primary(screen));
 
       await waitFor(() =>
@@ -228,13 +396,58 @@ describe('KalshiOnboarding', () => {
           email: 'kalshi@b.co',
         }),
       );
+      expect(flow.sendEmailOtp).not.toHaveBeenCalled();
+    });
+
+    it('starts the field with the verified MetaMask email and opens the session with it', async () => {
+      flow.getPartnerEmail.mockResolvedValue('ann+kalshi@example.com');
+      const screen = await reachEmailEntry();
+
+      await waitFor(() =>
+        expect(primary(screen).props.accessibilityState?.disabled).toBeFalsy(),
+      );
+      fireEvent.press(primary(screen));
+
+      await waitFor(() =>
+        expect(flow.startSession).toHaveBeenCalledWith({
+          vendor: 'kalshi',
+          aal2Token: 'aal2',
+          email: 'ann+kalshi@example.com',
+        }),
+      );
+      expect(flow.getPartnerEmail).toHaveBeenCalledWith({ vendor: 'kalshi' });
+    });
+
+    it('leaves the field empty when the verified email cannot be read', async () => {
+      flow.getPartnerEmail.mockRejectedValue(new Error('offline'));
+      const screen = await reachEmailEntry();
+
+      await waitFor(() => expect(flow.getPartnerEmail).toHaveBeenCalled());
+
+      expect(primary(screen).props.accessibilityState?.disabled).toBe(true);
     });
 
     it('does not send an empty email', async () => {
-      const screen = await reachEmail();
+      const screen = await reachEmailEntry();
 
       expect(primary(screen).props.accessibilityState?.disabled).toBe(true);
       expect(flow.startSession).not.toHaveBeenCalled();
+    });
+
+    it('asks MetaMask to confirm again when the email step opens a session without a token', async () => {
+      const screen = await reachEmailEntry();
+      typeInto(screen, 'kalshi@b.co');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() =>
+        expect(flow.startSession).toHaveBeenCalledWith({
+          vendor: 'kalshi',
+          aal2Token: 'aal2',
+          email: 'kalshi@b.co',
+        }),
+      );
+      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
     });
 
     it('says so when MetaMask returns no token', async () => {
@@ -259,18 +472,89 @@ describe('KalshiOnboarding', () => {
       expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull();
       expect(flow.startSession).not.toHaveBeenCalled();
     });
+
+    it('signs again once after Kalshi rejects the A2T', async () => {
+      flow.startSession.mockRejectedValueOnce(
+        new KycApiError(
+          400,
+          'Kalshi refused the token',
+          'kalshi_signed_request_rejected',
+        ),
+      );
+      const screen = await reachEmailEntry();
+      typeInto(screen, 'a@b.co');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.startSession).toHaveBeenCalledTimes(2));
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:clear',
+      );
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull();
+    });
+
+    it('shows what went wrong with the status and code', async () => {
+      flow.startSession.mockRejectedValue(
+        Object.assign(new Error('Kalshi refused'), {
+          status: 409,
+          code: 'onboarding_conflict',
+        }),
+      );
+      const screen = await reachEmailEntry();
+      typeInto(screen, 'a@b.co');
+
+      fireEvent.press(primary(screen));
+
+      expect(
+        await screen.findByText('Kalshi refused · onboarding_conflict · 409'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows a plain message for something that is not an error', async () => {
+      flow.startSession.mockRejectedValue('nope');
+      const screen = await reachEmailEntry();
+      typeInto(screen, 'a@b.co');
+
+      fireEvent.press(primary(screen));
+
+      expect(
+        await screen.findByText('Something went wrong.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('clears the message when the user tries again', async () => {
+      flow.startSession.mockRejectedValueOnce(new Error('first'));
+      const screen = await reachEmailEntry();
+      typeInto(screen, 'a@b.co');
+      fireEvent.press(primary(screen));
+      await screen.findByText('first');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() =>
+        expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull(),
+      );
+    });
   });
 
   describe('identity verification', () => {
-    it('asks for the email code idOS is waiting for', async () => {
-      const screen = render('kalshi_email_link');
-      expect(await screen.findByText('Check your email')).toBeOnTheScreen();
+    it('asks for the code the session sent', async () => {
+      const screen = await reachEmailCode();
+
+      expect(
+        screen.getByTestId(KalshiOnboardingTestIds.INPUT),
+      ).toBeOnTheScreen();
+      expect(flow.sendEmailOtp).not.toHaveBeenCalled();
+    });
+
+    it('verifies the email code idOS is waiting for', async () => {
+      const screen = await reachEmailCode();
       typeInto(screen, ' 123456 ');
 
       fireEvent.press(primary(screen));
 
       await waitFor(() =>
-        expect(flow.submitEmailCode).toHaveBeenCalledWith({
+        expect(flow.verifyEmailOtp).toHaveBeenCalledWith({
           vendor: 'kalshi',
           code: '123456',
         }),
@@ -278,24 +562,45 @@ describe('KalshiOnboarding', () => {
     });
 
     it('signs a corrected email into a new link on the same session', async () => {
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
+      const screen = await reachEmailCode();
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
-      expect(
-        await screen.findByText(
-          'Kalshi creates your account with this email and sends you a code. It can differ from your MetaMask email.',
-        ),
-      ).toBeOnTheScreen();
+      await screen.findByText('Your email');
       typeInto(screen, '  other@b.co ');
       fireEvent.press(primary(screen));
 
-      await waitFor(() =>
-        expect(flow.resendEmailCode).toHaveBeenCalledWith({
-          vendor: 'kalshi',
-          email: 'other@b.co',
-        }),
-      );
+      expect(await screen.findByText('Check your email')).toBeOnTheScreen();
+      expect(flow.sendEmailOtp).toHaveBeenCalledWith({
+        vendor: 'kalshi',
+        email: 'other@b.co',
+      });
+      expect(flow.startSession).not.toHaveBeenCalled();
+    });
+
+    it('sends a new code to the address that was last sent', async () => {
+      const screen = await reachEmailCode();
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
+      await screen.findByText('Your email');
+      typeInto(screen, 'a@b.co');
+      fireEvent.press(primary(screen));
+      await screen.findByText('Check your email');
+
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.RESEND));
+
+      await waitFor(() => expect(flow.sendEmailOtp).toHaveBeenCalledTimes(2));
+      expect(flow.sendEmailOtp).toHaveBeenLastCalledWith({
+        vendor: 'kalshi',
+        email: 'a@b.co',
+      });
+    });
+
+    it('asks for the address again when the phone does not know it', async () => {
+      const screen = await reachEmailCode();
+
+      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.RESEND));
+
+      expect(await screen.findByText('Your email')).toBeOnTheScreen();
+      expect(flow.sendEmailOtp).not.toHaveBeenCalled();
     });
 
     it('asks for the phone, then its code', async () => {
@@ -306,14 +611,14 @@ describe('KalshiOnboarding', () => {
       fireEvent.press(primary(screen));
 
       expect(await screen.findByText('Check your phone')).toBeOnTheScreen();
-      expect(flow.submitPhone).toHaveBeenCalledWith({
+      expect(flow.sendPhoneOtp).toHaveBeenCalledWith({
         vendor: 'kalshi',
         phoneNumber: '+18888888888',
       });
       typeInto(screen, '888888');
       fireEvent.press(primary(screen));
       await waitFor(() =>
-        expect(flow.submitPhoneCode).toHaveBeenCalledWith({
+        expect(flow.verifyPhoneOtp).toHaveBeenCalledWith({
           vendor: 'kalshi',
           code: '888888',
         }),
@@ -332,7 +637,7 @@ describe('KalshiOnboarding', () => {
       expect(await screen.findByText('Your phone')).toBeOnTheScreen();
     });
 
-    it('records the consents, then launches SumSub', async () => {
+    it('launches SumSub', async () => {
       const screen = render('sumsub');
       await screen.findByText('Verify your identity');
 
@@ -344,30 +649,7 @@ describe('KalshiOnboarding', () => {
           locale: 'en',
         }),
       );
-      expect(flow.acceptSessionDisclaimers).toHaveBeenCalledWith({
-        vendor: 'kalshi',
-        idOS: [{ key: 'idos', version: '1' }],
-        kycProvider: [{ key: 'sumsub', version: '2' }],
-        credentialReusabilityConsentGiven: false,
-      });
-      expect(
-        flow.acceptSessionDisclaimers.mock.invocationCallOrder[0],
-      ).toBeLessThan(flow.launchProviderFlow.mock.invocationCallOrder[0]);
-    });
-
-    it('does not record consents twice', async () => {
-      flow.fetchSessionDisclaimers.mockResolvedValue({
-        idOS: [{ key: 'idos', version: '1', consented: true }],
-        kycProvider: [{ key: 'sumsub', version: '2', consented: true }],
-        credentialReusabilityConsentGiven: false,
-      });
-      const screen = render('sumsub');
-      await screen.findByText('Verify your identity');
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() => expect(flow.launchProviderFlow).toHaveBeenCalled());
-      expect(flow.acceptSessionDisclaimers).not.toHaveBeenCalled();
+      expect(service.fetchSessionDisclaimersByCountry).not.toHaveBeenCalled();
     });
 
     it('says so when SumSub could not finish', async () => {
@@ -402,13 +684,13 @@ describe('KalshiOnboarding', () => {
 
   describe('after an action', () => {
     it('does not ask kyc-api for the step again', async () => {
-      const screen = render('terms');
-      await screen.findByText('Terms');
+      const screen = render('sumsub');
+      await screen.findByText('Verify your identity');
       flow.refreshStep.mockClear();
 
       fireEvent.press(primary(screen));
 
-      await waitFor(() => expect(flow.acceptTerms).toHaveBeenCalled());
+      await waitFor(() => expect(flow.launchProviderFlow).toHaveBeenCalled());
       expect(flow.refreshStep).not.toHaveBeenCalled();
     });
   });
@@ -518,11 +800,10 @@ describe('KalshiOnboarding', () => {
 
   describe('relay error codes', () => {
     it('keeps a wrong email code on the code screen and says so', async () => {
-      flow.submitEmailCode.mockRejectedValue(
+      flow.verifyEmailOtp.mockRejectedValue(
         new KycApiError(400, 'Bad code', 'invalid_or_expired_code'),
       );
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
+      const screen = await reachEmailCode();
       typeInto(screen, '000000');
 
       fireEvent.press(primary(screen));
@@ -538,11 +819,10 @@ describe('KalshiOnboarding', () => {
     });
 
     it('asks to try again when Kalshi keeps rejecting the request', async () => {
-      flow.submitEmailCode.mockRejectedValue(
+      flow.verifyEmailOtp.mockRejectedValue(
         new KycApiError(400, 'Rejected', 'kalshi_signed_request_rejected'),
       );
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
+      const screen = await reachEmailCode();
       typeInto(screen, '123456');
 
       fireEvent.press(primary(screen));
@@ -551,20 +831,19 @@ describe('KalshiOnboarding', () => {
       expect(error.props.children).toMatchInlineSnapshot(
         `"Kalshi couldn’t confirm this request. Try again."`,
       );
-      expect(flow.submitEmailCode).toHaveBeenCalledTimes(2);
+      expect(flow.verifyEmailOtp).toHaveBeenCalledTimes(2);
       expect(primary(screen).props.accessibilityState?.disabled).toBe(false);
     });
 
     it('asks kyc-api where the user is when the session is past the email code', async () => {
-      flow.submitEmailCode.mockRejectedValue(
+      flow.verifyEmailOtp.mockRejectedValue(
         new KycApiError(
           412,
           'Not waiting',
           'session_not_in_email_verification',
         ),
       );
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
+      const screen = await reachEmailCode();
       await waitFor(() => expect(flow.refreshStep).toHaveBeenCalledTimes(1));
       typeInto(screen, '123456');
 
@@ -577,11 +856,10 @@ describe('KalshiOnboarding', () => {
     });
 
     it('words a request kyc-api refused as a failed send', async () => {
-      flow.submitEmailCode.mockRejectedValue(
+      flow.verifyEmailOtp.mockRejectedValue(
         new KycApiError(400, 'x', 'kalshi_signed_request_body_invalid'),
       );
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
+      const screen = await reachEmailCode();
       typeInto(screen, '123456');
 
       fireEvent.press(primary(screen));
@@ -593,7 +871,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('shows the phone screen error when the user already has a Kalshi account', async () => {
-      flow.submitPhone.mockRejectedValue(
+      flow.sendPhoneOtp.mockRejectedValue(
         new KycApiError(400, 'exists', 'kalshi_account_exists'),
       );
       const screen = render('kalshi_phone_link');
@@ -607,101 +885,6 @@ describe('KalshiOnboarding', () => {
         `"This phone number already has a Kalshi account. Linking an existing account isn’t supported yet."`,
       );
       expect(screen.getByText('Your phone')).toBeOnTheScreen();
-    });
-
-    it('asks for the address again when the phone no longer knows it', async () => {
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
-
-      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.RESEND));
-
-      expect(await screen.findByText('Your email')).toBeOnTheScreen();
-      expect(flow.resendEmailCode).not.toHaveBeenCalled();
-    });
-
-    it('sends a new code to the address that was last linked', async () => {
-      const screen = render('kalshi_email_link');
-      await screen.findByText('Check your email');
-      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
-      await screen.findByText('Your email');
-      typeInto(screen, 'other@b.co');
-      fireEvent.press(primary(screen));
-      await screen.findByText('Check your email');
-
-      fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.RESEND));
-
-      await waitFor(() =>
-        expect(flow.resendEmailCode).toHaveBeenCalledTimes(2),
-      );
-      expect(flow.resendEmailCode).toHaveBeenLastCalledWith({
-        vendor: 'kalshi',
-        email: 'other@b.co',
-      });
-    });
-  });
-
-  describe('errors', () => {
-    it('signs again once after Kalshi rejects the A2T', async () => {
-      flow.startSession.mockRejectedValueOnce(
-        new KycApiError(
-          400,
-          'Kalshi refused the token',
-          'kalshi_signed_request_rejected',
-        ),
-      );
-      const screen = await reachEmail();
-      typeInto(screen, 'a@b.co');
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() => expect(flow.startSession).toHaveBeenCalledTimes(2));
-      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
-        'PredictDeviceAuthService:clear',
-      );
-      expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull();
-    });
-
-    it('shows what went wrong with the status and code', async () => {
-      flow.startSession.mockRejectedValue(
-        Object.assign(new Error('Kalshi refused'), {
-          status: 409,
-          code: 'onboarding_conflict',
-        }),
-      );
-      const screen = await reachEmail();
-      typeInto(screen, 'a@b.co');
-
-      fireEvent.press(primary(screen));
-
-      expect(
-        await screen.findByText('Kalshi refused · onboarding_conflict · 409'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows a plain message for something that is not an error', async () => {
-      flow.startSession.mockRejectedValue('nope');
-      const screen = await reachEmail();
-      typeInto(screen, 'a@b.co');
-
-      fireEvent.press(primary(screen));
-
-      expect(
-        await screen.findByText('Something went wrong.'),
-      ).toBeOnTheScreen();
-    });
-
-    it('clears the message when the user tries again', async () => {
-      flow.startSession.mockRejectedValueOnce(new Error('first'));
-      const screen = await reachEmail();
-      typeInto(screen, 'a@b.co');
-      fireEvent.press(primary(screen));
-      await screen.findByText('first');
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() =>
-        expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull(),
-      );
     });
   });
 

@@ -2,7 +2,7 @@ import { KYC_STEPS } from '@metamask/kyc-controller';
 import { deriveKalshiScreen } from './kalshiScreen';
 
 const context = {
-  emailEntry: false,
+  emailSent: false,
   editingEmail: false,
   phoneCodeSent: false,
 };
@@ -16,7 +16,7 @@ describe('deriveKalshiScreen', () => {
   it.each([
     ['terms', 'terms'],
     ['mfa', 'confirm'],
-    ['kalshi_email_link', 'email_code'],
+    ['kalshi_email_link', 'email'],
     ['kalshi_phone_link', 'phone'],
     ['sumsub', 'sumsub'],
     ['error', 'error'],
@@ -31,25 +31,32 @@ describe('deriveKalshiScreen', () => {
   });
 
   describe('mfa', () => {
-    it('asks MetaMask to confirm first', () => {
+    it('asks MetaMask to confirm', () => {
       expect(deriveKalshiScreen('mfa', 'none', context)).toBe('confirm');
-    });
-
-    it('then asks for the Kalshi email, still before a session exists', () => {
-      expect(
-        deriveKalshiScreen('mfa', 'none', {
-          ...context,
-          emailEntry: true,
-        }),
-      ).toBe('email');
     });
   });
 
   describe('kalshi_email_link', () => {
-    it('goes back to the email so a mistyped address can be signed again', () => {
+    it('asks for the email until a session exists', () => {
+      expect(deriveKalshiScreen('kalshi_email_link', 'none', context)).toBe(
+        'email',
+      );
+    });
+
+    it('asks for the code once the session sent it', () => {
       expect(
         deriveKalshiScreen('kalshi_email_link', 'none', {
           ...context,
+          emailSent: true,
+        }),
+      ).toBe('email_code');
+    });
+
+    it('goes back to the email field to change the address', () => {
+      expect(
+        deriveKalshiScreen('kalshi_email_link', 'none', {
+          ...context,
+          emailSent: true,
           editingEmail: true,
         }),
       ).toBe('email');
