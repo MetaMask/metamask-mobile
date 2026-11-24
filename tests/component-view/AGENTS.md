@@ -97,7 +97,7 @@ For run-by-name, watch mode, or other options, see [docs/testing/component-view-
 
 ## CI flakiness check {#ci-flakiness-check}
 
-On PRs targeting main, CI re-runs added or modified `*.view.test.tsx` files 5× (`Component view flakiness detection` job; `TEST_OS=ios`, shuffled file order + `--randomize`, seed in the job summary). A failing repetition blocks the merge and names the test. Deleted paths are skipped, the list is capped at 10 files, and a 60-minute budget stops repetitions with a warning. The `skip-cv-flakiness-detection` label opts out. Details: [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md) (Run the Tests → CI flakiness detection).
+On PRs targeting main, CI re-runs added or modified `*.view.test.tsx` files 5× (`Component view flakiness detection` job; `TEST_OS=ios`, shuffled file order + `--randomize`, seed in the job summary). A failing repetition blocks the merge and names the test; so does a repetition that does not end cleanly (Jest crash, hang, missing/unparsable report, suite-level runtime error). Deleted paths are skipped, the list is capped at 10 files, and a 60-minute budget stops repetitions before they start with a warning. The `skip-cv-flakiness-detection` label opts out. Details: [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md) (Run the Tests → CI flakiness detection).
 
 ## Enforcement {#enforcement}
 

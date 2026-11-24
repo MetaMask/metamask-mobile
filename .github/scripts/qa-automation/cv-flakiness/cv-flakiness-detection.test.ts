@@ -9,13 +9,8 @@ const SCRIPT_PATH = path.join(
   '.github/scripts/qa-automation/cv-flakiness/cv-flakiness-detection.mjs',
 );
 
-interface JestStubOptions {
-  failSubstring?: string;
-  sleepMs?: number;
-}
-
 /** Jest stub: writes a minimal Jest JSON report and logs every invocation. */
-function writeJestStub(stubDir: string, options: JestStubOptions): string {
+function writeJestStub(stubDir: string, options: { failSubstring?: string; sleepMs?: number }): string {
   const stubPath = path.join(stubDir, 'jest-stub.cjs');
   writeFileSync(
     stubPath,
@@ -39,35 +34,44 @@ if (callsPath) {
 }
 const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
 const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
+const forcedExit = Number(process.env.STUB_EXIT_CODE || '');
+const stubReport = process.env.STUB_REPORT || '';
 setTimeout(() => {
+  if (stubReport === 'invalid') {
+    if (outputFile) fs.writeFileSync(outputFile, '{"testResults": [');
+    process.exit(1);
+  }
+  const runtime = stubReport === 'runtime';
   const testResults = files.map((file) => {
     const failed = Boolean(failSubstring) && file.includes(failSubstring);
-    const assertion = {
-      fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
+    const entry = {
+      name: file,
       status: failed ? 'failed' : 'passed',
-      failureMessages: failed ? ['Stub failure message'] : [],
+      assertionResults: [{
+        fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
+        status: failed ? 'failed' : 'passed',
+        failureMessages: failed ? ['Stub failure message'] : [],
+      }],
     };
-    return { name: file, status: failed ? 'failed' : 'passed', assertionResults: [assertion] };
+    if (runtime) {
+      entry.status = 'failed';
+      entry.testExecError = 'Cannot find module ../../../missingModule';
+    }
+    return entry;
   });
   if (outputFile) {
-    fs.writeFileSync(outputFile, JSON.stringify({ testResults }));
+    fs.writeFileSync(outputFile, JSON.stringify({ testResults, numRuntimeErrorTestSuites: runtime ? 1 : 0 }));
   }
-  process.exit(testResults.some((result) => result.status === 'failed') ? 1 : 0);
+  const anyFailed = testResults.some((result) => result.status === 'failed');
+  process.exit(Number.isFinite(forcedExit) ? forcedExit : anyFailed ? 1 : 0);
 }, sleepMs);
 `,
   );
   return stubPath;
 }
 
-interface FetchStubOptions {
-  ok: boolean;
-  status: number;
-  statusText: string;
-  labelNames: string[];
-}
-
 /** Fetch stub injected with NODE_OPTIONS=--require for the PR label check. */
-function writeFetchStub(stubDir: string, options: FetchStubOptions): string {
+function writeFetchStub(stubDir: string, options: { ok: boolean; labelNames: string[] }): string {
   const fetchStubPath = path.join(stubDir, 'fetch-stub.cjs');
   const body = JSON.stringify({
     data: {
@@ -80,8 +84,8 @@ function writeFetchStub(stubDir: string, options: FetchStubOptions): string {
     fetchStubPath,
     `global.fetch = async () => ({
   ok: ${options.ok},
-  status: ${options.status},
-  statusText: ${JSON.stringify(options.statusText)},
+  status: ${options.ok ? 200 : 502},
+  statusText: ${JSON.stringify(options.ok ? 'OK' : 'Bad Gateway')},
   json: async () => (${body}),
 });
 `,
@@ -93,12 +97,13 @@ interface RunOptions {
   changedFiles: string;
   repeatCount?: string;
   maxFiles?: string;
-  timeBudgetMinutes?: string;
   deadlineMs?: string;
   labels?: string[];
   fetchOk?: boolean;
   failSubstring?: string;
   sleepMs?: number;
+  stubExitCode?: string;
+  stubReport?: string;
 }
 
 interface RunResult {
@@ -130,18 +135,17 @@ function runScript(options: RunOptions): RunResult {
     JEST_BIN_PATH: jestStubPath,
     MAX_FILES: options.maxFiles ?? '10',
     REPEAT_COUNT: options.repeatCount ?? '5',
-    REPOSITORY: 'MetaMask/metamask-mobile',
     PR_NUMBER: '123',
     STUB_CALLS_PATH: callsPath,
-    TIME_BUDGET_MINUTES: options.timeBudgetMinutes ?? '60',
+    STUB_EXIT_CODE: options.stubExitCode ?? '',
+    STUB_REPORT: options.stubReport ?? '',
+    TIME_BUDGET_MINUTES: '60',
   };
   if (options.deadlineMs !== undefined) {
     env.CV_FLAKINESS_DEADLINE_MS = options.deadlineMs;
   }
   const fetchStubPath = writeFetchStub(stubDir, {
     ok: options.fetchOk ?? true,
-    status: options.fetchOk === false ? 502 : 200,
-    statusText: options.fetchOk === false ? 'Bad Gateway' : 'OK',
     labelNames: options.labels ?? [],
   });
   env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} --require ${fetchStubPath}`;
@@ -251,6 +255,25 @@ describe('cv-flakiness-detection', () => {
     expect(stderr).toContain('Flaky.view.test.tsx');
   });
 
+  // A repetition that does not end cleanly must fail the job even when no
+  // failing test assertion was parsed (Bugbot: "Jest crashes do not fail job").
+  it.each([
+    ['non-zero exit, passing assertions', { stubExitCode: '1' }, 'non-zero status'],
+    ['unparsable report', { stubExitCode: '1', stubReport: 'invalid' }, 'unparsable'],
+    ['suite runtime error', { stubReport: 'runtime' }, 'suite failed to run'],
+  ])('fails the job on %s', (_description, options, expectedReason) => {
+    const file = makeCvFile(tempDir, 'Crashy.view.test.tsx');
+    const { status, output, stderr } = runScript({
+      changedFiles: file,
+      repeatCount: '1',
+      ...options,
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('status=failed');
+    expect(stderr).toContain(expectedReason);
+  });
+
   it('drops deleted component view test files without failing', () => {
     const existing = makeCvFile(tempDir, 'Kept.view.test.tsx');
     const deleted = path.join(tempDir, 'Deleted.view.test.tsx');
@@ -263,7 +286,8 @@ describe('cv-flakiness-detection', () => {
     expect(calls).toHaveLength(1);
     expect(calls[0].files).toEqual([existing]);
     expect(output).toContain(`cv_files_to_repeat=${path.relative(REPOSITORY_ROOT, existing)}`);
-    expect(summary).toContain('Deleted paths (not repeated)');
+    expect(summary).toContain('Not repeated');
+    expect(summary).toContain('deleted: `');
     expect(summary).toContain('Deleted.view.test.tsx');
   });
 
@@ -279,7 +303,7 @@ describe('cv-flakiness-detection', () => {
     expect(status).toBe(0);
     expect(calls).toHaveLength(1);
     expect(calls[0].files).toEqual([first]);
-    expect(summary).toContain('Not repeated (capped at 1 files)');
+    expect(summary).toContain('capped at 1 files');
     expect(stdout).toContain('CV flakiness detection capped at 1 files');
   });
 
@@ -299,10 +323,7 @@ describe('cv-flakiness-detection', () => {
 
   it('skips flakiness detection when the GitHub API is unavailable', () => {
     const file = makeCvFile(tempDir, 'ApiDown.view.test.tsx');
-    const { status, calls, output } = runScript({
-      changedFiles: file,
-      fetchOk: false,
-    });
+    const { status, calls, output } = runScript({ changedFiles: file, fetchOk: false });
 
     expect(status).toBe(0);
     expect(calls).toHaveLength(0);
@@ -332,10 +353,7 @@ describe('cv-flakiness-detection', () => {
     const files = ['a', 'b', 'c', 'd', 'e', 'f'].map((name) =>
       makeCvFile(tempDir, `${name}Test.view.test.tsx`),
     );
-    const { status, calls } = runScript({
-      changedFiles: files.join(' '),
-      repeatCount: '5',
-    });
+    const { status, calls } = runScript({ changedFiles: files.join(' '), repeatCount: '5' });
 
     expect(status).toBe(0);
     expect(calls).toHaveLength(5);

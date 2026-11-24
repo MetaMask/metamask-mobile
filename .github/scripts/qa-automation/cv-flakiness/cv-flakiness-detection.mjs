@@ -1,41 +1,37 @@
 #!/usr/bin/env node
 /**
- * Flakiness detection for component view tests on PRs targeting main.
- *
- * Mirrors the Appium E2E mechanism (e2e-split-tags-shards.mjs): a PR that adds
- * or modifies test files gets them re-run several times so a flake surfaces
+ * Flakiness detection for component view tests on PRs targeting main. Mirrors
+ * the Appium E2E mechanism (e2e-split-tags-shards.mjs): a PR that adds or
+ * modifies test files gets them re-run several times so a flake surfaces
  * before merge. Where E2E duplicates each changed spec as a `-retry-1` copy
  * inside the existing Playwright run, Jest has no per-file repeat on v29, so
- * this job re-runs the changed `*.view.test.tsx` files as its own Jest
- * invocation once per repetition, with the file order shuffled per repetition
- * and `--randomize` shuffling test order inside each file.
+ * this job re-runs the changed `*.view.test.tsx` files once per repetition
+ * with the file order shuffled and `--randomize` shuffling order inside files.
  *
- * Behaviour: only files that exist on the checkout are run (deleted paths are
- * reported and skipped), the list is capped at MAX_FILES, the
+ * A repetition counts as clean only when Jest exits 0 with a readable JSON
+ * report that contains results and no suite-level (testExecError /
+ * numRuntimeErrorTestSuites) failure — a crash, hang, OOM, killed run, or
+ * unparsable report fails the job with a named reason even without failing
+ * test assertions. Only files that exist on the checkout are run (deleted
+ * paths are reported and skipped), the list is capped at MAX_FILES, the
  * `skip-cv-flakiness-detection` label opts a PR out (fail-open: a GitHub API
- * error also skips, like the E2E mechanism), a failure in any repetition fails
- * the job and names every failing test, and TIME_BUDGET_MINUTES stops further
- * repetitions with a warning instead of failing — a budget artifact must not
- * block a merge.
+ * error also skips, like the E2E mechanism), and TIME_BUDGET_MINUTES stops
+ * further repetitions before they start with a warning instead of failing; a
+ * Jest run killed mid-way by that budget is indistinguishable from a hang and
+ * fails the job.
  *
- * Env:
- *   CHANGED_CV_TEST_FILES   Space-separated changed component view test paths.
- *   REPEAT_COUNT            Repetitions per file (default 5).
- *   MAX_FILES               Cap on detected files (default 10).
- *   TIME_BUDGET_MINUTES     Cap on total repetition time, 0 disables (default 60).
- *   JEST_BIN_PATH           Jest entry point override (test hook).
- *   CV_FLAKINESS_DEADLINE_MS  Test hook: absolute epoch-ms budget deadline.
- *   GITHUB_TOKEN, REPOSITORY, PR_NUMBER  Label check inputs.
- *   GITHUB_OUTPUT, GITHUB_STEP_SUMMARY   GitHub Actions sinks.
+ * Env: CHANGED_CV_TEST_FILES space-separated changed paths; REPEAT_COUNT
+ * repetitions per file (default 5); MAX_FILES cap (default 10);
+ * TIME_BUDGET_MINUTES budget, 0 disables (default 60); JEST_BIN_PATH Jest
+ * entry override (test hook); CV_FLAKINESS_DEADLINE_MS test hook: absolute
+ * epoch-ms budget deadline; GITHUB_TOKEN, REPOSITORY, PR_NUMBER label check
+ * inputs; GITHUB_OUTPUT, GITHUB_STEP_SUMMARY GitHub Actions sinks.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const DEFAULT_REPEAT_COUNT = 5;
-const DEFAULT_MAX_FILES = 10;
-const DEFAULT_TIME_BUDGET_MINUTES = 60;
 const DEFAULT_JEST_BIN = 'node_modules/jest/bin/jest.js';
 const SKIP_LABEL = 'skip-cv-flakiness-detection';
 const CV_TEST_FILE_PATTERN = /\.view\.test\.(ts|tsx)$/u;
@@ -43,11 +39,9 @@ const RESULTS_DIR = 'tests/results/cv-flakiness';
 
 const env = {
   CHANGED_CV_TEST_FILES: process.env.CHANGED_CV_TEST_FILES || '',
-  REPEAT_COUNT: Number(process.env.REPEAT_COUNT || DEFAULT_REPEAT_COUNT),
-  MAX_FILES: Number(process.env.MAX_FILES || DEFAULT_MAX_FILES),
-  TIME_BUDGET_MINUTES: Number(
-    process.env.TIME_BUDGET_MINUTES ?? DEFAULT_TIME_BUDGET_MINUTES,
-  ),
+  REPEAT_COUNT: Number(process.env.REPEAT_COUNT || 5),
+  MAX_FILES: Number(process.env.MAX_FILES || 10),
+  TIME_BUDGET_MINUTES: Number(process.env.TIME_BUDGET_MINUTES ?? 60),
   JEST_BIN_PATH: process.env.JEST_BIN_PATH || DEFAULT_JEST_BIN,
   TEST_OS: process.env.TEST_OS || 'ios',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
@@ -63,12 +57,7 @@ function displayPath(absolutePath) {
   return relative || absolutePath;
 }
 
-/**
- * Parse the changed-file list down to component view test paths, normalized
- * to absolute paths so Jest report paths (also absolute) compare equal.
- * @param {string} raw Space-separated file list, possibly shell-quoted.
- * @returns {string[]} Deduplicated, sorted absolute component view test paths.
- */
+/** Parse the changed-file list into deduplicated, sorted absolute CV test paths. */
 export function parseChangedCvTestFiles(raw) {
   const files = new Set();
   for (const entry of String(raw || '')
@@ -82,49 +71,18 @@ export function parseChangedCvTestFiles(raw) {
   return [...files].sort();
 }
 
-/**
- * Split the parsed list into files present on the checkout and missing ones
- * (deleted or renamed-away paths that the PR file list still reports).
- * @param {string[]} files Parsed component view test paths.
- * @param {(file: string) => boolean} existsFn Existence probe.
- * @returns {{existing: string[], missing: string[]}}
- */
-export function filterExistingFiles(
-  files,
-  existsFn = (file) => fs.existsSync(file),
-) {
+/** Split parsed paths into files present on the checkout and missing (deleted) ones. */
+export function filterExistingFiles(files, existsFn = (file) => fs.existsSync(file)) {
   const existing = [];
   const missing = [];
   for (const file of files) {
-    if (existsFn(file)) {
-      existing.push(file);
-    } else {
-      missing.push(file);
-    }
+    if (existsFn(file)) existing.push(file);
+    else missing.push(file);
   }
   return { existing, missing };
 }
 
-/**
- * Cap the file list so a mega-PR cannot stretch the job unboundedly.
- * @param {string[]} files Existing component view test paths.
- * @param {number} maxFiles Maximum files to run.
- * @returns {{kept: string[], dropped: string[]}}
- */
-export function capFileList(files, maxFiles) {
-  if (!Number.isInteger(maxFiles) || maxFiles < 1) {
-    throw new Error(`Invalid MAX_FILES: ${process.env.MAX_FILES}`);
-  }
-  return { kept: files.slice(0, maxFiles), dropped: files.slice(maxFiles) };
-}
-
-/**
- * Deterministic shuffle (Fisher-Yates) driven by a seed, so a failing
- * repetition's file order can be reproduced.
- * @param {string[]} items Items to shuffle.
- * @param {number} seed PRNG seed.
- * @returns {string[]} Shuffled copy.
- */
+/** Deterministic seeded Fisher-Yates shuffle, so a failing repetition's order can be reproduced. */
 export function shuffleWithSeed(items, seed) {
   const shuffled = [...items];
   // mulberry32 — small, deterministic, good enough for ordering.
@@ -143,12 +101,7 @@ export function shuffleWithSeed(items, seed) {
   return shuffled;
 }
 
-/**
- * Build the Jest invocation for one repetition.
- * @param {string[]} files Component view test paths in run order.
- * @param {{seed: number, outputFile: string}} options Repetition options.
- * @returns {{command: string, args: string[]}}
- */
+/** Build the Jest invocation for one repetition (paths in run order). */
 export function buildJestCommand(files, { seed, outputFile }) {
   return {
     command: process.execPath,
@@ -174,24 +127,32 @@ export function buildJestCommand(files, { seed, outputFile }) {
 }
 
 /**
- * One repetition outcome, parsed from the Jest JSON report.
- * @param {string} jsonPath Path to the Jest JSON report.
- * @returns {{suites: {file: string, fullName: string, status: string, failureMessages: string[]}[], suitesFound: number}}
+ * One repetition outcome, parsed from the Jest JSON report. `crashedSuites`
+ * carries suites that failed to run at all (testExecError) and
+ * `runtimeErrorSuites` the numRuntimeErrorTestSuites count, so a crash or
+ * import failure fails the job even when no assertion is parsed.
  */
 export function parseJestReport(jsonPath) {
   const suites = [];
+  const crashedSuites = [];
   let parsed;
   try {
     parsed = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   } catch (error) {
     return {
       suites,
+      crashedSuites,
+      runtimeErrorSuites: 0,
       suitesFound: 0,
       unreadable: String(error?.message || error),
     };
   }
   for (const result of parsed?.testResults || []) {
     const file = result?.name ? path.resolve(result.name) : '';
+    const execError = result?.testExecError;
+    if (execError) {
+      crashedSuites.push({ file, message: String(execError?.message || execError) });
+    }
     for (const assertion of result?.assertionResults || []) {
       suites.push({
         file,
@@ -201,18 +162,17 @@ export function parseJestReport(jsonPath) {
       });
     }
   }
-  return { suites, suitesFound: (parsed?.testResults || []).length };
+  return {
+    suites,
+    crashedSuites,
+    runtimeErrorSuites: Number(parsed?.numRuntimeErrorTestSuites || 0),
+    suitesFound: (parsed?.testResults || []).length,
+  };
 }
 
-/**
- * Skip signal, mirroring shouldSkipFlakinessDetection in e2e-split-tags-shards:
- * non-PR runs, API failures, or the skip label all skip detection (fail-open).
- * @returns {Promise<boolean>}
- */
+/** Skip signal, mirroring e2e-split-tags-shards: non-PR runs, API errors, or the skip label (fail-open). */
 async function shouldSkipFlakinessDetection() {
-  if (!env.PR_NUMBER) {
-    return true;
-  }
+  if (!env.PR_NUMBER) return true;
   const [owner, repo] = env.REPOSITORY.split('/');
   try {
     const response = await fetch('https://api.github.com/graphql', {
@@ -227,31 +187,23 @@ async function shouldSkipFlakinessDetection() {
       body: JSON.stringify({
         query: `query($owner:String!, $repo:String!, $number:Int!) {
           repository(owner: $owner, name: $repo) {
-            pullRequest(number: $number) {
-              labels(first: 100) { nodes { name } }
-            }
+            pullRequest(number: $number) { labels(first: 100) { nodes { name } } }
           }
         }`,
         variables: { owner, repo, number: Number(env.PR_NUMBER) },
       }),
     });
     if (!response.ok) {
-      console.error(
-        `❌ GitHub API call failed: ${response.status} ${response.statusText}`,
-      );
+      console.error(`❌ GitHub API call failed: ${response.status} ${response.statusText}`);
       return true;
     }
     const data = await response.json();
     if (data.errors) {
-      console.error(
-        `❌ GitHub GraphQL errors: ${data.errors.map((e) => e.message).join('; ')}`,
-      );
+      console.error(`❌ GitHub GraphQL errors: ${data.errors.map((e) => e.message).join('; ')}`);
       return true;
     }
     const labels = data?.data?.repository?.pullRequest?.labels?.nodes || [];
-    const labelFound = labels.some(
-      (label) => String(label?.name).toLowerCase() === SKIP_LABEL,
-    );
+    const labelFound = labels.some((label) => String(label?.name).toLowerCase() === SKIP_LABEL);
     if (labelFound) {
       console.log(`⏭️  Found "${SKIP_LABEL}" label → SKIPPING flakiness detection`);
     }
@@ -272,30 +224,82 @@ function appendSummary(lines) {
   fs.appendFileSync(env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
 }
 
-function printTestFailures(iteration, suites) {
-  const failing = suites.filter((suite) => suite.status === 'failed');
-  for (const suite of failing) {
-    console.error(
-      `::error file=${displayPath(suite.file)}::CV flakiness detected (iteration ${iteration}): ${displayPath(suite.file)} › ${suite.fullName}`,
-    );
-  }
-  return failing;
+function markSkipped(summaryLine) {
+  appendGithubOutput('completed_iterations', '0');
+  appendGithubOutput('budget_exhausted', 'false');
+  appendGithubOutput('status', 'skipped');
+  appendSummary(['### Component view flakiness detection', '', summaryLine]);
 }
 
 /**
- * @param {number} minutes Budget in minutes, 0 disables the cap.
- * @returns {number} Deadline in epoch milliseconds, Infinity when disabled.
+ * Emit ::error annotations for one repetition and return every failure: parsed
+ * failing assertions, plus crashes, kills, missing/unparsable reports and
+ * suite-level (testExecError / numRuntimeErrorTestSuites) failures that would
+ * otherwise exit 0 into an empty failures list.
  */
+function collectIterationFailures(iteration, run, report) {
+  const found = [];
+  for (const suite of report.suites) {
+    if (suite.status !== 'failed') continue;
+    console.error(
+      `::error file=${displayPath(suite.file)}::CV flakiness detected (iteration ${iteration}): ${displayPath(suite.file)} › ${suite.fullName}`,
+    );
+    found.push({ file: suite.file, fullName: suite.fullName });
+  }
+  for (const crashed of report.crashedSuites) {
+    const reason = `test suite failed to run (${summarizeMessage(crashed.message)})`;
+    console.error(
+      `::error file=${displayPath(crashed.file)}::Repetition ${iteration}: ${reason}`,
+    );
+    found.push({ file: crashed.file, reason });
+  }
+  const unnamedRuntimeErrors = report.runtimeErrorSuites - report.crashedSuites.length;
+  if (unnamedRuntimeErrors > 0) {
+    const reason = `${unnamedRuntimeErrors} test suite(s) hit a runtime error that the report does not name`;
+    console.error(`::error::Repetition ${iteration}: ${reason}`);
+    found.push({ reason });
+  }
+
+  const crashReason = describeCleanRunGap(run, report);
+  if (crashReason && found.length === 0) {
+    console.error(
+      `::error::Repetition ${iteration} failed without any failing test assertion: ${crashReason}`,
+    );
+    found.push({ reason: crashReason });
+  }
+  return found;
+}
+
+/** Why a repetition did not end cleanly, independent of parsed assertions; empty when clean. */
+function describeCleanRunGap(run, report) {
+  if (run.error) return `Jest could not be started (${run.error.code || run.error.message})`;
+  if (run.signal) {
+    return run.signal === 'SIGTERM'
+      ? 'Jest was aborted (SIGTERM) after exceeding the remaining time budget'
+      : `Jest was terminated by signal ${run.signal}`;
+  }
+  if (report.unreadable) {
+    return `Jest exited with status ${run.status} and its JSON report is missing or unparsable (${report.unreadable})`;
+  }
+  if (report.suitesFound === 0) {
+    return `Jest exited with status ${run.status} and its JSON report contains no test results`;
+  }
+  if (run.status !== 0) {
+    return 'Jest exited with a non-zero status and no failing test assertion was parsed from its report';
+  }
+  return '';
+}
+
+/** First line of a Jest error message, for annotations and summaries. */
+function summarizeMessage(message) {
+  return String(message || 'unknown error').split('\n')[0].slice(0, 200);
+}
+
+/** Budget deadline: the CV_FLAKINESS_DEADLINE_MS test hook wins over now + minutes; Infinity disables. */
 function resolveDeadline(minutes) {
-  // CV_FLAKINESS_DEADLINE_MS is a test hook: an absolute epoch deadline the
-  // budget check honors instead of deriving one from now + minutes.
   const deadlineOverride = Number(process.env.CV_FLAKINESS_DEADLINE_MS || '');
-  if (Number.isFinite(deadlineOverride) && deadlineOverride > 0) {
-    return deadlineOverride;
-  }
-  if (!Number.isFinite(minutes) || minutes <= 0) {
-    return Number.POSITIVE_INFINITY;
-  }
+  if (Number.isFinite(deadlineOverride) && deadlineOverride > 0) return deadlineOverride;
+  if (!Number.isFinite(minutes) || minutes <= 0) return Number.POSITIVE_INFINITY;
   return Date.now() + minutes * 60000;
 }
 
@@ -303,16 +307,18 @@ async function main() {
   if (!Number.isInteger(env.REPEAT_COUNT) || env.REPEAT_COUNT < 1) {
     throw new Error(`Invalid REPEAT_COUNT: ${process.env.REPEAT_COUNT}`);
   }
+  if (!Number.isInteger(env.MAX_FILES) || env.MAX_FILES < 1) {
+    throw new Error(`Invalid MAX_FILES: ${process.env.MAX_FILES}`);
+  }
   if (!fs.existsSync('jest.config.view.js')) {
-    throw new Error(
-      '❌ jest.config.view.js not found — run from the repository root',
-    );
+    throw new Error('❌ jest.config.view.js not found — run from the repository root');
   }
 
   const startedAt = Date.now();
   const parsed = parseChangedCvTestFiles(env.CHANGED_CV_TEST_FILES);
   const { existing, missing } = filterExistingFiles(parsed);
-  const { kept, dropped } = capFileList(existing, env.MAX_FILES);
+  const kept = existing.slice(0, env.MAX_FILES);
+  const dropped = existing.slice(env.MAX_FILES);
 
   for (const file of missing) {
     console.log(`ℹ️  Skipping deleted component view test file: ${displayPath(file)}`);
@@ -328,28 +334,18 @@ async function main() {
 
   if (kept.length === 0) {
     console.log('ℹ️  No component view test files changed — nothing to repeat.');
-    appendGithubOutput('completed_iterations', '0');
-    appendGithubOutput('budget_exhausted', 'false');
-    appendGithubOutput('status', 'skipped');
-    appendSummary([
-      '### Component view flakiness detection',
-      '',
+    markSkipped(
       `No component view test files changed — nothing repeated (${missing.length} deleted path(s) ignored).`,
-    ]);
+    );
     return;
   }
 
   if (await shouldSkipFlakinessDetection()) {
-    appendGithubOutput('completed_iterations', '0');
-    appendGithubOutput('budget_exhausted', 'false');
-    appendGithubOutput('status', 'skipped');
-    appendSummary([
-      '### Component view flakiness detection',
-      '',
-      `Skipped (${SKIP_LABEL} label, non-PR run, or GitHub API unavailable). ${kept.length} component view test file(s) would have been repeated ${env.REPEAT_COUNT}×:`,
-      '',
-      ...kept.map((file) => `- \`${displayPath(file)}\``),
-    ]);
+    markSkipped(
+      `Skipped (${SKIP_LABEL} label, non-PR run, or GitHub API unavailable). ` +
+        `${kept.length} component view test file(s) would have been repeated ${env.REPEAT_COUNT}×:` +
+        `${kept.map((file) => ` \`${displayPath(file)}\``).join('')}`,
+    );
     return;
   }
 
@@ -400,8 +396,8 @@ async function main() {
     const durationSeconds = Math.round((Date.now() - iterationStartedAt) / 1000);
 
     const report = parseJestReport(outputFile);
-    const failingTests = printTestFailures(iteration, report.suites);
-    const iterationPassed = run.status === 0;
+    const iterationFailures = collectIterationFailures(iteration, run, report);
+    const iterationPassed = iterationFailures.length === 0;
     completedIterations += 1;
 
     for (const file of orderedFiles) {
@@ -412,25 +408,21 @@ async function main() {
         // The suite never reported (crash, spawn timeout): count it as failed
         // so the per-file table cannot overstate confidence.
         fileStat.failed += 1;
-        continue;
-      }
-      if (fileSuites.some((suite) => suite.status === 'failed')) {
+      } else if (fileSuites.some((suite) => suite.status === 'failed')) {
         fileStat.failed += 1;
       } else {
         fileStat.passed += 1;
       }
     }
 
-    for (const suite of failingTests) {
-      failures.push({ iteration, ...suite });
-    }
+    failures.push(...iterationFailures.map((failure) => ({ iteration, ...failure })));
     summaryLines.push(
       `| ${iteration} | ${seed} | ${orderedFiles.length} | ${iterationPassed ? '✅ passed' : '❌ failed'} | ${durationSeconds}s |`,
     );
 
     if (!iterationPassed) {
       console.error(
-        `❌ Iteration ${iteration} failed (${failingTests.length} failing test(s)); continuing with remaining repetitions.`,
+        `❌ Iteration ${iteration} failed (${iterationFailures.length} failure(s)); continuing with remaining repetitions.`,
       );
       if (!report.suitesFound && run.stderr) {
         console.error(`Jest output:\n${run.stderr.split('\n').slice(-40).join('\n')}`);
@@ -442,12 +434,7 @@ async function main() {
 
   appendGithubOutput('completed_iterations', String(completedIterations));
   appendGithubOutput('budget_exhausted', budgetExhausted ? 'true' : 'false');
-
-  const failedFiles = [...perFileRuns.entries()].filter(
-    ([, stat]) => stat.failed > 0,
-  );
-  const status =
-    failures.length > 0 ? 'failed' : budgetExhausted ? 'budget-limited' : 'passed';
+  const status = failures.length > 0 ? 'failed' : budgetExhausted ? 'budget-limited' : 'passed';
   appendGithubOutput('status', status);
 
   summaryLines.push(
@@ -462,22 +449,12 @@ async function main() {
     ),
   );
 
-  if (missing.length > 0) {
-    summaryLines.push(
-      '',
-      '### Deleted paths (not repeated)',
-      '',
-      ...missing.map((file) => `- \`${displayPath(file)}\``),
-    );
-  }
-
-  if (dropped.length > 0) {
-    summaryLines.push(
-      '',
-      `### Not repeated (capped at ${env.MAX_FILES} files)`,
-      '',
-      ...dropped.map((file) => `- \`${displayPath(file)}\``),
-    );
+  const notRepeated = [
+    ...missing.map((file) => `- deleted: \`${displayPath(file)}\``),
+    ...dropped.map((file) => `- capped at ${env.MAX_FILES} files: \`${displayPath(file)}\``),
+  ];
+  if (notRepeated.length > 0) {
+    summaryLines.push('', '### Not repeated', '', ...notRepeated);
   }
 
   if (budgetExhausted) {
@@ -499,11 +476,12 @@ async function main() {
   if (failures.length > 0) {
     summaryLines.push(
       '',
-      '### Failing tests',
+      '### Failures',
       '',
-      ...failures.map(
-        (failure) =>
-          `- \`${displayPath(failure.file)} › ${failure.fullName}\` — iteration ${failure.iteration}`,
+      ...failures.map((failure) =>
+        failure.fullName
+          ? `- \`${displayPath(failure.file)} › ${failure.fullName}\` — iteration ${failure.iteration}`
+          : `- ${failure.reason} — iteration ${failure.iteration}`,
       ),
     );
   }
@@ -511,8 +489,9 @@ async function main() {
   appendSummary(summaryLines);
 
   if (failures.length > 0) {
+    const failedFileCount = [...perFileRuns.values()].filter((stat) => stat.failed > 0).length;
     throw new Error(
-      `Component view flakiness detected: ${failedFiles.length} file(s), ${failures.length} failing test run(s) across ${completedIterations} iterations.`,
+      `Component view flakiness detected: ${failedFileCount} file(s), ${failures.length} failing run(s) (failing test assertions and Jest crashes) across ${completedIterations} iterations.`,
     );
   }
 }
