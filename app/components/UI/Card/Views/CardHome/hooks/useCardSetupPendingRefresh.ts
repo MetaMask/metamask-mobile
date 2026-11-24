@@ -112,8 +112,11 @@ export const useCardSetupPendingRefresh = ({
     };
   }, [isSignedInActive, pollIntervalMs, suspendSignedInPoll]);
 
-  // Signed out: poll the onboarding registration status.
-  const { startPolling, stopPolling } = useUserRegistrationStatus();
+  // Signed out: poll the onboarding registration status on the same
+  // network-derived cadence (15s on slow cellular, not the hook's 5s default).
+  const { startPolling, stopPolling } = useUserRegistrationStatus({
+    pollIntervalMs: pollIntervalMs ?? undefined,
+  });
   useEffect(() => {
     if (!isSignedOutActive) {
       return undefined;

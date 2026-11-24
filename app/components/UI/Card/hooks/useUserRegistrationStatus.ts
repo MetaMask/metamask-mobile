@@ -23,58 +23,57 @@ interface UseUserRegistrationStatusReturn {
  * Polling must be started manually via startPolling() and automatically stops
  * when verification reaches a terminal state (VERIFIED, REJECTED, or UNVERIFIED).
  */
-export const useUserRegistrationStatus =
-  (): UseUserRegistrationStatusReturn => {
-    const { sdk, user, setUser } = useCardSDK();
-    const onboardingId = useSelector(selectOnboardingId);
-    const [isPolling, setIsPolling] = useState(false);
+export const useUserRegistrationStatus = ({
+  pollIntervalMs = POLLING_INTERVAL,
+}: { pollIntervalMs?: number } = {}): UseUserRegistrationStatusReturn => {
+  const { sdk, user, setUser } = useCardSDK();
+  const onboardingId = useSelector(selectOnboardingId);
+  const [isPolling, setIsPolling] = useState(false);
 
-    const { data, isLoading, isFetching, error } = useQuery({
-      queryKey: cardQueries.dashboard.keys.registrationStatus(
-        onboardingId ?? '',
-      ),
-      queryFn: async () => {
-        if (!sdk) throw new Error('Card SDK not initialized');
-        if (!onboardingId) throw new Error('Onboarding ID not available');
-        return sdk.getRegistrationStatus(onboardingId);
-      },
-      enabled: isPolling && !!sdk && !!onboardingId,
-      refetchInterval: (query) => {
-        const state = query.state.data?.verificationState;
-        if (state && state !== 'PENDING') return false;
-        return POLLING_INTERVAL;
-      },
-    });
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: cardQueries.dashboard.keys.registrationStatus(onboardingId ?? ''),
+    queryFn: async () => {
+      if (!sdk) throw new Error('Card SDK not initialized');
+      if (!onboardingId) throw new Error('Onboarding ID not available');
+      return sdk.getRegistrationStatus(onboardingId);
+    },
+    enabled: isPolling && !!sdk && !!onboardingId,
+    refetchInterval: (query) => {
+      const state = query.state.data?.verificationState;
+      if (state && state !== 'PENDING') return false;
+      return pollIntervalMs;
+    },
+  });
 
-    // Only this instance's live poll may write the SDK user. A disabled query
-    // still returns cached registration data, and writing that on a signed-in
-    // Card home would replace the signed-in user with a stale onboarding DTO.
-    useEffect(() => {
-      if (data && isPolling) {
-        setUser(data);
-      }
-    }, [data, isPolling, setUser]);
+  // Only this instance's live poll may write the SDK user. A disabled query
+  // still returns cached registration data, and writing that on a signed-in
+  // Card home would replace the signed-in user with a stale onboarding DTO.
+  useEffect(() => {
+    if (data && isPolling) {
+      setUser(data);
+    }
+  }, [data, isPolling, setUser]);
 
-    const verificationState: CardVerificationState =
-      data?.verificationState ?? user?.verificationState ?? 'PENDING';
+  const verificationState: CardVerificationState =
+    data?.verificationState ?? user?.verificationState ?? 'PENDING';
 
-    useEffect(() => {
-      if (verificationState !== 'PENDING') {
-        setIsPolling(false);
-      }
-    }, [verificationState]);
+  useEffect(() => {
+    if (verificationState !== 'PENDING') {
+      setIsPolling(false);
+    }
+  }, [verificationState]);
 
-    const startPolling = useCallback(() => setIsPolling(true), []);
-    const stopPolling = useCallback(() => setIsPolling(false), []);
+  const startPolling = useCallback(() => setIsPolling(true), []);
+  const stopPolling = useCallback(() => setIsPolling(false), []);
 
-    return {
-      verificationState,
-      isLoading: isLoading && isFetching,
-      isError: !!error,
-      error: error ? getErrorMessage(error) : null,
-      startPolling,
-      stopPolling,
-    };
+  return {
+    verificationState,
+    isLoading: isLoading && isFetching,
+    isError: !!error,
+    error: error ? getErrorMessage(error) : null,
+    startPolling,
+    stopPolling,
   };
+};
 
 export default useUserRegistrationStatus;
