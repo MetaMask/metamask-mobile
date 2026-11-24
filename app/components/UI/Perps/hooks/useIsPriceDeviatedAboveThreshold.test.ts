@@ -354,7 +354,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     renderHook(() => useIsPriceDeviatedAboveThreshold('BTC'));
 
     expect(mockUsePerpsPrices).toHaveBeenCalledWith(['BTC'], {
-      includeMarketData: false,
+      includeMarketData: true,
       throttleMs: 1000,
     });
   });
@@ -363,7 +363,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     renderHook(() => useIsPriceDeviatedAboveThreshold(undefined));
 
     expect(mockUsePerpsPrices).toHaveBeenCalledWith([], {
-      includeMarketData: false,
+      includeMarketData: true,
       throttleMs: 1000,
     });
   });
