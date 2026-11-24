@@ -12,12 +12,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import DottedUnderline from '../../../DottedUnderline';
-import { LimitOrderCostToleranceTooltipSelectorsIDs } from './testIds';
-import type { LimitOrderCostToleranceTooltipProps } from './types';
+import { PriceToleranceTooltipSelectorsIDs } from './testIds';
+import type { PriceToleranceTooltipProps } from './types';
 
-export const LimitOrderCostToleranceTooltip: React.FC<
-  LimitOrderCostToleranceTooltipProps
-> = ({ testID = LimitOrderCostToleranceTooltipSelectorsIDs.BUTTON }) => {
+export const PriceToleranceTooltip: React.FC<PriceToleranceTooltipProps> = ({
+  testID = PriceToleranceTooltipSelectorsIDs.BUTTON,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { colors } = useTheme();

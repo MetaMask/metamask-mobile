@@ -567,7 +567,7 @@ describe('persistConfig', () => {
       expect(bridgeTransform.whitelist).toEqual(['bridge']);
     });
 
-    it('does not persist the limit order session settings', () => {
+    it('does not persist advanced order session settings', () => {
       const bridgeTransform = persistConfig.transforms[3] as Transform<
         unknown,
         unknown
@@ -581,6 +581,7 @@ describe('persistConfig', () => {
           limitOrderCostTolerance: '3',
           limitOrderExpirationMinutes: 10080,
           limitOrderMarketComparison: undefined,
+          recurringPriceTolerance: '2',
         }),
       ).toEqual({
         sourceAmount: '1',
@@ -588,7 +589,7 @@ describe('persistConfig', () => {
       });
     });
 
-    it('clears limit order settings persisted by older app versions on rehydrate', () => {
+    it('clears advanced order settings on rehydrate', () => {
       const bridgeTransform = persistConfig.transforms[3] as Transform<
         unknown,
         unknown
@@ -601,11 +602,13 @@ describe('persistConfig', () => {
           sourceAmount: '1',
           limitOrderCostTolerance: '3',
           limitOrderExpirationMinutes: 10080,
+          recurringPriceTolerance: '2',
         }),
       ).toEqual({
         sourceAmount: '1',
         limitOrderCostTolerance: undefined,
         limitOrderExpirationMinutes: undefined,
+        recurringPriceTolerance: undefined,
       });
     });
   });

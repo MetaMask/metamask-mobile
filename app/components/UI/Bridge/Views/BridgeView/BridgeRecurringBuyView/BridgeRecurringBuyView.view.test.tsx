@@ -29,6 +29,9 @@ import { RecurringIntervalSheetSelectorsIDs } from '../../../components/Recurrin
 import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/RecurringRepeatInfoSheet';
 import { PriceRangeRowSelectorsIDs } from '../../../components/PriceRangeRow';
 import { PriceRangeSheetSelectorsIDs } from '../../../components/PriceRangeSheet';
+import { CostToleranceRowSelectorsIDs } from '../../../components/LimitOrderDetails/CostToleranceRow/testIds';
+import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from '../../../components/SwapsLimitOrderCostToleranceModal/testIds';
+import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from '../../../components/LimitOrderCostToleranceInfoSheet/LimitOrderCostToleranceInfoSheet.testIds';
 import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
 import { OpenOrderRowSelectorsIDs } from '../../../components/OpenOrderRow';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -1867,6 +1870,54 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('price tolerance', () => {
+    it('updates the recurring override and opens the shared info sheet', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      expect(
+        renderResult.getByTestId(CostToleranceRowSelectorsIDs.VALUE),
+      ).toHaveTextContent('3%');
+      fireEvent.press(
+        renderResult.getByTestId(CostToleranceRowSelectorsIDs.CONTAINER),
+      );
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            SwapsLimitOrderCostToleranceModalSelectorsIDs.DEFAULT_SHEET,
+          ),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.press(
+        renderResult.getByTestId(
+          SwapsLimitOrderCostToleranceModalSelectorsIDs.OPTION('2'),
+        ),
+      );
+      fireEvent.press(renderResult.getByText(strings('bridge.submit')));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(CostToleranceRowSelectorsIDs.VALUE),
+        ).toHaveTextContent('2%');
+      });
+      expect(renderResult.store.getState().bridge.recurringPriceTolerance).toBe(
+        '2',
+      );
+
+      fireEvent.press(
+        renderResult.getByTestId(CostToleranceRowSelectorsIDs.TOOLTIP),
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            LimitOrderCostToleranceInfoSheetSelectorsIDs.SHEET,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
   });
 
   describe('price range', () => {
