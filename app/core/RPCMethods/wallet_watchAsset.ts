@@ -79,8 +79,13 @@ export const wallet_watchAsset = async ({
     };
   };
 }) => {
-  const { AssetsContractController, ApprovalController, AssetsController } =
-    Engine.context;
+  const {
+    AssetsContractController,
+    ApprovalController,
+    AssetsController,
+    SelectedNetworkController,
+    NetworkController,
+  } = Engine.context;
   if (!req.params) {
     throw new Error('wallet_watchAsset params is undefined');
   }
@@ -92,8 +97,28 @@ export const wallet_watchAsset = async ({
   } = req;
 
   const state = store.getState();
-  const chainId = selectEvmChainId(state);
-  const networkClientId = selectNetworkClientId(state);
+
+  // Resolve the network the requesting dapp selected for its connection,
+  // not the wallet's globally active network. wallet_switchEthereumChain
+  // and wallet_addEthereumChain only change the per-origin network, so a
+  // dapp on a custom network and the wallet UI can disagree about which
+  // network the dapp is on. The domain key matches the one the RPC
+  // middleware uses: the WalletConnect channel id when present, otherwise
+  // the dapp hostname. A domain with no selection of its own falls back
+  // to the globally active network, so behaviour is unchanged there, and
+  // a stale selection with no configuration behind it falls back too.
+  const domain = _pageMeta?.channelId ?? hostname;
+  const domainNetworkClientId =
+    SelectedNetworkController.getNetworkClientIdForDomain(domain);
+  const domainNetworkConfiguration =
+    NetworkController.getNetworkConfigurationByNetworkClientId(
+      domainNetworkClientId,
+    );
+  const networkClientId = domainNetworkConfiguration
+    ? domainNetworkClientId
+    : selectNetworkClientId(state);
+  const chainId =
+    domainNetworkConfiguration?.chainId ?? selectEvmChainId(state);
 
   checkTabActive();
   const requestOrigin = _pageMeta?.url ?? hostname;
@@ -104,7 +129,7 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_VALID);
   }
 
-  // Check if token exists on wallet's active network.
+  // Check if token exists on the network selected for the requesting dapp.
   const isTokenOnNetwork = await isSmartContractAddress(
     address,
     chainId,
@@ -131,11 +156,15 @@ export const wallet_watchAsset = async ({
     permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
+  // Fetch the metadata from the same network the token was validated
+  // against. Without the client id these calls use the globally active
+  // network, so a token that only exists on the dapp network could pick
+  // up another token's decimals and symbol from the same address there.
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
-      AssetsContractController.getERC20TokenDecimals(address),
-      AssetsContractController.getERC721AssetSymbol(address),
+      AssetsContractController.getERC20TokenDecimals(address, networkClientId),
+      AssetsContractController.getERC721AssetSymbol(address, networkClientId),
     ]);
     //The catch it's only to prevent the fetch from the chain to fail
     // eslint-disable-next-line no-empty
@@ -158,12 +187,16 @@ export const wallet_watchAsset = async ({
 
   // Ask the user to confirm adding the suggested token before persisting it.
   // *This is an hotfix, this logic previously lived inside TokensController.watchAsset*
+  // Pass the resolved chain along so the confirmation sheet shows the
+  // dapp-selected network and its balance, not the globally active one.
   await ApprovalController.addAndShowApprovalRequest({
     origin: requestOrigin,
     type: ApprovalType.WatchAsset,
     requestData: {
       asset,
       interactingAddress,
+      chainId,
+      networkClientId,
       pageMeta: safePageMeta,
     },
   });

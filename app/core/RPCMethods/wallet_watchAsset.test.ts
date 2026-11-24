@@ -51,6 +51,12 @@ jest.mock('../Engine', () => {
         getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
         getAccountByAddress: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
       },
+      SelectedNetworkController: {
+        getNetworkClientIdForDomain: jest.fn(),
+      },
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
     },
   };
 });
@@ -92,6 +98,16 @@ describe('wallet_watchAsset', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to the globally active network (mainnet, 0x1), matching the
+    // mocked store state, so existing tests keep exercising the old path.
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+      '0x1',
+    );
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: '0x1' } as ReturnType<
+        typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+      >,
+    );
     MockEngine.context.AccountsController.getSelectedAccount.mockReturnValue(
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       require('../../util/test/accountsControllerTestUtils').createMockInternalAccount(
@@ -416,5 +432,300 @@ describe('wallet_watchAsset', () => {
         decimals: 18,
       }),
     );
+  });
+
+  it('validates the token against the dapp-selected network, not the global network', async () => {
+    // The reported bug (#40155): a WalletConnect dapp on a custom network
+    // had its watchAsset request checked against the globally active
+    // network (mainnet here), so a token that only exists on the custom
+    // network was rejected.
+    const dappChainId = '0x1234';
+    const dappNetworkClientId = 'custom-network-client-id';
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+      dappNetworkClientId,
+    );
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: dappChainId } as ReturnType<
+        typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+      >,
+    );
+    const isSmartContractAddressSpy = jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'dapp.example.com',
+      pageMeta: {
+        url: 'https://dapp.example.com',
+        channelId: 'wc-channel-1',
+      },
+    });
+
+    // The domain key is the WalletConnect channel id, not the hostname or
+    // the page URL, matching the key wallet_switchEthereumChain stored the
+    // selection under.
+    expect(
+      MockEngine.context.SelectedNetworkController
+        .getNetworkClientIdForDomain,
+    ).toHaveBeenCalledWith('wc-channel-1');
+    expect(isSmartContractAddressSpy).toHaveBeenCalledWith(
+      correctWBTC.address,
+      dappChainId,
+      dappNetworkClientId,
+    );
+    // The metadata fetch runs against the dapp network too. Without the
+    // client id it would use the global network and could return another
+    // token's decimals and symbol from the same address there.
+    expect(
+      MockEngine.context.AssetsContractController.getERC20TokenDecimals,
+    ).toHaveBeenCalledWith(correctWBTC.address, dappNetworkClientId);
+    expect(
+      MockEngine.context.AssetsContractController.getERC721AssetSymbol,
+    ).toHaveBeenCalledWith(correctWBTC.address, dappNetworkClientId);
+    // The token is stored under the dapp network chain (eip155:4660 for
+    // 0x1234), not the global network chain.
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('eip155:4660'),
+      expect.objectContaining({
+        chainId: dappChainId,
+      }),
+    );
+    // The approval request carries the dapp chain too, so the
+    // confirmation sheet shows that network and its balance instead of
+    // the globally active one.
+    expect(
+      MockEngine.context.ApprovalController.addAndShowApprovalRequest,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestData: expect.objectContaining({
+          chainId: dappChainId,
+          networkClientId: dappNetworkClientId,
+        }),
+      }),
+    );
+  });
+
+  it('falls back to the global network when the dapp has no per-origin selection', async () => {
+    const isSmartContractAddressSpy = jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'example.com',
+    });
+
+    expect(isSmartContractAddressSpy).toHaveBeenCalledWith(
+      correctWBTC.address,
+      '0x1',
+      '0x1',
+    );
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('eip155:1'),
+      expect.objectContaining({
+        chainId: '0x1',
+      }),
+    );
+  });
+
+  it('falls back to the global network when the dapp selection has no configuration', async () => {
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+      'removed-network-client-id',
+    );
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      undefined,
+    );
+    const isSmartContractAddressSpy = jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'example.com',
+      pageMeta: {
+        url: 'https://example.com',
+        channelId: 'wc-channel-1',
+      },
+    });
+
+    expect(isSmartContractAddressSpy).toHaveBeenCalledWith(
+      correctWBTC.address,
+      '0x1',
+      '0x1',
+    );
+  });
+
+  it('uses the hostname as the domain when there is no channel id', async () => {
+    // In-app browser flow: pageMeta carries no channel id, so the domain
+    // key is the dapp hostname, matching the RPC middleware origin.
+    const dappChainId = '0x1234';
+    const dappNetworkClientId = 'custom-network-client-id';
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+      dappNetworkClientId,
+    );
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: dappChainId } as ReturnType<
+        typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+      >,
+    );
+    const isSmartContractAddressSpy = jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'example.com',
+      pageMeta: {
+        url: 'https://example.com',
+      },
+    });
+
+    expect(
+      MockEngine.context.SelectedNetworkController
+        .getNetworkClientIdForDomain,
+    ).toHaveBeenCalledWith('example.com');
+    expect(isSmartContractAddressSpy).toHaveBeenCalledWith(
+      correctWBTC.address,
+      dappChainId,
+      dappNetworkClientId,
+    );
+  });
+
+  it('still rejects a token that is not on the dapp-selected network', async () => {
+    const dappChainId = '0x1234';
+    const dappNetworkClientId = 'custom-network-client-id';
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+      dappNetworkClientId,
+    );
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: dappChainId } as ReturnType<
+        typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+      >,
+    );
+    const isSmartContractAddressSpy = jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(false);
+
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: correctWBTC,
+            type: ERC20,
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: 'dapp.example.com',
+        pageMeta: {
+          url: 'https://dapp.example.com',
+          channelId: 'wc-channel-1',
+        },
+      }),
+    ).rejects.toThrow(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
+
+    // The check ran against the dapp network, not the global one.
+    expect(isSmartContractAddressSpy).toHaveBeenCalledWith(
+      correctWBTC.address,
+      dappChainId,
+      dappNetworkClientId,
+    );
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).not.toHaveBeenCalled();
   });
 });

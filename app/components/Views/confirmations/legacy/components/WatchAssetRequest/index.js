@@ -109,13 +109,27 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
-  const { asset, interactingAddress } = suggestedAssetMeta;
+  const {
+    asset,
+    interactingAddress,
+    chainId: requestChainId,
+    networkClientId,
+  } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
-  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
-  const chainId = useSelector(selectEvmChainId);
+  // The approval request carries the dapp-selected chain when the dapp
+  // asked on a different network than the globally active one, so the
+  // sheet shows that network and its balance. Older requests without it
+  // keep the previous behaviour.
+  const globalChainId = useSelector(selectEvmChainId);
+  const chainId = requestChainId ?? globalChainId;
+  const [balance, , error] = useTokenBalance(
+    asset.address,
+    interactingAddress,
+    networkClientId,
+  );
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
@@ -170,6 +184,7 @@ const WatchAssetRequest = ({
       <View style={styles.approveTransactionHeaderWrapper}>
         <ApproveTransactionHeader
           chainId={chainId}
+          networkClientId={networkClientId}
           origin={currentPageInformation?.url}
           url={currentPageInformation?.url ?? activeTabUrl}
           from={suggestedAssetMeta.interactingAddress}
