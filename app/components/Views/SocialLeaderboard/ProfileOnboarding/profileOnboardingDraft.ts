@@ -86,8 +86,14 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
 
 export const displayNameFromUsername = (value: string): string =>
   normalizeUsername(value)
+    // Split CamelCase handles such as "BonkTurboQueen" at lower-to-upper
+    // boundaries before lowercasing. Runs of capitals ("WEN") stay together.
+    .replace(/([a-z])(?=[A-Z][a-z])/g, '$1 ')
+    // A number after letters starts a new word, so "BonkTurboQueen343" reads
+    // "Bonk Turbo Queen 343" like the old underscore format did.
+    .replace(/([a-zA-Z])(?=\d)/g, '$1 ')
     .toLowerCase()
-    .split('_')
+    .split(/[\s_]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
