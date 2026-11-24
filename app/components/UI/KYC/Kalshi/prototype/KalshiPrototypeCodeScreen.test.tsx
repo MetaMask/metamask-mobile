@@ -126,13 +126,14 @@ describe('KalshiPrototypeCodeScreen', () => {
   });
 
   describe('phone', () => {
-    it('keeps the co-brand and George’s phone-code copy', () => {
+    it('matches the email screen: wordmark, Kalshi copy, no co-brand', () => {
       const { getByText, getByLabelText, queryByLabelText, queryByTestId } =
         renderScreen({ channel: 'phone' });
 
-      expect(getByLabelText(PROTOTYPE_COPY.lockup)).toBeOnTheScreen();
-      expect(queryByLabelText('Kalshi')).toBeNull();
-      expect(getByText(GEORGE_COPY.phoneCode.body)).toBeOnTheScreen();
+      expect(getByLabelText('Kalshi')).toBeOnTheScreen();
+      expect(queryByLabelText(PROTOTYPE_COPY.lockup)).toBeNull();
+      expect(getByText(PROTOTYPE_COPY.phoneCode.title)).toBeOnTheScreen();
+      expect(getByText(PROTOTYPE_COPY.phoneCode.body)).toBeOnTheScreen();
       expect(queryByTestId(MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK)).toBeNull();
     });
   });

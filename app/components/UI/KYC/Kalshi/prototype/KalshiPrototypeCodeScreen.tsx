@@ -16,7 +16,6 @@ import {
   PROTOTYPE_COPY,
   PROTOTYPE_EMAIL,
 } from './prototypeConstants';
-import KalshiPrototypeLockup from './KalshiPrototypeLockup';
 import KalshiLogo from './assets/kalshi-logo.svg';
 
 /** Which partner code the screen enters. */
@@ -45,11 +44,10 @@ interface KalshiPrototypeCodeScreenProps {
 
 /**
  * The Kalshi email and phone code screens, built on the shared MFA code-entry
- * view. The email screen carries the Kalshi wordmark in its header and
- * Kalshi's own copy, left-aligned like MetaMask's MFA code screen, with the
+ * view. Both carry the Kalshi wordmark in the header and Kalshi's own copy,
+ * left-aligned like MetaMask's MFA code screen. The email screen adds the
  * "Use a different email" way back as a full-width secondary button under the
- * resend button. The phone screen keeps the co-brand and George's phone-code
- * copy. Codes are faked; the checked code is the prototype's.
+ * resend button. Codes are faked; the checked code is the prototype's.
  *
  * @param props - The channel and the fake actions.
  * @returns The screen.
@@ -77,21 +75,20 @@ const KalshiPrototypeCodeScreen = ({
 
   const isEmail = channel === 'email';
   const email = isEmail ? PROTOTYPE_EMAIL : undefined;
-  // The Kalshi email code copy, with the fake address masked the way the
-  // shared view masks it; the phone's description carries George's phone-code
-  // copy without the demo value the fake ignores.
+  // Kalshi's code copy, with the fake email address masked the way the shared
+  // view masks it.
   const description = isEmail
     ? PROTOTYPE_COPY.emailCode.body.replace(
         '{maskedEmail}',
         maskEmail(PROTOTYPE_EMAIL),
       )
-    : GEORGE_COPY.phoneCode.body;
+    : PROTOTYPE_COPY.phoneCode.body;
 
   const partner: CodeStepPartnerProps = {
-    // The email screen's copy is Kalshi's, under its wordmark in the header;
-    // the phone screen keeps the co-brand above its title.
-    title: isEmail ? PROTOTYPE_COPY.emailCode.title : undefined,
-    lockup: isEmail ? undefined : <KalshiPrototypeLockup />,
+    // Kalshi's copy on both screens, under its wordmark in the header.
+    title: isEmail
+      ? PROTOTYPE_COPY.emailCode.title
+      : PROTOTYPE_COPY.phoneCode.title,
     useDifferentEmail: isEmail
       ? {
           label: PROTOTYPE_COPY.useDifferentEmail,
@@ -150,7 +147,7 @@ const KalshiPrototypeCodeScreen = ({
   return (
     <Box style={tw.style('flex-1 bg-default')}>
       <HeaderStandard
-        title={isEmail ? <KalshiWordmark /> : undefined}
+        title={<KalshiWordmark />}
         onBack={onBack}
         includesTopInset
         backButtonProps={{ testID: 'kalshi-prototype-code-back' }}

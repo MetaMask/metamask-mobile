@@ -141,6 +141,11 @@ export const PROTOTYPE_COPY = {
     title: "Enter Kalshi's verification code",
     body: 'Kalshi sent a 6-digit code to {maskedEmail}.',
   },
+  /** The phone code screen, worded like the email one under the same wordmark. */
+  phoneCode: {
+    title: "Enter Kalshi's verification code",
+    body: 'Kalshi texted a 6-digit code to your phone.',
+  },
   useDifferentEmail: 'Use a different email',
   sumsub: {
     title: 'Sumsub (placeholder)',
