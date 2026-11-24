@@ -26,6 +26,9 @@ export const PROTOTYPE_ENTRY_CHECK_DELAY_MS = 2000;
 /** How long the verifying screen waits before the review comes back. */
 export const PROTOTYPE_VERIFYING_DELAY_MS = 10000;
 
+/** How often Predictions polls a pending review (about 10s to an answer). */
+export const PROTOTYPE_HOME_POLL_MS = 5000;
+
 /** How long the fake code check waits before it answers. */
 export const PROTOTYPE_CODE_CHECK_DELAY_MS = 400;
 
@@ -109,11 +112,6 @@ export const GEORGE_COPY = {
   /** His message for a refused code, from `kalshiErrors.ts`. */
   codeRefused:
     'That code is wrong or has expired. Check it and try again, or send a new code.',
-  waiting: {
-    title: 'Verifying identity',
-    body: 'This usually takes a few minutes. You can leave and come back.',
-    checkAgain: 'Check again',
-  },
   done: {
     title: 'Identity verified',
     body: 'Kalshi has your verified identity. Predict activates your account when you start trading.',

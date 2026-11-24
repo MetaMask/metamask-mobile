@@ -59,6 +59,7 @@ import {
   transparentModalScreenOptions,
 } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 import KalshiPrototypeSumsubScreen from './KalshiPrototypeSumsubScreen';
+import { strings } from '../../../../../../locales/i18n';
 import KalshiPrototypeLoading from './KalshiPrototypeLoading';
 import KalshiPrototypeStepUp from './KalshiPrototypeStepUp';
 
@@ -460,9 +461,7 @@ const DecisionStep = () => {
   }
   return (
     <KycPending
-      title={GEORGE_COPY.waiting.title}
-      description={GEORGE_COPY.waiting.body}
-      buttonLabel={GEORGE_COPY.waiting.checkAgain}
+      description={strings('kyc.kyc_taking_longer.description_few_minutes')}
       onLeave={onLeave}
       onClose={onLeave}
     />

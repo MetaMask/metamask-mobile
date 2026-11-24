@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
@@ -22,7 +22,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   deriveKalshiPrototypeCardState,
   dismissKalshiPrototypeCard,
+  getKalshiPrototypeVendorOnboarding,
 } from './prototypeRuntime';
+import { PROTOTYPE_HOME_POLL_MS } from './prototypeConstants';
 import { useKalshiPrototypeRuntime } from './useKalshiPrototype';
 import KalshiPrototypeStatusCard from './KalshiPrototypeStatusCard';
 import { KalshiPrototypePredictionsHomeSelectorsIDs } from './KalshiPrototypePredictionsHome.testIds';
@@ -120,6 +122,24 @@ const KalshiPrototypePredictionsHome = () => {
   const startFlow = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.KALSHI_PROTOTYPE_ONBOARDING);
   }, [navigation]);
+
+  // While the review is pending and this screen is in front, poll the fake
+  // the way the app would, so the card turns to verified (or can't verify)
+  // on its own after the verifying screen was closed.
+  const isVerifying = cardState === 'verifying';
+  useFocusEffect(
+    useCallback(() => {
+      if (!isVerifying) {
+        return undefined;
+      }
+      const timer = setInterval(() => {
+        void getKalshiPrototypeVendorOnboarding().refreshStep({
+          vendor: 'kalshi',
+        });
+      }, PROTOTYPE_HOME_POLL_MS);
+      return () => clearInterval(timer);
+    }, [isVerifying]),
+  );
 
   return (
     <SafeAreaView
