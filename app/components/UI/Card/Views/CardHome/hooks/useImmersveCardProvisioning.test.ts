@@ -1366,6 +1366,54 @@ describe('useImmersveCardProvisioning', () => {
       jest.useRealTimers();
     });
 
+    it('ignores pull to refresh while a self-check is running', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValueOnce({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+      controller.getSpendingPrerequisites.mockImplementation(
+        async () => new Promise(() => undefined),
+      );
+
+      jest.useFakeTimers();
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      const callsDuringSelfCheck =
+        controller.getSpendingPrerequisites.mock.calls.length;
+
+      act(() => {
+        result.current.recheck();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(
+        callsDuringSelfCheck,
+      );
+      expect(result.current.isReconciling).toBe(false);
+      jest.useRealTimers();
+    });
+
     it('does not report the same routed step again when a review is still pending', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [{ stage: 'kyc', status: 'pending' }],

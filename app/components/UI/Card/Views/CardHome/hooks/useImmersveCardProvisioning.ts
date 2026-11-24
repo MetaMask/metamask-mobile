@@ -277,7 +277,8 @@ export function useImmersveCardProvisioning(
     if (
       (!openedCardFlow && !reviewsKyc) ||
       !isProvisioning ||
-      !hasResolvedStatus
+      !hasResolvedStatus ||
+      isSelfCheckRunning
     ) {
       return;
     }
@@ -291,6 +292,7 @@ export function useImmersveCardProvisioning(
     recheckOnFocus,
     isProvisioning,
     hasResolvedStatus,
+    isSelfCheckRunning,
     pendingAction,
   ]);
 
@@ -308,6 +310,7 @@ export function useImmersveCardProvisioning(
         !isFocusedRef.current ||
         !isProvisioning ||
         !hasResolvedStatus ||
+        isSelfCheckRunning ||
         pendingAction?.type !== 'pending'
       ) {
         return;
@@ -316,7 +319,13 @@ export function useImmersveCardProvisioning(
       setFocusRecheckCount((count) => count + 1);
     });
     return () => subscription.remove();
-  }, [recheckOnFocus, isProvisioning, hasResolvedStatus, pendingAction?.type]);
+  }, [
+    recheckOnFocus,
+    isProvisioning,
+    hasResolvedStatus,
+    isSelfCheckRunning,
+    pendingAction?.type,
+  ]);
 
   // Card home opts in so a manual KYC review moves on by itself. Money home
   // does not: it already polls on the tier-derived interval, and a fixed 15s
@@ -673,9 +682,9 @@ export function useImmersveCardProvisioning(
   // refresh re-checks the review it is waiting on. Mirrors the focus
   // recheck: the resolved flag drops first so the screen reads reconciling
   // until the new check lands, and a recheck while one is already running
-  // (from the focus path) is a no-op.
+  // (from the focus path or the review self-check) is a no-op.
   const recheck = useCallback(() => {
-    if (isReconciling) {
+    if (isReconciling || isSelfCheckRunning) {
       return;
     }
     quietRecheckAttemptRef.current = 0;
@@ -683,7 +692,7 @@ export function useImmersveCardProvisioning(
     retryDroppedOfflineRef.current = false;
     setHasResolvedStatus(false);
     setRecheckCount((count) => count + 1);
-  }, [isReconciling]);
+  }, [isReconciling, isSelfCheckRunning]);
 
   return {
     isProvisioning,
