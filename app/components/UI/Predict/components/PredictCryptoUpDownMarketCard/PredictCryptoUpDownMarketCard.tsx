@@ -1018,7 +1018,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          twClassName="h-10 flex-1 bg-success-muted"
+          twClassName="h-10 flex-1 border border-muted bg-success-muted"
           disabled={!upToken || !isMarketOpen}
         >
           <Text
@@ -1032,7 +1032,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          twClassName="h-10 flex-1 bg-error-muted"
+          twClassName="h-10 flex-1 border border-muted bg-error-muted"
           disabled={!downToken || !isMarketOpen}
         >
           <Text
@@ -1331,9 +1331,12 @@ const PredictCryptoUpDownMarketCard: React.FC<
         onPress={handleCardPress}
         accessibilityLabel={cardTitle}
         accessibilityRole="button"
-        style={tw.style('h-full rounded-xl bg-muted overflow-hidden')}
+        // Prototype: full 1px border.muted at the carousel's 16px radius; p-[15px] keeps the p-4 footprint.
+        style={tw.style(
+          'h-full rounded-2xl border border-muted bg-muted overflow-hidden',
+        )}
       >
-        <Box twClassName="flex-1 p-4 items-center justify-between">
+        <Box twClassName="flex-1 p-[15px] items-center justify-between">
           <Box twClassName="items-center">
             <LiveStatus
               compact
@@ -1377,7 +1380,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box twClassName="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box twClassName="mb-3 h-[319px] rounded-xl border border-muted bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}

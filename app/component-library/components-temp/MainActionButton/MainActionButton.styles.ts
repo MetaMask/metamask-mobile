@@ -38,7 +38,17 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        ...(isGlass ? {} : { backgroundColor, ...contentLayout }),
+        ...(isGlass
+          ? {}
+          : {
+              backgroundColor,
+              ...contentLayout,
+              // 1px border.muted; padding trimmed 1px so the tile keeps its size
+              paddingHorizontal: contentLayout.paddingHorizontal - 1,
+              paddingVertical: contentLayout.paddingVertical - 1,
+              borderWidth: 1,
+              borderColor: theme.colors.border.muted,
+            }),
         borderRadius: 16,
         opacity: isDisabled && !isGlass ? 0.5 : 1,
       } as const,

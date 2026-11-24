@@ -53,7 +53,8 @@ function OpenOrderRow({
 
   const sharedListItemProps = {
     testID,
-    twClassName: 'bg-muted rounded-lg',
+    // Prototype: tappable filled surface gets a 1px border.muted.
+    twClassName: 'bg-muted rounded-lg border border-muted',
     avatar: (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}

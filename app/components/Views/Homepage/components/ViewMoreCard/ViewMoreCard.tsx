@@ -38,7 +38,7 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
       testID={testID}
       style={({ pressed }) =>
         tw.style(
-          `rounded-xl items-center justify-center gap-2 ${twClassName}`,
+          `rounded-xl border border-muted items-center justify-center gap-2 ${twClassName}`,
           pressed ? 'bg-muted-pressed' : 'bg-muted',
         )
       }

@@ -88,7 +88,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         onPress={handlePress}
         style={({ pressed }) =>
           tw.style(
-            `w-[${WHATS_HAPPENING_CARD_WIDTH}px] min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px] rounded-2xl overflow-hidden pt-4 pl-4 pb-4`,
+            `w-[${WHATS_HAPPENING_CARD_WIDTH}px] min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px] rounded-2xl border border-muted overflow-hidden pt-4 pl-4 pb-4`,
             pressed ? 'bg-muted-pressed' : 'bg-muted',
           )
         }

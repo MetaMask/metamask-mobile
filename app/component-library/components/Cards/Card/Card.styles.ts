@@ -26,7 +26,7 @@ const styleSheet = (params: { theme: Theme; vars: CardStyleSheetVars }) => {
         borderRadius: 4,
         backgroundColor: colors.background.default,
         borderWidth: 1,
-        borderColor: colors.border.default,
+        borderColor: colors.border.muted,
       } as ViewStyle,
       style,
     ) as ViewStyle,
