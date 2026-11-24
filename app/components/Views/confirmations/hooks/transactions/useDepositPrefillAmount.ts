@@ -35,7 +35,6 @@ import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvaila
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
-import { isLighterAccountCreationDeposit } from '../../temp-lighter/lighter-usdc-deposit';
 
 /** Smallest fiat amount the input can display and a quote can be built for. */
 export const MIN_FIAT_AMOUNT = 0.01;
@@ -109,17 +108,6 @@ export function useDepositPrefillAmount({
         return config;
       }
     }
-
-    // The first Lighter deposit is the Perps deposit with another destination,
-    // so it prefills whenever the Hyperliquid deposit does.
-    if (isLighterAccountCreationDeposit(transactionMeta)) {
-      const perpsDepositConfig =
-        prefilledAmount.overrides[TransactionType.perpsDeposit];
-      if (perpsDepositConfig) {
-        return perpsDepositConfig;
-      }
-    }
-
     return prefilledAmount.default;
   }, [transactionMeta, prefilledAmount]);
 
