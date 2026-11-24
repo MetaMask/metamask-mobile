@@ -231,6 +231,7 @@ const VendorTermsStep = () => {
     <KalshiPrototypeVendorTerms
       onAccepted={handleAccepted}
       onBack={handleBack}
+      isCatchUp={getKalshiPrototypeRuntime().scenario === 'returningUkycUser'}
     />
   );
 };

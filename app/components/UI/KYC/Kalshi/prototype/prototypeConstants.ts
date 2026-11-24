@@ -171,7 +171,7 @@ export const PROTOTYPE_COPY = {
     /** The Socure consent, split around its two inline links. */
     socureConsent: {
       beforeTerms:
-        "I explicitly consent to Socure, Kalshi's service provider, collecting, using and keeping my facial images and the biometric data derived from them for up to 2 years to verify my identity, as described in the Socure ",
+        "I explicitly consent to Socure, Kalshi's service provider, collecting, using and keeping my facial images and the biometric data derived from them for up to 2 years to verify my identity, as described in Socure's ",
       termsOfUse: 'Terms of Use',
       between: ' and ',
       privacyNotice: 'Privacy Notice',
@@ -180,9 +180,21 @@ export const PROTOTYPE_COPY = {
     /** The footer agreement, split around its inline link. */
     agreement: {
       before:
-        "By tapping Agree and continue, I agree to Kalshi's Member Agreements and Rulebooks, and acknowledge Kalshi's ",
+        "By tapping Agree and continue, I agree to Kalshi's Member Agreements and Rulebooks and acknowledge Kalshi's ",
       privacyPolicy: 'Privacy Policy',
       after: '.',
+    },
+    /**
+     * A returning UKYC user's version (Paper AMT-2): they skip steps 1 and 2,
+     * so this page asks for MetaMask's sharing consent too. Kalshi is a new
+     * recipient, and legal wants fresh consent for each one (19 Nov call).
+     */
+    catchUp: {
+      title: "Agree to Kalshi's terms",
+      body: "Kalshi needs you to agree to these before it can open your account. You've already agreed to MetaMask's terms when you verified your identity.",
+      metamaskGroupTitle: 'MetaMask',
+      sharingConsent:
+        'I consent to MetaMask sharing my identity information with Kalshi so Kalshi can verify me and open my account.',
     },
     scrollToContinue: 'Scroll to continue',
     agreeToConsentAbove: 'Agree to consent above',

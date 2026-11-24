@@ -125,6 +125,12 @@ interface KalshiPrototypeVendorTermsProps {
   onAccepted: () => Promise<boolean> | boolean;
   /** Pops the stack. */
   onBack: () => void;
+  /**
+   * A returning UKYC user, who skipped steps 1 and 2: no step count, the
+   * catch-up title and body, and MetaMask's Kalshi sharing consent, which
+   * must be ticked too.
+   */
+  isCatchUp?: boolean;
 }
 
 /**
@@ -141,12 +147,16 @@ const KalshiPrototypeVendorTermsPage = ({
   vendorDisclaimers,
   onAccepted,
   onBack,
+  isCatchUp = false,
 }: KalshiPrototypeVendorTermsProps & {
   vendorDisclaimers: KycDisclaimer[];
 }) => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [hasSocureConsent, setHasSocureConsent] = useState(false);
+  const [hasSharingConsent, setHasSharingConsent] = useState(false);
+  const sharingCheckboxRef = useRef<{ toggle: () => void }>(null);
+  const hasAllConsents = hasSocureConsent && (!isCatchUp || hasSharingConsent);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const checkboxRef = useRef<{ toggle: () => void }>(null);
   const [consentRowY, setConsentRowY] = useState<number>();
@@ -160,6 +170,11 @@ const KalshiPrototypeVendorTermsPage = ({
 
   const toggleSocureConsent = useCallback(
     () => checkboxRef.current?.toggle(),
+    [],
+  );
+
+  const toggleSharingConsent = useCallback(
+    () => sharingCheckboxRef.current?.toggle(),
     [],
   );
 
@@ -198,7 +213,7 @@ const KalshiPrototypeVendorTermsPage = ({
     consentRowY + CHECKBOX_VISIBLE_HEIGHT <= scrollOffset + viewportHeight;
 
   let ctaLabel: string = copy.scrollToContinue;
-  if (hasSocureConsent) {
+  if (hasAllConsents) {
     ctaLabel = copy.agreeAndContinue;
   } else if (isConsentRowInView) {
     ctaLabel = copy.agreeToConsentAbove;
@@ -232,7 +247,7 @@ const KalshiPrototypeVendorTermsPage = ({
           isGlass={isGlassHeader}
           isFloating={false}
           onBack={onBack}
-          title={stepIndicator}
+          title={isCatchUp ? undefined : stepIndicator}
           backButtonProps={{
             testID: KalshiPrototypeTermsSelectorsIDs.BACK_BUTTON,
           }}
@@ -246,8 +261,8 @@ const KalshiPrototypeVendorTermsPage = ({
           testID={KalshiPrototypeTermsSelectorsIDs.CONTAINER}
         >
           <TitleStandard
-            title={copy.title}
-            bottomLabel={copy.body}
+            title={isCatchUp ? copy.catchUp.title : copy.title}
+            bottomLabel={isCatchUp ? copy.catchUp.body : copy.body}
             twClassName="px-4 pt-2 pb-4"
           />
 
@@ -283,7 +298,7 @@ const KalshiPrototypeVendorTermsPage = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Start}
             twClassName="mx-4 mt-4 gap-3"
-            onLayout={handleConsentRowLayout}
+            onLayout={isCatchUp ? undefined : handleConsentRowLayout}
             testID={KalshiPrototypeTermsSelectorsIDs.CONSENT_ROW}
           >
             <Checkbox
@@ -317,6 +332,43 @@ const KalshiPrototypeVendorTermsPage = ({
               </Text>
             </Box>
           </Box>
+
+          {isCatchUp ? (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                twClassName="px-4 pb-2 pt-6"
+              >
+                {copy.catchUp.metamaskGroupTitle}
+              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                twClassName="mx-4 gap-3"
+                onLayout={handleConsentRowLayout}
+              >
+                <Checkbox
+                  ref={sharingCheckboxRef}
+                  isSelected={hasSharingConsent}
+                  onChange={setHasSharingConsent}
+                  testID={
+                    KalshiPrototypeTermsSelectorsIDs.SHARING_CONSENT_CHECKBOX
+                  }
+                />
+                <Box twClassName="flex-1">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    onPress={toggleSharingConsent}
+                    suppressHighlighting
+                  >
+                    {copy.catchUp.sharingConsent}
+                  </Text>
+                </Box>
+              </Box>
+            </>
+          ) : null}
         </ScrollView>
 
         <Box twClassName="gap-4 border-t border-muted px-4 pb-2 pt-4">
@@ -339,7 +391,7 @@ const KalshiPrototypeVendorTermsPage = ({
           <CrossfadeButton
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!hasSocureConsent}
+            isDisabled={!hasAllConsents}
             isLoading={isAdvancing}
             onPress={handleAgree}
             label={ctaLabel}

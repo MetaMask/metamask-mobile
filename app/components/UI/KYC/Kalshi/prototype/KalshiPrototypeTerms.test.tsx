@@ -11,11 +11,15 @@ import {
   PROTOTYPE_SOCURE_LINKS,
 } from './prototypeConstants';
 
-const renderPage = async () => {
+const renderPage = async ({ isCatchUp = false } = {}) => {
   const onAccepted = jest.fn().mockResolvedValue(true);
   const onBack = jest.fn();
   const screen = renderWithProvider(
-    <KalshiPrototypeVendorTerms onAccepted={onAccepted} onBack={onBack} />,
+    <KalshiPrototypeVendorTerms
+      onAccepted={onAccepted}
+      onBack={onBack}
+      isCatchUp={isCatchUp}
+    />,
   );
   await screen.findByTestId(KalshiPrototypeTermsSelectorsIDs.VENDOR_PAGE);
   return { ...screen, onAccepted, onBack };
@@ -108,5 +112,38 @@ describe('KalshiPrototypeVendorTerms', () => {
     fireEvent.press(getByTestId(KalshiPrototypeTermsSelectorsIDs.BACK_BUTTON));
 
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('for a returning UKYC user', () => {
+    it('shows the catch-up copy without a step count', async () => {
+      const { getByText, queryByTestId } = await renderPage({
+        isCatchUp: true,
+      });
+
+      expect(getByText("Agree to Kalshi's terms")).toBeOnTheScreen();
+      expect(
+        queryByTestId(KalshiPrototypeTermsSelectorsIDs.STEP_INDICATOR),
+      ).toBeNull();
+    });
+
+    it('keeps Agree and continue off until both boxes are ticked', async () => {
+      const { getByTestId } = await renderPage({ isCatchUp: true });
+      const button = () =>
+        getByTestId(KalshiPrototypeTermsSelectorsIDs.AGREE_BUTTON);
+
+      fireEvent(
+        getByTestId(KalshiPrototypeTermsSelectorsIDs.CONSENT_CHECKBOX),
+        'change',
+        true,
+      );
+      expect(button()).toBeDisabled();
+
+      fireEvent(
+        getByTestId(KalshiPrototypeTermsSelectorsIDs.SHARING_CONSENT_CHECKBOX),
+        'change',
+        true,
+      );
+      expect(button()).toBeEnabled();
+    });
   });
 });
