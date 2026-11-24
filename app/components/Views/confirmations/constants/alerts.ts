@@ -25,6 +25,8 @@ export enum AlertKeys {
   PendingTransaction = 'pending_transaction',
   PerpsDepositMinimum = 'perps_deposit_minimum',
   HeadlessBuyError = 'headless_buy_error',
+  LighterAccountLookupPending = 'lighter_account_lookup_pending',
+  LighterAccountLookupFailed = 'lighter_account_lookup_failed',
   MMPayHardwareAccount = 'mmpay_hardware_account',
   DepositLimit = 'deposit_limit',
   SignedOrSubmitted = 'signed_or_submitted',

@@ -524,4 +524,169 @@ describe('useSyncPerpsLighterTransactionType', () => {
 
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
+
+  it('marks lookup as pending during account verification', async () => {
+    let resolveLookup: (response: unknown) => void = () => undefined;
+    global.fetch = jest.fn().mockImplementation(
+      async () =>
+        new Promise((resolve) => {
+          resolveLookup = resolve;
+        }),
+    );
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      hyperliquidDeposit as never,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+
+    renderSync({
+      destination: 'lighter',
+      source: 'hyperliquid',
+    });
+
+    const { result } = renderHook(() =>
+      useLighterAccountLookupState(hyperliquidDeposit.id),
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.isPending).toBe(true);
+    });
+    expect(result.current.error).toBeUndefined();
+
+    resolveLookup({
+      ok: true,
+      status: 200,
+      json: async () => ({ code: 200, sub_accounts: [] }),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isPending).toBe(false);
+    });
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it('marks lookup as failed when verification rejects', async () => {
+    let rejectLookup: (error: Error) => void = () => undefined;
+    global.fetch = jest.fn().mockImplementation(
+      async () =>
+        new Promise((_resolve, reject) => {
+          rejectLookup = reject;
+        }),
+    );
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      hyperliquidDeposit as never,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+
+    renderSync({
+      destination: 'lighter',
+      source: 'hyperliquid',
+    });
+
+    const { result } = renderHook(() =>
+      useLighterAccountLookupState(hyperliquidDeposit.id),
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.isPending).toBe(true);
+    });
+
+    const lookupError = new Error('Network timeout');
+    rejectLookup(lookupError);
+
+    await waitFor(() => {
+      expect(result.current.isPending).toBe(false);
+    });
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.message).toBe('Network timeout');
+  });
+
+  it('does not call addTransaction when unmounted before lookup finishes', async () => {
+    let resolveLookup: (response: unknown) => void = () => undefined;
+    global.fetch = jest.fn().mockImplementation(
+      async () =>
+        new Promise((resolve) => {
+          resolveLookup = resolve;
+        }),
+    );
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      hyperliquidDeposit as never,
+    );
+
+    const addTransactionCallsBefore = mockAddTransaction.mock.calls.length;
+
+    const { unmount } = renderSync({
+      destination: 'lighter',
+      source: 'hyperliquid',
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+
+    resolveLookup({
+      ok: true,
+      status: 200,
+      json: async () => ({ code: 200, sub_accounts: [] }),
+    });
+
+    await waitFor(() => {
+      expect(Logger.log).toHaveBeenCalledWith('Lighter account lookup', {
+        address: USER,
+        exists: false,
+      });
+    });
+
+    expect(mockAddTransaction).toHaveBeenCalledTimes(addTransactionCallsBefore);
+    expect(mockRejectRequest).not.toHaveBeenCalled();
+  });
+
+  it('marks lookup as failed when replacement fails', async () => {
+    setEnteredAmount(hyperliquidDeposit.id, '2000000');
+    mockFindNetworkClientId.mockReturnValue('mainnet');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ code: 200, sub_accounts: [] }),
+    });
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      hyperliquidDeposit as never,
+    );
+    mockAddTransaction.mockRejectedValueOnce(new Error('Network error'));
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+
+    renderSync({
+      destination: 'lighter',
+      source: 'hyperliquid',
+    });
+
+    const { result } = renderHook(() =>
+      useLighterAccountLookupState(hyperliquidDeposit.id),
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.isPending).toBe(true);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isPending).toBe(false);
+    });
+
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.message).toBe('Network error');
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Network error' }),
+      'Failed to recreate the Perps transaction',
+    );
+  });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import {
   CHAIN_IDS,
   TransactionMeta,
@@ -24,6 +24,104 @@ import { perpsTransactionTypeForSelection } from '../../utils/perps-lighter-tran
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const RECREATE_ERROR = 'Failed to recreate the Perps transaction';
+
+/**
+ * Manages Lighter account lookup state for confirmation blocking.
+ */
+class LighterLookupState {
+  private static readonly listeners = new Set<() => void>();
+  private static transactionId: string | undefined = undefined;
+  private static isPending = false;
+  private static error: Error | undefined = undefined;
+
+  static getState(): {
+    transactionId: string | undefined;
+    isPending: boolean;
+    error: Error | undefined;
+  } {
+    return {
+      transactionId: LighterLookupState.transactionId,
+      isPending: LighterLookupState.isPending,
+      error: LighterLookupState.error,
+    };
+  }
+
+  static setPending(transactionId: string): void {
+    LighterLookupState.transactionId = transactionId;
+    LighterLookupState.isPending = true;
+    LighterLookupState.error = undefined;
+    LighterLookupState.notifyListeners();
+  }
+
+  static setSuccess(transactionId: string): void {
+    if (LighterLookupState.transactionId === transactionId) {
+      LighterLookupState.isPending = false;
+      LighterLookupState.error = undefined;
+      LighterLookupState.notifyListeners();
+    }
+  }
+
+  static setError(transactionId: string, error: Error): void {
+    if (LighterLookupState.transactionId === transactionId) {
+      LighterLookupState.isPending = false;
+      LighterLookupState.error = error;
+      LighterLookupState.notifyListeners();
+    }
+  }
+
+  static clear(transactionId: string): void {
+    if (LighterLookupState.transactionId === transactionId) {
+      LighterLookupState.transactionId = undefined;
+      LighterLookupState.isPending = false;
+      LighterLookupState.error = undefined;
+      LighterLookupState.notifyListeners();
+    }
+  }
+
+  static subscribe(listener: () => void): () => void {
+    LighterLookupState.listeners.add(listener);
+    return () => {
+      LighterLookupState.listeners.delete(listener);
+    };
+  }
+
+  private static notifyListeners(): void {
+    LighterLookupState.listeners.forEach((listener) => listener());
+  }
+}
+
+/**
+ * Hook to access Lighter account lookup state for the given transaction.
+ *
+ * @param transactionId - Transaction ID to check state for.
+ * @returns Lookup state for the transaction.
+ */
+export function useLighterAccountLookupState(
+  transactionId: string | undefined,
+): {
+  isPending: boolean;
+  error: Error | undefined;
+} {
+  const [, forceUpdate] = useState({});
+
+  useEffect(() => {
+    const unsubscribe = LighterLookupState.subscribe(() => {
+      forceUpdate({});
+    });
+    return unsubscribe;
+  }, []);
+
+  const state = LighterLookupState.getState();
+
+  if (state.transactionId !== transactionId) {
+    return { isPending: false, error: undefined };
+  }
+
+  return {
+    isPending: state.isPending,
+    error: state.error,
+  };
+}
 
 function isLighterPerpsDeposit(type: TransactionType | string | undefined) {
   return (
@@ -174,9 +272,23 @@ function depositMainnetUsdcWhenUnregistered({
     return;
   }
 
+  LighterLookupState.setPending(transactionMeta.id);
+
   const onLookup = async (exists: boolean) => {
+    // Cancelled by unmount or dependency change
+    if (lookupGenerationRef.current !== generation) {
+      return undefined;
+    }
+
     Logger.log('Lighter account lookup', { address: from, exists });
-    if (lookupGenerationRef.current !== generation || exists) {
+
+    if (exists) {
+      LighterLookupState.setSuccess(transactionMeta.id);
+      return undefined;
+    }
+
+    // Double-check generation before attempting replacement
+    if (lookupGenerationRef.current !== generation) {
       return undefined;
     }
 
@@ -185,18 +297,40 @@ function depositMainnetUsdcWhenUnregistered({
       nextType,
       snapshotRef,
       transactionMeta,
-    }).catch((error: unknown) => {
-      releaseAppliedKey(appliedKeyRef, requestKey);
-      Logger.error(error as Error, RECREATE_ERROR);
-    });
+    })
+      .then(() => {
+        // Only update state if still the current generation
+        if (lookupGenerationRef.current === generation) {
+          LighterLookupState.setSuccess(transactionMeta.id);
+        }
+      })
+      .catch((error: unknown) => {
+        // Only update state if still the current generation
+        if (lookupGenerationRef.current === generation) {
+          releaseAppliedKey(appliedKeyRef, requestKey);
+          const errorMessage =
+            error instanceof Error ? error.message : RECREATE_ERROR;
+          LighterLookupState.setError(
+            transactionMeta.id,
+            error instanceof Error ? error : new Error(errorMessage),
+          );
+        }
+        Logger.error(error as Error, RECREATE_ERROR);
+      });
   };
 
   const onLookupError = (error: unknown) => {
+    // Cancelled by unmount or dependency change
     if (lookupGenerationRef.current !== generation) {
       return;
     }
+
     releaseAppliedKey(appliedKeyRef, requestKey);
-    Logger.error(error as Error, 'Failed to look up the Lighter account');
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to look up the Lighter account';
+    const lookupError = error instanceof Error ? error : new Error(errorMessage);
+    LighterLookupState.setError(transactionMeta.id, lookupError);
+    Logger.error(lookupError, 'Failed to look up the Lighter account');
   };
 
   userHasLighterAccount(from).then(onLookup, onLookupError);
@@ -299,6 +433,7 @@ export function useSyncPerpsLighterTransactionType({
       // Drop a Lighter lookup still in flight so it cannot write after the user chose the current type.
       appliedKeyRef.current = undefined;
       lookupGenerationRef.current += 1;
+      LighterLookupState.clear(transactionId);
       return;
     }
 
@@ -330,5 +465,11 @@ export function useSyncPerpsLighterTransactionType({
       releaseAppliedKey(appliedKeyRef, requestKey);
       Logger.error(error as Error, RECREATE_ERROR);
     });
+
+    // Cleanup: clear lookup state on unmount or when dependencies change
+    return () => {
+      lookupGenerationRef.current += 1;
+      LighterLookupState.clear(transactionId);
+    };
   }, [currentType, destination, source, transactionId, transactionMeta]);
 }
