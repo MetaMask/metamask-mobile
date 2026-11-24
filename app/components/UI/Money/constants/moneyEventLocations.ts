@@ -4,7 +4,6 @@ export enum SCREEN_NAMES {
   TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
   ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
-  MONEY_ONBOARDING = 'money_onboarding',
   MONEY_SPLASH = 'money_splash',
   CARD_HOME = 'card_home',
   MONEY_DEPOSIT = 'money_deposit',
@@ -28,6 +27,7 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
+  MONEY_ESTIMATED_BALANCE_SHEET = 'money_estimated_balance_sheet',
   MONEY_MONTHLY_EARNINGS_INFO_SHEET = 'money_monthly_earnings_info_sheet',
   MONEY_LIFETIME_EARNINGS_INFO_SHEET = 'money_lifetime_earnings_info_sheet',
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
@@ -53,8 +53,7 @@ export enum COMPONENT_NAMES {
   // — Money Balance Summary —
   MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
-  // — Onboarding —
-  RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
+  // — Onboarding card —
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 

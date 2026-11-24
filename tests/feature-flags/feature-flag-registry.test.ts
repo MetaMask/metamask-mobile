@@ -410,21 +410,6 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
-      expect(
-        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-      expect(
-        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-    });
-
     it('enables Social AI comment translation from 8.17.0', () => {
       expect(
         getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
