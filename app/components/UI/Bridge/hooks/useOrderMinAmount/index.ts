@@ -30,10 +30,11 @@ function isValidRate(rate: number | undefined): rate is number {
 }
 
 function formatMinAmount(amount: BigNumber.Value, currency: string): string {
-  const currencyFractionDigits = getIntlNumberFormatter(I18n.locale, {
-    style: 'currency',
-    currency,
-  }).resolvedOptions().maximumFractionDigits;
+  const currencyFractionDigits =
+    getIntlNumberFormatter(I18n.locale, {
+      style: 'currency',
+      currency,
+    }).resolvedOptions().maximumFractionDigits ?? USD_CENT_DECIMALS;
   const roundedAmount = new BigNumber(amount).decimalPlaces(
     currencyFractionDigits,
     BigNumber.ROUND_HALF_UP,
