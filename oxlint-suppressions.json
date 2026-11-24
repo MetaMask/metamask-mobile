@@ -18491,9 +18491,6 @@
     }
   },
   "app/components/Views/TrendingView/tabs/CryptoTab.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
