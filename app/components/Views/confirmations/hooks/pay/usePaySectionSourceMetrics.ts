@@ -12,6 +12,7 @@ import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { useSectionTracking } from './useSectionTracking';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { getAddressAccountType } from '../../../../../util/address';
@@ -66,9 +67,10 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const isPayingAccountReady =
     !isMoneyAccountDeposit || Boolean(accountOverride);
 

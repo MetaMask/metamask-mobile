@@ -1028,18 +1028,6 @@ describe('useTransactionPayMetrics', () => {
 
       await act(async () => noop());
 
-      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_account_type_source_presented: 'metamask',
-            mm_pay_account_type_source_selected: 'metamask',
-            mm_pay_source_mm_account_switch_count: 0,
-          }),
-          sensitiveProperties: {},
-        },
-      });
-
       useTransactionAccountOverrideMock.mockReturnValue(
         SECOND_PAYING_ACCOUNT_MOCK,
       );

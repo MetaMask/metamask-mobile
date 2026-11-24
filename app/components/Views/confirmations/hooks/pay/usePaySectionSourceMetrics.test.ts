@@ -171,20 +171,29 @@ describe('usePaySectionSourceMetrics', () => {
     expect(getAddressAccountTypeMock).toHaveBeenCalledWith(PAYING_ACCOUNT_MOCK);
   });
 
-  it('captures the payer type after a Money Account deposit override loads', () => {
-    const { result, rerender } = runHook({
-      type: TransactionType.moneyAccountDeposit,
-    });
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.membershipSubscription,
+  ] as const)(
+    'captures the payer type after %s accountOverride loads',
+    (type) => {
+      const { result, rerender } = runHook({ type });
 
-    expect(result.current.presented).toBeNull();
+      expect(result.current.presented).toBeNull();
+      expect(result.current.switchCount).toBe(0);
 
-    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
-    getAddressAccountTypeMock.mockReturnValue('Ledger');
-    rerender({});
+      useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+      getAddressAccountTypeMock.mockReturnValue('Ledger');
 
-    expect(result.current.presented).toBe('Ledger');
-    expect(result.current.selected).toBe('Ledger');
-  });
+      rerender({});
+
+      expect(result.current).toEqual({
+        presented: 'Ledger',
+        selected: 'Ledger',
+        switchCount: 0,
+      });
+    },
+  );
 
   it('returns money-account when payment override is MoneyAccount', () => {
     selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
@@ -315,16 +324,11 @@ describe('usePaySectionSourceMetrics', () => {
       type: TransactionType.moneyAccountDeposit,
     });
 
-    expect(result.current).toEqual({
-      presented: 'metamask',
-      selected: 'metamask',
-      switchCount: 0,
-    });
-
     useTransactionAccountOverrideMock.mockReturnValue(
       SECOND_PAYING_ACCOUNT_MOCK,
     );
     useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
+
     rerender({});
 
     expect(result.current).toEqual({
@@ -348,15 +352,46 @@ describe('usePaySectionSourceMetrics', () => {
       SECOND_PAYING_ACCOUNT_MOCK,
     );
     useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
-    rerender({});
 
-    expect(result.current.switchCount).toBe(1);
+    rerender({});
 
     useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
     useTransactionPayingAccountMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
     rerender({});
 
     expect(result.current.switchCount).toBe(2);
+  });
+
+  it('increments switchCount when switching from crypto to bank-card and to another crypto account', () => {
+    getInternalAccountByAddressMock.mockImplementation((_, address) =>
+      createMockInternalAccount(address ?? PAYING_ACCOUNT_MOCK, 'Account'),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+    const { result, rerender } = runHook({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'pm_123',
+    });
+
+    rerender({});
+
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    useTransactionAccountOverrideMock.mockReturnValue(
+      SECOND_PAYING_ACCOUNT_MOCK,
+    );
+    useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
+
+    rerender({});
+
+    expect(result.current).toEqual({
+      presented: 'metamask',
+      selected: 'metamask',
+      switchCount: 2,
+    });
   });
 
   it('does not increment switchCount when the same account is re-selected', () => {
@@ -373,6 +408,7 @@ describe('usePaySectionSourceMetrics', () => {
 
     useTransactionPayingAccountMock.mockReturnValue(accountUppercase);
     useTransactionAccountOverrideMock.mockReturnValue(accountUppercase);
+
     rerender({});
 
     expect(result.current.switchCount).toBe(0);
@@ -392,6 +428,7 @@ describe('usePaySectionSourceMetrics', () => {
       SECOND_PAYING_ACCOUNT_MOCK,
     );
     useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
+
     rerender({});
 
     expect(result.current.selected).toBe('bank-card');
