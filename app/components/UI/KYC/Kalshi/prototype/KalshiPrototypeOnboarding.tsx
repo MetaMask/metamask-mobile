@@ -17,7 +17,12 @@ import {
   type NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import KycPending from '../../Views/Status/KycPending';
@@ -100,11 +105,23 @@ const useRemountKeyWhenCovered = () => {
   return key;
 };
 
-/** A friendly dead end for a step the prototype has no view for. */
-const KalshiPrototypeMessage = ({ message }: { message: string }) => {
+/** A friendly dead end for a step the prototype has no view for, with a way back when given one. */
+const KalshiPrototypeMessage = ({
+  message,
+  onBack,
+}: {
+  message: string;
+  onBack?: () => void;
+}) => {
   const tw = useTailwind();
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
+      {onBack ? (
+        <HeaderStandard
+          onBack={onBack}
+          backButtonProps={{ testID: 'kalshi-prototype-message-back' }}
+        />
+      ) : null}
       <Box twClassName="flex-1 items-center justify-center px-4">
         <Text variant={TextVariant.BodyMd}>{message}</Text>
       </Box>
@@ -485,7 +502,10 @@ const KalshiPrototypeOnboarding = () => {
 
   if (!active) {
     return (
-      <KalshiPrototypeMessage message="[PROTO] Kalshi prototype is off. Turn it on from Developer Options." />
+      <KalshiPrototypeMessage
+        message="[PROTO] Kalshi prototype is off. Turn it on from Developer Options."
+        onBack={leave}
+      />
     );
   }
 
