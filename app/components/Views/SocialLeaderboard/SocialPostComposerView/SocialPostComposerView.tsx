@@ -523,8 +523,9 @@ const SocialPostComposerEditor: React.FC = () => {
       username: authorName,
       avatarUri: profile?.imageUrl,
       winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
+      verified: profile?.verified === true,
     }),
-    [authorName, profile?.imageUrl, profile?.profileId],
+    [authorName, profile?.imageUrl, profile?.profileId, profile?.verified],
   );
 
   // The preview maps itself inside ComposerPreview, so the analytics trade
@@ -668,6 +669,7 @@ const SocialPostComposerEditor: React.FC = () => {
             username: name,
             avatarUri,
             winRatePercent: null,
+            verified: profile?.verified === true,
           };
           const timestampMs = comment.timestamp * 1000;
           let item: SocialV1FeedItem;
@@ -800,6 +802,7 @@ const SocialPostComposerEditor: React.FC = () => {
     navigation,
     profile?.imageUrl,
     profile?.profileId,
+    profile?.verified,
     selectedPosition,
     textStore,
     trackInteraction,

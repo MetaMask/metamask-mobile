@@ -114,6 +114,9 @@ export const getPerpsMarketDetailsTabSelector = (tab: string) =>
 export const getPerpsLiveTradeRowSelector = (postId: string) =>
   `perps-home-live-trade-${postId}`;
 
+export const getPerpsLiveTradeVerifiedBadgeSelector = (postId: string) =>
+  `perps-home-live-trade-verified-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================

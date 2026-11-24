@@ -165,6 +165,32 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
   });
 
+  it('renders the verified badge when the trader is verified', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, verified: true }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the verified badge when the trader is not verified', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
+  });
+
   it('renders no name tag by default', () => {
     renderWithProvider(
       <SocialV1TraderRow

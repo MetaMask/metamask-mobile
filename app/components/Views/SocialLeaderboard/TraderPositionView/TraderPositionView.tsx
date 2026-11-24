@@ -113,6 +113,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { resolvePerpsSocialOrderSource } from '../../../UI/Perps/utils/perpsAnalyticsAttribution';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import { isProfileVerified } from '../../../UI/SocialFeed/utils/profileVerified';
 import {
   getPerpPositionDirection,
   isPerpPosition,
@@ -228,6 +229,7 @@ const TraderPositionView = () => {
     authorParams.imageUrl ?? authorProfile?.profile?.imageUrl ?? undefined;
   const traderAddress =
     authorParams.address ?? authorProfile?.profile?.address ?? '';
+  const isTraderVerified = isProfileVerified(authorProfile?.profile);
 
   const positionData = useTraderPositionData(
     displayPosition,
@@ -1037,6 +1039,7 @@ const TraderPositionView = () => {
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={authorProfileId}
+            isTraderVerified={isTraderVerified}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={
@@ -1057,6 +1060,7 @@ const TraderPositionView = () => {
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={authorProfileId}
+            isTraderVerified={isTraderVerified}
             symbol={symbol}
             pricePercentChange={displayPercentChange}
             activeTimePeriodLabel={periodLabel}
