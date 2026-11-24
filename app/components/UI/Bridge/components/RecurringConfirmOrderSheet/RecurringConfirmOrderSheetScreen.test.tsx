@@ -411,7 +411,15 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     );
     expect(
       recurringOrdersApiClient.prepareRecurringDelegation,
-    ).toHaveBeenCalledWith(MOCK_RECURRING_PREPARE_QUERY);
+    ).toHaveBeenCalledWith({
+      ...MOCK_RECURRING_PREPARE_QUERY,
+      priceRange: {
+        side: 'src',
+        currency: 'USD',
+        min: '1000',
+        max: '2000',
+      },
+    });
     expect(signLimitOrderDelegations).toHaveBeenCalledWith(
       prepareResponse.delegations,
     );
@@ -426,11 +434,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
         assetId: MOCK_RECURRING_PREPARE_QUERY.destAssetId,
       },
       priceTolerance: 3,
-      schedule: {
-        every: MOCK_RECURRING_PREPARE_QUERY.every,
-        unit: MOCK_RECURRING_PREPARE_QUERY.unit,
-        repeatCount: MOCK_RECURRING_PREPARE_QUERY.repeatCount,
-      },
+      schedule: MOCK_RECURRING_PREPARE_QUERY.schedule,
       priceRange: {
         side: 'src',
         currency: 'USD',
@@ -506,6 +510,17 @@ describe('RecurringConfirmOrderSheetScreen', () => {
           },
         }),
       );
+    });
+    expect(
+      recurringOrdersApiClient.prepareRecurringDelegation,
+    ).toHaveBeenCalledWith({
+      ...MOCK_RECURRING_PREPARE_QUERY,
+      priceRange: {
+        side: 'src',
+        currency: 'USD',
+        min: '1080',
+        max: '2160',
+      },
     });
   });
 

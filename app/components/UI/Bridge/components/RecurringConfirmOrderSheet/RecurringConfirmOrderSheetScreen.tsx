@@ -147,9 +147,13 @@ export const RecurringConfirmOrderSheetScreen = () => {
         recurring,
         getSelectedAccountByScope,
       });
+      const delegationRequest = {
+        ...delegationParams,
+        ...(usdPriceRange ? { priceRange: usdPriceRange } : {}),
+      };
       const preparedDelegations =
         await recurringOrdersApiClient.prepareRecurringDelegation(
-          delegationParams,
+          delegationRequest,
         );
       // The backend currently returns only the delegations needed to execute.
       // Recurring and limit orders use the same delegation shape, so sign every
@@ -170,11 +174,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
           assetId: delegationParams.destAssetId,
         },
         priceTolerance: Number(priceTolerance),
-        schedule: {
-          every: delegationParams.every,
-          unit: delegationParams.unit,
-          repeatCount: delegationParams.repeatCount,
-        },
+        schedule: delegationParams.schedule,
         ...(usdPriceRange ? { priceRange: usdPriceRange } : {}),
         delegations: signedDelegations,
       });

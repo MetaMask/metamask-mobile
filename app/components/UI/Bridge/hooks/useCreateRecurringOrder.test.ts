@@ -40,11 +40,7 @@ const request: CreateRecurringOrderRequest = {
     assetId: MOCK_RECURRING_PREPARE_QUERY.destAssetId,
   },
   priceTolerance: 3,
-  schedule: {
-    every: MOCK_RECURRING_PREPARE_QUERY.every,
-    unit: MOCK_RECURRING_PREPARE_QUERY.unit,
-    repeatCount: MOCK_RECURRING_PREPARE_QUERY.repeatCount,
-  },
+  schedule: MOCK_RECURRING_PREPARE_QUERY.schedule,
   delegations: createMockPrepareRecurringDelegationResponse(
     MOCK_RECURRING_PREPARE_QUERY,
   ).delegations,
