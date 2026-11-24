@@ -29,10 +29,18 @@ export const PROTOTYPE_CODE_CHECK_DELAY_MS = 400;
 /** The country the fakes answer with (ISO 3166-1 alpha-3). */
 export const PROTOTYPE_GEO_COUNTRY = 'USA';
 
-/** Scenarios the fake engine knows. Leg 1 wires the first two. */
+/**
+ * Scenarios the fake engine knows. Leg 1 wires the first two; the rest
+ * stage the Predictions status card's states.
+ */
 export const PROTOTYPE_SCENARIO_IDS = [
   'newUserHasMfa',
   'returningUkycUser',
+  'leftPartWay',
+  'stepUpRequired',
+  'verifying',
+  'cantVerify',
+  'verified',
 ] as const;
 
 export type PrototypeScenarioId = (typeof PROTOTYPE_SCENARIO_IDS)[number];
@@ -54,6 +62,31 @@ export const PROTOTYPE_SCENARIOS: Record<
     title: 'Returning UKYC user',
     description:
       'Already has an idOS identity: the catch-up consent, then the Kalshi email code, then Verified.',
+  },
+  leftPartWay: {
+    title: 'Left part way through',
+    description:
+      'Started the flow and left before Sumsub: the card resumes at the phone step.',
+  },
+  stepUpRequired: {
+    title: 'Step-up required',
+    description:
+      'Kalshi asks for Level 2: the card goes straight to the Sumsub step.',
+  },
+  verifying: {
+    title: 'Verifying',
+    description:
+      'The KYC is in and its review is pending. Resolve the review from here.',
+  },
+  cantVerify: {
+    title: "Can't verify",
+    description:
+      'The review was rejected: a static card that dismisses until the scenario resets.',
+  },
+  verified: {
+    title: 'Verified',
+    description:
+      'The review approved: a confirmation card that dismisses until the scenario resets.',
   },
 };
 
@@ -92,6 +125,11 @@ export const PROTOTYPE_COPY = {
       '[PROTO] Fake the Kalshi onboarding backend and open the prototype Predictions screen.',
     enter: 'Enter prototype',
     reset: 'Reset prototype',
+    resolveReview: {
+      title: '[PROTO] Resolve the pending review',
+      verified: 'Resolve review: verified',
+      cantVerify: "Resolve review: can't verify",
+    },
   },
   picker: {
     title: 'Kalshi prototype',
@@ -166,6 +204,38 @@ export const PROTOTYPE_COPY = {
     title: 'Sumsub (placeholder)',
     body: 'User enters their details in Sumsub’s environment',
     continue: 'Continue',
+  },
+  /**
+   * The Predictions status card's copy, one entry per card state. The entry
+   * card mirrors the Predict get-started banner's words (PRED-1484), the
+   * wait and done cards reuse George's waiting and done copy, and the rest
+   * is placeholder.
+   */
+  card: {
+    getStarted: {
+      title: 'Get started in a few steps',
+      description:
+        'Verify your identity and sign in with Kalshi to trade prediction markets.',
+    },
+    needMoreInfo: {
+      title: '[PROTO] Finish verifying your identity',
+      description:
+        '[PROTO] Pick up where you left off. Kalshi still needs a few details from you.',
+      action: 'Continue',
+    },
+    verifying: {
+      title: GEORGE_COPY.waiting.title,
+      description: GEORGE_COPY.waiting.body,
+    },
+    cantVerify: {
+      title: "[PROTO] We can't verify your identity",
+      description:
+        "[PROTO] Kalshi couldn't verify your identity this time. Reset the prototype to try again.",
+    },
+    verified: {
+      title: GEORGE_COPY.done.title,
+      description: GEORGE_COPY.done.body,
+    },
   },
 } as const;
 

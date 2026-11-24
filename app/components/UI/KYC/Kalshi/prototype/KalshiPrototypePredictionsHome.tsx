@@ -19,10 +19,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
-// Reuses the Predict get-started banner (PRED-1484) as the prototype's entry
-// card until Kalshi onboarding moves out of Predict.
-// eslint-disable-next-line import-x/no-restricted-paths
-import { GetStartedBanner } from '../../../PredictNext/views/PredictHome/internal/GetStartedBanner';
+import {
+  deriveKalshiPrototypeCardState,
+  dismissKalshiPrototypeCard,
+} from './prototypeRuntime';
+import { useKalshiPrototypeRuntime } from './useKalshiPrototype';
+import KalshiPrototypeStatusCard from './KalshiPrototypeStatusCard';
 import { KalshiPrototypePredictionsHomeSelectorsIDs } from './KalshiPrototypePredictionsHome.testIds';
 
 /** The dummy event cards below the get-started card. Static on purpose. */
@@ -100,15 +102,20 @@ const EventCard = ({
 
 /**
  * The prototype's start screen: the scaled-back Predictions main view from
- * the dev-handover design. The get-started card is the real PRED-1484
- * banner; the sections are static dummy data.
+ * the dev-handover design. The status card shows where the Kalshi
+ * verification stands and continues the flow from there; the sections are
+ * static dummy data.
  *
  * @returns The screen.
  */
 const KalshiPrototypePredictionsHome = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+  const runtime = useKalshiPrototypeRuntime();
+  const cardState = deriveKalshiPrototypeCardState(runtime.script);
+  // The entry card hides for this visit; the terminal states' dismissal
+  // lives in the runtime, until the scenario resets.
+  const [isEntryCardDismissed, setIsEntryCardDismissed] = useState(false);
 
   const startFlow = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.KALSHI_PROTOTYPE_ONBOARDING);
@@ -129,10 +136,17 @@ const KalshiPrototypePredictionsHome = () => {
       />
       <ScrollView contentContainerStyle={tw.style('px-4 pb-6 gap-4')}>
         <Text variant={TextVariant.HeadingLg}>Predictions</Text>
-        {isBannerDismissed ? null : (
-          <GetStartedBanner
+        {runtime.cardDismissed ||
+        (cardState === 'getStarted' && isEntryCardDismissed) ? null : (
+          <KalshiPrototypeStatusCard
+            state={cardState}
             onPress={startFlow}
-            onDismiss={() => setIsBannerDismissed(true)}
+            onClose={
+              cardState === 'getStarted'
+                ? () => setIsEntryCardDismissed(true)
+                : dismissKalshiPrototypeCard
+            }
+            testID={KalshiPrototypePredictionsHomeSelectorsIDs.GET_STARTED_CARD}
           />
         )}
         <SectionHeader title="Trending" />

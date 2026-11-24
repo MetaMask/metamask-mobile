@@ -1,5 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
-import type { KycStep } from '@metamask/kyc-controller';
+import type { KycStep, KycStepStatus } from '@metamask/kyc-controller';
 import type { PrototypeScenarioId } from './prototypeConstants';
 import {
   acceptTerms,
@@ -35,6 +35,11 @@ export interface PrototypeRuntimeState {
   script: PrototypeScriptState | null;
   /** The fake Sumsub presentation is open. */
   sumsubOpen: boolean;
+  /**
+   * The Predictions status card was dismissed and stays hidden until the
+   * next scenario (or the reset) replaces the script.
+   */
+  cardDismissed: boolean;
 }
 
 const IDLE: PrototypeRuntimeState = {
@@ -42,6 +47,7 @@ const IDLE: PrototypeRuntimeState = {
   scenario: null,
   script: null,
   sumsubOpen: false,
+  cardDismissed: false,
 };
 
 let runtime: PrototypeRuntimeState = IDLE;
@@ -61,6 +67,50 @@ export const isKalshiPrototypeActive = (): boolean =>
   Boolean(__DEV__) && runtime.active;
 
 export const getKalshiPrototypeRuntime = (): PrototypeRuntimeState => runtime;
+
+/**
+ * What the Predictions status card shows, from the script the fake backend
+ * is walking.
+ */
+export type KalshiPrototypeCardState =
+  | 'getStarted'
+  | 'needMoreInfo'
+  | 'verifying'
+  | 'cantVerify'
+  | 'verified';
+
+/**
+ * The Predictions status card's state, from the script the fake backend is
+ * walking.
+ *
+ * - `getStarted` — no scenario armed yet; the card is the entry point.
+ * - `needMoreInfo` — the flow was started (or the step-up asks for Level 2)
+ *   and the identity provider has not reported a decision yet.
+ * - `verifying` — the KYC was submitted and its review is pending.
+ * - `cantVerify` — the review came back rejected: terminal, no way back in.
+ * - `verified` — the review approved.
+ *
+ * @param script - The fake script, or `null` before a scenario is armed.
+ * @returns The card state.
+ */
+export const deriveKalshiPrototypeCardState = (
+  script: PrototypeScriptState | null,
+): KalshiPrototypeCardState => {
+  if (!script) {
+    return 'getStarted';
+  }
+  if (script.vendor.step === 'decision') {
+    switch (script.vendor.status) {
+      case 'approved':
+        return 'verified';
+      case 'rejected':
+        return 'cantVerify';
+      default:
+        return 'verifying';
+    }
+  }
+  return 'needMoreInfo';
+};
 
 export const subscribeToKalshiPrototype = (listener: () => void) => {
   listeners.add(listener);
@@ -118,6 +168,7 @@ export const activateKalshiPrototypeScenario = (
     scenario,
     script: enterScenario(scenario),
     sumsubOpen: false,
+    cardDismissed: false,
   });
 };
 
@@ -133,6 +184,40 @@ export const resetKalshiPrototype = () => {
   settlePending();
   setRuntime(IDLE);
   removePrototypeBackend();
+};
+
+/**
+ * Hides the Predictions status card until the next scenario (or the reset)
+ * replaces the script.
+ */
+export const dismissKalshiPrototypeCard = () => {
+  setRuntime({ ...runtime, cardDismissed: true });
+};
+
+/**
+ * The Developer Options control settles a pending review the way kyc-api
+ * would answer its next poll. No-op while no review is pending.
+ *
+ * @param outcome - What the review settles on.
+ */
+export const resolveKalshiPrototypeDecision = (
+  outcome: Extract<KycStepStatus, 'approved' | 'rejected'>,
+) => {
+  const script = runtime.script;
+  if (
+    !script ||
+    script.vendor.step !== 'decision' ||
+    script.vendor.status !== 'pending'
+  ) {
+    return;
+  }
+  setRuntime({
+    ...runtime,
+    script: {
+      ...script,
+      vendor: { ...script.vendor, status: outcome },
+    },
+  });
 };
 
 /** The Sumsub presentation's Continue. */

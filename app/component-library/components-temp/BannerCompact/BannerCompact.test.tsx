@@ -90,6 +90,7 @@ describe('BannerCompact', () => {
     const onPress = jest.fn();
     const { getByTestId } = renderBanner({
       testID: 'my-banner',
+      thumbnail: { uri: 'https://example.com/thumbnail.png' },
       actionLabel: ACTION,
       onPress,
       onClose: jest.fn(),

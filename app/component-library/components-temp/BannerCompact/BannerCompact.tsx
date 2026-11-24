@@ -72,20 +72,22 @@ const RowContent = ({
   actionTestID,
 }: RowContentProps) => (
   <>
-    <Box
-      twClassName={`h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden ${THUMBNAIL_RADIUS_CLASSES[thumbnailShape]}`}
-      testID={thumbnailTestID}
-    >
-      {thumbnail === undefined ? null : isImageSource(thumbnail) ? (
-        <Image
-          source={thumbnail}
-          style={{ width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE }}
-          resizeMode="contain"
-        />
-      ) : (
-        thumbnail
-      )}
-    </Box>
+    {thumbnail === undefined ? null : (
+      <Box
+        twClassName={`h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden ${THUMBNAIL_RADIUS_CLASSES[thumbnailShape]}`}
+        testID={thumbnailTestID}
+      >
+        {isImageSource(thumbnail) ? (
+          <Image
+            source={thumbnail}
+            style={{ width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE }}
+            resizeMode="contain"
+          />
+        ) : (
+          thumbnail
+        )}
+      </Box>
+    )}
     <Box twClassName="flex-1 gap-0.5">
       {/* pr-8 keeps the title clear of the close button over its row. */}
       <Text
