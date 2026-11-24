@@ -1,5 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
+import ThemeProvider from '../../../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 import PositionSheetFooter, {
@@ -7,6 +11,8 @@ import PositionSheetFooter, {
 } from './PositionSheetFooter';
 
 jest.mock('../../../../../util/haptics');
+
+const mockStore = configureMockStore();
 
 const buildProps = (
   overrides: Partial<PositionSheetFooterProps> = {},
@@ -27,6 +33,19 @@ describe('PositionSheetFooter', () => {
   });
 
   describe('another trader’s open position', () => {
+    it('omits Copy trade when the viewer is in the UK', () => {
+      render(<PositionSheetFooter {...buildProps({ showCopyTrade: false })} />);
+
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+    });
+
     it('offers Copy trade and no spot buttons', () => {
       render(<PositionSheetFooter {...buildProps()} />);
 
@@ -195,5 +214,36 @@ describe('PositionSheetFooter', () => {
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.SELL_BUTTON),
       ).toBeNull();
     });
+  });
+
+  describe('perp Long and Short fills', () => {
+    const renderPerpFooter = (appTheme: 'light' | 'dark') => {
+      const store = mockStore({ user: { appTheme } });
+
+      return render(
+        <Provider store={store}>
+          <ThemeProvider>
+            <PositionSheetFooter
+              {...buildProps({ isOwnPost: true, isPerp: true })}
+            />
+          </ThemeProvider>
+        </Provider>,
+      );
+    };
+
+    it.each(['light', 'dark'] as const)(
+      'fills Long and Short with the solid Perps palette in %s mode',
+      (appTheme) => {
+        renderPerpFooter(appTheme);
+        const palette = appTheme === 'light' ? lightTheme : darkTheme;
+
+        expect(
+          screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+        ).toHaveStyle({ backgroundColor: palette.colors.success.default });
+        expect(
+          screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHORT_BUTTON),
+        ).toHaveStyle({ backgroundColor: palette.colors.error.default });
+      },
+    );
   });
 });

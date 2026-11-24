@@ -304,8 +304,8 @@ const extractRewardsProperties = (
   _urlParams: UrlParamValues,
   _sensitiveProps: Record<string, string>,
 ): void => {
-  // REWARDS route may have referral or other non-sensitive parameters
-  // Currently no specific properties to extract
+  // REWARDS route has no sensitive query parameters to extract.
+  // Money referral codes use `ref` → `referral_code` on the main event.
 };
 
 /**
@@ -635,6 +635,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_CONNECT;
     case ACTIONS.MMSDK:
       return DeepLinkRoute.SDK_MMSDK;
+    case ACTIONS.KYC:
     case ACTIONS.MONEY:
       return DeepLinkRoute.MONEY;
     case ACTIONS.MONEY_ACCOUNT_DEPOSIT:
@@ -724,6 +725,7 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.NFT;
       case 'agentic-cli':
         return DeepLinkRoute.AGENTIC_CLI;
+      case 'kyc':
       case 'money':
         return DeepLinkRoute.MONEY;
       case 'money-account-deposit':
@@ -793,7 +795,6 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_campaign: context.urlParams.utm_campaign,
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
-      referral: context.urlParams.referral,
       referral_code: parseMoneyReferralCode(context.urlParams.ref) ?? undefined,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })

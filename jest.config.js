@@ -56,6 +56,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'd3-transition',
   'internmap',
   'lodash-es',
+  // nock 15.x is ESM-only ("type": "module"), and so are its @mswjs/interceptors
+  // runtime dependencies; Jest must transpile all of them for require().
+  'nock',
+  '@mswjs/interceptors',
+  '@open-draft/until',
+  'rettime',
   'react-native-wagmi-charts',
   'react-native-nitro-modules',
   '@notifee',
@@ -97,6 +103,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/eth-block-tracker',
   '@metamask/eth-json-rpc-middleware',
   '@metamask/eth-json-rpc-provider',
+  '@metamask/eth-sig-util',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
@@ -110,11 +117,13 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // 6.x ships ESM-only under dist/*.js.
   '@metamask/gator-permissions-controller',
   '@metamask/keyring-controller',
+  '@metamask/key-tree',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
   // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
+  '@metamask/money-account-lifecycle-controller',
   // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).
   '@metamask/money-account-controller',
   '@metamask/money-account-api-data-service',
@@ -174,6 +183,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
+  '@metamask/sample-controllers',
+  '@metamask/multichain-api-middleware',
+  '@open-rpc/.*',
+  '@metamask/json-rpc-engine',
+  '@metamask/json-rpc-middleware-stream',
   '@metamask/eip1193-permission-middleware',
   '@metamask/ai-controllers',
   '@metamask/app-metadata-controller',

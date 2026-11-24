@@ -24,6 +24,10 @@ import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import {
+  PREDICT_DETAILS_CONTENT_SKELETON,
+  PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS,
+} from '../../components/PredictDetailsContentSkeleton/PredictDetailsContentSkeleton.testIds';
 const runAfterInteractionsCallbacks: (() => void)[] = [];
 const mockRunAfterInteractions = jest.spyOn(
   InteractionManager,
@@ -56,6 +60,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
   useIsFocused: jest.fn(() => true),
+}));
+
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
 }));
 
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
@@ -745,6 +756,7 @@ const findActionButtonByPrice = (price: number) =>
 describe('PredictMarketDetails', () => {
   beforeEach(() => {
     mockIsBuySheetOpen = false;
+    mockUseScreenTransitionComplete.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -885,6 +897,31 @@ describe('PredictMarketDetails', () => {
         screen.getByTestId(
           PredictMarketDetailsSelectorsIDs.DETAILS_HEADER_SKELETON_BACK_BUTTON,
         ),
+      ).toBeOnTheScreen();
+    });
+
+    it('holds the tab content back until the opening transition completes', () => {
+      mockUseScreenTransitionComplete.mockReturnValue(false);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(
+          `${PREDICT_DETAILS_CONTENT_SKELETON}${PREDICT_DETAILS_CONTENT_SKELETON_TEST_IDS.LINE_1}`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
     });
   });

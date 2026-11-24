@@ -34,7 +34,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -61,7 +61,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -86,7 +86,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -108,7 +108,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded={false}
+        isFtueRedirectNeeded={false}
       />,
     );
 
@@ -133,7 +133,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -156,7 +156,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
         privacyMode
       />,
     );
@@ -181,7 +181,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -204,7 +204,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -228,7 +228,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={jest.fn()}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 
@@ -253,7 +253,7 @@ describe('EarnMoneyAccountRow', () => {
       <EarnMoneyAccountRow
         item={item}
         onPress={onPress}
-        isOnboardingRedirectNeeded
+        isFtueRedirectNeeded
       />,
     );
 

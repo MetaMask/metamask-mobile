@@ -1,11 +1,7 @@
 import {
-  AvatarAccount,
-  AvatarAccountSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  Checkbox,
   Icon,
   IconColor,
   IconName,
@@ -15,18 +11,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
-import React, { useCallback, useEffect, useState } from 'react';
-import { AccessibilityInfo, Pressable, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts';
+import SocialAccountSectionList from '../../shared/SocialAccountSectionList';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
+import { getProfileSaveErrorCopy } from '../errors/profileApiErrorMessageKeys';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
@@ -43,13 +39,15 @@ const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
 const ManageProfileLinkedAccountView: React.FC = () => {
   const accounts = useLinkableSocialAccounts();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const avatarAccountType = useSelector(selectAvatarAccountType);
-  const avatarVariant = getAvatarAccountVariant(avatarAccountType);
-  const { isControllerBacked, linkedAddresses, updateProfile } =
+  const { isControllerBacked, profile, linkedAddresses, updateProfile } =
     useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const accountsRef = useRef(accounts);
+  const profileRef = useRef(profile);
+  accountsRef.current = accounts;
+  profileRef.current = profile;
 
   useEffect(() => {
     if (!errorMessage) {
@@ -71,8 +69,12 @@ const ManageProfileLinkedAccountView: React.FC = () => {
     : selectedAccount?.id;
 
   const handleAccountPress = useCallback(
-    async (nextLinkedAddresses: CaipAccountId[]): Promise<void> => {
-      if (!isControllerBacked) {
+    async (accountId: string): Promise<void> => {
+      const currentProfile = profileRef.current;
+      const account = accountsRef.current.find(
+        (candidate) => candidate.id === accountId,
+      );
+      if (!isControllerBacked || !currentProfile || !account) {
         return;
       }
 
@@ -80,11 +82,12 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       setErrorMessage(null);
 
       try {
-        await updateProfile({ linked_addresses: nextLinkedAddresses });
+        await updateProfile({ linked_addresses: account.linkedAddresses });
         trackProfileEdited();
       } catch (error) {
         setErrorMessage(
           getLinkedAccountUpdateError(error) ??
+            getProfileSaveErrorCopy(error) ??
             strings('social_leaderboard.manage_profile.save_error'),
         );
       } finally {
@@ -102,63 +105,16 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       backTestID={ManageProfileLinkedAccountSelectorsIDs.BACK_BUTTON}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Box twClassName="mx-4 mt-2 bg-muted rounded-2xl overflow-hidden">
-          {accounts.map((account, index) => {
-            const isSelected = selectedAccountId === account.id;
-
-            return (
-              <Pressable
-                key={account.id}
-                accessibilityRole="button"
-                disabled={!isControllerBacked || isUpdating}
-                onPress={() => handleAccountPress(account.linkedAddresses)}
-                testID={`${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName={`px-4 py-3 ${
-                    index > 0 ? 'border-t border-muted' : ''
-                  }`}
-                >
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="flex-1 min-w-0 mr-3"
-                    gap={3}
-                  >
-                    <AvatarAccount
-                      address={account.address}
-                      size={AvatarAccountSize.Md}
-                      variant={avatarVariant}
-                    />
-                    <Box twClassName="flex-1 min-w-0">
-                      <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-                        {account.name}
-                      </Text>
-                      {account.balanceLabel ? (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.TextAlternative}
-                          numberOfLines={1}
-                        >
-                          {account.balanceLabel}
-                        </Text>
-                      ) : null}
-                    </Box>
-                  </Box>
-                  <Checkbox
-                    isSelected={isSelected}
-                    pointerEvents="none"
-                    onChange={() => {
-                      void handleAccountPress(account.linkedAddresses);
-                    }}
-                  />
-                </Box>
-              </Pressable>
-            );
-          })}
+        <Box twClassName="mt-2">
+          <SocialAccountSectionList
+            accounts={accounts}
+            disabled={!isControllerBacked || !profile || isUpdating}
+            onSelect={(account) => {
+              void handleAccountPress(account.id);
+            }}
+            rowTestIdPrefix={ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}
+            selectedAccountId={selectedAccountId}
+          />
         </Box>
         {errorMessage ? (
           <Text

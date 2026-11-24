@@ -65,6 +65,38 @@ describe('Predict UI Slots v1 contracts', () => {
     expect(result).toEqual(reference);
   });
 
+  it('parses row icon names on event and series items', () => {
+    const reference = makeReference([
+      { ...event, iconName: 'Football' },
+      { ...series, iconName: 'Trophy' },
+    ]);
+
+    const result = parseReference?.(reference);
+
+    expect(result).toEqual(reference);
+  });
+
+  it('parses a well-formed icon name this build does not ship', () => {
+    const reference = makeReference([{ ...event, iconName: 'FutureIcon' }]);
+
+    const result = parseReference?.(reference);
+
+    expect(result).toEqual(reference);
+  });
+
+  it.each([
+    ['empty icon name', ''],
+    ['icon name with spaces', 'Soccer Ball'],
+    ['icon name with punctuation', 'soccer-ball'],
+    ['icon name starting with a digit', '1Ball'],
+    ['oversized icon name', `A${'b'.repeat(64)}`],
+    ['non-string icon name', 7],
+  ])('rejects an %s', (_name, iconName) => {
+    expect(() =>
+      parseReference?.(makeReference([{ ...event, iconName }])),
+    ).toThrow();
+  });
+
   it.each([
     ['reference id', { ...makeReference(), id: 'featured' }],
     [

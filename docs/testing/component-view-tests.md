@@ -479,6 +479,27 @@ Alternatively, set these fields manually in `engine.backgroundState.BridgeContro
 
 Also ensure remote feature flags enable Bridge for the target chain(s) via `RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2`.
 
+#### Perps: two-exchange presets
+
+`perpsTwoExchangeState(scenario)` (`tests/component-view/presets/perpsTwoExchangePresets.ts`) returns `{ overrides, streamOverrides }` for a user with Hyperliquid and Lighter both enabled. Spread it into a perps renderer and call `withLighterBuildEnabled()` in the describe block.
+
+```typescript
+describe('my two-exchange view', () => {
+  withLighterBuildEnabled();
+
+  it('renders with both exchanges funded', () => {
+    renderPerpsHomeView(perpsTwoExchangeState('bothFunded'));
+  });
+});
+```
+
+- `bothFunded`: Hyperliquid 100, Lighter 50.
+- `oneFunded`: Hyperliquid 100, Lighter 0.
+- `sameMarketOnBoth`: both funded, ETH listed on both exchanges, ETH position on Lighter.
+- `lighterDown`: Hyperliquid 100, no Lighter balance or markets.
+
+The scenarios are synthetic two-exchange fixtures, not snapshots of what the installed `perps-controller` emits. They use fields it supports (per-exchange `perpsBalances` plus a combined account) and have no per-exchange availability metadata yet. When the package ships it (core#11461, TAT-4392), `yarn lint:tsc` fails on a marked line in the preset file so the scenarios get updated.
+
 #### When no renderer exists for the view yet
 
 Create one. Pattern (copy from `tests/component-view/renderers/bridge.ts`):
@@ -741,6 +762,8 @@ All HTTP API mocks for component view tests live under `tests/component-view/api
 - A **clear** function (e.g. `clearTrendingApiMocks()`) to call in `afterEach`
 
 Shared nock lifecycle helpers (`clearAllNockMocks`, `disableNetConnect`, `teardownNock`) are in `api-mocking/nockHelpers.ts`. Callers that use global `fetch` (undici) are not always settled by a nock interceptor. Pass the same reply body to `stubFetchPath(origin, path, body)` from `api-mocking/fetchStub.ts` inside `setupXxxApiMock`, and call `restoreFetchPath` from `clearXxxApiMocks`. Do not add a per-feature `globalThis.fetch` spy. To **add a new API mock** for another view, add a file `api-mocking/<feature>.ts` following the pattern in `api-mocking/trending.ts` (mock data, `setupXxxApiMock`, `clearXxxApiMocks` using `nockHelpers`), and call setup/clear in the view test's `beforeEach`/`afterEach`.
+
+**Defaults and the net connect guard.** Net connect is blocked for every component-view test, and the guard (`app/util/test/netConnectGuard.js`, installed from `testSetupView.js`) fails a test whose app code makes an HTTP request no mock answers, even when app code swallows the rejection — nock reports the request at the emitter layer, so the failure does not depend on the app propagating the error. The guard also trips on `WebSocket`: nock's interceptors do not see Node's built-in WebSocket, so the setup replaces it with a stub that records every `wss://` construction and reports it as `Unmocked WebSocket: <url>`. Secondary requests a test does not assert on (token metadata, spot prices, charts, favicon `HEAD` checks, account transactions) are answered by the shared neutral mocks in `api-mocking/defaults.ts`, installed automatically by the setup. Because nock answers with the interceptor registered **first** for a host, every feature setup helper calls `installDefaultApiMocks()` as its **last** step — the reinstall moves the defaults behind the feature mocks registered before them. A new feature helper must keep that ordering: register its interceptors, then call `installDefaultApiMocks()`, and clear via `teardownNock()` in `afterEach` (which reinstalls the defaults). A test that really needs a WebSocket swaps the tripwire for the fake from `api-mocking/webSocket.ts` (`setupFakeWebSocket`/`clearFakeWebSocket`); there is no allowlist.
 
 **Example (trending):**
 

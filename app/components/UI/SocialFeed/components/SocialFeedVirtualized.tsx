@@ -11,6 +11,7 @@ import {
   type FlashListProps,
   type FlashListRef,
   type ListRenderItemInfo,
+  type ViewToken,
 } from '@shopify/flash-list';
 import React, {
   createContext,
@@ -24,6 +25,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type View, type ViewStyle } from 'react-native';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -40,6 +42,7 @@ import { useTheme } from '../../../../util/theme';
 import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
+import { SOCIAL_LIVE_FEED_MAX_PAGES } from '../data/socialFeedQueries';
 import { SOCIAL_FEED_REVEAL_BATCH_SIZE } from '../data/socialFeedRealtime';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
@@ -91,6 +94,13 @@ const LIST_DRAW_DISTANCE = {
 
 const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
 
+/**
+ * A bounded feed drops and refetches rows above the reader, so it keeps the
+ * reader's row in place once off the top. At the top, new posts still push
+ * the list down with their slide-in.
+ */
+const KEEP_VISIBLE_CONTENT_POSITION = {} as const;
+
 const FeedCellSlideDurationContext = createContext(FEED_ITEM_ENTRY_DURATION_MS);
 
 export const shouldSlideFeedCell = (
@@ -139,6 +149,43 @@ const NO_LIST_ITEMS: SocialFeedListItem[] = [];
 
 type SocialFeedFlashListProps = FlashListProps<SocialFeedListItem> & {
   ref?: React.Ref<FlashListRef<SocialFeedListItem>>;
+};
+
+/**
+ * A GIF only decodes while its row is actually on screen. FlashList's draw
+ * distance keeps extra rows mounted; those must not hold decoded frames.
+ */
+const GIF_VIEWABILITY_CONFIG = {
+  itemVisiblePercentThreshold: 1,
+  minimumViewTime: 32,
+};
+
+export const viewablePostIds = (
+  viewableItems: readonly ViewToken<SocialFeedListItem>[],
+): ReadonlySet<string> => {
+  const ids = new Set<string>();
+  for (const token of viewableItems) {
+    if (!token.isViewable || token.item.kind !== 'post') {
+      continue;
+    }
+    ids.add(token.item.post.id);
+  }
+  return ids;
+};
+
+const sameStringSet = (
+  left: ReadonlySet<string>,
+  right: ReadonlySet<string>,
+): boolean => {
+  if (left.size !== right.size) {
+    return false;
+  }
+  for (const id of left) {
+    if (!right.has(id)) {
+      return false;
+    }
+  }
+  return true;
 };
 
 const AnimatedFlashList = Animated.createAnimatedComponent(
@@ -211,12 +258,15 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   pendingPostsSurface,
   comparePosts,
   inlineRows = NO_INLINE_ROWS,
+  prepareRefresh,
   onRefresh,
   onListStateChange,
   performance,
   onScroll,
   enabled = true,
   refreshProgressViewOffset,
+  contentTopInset = 0,
+  pendingPostsTopOffset = 0,
   pageRef,
   onAuthorPress,
   onCopyTrade,
@@ -226,6 +276,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   scrollTestID,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
@@ -236,6 +287,17 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<FlashListRef<SocialFeedListItem>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [gifVisibleIds, setGifVisibleIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const onGifViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken<SocialFeedListItem>[] }) => {
+      const next = viewablePostIds(viewableItems);
+      setGifVisibleIds((current) =>
+        sameStringSet(current, next) ? current : next,
+      );
+    },
+  ).current;
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
@@ -265,16 +327,24 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [isPerformanceEnabled, performanceTab],
   );
 
+  // Only the global Live feed is bounded: other scopes stay short enough.
+  const maxPages =
+    scope === 'all' && profileId === undefined
+      ? SOCIAL_LIVE_FEED_MAX_PAGES
+      : undefined;
   const {
     posts,
     isLoading,
     isFetchingNextPage,
     loadMore,
+    hasPreviousPage = false,
+    loadPrevious,
     error,
     refresh,
     dataUpdatedAt,
     realtime: live,
   } = useSocialFeed(query, {
+    maxPages,
     enabled: isFocused && !isOffline && enabled,
     realtime,
     paused,
@@ -390,18 +460,26 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [],
   );
 
+  // Notify the host after the pages settle so it can leave a held empty
+  // state once the refreshed feed is the one on screen.
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    // The minimum overlaps the cache drop and the one reload. Starting it
+    // after prepareRefresh would hold the spinner for a second past that reload.
+    const minimumRefresh = waitForMinimumRefresh();
     try {
-      onRefresh?.();
+      if (prepareRefresh) {
+        await prepareRefresh();
+      }
       await Promise.all([
         enabled ? refreshWithPendingPosts() : undefined,
-        waitForMinimumRefresh(),
+        minimumRefresh,
       ]);
+      void onRefresh?.();
     } finally {
       setRefreshing(false);
     }
-  }, [enabled, onRefresh, refreshWithPendingPosts]);
+  }, [enabled, onRefresh, prepareRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {
@@ -473,6 +551,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
               viewerProfileId={viewerProfileId}
+              gifVisible={gifVisibleIds.has(item.post.id)}
             />
           );
         case 'inline':
@@ -503,6 +582,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       scheduleEntryDelay,
       state,
       viewerProfileId,
+      gifVisibleIds,
     ],
   );
 
@@ -511,6 +591,22 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     () => ({ paused, pendingNewCount }),
     [paused, pendingNewCount],
   );
+  const listContentStyle = useMemo(
+    () => [
+      tw.style('flex-grow', {
+        paddingBottom: 24 + floatingTabBarInset,
+      }),
+      contentTopInset > 0 ? { paddingTop: contentTopInset } : undefined,
+    ],
+    [contentTopInset, floatingTabBarInset, tw],
+  );
+  const pendingPostsOverlayStyle = useAnimatedStyle(() => {
+    const top =
+      typeof pendingPostsTopOffset === 'number'
+        ? pendingPostsTopOffset
+        : pendingPostsTopOffset.value;
+    return top > 0 ? { top } : {};
+  });
   const header = (
     <>
       {title ? (
@@ -554,16 +650,27 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               CellRendererComponent={FeedFlashListCell}
               getItemType={getSocialFeedListItemType}
               style={tw.style('flex-1')}
-              contentContainerStyle={tw.style('flex-grow pb-8')}
+              contentContainerStyle={listContentStyle}
               showsVerticalScrollIndicator={false}
               drawDistance={drawDistance}
-              maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
+              maintainVisibleContentPosition={
+                maxPages !== undefined && (hasPreviousPage || !nearTop)
+                  ? KEEP_VISIBLE_CONTENT_POSITION
+                  : MAINTAIN_VISIBLE_CONTENT_POSITION
+              }
               onScroll={scrollHandler}
               scrollEventThrottle={16}
               onMomentumScrollEnd={handleScrollSettled}
               onScrollEndDrag={handleScrollSettled}
               onEndReached={enabled ? loadMore : undefined}
               onEndReachedThreshold={0.5}
+              extraData={gifVisibleIds}
+              onViewableItemsChanged={onGifViewableItemsChanged}
+              viewabilityConfig={GIF_VIEWABILITY_CONFIG}
+              onStartReached={
+                enabled && hasPreviousPage ? loadPrevious : undefined
+              }
+              onStartReachedThreshold={0.5}
               refreshControl={
                 <RefreshControl
                   colors={[colors.primary.default]}
@@ -599,16 +706,18 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               testID={scrollTestID}
             />
           </FeedCellSlideDurationContext.Provider>
-          <Box
+          <Animated.View
             pointerEvents="box-none"
-            // Clips the glass pill while it is parked above the feed.
-            twClassName="absolute top-0 left-0 right-0 items-center overflow-hidden pt-5 pb-4"
+            style={[
+              tw.style('absolute top-0 left-0 right-0 items-center pt-4 pb-4'),
+              pendingPostsOverlayStyle,
+            ]}
           >
             <PendingPostsButton
               pendingNewCount={pendingNewCount}
               onPress={handleRevealPending}
             />
-          </Box>
+          </Animated.View>
         </Box>
       </SocialFeedRealtimeContext.Provider>
     </SocialFeedSurfaceProvider>

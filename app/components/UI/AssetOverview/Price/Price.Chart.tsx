@@ -13,7 +13,6 @@ import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers
 import SocialMarkersBottomSheet from '../../Charts/socialMarkers/SocialMarkersBottomSheet';
 import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
-import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import type { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
 import {
   LINE_CHART_TIME_RANGES,
@@ -190,6 +189,7 @@ export const PriceChartSection = ({
   const isSocialMarkersEnabled = useSelector(selectChartSocialMarkersEnabled);
   const {
     activeIndicators,
+    ambientErrorRed,
     ambientSuccessGreen,
     assetId,
     chartHeight,
@@ -370,12 +370,8 @@ export const PriceChartSection = ({
             onError={handleAdvancedChartError}
             onInitFailed={handleAdvancedChartInitFailed}
             lineColorOverride={initialAmbientColor}
-            successColorOverride={
-              initialAmbientColor ? ambientSuccessGreen : undefined
-            }
-            errorColorOverride={
-              initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
-            }
+            successColorOverride={ambientSuccessGreen}
+            errorColorOverride={ambientErrorRed}
             legendOverlay={tokenDetailsLegendOverlay}
           />
         </View>

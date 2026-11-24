@@ -363,11 +363,10 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' &&
           node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-      )[0];
+      );
 
-      // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle)
-      // and the hidden header, so pushed screens need no options of their own.
+      // Then the wallet tab stack inherits the themed content background
+      // (native-stack uses contentStyle) and the hidden header.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
           headerShown: false,
@@ -376,7 +375,7 @@ describe('MainNavigator', () => {
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
+      expect(revealPrivateCredentialScreen).toHaveLength(0);
     });
 
     it.each([
@@ -970,7 +969,6 @@ describe('MainNavigator', () => {
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
         Routes.MONEY.ACCOUNT_STATUS,
       ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(
         Routes.MONEY.FIRST_TIME_DEPOSIT,
       );
@@ -1032,21 +1030,78 @@ describe('MainNavigator', () => {
       ]);
     });
 
-    it('includes Bridge routes', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
+    describe('Bridge routes', () => {
+      const resolveBridgeRootOptions = (
+        route: Record<string, unknown>,
+      ): Record<string, unknown> => {
+        const container = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const bridgeScreen = getScreenProps(container).find(
+          (screen) => screen?.name === Routes.BRIDGE.ROOT,
+        );
+        const resolveOptions = bridgeScreen?.options as unknown as (args: {
+          route: Record<string, unknown>;
+        }) => Record<string, unknown>;
+
+        return resolveOptions({
+          route: { key: 'bridge-root', name: Routes.BRIDGE.ROOT, ...route },
+        });
+      };
+
+      it('slides the Bridge stack in from the right', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options).toMatchObject(slideFromRightNativeOptions);
+        expect(options).not.toHaveProperty('gestureEnabled');
       });
 
-      const screenProps = getScreenProps(container);
-      const bridgeScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.BRIDGE.ROOT,
+      it('enables the full screen back gesture before the Bridge stack renders', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it('enables the full screen back gesture while BridgeView is focused', () => {
+        const options = resolveBridgeRootOptions({
+          state: {
+            index: 0,
+            routes: [{ name: Routes.BRIDGE.BRIDGE_VIEW }],
+          },
+        });
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it.each([
+        Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        Routes.BRIDGE.RECURRING_SWAP_DETAILS,
+        Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        Routes.BRIDGE.TOKEN_SELECTOR,
+      ])(
+        'leaves the back gesture to the Bridge stack while %s is pushed over BridgeView',
+        (nestedRouteName) => {
+          const options = resolveBridgeRootOptions({
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.BRIDGE.BRIDGE_VIEW },
+                { name: nestedRouteName },
+              ],
+            },
+          });
+
+          expect(options).not.toHaveProperty('fullScreenGestureEnabled');
+        },
       );
 
-      expect(bridgeScreen).toBeDefined();
-      expect(bridgeScreen?.options).toMatchObject({
-        fullScreenGestureEnabled: true,
+      it('leaves the back gesture to the platform default when a nested Bridge screen is opened directly', () => {
+        const options = resolveBridgeRootOptions({
+          params: { screen: Routes.BRIDGE.RECURRING_ORDER_DETAILS },
+        });
+
+        expect(options).not.toHaveProperty('fullScreenGestureEnabled');
       });
-      expect(bridgeScreen?.options).not.toHaveProperty('gestureEnabled');
     });
 
     it('includes Earn routes', () => {
@@ -1114,17 +1169,23 @@ describe('MainNavigator', () => {
       expect(settingsScreen).toBeDefined();
     });
 
-    it('includes QRTabSwitcher route', () => {
+    it('leaves QR, add-device, and private-credential reveal to AppFlow', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
 
-      const screenProps = getScreenProps(container);
-      const qrScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.QR_TAB_SWITCHER,
+      const screenNames = getScreenProps(container).map(
+        (screen) => screen.name,
       );
 
-      expect(qrScreen).toBeDefined();
+      expect(screenNames).not.toContain(Routes.QR_TAB_SWITCHER);
+      expect(screenNames).not.toContain(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+      expect(screenNames).not.toContain(
+        Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+      );
+      expect(screenNames).not.toContain(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      );
     });
 
     it('includes Notifications view route', () => {
@@ -2872,7 +2933,7 @@ describe('MainNavigator', () => {
         expect(WalletView).toBeTruthy();
       });
 
-      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+      it('keeps RevealPrivateCredential off WalletTabStackFlow and SettingsFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -2884,14 +2945,24 @@ describe('MainNavigator', () => {
           'TabScreen',
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
 
-        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
-        // (previously it was nested inside WalletModalFlow).
-        const RevealPrivateCredential = getScreenComponent(
-          walletStackRoot,
+        const screenNames = (root: ReactTestInstance) =>
+          root
+            .findAll(
+              (node: ReactTestInstance) =>
+                node.type?.toString?.() === 'Screen' &&
+                typeof node.props?.name === 'string',
+            )
+            .map((node) => node.props.name as string);
+
+        expect(screenNames(walletStackRoot)).not.toContain(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         );
-        expect(RevealPrivateCredential).toBeTruthy();
+        expect(screenNames(settingsRoot)).not.toContain(
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
       });
 
       it('registers the asset detail screens directly under the Asset route', () => {

@@ -8,8 +8,8 @@ const POST_UNLOCK_RESUME_KEY = '@MetaMask:postUnlockResume:v1';
 const POST_UNLOCK_RESUME_COUNT_KEY = '@MetaMask:postUnlockResumeCount:v1';
 
 /**
- * Automatic resumes allowed in a row for one owner, so a screen that crashes
- * the app cannot reopen itself forever.
+ * Automatic resumes allowed for one owner, each within `maxAgeMs` of the last,
+ * so a screen that crashes the app or reopens itself cannot resume forever.
  */
 export const MAX_CONSECUTIVE_POST_UNLOCK_RESUMES = 2;
 
@@ -124,7 +124,11 @@ export const setPostUnlockResume = async (
   }
 };
 
-/** Drops the owner's request and its resume count once the flow returns. */
+/**
+ * Drops the owner's request once the flow returns. The resume count stays and
+ * expires on its own, so a flow that returns and then reopens itself still
+ * reaches {@link MAX_CONSECUTIVE_POST_UNLOCK_RESUMES}.
+ */
 export const clearPostUnlockResume = async (owner: string): Promise<void> => {
   try {
     const request = parseRequest(
@@ -132,12 +136,6 @@ export const clearPostUnlockResume = async (owner: string): Promise<void> => {
     );
     if (request?.owner === owner) {
       await StorageWrapper.removeItem(POST_UNLOCK_RESUME_KEY);
-    }
-    const count = parseCount(
-      await StorageWrapper.getItem(POST_UNLOCK_RESUME_COUNT_KEY),
-    );
-    if (count?.owner === owner) {
-      await StorageWrapper.removeItem(POST_UNLOCK_RESUME_COUNT_KEY);
     }
   } catch (error) {
     logError(error, 'clear');
@@ -157,9 +155,10 @@ export interface PendingPostUnlockResume {
  * Deletes a request left by a previous runtime and returns it when it was
  * written for the same SRP within its `maxAgeMs`. A request from the current
  * runtime is left alone. After {@link MAX_CONSECUTIVE_POST_UNLOCK_RESUMES}
- * committed resumes in a row for one owner, the next relaunch goes home
- * instead. A caller that opens something else skips `commit`, so the dropped
- * request does not count.
+ * committed resumes for one owner, each within `maxAgeMs` of the last, the
+ * next relaunch goes home instead, even when the flow returned in between. A
+ * caller that opens something else skips `commit`, so the dropped request does
+ * not count.
  */
 export const takePostUnlockResume = async (): Promise<
   PendingPostUnlockResume | undefined

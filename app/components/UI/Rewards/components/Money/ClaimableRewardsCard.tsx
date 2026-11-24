@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonIcon,
   ButtonIconSize,
@@ -27,14 +26,52 @@ import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds'
 
 export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
 
+export type ClaimHeadline = 'available' | 'held' | 'pending' | 'balance';
+
 function amountHeading(label: string, currency: string): string {
   return `${label} \u2022 ${currency}`;
 }
 
+interface ClaimCardStateInput {
+  claimable?: string;
+  pending?: string;
+  claimed?: string;
+  held?: string;
+  blocked?: string;
+  canClaim?: boolean;
+  /**
+   * Income is held only until tax documentation is done. The button stays
+   * Claim so the press opens the tax flow, even beside a blocked balance.
+   */
+  taxHeld?: boolean;
+}
+
 /**
- * Claim when `canClaim` is set, even if some money is held or blocked.
- * Otherwise a positive held or blocked balance shows Paused, ahead of a
- * disabled Claimed button. Both missing or zero hides it.
+ * First match wins: payable claimable, a tax hold, pending, then held or
+ * blocked, then whatever balance is left.
+ */
+export function claimHeadline({
+  claimable,
+  pending,
+  held,
+  canClaim = false,
+  taxHeld = false,
+}: ClaimCardStateInput): ClaimHeadline {
+  if (canClaim && isPositiveBaseUnits(claimable)) {
+    return 'available';
+  }
+  if (taxHeld && isPositiveBaseUnits(held)) {
+    return 'held';
+  }
+  if (isPositiveBaseUnits(pending)) {
+    return 'pending';
+  }
+  return 'balance';
+}
+
+/**
+ * Claim when an open route is payable, or when the balance is tax-held.
+ * Pending then shows Claimed or nothing, ahead of Paused.
  */
 export function claimButtonState(
   claimable: string | undefined,
@@ -42,17 +79,17 @@ export function claimButtonState(
   canClaim = false,
   held?: string,
   blocked?: string,
-  /**
-   * Income is held only until tax documentation is done. The button stays
-   * Claim so the press opens the tax flow, even beside a blocked balance.
-   */
   taxHeld = false,
+  pending?: string,
 ): ClaimButtonState {
   if (canClaim && isPositiveBaseUnits(claimable)) {
     return 'claim';
   }
   if (taxHeld && isPositiveBaseUnits(held)) {
     return 'claim';
+  }
+  if (isPositiveBaseUnits(pending)) {
+    return isPositiveBaseUnits(claimed) ? 'claimed' : 'hidden';
   }
   if (isPositiveBaseUnits(held) || isPositiveBaseUnits(blocked)) {
     return 'paused';
@@ -69,14 +106,18 @@ export interface ClaimableRewardsCardProps {
   claimed?: string;
   /** Formatted claimable balance. */
   claimableAmount: string;
+  /** Adjusted pending base units, including an open route under the minimum. */
+  pending?: string;
+  /** Formatted adjusted pending balance. */
+  pendingAmount?: string;
   /**
    * A referrer shows the claimable amount row while Social V1 is enabled.
    */
   isReferrer?: boolean;
   /**
-   * Base units in `held`. A positive value, or a positive `blocked`, shows
-   * Balance and Paused. When the only hold is tax documentation and nothing
-   * is claimable, the row shows this balance under Held and stays Claim.
+   * Base units in `held`. Tax documentation shows this under Held and stays
+   * Claim. Any other positive held or blocked balance shows Balance and
+   * Paused, after Pending.
    */
   held?: string;
   /** Formatted `held` balance. Shown when tax documentation is the only hold. */
@@ -102,6 +143,23 @@ export interface ClaimableRewardsCardProps {
   isClaiming?: boolean;
   /** A Retry-After window. The button stays disabled without a spinner. */
   isClaimWaiting?: boolean;
+  /**
+   * The filled wait sentence, shown under the disabled Claim button while
+   * `isClaimWaiting` is set.
+   */
+  claimWaitCaption?: string;
+  /**
+   * Shown under Claim when at least one claimable address is not signable
+   * on this phone. It does not disable the button. A wait window keeps its
+   * own caption.
+   */
+  earnedElsewhereCaption?: string;
+  /**
+   * Disables Claim when every open route's claimable addresses are
+   * unsignable on this phone. A tax hold stays pressable: that press opens
+   * the tax sheet. The button stays the one `claimButtonState` picks.
+   */
+  claimBlockedOnDevice?: boolean;
   onClaim?: () => void;
   onPaused?: () => void;
   /** Opens the balance breakdown. Shown beside the amount when set. */
@@ -120,13 +178,8 @@ const ClaimableRewardsCardSkeleton: React.FC<{
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON}
     >
       {showClaimableAmount ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="p-4"
-        >
-          <Box twClassName="flex-1 pr-4">
+        <Box twClassName="p-4">
+          <Box>
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -138,7 +191,7 @@ const ClaimableRewardsCardSkeleton: React.FC<{
             </Text>
             <Skeleton style={tw.style('mt-1 h-8 w-28 rounded-md')} />
           </Box>
-          <Skeleton style={tw.style('h-10 w-24 rounded-full')} />
+          <Skeleton style={tw.style('mt-3 h-12 w-full rounded-full')} />
         </Box>
       ) : null}
       <Box
@@ -164,14 +217,17 @@ const ClaimableRewardsCardSkeleton: React.FC<{
 };
 
 /**
- * Available-to-claim card. Claim is enabled when cashback or follow-trade
- * reaches the summary minimum, and when the only hold is tax documentation.
+ * Earnings balance card. Claim when an open route is payable or the balance
+ * is tax-held. Pending, including an open route under the minimum, comes
+ * before Paused.
  */
 const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   localizedText,
   claimable,
   claimed,
   claimableAmount,
+  pending,
+  pendingAmount,
   isReferrer = false,
   held,
   heldAmount,
@@ -184,6 +240,9 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   taxHeld = false,
   isClaiming = false,
   isClaimWaiting = false,
+  claimWaitCaption,
+  earnedElsewhereCaption,
+  claimBlockedOnDevice = false,
   onClaim,
   onPaused,
   onBalanceBreakdown,
@@ -208,32 +267,50 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     held,
     blocked,
     taxHeld,
+    pending,
   );
-  const paused = button === 'paused';
-  // Nothing is payable yet, and the hold is only tax documentation. Show the
-  // held balance and keep Claim so the press opens the tax flow.
-  const taxHeldOnly =
-    button === 'claim' &&
-    taxHeld &&
-    isPositiveBaseUnits(held) &&
-    !isPositiveBaseUnits(claimable);
+  const headline = claimHeadline({
+    claimable,
+    pending,
+    held,
+    canClaim,
+    taxHeld,
+  });
   const showLast7Skeleton = isLast7Loading && last7Amount === null;
-  const heading = amountHeading(
-    paused
-      ? localizedText.balance
-      : taxHeldOnly
-        ? localizedText.held
-        : localizedText.availableToClaim,
-    localizedText.mUSD,
-  );
-  const amount = paused
-    ? recordedAmount
-    : taxHeldOnly
-      ? (heldAmount ?? claimableAmount)
-      : claimableAmount;
-  const claimInProgress = button === 'claim' && isClaiming;
+  const headingLabel = {
+    available: localizedText.availableToClaim,
+    held: localizedText.held,
+    pending: localizedText.pending,
+    balance: localizedText.balance,
+  }[headline];
+  const heading = amountHeading(headingLabel, localizedText.mUSD);
+  const amount = {
+    available: claimableAmount,
+    held: heldAmount ?? claimableAmount,
+    pending: pendingAmount ?? claimableAmount,
+    balance: recordedAmount,
+  }[headline];
+  // A tax hold keeps Claim pressable. That press opens the tax sheet, and
+  // cashback this phone cannot sign is not submitted.
+  const claimBlocked = button === 'claim' && claimBlockedOnDevice && !taxHeld;
+  const claimInProgress = button === 'claim' && isClaiming && !claimBlocked;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
+  // A wait window keeps its own caption. The earned-elsewhere sentence does
+  // not change the button. Claim is disabled only when every address is
+  // unsignable and nothing is held for tax documentation.
+  const caption =
+    claimCoolingDown && claimWaitCaption
+      ? {
+          text: claimWaitCaption,
+          testID: CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_WAIT,
+        }
+      : button === 'claim' && earnedElsewhereCaption
+        ? {
+            text: earnedElsewhereCaption,
+            testID: CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION,
+          }
+        : null;
   const buttonLabel =
     button === 'claim'
       ? localizedText.claim
@@ -253,13 +330,8 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER}
     >
       {showClaimableAmount ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="p-4"
-        >
-          <Box twClassName="flex-1 pr-4">
+        <Box twClassName="p-4">
+          <Box>
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -293,14 +365,17 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
             </Box>
           </Box>
           {button === 'hidden' ? null : (
-            <Box>
+            <Box twClassName="mt-3">
               <Button
                 variant={ButtonVariant.Primary}
-                size={ButtonSize.Md}
-                isDisabled={button === 'claimed' || claimCoolingDown}
+                size={ButtonSize.Lg}
+                twClassName="w-full"
+                isDisabled={
+                  button === 'claimed' || claimCoolingDown || claimBlocked
+                }
                 isLoading={claimInProgress}
                 onPress={
-                  button === 'claim'
+                  button === 'claim' && !claimBlocked
                     ? onClaim
                     : button === 'paused'
                       ? onPaused
@@ -310,6 +385,16 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
               >
                 {buttonLabel}
               </Button>
+              {caption ? (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  twClassName="mt-2 text-center"
+                  testID={caption.testID}
+                >
+                  {caption.text}
+                </Text>
+              ) : null}
             </Box>
           )}
         </Box>

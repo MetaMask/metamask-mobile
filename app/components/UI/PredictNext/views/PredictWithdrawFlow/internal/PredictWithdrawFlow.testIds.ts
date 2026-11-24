@@ -1,0 +1,33 @@
+export const PredictWithdrawFlowTestIds = {
+  SCREEN: 'predict-withdraw-screen',
+  HEADER: 'predict-withdraw-header',
+  AVAILABLE_BALANCE: 'predict-withdraw-available-balance',
+  RECEIVE: 'predict-withdraw-receive',
+  RECEIVE_VALUE: 'predict-withdraw-receive-value',
+  AMOUNT_ERROR: 'predict-withdraw-amount-error',
+  OFFLINE_BANNER: 'predict-withdraw-offline-banner',
+  CONTINUE: 'predict-withdraw-continue',
+  CONFIRM: 'predict-withdraw-confirm',
+  BACK: 'predict-withdraw-back',
+  CONFIRM_BACK: 'predict-withdraw-confirm-back',
+  AMOUNT_VALUE: 'predict-withdraw-amount-value',
+  NETWORK_VALUE: 'predict-withdraw-network-value',
+  DESTINATION: 'predict-withdraw-destination',
+  COPY_DESTINATION: 'predict-withdraw-copy-destination',
+  FEE: 'predict-withdraw-fee',
+  EXPIRY: 'predict-withdraw-expiry',
+  SANDBOX_NOTICE: 'predict-withdraw-sandbox-notice',
+  SUBMITTING: 'predict-withdraw-submitting',
+  STATUS: 'predict-withdraw-status',
+  STATUS_AMOUNT: 'predict-withdraw-status-amount',
+  STATUS_REJECTION: 'predict-withdraw-status-rejection',
+  DONE: 'predict-withdraw-done',
+  RETRY: 'predict-withdraw-retry',
+  /** Automatic receipt reads ran out of their budget. */
+  STALLED: 'predict-withdraw-stalled',
+  /** Resumes reading the same Preview after a stall. */
+  CHECK_WITHDRAWAL: 'predict-withdraw-check-withdrawal',
+  ERROR: 'predict-withdraw-error',
+  /** The status panel for one receipt status, e.g. `…-status-settled`. */
+  status: (status: string) => `predict-withdraw-status-${status}`,
+} as const;

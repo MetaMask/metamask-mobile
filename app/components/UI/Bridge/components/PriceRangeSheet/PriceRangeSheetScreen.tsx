@@ -10,7 +10,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useTokenFiatRate } from '../../hooks/useTokenFiatRate';
-import type { RecurringPriceRange } from '../../utils/priceRange';
+import {
+  getDefaultRecurringPriceRangeTokenSide,
+  type RecurringPriceRange,
+} from '../../utils/priceRange';
 import PriceRangeSheet from './PriceRangeSheet';
 
 export const PriceRangeSheetScreen = () => {
@@ -24,6 +27,9 @@ export const PriceRangeSheetScreen = () => {
   const destFiatRate = useTokenFiatRate(destToken);
   const isStoredCurrencyCurrent =
     priceRange?.currency.toUpperCase() === currentCurrency.toUpperCase();
+  const initialTokenSide =
+    priceRange?.tokenSide ??
+    getDefaultRecurringPriceRangeTokenSide({ sourceToken, destToken });
 
   const handleConfirm = useCallback(
     (nextPriceRange?: RecurringPriceRange) => {
@@ -39,7 +45,7 @@ export const PriceRangeSheetScreen = () => {
       currency={currentCurrency}
       sourceFiatRate={sourceFiatRate}
       destFiatRate={destFiatRate}
-      initialTokenSide={priceRange?.tokenSide}
+      initialTokenSide={initialTokenSide}
       initialMin={isStoredCurrencyCurrent ? priceRange?.min : undefined}
       initialMax={isStoredCurrencyCurrent ? priceRange?.max : undefined}
       onConfirm={handleConfirm}
