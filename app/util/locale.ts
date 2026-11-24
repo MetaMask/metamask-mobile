@@ -1,42 +1,22 @@
 import { AppState } from 'react-native';
-import { getLocales, type Locale } from 'expo-localization';
+import { getLocales } from 'expo-localization';
 import I18n from '../../locales/i18n';
 
-interface CachedLocaleData {
-  firstWithRegion: Locale | undefined;
-  currencyDisplay: 'narrowSymbol' | 'symbol';
-}
+let cachedDeviceRegion: string | null | undefined;
 
-let cachedLocaleData: CachedLocaleData | undefined;
-
-// Regions whose own currency is written as $, so USD needs marking (US$).
-// Copied from the extension; moves to core later.
-const dollarRegions = new Set(['CA', 'AU', 'NZ', 'SG', 'HK', 'MX', 'AR']);
-
-function computeCurrencyDisplay(firstWithRegion: Locale | undefined) {
-  const region = firstWithRegion?.regionCode;
-  // A 3-digit region is an area (e.g. 419 Latin America), not a country, so
-  // its local currency is unknown; keep USD marked.
-  return region && (dollarRegions.has(region) || /^\d{3}$/u.test(region))
-    ? 'symbol'
-    : 'narrowSymbol';
-}
-
-function refreshDeviceLocales() {
-  const locales = getLocales();
-  const firstWithRegion = locales.find((loc) => loc.regionCode);
-  cachedLocaleData = {
-    firstWithRegion,
-    currencyDisplay: computeCurrencyDisplay(firstWithRegion),
-  };
-  return cachedLocaleData;
+function getDeviceRegion() {
+  if (cachedDeviceRegion === undefined) {
+    cachedDeviceRegion =
+      getLocales().find((loc) => loc.regionCode)?.regionCode ?? null;
+  }
+  return cachedDeviceRegion;
 }
 
 const localeListeners = new Set<() => void>();
 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
-    cachedLocaleData = undefined;
+    cachedDeviceRegion = undefined;
     localeListeners.forEach((listener) => listener());
   }
 });
@@ -87,14 +67,6 @@ function resolveFormattingLocale(
   }
 }
 
-export function getCurrencyDisplay() {
-  const data = cachedLocaleData ?? refreshDeviceLocales();
-  return data.currencyDisplay;
-}
-
 export function getFormattingLocale() {
-  const data = cachedLocaleData ?? refreshDeviceLocales();
-  const appLanguage = getResolvedAppLanguage();
-  const deviceRegion = data.firstWithRegion?.regionCode ?? null;
-  return resolveFormattingLocale(appLanguage, deviceRegion);
+  return resolveFormattingLocale(getResolvedAppLanguage(), getDeviceRegion());
 }
