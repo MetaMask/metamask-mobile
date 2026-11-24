@@ -18,7 +18,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import { formatPercentage, formatPnl } from '../../../utils/formatUtils';
+import { formatPnl, formatRoePercentage } from '../../../utils/formatUtils';
 
 interface PerpsProUnrealizedPnlProps {
   /** Aggregate PnL; `undefined` while unknown renders the placeholder */
@@ -43,6 +43,8 @@ const PerpsProUnrealizedPnl = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const pnl =
     unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
+  const roe =
+    returnOnEquity === undefined ? undefined : parseFloat(returnOnEquity);
   const valueColor =
     privacyMode || pnl === undefined
       ? TextColor.TextDefault
@@ -73,7 +75,7 @@ const PerpsProUnrealizedPnl = ({
             color={valueColor}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
-          >{`${formatPnl(unrealizedPnl)} (${formatPercentage(returnOnEquity, 1)})`}</SensitiveText>
+          >{`${formatPnl(unrealizedPnl)} (${formatRoePercentage(roe, pnl !== undefined && pnl < 0)})`}</SensitiveText>
         </Box>
         <Button
           variant={ButtonVariant.Tertiary}

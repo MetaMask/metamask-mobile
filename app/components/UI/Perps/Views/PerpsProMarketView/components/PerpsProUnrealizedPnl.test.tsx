@@ -32,6 +32,18 @@ describe('PerpsProUnrealizedPnl', () => {
     expect(screen.getByText('Close all')).toBeOnTheScreen();
   });
 
+  it('keeps the minus when a loss rounds to zero percent', () => {
+    render(
+      <PerpsProUnrealizedPnl
+        unrealizedPnl="-0.01"
+        returnOnEquity="-0.04"
+        positionCount={1}
+      />,
+    );
+
+    expect(screen.getByText('-$0.01 (-0.0%)')).toBeOnTheScreen();
+  });
+
   it('renders the placeholder when the aggregate is unknown', () => {
     render(<PerpsProUnrealizedPnl positionCount={2} />);
 
