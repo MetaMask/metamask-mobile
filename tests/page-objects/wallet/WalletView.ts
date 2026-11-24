@@ -112,25 +112,20 @@ class WalletView extends WalletHomeSectionsBase {
 
   /**
    * Wallet account icon / name button.
-   * Performance: match both A/B header variants (compact + control).
-   * Smoke / shared: keep the classic account-picker control only.
+   *
+   * Match both A/B header variants: classic `account-picker` and compact
+   * `wallet-account-name-button`. Smoke can land on either (e.g. search /
+   * compact header), so limiting Appium to the classic id alone leaves
+   * `tapIdenticon` / `ensureAccountListOpenPlaywright` tapping a missing
+   * control while wallet-home readiness still passes via other chrome.
    */
   get accountIcon(): Promise<AppiumElement> {
     const controlId = WalletViewSelectorsIDs.ACCOUNT_ICON;
-    if (!isPerformanceSuiteActive()) {
-      if (PlatformDetector.isIOS()) {
-        // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
-        return Matchers.getElementByNativeXPath(
-          `//*[contains(@name,'${controlId}') or contains(@label,'${controlId}') or contains(@text,'${controlId}')]`,
-        );
-      }
-      return Matchers.getElementByID(controlId);
-    }
-
     const compactId = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON;
     if (PlatformDetector.isIOS()) {
+      // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
       return Matchers.getElementByNativeXPath(
-        `//*[contains(@name,'${compactId}') or contains(@name,'${controlId}') or contains(@label,'${compactId}') or contains(@label,'${controlId}')]`,
+        `//*[contains(@name,'${compactId}') or contains(@name,'${controlId}') or contains(@label,'${compactId}') or contains(@label,'${controlId}') or contains(@text,'${compactId}') or contains(@text,'${controlId}')]`,
       );
     }
     return Matchers.getElementByNativeXPath(

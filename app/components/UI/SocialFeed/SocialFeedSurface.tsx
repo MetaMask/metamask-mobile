@@ -22,8 +22,6 @@ export type SocialSurfaceLocation =
   | 'perps_market_details'
   | 'social_feed_screen';
 
-export type SocialFeedLocation = SocialSurfaceLocation;
-
 export interface SocialFeedSurface {
   location?: SocialSurfaceLocation;
   /**

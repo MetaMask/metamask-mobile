@@ -138,7 +138,7 @@ const mockTransactionPayData: Record<
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
   ...jest.requireActual('../../../../selectors/transactionPayController'),
-  selectAccountOverrideByTransactionId: (_state: unknown, id: string) =>
+  selectAccountOverrideAddressByTransactionId: (_state: unknown, id: string) =>
     mockTransactionPayData[id]?.accountOverride,
   selectTransactionPayFiatPaymentByTransactionId: (
     _state: unknown,

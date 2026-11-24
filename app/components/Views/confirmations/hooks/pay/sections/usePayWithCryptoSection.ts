@@ -48,6 +48,8 @@ import { useTransactionPayToken } from '../useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
+import { selectEvmAssetIdEncoder } from '../../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../../util/transactions/payment-token';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -87,6 +89,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectedToken: selectedTokenDisplay,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
   const { setPayToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const {
@@ -130,13 +133,25 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const isPreferredTokenSelected = useMemo(
     () =>
       !isDedicatedSectionOwningSelection &&
-      isMatchingPayToken(selectedToken, preferredToken),
-    [isDedicatedSectionOwningSelection, preferredToken, selectedToken],
+      isSameAssetId(
+        selectedToken?.assetId,
+        preferredToken && encodeAssetId(preferredToken),
+      ),
+    [
+      isDedicatedSectionOwningSelection,
+      preferredToken,
+      encodeAssetId,
+      selectedToken,
+    ],
   );
 
   const isNoFeeTokenSelected = useMemo(
-    () => isMatchingPayToken(selectedToken, noFeeToken),
-    [noFeeToken, selectedToken],
+    () =>
+      isSameAssetId(
+        selectedToken?.assetId,
+        noFeeToken && encodeAssetId(noFeeToken),
+      ),
+    [noFeeToken, encodeAssetId, selectedToken],
   );
 
   const isDeposit = hasTransactionType(transactionMeta, [
@@ -188,9 +203,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);
-      setPayToken(target);
+      setPayToken({ assetId: encodeAssetId(target) });
     } else {
-      setPayToken(target);
+      setPayToken({ assetId: encodeAssetId(target) });
     }
     clearPaymentOverride();
     navigation.goBack();
@@ -203,6 +218,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     onPerpsPaymentTokenChange,
     onPredictPaymentTokenChange,
     preferredToken,
+    encodeAssetId,
     setPayToken,
   ]);
 
@@ -227,9 +243,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);
-      setPayToken(target);
+      setPayToken({ assetId: encodeAssetId(target) });
     } else {
-      setPayToken(target);
+      setPayToken({ assetId: encodeAssetId(target) });
     }
     clearPaymentOverride();
     navigation.goBack();
@@ -242,6 +258,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     noFeeToken,
     onPerpsPaymentTokenChange,
     onPredictPaymentTokenChange,
+    encodeAssetId,
     setPayToken,
   ]);
 

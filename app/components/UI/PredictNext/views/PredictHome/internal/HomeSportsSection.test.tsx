@@ -32,6 +32,8 @@ const renderSection = (
 ) =>
   render(
     <HomeSportsSection
+      id="sports"
+      title="Sports"
       events={GAMES}
       isLoading={false}
       onOpen={jest.fn()}

@@ -121,7 +121,7 @@ const BNB_CHAIN_BNB = {
 const BNB_CHAIN_USDT = {
   chainId: 56,
   assetId: 'eip155:56/erc20:0x55d398326f99059fF775485246999027B3197955',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
   name: 'Tether USD',
   address: '0x55d398326f99059fF775485246999027B3197955',
   decimals: 18,

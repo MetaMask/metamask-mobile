@@ -46,6 +46,8 @@ export interface TopTrader {
    * Absent or null hides the trust mark.
    */
   xHandle?: string | null;
+  /** Profile API verified this trader. Absent or false hides the badge. */
+  verified?: boolean;
 }
 
 /**
@@ -105,9 +107,3 @@ export interface TraderRowProps {
    */
   hideRank?: boolean;
 }
-
-/**
- * Network filter selection for the leaderboard.
- * null means "All networks".
- */
-export type NetworkFilterSelection = string | null;

@@ -718,9 +718,6 @@ export type RootStackParamList = {
   RewardsMoneyInviteSheet:
     | RewardsNavigationParamList['RewardsMoneyInviteSheet']
     | undefined;
-  RewardsMoneyTermsSheet:
-    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
-    | undefined;
   RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
   RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
   RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];
@@ -910,9 +907,9 @@ export type RootStackParamList = {
   MoneyHome: MoneyNavigationParamList['MoneyHome'];
   MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
-  MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
   MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
+  MoneyEarnings: MoneyNavigationParamList['MoneyEarnings'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
@@ -924,6 +921,7 @@ export type RootStackParamList = {
   MoneyMusdRescueSend: MoneyNavigationParamList['MoneyMusdRescueSend'];
   MoneyMusdRescueRecipient: MoneyNavigationParamList['MoneyMusdRescueRecipient'];
   MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
+  MoneyEstimatedBalanceSheet: MoneyNavigationParamList['MoneyEstimatedBalanceSheet'];
   MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
   MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
   MoneyLinkCardSheet: MoneyNavigationParamList['MoneyLinkCardSheet'];

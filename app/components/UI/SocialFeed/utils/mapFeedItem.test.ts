@@ -1,25 +1,5 @@
 import { mapFeedItem } from './mapFeedItem';
-import { formatFeedSubHeader } from './formatFeedSubHeader';
 import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, string>) => {
-    if (
-      key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
-      params
-    ) {
-      return `${params.size} at ${params.marketCap} ${params.abbreviation}`;
-    }
-    if (key === 'social_leaderboard.feed.sub_header.size_at_price' && params) {
-      return `${params.size} at ${params.price}`;
-    }
-    const literals: Record<string, string> = {
-      'social_leaderboard.feed.sub_header.at_connector': 'at',
-      'social_leaderboard.feed.sub_header.market_cap_suffix': 'MC',
-    };
-    return literals[key] ?? key;
-  },
-}));
 
 describe('mapFeedItem', () => {
   it('maps an open spot buy to a spot UI item with CAIP + hex chain', () => {
@@ -335,13 +315,12 @@ describe('mapFeedItem', () => {
   it('composes a sub-header with size and a derived price', () => {
     const result = mapFeedItem(mockSpotFeedItem());
 
-    // usdCost 120000 -> "$120K"; price 120000/1000 = 120 -> "at $120.00".
-    expect(
-      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
-    ).toContain('$120K');
-    expect(
-      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
-    ).toContain('at');
+    // usdCost 120000 -> "$120K"; price 120000/1000 = 120 -> "$120".
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$120K',
+      contextValueLabel: '$120',
+      contextKind: 'price',
+    });
   });
 
   it('composes a sub-header with trade-time market cap for spot trades', () => {
@@ -368,9 +347,6 @@ describe('mapFeedItem', () => {
       contextValueLabel: '$73.5M',
       contextKind: 'marketCap',
     });
-    expect(formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' })).toBe(
-      '$103K at $73.5M MC',
-    );
   });
 
   it('derives sub-header price from negative tokenAmount on a short enter fill', () => {
@@ -512,9 +488,6 @@ describe('mapFeedItem', () => {
     );
 
     expect(result?.subHeader.contextKind).not.toBe('marketCap');
-    expect(
-      formatFeedSubHeader(result?.subHeader ?? { sizeLabel: '' }),
-    ).not.toContain('MC');
   });
 
   it('leaves value and PnL labels empty when open-position fields are missing', () => {

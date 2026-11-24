@@ -27,8 +27,9 @@ const SCENARIO_ARTIFACT_PREFIX = 'hermes-profile-';
 // Mirrors the ownership tags on tests/performance/**/*.spec.ts. Slack group
 // ids come from .github/scripts/qa-automation/performance-tests/weekly-app-profiling-report.mjs, plus Earn's id
 // documented in tests/teams-config.js. `githubLabel` is the repo `team-*`
-// label that routes an issue to that team; `githubTeam` is the MetaMask org
-// team slug mentioned in the issue body.
+// label copied onto the Jira ticket; `githubTeam` is the MetaMask org team
+// slug mentioned in the ticket body. `jiraProject` is the ConsenSys Jira
+// project the regression ticket is created in.
 const SCENARIO_TEAMS = [
   {
     pattern: /\bPerps\b/i,
@@ -36,6 +37,7 @@ const SCENARIO_TEAMS = [
     id: 'S094DMAQNCV',
     githubLabel: 'team-perps',
     githubTeam: 'MetaMask/perps',
+    jiraProject: 'TAT',
   },
   {
     pattern: /\bPredict\b/i,
@@ -43,6 +45,7 @@ const SCENARIO_TEAMS = [
     id: 'S095BEYMASG',
     githubLabel: 'team-predict',
     githubTeam: 'MetaMask/predict',
+    jiraProject: 'PRED',
   },
   {
     pattern: /(?:Cross-chain swap|Swap flow)/i,
@@ -50,6 +53,7 @@ const SCENARIO_TEAMS = [
     id: 'S04NGHK3U9Z',
     githubLabel: 'team-swaps-and-bridge',
     githubTeam: 'MetaMask/swaps-engineers',
+    jiraProject: 'SWAPS',
   },
   {
     pattern: /(?:Asset View|Aggregated Balance)/i,
@@ -57,6 +61,7 @@ const SCENARIO_TEAMS = [
     id: 'S09C9U4K953',
     githubLabel: 'team-assets',
     githubTeam: 'MetaMask/metamask-assets',
+    jiraProject: 'ASSETS',
   },
   {
     pattern: /\bMoney Home\b/i,
@@ -64,6 +69,7 @@ const SCENARIO_TEAMS = [
     id: 'S052NJFKX6Y',
     githubLabel: 'team-earn',
     githubTeam: 'MetaMask/metamask-earn',
+    jiraProject: 'TE',
   },
   {
     pattern: /^Import SRP with/i,
@@ -71,6 +77,7 @@ const SCENARIO_TEAMS = [
     id: 'S05NSFC03GF',
     githubLabel: 'team-accounts',
     githubTeam: 'MetaMask/accounts-team',
+    jiraProject: 'MCWP',
   },
   {
     pattern:
@@ -79,6 +86,7 @@ const SCENARIO_TEAMS = [
     id: 'S090QC71NQ2',
     githubLabel: 'team-onboarding',
     githubTeam: 'MetaMask/web3auth',
+    jiraProject: 'MCWP',
   },
   {
     pattern: /(?:Cold Start|Measure Warm Start)/i,
@@ -86,28 +94,34 @@ const SCENARIO_TEAMS = [
     id: 'S04EF225J1M',
     githubLabel: 'team-mobile-platform',
     githubTeam: 'MetaMask/mobile-platform',
+    jiraProject: 'MCWP',
   },
-  // The Rewards scenario is currently tagged @performance-team, which has no
-  // Slack group id in tests/teams-config.js and no `team-*` label. Keep the
-  // owner visible without pretending this plain-text fallback will notify a
-  // Slack user group or route a GitHub issue.
+  // Rewards is tagged @performance-team, which has no Slack group id in
+  // tests/teams-config.js and no `team-*` label. The ticket still goes to
+  // the Rewards Jira project. The handle stays plain text so Slack does not
+  // invent a user-group mention.
   {
     pattern: /Rewards tab time-to-content/i,
     handle: 'performance-team',
     id: null,
     githubLabel: null,
     githubTeam: null,
+    jiraProject: 'RWDS',
   },
 ];
 
+const UNMATCHED_TEAM = {
+  handle: 'performance-team',
+  id: null,
+  githubLabel: null,
+  githubTeam: null,
+  jiraProject: 'MCWP',
+};
+
 function scenarioTeam(scenario) {
   return (
-    SCENARIO_TEAMS.find(({ pattern }) => pattern.test(scenario)) || {
-      handle: 'performance-team',
-      id: null,
-      githubLabel: null,
-      githubTeam: null,
-    }
+    SCENARIO_TEAMS.find(({ pattern }) => pattern.test(scenario)) ||
+    UNMATCHED_TEAM
   );
 }
 
