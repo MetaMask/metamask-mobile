@@ -132,6 +132,49 @@ describe('prototypeScenarioEngine', () => {
     });
   });
 
+  describe('the status-card scenarios', () => {
+    it('leftPartWay resumes at the phone step and can still finish', () => {
+      const state = enterScenario('leftPartWay');
+
+      expect(state.vendor.step).toBe('kalshi_phone_link');
+      expect(state.vendor.sessionId).not.toBeNull();
+      expect(state.phoneCodeSent).toBe(false);
+
+      const finished = readStep(
+        finishSumsub(checkPhoneCode(sendPhone(state), PROTOTYPE_CODE)),
+      );
+      expect(finished.vendor.step).toBe('decision');
+      expect(readStep(readStep(finished)).vendor.status).toBe('approved');
+    });
+
+    it('stepUpRequired starts at the identity provider and approves', () => {
+      const state = enterScenario('stepUpRequired');
+
+      expect(state.vendor.step).toBe('sumsub');
+      expect(state.vendor.status).toBe('none');
+
+      const finished = readStep(finishSumsub(state));
+      expect(finished.vendor.step).toBe('decision');
+      expect(readStep(readStep(finished)).vendor.status).toBe('approved');
+    });
+
+    it('verifying stays pending on every read until something settles it', () => {
+      let state = enterScenario('verifying');
+
+      expect(state.vendor.step).toBe('decision');
+      expect(state.vendor.status).toBe('pending');
+      for (let reads = 0; reads < 5; reads += 1) {
+        state = readStep(state);
+        expect(state.vendor.status).toBe('pending');
+      }
+    });
+
+    it('cantVerify starts rejected, and verified starts approved', () => {
+      expect(enterScenario('cantVerify').vendor.status).toBe('rejected');
+      expect(enterScenario('verified').vendor.status).toBe('approved');
+    });
+  });
+
   describe('resendEmailCode', () => {
     it('marks a new code as sent without moving the step', () => {
       const next = resendEmailCode(linkedState('newUserHasMfa'));

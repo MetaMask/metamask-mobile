@@ -74,7 +74,7 @@ export interface PrototypeScriptState {
 /** How many reads of a pending decision to leave unanswered. */
 const DECISION_READS_BEFORE_OUTCOME = 2;
 
-/** The two scenarios leg 1 wires. Leg 2 adds the unhappy ones here. */
+/** The two scenarios leg 1 wires; the rest stage the status card's states. */
 export const PROTOTYPE_SCENARIO_SPECS: Record<
   PrototypeScenarioId,
   PrototypeScenarioSpec
@@ -95,6 +95,69 @@ export const PROTOTYPE_SCENARIO_SPECS: Record<
     entry: {
       step: 'terms',
       status: 'none',
+      sessionId: PROTOTYPE_SESSION_ID,
+      mfaCompleted: true,
+      hasValidMfaSession: true,
+    },
+    hasIdosIdentity: true,
+    isSessionCatalogEmpty: true,
+    decisionOutcome: 'approved',
+  },
+  leftPartWay: {
+    entry: {
+      // Past the terms and the email code; the phone code is not sent yet,
+      // so the flow resumes on the phone number screen.
+      step: 'kalshi_phone_link',
+      status: 'none',
+      sessionId: PROTOTYPE_SESSION_ID,
+      mfaCompleted: true,
+      hasValidMfaSession: true,
+    },
+    hasIdosIdentity: false,
+    isSessionCatalogEmpty: true,
+    decisionOutcome: 'approved',
+  },
+  stepUpRequired: {
+    entry: {
+      // Level 2: the flow picks up at the identity provider itself.
+      step: 'sumsub',
+      status: 'none',
+      sessionId: null,
+      mfaCompleted: true,
+      hasValidMfaSession: true,
+    },
+    hasIdosIdentity: false,
+    isSessionCatalogEmpty: true,
+    decisionOutcome: 'approved',
+  },
+  verifying: {
+    entry: {
+      step: 'decision',
+      status: 'pending',
+      sessionId: PROTOTYPE_SESSION_ID,
+      mfaCompleted: true,
+      hasValidMfaSession: true,
+    },
+    hasIdosIdentity: true,
+    isSessionCatalogEmpty: true,
+    // No outcome: the review stays pending until the Developer Options
+    // control settles it.
+  },
+  cantVerify: {
+    entry: {
+      step: 'decision',
+      status: 'rejected',
+      sessionId: PROTOTYPE_SESSION_ID,
+      mfaCompleted: true,
+      hasValidMfaSession: true,
+    },
+    hasIdosIdentity: true,
+    isSessionCatalogEmpty: true,
+  },
+  verified: {
+    entry: {
+      step: 'decision',
+      status: 'approved',
       sessionId: PROTOTYPE_SESSION_ID,
       mfaCompleted: true,
       hasValidMfaSession: true,
