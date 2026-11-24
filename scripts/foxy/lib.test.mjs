@@ -14,6 +14,7 @@ import {
   dupeKey,
   groupEndpoints,
   computePhases,
+  exportCapture,
   exportPhase,
   fileSlug,
   toMarkdown,
@@ -294,6 +295,25 @@ test('exportPhase is null for an unknown marker or when there are no markers, an
   const quiet = exportPhase(rec, [{ id: 'm', relMs: 9000, label: 'later' }], 'm');
   assert.deepEqual(quiet.records, []);
   assert.equal(quiet.phase.requests, 0);
+});
+
+test('exportCapture takes every request in time order, with the phases they fall into', () => {
+  const r = (id, relMs) => ({ id, key: `k${id}`, method: 'GET', host: 'h', path: `/p${id}`, query: '', url: `https://h/p${id}`, relMs, status: 200 });
+  const records = [r(3, 3300), r(1, 100), r(2, 1500)];
+  const all = exportCapture(records, [{ id: 'm1', relMs: 1000, label: 'onboarding visible' }, { id: 'm2', relMs: 3000, label: 'wallet created' }]);
+  assert.deepEqual(all.records.map((x) => x.id), [1, 2, 3]);
+  assert.deepEqual(all.phases.map((p) => [p.label, p.requests]), [['Before first marker', 1], ['onboarding visible', 1], ['wallet created', 1]]);
+  assert.equal(all.phases.at(-1).open, true);
+  assert.equal(all.phases.at(-1).endMs, null); // JSON cannot hold Infinity
+  assert.doesNotThrow(() => JSON.parse(JSON.stringify(all)));
+  assert.equal(records[0].id, 3); // the input is not reordered
+});
+
+test('exportCapture without markers is just the requests', () => {
+  const all = exportCapture([{ id: 2, key: 'k2', relMs: 9 }, { id: 1, key: 'k1', relMs: 1 }]);
+  assert.deepEqual(all.phases, []);
+  assert.deepEqual(all.records.map((x) => x.id), [1, 2]);
+  assert.deepEqual(exportCapture([]), { phases: [], records: [] });
 });
 
 test('fileSlug makes a safe file name', () => {

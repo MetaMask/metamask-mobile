@@ -307,22 +307,36 @@ export function exportPhase(records, markers, id) {
   const inPhase = records
     .filter((r) => r.relMs < found.endMs && (found.id === 'pre' || r.relMs >= found.startMs))
     .sort((a, b) => a.relMs - b.relMs);
+  return { phase: describePhase(found, inPhase.length), records: inPhase };
+}
+
+/** The file form of a computePhases entry: an open end is `null` rather than Infinity (which JSON cannot hold). */
+function describePhase(found, requests) {
   return {
-    phase: {
-      id: found.id,
-      label: found.label,
-      marker: found.marker,
-      startMs: found.startMs,
-      endMs: found.endMs === Infinity ? null : found.endMs,
-      open: found.endMs === Infinity, // still collecting: nothing has closed it yet
-      ended: found.ended, // closed by an explicit End (not by the next marker)
-      requests: inPhase.length,
-      newEndpoints: found.newEndpoints,
-      identicalDupes: found.identicalDupes,
-      failed: found.failed,
-      bytes: found.bytes,
-    },
-    records: inPhase,
+    id: found.id,
+    label: found.label,
+    marker: found.marker,
+    startMs: found.startMs,
+    endMs: found.endMs === Infinity ? null : found.endMs,
+    open: found.endMs === Infinity, // still collecting: nothing has closed it yet
+    ended: found.ended, // closed by an explicit End (not by the next marker)
+    requests,
+    newEndpoints: found.newEndpoints,
+    identicalDupes: found.identicalDupes,
+    failed: found.failed,
+    bytes: found.bytes,
+  };
+}
+
+/**
+ * The whole capture of one session: every request in time order, and (when there are markers) the phases they fall into.
+ * Unlike exportPhase it takes everything, so what is on screen (filters, Pause) never changes the file.
+ */
+export function exportCapture(records, markers = []) {
+  const sorted = [...records].sort((a, b) => a.relMs - b.relMs);
+  return {
+    phases: computePhases(sorted, markers).map((p) => describePhase(p, p.requests)),
+    records: sorted,
   };
 }
 

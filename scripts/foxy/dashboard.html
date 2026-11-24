@@ -1082,7 +1082,9 @@
     <div class="menu-row"><span class="mr-l" id="themeLabel">Theme</span><div class="themes" id="themeGrid" role="radiogroup" aria-labelledby="themeLabel"></div></div>
     <div class="sep" role="separator"></div>
     <button id="reset" class="btn" title="Restore default column order and widths"><svg class="ic"><use href="#i-reset"/></svg><span>Reset Columns</span></button>
-    <button id="export" class="btn" title="Copy the recommendation table as markdown"><svg class="ic"><use href="#i-clipboard"/></svg><span>Copy Markdown</span></button>
+    <button id="export" class="btn" data-label="Copy Markdown" data-icon="#i-clipboard" title="Copy what you are looking at as a markdown table"><svg class="ic"><use href="#i-clipboard"/></svg><span>Copy Markdown</span></button>
+    <button id="exportCsv" class="btn" data-label="Download CSV" data-icon="#i-tb-download" title="Download what you are looking at as a CSV for a spreadsheet: one row per request on Timeline, one per endpoint on Endpoints (filters apply)"><svg class="ic"><use href="#i-tb-download"/></svg><span>Download CSV</span></button>
+    <button id="exportJson" class="btn" data-label="Download Capture" data-icon="#i-tb-download" title="Download the whole capture as JSON: every request in full, the markers and the phases (ignores filters)"><svg class="ic"><use href="#i-tb-download"/></svg><span>Download Capture</span></button>
     <div class="sep" role="separator"></div>
     <button id="clear" class="btn danger" title="Clear all captured requests"><svg class="ic"><use href="#i-trash"/></svg><span>Clear</span></button>
     <div class="build" id="buildInfo" hidden></div>
@@ -1602,19 +1604,22 @@ function endControl(p, cls) {
 /** What the download button says. The last phase is still collecting, so it gives what has arrived so far. */
 const exportTip = (p) => `Download this phase's requests as JSON${p.end === Infinity ? ' (still capturing: everything so far)' : ''}`;
 /** Downloads every request of one phase, in full (headers, bodies, call chain, owners). The server does the cutting, so Pause and the filters do not change what is in the file. */
+async function downloadFromServer(url, fallbackName) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(res.status);
+  const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || fallbackName;
+  const href = URL.createObjectURL(await res.blob());
+  const a = Object.assign(document.createElement('a'), { href, download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 10000);
+}
 async function exportPhaseFile(id, btn) {
   const use = btn?.querySelector('use'), show = (href) => { if (btn?.isConnected && use) use.setAttribute('href', href); };
   try {
-    const res = await fetch('/api/export/phase?marker=' + encodeURIComponent(id));
-    if (!res.ok) throw new Error(res.status);
-    const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || 'foxy-phase.json';
-    const href = URL.createObjectURL(await res.blob());
-    const a = Object.assign(document.createElement('a'), { href, download: name });
-    document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(href), 10000);
+    await downloadFromServer('/api/export/phase?marker=' + encodeURIComponent(id), 'foxy-phase.json');
     show('#i-check');
   } catch { show('#i-close'); }
-  setTimeout(() => show('#i-download'), 1400);
+  setTimeout(() => show('#i-tb-download'), 1400);
 }
 const phaseChip = (p) => `<span class="chip" data-phase="${esc(p.id)}" style="--c:${p.color}" title="Phase: ${esc(p.label)} (click to show only this phase)"><span class="t">${esc(p.label)}</span></span>`;
 
@@ -2401,6 +2406,41 @@ function endpointsMarkdown() {
   return `${phaseTable}${head}\n${rows.join('\n')}\n`;
 }
 
+// ---- CSV: what is on screen (filters apply), one row per request on Timeline and one per endpoint on Endpoints ----
+const fileStamp = () => new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
+/** One CSV cell. Text that starts with = + - @ is prefixed with an apostrophe so a spreadsheet never runs it as a formula (a typed reason can say anything). */
+function csvCell(x) {
+  if (x == null) return '';
+  if (typeof x === 'number') return Number.isFinite(x) ? String(x) : '';
+  if (typeof x === 'boolean') return x ? 'true' : 'false';
+  let s = String(x);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+const toCsv = (head, rows) => `\ufeff${[head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`; // BOM: Excel reads the UTF-8
+const ownersText = (r) => (r.codeOwners || []).map(team).join(' ') || r.callSiteInfo?.pkg || '';
+function timelineCsv() {
+  const head = ['ID', 'Time (s)', 'Clock', 'Phase', 'Method', 'Host', 'Path', 'Query', 'Status', 'Error', 'Duration (ms)', 'Size (bytes)', 'Identical dupe', 'Code owners', 'Via', 'Call site', 'Started from'];
+  const list = [...reqs.values()].filter(match).sort((a, b) => a.relMs - b.relMs);
+  return toCsv(head, list.map((r) => [
+    r.id, Number(sec(r.relMs)), clock(r.ts), phaseByKey.get(r.key)?.label || '', r.method, r.host, r.path, r.query || '',
+    r.status ?? '', r.error || '', r.durationMs == null ? null : Math.round(r.durationMs), r.sizeBytes ?? null, dupeCounts.get(reqKey(r)) > 1,
+    ownersText(r), (r.ownerCodeOwners || []).map(team).join(' '), siteText(r.callSiteInfo), siteText(r.ownerInfo),
+  ]));
+}
+function endpointsCsv() {
+  const head = ['Phase', 'Endpoint', 'Method', 'Host', 'Path', 'Calls', 'Identical dupes', 'Failed', 'Statuses', 'Avg (ms)', 'P95 (ms)', 'Bytes', 'First call (s)', 'Code owners', 'Call site', 'Verdict', 'Reason'];
+  const groups = buildGroups([...reqs.values()].filter(match)).sort((a, b) => a.first - b.first);
+  return toCsv(head, groups.map((g) => {
+    const v = auditOf(phaseOfGroup(g), g.k), site = [...g.sites.values()][0]?.info;
+    return [
+      phaseOfGroup(g)?.label || '', g.k, g.method, g.host, g.path, g.n, g.dupes, g.failed, Object.entries(g.st).map(([s, n]) => `${s === '…' ? 'pending' : s}x${n}`).join(' '),
+      g.avg, g.p95 == null ? null : Math.round(g.p95), g.bytesTotal, Number(sec(g.first)), g.ownerText, siteText(site),
+      VERDICTS.find((x) => x.id === v.v)?.label || '', v.note || '',
+    ];
+  }));
+}
+
 let auditAnim = null, auditAnimTimer = 0; // 'in' / 'out' while the Verdict column and panels are animating
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Turning audit on animates the Verdict column and panel in. Turning it off lets them fade out first, then removes them. */
@@ -2715,11 +2755,30 @@ $('#tabEndpoints').onclick = () => navigate(() => { tab = 'endpoints'; render();
 $('#filter').oninput = (e) => { filter = e.target.value.toLowerCase(); render(); };
 $('#clear').onclick = async () => { await fetch('/api/clear', { method: 'POST' }); };
 $('#reset').onclick = () => { timelineGrid.reset(render); endpointsGrid.reset(render); };
+/** Flashes a menu export button's label and icon for a moment ("Copied!", "Saved", "Failed"), then puts it back. */
+function flashExport(b, text, icon2) {
+  const label = b.querySelector('span'), ic = b.querySelector('use');
+  b.classList.toggle('ok', icon2 === '#i-check'); label.textContent = text; ic.setAttribute('href', icon2);
+  clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('ok'); label.textContent = b.dataset.label; ic.setAttribute('href', b.dataset.icon); }, 1400);
+}
 $('#export').onclick = async () => {
-  const t = tab === 'endpoints' ? endpointsMarkdown() : await (await fetch('/api/export')).text(); await copyText(t);
-  const b = $('#export'), label = b.querySelector('span'), ic = b.querySelector('use');
-  b.classList.add('ok'); label.textContent = 'Copied!'; ic.setAttribute('href', '#i-check');
-  setTimeout(() => { b.classList.remove('ok'); label.textContent = 'Copy Markdown'; ic.setAttribute('href', '#i-clipboard'); }, 1400);
+  const b = $('#export');
+  try { await copyText(tab === 'endpoints' ? endpointsMarkdown() : await (await fetch('/api/export')).text()); flashExport(b, 'Copied!', '#i-check'); }
+  catch { flashExport(b, 'Failed', '#i-close'); }
+};
+$('#exportCsv').onclick = () => {
+  const b = $('#exportCsv');
+  try {
+    const [csv, name] = tab === 'endpoints' ? [endpointsCsv(), 'endpoints'] : [timelineCsv(), 'requests'];
+    const ph = ui.phase && phases.find((p) => p.id === ui.phase);
+    downloadText(csv, `foxy-${name}${ph ? '-' + slugOf(ph.label) : ''}-${fileStamp()}.csv`, 'text/csv;charset=utf-8');
+    flashExport(b, 'Saved', '#i-check');
+  } catch { flashExport(b, 'Failed', '#i-close'); }
+};
+$('#exportJson').onclick = async () => {
+  const b = $('#exportJson');
+  try { await downloadFromServer('/api/export/capture', 'foxy-capture.json'); flashExport(b, 'Saved', '#i-check'); }
+  catch { flashExport(b, 'Failed', '#i-close'); }
 };
 /*ART-START*/
 const ART = {
@@ -2761,7 +2820,7 @@ const HELP = [
     ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker. Long idle stretches are shortened to a hatched <b>⋯</b> break so activity gets the room, and choosing the <b>◎</b> target on a phase zooms the strip to it.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
     ${step(3, 'Zoom Into One Phase', `<p>Click the <b>◎</b> target on a header (or the one in the markers panel) and Foxy shows just that phase, in the Timeline <i>and</i> in Endpoints. A pill appears under the toolbar; click <b>×</b> to bring everything back.</p><p>The <b>Phase</b> column in Endpoints shows where each endpoint <i>first</i> appeared. Click a phase chip to filter by it.</p>`)}
     ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. When a flow is over, press the stop button on its phase: anything after that moment is <i>Between phases</i> instead of counting toward it. Nothing in the app needs to change.</p>')}
-    ${step(5, 'Take It With You', `<p>The <b>download</b> icon on a phase saves every request in it, in full, as JSON. The last phase is still collecting, so it saves what has arrived so far.</p><p><b>Copy Markdown</b> adds a phases table (requests, new endpoints, identical dupes, failures per phase) and a Phase column to the Endpoints table.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
+    ${step(5, 'Take It With You', `<p>The <b>download</b> icon on a phase saves every request in it, in full, as JSON. The last phase is still collecting, so it saves what has arrived so far.</p><p>The menu has three more exports: <b>Copy Markdown</b> (a phases table plus an Endpoints table with a Phase column), <b>Download CSV</b> (what you are looking at, filters included: a row per request on Timeline, per endpoint on Endpoints) and <b>Download Capture</b> (the whole session as JSON, ignoring filters).</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
     <h3>What the Numbers in a Phase Mean</h3>
     <ul>
       <li><b>requests</b>: calls made while the phase was active.</li>

@@ -17,6 +17,7 @@ import {
   summarizeInitiator,
   groupEndpoints,
   toMarkdown,
+  exportCapture,
   exportPhase,
   fileSlug,
   describeFrames,
@@ -435,6 +436,28 @@ const httpServer = createServer(async (req, res) => {
           requests: inPhase.map((r) => ({ ...r, frames: describeFrames(r.frames, ownersOfInfo).map((f) => ({ ...f, link: PACKAGE_LINK(f) })) })),
         }, null, 2));
       }
+    } else if (p === '/api/export/capture') {
+      // The whole session as one file: every request in full, the markers and the phases they make. ?session=<id> picks another session.
+      const sid = url.searchParams.get('session') || latestSession;
+      if (url.searchParams.get('session') && !sessions.has(sid)) { json(res, { error: 'unknown session' }, 404); return; }
+      const sessionRecords = [...records.values()].filter((r) => r.session === sid);
+      const sessionMarks = sessionMarkers(sid);
+      const { phases, records: all } = exportCapture(sessionRecords, sessionMarks);
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
+      res.writeHead(200, {
+        'content-type': 'application/json; charset=utf-8',
+        'content-disposition': `attachment; filename="foxy-capture-${stamp}.json"`,
+        'cache-control': 'no-store',
+        'access-control-expose-headers': 'content-disposition',
+      });
+      res.end(JSON.stringify({
+        foxy: { exportedAt: new Date().toISOString(), session: sid, platform: sessions.get(sid)?.platform ?? null, build: buildInfo() },
+        summary: { requests: all.length, markers: sessionMarks.length, phases: phases.length },
+        markers: sessionMarks,
+        phases,
+        // the full records: request and response headers and bodies, and the call chain with owners and GitHub links
+        requests: all.map((r) => ({ ...r, frames: describeFrames(r.frames, ownersOfInfo).map((f) => ({ ...f, link: PACKAGE_LINK(f) })) })),
+      }, null, 2));
     } else if (p === '/api/markers' && req.method === 'GET') {
       json(res, { markers: sessionMarkers(latestSession) });
     } else if (p === '/api/marker' && req.method === 'POST') {
