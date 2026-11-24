@@ -90,7 +90,7 @@ export const usePerpsLiquidationPrice = (
       setIsCalculating(true);
     }
 
-    calculatePrice();
+    calculatePrice()?.catch(() => undefined);
 
     // Cleanup debounced function on unmount
     return (): void => {
