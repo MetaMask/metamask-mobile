@@ -868,12 +868,51 @@
   .strip {
     margin: 0; border: 0; border-bottom: 1px solid var(--color-border-muted); border-radius: 0; /* flush with the page edges, square */
     background:
-      radial-gradient(70% 160% at 0% 0%, color-mix(in srgb, var(--accent) var(--well-glow), transparent), transparent 70%),
+      radial-gradient(70% 160% at var(--gx, 0%) var(--gy, 0%), color-mix(in srgb, var(--accent) var(--well-glow), transparent), transparent 70%),
+      radial-gradient(55% 150% at var(--gx2, 100%) 100%, color-mix(in srgb, var(--color-primary-default) var(--well-glow2, 6%), transparent), transparent 70%),
       var(--well-noise),
       var(--well-base);
     box-shadow: inset 0 1px 0 rgba(var(--fx), .06), inset 0 16px 18px -16px var(--well-shade), inset 0 -12px 14px -12px var(--well-shade);
+    /* alive only while the page is live: the glows drift slowly, and when paused (or disconnected) they hold the exact spot they were in */
+    animation: strip-drift 22s ease-in-out infinite paused;
+  }
+  html.is-live .strip { animation-play-state: running; }
+  html[data-theme="light"] .strip { --well-glow2: 3.5%; }
+  @property --gx { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  @property --gy { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  @property --gx2 { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+  @keyframes strip-drift {
+    0%, 100% { --gx: 0%; --gy: 0%; --gx2: 100%; }
+    35% { --gx: 38%; --gy: 22%; --gx2: 68%; }
+    70% { --gx: 62%; --gy: -8%; --gx2: 30%; }
   }
   .stripin .mk b { background: var(--well-base); } /* flags sit on the well, so they take its colour */
+
+  /* ============ filters panel: header, well, dividers ============ */
+  /* each section is a header (title and Is / Is not) over a recessed well holding its search and its list, with a hairline between sections */
+  .fsec { margin-top: 0; padding: 18px 0 20px; border-top: 1px solid var(--color-border-muted); }
+  .fpop .presets { padding-bottom: 18px; }
+  .fwell { margin-top: 12px; overflow: hidden; border-radius: var(--r-box); background: var(--well); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .12); }
+  /* the search row is a header band: its own tone, flush to the well's edges (the well's radius clips the top corners), no rule under it */
+  .fwell .fbar { margin: 0; padding: 6px 8px 6px 4px; background: var(--fill-1); transition: background-color .16s var(--ease-out); }
+  .fwell .fbar:focus-within { background: var(--fill-2); }
+  .fwell .fsearch input, .fwell .fsearch input:focus-visible { height: 32px; padding-left: 34px; background: transparent; outline: 0; } /* focus shows as the band brightening, not a ring */
+  .fwell .fsearch .ic { left: 12px; transition: color .16s var(--ease-out); }
+  .fwell .fbar:focus-within .fsearch .ic { color: var(--color-text-default); }
+  .fwell .mini { background: var(--well); }
+  .fwell .flist, .fsec-h + .fwell .flist { margin: 0; padding: 6px; }
+  /* rows get a hairline between them that starts after the radio, Apple-list style; it steps aside around a hovered or picked row */
+  .fwell .fopt { position: relative; }
+  .fwell .fopt + .fopt::before { content: ''; position: absolute; top: 0; left: 34px; right: 10px; height: 1px; background: var(--color-border-muted); pointer-events: none; }
+  .fwell .fopt:hover::before, .fwell .fopt:hover + .fopt::before,
+  .fwell .fopt:has(.fchk[aria-checked="true"])::before, .fwell .fopt:has(.fchk[aria-checked="true"]) + .fopt::before { opacity: 0; }
+  .mkpop h2 button { font-family: var(--font-family-default); font-weight: 650; letter-spacing: -.014em; } /* the title is Grotzec, the actions beside it (Clear All, How It Works) are not: that face is too tight at this size */
+  .fwell .fopt:hover { background: var(--fill-2); }
+  .fwell .fopt:has(.fchk[aria-checked="true"]) { background: var(--color-primary-muted); }
+  .fsec.neg .fwell .fopt:has(.fchk[aria-checked="true"]) { background: var(--color-error-muted); }
+  .fopt.zero .fchk .fl, .fopt.zero .fchk .fn { opacity: .5; }
+  .fwell .fempty { padding: 10px 8px; }
+  html[data-theme="light"] .fwell { box-shadow: inset 0 1px 2px rgba(20, 20, 40, .06); }
 
   /* light: a white page, and an opened row is a barely-there tint of it. The panels and cards sit on that in white, lifted by a soft shadow instead of a grey fill. */
   html[data-theme="light"] tr.detail > td { background: #f6f6f9; box-shadow: inset 0 1px 0 rgba(20, 20, 40, .05), inset 0 -1px 0 rgba(20, 20, 40, .05); }
@@ -1152,6 +1191,7 @@ function renderConn() {
     if (n) badge = `<span class="conn-n">${n > 99 ? '99+' : n}</span>`;
   } else { state = 'running'; ic = 'pause'; title = 'Pause: hold the view (Foxy keeps recording)'; }
   c.className = `btn icon-btn conn-btn ${state}`;
+  document.documentElement.classList.toggle('is-live', state === 'running'); // drives the timeline's drifting background
   c.disabled = !connected;
   c.setAttribute('aria-pressed', String(paused));
   c.setAttribute('aria-label', paused ? 'Play: resume live updates' : 'Pause: hold live updates');
@@ -2580,8 +2620,8 @@ function buildFilters() {
     const scope = f.id === 'team' ? miniSeg('Which owner to match', 'data-fscope', TEAM_SCOPES, adv.team.scope) : '';
     return `<section class="fsec" data-f="${f.id}">
     <div class="fsec-h"><span>${f.label}</span><span class="sp"></span>${miniSeg(`${f.label}: match or exclude`, 'data-fnot', [['is', 'Is', 'Show only the picked values'], ['not', 'Is not', 'Hide the picked values', 'neg']], 'is')}</div>
-    ${search || scope ? `<div class="fbar">${search}${scope}</div>` : ''}
-    <div class="flist" data-flist="${f.id}"></div></section>`;
+    <div class="fwell">${search || scope ? `<div class="fbar">${search}${scope}</div>` : ''}
+    <div class="flist" data-flist="${f.id}"></div></div></section>`;
   }).join('')
     + `<section class="fsec"><div class="fsec-h"><span>Slower than</span></div><div class="fmsrow"><input id="fltMs" type="number" min="0" step="50" inputmode="numeric" placeholder="0" aria-label="Minimum duration in milliseconds" /><span>ms</span>${miniSeg('Common durations', 'data-ms', MS_QUICK.map((n) => [String(n), n >= 1000 ? `${n / 1000}s` : `${n}ms`]), '')}</div></section>`;
 }
@@ -2590,17 +2630,20 @@ function facetList(f) {
   const s = adv[f.id], counts = new Map();
   for (const r of reqs.values()) for (const v of FACET_VALUES[f.id](r)) counts.set(v, (counts.get(v) || 0) + 1);
   for (const v of s.on) if (!counts.has(v)) counts.set(v, 0);
+  if (f.id === 'status') for (const v of STATUS_ORDER) if (!counts.has(v)) counts.set(v, 0); // every kind of status is always listed, so the list never grows under you
   if (f.id === 'team') for (const v of myTeams) if (!counts.has(v)) counts.set(v, 0);
   const q = (fq[f.id] || '').trim().toLowerCase();
-  const rank = (v) => (f.id === 'team' ? (v === NO_TEAM ? 3 : myTeams.has(v) ? 0 : s.on.has(v) ? 1 : 2) : f.id === 'host' || f.id === 'view' ? (s.on.has(v) ? 0 : 1) : 0);
-  const rows = [...counts].filter(([v, n]) => (f.id !== 'status' || n || s.on.has(v)) && (!q || facetLabel(f, v).toLowerCase().includes(q)))
-    .sort((a, b) => rank(a[0]) - rank(b[0]) || (f.id === 'status' ? STATUS_ORDER.indexOf(a[0]) - STATUS_ORDER.indexOf(b[0]) : b[1] - a[1] || facetLabel(f, a[0]).localeCompare(facetLabel(f, b[0]))));
+  // A fixed order: statuses in their natural order, everything else A to Z with the "none of the above" rows last.
+  // Counts, picking a row and starring a team never move anything.
+  const tail = (v) => (v === NO_TEAM || v === VIEW_BOOT || v === VIEW_UNKNOWN ? 1 : 0);
+  const rows = [...counts].filter(([v]) => !q || facetLabel(f, v).toLowerCase().includes(q))
+    .sort((a, b) => (f.id === 'status' ? STATUS_ORDER.indexOf(a[0]) - STATUS_ORDER.indexOf(b[0]) : tail(a[0]) - tail(b[0]) || facetLabel(f, a[0]).localeCompare(facetLabel(f, b[0]), undefined, { numeric: true, sensitivity: 'base' })));
   if (!rows.length) return `<div class="fempty">${q ? 'Nothing matches that search.' : 'Nothing captured yet.'}</div>`;
   return rows.map(([v, n]) => {
     const on = s.on.has(v), label = facetLabel(f, v);
     const dot = f.id === 'team' ? `<i class="dot" style="${v === NO_TEAM ? '' : `--c:${teamColor(v)}`}"></i>` : '';
     const star = f.id === 'team' && v !== NO_TEAM ? `<button type="button" class="fstar icon-btn sm" data-star="${esc(v)}" aria-pressed="${myTeams.has(v)}" aria-label="${myTeams.has(v) ? 'Remove' : 'Add'} ${esc(v)} ${myTeams.has(v) ? 'from' : 'to'} My teams" title="${myTeams.has(v) ? 'In My teams (click to remove)' : 'Add to My teams'}">${icon(myTeams.has(v) ? 'star' : 'star-o')}</button>` : '';
-    return `<div class="fopt"><button type="button" class="fchk" role="checkbox" aria-checked="${on}" data-v="${esc(v)}" title="${esc(f.id === 'team' && v !== NO_TEAM ? `@MetaMask/${v}` : label)}"><span class="box">${icon('check')}</span>${dot}<span class="fl${f.mono ? ' mono' : ''}">${esc(label)}</span><span class="fn">${n}</span></button>${star || '<span class="fspace"></span>'}</div>`;
+    return `<div class="fopt${n ? '' : ' zero'}"><button type="button" class="fchk" role="checkbox" aria-checked="${on}" data-v="${esc(v)}" title="${esc(f.id === 'team' && v !== NO_TEAM ? `@MetaMask/${v}` : label)}"><span class="box">${icon('check')}</span>${dot}<span class="fl${f.mono ? ' mono' : ''}">${esc(label)}</span><span class="fn">${n}</span></button>${star || '<span class="fspace"></span>'}</div>`;
   }).join('');
 }
 
