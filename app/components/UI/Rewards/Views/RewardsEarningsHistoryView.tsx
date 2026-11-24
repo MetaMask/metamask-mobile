@@ -9,7 +9,7 @@ import {
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
 } from '../../../../reducers/rewardsMoney/selectors';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -48,9 +48,10 @@ const RewardsEarningsHistoryView: React.FC = () => {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
   }, [navigation]);
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
   const inFlight = useInFlightClaims(profileId);
   const items = useMemo(
     () => mergeInFlightClaims(list.items, inFlight.claims),
@@ -115,7 +116,7 @@ const RewardsEarningsHistoryView: React.FC = () => {
             : localizedText?.tradingActivityEmptyAction
         }
         emptyIconName={copyTradingOnly ? IconName.People : IconName.Activity}
-        emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
+        emptyOnAction={copyTradingOnly ? openComposerPress : openTradeActions}
         header={header}
       />
     </RewardsMoneyListScreen>

@@ -8,7 +8,6 @@ import {
   CLAIMABLE_EARNINGS_SUMMARY,
   REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { useCommissions } from '../hooks/useCommissions';
 import { EARN_ACTION_HEADER_TEST_IDS } from '../components/Money/EarnActionHeader.testIds';
 import { EARN_FAMILY_EARNINGS_TEST_IDS } from '../components/Money/EarnFamilyEarningsSection.testIds';
@@ -19,6 +18,7 @@ import RewardsCopyTradingView, {
 } from './RewardsCopyTradingView';
 
 const mockNavigate = jest.fn();
+const mockOpenComposer = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -39,8 +39,10 @@ jest.mock('../../../Views/ErrorBoundary', () => {
 });
 
 jest.mock(
-  '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
-  () => ({ navigateToSocialLeaderboard: jest.fn() }),
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+  }),
 );
 jest.mock('../hooks/useCommissions');
 jest.mock('../hooks/useEarningsSummary', () => ({
@@ -170,14 +172,14 @@ describe('RewardsCopyTradingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the Social tab from the header action', () => {
+  it('opens the composer from the header action', () => {
     const { getByTestId } = renderWithProvider(<RewardsCopyTradingView />, {
       state: STATE,
     });
 
     fireEvent.press(getByTestId(EARN_ACTION_HEADER_TEST_IDS.CTA));
 
-    expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
   });
 
   it('renders no rows until localized text is available', () => {

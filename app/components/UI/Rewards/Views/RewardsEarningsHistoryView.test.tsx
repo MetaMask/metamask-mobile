@@ -16,12 +16,12 @@ import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../components/Money/TradingActivityListSkeleton.testIds';
 import RewardsEarningsHistoryView from './RewardsEarningsHistoryView';
 import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
 const mockNavigate = jest.fn();
+const mockOpenComposer = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -42,9 +42,9 @@ jest.mock('../../../Views/ErrorBoundary', () => {
 });
 
 jest.mock(
-  '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
   () => ({
-    navigateToSocialLeaderboard: jest.fn(),
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
   }),
 );
 
@@ -288,7 +288,7 @@ describe('RewardsEarningsHistoryView', () => {
     ).toBe(IconName.Activity);
   });
 
-  it('uses the copy-trading empty copy and opens the social leaderboard for a copy-trading-only sharer', () => {
+  it('uses the copy-trading empty copy and opens the composer for a copy-trading-only sharer', () => {
     (useEarningsHistory as jest.Mock).mockReturnValue({
       items: [],
       isLoading: false,
@@ -333,7 +333,7 @@ describe('RewardsEarningsHistoryView', () => {
       getByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
     );
 
-    expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.MODAL.ROOT_MODAL_FLOW,
       expect.anything(),

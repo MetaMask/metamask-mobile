@@ -30,10 +30,7 @@ import {
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
 import { selectCandidateSubscriptionId } from '../../../../../../reducers/rewards/selectors';
-import {
-  navigateToSocialLeaderboard,
-  navigateToSocialTab,
-} from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import type {
   ClaimDto,
   EarningsSummaryDto,
@@ -379,9 +376,10 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
     referralMe?.referral_code_status,
   );
   const copyTradingOnly = isCopyTradingOnly(roles);
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
   const socialEnabled = useSelector(selectIsSocialV1Enabled);
   const {
     categorizedCampaigns: { active: activeCampaigns },
@@ -414,7 +412,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
           onOpenCampaigns();
         }
       } else {
-        navigateToSocialTab(navigation.navigate);
+        openComposerPress();
       }
     },
     [
@@ -422,6 +420,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
       navigation,
       onOpenCampaigns,
       onOpenShareCode,
+      openComposerPress,
       openTradeActions,
       subscriptionId,
     ],
@@ -675,7 +674,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
               ? null
               : underReviewBlockedBaseUnits(summary.data)
           }
-          onEmptyAction={copyTradingOnly ? openSocialTab : openTradeActions}
+          onEmptyAction={copyTradingOnly ? openComposerPress : openTradeActions}
           onOpenList={openHistory}
         />
       ) : null}

@@ -1,13 +1,11 @@
 import React, { useCallback } from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { CommissionEntryView } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import EarnPageHeader from '../components/Money/EarnPageHeader';
 import { PerformanceCommissionRow } from '../components/Money/PerformanceActivityRows';
 import RewardsMoneyListScreen from '../components/Money/RewardsMoneyListScreen';
@@ -25,10 +23,10 @@ const RewardsCopyTradingView: React.FC = () => {
     selectReferralMeLocalizedText(state, profileId),
   );
   const list = useCommissions(profileId);
-  const navigation = useNavigation<AppNavigationProp>();
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
 
   const renderItem = useCallback(
     (item: CommissionEntryView) =>
@@ -59,7 +57,7 @@ const RewardsCopyTradingView: React.FC = () => {
               description={localizedText.copyTradingDescription}
               cta={{
                 label: localizedText.copyTradingEmptyAction,
-                onPress: openSocialTab,
+                onPress: openComposerPress,
               }}
               branch="earned_by_others"
               family="SOCIAL_FOLLOW_TRADE"
