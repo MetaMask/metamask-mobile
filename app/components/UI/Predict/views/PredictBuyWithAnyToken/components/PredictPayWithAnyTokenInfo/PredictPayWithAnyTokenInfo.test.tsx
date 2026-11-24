@@ -580,7 +580,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
       const updateError = new Error('update failed');
       const updatePromise = Promise.reject(updateError);
       const catchSpy = jest.spyOn(updatePromise, 'catch');
-      mockUpdateTokenAmountCallback = jest.fn(() => updatePromise);
+      mockUpdateTokenAmountCallback = jest.fn().mockReturnValue(updatePromise);
 
       render(
         <PredictPayWithAnyTokenInfo

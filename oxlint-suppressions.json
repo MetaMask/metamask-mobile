@@ -9242,11 +9242,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictPayWithAnyTokenInfo/PredictPayWithAnyTokenInfo.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictQuickAmounts/PredictQuickAmounts.tsx": {
     "typescript/no-floating-promises": {
       "count": 1
