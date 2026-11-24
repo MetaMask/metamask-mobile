@@ -2157,7 +2157,7 @@ export const usePerpsProOrderForm = ({
       currentMarketPosition ||
       marketMaxLeverage === undefined
     ) {
-      return '';
+      return undefined;
     }
     const estimate = estimateCrossLiquidationPrice({
       entryPrice: effectivePrice,
@@ -2168,7 +2168,9 @@ export const usePerpsProOrderForm = ({
       spotCollateral: liveAccount?.spotCollateral,
       providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
     });
-    return estimate === undefined ? '' : new BigNumber(estimate).toFixed();
+    return estimate === undefined
+      ? undefined
+      : new BigNumber(estimate).toFixed();
   }, [
     marginMode,
     isScaleOrder,
@@ -2618,7 +2620,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -3319,9 +3321,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3625,7 +3625,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4357,7 +4357,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

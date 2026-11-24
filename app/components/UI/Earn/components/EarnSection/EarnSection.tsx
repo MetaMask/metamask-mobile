@@ -42,9 +42,9 @@ import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
@@ -177,15 +177,13 @@ const EarnSection = ({
     enabled: enabled && isMoneyAccountVisible,
   });
 
-  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
-  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const { destination: moneyDepositDestination } = getMoneyEntryDecision(
     'deposit',
     moneyEntryContext,
   );
-  const isMoneyOnboardingRedirectNeeded =
-    moneyDepositDestination === 'onboarding' ||
-    moneyDepositDestination === 'splash';
+  const isMoneyFtueRedirectNeeded = moneyDepositDestination === 'splash';
   const {
     screen_name: earnScreenName,
     entry_point: earnEntryPoint,
@@ -336,11 +334,11 @@ const EarnSection = ({
   );
 
   const moneyAccountCardSecondaryText = useMemo(() => {
-    if (isMoneyOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+    if (isMoneyFtueRedirectNeeded && moneyAccountBalanceRaw === '0') {
       return strings('earn_module.get_started');
     }
 
-    if (!isMoneyOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+    if (!isMoneyFtueRedirectNeeded && moneyAccountBalanceRaw === '0') {
       return strings('money.asset_overview.cta.start_earning');
     }
 
@@ -359,7 +357,7 @@ const EarnSection = ({
       </SensitiveText>
     );
   }, [
-    isMoneyOnboardingRedirectNeeded,
+    isMoneyFtueRedirectNeeded,
     moneyAccountBalanceFiat,
     moneyAccountBalanceRaw,
     privacyMode,

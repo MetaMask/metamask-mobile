@@ -12,7 +12,7 @@ import type {
   ChartType,
   OHLCVBar,
   OHLCVPaginationConfig,
-  RealtimeTickCallback,
+  RealtimeListener,
   StudyId,
   TVChartingLibraryWidget,
 } from './types';
@@ -33,8 +33,8 @@ interface CoreState {
   /** Visible-range bounds (ms) for the next setVisibleRange after reset; null = use TV default. */
   visibleFromMs: number | null;
   visibleToMs: number | null;
-  /** TradingView subscribeBars listenerGuid → tick callback (forwarded by REALTIME_UPDATE). */
-  realtimeCallbacks: Record<string, RealtimeTickCallback>;
+  /** TradingView subscribeBars listenerGuid → its resolution and tick callback. */
+  realtimeListeners: Record<string, RealtimeListener>;
   /** Curated indicators (MACD, RSI, BOL, MA200) keyed by indicator name → studyId. */
   activeStudies: Map<string, StudyId>;
   /** MA visibility-driven studies (MA5/10/20/50/200) keyed by name → studyId. */
@@ -89,7 +89,7 @@ const state: CoreState = {
   ohlcvPagination: emptyPagination(),
   visibleFromMs: null,
   visibleToMs: null,
-  realtimeCallbacks: {},
+  realtimeListeners: {},
   activeStudies: new Map(),
   maStudies: new Map(),
   legendStudyOrder: new Map(),
@@ -243,19 +243,19 @@ export function setVisibleToMs(ms: number | null): void {
 
 // ----- Realtime tick subscribers ------------------------------------------
 
-export function registerRealtimeCallback(
+export function registerRealtimeListener(
   listenerGuid: string,
-  cb: RealtimeTickCallback,
+  listener: RealtimeListener,
 ): void {
-  state.realtimeCallbacks[listenerGuid] = cb;
+  state.realtimeListeners[listenerGuid] = listener;
 }
 
-export function unregisterRealtimeCallback(listenerGuid: string): void {
-  delete state.realtimeCallbacks[listenerGuid];
+export function unregisterRealtimeListener(listenerGuid: string): void {
+  delete state.realtimeListeners[listenerGuid];
 }
 
-export function getRealtimeCallbacks(): Record<string, RealtimeTickCallback> {
-  return state.realtimeCallbacks;
+export function getRealtimeListeners(): Record<string, RealtimeListener> {
+  return state.realtimeListeners;
 }
 
 // ----- Indicator studies --------------------------------------------------
@@ -405,7 +405,7 @@ export function __resetStateForTests(): void {
   state.ohlcvPagination = emptyPagination();
   state.visibleFromMs = null;
   state.visibleToMs = null;
-  state.realtimeCallbacks = {};
+  state.realtimeListeners = {};
   state.activeStudies = new Map();
   state.maStudies = new Map();
   state.legendStudyOrder = new Map();

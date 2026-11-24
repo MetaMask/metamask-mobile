@@ -109,6 +109,8 @@ describe('Analyze App Profiling triggers', () => {
     expect(workflow.on.workflow_call?.secrets).toStrictEqual({
       E2E_CLAUDE_API_KEY: { required: false },
       SLACK_BOT_TOKEN: { required: false },
+      JIRA_USER_EMAIL: { required: false },
+      JIRA_API_TOKEN: { required: false },
     });
   });
 
@@ -198,7 +200,7 @@ describe('Analyze App Profiling triggers', () => {
 
     expect(command).toContain('if [ "${WEEKLY}" = "true" ]; then');
     expect(command).toContain(
-      'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)',
+      'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --jira-issues)',
     );
     expect(command).toContain('ARGS+=(--scheduled-exception)');
     expect(command).toContain('if [ -n \"${LOOKBACK_HOURS}\" ]; then');
@@ -252,17 +254,15 @@ describe('Analyze App Profiling triggers', () => {
     expect(workflow.permissions).toStrictEqual({});
   });
 
-  it('grants issues: write only to the job that files findings', () => {
+  it('grants no issues scope, since findings are filed in Jira', () => {
     const workflow = loadWorkflow();
 
     const writers = Object.entries(workflow.jobs)
       .filter(([, job]) => job.permissions?.issues === 'write')
       .map(([name]) => name);
 
-    expect(workflow.jobs.analyze.permissions).toMatchObject({
-      issues: 'write',
-    });
-    expect(writers).toStrictEqual(['analyze']);
+    expect(workflow.jobs.analyze.permissions).not.toHaveProperty('issues');
+    expect(writers).toStrictEqual([]);
     expect(workflow.jobs['upload-scenario-profiles'].permissions).toStrictEqual(
       {},
     );
@@ -272,16 +272,13 @@ describe('Analyze App Profiling triggers', () => {
     });
   });
 
-  it('opens a GitHub issue only for a scheduled finding on main', () => {
+  it('opens a Jira ticket only for a scheduled finding on main', () => {
     const workflow = loadWorkflow();
     const analysisStep = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Analyze app profiling',
     );
     const command = analysisStep?.run ?? '';
 
-    expect(workflow.jobs.analyze.permissions).toMatchObject({
-      issues: 'write',
-    });
     expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBe(
       '${{ github.ref_name }}',
     );
@@ -289,18 +286,36 @@ describe('Analyze App Profiling triggers', () => {
     expect(command).toContain(
       'if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then',
     );
-    expect(command).toContain('ARGS+=(--github-issues)');
-    // Monday still lists issues that were already opened. That flag does not
+    expect(command).toContain('ARGS+=(--jira-issues)');
+    expect(command).not.toContain('--github-issues');
+    // Monday still lists tickets that were already opened. That flag does not
     // create or comment.
     expect(command).toContain(
-      'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)',
+      'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --jira-issues)',
     );
     expect(command).toContain('ARGS+=(--scheduled-exception)');
 
     const upload = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Upload analysis artifact',
     );
-    expect(String(upload?.with?.path)).toContain('github-issues.json');
+    expect(String(upload?.with?.path)).toContain('jira-issues.json');
+  });
+
+  it('passes the Jira settings from secrets and a fixed base URL', () => {
+    const workflow = loadWorkflow();
+    const analysisStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Analyze app profiling',
+    );
+
+    expect(analysisStep?.env?.JIRA_BASE_URL).toBe(
+      'https://consensyssoftware.atlassian.net',
+    );
+    expect(analysisStep?.env?.JIRA_USER_EMAIL).toBe(
+      '${{ secrets.JIRA_USER_EMAIL }}',
+    );
+    expect(analysisStep?.env?.JIRA_API_TOKEN).toBe(
+      '${{ secrets.JIRA_API_TOKEN }}',
+    );
   });
 
   it('bounds the weekly rebuild by time instead of by run count', () => {
@@ -477,6 +492,8 @@ describe('Run Performance E2E Tests Manually calls the analysis', () => {
     expect(job.secrets).toStrictEqual({
       E2E_CLAUDE_API_KEY: '${{ secrets.E2E_CLAUDE_API_KEY }}',
       SLACK_BOT_TOKEN: '${{ secrets.SLACK_BOT_TOKEN }}',
+      JIRA_USER_EMAIL: '${{ secrets.JIRA_USER_EMAIL }}',
+      JIRA_API_TOKEN: '${{ secrets.JIRA_API_TOKEN }}',
     });
   });
 
@@ -487,7 +504,6 @@ describe('Run Performance E2E Tests Manually calls the analysis', () => {
       contents: 'read',
       actions: 'read',
       'pull-requests': 'read',
-      issues: 'write',
     });
   });
 });

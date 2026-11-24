@@ -34,11 +34,6 @@ appiumTest.describe(
     appiumTest(
       'gracefully handles adding accounts with activity and synced accounts',
       async ({ driver: _driver, currentDeviceDetails }) => {
-        appiumTest.skip(
-          currentDeviceDetails.platform === 'ios',
-          'Fails on iOS (scroll element not found / login_app_ready timeout), e.g. https://github.com/MetaMask/metamask-mobile/actions/runs/45020632200/job/137204706579. Re-enable once #40298 and #40164 merge.',
-        );
-
         const baseFixtureOptions = identityFixtureOptions(
           sharedUserStorageController,
           currentDeviceDetails,

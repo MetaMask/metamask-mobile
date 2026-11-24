@@ -1,63 +1,136 @@
+import { selectMoneySplashSeen } from '../../../../reducers/user/selectors';
+import { selectLastKnownMoneyBalance } from '../../../../core/redux/slices/moneyBalance';
+import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import {
-  selectMoneyOnboardingSeen,
-  selectMoneySplashSeen,
-} from '../../../../reducers/user/selectors';
-import {
-  selectMoneyOnboardingStepperAnimationEnabled,
-  selectMoneySplashEnabled,
-} from '../../../../selectors/featureFlagController/moneyAccount';
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { selectMoneyAccountAccessBlockReason } from './visibility';
 import {
-  selectIsMoneyOnboardingRedirectNeeded,
+  selectHasUsedMoneyAccount,
   selectIsMoneySplashRedirectNeeded,
-  selectMoneyCtaEntryContext,
   selectMoneyEntryContext,
 } from './entry';
 
 jest.mock('../../../../reducers/user/selectors', () => ({
-  selectMoneyOnboardingSeen: jest.fn(),
   selectMoneySplashSeen: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
-  selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
-  selectMoneySplashEnabled: jest.fn(),
+jest.mock('../../../../core/redux/slices/moneyBalance', () => ({
+  selectLastKnownMoneyBalance: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectNonReplacedTransactions: jest.fn(),
 }));
 
 jest.mock('./visibility', () => ({
   selectMoneyAccountAccessBlockReason: jest.fn(),
 }));
 
-const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
-const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
-  selectMoneyOnboardingStepperAnimationEnabled,
-);
 const mockSelectMoneySplashSeen = jest.mocked(selectMoneySplashSeen);
-const mockSelectMoneySplashEnabled = jest.mocked(selectMoneySplashEnabled);
+const mockSelectLastKnownMoneyBalance = jest.mocked(
+  selectLastKnownMoneyBalance,
+);
+const mockSelectNonReplacedTransactions = jest.mocked(
+  selectNonReplacedTransactions,
+);
 const mockSelectMoneyAccountAccessBlockReason = jest.mocked(
   selectMoneyAccountAccessBlockReason,
 );
 
-describe('selectIsMoneyOnboardingRedirectNeeded', () => {
+const makeBalance = (value: string) => ({
+  address: '0x1',
+  value,
+  currency: 'USD',
+  updatedAt: 0,
+});
+
+const setUsageInputs = ({
+  hasSeenSplash = false,
+  lastKnownBalance = null,
+  transactions = [],
+}: {
+  hasSeenSplash?: boolean;
+  lastKnownBalance?: ReturnType<typeof makeBalance> | null;
+  transactions?: unknown[];
+} = {}) => {
+  mockSelectMoneySplashSeen.mockReturnValue(hasSeenSplash);
+  mockSelectLastKnownMoneyBalance.mockReturnValue(lastKnownBalance);
+  mockSelectNonReplacedTransactions.mockReturnValue(
+    transactions as unknown as ReturnType<typeof selectNonReplacedTransactions>,
+  );
+};
+
+describe('selectHasUsedMoneyAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setUsageInputs();
+  });
+
+  it('returns false without a balance or deposit history', () => {
+    expect(selectHasUsedMoneyAccount({} as never)).toBe(false);
+  });
+
+  it('returns true for a persisted positive balance', () => {
+    setUsageInputs({ lastKnownBalance: makeBalance('$12.34') });
+
+    expect(selectHasUsedMoneyAccount({} as never)).toBe(true);
+  });
+
+  it('returns true for a confirmed Money deposit', () => {
+    setUsageInputs({
+      transactions: [
+        {
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+        },
+      ],
+    });
+
+    expect(selectHasUsedMoneyAccount({} as never)).toBe(true);
+  });
+
+  it('returns true for a confirmed Money withdrawal', () => {
+    setUsageInputs({
+      transactions: [
+        {
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+        },
+      ],
+    });
+
+    expect(selectHasUsedMoneyAccount({} as never)).toBe(true);
+  });
+});
+
+describe('selectIsMoneySplashRedirectNeeded', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setUsageInputs();
   });
 
   it.each([
-    [false, true, true],
-    [true, true, false],
-    [false, false, false],
+    { hasSeenSplash: false, lastKnownBalance: null, expectedRedirect: true },
+    {
+      hasSeenSplash: false,
+      lastKnownBalance: makeBalance('$12.34'),
+      expectedRedirect: false,
+    },
+    {
+      hasSeenSplash: true,
+      lastKnownBalance: null,
+      expectedRedirect: false,
+    },
   ])(
-    'returns %s when onboarding is seen: %s and enabled: %s',
-    (hasSeenOnboarding, isOnboardingEnabled, expectedRedirect) => {
-      mockSelectMoneyOnboardingSeen.mockReturnValue(hasSeenOnboarding);
-      mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(
-        isOnboardingEnabled,
+    'returns $expectedRedirect for $hasSeenSplash and $lastKnownBalance',
+    ({ hasSeenSplash, lastKnownBalance, expectedRedirect }) => {
+      setUsageInputs({ hasSeenSplash, lastKnownBalance });
+
+      expect(selectIsMoneySplashRedirectNeeded({} as never)).toBe(
+        expectedRedirect,
       );
-
-      const result = selectIsMoneyOnboardingRedirectNeeded({} as never);
-
-      expect(result).toBe(expectedRedirect);
     },
   );
 });
@@ -65,19 +138,29 @@ describe('selectIsMoneyOnboardingRedirectNeeded', () => {
 describe('selectMoneyEntryContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectMoneyOnboardingSeen.mockReturnValue(false);
-    mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
+    setUsageInputs();
     mockSelectMoneyAccountAccessBlockReason.mockReturnValue(undefined);
   });
 
-  it('combines access policy and onboarding state', () => {
+  it('combines access policy and splash state', () => {
     mockSelectMoneyAccountAccessBlockReason.mockReturnValue('geo_blocked');
 
     const result = selectMoneyEntryContext({} as never);
 
     expect(result).toStrictEqual({
       accessBlockReason: 'geo_blocked',
-      isOnboardingRedirectNeeded: true,
+      isSplashRedirectNeeded: true,
+    });
+  });
+
+  it('skips the splash when the user has already used Money', () => {
+    setUsageInputs({ lastKnownBalance: makeBalance('$12.34') });
+
+    const result = selectMoneyEntryContext({} as never);
+
+    expect(result).toStrictEqual({
+      accessBlockReason: undefined,
+      isSplashRedirectNeeded: false,
     });
   });
 
@@ -88,75 +171,5 @@ describe('selectMoneyEntryContext', () => {
     const secondResult = selectMoneyEntryContext(state);
 
     expect(secondResult).toBe(firstResult);
-  });
-});
-
-describe('selectIsMoneySplashRedirectNeeded', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it.each([
-    [false, true, true],
-    [true, true, false],
-    [false, false, false],
-  ])(
-    'returns %s when splash is seen: %s and enabled: %s',
-    (hasSeenSplash, isSplashEnabled, expectedRedirect) => {
-      mockSelectMoneySplashSeen.mockReturnValue(hasSeenSplash);
-      mockSelectMoneySplashEnabled.mockReturnValue(isSplashEnabled);
-
-      const result = selectIsMoneySplashRedirectNeeded({} as never);
-
-      expect(result).toBe(expectedRedirect);
-    },
-  );
-});
-
-describe('selectMoneyCtaEntryContext', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockSelectMoneyOnboardingSeen.mockReturnValue(false);
-    mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
-    mockSelectMoneyAccountAccessBlockReason.mockReturnValue(undefined);
-  });
-
-  it('targets the splash and skips onboarding while the splash is unseen', () => {
-    mockSelectMoneySplashSeen.mockReturnValue(false);
-    mockSelectMoneySplashEnabled.mockReturnValue(true);
-
-    const result = selectMoneyCtaEntryContext({} as never);
-
-    expect(result).toStrictEqual({
-      accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
-      isSplashRedirectNeeded: true,
-    });
-  });
-
-  it('keeps onboarding when the splash flag is off', () => {
-    mockSelectMoneySplashSeen.mockReturnValue(false);
-    mockSelectMoneySplashEnabled.mockReturnValue(false);
-
-    const result = selectMoneyCtaEntryContext({} as never);
-
-    expect(result).toStrictEqual({
-      accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: true,
-      isSplashRedirectNeeded: false,
-    });
-  });
-
-  it('targets neither FTUE once the splash is seen', () => {
-    mockSelectMoneySplashSeen.mockReturnValue(true);
-    mockSelectMoneySplashEnabled.mockReturnValue(true);
-
-    const result = selectMoneyCtaEntryContext({} as never);
-
-    expect(result).toStrictEqual({
-      accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
-      isSplashRedirectNeeded: false,
-    });
   });
 });

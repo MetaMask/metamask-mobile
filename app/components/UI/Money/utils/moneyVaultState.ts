@@ -51,8 +51,8 @@ export interface MoneyVaultState {
 
 const ZERO = new BigNumber(0);
 
-const normalizeAddress = (address: string | undefined): string | undefined =>
-  address?.toLowerCase();
+const normalizeAddress = (address: unknown): string | undefined =>
+  typeof address === 'string' ? address.toLowerCase() : undefined;
 
 const parseUsd = (value: string | undefined): BigNumber => {
   if (value === undefined) {
@@ -97,6 +97,31 @@ export const matchesVault = (
     return true;
   }
   return position.vault_key === vaultKey;
+};
+
+/**
+ * Finds the vault for a configured address, then falls back to its key.
+ *
+ * Address match wins when `vaultAddress` is set. A single `matchesVault` pass
+ * would take an earlier key hit over the configured vault.
+ *
+ * @param vaults - Vault catalog or positions payload.
+ * @param vaultAddress - Configured vault address, if known.
+ * @param vaultKey - Stable vault identity, such as `standard` or `premium`.
+ * @returns The address match, otherwise the key match.
+ */
+export const findVault = <Vault extends MoneyVaultPositionLike>(
+  vaults: Vault[] | undefined,
+  vaultAddress: unknown,
+  vaultKey: string,
+): Vault | undefined => {
+  const normalizedVault = normalizeAddress(vaultAddress);
+  const addressMatch = normalizedVault
+    ? vaults?.find(
+        (vault) => normalizeAddress(vault.vault_address) === normalizedVault,
+      )
+    : undefined;
+  return addressMatch ?? vaults?.find((vault) => vault.vault_key === vaultKey);
 };
 
 const getVaultBalances = ({
@@ -144,7 +169,7 @@ const weightedApy = ({
   }
 
   // A missing leg is not a zero rate. Publishing the other vault's APY would
-  // close Money home's time-to-content span before GET_VAULT_APY returns.
+  // close Money home's time-to-content span before the base APY query returns.
   if (
     (baseUsd.gt(0) && baseApy === undefined) ||
     (premiumUsd.gt(0) && premiumApy === undefined)
