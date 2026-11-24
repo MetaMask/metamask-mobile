@@ -921,6 +921,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       bestAsk: update.bestAsk,
       spread: update.spread,
       markPrice: update.markPrice,
+      oraclePrice: update.oraclePrice,
       funding: update.funding,
       openInterest: update.openInterest,
       volume24h: update.volume24h,

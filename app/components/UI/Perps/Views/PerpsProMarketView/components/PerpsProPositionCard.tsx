@@ -207,8 +207,7 @@ const PerpsProPositionCard = ({
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
   // Mark price is not stored on the position: the panel passes the stream's
-  // live mark (`PriceUpdate.price`, as the Pro stats bar's Mark). The
-  // stream's `markPrice` field is the oracle price.
+  // venue mark, as the Pro stats bar's Mark.
   const markPriceNum =
     markPrice === undefined ? undefined : parseFloat(markPrice);
   const markPriceDisplay = formatPerpsFiat(markPrice, {

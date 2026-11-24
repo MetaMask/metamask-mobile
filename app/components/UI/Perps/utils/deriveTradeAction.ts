@@ -1,5 +1,8 @@
-import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
-import { getPositionDirection } from './positionCalculations';
+import {
+  getPositionDirection,
+  PERPS_EVENT_VALUE,
+  type Position,
+} from '@metamask/perps-controller';
 
 export type PerpsTradeAction =
   | typeof PERPS_EVENT_VALUE.ACTION.CREATE_POSITION
@@ -29,9 +32,9 @@ export function derivePerpsTradeAction(
 ): PerpsTradeAction {
   const positionDirection = existingPosition
     ? getPositionDirection(existingPosition.size)
-    : 'unknown';
+    : undefined;
 
-  if (positionDirection === 'unknown') {
+  if (positionDirection === undefined) {
     return PERPS_EVENT_VALUE.ACTION.CREATE_POSITION;
   }
   if (positionDirection === orderDirection) {

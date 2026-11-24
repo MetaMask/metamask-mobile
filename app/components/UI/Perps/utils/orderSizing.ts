@@ -31,8 +31,8 @@ export interface DeriveOrderSizingInput {
   triggerPrice?: string;
   /** Mid/market price used for market orders and display. */
   marketPrice: number;
-  /** Oracle mark price used as the standard margin basis. */
-  markPrice: number;
+  /** Venue mark price, the standard margin basis; undefined while unknown. */
+  markPrice?: number;
   leverage: number;
   /** Asset size decimals from market data; falls back when unknown. */
   szDecimals: number | null;
@@ -179,7 +179,7 @@ export const getProspectiveExecutionPrice = ({
  *
  * Priced placements (limit, trigger-limit with a limit, trigger-market with a
  * trigger) size and margin off that price; otherwise the mid is used for
- * sizing and the oracle mark price is used for margin.
+ * sizing and the venue mark price (the mid while it is unknown) for margin.
  *
  * @param input - Order sizing inputs.
  * @returns The effective price, position size, and margin required.
@@ -230,7 +230,9 @@ export const deriveOrderSizing = ({
       : undefined;
   const marginPrice =
     triggerMarketMarginPrice ??
-    (hasPricedReference ? effectivePrice : markPrice);
+    (hasPricedReference || markPrice === undefined
+      ? effectivePrice
+      : markPrice);
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay

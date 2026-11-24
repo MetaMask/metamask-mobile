@@ -5,8 +5,6 @@ import { OHLCVBar } from './OHLCVBar';
 import type { CrosshairData } from '../AdvancedChart.types';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 

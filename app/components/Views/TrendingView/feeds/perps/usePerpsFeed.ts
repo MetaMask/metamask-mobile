@@ -69,13 +69,7 @@ export const PERPS_PRICE_CHANGE_SORT_DIRECTION: Record<
   losers: 'asc',
 };
 
-const hasKnownChange24h = (market: PerpsMarketData) =>
-  Number.isFinite(Number.parseFloat(market.change24hPercent));
-
-/**
- * Core `sortMarkets` by the option's field and direction. Markets with an
- * unknown 24h change go last instead of sorting as 0%.
- */
+/** Core `sortMarkets` by the option's field and direction, unknown values last. */
 const sortFeedMarkets = (
   markets: PerpsMarketData[],
   sortOptionId: SortOptionId,
@@ -83,24 +77,13 @@ const sortFeedMarkets = (
   const option = MARKET_SORTING_CONFIG.SortOptions.find(
     ({ id }) => id === sortOptionId,
   );
-  if (!option) {
-    return markets;
-  }
-  if (option.field !== MARKET_SORTING_CONFIG.SortFields.PriceChange) {
-    return sortMarkets({
-      markets,
-      sortBy: option.field,
-      direction: option.direction,
-    });
-  }
-  return [
-    ...sortMarkets({
-      markets: markets.filter(hasKnownChange24h),
-      sortBy: option.field,
-      direction: option.direction,
-    }),
-    ...markets.filter((market) => !hasKnownChange24h(market)),
-  ];
+  return option
+    ? sortMarkets({
+        markets,
+        sortBy: option.field,
+        direction: option.direction,
+      })
+    : markets;
 };
 
 const filterByVariant = (

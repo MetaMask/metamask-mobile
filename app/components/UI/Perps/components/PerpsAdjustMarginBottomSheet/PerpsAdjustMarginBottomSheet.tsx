@@ -247,7 +247,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
-    spendableBalance,
     currentPrice,
     percentChange24h,
     isAddMode,
@@ -266,7 +265,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     setFreshMaxAmount,
     position,
     snapshotMaxAmount:
-      Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0,
+      maxAmount !== undefined && maxAmount > 0 ? floorUsd(maxAmount) : 0,
     exchangeMaxAmount,
     isAddMode,
   });
@@ -281,7 +280,11 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   // The buffered Max is a suggestion; only the submit limit means nothing
   // can be removed, including an amount selected before a price tick.
   const hasNoRemovableMargin =
-    !isAddMode && !isLoading && hasValidPositionData && submitLimitAmount <= 0;
+    !isAddMode &&
+    !isLoading &&
+    hasValidPositionData &&
+    maxAmount !== undefined &&
+    submitLimitAmount <= 0;
   // Close an open keypad once nothing is left to remove.
   useEffect(() => {
     if (hasNoRemovableMargin) {
@@ -294,6 +297,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     if (
       isInputFocused ||
       hasNoRemovableMargin ||
+      maxAmount === undefined ||
       marginAmount <= submitLimitAmount
     ) {
       return null;
@@ -306,6 +310,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     isAddMode,
     isInputFocused,
     hasNoRemovableMargin,
+    maxAmount,
     marginAmount,
   ]);
 
@@ -710,10 +715,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                   : strings('perps.adjust_margin.available_to_remove')
               }
               value={formatPerpsFiat(
-                // An unknown balance renders the placeholder, not $0.
-                isAddMode && spendableBalance === undefined
-                  ? undefined
-                  : flooredMaxAmount,
+                // An unknown limit renders the placeholder, not $0.
+                maxAmount === undefined ? undefined : flooredMaxAmount,
                 { ranges: PRICE_RANGES_MINIMAL_VIEW },
               )}
               valueTextProps={{

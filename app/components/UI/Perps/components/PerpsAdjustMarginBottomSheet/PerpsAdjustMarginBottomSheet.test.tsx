@@ -242,7 +242,6 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
   newLiquidationPrice: mode === 'add' ? 1800 : 1950,
   currentLiquidationDistance: '5.00%',
   newLiquidationDistance: mode === 'add' ? '10.00%' : '2.50%',
-  spendableBalance: 1000,
   currentPrice: 2000,
   percentChange24h: 1.5,
   isAddMode: mode === 'add',
@@ -479,12 +478,11 @@ describe('PerpsAdjustMarginBottomSheet', () => {
   it('shows placeholders, not zeros, while price, balance and liquidation price are unknown', () => {
     mockUsePerpsAdjustMarginData.mockReturnValue({
       ...createMarginData('add'),
-      maxAmount: 0,
+      maxAmount: undefined,
       currentLiquidationPrice: undefined,
       newLiquidationPrice: undefined,
       currentLiquidationDistance: undefined,
       newLiquidationDistance: undefined,
-      spendableBalance: undefined,
       currentPrice: undefined,
       percentChange24h: null,
     });

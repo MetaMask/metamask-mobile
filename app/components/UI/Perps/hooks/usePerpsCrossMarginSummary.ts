@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type {
-  PerpsAccountSummary,
-  PerpsProviderType,
+import {
+  getCrossMarginRatioTone,
+  type CrossMarginRatioTone,
+  type PerpsAccountSummary,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -10,9 +12,7 @@ import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsLiveAccount, usePerpsLivePositions } from './stream';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
-  getCrossMarginRatioTone,
   getCrossMarginSummaryThrottleMs,
-  type CrossMarginRatioTone,
 } from '../utils/crossMarginSummary';
 import { CROSS_MARGIN_SUMMARY_THROTTLE_MS } from '../constants/perpsConfig';
 

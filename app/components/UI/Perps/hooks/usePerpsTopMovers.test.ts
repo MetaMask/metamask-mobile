@@ -165,6 +165,40 @@ describe('usePerpsTopMovers', () => {
     });
   });
 
+  it('ranks on the live change, not the raw value the row was built with', () => {
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          ...buildMarket('BTC', '1.0'),
+          numericValues: { change24hPercent: 1 },
+        },
+        {
+          ...buildMarket('ETH', '5.0'),
+          numericValues: { change24hPercent: 5 },
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        symbol: 'BTC',
+        price: '1',
+        timestamp: 0,
+        isTradable: true,
+        percentChange24h: '9',
+      },
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsTopMovers({ direction: 'desc' }),
+    );
+
+    expect(result.current.data.map((m) => m.symbol)).toEqual(['BTC', 'ETH']);
+  });
+
   describe('losers sort (asc)', () => {
     it('returns the top markets ordered from lowest to highest price change', () => {
       mockUsePerpsMarkets.mockReturnValue({

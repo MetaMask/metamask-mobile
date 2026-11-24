@@ -56,6 +56,7 @@ import PerpsOrderBookTable, {
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  calculateOrderBookAggregationParams,
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import {
@@ -86,12 +87,11 @@ import {
 } from '../../utils/formatUtils';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import {
-  calculateAggregationParams,
   calculateGroupingOptions,
+  selectDefaultGrouping,
   FAST_ORDER_BOOK_LEVELS,
   formatGroupingLabel,
   formatSpreadPercent,
-  selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
@@ -295,7 +295,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Calculate aggregation params (nSigFigs + mantissa) based on grouping
   const aggregationParams = useMemo(() => {
     if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
-    return calculateAggregationParams(currentGrouping, marketPrice);
+    return calculateOrderBookAggregationParams(currentGrouping, marketPrice);
   }, [currentGrouping, marketPrice]);
 
   // Subscribe to live order book data with dynamic nSigFigs and mantissa

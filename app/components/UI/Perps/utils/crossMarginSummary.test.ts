@@ -3,7 +3,7 @@ import {
   calculateCrossMarginAccountSummaryFromAccount,
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
-  getCrossMarginRatioTone,
+  getCrossAccountKey,
   getCrossMarginSummaryThrottleMs,
 } from './crossMarginSummary';
 import {
@@ -68,6 +68,24 @@ describe('crossMarginSummary', () => {
       expect(result.crossMarginUsage).toBeUndefined();
     });
 
+    it.each([
+      // Standard: cross notional over the cross account value.
+      ['disabled', 12.5],
+      ['default', 12.5],
+      // Unified, portfolio margin and unknown: over total equity.
+      ['unifiedAccount', 6.25],
+      [undefined, 6.25],
+    ])('derives leverage for account mode %s', (accountMode, leverage) => {
+      const result = calculateCrossMarginAccountSummaryFromAccount({
+        totalBalance: '2000',
+        crossMarginSummary,
+        spotCollateral: '0',
+        accountMode,
+      } as AccountState);
+
+      expect(result.accountLeverage).toBe(leverage);
+    });
+
     it('returns undefined metrics for a null account', () => {
       expect(calculateCrossMarginAccountSummaryFromAccount(null)).toEqual({
         maintenanceMargin: undefined,
@@ -78,17 +96,37 @@ describe('crossMarginSummary', () => {
     });
   });
 
-  describe('getCrossMarginRatioTone', () => {
-    it.each([
-      [undefined, undefined],
-      [0, 'safe'],
-      [0.4999, 'safe'],
-      [0.5, 'warning'],
-      [0.75, 'warning'],
-      [0.7501, 'danger'],
-      [1.2, 'danger'],
-    ])('maps %s to %s', (ratio, tone) => {
-      expect(getCrossMarginRatioTone(ratio)).toBe(tone);
+  describe('getCrossAccountKey', () => {
+    const account = {
+      totalBalance: '2000',
+      crossMarginSummary,
+      spotCollateral: '10',
+      accountMode: 'unifiedAccount',
+    } as AccountState;
+
+    it('changes with the figures a Cross estimate uses', () => {
+      const key = getCrossAccountKey(account);
+
+      expect(getCrossAccountKey({ ...account, totalBalance: '1' })).toBe(key);
+      expect(getCrossAccountKey({ ...account, spotCollateral: '11' })).not.toBe(
+        key,
+      );
+      expect(
+        getCrossAccountKey({ ...account, accountMode: 'disabled' }),
+      ).not.toBe(key);
+      expect(
+        getCrossAccountKey({
+          ...account,
+          crossMarginSummary: {
+            ...crossMarginSummary,
+            maintenanceMargin: '251',
+          },
+        }),
+      ).not.toBe(key);
+    });
+
+    it('is undefined while the account is unknown', () => {
+      expect(getCrossAccountKey(null)).toBeUndefined();
     });
   });
 

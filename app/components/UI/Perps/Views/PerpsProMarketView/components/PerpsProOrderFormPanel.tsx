@@ -20,6 +20,7 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsCrossMarginConfirmBottomSheet from '../../../components/PerpsCrossMarginConfirmBottomSheet';
 import { usePerpsCrossMarginSummary } from '../../../hooks/usePerpsCrossMarginSummary';
+import { formatLeverage } from '../../../utils/formatUtils';
 import {
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
@@ -445,7 +446,7 @@ const PerpsProOrderFormPanel = ({
         )}
         marginModeTag={marginModeTag}
         onMarginModePress={openMarginMode}
-        leverageLabel={`${leverage}x`}
+        leverageLabel={formatLeverage(leverage)}
         onLeveragePress={onLeveragePress}
         orderType={orderType}
         scaleOrder={scaleOrder}

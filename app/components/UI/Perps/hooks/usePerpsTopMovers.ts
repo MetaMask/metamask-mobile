@@ -83,6 +83,11 @@ export const usePerpsTopMovers = ({
       return {
         ...market,
         change24hPercent: formatPercentage(changePercent),
+        // `sortMarkets` ranks on the raw value, not the display string.
+        numericValues: {
+          ...market.numericValues,
+          change24hPercent: changePercent,
+        },
       };
     });
 

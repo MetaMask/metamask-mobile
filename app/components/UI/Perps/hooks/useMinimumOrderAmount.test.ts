@@ -47,7 +47,11 @@ describe('useMinimumOrderAmount', () => {
       status: 'ready',
       providerId: 'lighter',
       supportedStrategies: [],
-      orderLimits: { sizeDecimals: 4, minOrderNotionalUsd: 1 },
+      orderLimits: {
+        sizeDecimals: 4,
+        minOrderNotionalUsd: 1,
+        maxOraclePriceDeviation: 0.5,
+      },
     });
 
     // Act
@@ -57,6 +61,7 @@ describe('useMinimumOrderAmount', () => {
 
     // Assert: not Hyperliquid's $10 default
     expect(result.current.minimumOrderAmount).toBe(1);
+    expect(result.current.maxOraclePriceDeviation).toBe(0.5);
     expect(mockUsePerpsProvider).toHaveBeenCalledWith({
       symbol: 'ETH',
       providerId: 'lighter',
@@ -91,6 +96,7 @@ describe('useMinimumOrderAmount', () => {
 
     // Assert
     expect(result.current.minimumOrderAmount).toBeUndefined();
+    expect(result.current.maxOraclePriceDeviation).toBeUndefined();
   });
 
   it('should return market-specific minimum when available', () => {

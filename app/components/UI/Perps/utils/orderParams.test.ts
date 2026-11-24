@@ -335,27 +335,26 @@ describe('buildPerpsOrderTrackingData', () => {
     expect(buildPerpsOrderTrackingData(base)).not.toHaveProperty('entryPoint');
   });
 
-  it('sends no tracking data rather than a 0 fee while the fee is unknown', () => {
-    // Arrange / Act
+  it('leaves an unknown fee out of the tracking data, never sending 0', () => {
     const result = buildPerpsOrderTrackingData({
       ...base,
       feeResults: { ...base.feeResults, totalFee: undefined },
     });
 
-    // Assert: Core's TrackingData requires a number; an unknown fee is not 0.
-    expect(result).toBeUndefined();
+    expect(result).not.toHaveProperty('totalFee');
+    expect(result).toHaveProperty('marketPrice', base.marketPrice);
   });
 
-  it('builds tracking data only when the fee and price are known', () => {
+  it('keeps known figures, including a real zero, and drops unknown ones', () => {
     expect(
       toCoreTrackingData({ totalFee: 5, marketPrice: 90000, source: 'x' }),
     ).toEqual({ totalFee: 5, marketPrice: 90000, source: 'x' });
     expect(
       toCoreTrackingData({ totalFee: undefined, marketPrice: 90000 }),
-    ).toBeUndefined();
-    expect(
-      toCoreTrackingData({ totalFee: 0, marketPrice: undefined }),
-    ).toBeUndefined();
+    ).toEqual({ marketPrice: 90000 });
+    expect(toCoreTrackingData({ totalFee: 0, marketPrice: undefined })).toEqual(
+      { totalFee: 0 },
+    );
   });
 
   it('marks trades without a custom token and omits pay-token fields', () => {

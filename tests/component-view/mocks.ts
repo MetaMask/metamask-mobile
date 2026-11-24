@@ -615,6 +615,12 @@ jest.mock('../../app/core/Engine', () => {
           providerId: 'hyperliquid',
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
+        estimateCrossLiquidation: jest
+          .fn()
+          .mockResolvedValue({ status: 'unavailable', reason: 'provider' }),
+        getMarginAdjustmentLimits: jest
+          .fn()
+          .mockResolvedValue({ status: 'unavailable', reason: 'provider' }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),

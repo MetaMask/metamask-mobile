@@ -34,8 +34,6 @@ const mockUsePerpsLiveFocusedPrice =
   >;
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: jest.fn((key) => {
     const translations = {
       'perps.market.long': 'Long',

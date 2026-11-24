@@ -1,10 +1,10 @@
 /**
- * The two prices a perps quote can carry. `markPrice` is the exchange oracle.
+ * The two prices a perps quote can carry. `oraclePrice` is the exchange oracle.
  * `price` is the live mid.
  */
 export interface PerpPriceQuote {
   price?: string;
-  markPrice?: string;
+  oraclePrice?: string;
   /**
    * `false` when the oracle has diverged from the mid far enough that the
    * venue would reject an order. Absent on quotes that have not been assessed.
@@ -32,7 +32,7 @@ export const selectPerpDisplayPrice = (
   update: PerpPriceQuote,
 ): number | undefined => {
   const mid = parsePositivePrice(update.price);
-  const oracle = parsePositivePrice(update.markPrice);
+  const oracle = parsePositivePrice(update.oraclePrice);
   if (oracle == null || update.isTradable === false) {
     return mid;
   }

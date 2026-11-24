@@ -81,6 +81,14 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsTopOfBook: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: () => ({
+    orderCapabilities: {
+      status: 'ready',
+      orderLimits: { sizeDecimals: 4, maxOraclePriceDeviation: 0.95 },
+    },
+  }),
+}));
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
@@ -873,6 +881,7 @@ describe('PerpsClosePositionBottomSheet', () => {
     it('does not repeat a limit-price error already shown on the field', () => {
       const tooFarError = getLimitPriceTooFarMessage(
         Number.parseFloat(defaultPerpsLivePricesMock.ETH.price),
+        0.95,
       );
       usePerpsClosePositionValidationMock.mockReturnValue({
         ...defaultPerpsClosePositionValidationMock,

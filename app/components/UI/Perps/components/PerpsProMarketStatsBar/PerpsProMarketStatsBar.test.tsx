@@ -78,7 +78,12 @@ describe('PerpsProMarketStatsBar', () => {
 
   it('renders every Figma stat item label and value inline', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '64620.00', markPrice: '64639.00', funding: 0.0001 },
+      BTC: {
+        price: '64610.00',
+        markPrice: '64620.00',
+        oraclePrice: '64639.00',
+        funding: 0.0001,
+      },
     });
 
     const { getByText } = renderComponent();
@@ -286,9 +291,9 @@ describe('PerpsProMarketStatsBar', () => {
     expect(queryByText('$1.37B')).not.toBeOnTheScreen();
   });
 
-  it('renders mark price from the live price field and oracle price from the live markPrice field', () => {
+  it('renders the venue mark and oracle prices, never the mid', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '83908', markPrice: '83947' },
+      BTC: { price: '83900', markPrice: '83908', oraclePrice: '83947' },
     });
 
     const { getByTestId } = renderComponent();
@@ -300,8 +305,6 @@ describe('PerpsProMarketStatsBar', () => {
       PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
     );
 
-    // Mark and oracle are distinct values sourced from distinct fields:
-    // `price` is the live mark, `markPrice` carries the exchange oracle price.
     expect(within(markItem).getByText(/\$83,908/)).toBeOnTheScreen();
     expect(within(markItem).queryByText(/\$83,947/)).toBeNull();
     expect(within(oracleItem).getByText(/\$83,947/)).toBeOnTheScreen();
@@ -310,7 +313,7 @@ describe('PerpsProMarketStatsBar', () => {
 
   it('renders a fallback for mark price when only the oracle price is available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { markPrice: '83947' },
+      BTC: { price: '83900', oraclePrice: '83947' },
     });
 
     const { getByTestId } = renderComponent();
@@ -322,14 +325,14 @@ describe('PerpsProMarketStatsBar', () => {
       PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
     );
 
-    // Mark must not silently fall back to the oracle value.
+    // Mark must not silently fall back to the mid or the oracle.
     expect(within(markItem).getByText('-')).toBeOnTheScreen();
     expect(within(oracleItem).getByText(/\$83,947/)).toBeOnTheScreen();
   });
 
   it('renders a fallback for oracle price when only the mark price is available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '83908' },
+      BTC: { price: '83900', markPrice: '83908' },
     });
 
     const { getByTestId } = renderComponent();

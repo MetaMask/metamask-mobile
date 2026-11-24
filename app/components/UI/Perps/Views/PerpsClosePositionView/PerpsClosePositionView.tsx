@@ -290,6 +290,7 @@ const PerpsClosePositionView: React.FC = () => {
           only be 'limit' while the feature flag is enabled). */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible && effectiveOrderType === 'limit'}
+        providerId={position.providerId}
         onClose={() => {
           setIsLimitPriceVisible(false);
           // If user dismisses without entering a price, revert order type to market

@@ -34,6 +34,7 @@ import ButtonIcon, {
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
+  formatLeverage,
   formatPerpsFiat,
   formatRoePercentage,
   parseCurrencyString,
@@ -191,7 +192,7 @@ const PerpsHeroCardView: React.FC = () => {
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage
-    ? `${directionText} ${data.leverage}x`
+    ? `${directionText} ${formatLeverage(data.leverage)}`
     : directionText;
 
   const carouselCards = useMemo(

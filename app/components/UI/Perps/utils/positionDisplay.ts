@@ -1,10 +1,15 @@
 import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import {
+  calculateAccountReturnOnEquity,
   getPerpsDisplaySymbol,
+  PERPS_DISPLAY_PRECISION,
+  type AccountState,
   type Position,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
+  formatLeverage,
+  formatPercentage,
   formatRoePercentage,
   formatPerpsFiat,
   formatPnl,
@@ -40,6 +45,33 @@ export const parsePositionRoePercentage = (
 };
 
 /**
+ * An account's unrealized PnL and its return on the margin in use, from the
+ * account totals: `"+$12.50 (+10.4%)"`. Without margin there is no return to
+ * show, only the PnL; an unknown account shows both placeholders.
+ *
+ * @param account - Account totals, or nothing while they load.
+ * @returns The display string.
+ */
+export const formatAccountPnl = (
+  account:
+    | Pick<AccountState, 'unrealizedPnl' | 'marginUsed'>
+    | null
+    | undefined,
+): string => {
+  const formatRoe = (roe: number | undefined) =>
+    `(${formatPercentage(roe, PERPS_DISPLAY_PRECISION.RoePercent)})`;
+  if (!account) {
+    return `${formatPnl(undefined)} ${formatRoe(undefined)}`;
+  }
+  const pnl = formatPnl(account.unrealizedPnl);
+  const roe = calculateAccountReturnOnEquity({
+    unrealizedPnl: account.unrealizedPnl,
+    marginUsed: account.marginUsed,
+  });
+  return roe === undefined ? pnl : `${pnl} ${formatRoe(roe)}`;
+};
+
+/**
  * Derives the shared display values used by Lite and Pro position headers.
  *
  * Position size is signed by direction, while return on equity is provided as
@@ -71,7 +103,7 @@ export const getPerpsPositionHeaderDisplay = (
     directionLabel:
       position.leverage.value === undefined
         ? direction
-        : `${position.leverage.value}x ${direction}`,
+        : `${formatLeverage(position.leverage.value)} ${direction}`,
     directionSeverity: isLong ? TagSeverity.Success : TagSeverity.Danger,
     description: `${formatPositionSize(
       absoluteSize.toString(),

@@ -7,15 +7,14 @@ import {
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
   calculateMarginRequired,
-  computeScalePriceLadder,
   computeTwapSlicePreview,
-  formatHyperLiquidPrice,
+  normalizeHyperLiquidScalePriceLadder,
+  sizeHyperLiquidScaleLadder,
   // Locale-independent: the full-close size is submitted to the venue.
   formatPositionSize as formatCanonicalPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
-  splitScaleSizes,
   validateTwapOrder,
   type ChaseOrder,
   type ExpectedScaleLadder,
@@ -70,6 +69,7 @@ import {
 } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
 import type { PerpsOrderPriceField } from '../../../../hooks/usePerpsOrderForm';
+import { getCrossAccountKey } from '../../../../utils/crossMarginSummary';
 import { usePerpsSavePendingConfig } from '../../../../hooks/usePerpsSavePendingConfig';
 import {
   useHasExistingPosition,
@@ -87,6 +87,7 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveAccount,
   usePerpsLiveAvailableToTrade,
   usePerpsLivePrices,
   usePerpsTopOfBook,
@@ -136,7 +137,10 @@ import {
   getProspectiveExecutionPrice,
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
-import { willFlipPosition } from '../../../../utils/orderUtils';
+import {
+  resolveOracleReferencePrice,
+  willFlipPosition,
+} from '../../../../utils/orderUtils';
 import {
   isPerpsErrorCode,
   translatePerpsError,
@@ -195,10 +199,6 @@ import { getLighterScaleReceipt, getVenueScalePreview } from './scalePreview';
 
 const SCALE_DEFAULT_SKEW = '1.00';
 const SCALE_SKEW_DECIMAL_PLACES = 2;
-// A binary search needs at most 53 halvings across the safe-integer domain.
-const SCALE_SIZE_SEARCH_MAX_STEPS = Math.ceil(
-  Math.log2(Number.MAX_SAFE_INTEGER),
-);
 const SCALE_VALIDATION_MAX_ATTEMPTS = 2;
 const CHASE_VALIDATION_MAX_ATTEMPTS = 2;
 const occupiesChasePlacementSlot = (order: Pick<ChaseOrder, 'status'>) =>
@@ -1218,10 +1218,12 @@ export const usePerpsProOrderForm = ({
           ? resolvedTriggerProviderId
           : resolvedMarketProviderId;
   // The venue's minimum order value; Core order capabilities first.
-  const { minimumOrderAmount } = useMinimumOrderAmount({
-    asset: symbol,
-    providerId: orderProviderId,
-  });
+  const { minimumOrderAmount, maxOraclePriceDeviation } = useMinimumOrderAmount(
+    {
+      asset: symbol,
+      providerId: orderProviderId,
+    },
+  );
   const scaleMinimumOrderAmount = minimumOrderAmount;
   const priceProviderId = orderProviderId ?? resolvedMarketProviderId;
   const prices = usePerpsLivePrices({
@@ -1237,21 +1239,28 @@ export const usePerpsProOrderForm = ({
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
-      return { price: 0, change: 0, markPrice: 0 };
+      return { price: 0, change: 0, markPrice: undefined };
     }
     const price = Number.parseFloat(currentPrice.price || '0');
-    const markPrice = Number.parseFloat(currentPrice.markPrice || '0');
+    const markPrice = Number.parseFloat(currentPrice.markPrice ?? '');
     const change = Number.parseFloat(currentPrice.percentChange24h || '0');
     return {
       price: Number.isFinite(price) ? price : 0,
-      markPrice: Number.isFinite(markPrice) ? markPrice : 0,
+      markPrice:
+        Number.isFinite(markPrice) && markPrice > 0 ? markPrice : undefined,
       change: Number.isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
+  const oracleReferencePrice = resolveOracleReferencePrice(
+    currentPrice?.oraclePrice,
+    assetData.price,
+  );
   const latestMidPriceRef = useRef(assetData.price);
+  const latestOracleReferencePriceRef = useRef(oracleReferencePrice);
   useLayoutEffect(() => {
     latestMidPriceRef.current = assetData.price;
-  }, [assetData.price]);
+    latestOracleReferencePriceRef.current = oracleReferencePrice;
+  }, [assetData.price, oracleReferencePrice]);
 
   const marketDataBlockingReason = getMarketDataBlockingReason({
     isLoading: isLoadingMarketData,
@@ -1606,144 +1615,25 @@ export const usePerpsProOrderForm = ({
     }
 
     try {
-      // TODO: Replace this composition with normalizeHyperLiquidScalePriceLadder once the controller exports it.
-      const scalePrices = computeScalePriceLadder({
+      const scalePrices = normalizeHyperLiquidScalePriceLadder({
         minPrice,
         maxPrice,
         count: orderCount,
-      }).map((price) => formatHyperLiquidPrice({ price, szDecimals }));
-      if (new Set(scalePrices).size !== scalePrices.length) {
-        return { success: false, code: 'invalid_range' };
-      }
-
-      const weights = scalePrices.map(
-        (_price, index) => 1 + ((skew - 1) * index) / (orderCount - 1),
-      );
-      const weightTotal = weights.reduce(
-        (total, weight) => total.plus(weight),
-        new BigNumber(0),
-      );
-      const weightedAveragePrice = scalePrices
-        .reduce(
-          (total, price, index) =>
-            total.plus(new BigNumber(price).times(weights[index])),
-          new BigNumber(0),
-        )
-        .div(weightTotal);
-      let totalSize =
-        exactTotalSize ??
-        targetOrderValue
-          .div(weightedAveragePrice)
-          .decimalPlaces(szDecimals, BigNumber.ROUND_CEIL)
-          .toFixed(szDecimals);
-
-      const buildRungs = (size: string) => {
-        const sizes = splitScaleSizes({
-          totalSize: Number(size),
-          count: orderCount,
-          szDecimals,
-          skew,
-        });
-        return scalePrices.map((price, index) => ({
-          index,
-          price,
-          size: sizes[index],
-        }));
-      };
-      const getOrderValue = (rungs: PerpsProScaleOrderModel['rungs']) =>
-        rungs.reduce(
-          (total, rung) =>
-            total.plus(new BigNumber(rung.size).times(rung.price)),
-          new BigNumber(0),
-        );
-
-      let rungs = buildRungs(totalSize);
-      let orderValue = getOrderValue(rungs);
-      if (exactTotalSize === undefined && orderValue.lt(targetOrderValue)) {
-        const sizeMultiplier = new BigNumber(10).pow(szDecimals);
-        const initialSizeUnits = new BigNumber(totalSize)
-          .times(sizeMultiplier)
-          .integerValue(BigNumber.ROUND_HALF_UP);
-        const maxSafeSizeUnits = new BigNumber(Number.MAX_SAFE_INTEGER);
-        let lowerSizeUnits = initialSizeUnits;
-        let upperLadder:
-          | {
-              sizeUnits: BigNumber;
-              rungs: PerpsProScaleOrderModel['rungs'];
-              orderValue: BigNumber;
-            }
-          | undefined;
-        let sizeStep = new BigNumber(1);
-
-        // Bracket a valid grid size exponentially so extreme accepted skews do
-        // not block the UI by advancing one venue increment at a time.
-        for (
-          let attempt = 0;
-          attempt < SCALE_SIZE_SEARCH_MAX_STEPS;
-          attempt += 1
-        ) {
-          const candidateSizeUnits = initialSizeUnits.plus(sizeStep);
-          if (candidateSizeUnits.gt(maxSafeSizeUnits)) {
-            break;
-          }
-          const candidateSize = candidateSizeUnits
-            .div(sizeMultiplier)
-            .toFixed(szDecimals);
-          const candidateRungs = buildRungs(candidateSize);
-          const candidateOrderValue = getOrderValue(candidateRungs);
-
-          if (candidateOrderValue.gte(targetOrderValue)) {
-            upperLadder = {
-              sizeUnits: candidateSizeUnits,
-              rungs: candidateRungs,
-              orderValue: candidateOrderValue,
-            };
-            break;
-          }
-
-          lowerSizeUnits = candidateSizeUnits;
-          sizeStep = sizeStep.times(2);
-        }
-
-        if (!upperLadder) {
-          return { success: false, code: 'minimum_lot' };
-        }
-
-        // Refine the bracket in bounded time. The upper endpoint always holds
-        // a controller-accepted ladder that meets the requested notional.
-        for (
-          let attempt = 0;
-          attempt < SCALE_SIZE_SEARCH_MAX_STEPS &&
-          upperLadder.sizeUnits.minus(lowerSizeUnits).gt(1);
-          attempt += 1
-        ) {
-          const candidateSizeUnits = lowerSizeUnits
-            .plus(upperLadder.sizeUnits)
-            .div(2)
-            .integerValue(BigNumber.ROUND_FLOOR);
-          const candidateSize = candidateSizeUnits
-            .div(sizeMultiplier)
-            .toFixed(szDecimals);
-          const candidateRungs = buildRungs(candidateSize);
-          const candidateOrderValue = getOrderValue(candidateRungs);
-
-          if (candidateOrderValue.gte(targetOrderValue)) {
-            upperLadder = {
-              sizeUnits: candidateSizeUnits,
-              rungs: candidateRungs,
-              orderValue: candidateOrderValue,
-            };
-          } else {
-            lowerSizeUnits = candidateSizeUnits;
-          }
-        }
-
-        totalSize = upperLadder.sizeUnits
-          .div(sizeMultiplier)
-          .toFixed(szDecimals);
-        rungs = upperLadder.rungs;
-        orderValue = upperLadder.orderValue;
-      }
+        szDecimals,
+      });
+      const ladder = sizeHyperLiquidScaleLadder({
+        prices: scalePrices,
+        sizeDecimals: szDecimals,
+        skew,
+        ...(exactTotalSize === undefined
+          ? { usdAmount: targetOrderValue.toFixed() }
+          : { size: exactTotalSize }),
+      });
+      const rungs = scalePrices.map((price, index) => ({
+        index,
+        price,
+        size: ladder.sizes[index],
+      }));
       if (
         rungs.some(
           (rung) =>
@@ -1761,8 +1651,8 @@ export const usePerpsProOrderForm = ({
         maxPrice: maxPrice.toString(),
         orderCount,
         skew,
-        orderValue: orderValue.toFixed(),
-        totalSize: new BigNumber(totalSize).toFixed(),
+        orderValue: ladder.totalNotional,
+        totalSize: ladder.totalSize,
       };
     } catch (error) {
       const normalizedError = ensureError(
@@ -2150,30 +2040,44 @@ export const usePerpsProOrderForm = ({
     scaleLadderResult.success &&
     !isPositionStreamLoading &&
     !currentMarketPosition;
-  const canEstimateCrossOpening =
+  // An order on an open position is projected by the position preview instead.
+  const canEstimateCross =
     isCrossMarginAvailableForMarket &&
     !reduceOnly &&
     !isScaleOrder &&
     !isPositionStreamLoading &&
-    !currentMarketPosition;
+    (!currentMarketPosition || !isPositionModifyPreviewEnabled);
+  const { account: liveAccount } = usePerpsLiveAccount({
+    providerId: resolvedMarketProviderId,
+    enabled: marginMode === 'cross',
+  });
+  const crossAccountKey =
+    marginMode === 'cross' ? getCrossAccountKey(liveAccount) : undefined;
   const liquidationEntryPrice =
     (isScaleOrder && !canCalculateScaleLiquidation) ||
-    (marginMode === 'cross' && !canEstimateCrossOpening)
+    (marginMode === 'cross' && !canEstimateCross)
       ? 0
       : effectivePrice;
-  const { liquidationPrice, isCalculating: isLiquidationCalculating } =
-    usePerpsLiquidationPrice(
-      {
-        entryPrice: liquidationEntryPrice,
-        leverage: orderForm.leverage,
-        direction: orderForm.direction,
-        asset: orderForm.asset,
-        marginType: marginMode,
-        positionSize: Number(positionSize),
-        providerId: resolvedMarketProviderId,
-      },
-      { contextKey: marginModeContextKey },
-    );
+  const {
+    liquidationPrice,
+    isCoveredByAccount,
+    isCalculating: isLiquidationCalculating,
+  } = usePerpsLiquidationPrice(
+    {
+      entryPrice: liquidationEntryPrice,
+      leverage: orderForm.leverage,
+      direction: orderForm.direction,
+      asset: orderForm.asset,
+      marginType: marginMode,
+      positionSize: Number(positionSize),
+      providerId: resolvedMarketProviderId,
+    },
+    {
+      contextKey: marginModeContextKey,
+      accountKey: crossAccountKey,
+      priceTick: currentPrice?.timestamp,
+    },
+  );
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -2189,6 +2093,8 @@ export const usePerpsProOrderForm = ({
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
     enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    accountKey: crossAccountKey,
+    priceTick: currentPrice?.timestamp,
   });
 
   const existingPositionLeverageForValidation =
@@ -2254,6 +2160,8 @@ export const usePerpsProOrderForm = ({
         : orderProviderId,
     triggerPrice: normalizedTriggerPrice,
     midPrice: assetData.price,
+    referencePrice: oracleReferencePrice,
+    maxOraclePriceDeviation,
     szDecimals,
     twapDuration: isTwapOrder ? twapDuration : undefined,
     twapRandomize: isTwapOrder ? twapRandomize : undefined,
@@ -2865,6 +2773,8 @@ export const usePerpsProOrderForm = ({
           triggerPrice: normalizedTriggerPrice,
           limitPrice: normalizedLimitPrice,
           midPrice: assetData.price,
+          referencePrice: oracleReferencePrice,
+          maxDeviation: maxOraclePriceDeviation,
           szDecimals,
         });
     const currentBlockingIssue = currentFieldIssues.find(
@@ -3090,6 +3000,8 @@ export const usePerpsProOrderForm = ({
         triggerPrice: normalizedTriggerPrice,
         limitPrice: normalizedLimitPrice,
         midPrice: latestMidPriceRef.current,
+        referencePrice: latestOracleReferencePriceRef.current,
+        maxDeviation: maxOraclePriceDeviation,
         szDecimals,
       });
       const latestBlockingIssue = latestFieldIssues.find(
@@ -4187,10 +4099,14 @@ export const usePerpsProOrderForm = ({
       effectiveMarginRequired !== undefined && effectiveMarginRequired !== null
         ? formatMargin(effectiveMarginRequired)
         : PERPS_CONSTANTS.FallbackDataDisplay;
-    const orderLiquidationDisplay =
-      hasValidAmount && liquidationPrice
-        ? formatLiquidation(liquidationPrice)
-        : PERPS_CONSTANTS.FallbackDataDisplay;
+    let orderLiquidationDisplay: string = PERPS_CONSTANTS.FallbackDataDisplay;
+    if (hasValidAmount && isCoveredByAccount) {
+      orderLiquidationDisplay = strings(
+        'perps.cross_position.no_liquidation_price',
+      );
+    } else if (hasValidAmount && liquidationPrice) {
+      orderLiquidationDisplay = formatLiquidation(liquidationPrice);
+    }
 
     let margin = orderMarginDisplay;
     let liquidationPriceDisplay = orderLiquidationDisplay;
@@ -4202,12 +4118,10 @@ export const usePerpsProOrderForm = ({
         positionModifySummaryDisplay.currentMarginDisplay,
         positionModifySummaryDisplay.resultingMarginDisplay,
       );
-      if (marginMode !== 'cross') {
-        liquidationPriceDisplay = formatBeforeAfter(
-          positionModifySummaryDisplay.currentLiquidationDisplay,
-          positionModifySummaryDisplay.resultingLiquidationDisplay,
-        );
-      }
+      liquidationPriceDisplay = formatBeforeAfter(
+        positionModifySummaryDisplay.currentLiquidationDisplay,
+        positionModifySummaryDisplay.resultingLiquidationDisplay,
+      );
     }
 
     return {
@@ -4242,7 +4156,7 @@ export const usePerpsProOrderForm = ({
     effectiveMarginRequired,
     hasValidAmount,
     liquidationPrice,
-    marginMode,
+    isCoveredByAccount,
     estimatedSlippagePctDisplay,
     maxSlippageBps,
     resolvedMaxSlippageBps,

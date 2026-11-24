@@ -70,6 +70,11 @@ const rankMovers = (
     return {
       ...item.market,
       change24hPercent: formatPercentage(livePercent),
+      // `sortMarkets` ranks on the raw value, not the display string.
+      numericValues: {
+        ...item.market.numericValues,
+        change24hPercent: livePercent,
+      },
     };
   });
   const sorted = filterAndSortByPriceChangeDirection(merged, direction).slice(

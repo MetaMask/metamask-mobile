@@ -12,8 +12,6 @@ import { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'perps.withdrawal.amount_too_low' && params?.minAmount) {
       return `Amount must be greater than $${params.minAmount} to cover fees`;

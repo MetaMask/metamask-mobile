@@ -30,12 +30,12 @@ let mockPerpsAccount: {
   totalBalance: string;
   spendableBalance: string;
   unrealizedPnl: string;
-  returnOnEquity: string;
+  marginUsed: string;
 } | null = {
   totalBalance: '1234.56',
   spendableBalance: '1000.00',
   unrealizedPnl: '50.25',
-  returnOnEquity: '5.5',
+  marginUsed: '913.64',
 };
 
 jest.mock('../../hooks/stream', () => ({
@@ -100,7 +100,7 @@ describe('PerpsBalanceBottomSheet', () => {
       totalBalance: '1234.56',
       spendableBalance: '1000.00',
       unrealizedPnl: '50.25',
-      returnOnEquity: '5.5',
+      marginUsed: '913.64',
     };
     Object.assign(mockCrossMarginSummary, {
       hasCrossExposure: false,

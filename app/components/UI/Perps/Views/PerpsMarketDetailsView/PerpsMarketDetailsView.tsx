@@ -677,7 +677,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   });
 
   // Get current price for the symbol
-  // Use mark price (oracle price) for stop loss calculations to reduce manipulation risk
+  // Use the venue mark price, which triggers stop losses
   // Falls back to mid price if mark price unavailable
   const currentPrice = useMemo(() => {
     if (!market?.symbol) return 0;

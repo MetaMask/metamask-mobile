@@ -16,9 +16,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
-import type {
-  MarginMode,
-  MarginModeLockReason,
+import {
+  getCrossMarginRatioTone,
+  type MarginMode,
+  type MarginModeLockReason,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -31,7 +32,6 @@ import PerpsCrossMarginRatioBanner from '../PerpsCrossMarginRatioBanner';
 import {
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
-  getCrossMarginRatioTone,
 } from '../../utils/crossMarginSummary';
 import { formatCrossMarginRatio } from '../../utils/formatUtils';
 

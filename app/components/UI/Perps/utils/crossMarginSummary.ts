@@ -1,6 +1,7 @@
 import {
   calculateAccountSummary,
   type AccountState,
+  type CrossMarginRatioTone,
   type PerpsAccountSummary,
 } from '@metamask/perps-controller';
 import type {
@@ -9,13 +10,9 @@ import type {
 } from '../../../../util/deviceCapability/types';
 import { formatCrossMarginRatio } from './formatUtils';
 import {
-  CROSS_MARGIN_RATIO_DANGER_THRESHOLD,
-  CROSS_MARGIN_RATIO_WARNING_THRESHOLD,
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
 } from '../constants/perpsConfig';
-
-export type CrossMarginRatioTone = 'safe' | 'warning' | 'danger';
 
 /** A ratio that needs an alert. Safe and unknown ratios do not. */
 export type CrossMarginRatioAlert = Exclude<CrossMarginRatioTone, 'safe'>;
@@ -43,6 +40,7 @@ export const calculateCrossMarginAccountSummaryFromAccount = (
         totalEquity: account.totalBalance,
         crossMarginSummary: account.crossMarginSummary,
         spotCollateral: account.spotCollateral,
+        accountMode: account.accountMode,
       })
     : EMPTY_ACCOUNT_SUMMARY;
 
@@ -72,17 +70,20 @@ export const getCrossMarginSummaryThrottleMs = ({
   );
 };
 
-export const getCrossMarginRatioTone = (
-  ratio: number | undefined,
-): CrossMarginRatioTone | undefined => {
-  if (ratio === undefined || !Number.isFinite(ratio)) {
-    return undefined;
-  }
-  if (ratio < CROSS_MARGIN_RATIO_WARNING_THRESHOLD) {
-    return 'safe';
-  }
-  return ratio <= CROSS_MARGIN_RATIO_DANGER_THRESHOLD ? 'warning' : 'danger';
-};
+/**
+ * The streamed account figures a Cross liquidation estimate depends on, as a
+ * request key: the estimate is made again when they move, never on a timer.
+ */
+export const getCrossAccountKey = (
+  account: AccountState | null | undefined,
+): string | undefined =>
+  account?.crossMarginSummary
+    ? JSON.stringify([
+        account.accountMode,
+        account.crossMarginSummary,
+        account.spotCollateral,
+      ])
+    : undefined;
 
 /** The alert level of a tone, or undefined when the ratio is safe or unknown. */
 export const getCrossMarginRatioAlert = (

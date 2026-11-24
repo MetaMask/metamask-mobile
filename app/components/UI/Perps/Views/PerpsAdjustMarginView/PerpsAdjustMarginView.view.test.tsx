@@ -305,6 +305,10 @@ describe.each([
 ] as const)('Remove margin in the %s', (_surface, Component, selectors) => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // restoreAllMocks below drops the shared default.
+    jest
+      .mocked(Engine.context.PerpsController.getMarginAdjustmentLimits)
+      .mockResolvedValue({ status: 'unavailable', reason: 'provider' });
   });
 
   afterEach(() => {

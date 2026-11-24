@@ -15,6 +15,11 @@ interface UseMinimumOrderAmountReturn {
    * loading, or neither the venue nor the market reports one).
    */
   minimumOrderAmount: number | undefined;
+  /**
+   * The venue's limit on a price's distance from the oracle, as a fraction;
+   * undefined while unknown or when the venue has none.
+   */
+  maxOraclePriceDeviation: number | undefined;
   /** Loading state */
   isLoading: boolean;
   /** Error state */
@@ -22,7 +27,7 @@ interface UseMinimumOrderAmountReturn {
 }
 
 /**
- * Hook to get the minimum order amount for a specific asset.
+ * Hook to get the venue's order limits for a specific asset.
  * Reads the venue's `orderLimits.minOrderNotionalUsd` from Core
  * `getOrderCapabilities`, then the market's own minimum. Never falls back to
  * another venue's default.
@@ -42,13 +47,15 @@ export function useMinimumOrderAmount(
   });
 
   const { orderCapabilities } = usePerpsProvider({ symbol: asset, providerId });
-  const venueMinimumNotionalUsd =
+  const orderLimits =
     orderCapabilities?.status === 'ready'
-      ? orderCapabilities.orderLimits?.minOrderNotionalUsd
+      ? orderCapabilities.orderLimits
       : undefined;
 
   return {
-    minimumOrderAmount: venueMinimumNotionalUsd ?? marketData?.minimumOrderSize,
+    minimumOrderAmount:
+      orderLimits?.minOrderNotionalUsd ?? marketData?.minimumOrderSize,
+    maxOraclePriceDeviation: orderLimits?.maxOraclePriceDeviation,
     isLoading,
     error,
   };

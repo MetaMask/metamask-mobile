@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
-import type { PerpsMarketData, PerpsMode } from '@metamask/perps-controller';
-import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
+import type {
+  CrossMarginRatioTone,
+  PerpsMarketData,
+  PerpsMode,
+} from '@metamask/perps-controller';
 
 /** Fixed header height, in px. */
 export const PERPS_MARKET_HEADER_HEIGHT = 64;

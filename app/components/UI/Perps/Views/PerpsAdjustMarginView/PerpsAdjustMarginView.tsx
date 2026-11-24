@@ -139,7 +139,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
-    spendableBalance,
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition?.symbol || '',
@@ -151,14 +150,18 @@ const PerpsAdjustMarginView: React.FC = () => {
     freshMaxAmount,
     setFreshMaxAmount,
     position,
-    snapshotMaxAmount: floorUsd(maxAmount),
+    snapshotMaxAmount: maxAmount === undefined ? 0 : floorUsd(maxAmount),
     exchangeMaxAmount,
     isAddMode,
   });
   // The buffered Max is a suggestion; only the submit limit means nothing
   // can be removed, including an amount selected before a price tick.
   const hasNoRemovableMargin =
-    !isAddMode && !isLoading && hasValidPositionData && submitLimitAmount <= 0;
+    !isAddMode &&
+    !isLoading &&
+    hasValidPositionData &&
+    maxAmount !== undefined &&
+    submitLimitAmount <= 0;
   // Close an open keypad once nothing is left to remove.
   useEffect(() => {
     if (hasNoRemovableMargin) {
@@ -181,6 +184,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     // The zero-removable explanation replaces an error on a retained amount.
     if (
       !hasNoRemovableMargin &&
+      maxAmount !== undefined &&
       marginAmount > submitLimitAmount &&
       marginAmount > 0
     ) {
@@ -194,6 +198,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   }, [
     isInputFocused,
     hasNoRemovableMargin,
+    maxAmount,
     marginAmount,
     submitLimitAmount,
     isAddMode,
@@ -281,11 +286,8 @@ const PerpsAdjustMarginView: React.FC = () => {
       return;
     }
 
-    // Prevent submission if amount exceeds max removable (extra safety for remove mode)
-    if (
-      !isAddMode &&
-      (hasNoRemovableMargin || marginAmount > submitLimitAmount)
-    ) {
+    // Nothing above the limit is sent, including while the limits are unknown.
+    if (hasNoRemovableMargin || marginAmount > submitLimitAmount) {
       return;
     }
 
@@ -404,10 +406,8 @@ const PerpsAdjustMarginView: React.FC = () => {
             : strings('perps.adjust_margin.margin_available_to_remove')
         }
         value={formatPerpsFiat(
-          // An unknown balance renders the placeholder, not $0.
-          isAddMode && spendableBalance === undefined
-            ? undefined
-            : flooredMaxAmount,
+          // An unknown limit renders the placeholder, not $0.
+          maxAmount === undefined ? undefined : flooredMaxAmount,
           { ranges: PRICE_RANGES_MINIMAL_VIEW },
         )}
         valueTextProps={{

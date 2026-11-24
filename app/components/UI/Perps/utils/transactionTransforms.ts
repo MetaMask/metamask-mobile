@@ -12,6 +12,8 @@ import {
   UserHistoryItem,
   adaptTriggerOrderTypeFromSDK,
   calculateNetClosedPnl,
+  getFillAggregationKey,
+  getOrderFillKey,
   getPerpsDisplaySymbol,
   getTriggerDirection,
   isLimitExecutionOrderType,
@@ -42,46 +44,6 @@ import { parseStandardTokenTransactionData } from '../../../Views/confirmations/
 import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
-/**
- * Determines the direction category for aggregation purposes.
- * Returns a normalized direction string for grouping fills that should be aggregated together.
- * Opens, closes and flips all qualify: a single order that HyperLiquid filled in several
- * pieces must be shown as one trade whichever way it moved the position.
- *
- * @param direction - The fill direction string (e.g., "Close Long", "Open Short", "Long > Short")
- * @returns A normalized direction for grouping, or null when the direction is unknown
- */
-function getDirectionForAggregation(
-  direction: string | undefined,
-): string | null {
-  if (!direction) return null;
-
-  const [part1, part2] = direction.split(' ');
-
-  // Handle standard open and close directions
-  if (part1 === 'Open' || part1 === 'Close') {
-    return `${part1} ${part2}`; // e.g. "Open Long" or "Close Short"
-  }
-
-  // Handle position flips, which HyperLiquid reports as "Long > Short"
-  if (part2 === '>') {
-    return direction;
-  }
-
-  // Handle spot-perps and prelaunch markets that use "Buy"/"Sell"
-  if (direction === 'Buy' || direction === 'Sell') {
-    return direction;
-  }
-
-  // Handle auto-deleveraging as a closeable position
-  if (direction === 'Auto-Deleveraging') {
-    return 'Auto-Deleveraging';
-  }
-
-  // Unknown direction - don't aggregate
-  return null;
-}
-
 interface FillSeed {
   /** `${symbol}-${direction}` - the partition every grouping rule is scoped to. */
   bucket: string;
@@ -98,24 +60,24 @@ interface FillSeed {
  * @returns Its grouping keys, or null when the direction is not aggregatable
  */
 function getFillSeedKey(fill: OrderFill): FillSeed | null {
-  const direction = getDirectionForAggregation(fill.direction);
+  const seedKey = getFillAggregationKey(fill);
 
-  if (direction === null) {
+  if (seedKey === undefined) {
     return null;
   }
 
-  const bucket = `${fill.symbol}-${direction}`;
-  const isCloseCategory =
-    direction.startsWith('Close ') ||
-    direction === 'Sell' ||
-    direction === 'Auto-Deleveraging';
+  // Core scopes the seed to `symbol-direction`, then to a second (closes) or
+  // an order (everything else).
+  const closeSuffix = `-second-${Math.floor(fill.timestamp / 1000)}`;
+  const isCloseCategory = seedKey.endsWith(closeSuffix);
+  const suffix = isCloseCategory
+    ? closeSuffix
+    : `-order-${fill.orderId || `solo-${fill.timestamp}`}`;
 
   return {
-    bucket,
+    bucket: seedKey.slice(0, -suffix.length),
     isCloseCategory,
-    seedKey: isCloseCategory
-      ? `${bucket}-second-${Math.floor(fill.timestamp / 1000)}`
-      : `${bucket}-order-${fill.orderId || `solo-${fill.timestamp}`}`,
+    seedKey,
   };
 }
 
@@ -453,7 +415,7 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
  * When a WS fill lacks `detailedOrderType` or `liquidation` that the REST fill has,
  * the REST metadata is preserved so TP/SL pills remain visible on all screens.
  *
- * Dedup key: `orderId-timestamp-size-price`
+ * Dedup key: Core `getOrderFillKey`
  *
  * @param restFills - Historical fills from the REST API
  * @param liveFills - Real-time fills from the WebSocket
@@ -466,12 +428,12 @@ export function mergeOrderFills(
   const fillsMap = new Map<string, OrderFill>();
 
   for (const fill of restFills) {
-    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    const key = getOrderFillKey(fill);
     fillsMap.set(key, fill);
   }
 
   for (const fill of liveFills) {
-    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    const key = getOrderFillKey(fill);
     const existing = fillsMap.get(key);
     if (existing?.detailedOrderType && !fill.detailedOrderType) {
       fillsMap.set(key, {

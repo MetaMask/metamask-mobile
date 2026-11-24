@@ -78,23 +78,22 @@ export type TrackingDataInput = Omit<
 /** Cancelling or editing an order charges no fee. */
 export const NO_ORDER_ACTION_FEE_USD = 0;
 
-const hasKnownTrackingNumbers = (
-  input: TrackingDataInput,
-): input is TrackingDataInput & CoreTrackingData =>
-  typeof input.totalFee === 'number' && typeof input.marketPrice === 'number';
-
 /**
- * Core `TrackingData.totalFee` and `marketPrice` are required numbers. An
- * unknown fee or price is not sent as 0: the tracking payload is omitted
- * instead (Needs Core: make both fields optional).
+ * The Core tracking payload. An unknown fee or price is left out, never sent
+ * as 0.
  *
  * @param input - Tracking fields with a possibly unknown fee or price.
- * @returns The Core tracking payload, or undefined while either is unknown.
+ * @returns The Core tracking payload.
  */
-export const toCoreTrackingData = (
-  input: TrackingDataInput,
-): CoreTrackingData | undefined =>
-  hasKnownTrackingNumbers(input) ? input : undefined;
+export const toCoreTrackingData = ({
+  totalFee,
+  marketPrice,
+  ...rest
+}: TrackingDataInput): CoreTrackingData => ({
+  ...rest,
+  ...(typeof totalFee === 'number' ? { totalFee } : {}),
+  ...(typeof marketPrice === 'number' ? { marketPrice } : {}),
+});
 
 /**
  * Pure assembly of the Perps order `trackingData` MetaMetrics payload shared by

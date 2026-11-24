@@ -4,10 +4,15 @@ import { usePerpsLimitPriceInput } from './usePerpsLimitPriceInput';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsLivePrices, usePerpsTopOfBook } from './stream';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { usePerpsProvider } from './usePerpsProvider';
 
 jest.mock('./stream', () => ({
   usePerpsLivePrices: jest.fn(),
   usePerpsTopOfBook: jest.fn(),
+}));
+
+jest.mock('./usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(),
 }));
 
 jest.mock('./usePerpsEventTracking', () => ({
@@ -23,6 +28,20 @@ const mockUsePerpsTopOfBook = usePerpsTopOfBook as jest.MockedFunction<
 const mockUsePerpsEventTracking = usePerpsEventTracking as jest.MockedFunction<
   typeof usePerpsEventTracking
 >;
+
+const mockUsePerpsProvider = jest.mocked(usePerpsProvider);
+
+const mockMaxOraclePriceDeviation = (
+  maxOraclePriceDeviation: number | undefined,
+) =>
+  mockUsePerpsProvider.mockReturnValue({
+    orderCapabilities: {
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: [],
+      orderLimits: { sizeDecimals: 4, maxOraclePriceDeviation },
+    },
+  } as unknown as ReturnType<typeof usePerpsProvider>);
 
 const TEST_IDS = {
   mid: 'preset-mid',
@@ -62,11 +81,12 @@ const renderLimitPriceInput = (
 describe('usePerpsLimitPriceInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMaxOraclePriceDeviation(0.95);
     mockUsePerpsEventTracking.mockReturnValue({
       track: mockTrack,
     } as unknown as ReturnType<typeof usePerpsEventTracking>);
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '3000', markPrice: '3000' },
+      BTC: { price: '3000', markPrice: '3000', oraclePrice: '3000' },
     } as unknown as ReturnType<typeof usePerpsLivePrices>);
     mockUsePerpsTopOfBook.mockReturnValue({
       bestBid: '2999',
@@ -238,7 +258,7 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000, 0.95));
     });
 
     it('blocks an opening price outside the venue deviation band', () => {
@@ -248,7 +268,25 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000, 0.95));
+    });
+
+    it('measures the band from the oracle, not the mid or the mark', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '3000', markPrice: '3000', oraclePrice: '1000' },
+      } as unknown as ReturnType<typeof usePerpsLivePrices>);
+
+      const { result } = renderLimitPriceInput({ limitPrice: '2500' });
+
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(1000, 0.95));
+    });
+
+    it('applies no band while the venue reports no limit', () => {
+      mockMaxOraclePriceDeviation(undefined);
+
+      const { result } = renderLimitPriceInput({ limitPrice: '10' });
+
+      expect(result.current.exceedsMaxDeviation).toBe(false);
     });
 
     it('warns when a closing long rests below market', () => {

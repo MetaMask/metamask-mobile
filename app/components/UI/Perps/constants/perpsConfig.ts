@@ -174,12 +174,6 @@ export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
 export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
   new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
-/** Cross margin account ratio at and above which the account is elevated risk. */
-export const CROSS_MARGIN_RATIO_WARNING_THRESHOLD = 0.5;
-
-/** Cross margin account ratio above which the account is critical risk. */
-export const CROSS_MARGIN_RATIO_DANGER_THRESHOLD = 0.75;
-
 /** Throttle for the cross margin summary's account and position streams. */
 export const CROSS_MARGIN_SUMMARY_THROTTLE_MS = 1000;
 
@@ -217,6 +211,12 @@ export const PERPS_TPSL_PERCENT_DISPLAY_DECIMALS = 0;
  * over the live stream. Later submissions are still re-checked before sending.
  */
 export const MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS = 10_000;
+
+/** Settled balance change (a deposit, not a price tick) that re-reads the margin limits. */
+export const MARGIN_LIMITS_SETTLED_BALANCE_STEP_USD = 1;
+
+/** Price frames a failed margin limits read is retried on. */
+export const MARGIN_LIMITS_MAX_RETRIES = 2;
 
 /**
  * TP/SL View UI configuration
@@ -268,14 +268,6 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
   LongPresets: [-1, -2], // Buy below market for long orders
   ShortPresets: [1, 2], // Sell above market for short orders
-
-  // Maximum allowed deviation of the order price from the reference (mark)
-  // price, as a decimal (0.95 = 95%). HyperLiquid rejects orders whose price is
-  // more than 95% away from the reference price ("oracleRejected"). The check is
-  // ratio-based: the smaller of the order price and the reference price must be
-  // at least (1 - 0.95) = 5% of the larger one. We block submission up front
-  // instead of letting the order fail at the exchange.
-  MaxDeviationFromMarket: 0.95,
 
   // Warn when a limit/scale price is more than 5% from the near-touch
   // (best bid long, best ask short). Equal to 5% does not warn.

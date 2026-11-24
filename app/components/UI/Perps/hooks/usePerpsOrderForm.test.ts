@@ -204,6 +204,7 @@ describe('usePerpsOrderForm', () => {
   const mockMinimumOrderAmount = (minimumOrderAmount: number | undefined) =>
     mockUseMinimumOrderAmount.mockReturnValue({
       minimumOrderAmount,
+      maxOraclePriceDeviation: undefined,
       isLoading: false,
       error: null,
     });

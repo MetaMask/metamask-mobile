@@ -25,6 +25,7 @@ import {
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import { formatLeverage } from './formatUtils';
 
 /**
  * Order types that return one exchange order id. Scale, TWAP, and chase do
@@ -147,7 +148,8 @@ export const buildPerpsPostTradePreview = ({
   tradeSymbol: asset,
   tokenAddress: asset,
   direction,
-  leverageLabel: leverage != null && leverage > 0 ? `${leverage}x` : undefined,
+  leverageLabel:
+    leverage != null && leverage > 0 ? formatLeverage(leverage) : undefined,
   costLabel: fillCostLabel({ filledSize, entryPrice }) ?? usdLabel(amountUsd),
   entryPriceLabel: priceLabel(entryPrice),
 });

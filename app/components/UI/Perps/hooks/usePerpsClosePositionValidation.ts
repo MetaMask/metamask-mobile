@@ -2,12 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
+  isPriceOutsideDeviationBand,
   VALIDATION_THRESHOLDS,
   type ClosePositionParams,
   type OrdinaryOrderType,
 } from '@metamask/perps-controller';
-import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
-import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -18,7 +17,8 @@ interface UsePerpsClosePositionValidationParams {
   orderType: OrdinaryOrderType;
   limitPrice?: string;
   currentPrice: number;
-  referencePrice?: number; // Reference (oracle/mark) price used for the deviation band; falls back to currentPrice
+  referencePrice?: number; // Oracle price used for the deviation band; falls back to currentPrice
+  maxOraclePriceDeviation?: number; // Venue deviation limit; no band check while unknown
   positionSize: number; // Absolute size of the position
   positionValue: number; // Total position value in USD
   minimumOrderAmount?: number; // Minimum order size in USD; undefined while unknown skips the minimum checks
@@ -111,6 +111,7 @@ export function usePerpsClosePositionValidation(
     limitPrice,
     currentPrice,
     referencePrice,
+    maxOraclePriceDeviation,
     minimumOrderAmount,
     closingValue,
     receiveAmount,
@@ -221,13 +222,19 @@ export function usePerpsClosePositionValidation(
         // than only in the limit-price sheet) so it re-evaluates as the market
         // moves after the price was set — not just while it is being entered.
         if (
+          maxOraclePriceDeviation !== undefined &&
           isPriceOutsideDeviationBand(
             limitPriceNum,
             bandReferencePrice,
-            LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+            maxOraclePriceDeviation,
           )
         ) {
-          errors.push(getLimitPriceTooFarMessage(bandReferencePrice));
+          errors.push(
+            getLimitPriceTooFarMessage(
+              bandReferencePrice,
+              maxOraclePriceDeviation,
+            ),
+          );
         }
 
         // Add warning if the limit price is far from the live mark price
@@ -276,6 +283,7 @@ export function usePerpsClosePositionValidation(
     limitPrice,
     currentPrice,
     referencePrice,
+    maxOraclePriceDeviation,
     minimumOrderAmount,
     closingValue,
     receiveAmount,

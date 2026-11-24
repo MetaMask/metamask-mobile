@@ -15,6 +15,7 @@ import {
   type PerpsCompactFormatOptions,
   formatCrossMarginRatio as formatCrossMarginRatioWithFormatters,
   type PerpsDisplayFormatOptions,
+  type PerpsLeverageFormatOptions,
   type PerpsFiatFormatOptions,
   type PerpsFundingRateFormatOptions,
   type PerpsOrderBookPriceFormat,
@@ -25,6 +26,7 @@ import {
   formatFundingRate as formatFundingRateEnUs,
   formatPositionFunding as formatPositionFundingWithFormatters,
   formatHyperLiquidPrice,
+  formatLeverage as formatLeverageEnUs,
   formatLiquidationDistance as formatLiquidationDistanceEnUs,
   formatPercentage as formatPercentageEnUs,
   formatPerpsCompact as formatPerpsCompactEnUs,
@@ -1189,41 +1191,12 @@ export const DEFAULT_PRICE_RANGES: FiatRangeConfig[] = [
 export const formatVolume = (volume: PerpsDisplayValue): string =>
   formatPerpsCompact(volume, { field: 'volume' });
 
-/**
- * Formats leverage value with 'x' suffix
- * @param leverage - Raw leverage multiplier value
- * @returns Format: "X.Xx" (1 decimal place with 'x' suffix)
- * @example formatLeverage(5) => "5.0x"
- * @example formatLeverage(10.5) => "10.5x"
- * @example formatLeverage(1) => "1.0x"
- * @example formatLeverage(NaN) => "--"
- */
-export const formatLeverage = (leverage: string | number): string => {
-  const num = typeof leverage === 'string' ? parseFloat(leverage) : leverage;
-
-  if (isNaN(num)) {
-    return PERPS_CONSTANTS.FallbackDataDisplay;
-  }
-
-  return `${num.toFixed(1)}x`;
-};
-
-/**
- * Formats cross account leverage with one decimal in the user's locale,
- * e.g. `"2.5x"`, or `"2,5x"` where the decimal separator is a comma.
- *
- * @param leverage - Account notional divided by cross collateral.
- * @param locale - Optional locale override.
- * @returns The leverage with an `x` suffix.
- */
-export const formatAccountLeverage = (
-  leverage: number,
-  locale?: string,
+/** Core `formatLeverage` in the app language: `"10x"`, `"2.53x"`. */
+export const formatLeverage = (
+  leverage: PerpsDisplayValue,
+  options?: PerpsLeverageFormatOptions,
 ): string =>
-  `${getPerpsNumberFormatter(locale, {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(leverage)}x`;
+  formatLeverageEnUs(leverage, { formatters: getFormatters(), ...options });
 
 /**
  * Formats a distance to liquidation, already in percent, e.g. `30.05` →

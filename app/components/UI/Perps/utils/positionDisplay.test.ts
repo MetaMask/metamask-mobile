@@ -1,13 +1,12 @@
 import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
+  formatAccountPnl,
   getPerpsPositionHeaderDisplay,
   parsePositionRoePercentage,
 } from './positionDisplay';
 
 jest.mock('../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: (key: string) => {
     if (key === 'perps.market.long') {
       return 'Long';
@@ -34,6 +33,20 @@ const createPosition = (overrides: Partial<Position> = {}): Position => ({
   takeProfitCount: 0,
   stopLossCount: 0,
   ...overrides,
+});
+
+describe('formatAccountPnl', () => {
+  it.each([
+    [{ unrealizedPnl: '12.5', marginUsed: '120' }, '+$12.50 (+10.4%)'],
+    [{ unrealizedPnl: '-12.5', marginUsed: '120' }, '-$12.50 (-10.4%)'],
+    // No margin in use: no return to show.
+    [{ unrealizedPnl: '0', marginUsed: '0' }, '+$0.00'],
+    [{ unrealizedPnl: '', marginUsed: '120' }, '$---'],
+    [null, '$--- (--%)'],
+    [undefined, '$--- (--%)'],
+  ])('formats %o as %s', (account, expected) => {
+    expect(formatAccountPnl(account)).toBe(expected);
+  });
 });
 
 describe('parsePositionRoePercentage', () => {

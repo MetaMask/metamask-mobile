@@ -34,6 +34,7 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
+  formatLeverage,
   formatLiquidationDistance,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -612,7 +613,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   <Pressable
                     key={value}
                     accessibilityRole="button"
-                    accessibilityLabel={`${value}x`}
+                    accessibilityLabel={formatLeverage(value)}
                     accessibilityState={{ selected: isSelected }}
                     onPress={() => handleLeveragePress(value)}
                     testID={getPerpsLeveragePickerItemTestId(value)}
@@ -630,7 +631,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                       fontWeight={FontWeight.Medium}
                       color={isSelected ? TextColor.TextDefault : textColor}
                     >
-                      {value}x
+                      {formatLeverage(value)}
                     </Text>
                   </Pressable>
                 );

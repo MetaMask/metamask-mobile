@@ -22,6 +22,7 @@ import {
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
@@ -45,6 +46,8 @@ interface PerpsLimitPriceBottomSheetProps {
   onClose: () => void;
   onConfirm: (limitPrice: string) => void;
   asset: string;
+  /** Venue whose deviation limit applies; omitted uses the active route. */
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   currentPrice?: number;
   direction?: 'long' | 'short';
@@ -74,6 +77,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   onClose,
   onConfirm,
   asset,
+  providerId,
   limitPrice: initialLimitPrice,
   currentPrice: passedCurrentPrice = 0,
   direction = 'long',
@@ -99,6 +103,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     resetInputMethod,
   } = usePerpsLimitPriceInput({
     asset,
+    providerId,
     currentPrice: passedCurrentPrice,
     direction,
     limitPrice,

@@ -8,13 +8,14 @@ import {
   normalizeFilterKey,
 } from './marketCategoryMapping';
 
-type TestMarket = Pick<
-  PerpsMarketData,
-  'isHip3' | 'isNewMarket' | 'marketType' | 'tags'
-> & { symbol: string };
-
-const buildMarket = (overrides: Partial<TestMarket>): TestMarket => ({
+const buildMarket = (overrides: Partial<PerpsMarketData>): PerpsMarketData => ({
   symbol: 'TEST',
+  name: 'Test',
+  maxLeverage: '10x',
+  price: '$1',
+  change24h: '$0',
+  change24hPercent: '0%',
+  volume: '$1',
   isHip3: false,
   isNewMarket: false,
   marketType: undefined,
@@ -99,7 +100,7 @@ describe('marketCategoryMapping', () => {
   });
 
   describe('filterMarketsByCategory', () => {
-    const markets: TestMarket[] = [
+    const markets: PerpsMarketData[] = [
       buildMarket({ symbol: 'BTC', isHip3: false }),
       buildMarket({ symbol: 'ETH', isHip3: false }),
       buildMarket({
@@ -139,7 +140,7 @@ describe('marketCategoryMapping', () => {
     });
 
     it('does not include HIP-3 markets carrying the memecoin tag under "memecoin"', () => {
-      const withHip3Meme: TestMarket[] = [
+      const withHip3Meme: PerpsMarketData[] = [
         ...markets,
         buildMarket({
           symbol: 'FAKE',

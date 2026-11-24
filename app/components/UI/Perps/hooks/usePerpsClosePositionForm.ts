@@ -11,6 +11,7 @@ import {
   ORDER_SLIPPAGE_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  calculateCloseSize,
   calculateSignedRoEForPrice,
   estimateCloseReceive,
   type InputMethod,
@@ -61,7 +62,6 @@ import {
 import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
-  calculateCloseAmountFromPercentage,
   calculatePercentageFromTokenAmount,
   formatCloseAmountUSD,
   validateCloseAmountLimits,
@@ -137,6 +137,9 @@ function readAssetKeypadCommit(params: {
       : typedClose.amount,
   };
 }
+
+/** Nothing to close yet: validation blocks a zero amount. */
+const EMPTY_CLOSE_AMOUNT = { closeAmount: '0', calculatedUSDString: '0.00' };
 
 export interface UsePerpsClosePositionFormOptions {
   /** Overrides `navigation.goBack()` so a sheet can animate closed first. */
@@ -350,7 +353,7 @@ export function usePerpsClosePositionForm(
     : Number.parseFloat(position.entryPrice);
 
   const referencePrice = resolveOracleReferencePrice(
-    priceData[position.symbol]?.markPrice,
+    priceData[position.symbol]?.oraclePrice,
     currentPrice,
   );
 
@@ -482,10 +485,7 @@ export function usePerpsClosePositionForm(
   const resolveDisplayedCloseAmount = useCallback(
     (percentage: number) => {
       if (isLoadingMarketData) {
-        return {
-          closeAmount: '0',
-          calculatedUSDString: '0.00',
-        };
+        return EMPTY_CLOSE_AMOUNT;
       }
 
       if (exactCloseTokenAmount !== null && percentage === closePercentage) {
@@ -504,16 +504,21 @@ export function usePerpsClosePositionForm(
       const szDecimals =
         marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
 
-      const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
-        percentage,
+      const closeSize = calculateCloseSize({
         positionSize: absSize,
-        currentPrice: effectivePrice,
-        szDecimals,
+        price: effectivePrice,
+        sizeDecimals: szDecimals,
+        percent: percentage,
       });
 
+      // An unusable price sizes nothing, as while market data loads.
+      if (closeSize === undefined) {
+        return EMPTY_CLOSE_AMOUNT;
+      }
+
       return {
-        closeAmount: tokenAmount.toString(),
-        calculatedUSDString: formatCloseAmountUSD(usdValue),
+        closeAmount: closeSize.size.toString(),
+        calculatedUSDString: formatCloseAmountUSD(closeSize.usdValue),
       };
     },
     [
@@ -646,10 +651,12 @@ export function usePerpsClosePositionForm(
   const receiveAmount = closeEstimate.receive;
 
   // Get minimum order amount for this asset
-  const { minimumOrderAmount } = useMinimumOrderAmount({
-    asset: position.symbol,
-    providerId: livePosition.providerId,
-  });
+  const { minimumOrderAmount, maxOraclePriceDeviation } = useMinimumOrderAmount(
+    {
+      asset: position.symbol,
+      providerId: livePosition.providerId,
+    },
+  );
 
   // Calculate remaining position value after partial close
   const remainingPositionValue = positionValue * (1 - closePercentage / 100);
@@ -668,6 +675,7 @@ export function usePerpsClosePositionForm(
     // closingValue below.
     currentPrice,
     referencePrice,
+    maxOraclePriceDeviation,
     positionSize: absSize,
     positionValue,
     minimumOrderAmount,

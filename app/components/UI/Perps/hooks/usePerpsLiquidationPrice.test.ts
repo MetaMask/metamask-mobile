@@ -13,6 +13,19 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+const mockEstimateCrossLiquidation = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PerpsController: {
+        estimateCrossLiquidation: (params: unknown) =>
+          mockEstimateCrossLiquidation(params),
+      },
+    },
+  },
+}));
+
 describe('usePerpsLiquidationPrice', () => {
   const mockCalculateLiquidationPrice = jest.fn();
 
@@ -260,14 +273,7 @@ describe('usePerpsLiquidationPrice', () => {
     );
   });
 
-  it('ignores a Cross result from the previous account and preserves a real zero', async () => {
-    let resolvePrevious: (value: string) => void = () => undefined;
-    const previous = new Promise<string>((resolve) => {
-      resolvePrevious = resolve;
-    });
-    mockCalculateLiquidationPrice
-      .mockReturnValueOnce(previous)
-      .mockResolvedValueOnce('0.00');
+  describe('Cross orders', () => {
     const params = {
       entryPrice: 50000,
       leverage: 10,
@@ -277,19 +283,137 @@ describe('usePerpsLiquidationPrice', () => {
       marginType: 'cross' as const,
       providerId: 'hyperliquid' as const,
     };
-    const { result, rerender } = renderHook(
-      ({ contextKey }) => usePerpsLiquidationPrice(params, { contextKey }),
-      { initialProps: { contextKey: 'account-a' } },
-    );
-    await waitFor(() =>
-      expect(mockCalculateLiquidationPrice).toHaveBeenCalledWith(params),
-    );
 
-    rerender({ contextKey: 'account-b' });
+    beforeEach(() => {
+      mockEstimateCrossLiquidation.mockReset();
+    });
 
-    await waitFor(() => expect(result.current.liquidationPrice).toBe('0.00'));
-    await act(async () => resolvePrevious('45000.00'));
-    expect(result.current.liquidationPrice).toBe('0.00');
+    it('estimates the price from the account', async () => {
+      mockEstimateCrossLiquidation.mockResolvedValue({
+        status: 'price',
+        price: '45000',
+      });
+
+      const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+
+      await waitFor(() =>
+        expect(result.current.liquidationPrice).toBe('45000'),
+      );
+      expect(result.current.isCoveredByAccount).toBe(false);
+      expect(mockEstimateCrossLiquidation).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        direction: 'long',
+        size: '0.1',
+        entryPrice: '50000',
+        leverage: 10,
+        providerId: 'hyperliquid',
+      });
+      expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
+    });
+
+    it('reports an order its account covers, with no price', async () => {
+      mockEstimateCrossLiquidation.mockResolvedValue({
+        status: 'none',
+        reason: 'covered_by_account',
+      });
+
+      const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+
+      await waitFor(() => expect(result.current.isCoveredByAccount).toBe(true));
+      expect(result.current.liquidationPrice).toBeUndefined();
+    });
+
+    it('is neither a price nor covered while the estimate is unavailable', async () => {
+      mockEstimateCrossLiquidation.mockResolvedValue({
+        status: 'unavailable',
+        reason: 'provider',
+      });
+
+      const { result, rerender } = renderHook(
+        ({ priceTick }) => usePerpsLiquidationPrice(params, { priceTick }),
+        { initialProps: { priceTick: 1 } },
+      );
+
+      await waitFor(() => expect(result.current.isCalculating).toBe(false));
+      expect(result.current.liquidationPrice).toBeUndefined();
+      expect(result.current.isCoveredByAccount).toBe(false);
+
+      // A provider without estimates is not asked again on every tick.
+      rerender({ priceTick: 2 });
+      rerender({ priceTick: 3 });
+      expect(mockEstimateCrossLiquidation).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries an unknown account on the next price tick', async () => {
+      mockEstimateCrossLiquidation
+        .mockResolvedValueOnce({
+          status: 'unavailable',
+          reason: 'account_unknown',
+        })
+        .mockResolvedValueOnce({ status: 'price', price: '45000' });
+      const { result, rerender } = renderHook(
+        ({ priceTick }) => usePerpsLiquidationPrice(params, { priceTick }),
+        { initialProps: { priceTick: 1 } },
+      );
+      await waitFor(() => expect(result.current.isCalculating).toBe(false));
+
+      rerender({ priceTick: 2 });
+
+      await waitFor(() =>
+        expect(result.current.liquidationPrice).toBe('45000'),
+      );
+      expect(mockEstimateCrossLiquidation).toHaveBeenCalledTimes(2);
+    });
+
+    it('estimates again when the account moves and keeps the last price meanwhile', async () => {
+      mockEstimateCrossLiquidation
+        .mockResolvedValueOnce({ status: 'price', price: '45000' })
+        .mockResolvedValueOnce({ status: 'price', price: '44000' });
+      const { result, rerender } = renderHook(
+        ({ accountKey }) => usePerpsLiquidationPrice(params, { accountKey }),
+        { initialProps: { accountKey: 'a' } },
+      );
+      await waitFor(() =>
+        expect(result.current.liquidationPrice).toBe('45000'),
+      );
+
+      rerender({ accountKey: 'b' });
+
+      expect(result.current.liquidationPrice).toBe('45000');
+      await waitFor(() =>
+        expect(result.current.liquidationPrice).toBe('44000'),
+      );
+    });
+
+    it('ignores a result from the previous account', async () => {
+      let resolvePrevious: (value: unknown) => void = () => undefined;
+      mockEstimateCrossLiquidation
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolvePrevious = resolve;
+          }),
+        )
+        .mockResolvedValueOnce({
+          status: 'none',
+          reason: 'covered_by_account',
+        });
+      const { result, rerender } = renderHook(
+        ({ contextKey }) => usePerpsLiquidationPrice(params, { contextKey }),
+        { initialProps: { contextKey: 'account-a' } },
+      );
+      await waitFor(() =>
+        expect(mockEstimateCrossLiquidation).toHaveBeenCalledTimes(1),
+      );
+
+      rerender({ contextKey: 'account-b' });
+
+      await waitFor(() => expect(result.current.isCoveredByAccount).toBe(true));
+      await act(async () =>
+        resolvePrevious({ status: 'price', price: '45000' }),
+      );
+      expect(result.current.liquidationPrice).toBeUndefined();
+      expect(result.current.isCoveredByAccount).toBe(true);
+    });
   });
 
   it('should handle non-Error objects in catch', async () => {

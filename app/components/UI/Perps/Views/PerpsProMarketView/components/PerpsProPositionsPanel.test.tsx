@@ -1222,16 +1222,17 @@ describe('PerpsProPositionsPanel', () => {
     expect(screen.getByText('ETH')).toBeOnTheScreen();
   });
 
-  it('shows the stream mark price, not the oracle, on the position card', () => {
+  it('shows the venue mark price, not the mid or the oracle, on the position card', () => {
     mockUsePerpsLivePositions.mockReturnValue({
-      // positionValue / size = 51000, the stream mark is 50500, oracle 50800
+      // positionValue / size = 51000; the mid, mark and oracle all differ
       positions: [makePosition()],
       isInitialLoading: false,
       prices: {
         BTC: {
           symbol: 'BTC',
-          price: '50500',
-          markPrice: '50800',
+          price: '50400',
+          markPrice: '50500',
+          oraclePrice: '50800',
           timestamp: 0,
           isTradable: true,
         },
@@ -1241,6 +1242,7 @@ describe('PerpsProPositionsPanel', () => {
     renderPanel('BTC');
 
     expect(screen.getByText('$50,500')).toBeOnTheScreen();
+    expect(screen.queryByText('$50,400')).toBeNull();
     expect(screen.queryByText('$50,800')).toBeNull();
     expect(screen.queryByText('$51,000')).toBeNull();
   });

@@ -186,13 +186,9 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
       : TextColor.SuccessDefault;
   }, [liveFunding, marketStats.fundingRate]);
 
-  // Mark and oracle are two distinct values and must come from two distinct
-  // fields (TAT-4024). In PriceUpdate, `price` is the live mark (the
-  // activeAssetCtx midPx/markPx that live PnL and position value track), while
-  // `markPrice` is populated by the controller from the exchange's oraclePx —
-  // the same field Lite's statistics card renders as "Oracle price".
-  const markPriceDisplay = formatLivePrice(livePriceUpdate?.price);
-  const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
+  // `price` is the mid; the venue's mark and oracle are separate fields.
+  const markPriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
+  const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.oraclePrice);
 
   return (
     <Box testID={testID} twClassName="border-b border-border-muted">

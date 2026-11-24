@@ -19,6 +19,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import {
+  calculateOrderBookAggregationParams,
   getPerpsDisplaySymbol,
   getPerpsOrderBookPriceFormat,
   type PerpsOrderBookPriceFormat,
@@ -59,8 +60,8 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import {
-  calculateAggregationParams,
   calculateGroupingOptions,
+  selectDefaultGrouping,
   formatColumnValue,
   formatSpreadPercent,
   getDepthRatio,
@@ -69,7 +70,6 @@ import {
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
-  selectDefaultGrouping,
   type OrderBookListCurrency,
   type OrderBookListMetric,
 } from '../../../utils/orderBookGrouping';
@@ -565,7 +565,7 @@ const PerpsProOrderBookPanel = ({
     if (!currentGrouping || !midPriceValue) {
       return { nSigFigs: 5 as const };
     }
-    return calculateAggregationParams(currentGrouping, midPriceValue);
+    return calculateOrderBookAggregationParams(currentGrouping, midPriceValue);
   }, [currentGrouping, midPriceValue]);
 
   // One shared price format for the whole ladder, derived from the grouping

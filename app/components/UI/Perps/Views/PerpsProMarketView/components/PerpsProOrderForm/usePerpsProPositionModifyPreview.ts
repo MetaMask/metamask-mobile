@@ -23,6 +23,8 @@ export interface UsePerpsProPositionModifyPreviewParams {
   providerId?: PerpsProviderType;
   hasValidAmount: boolean;
   enabled: boolean;
+  accountKey?: string;
+  priceTick?: number;
 }
 
 /**
@@ -44,6 +46,8 @@ export const usePerpsProPositionModifyPreview = ({
   providerId,
   hasValidAmount,
   enabled,
+  accountKey,
+  priceTick,
 }: UsePerpsProPositionModifyPreviewParams) => {
   const { preview, isAwaitingFirstPreview } = usePerpsPositionModifyPreview(
     {
@@ -56,12 +60,18 @@ export const usePerpsProPositionModifyPreview = ({
       feeAmountUsd,
       providerId: providerId ?? position?.providerId,
       enabled,
+      accountKey,
+      priceTick,
     },
     // Live mid/mark and fee ticks re-request this preview while the form is
     // open on a held market. ValidationDebounceMs (300ms) coalesces those
     // estimates without a perceptible lag on typed size/leverage.
     { debounceMs: PERFORMANCE_CONFIG.ValidationDebounceMs },
   );
+
+  // The venue reports no liquidation price for a covered Cross position.
+  const isCurrentCoveredByAccount =
+    position?.leverage.type === 'cross' && position.liquidationPrice === null;
 
   const summaryDisplay = useMemo(
     () =>
@@ -72,8 +82,9 @@ export const usePerpsProPositionModifyPreview = ({
         formatLiquidation: (value) =>
           formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }),
         hasValidAmount,
+        isCurrentCoveredByAccount,
       }),
-    [hasValidAmount, preview],
+    [hasValidAmount, isCurrentCoveredByAccount, preview],
   );
 
   return {

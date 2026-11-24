@@ -89,8 +89,6 @@ jest.mock(
 );
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'perps.market.recent_trades': 'Recent activity',

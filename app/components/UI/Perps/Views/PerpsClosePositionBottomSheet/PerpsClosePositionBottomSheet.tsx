@@ -114,6 +114,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
   const limitPriceInput = usePerpsLimitPriceInput({
     asset: position.symbol,
+    providerId: position.providerId,
     currentPrice,
     // Closing a long is a sell, so the presets mirror the opposite direction.
     direction: isLong ? 'short' : 'long',

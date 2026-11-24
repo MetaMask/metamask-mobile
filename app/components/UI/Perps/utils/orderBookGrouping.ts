@@ -43,63 +43,11 @@ export type OrderBookListMetric = 'size' | 'total';
 const SPREAD_PERCENT_DECIMALS = 3;
 
 /**
- * Parameters for Hyperliquid L2Book API aggregation.
- */
-export interface AggregationParams {
-  nSigFigs: 2 | 3 | 4 | 5;
-  mantissa?: 2 | 5;
-}
-
-/**
- * Calculate nSigFigs and mantissa based on grouping and price.
- * These parameters match Hyperliquid's L2Book API aggregation:
- * - nSigFigs: 5 (no mantissa) → finest granularity (~$1 for BTC)
- * - nSigFigs: 5, mantissa: 2 → ~$2 increments for BTC
- * - nSigFigs: 5, mantissa: 5 → ~$5 increments for BTC
- * - nSigFigs: 4 → ~$10 increments for BTC
- * - nSigFigs: 3 → ~$100 increments for BTC
- * - nSigFigs: 2 → ~$1000 increments for BTC (widest range)
- *
- * mantissa is only applicable when nSigFigs is 5.
- *
- * @param grouping - The price grouping increment
- * @param price - The current mid price
- * @returns Aggregation parameters for the API
- */
-export function calculateAggregationParams(
-  grouping: number,
-  price: number,
-): AggregationParams {
-  // Guard against invalid inputs that would cause Math.log10 to return -Infinity or NaN
-  if (price <= 0 || grouping <= 0) {
-    return { nSigFigs: 5 };
-  }
-
-  const magnitude = Math.floor(Math.log10(price));
-  const groupingMagnitude = Math.floor(Math.log10(grouping));
-  const baseNSigFigs = magnitude - groupingMagnitude + 1;
-
-  if (baseNSigFigs >= 5) {
-    const firstDigit = Math.floor(grouping / Math.pow(10, groupingMagnitude));
-    if (firstDigit <= 1) {
-      return { nSigFigs: 5 };
-    }
-    const mantissa = firstDigit <= 2 ? 2 : 5;
-    return { nSigFigs: 5, mantissa };
-  }
-
-  // Clamp nSigFigs between 2 and 5 (API only supports these values)
-  const clampedNSigFigs = Math.max(2, Math.min(5, baseNSigFigs)) as
-    | 2
-    | 3
-    | 4
-    | 5;
-  return { nSigFigs: clampedNSigFigs };
-}
-
-/**
  * Calculate dynamic grouping options based on asset's mid price.
  * Uses "1-2-5 per decade" scale anchored to price magnitude.
+ *
+ * Local because Core's ladder drops widths under six decimals, which moves a
+ * sub-cent market's default width ten times coarser.
  *
  * @param midPrice - The current mid price of the asset
  * @returns Array of grouping options suitable for the price magnitude

@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   usePerpsLivePositions,
   usePerpsLiveAccount,
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsMarginAdjustmentLimits } from './usePerpsMarginAdjustmentLimits';
+import { usePerpsNetwork } from './usePerpsNetwork';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import { formatLiquidationDistance } from '../utils/formatUtils';
 import {
   calculateMaxRemovableMargin,
@@ -35,13 +39,13 @@ export interface UsePerpsAdjustMarginDataReturn {
   newMargin: number;
   /** Position notional value */
   positionValue: number;
-  /** Max amount that can be added/removed */
-  maxAmount: number;
+  /** Max amount that can be added/removed; undefined while unknown */
+  maxAmount: number | undefined;
   /**
    * Largest amount the exchange accepts right now. For remove mode this has no
    * price-move headroom, so a tick after choosing Max does not invalidate it.
    */
-  exchangeMaxAmount: number;
+  exchangeMaxAmount: number | undefined;
   /** Current liquidation price; undefined while unknown */
   currentLiquidationPrice: number | undefined;
   /** New liquidation price after adjustment; undefined while unknown */
@@ -53,8 +57,6 @@ export interface UsePerpsAdjustMarginDataReturn {
   currentLiquidationDistance: string | undefined;
   /** New liquidation distance, formatted the same way; undefined while unknown */
   newLiquidationDistance: string | undefined;
-  /** Available balance for add mode; undefined while unknown */
-  spendableBalance: number | undefined;
   /** Current market price; undefined while unknown */
   currentPrice: number | undefined;
   /** 24h percent change from the price stream; null until available */
@@ -190,31 +192,83 @@ export function usePerpsAdjustMarginData(
     [account],
   );
 
+  const perpsNetwork = usePerpsNetwork();
+  const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const settledBalance = useMemo(() => {
+    const total = parseOptionalNumber(account?.totalBalance);
+    const unrealizedPnl = parseOptionalNumber(account?.unrealizedPnl);
+    return total === undefined || unrealizedPnl === undefined
+      ? undefined
+      : total - unrealizedPnl;
+  }, [account]);
+  const limits = usePerpsMarginAdjustmentLimits({
+    symbol,
+    providerId: position?.providerId,
+    contextKey: `${accountAddress ?? ''}|${perpsNetwork}`,
+    positionKey: position
+      ? [
+          position.size,
+          position.entryPrice,
+          position.leverage?.value,
+          (
+            Number.parseFloat(position.marginUsed) -
+            Number.parseFloat(position.unrealizedPnl)
+          ).toFixed(2),
+        ].join('|')
+      : '',
+    settledBalance,
+    priceTick: livePrices?.[symbol]?.timestamp,
+    enabled: hasValidPositionData,
+  });
+
   const positionLeverage =
     parsedPositionLeverage > 0 ? parsedPositionLeverage : maxLeverage;
 
-  // Calculate max removable/addable amount. The exchange max has no price-move
-  // headroom so it can validate an amount chosen before a tick.
+  // The venue's limits. A provider that reports none (Lighter) uses the
+  // streamed balance and Core's removable margin. The exchange max has no
+  // price-move headroom so it can validate an amount chosen before a tick.
   const { maxAmount, exchangeMaxAmount } = useMemo(() => {
+    const removable = (priceMoveBufferRatio?: number) =>
+      hasValidPositionData
+        ? calculateMaxRemovableMargin({
+            currentMargin,
+            positionSize,
+            currentPrice,
+            positionLeverage,
+            notionalValue: positionValue,
+            priceMoveBufferRatio,
+          })
+        : undefined;
+
+    if (limits?.status === 'available') {
+      const limit = parseOptionalNumber(
+        isAddMode ? limits.maxAdd : limits.maxRemove,
+      );
+      const exchangeRemovable = removable(0);
+      return {
+        maxAmount: limit,
+        exchangeMaxAmount:
+          isAddMode || !limit || exchangeRemovable === undefined
+            ? limit
+            : Math.max(limit, exchangeRemovable),
+      };
+    }
+    if (limits?.reason !== 'provider') {
+      return { maxAmount: undefined, exchangeMaxAmount: undefined };
+    }
     if (isAddMode) {
-      // Nothing can be added until the balance is known.
       const addable =
-        spendableBalance === undefined ? 0 : Math.max(0, spendableBalance);
+        spendableBalance === undefined
+          ? undefined
+          : Math.max(0, spendableBalance);
       return { maxAmount: addable, exchangeMaxAmount: addable };
     }
-    const removable = (priceMoveBufferRatio?: number) =>
-      calculateMaxRemovableMargin({
-        currentMargin,
-        positionSize,
-        currentPrice,
-        positionLeverage,
-        notionalValue: positionValue,
-        priceMoveBufferRatio,
-      });
     return { maxAmount: removable(), exchangeMaxAmount: removable(0) };
   }, [
+    limits,
     isAddMode,
     spendableBalance,
+    hasValidPositionData,
     currentMargin,
     positionSize,
     currentPrice,
@@ -285,7 +339,6 @@ export function usePerpsAdjustMarginData(
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
-    spendableBalance,
     currentPrice,
     percentChange24h,
     isAddMode,

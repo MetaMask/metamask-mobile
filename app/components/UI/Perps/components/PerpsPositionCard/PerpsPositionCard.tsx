@@ -42,6 +42,7 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import {
+  formatLeverage,
   formatPerpsFiat,
   formatPnl,
   formatRoePercentage,
@@ -524,7 +525,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             } ${
               position.leverage.value === undefined
                 ? PERPS_CONSTANTS.FallbackPriceDisplay
-                : `${position.leverage.value}x`
+                : formatLeverage(position.leverage.value)
             }`}
             valueTextProps={{
               testID: PerpsPositionCardSelectorsIDs.DIRECTION_VALUE,

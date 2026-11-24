@@ -45,12 +45,11 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  formatPnl,
-  formatPercentage,
   formatPerpsBalance,
   formatPerpsFiat,
   formatCrossMarginRatio,
 } from '../../utils/formatUtils';
+import { formatAccountPnl } from '../../utils/positionDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   useBottomSafeAreaInset,
@@ -463,7 +462,6 @@ const PerpsHomeView = () => {
 
   // P&L for positions subtitle; unknown until the account loads
   const unrealizedPnl = perpsAccount?.unrealizedPnl;
-  const roe = perpsAccount?.returnOnEquity;
 
   // Fetch all home screen data
   const {
@@ -503,8 +501,8 @@ const PerpsHomeView = () => {
   const hasPositions = positions.length > 0;
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
-      const pnlNum =
-        unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
+      const parsedPnl = parseFloat(unrealizedPnl ?? '');
+      const pnlNum = Number.isFinite(parsedPnl) ? parsedPnl : undefined;
 
       // Open (filled) positions only — hide when flat so spacing matches homepage sections
       if (!hasPositions || isAggregatePartial) {
@@ -524,7 +522,7 @@ const PerpsHomeView = () => {
               ? TextColor.ErrorDefault
               : TextColor.TextDefault;
 
-      const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
+      const subtitle = formatAccountPnl(perpsAccount);
       const suffix = strings('perps.unrealized_pnl');
 
       return {
@@ -532,7 +530,7 @@ const PerpsHomeView = () => {
         positionsSubtitleColor: color,
         positionsSubtitleSuffix: suffix,
       };
-    }, [hasPositions, isAggregatePartial, unrealizedPnl, roe]);
+    }, [hasPositions, isAggregatePartial, perpsAccount, unrealizedPnl]);
 
   // Determine if any data is loading for initial load tracking
   // Orders and activity load via WebSocket instantly, only track positions and markets

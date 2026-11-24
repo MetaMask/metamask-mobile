@@ -356,15 +356,12 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   });
 
   it('selects Cross, updates the form and submits the chosen mode on the Terminal backend', async () => {
-    const calculateLiquidationPrice = jest.mocked(
-      Engine.context.PerpsController.calculateLiquidationPrice,
+    const estimateCrossLiquidation = jest.mocked(
+      Engine.context.PerpsController.estimateCrossLiquidation,
     );
-    calculateLiquidationPrice.mockImplementation(async ({ marginType }) => {
-      if (marginType === 'cross') {
-        throw new Error('LIQUIDATION_PRICE_UNAVAILABLE');
-      }
-      return '2000';
-    });
+    jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockResolvedValue('2000');
     const { store } = renderPerpsCrossMarginOrderFormPanel({
       streamOverrides: { account: createFundedAccountForViews('1000') },
       overrides: terminalBackendFlags(true),
@@ -383,8 +380,8 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       { timeout: 5000 },
     );
     await waitFor(() =>
-      expect(calculateLiquidationPrice).toHaveBeenCalledWith(
-        expect.objectContaining({ marginType: 'cross' }),
+      expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', direction: 'long' }),
       ),
     );
     expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(

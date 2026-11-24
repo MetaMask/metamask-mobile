@@ -56,6 +56,10 @@ interface UsePerpsOrderValidationParams {
   triggerPrice?: string;
   /** Live mid price used for trigger placement-side validation. */
   midPrice?: number;
+  /** Oracle price the deviation band is measured from; the mid while unknown. */
+  referencePrice?: number;
+  /** The venue's deviation limit; no band check while unknown. */
+  maxOraclePriceDeviation?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
   /** TWAP running time in whole minutes. */
@@ -466,6 +470,8 @@ export function usePerpsOrderValidation(
     isFullClose,
     triggerPrice,
     midPrice = assetPrice,
+    referencePrice = midPrice,
+    maxOraclePriceDeviation,
     szDecimals,
     twapDuration,
     twapRandomize,
@@ -515,10 +521,14 @@ export function usePerpsOrderValidation(
         triggerPrice,
         limitPrice: orderForm.limitPrice,
         midPrice,
+        referencePrice,
+        maxDeviation: maxOraclePriceDeviation,
         szDecimals,
       }),
     [
+      maxOraclePriceDeviation,
       midPrice,
+      referencePrice,
       orderForm.direction,
       orderForm.limitPrice,
       orderForm.type,

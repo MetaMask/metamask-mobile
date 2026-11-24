@@ -6366,7 +6366,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 11
     },
     "typescript/promise-function-async": {
       "count": 2
@@ -6485,7 +6485,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 10
+      "count": 9
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderForm/usePerpsProSizeInput.test.ts": {

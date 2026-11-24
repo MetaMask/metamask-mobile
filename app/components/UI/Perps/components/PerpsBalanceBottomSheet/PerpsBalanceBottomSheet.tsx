@@ -27,11 +27,8 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
-import {
-  formatPercentage,
-  formatPerpsBalance,
-  formatPnl,
-} from '../../utils/formatUtils';
+import { formatPerpsBalance } from '../../utils/formatUtils';
+import { formatAccountPnl } from '../../utils/positionDisplay';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
@@ -82,7 +79,6 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const totalBalance = perpsAccount?.totalBalance;
   const spendableBalance = perpsAccount?.spendableBalance;
   const unrealizedPnl = perpsAccount?.unrealizedPnl;
-  const roe = perpsAccount?.returnOnEquity;
   const pnlValue =
     unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
 
@@ -194,7 +190,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
                       length={SensitiveTextLength.Short}
                       testID={PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE}
                     >
-                      {`${formatPnl(unrealizedPnl)} (${formatPercentage(roe, 1)})`}
+                      {formatAccountPnl(perpsAccount)}
                     </SensitiveText>
                   </Box>
                 </Box>

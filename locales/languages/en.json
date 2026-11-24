@@ -3085,6 +3085,7 @@
       "positionsFailed": "Failed to get positions",
       "accountStateFailed": "Failed to get account state",
       "marketsFailed": "Failed to get markets",
+      "marketNotFound": "Market not found",
       "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
       "providerNotAvailable": "Provider {{providerId}} not available",
       "providerRouteRequired": "Choose a provider for this order and try again.",

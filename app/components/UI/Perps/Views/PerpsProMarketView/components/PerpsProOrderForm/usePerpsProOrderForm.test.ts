@@ -64,8 +64,16 @@ const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
 let mockLiquidationPrice = '80000';
 let mockCrossLiquidationPrice: string | undefined;
+let mockIsCoveredByAccount = false;
 const mockUsePerpsLiquidationPrice = jest.fn(
-  (params: { entryPrice?: number; marginType?: string }) => ({
+  (
+    params: { entryPrice?: number; marginType?: string },
+    _options?: { accountKey?: string; priceTick?: number },
+  ) => ({
+    isCoveredByAccount:
+      mockIsCoveredByAccount &&
+      params.marginType === 'cross' &&
+      Boolean(params.entryPrice),
     liquidationPrice: !params.entryPrice
       ? undefined
       : params.marginType === 'cross'
@@ -210,7 +218,7 @@ let mockExistingPosition: {
   leverage?: { type?: string; value?: number };
   size?: string;
   marginUsed?: string;
-  liquidationPrice?: string;
+  liquidationPrice?: string | null;
   entryPrice?: string;
   positionValue?: string;
 } | null = null;
@@ -327,12 +335,13 @@ jest.mock('../../../../hooks', () => ({
   },
   useMinimumOrderAmount: () => ({
     minimumOrderAmount: 10,
+    maxOraclePriceDeviation: 0.95,
     isLoading: false,
     error: null,
   }),
   usePerpsLiquidationPrice: (
-    params: Parameters<typeof mockUsePerpsLiquidationPrice>[0],
-  ) => mockUsePerpsLiquidationPrice(params),
+    ...args: Parameters<typeof mockUsePerpsLiquidationPrice>
+  ) => mockUsePerpsLiquidationPrice(...args),
   usePerpsMarketData: ({ providerId }: { providerId?: string }) => {
     const data =
       (providerId && mockMarketDataByProvider?.[providerId]) || mockMarketData;
@@ -810,6 +819,7 @@ describe('usePerpsProOrderForm', () => {
     mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockCrossLiquidationPrice = undefined;
+    mockIsCoveredByAccount = false;
     mockIsAtCap = false;
     mockUseBottomSheet = false;
     mockEstimatedSlippageBps = 50;
@@ -1061,7 +1071,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
 
-    it('keeps single-value summary for unsupported cross-margin previews', () => {
+    it('keeps single-value summary for a venue without previews', () => {
       mockExistingPosition = {
         size: '1',
         marginUsed: '1000',
@@ -1071,7 +1081,7 @@ describe('usePerpsProOrderForm', () => {
       };
       mockPositionModifyPreview = {
         status: 'unsupported',
-        reason: 'cross_margin',
+        reason: 'provider',
       };
 
       const { result } = renderProForm();
@@ -4234,18 +4244,82 @@ describe('usePerpsProOrderForm', () => {
           providerId: 'hyperliquid',
           positionSize: expect.any(Number),
         }),
+        expect.anything(),
       );
       expect(result.current.summary.liquidationPrice).toBe('$75,949');
     });
 
-    it('withholds a Cross opening estimate when the market already has a position', () => {
-      mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
+    it('shows N/A for a Cross order its account covers', () => {
+      mockIsCoveredByAccount = true;
       const { result } = renderWithCrossMargin();
 
+      act(() => result.current.onMarginModeSelect('cross'));
+
+      expect(result.current.summary.liquidationPrice).toBe(
+        strings('perps.cross_position.no_liquidation_price'),
+      );
+    });
+
+    it('requests the Cross estimate again when the streamed account moves', () => {
+      mockLiveAccount = {
+        crossMarginSummary: {
+          accountValue: '1000',
+          maintenanceMargin: '10',
+          marginUsed: '100',
+          notional: '1000',
+        },
+        spotCollateral: '500',
+      };
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => result.current.onMarginModeSelect('cross'));
+      const first = mockUsePerpsLiquidationPrice.mock.lastCall?.[1]?.accountKey;
+
+      mockLiveAccount = { ...mockLiveAccount, spotCollateral: '400' };
+      rerender({});
+
+      expect(first).toEqual(expect.any(String));
+      expect(
+        mockUsePerpsLiquidationPrice.mock.lastCall?.[1]?.accountKey,
+      ).not.toBe(first);
+    });
+
+    it('previews the position an order on an open Cross position leaves', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: null,
+        entryPrice: '50000',
+        leverage: { type: 'cross', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: false },
+        },
+        resulting: {
+          direction: 'long',
+          size: 2,
+          entryPrice: 50000,
+          leverage: 5,
+          margin: { available: true, value: 2000 },
+          liquidationPrice: { available: true, value: 41000 },
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      // The preview owns it; no second estimate runs.
       expect(mockUsePerpsLiquidationPrice).toHaveBeenLastCalledWith(
         expect.objectContaining({ entryPrice: 0, marginType: 'cross' }),
+        expect.anything(),
       );
-      expect(result.current.summary.liquidationPrice).toBe('--');
+      expect(result.current.summary.liquidationPrice).toBe(
+        strings('perps.pro_order_form.before_after', {
+          before: strings('perps.cross_position.no_liquidation_price'),
+          after: '$41,000',
+        }),
+      );
     });
 
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {
@@ -5454,8 +5528,8 @@ describe('usePerpsProOrderForm', () => {
       const perpsController = jest.requireActual<
         typeof import('@metamask/perps-controller')
       >('@metamask/perps-controller');
-      const splitScaleSizesSpy = jest
-        .spyOn(perpsController, 'splitScaleSizes')
+      const sizeLadderSpy = jest
+        .spyOn(perpsController, 'sizeHyperLiquidScaleLadder')
         .mockImplementationOnce(() => {
           throw error;
         });
@@ -5480,7 +5554,7 @@ describe('usePerpsProOrderForm', () => {
         variant: 'banner',
         message: strings('perps.order.validation.error'),
       });
-      splitScaleSizesSpy.mockRestore();
+      sizeLadderSpy.mockRestore();
     });
 
     it.each([
@@ -5501,8 +5575,8 @@ describe('usePerpsProOrderForm', () => {
         const perpsController = jest.requireActual<
           typeof import('@metamask/perps-controller')
         >('@metamask/perps-controller');
-        const splitScaleSizesSpy = jest
-          .spyOn(perpsController, 'splitScaleSizes')
+        const sizeLadderSpy = jest
+          .spyOn(perpsController, 'sizeHyperLiquidScaleLadder')
           .mockImplementationOnce(() => {
             throw new Error(errorCode);
           });
@@ -5518,7 +5592,7 @@ describe('usePerpsProOrderForm', () => {
           variant: 'banner',
           message,
         });
-        splitScaleSizesSpy.mockRestore();
+        sizeLadderSpy.mockRestore();
       },
     );
 

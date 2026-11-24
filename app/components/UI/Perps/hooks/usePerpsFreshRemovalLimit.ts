@@ -7,9 +7,9 @@ interface UsePerpsFreshRemovalLimitParams {
   freshMaxAmount: number | null;
   setFreshMaxAmount: (amount: number | null) => void;
   position: Position | null;
-  /** Floored max from the live snapshot. */
+  /** Floored max; 0 while the limits are unknown, when nothing can be submitted. */
   snapshotMaxAmount: number;
-  exchangeMaxAmount: number;
+  exchangeMaxAmount: number | undefined;
   isAddMode: boolean;
 }
 
@@ -63,7 +63,9 @@ export const usePerpsFreshRemovalLimit = ({
   // Validate against what the exchange accepts, not the headroom-reduced max
   // offered by Max/slider, so a price tick after choosing Max does not block it.
   const submitLimitAmount = capToFreshMax(
-    Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
+    exchangeMaxAmount !== undefined &&
+      Number.isFinite(exchangeMaxAmount) &&
+      exchangeMaxAmount > flooredMaxAmount
       ? floorUsd(exchangeMaxAmount)
       : flooredMaxAmount,
   );

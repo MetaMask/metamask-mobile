@@ -12,8 +12,11 @@ import {
   formatVolume,
   formatPerpsCompact,
   formatPositionSize,
-  formatAccountLeverage,
+  formatFundingPayment,
   formatLeverage,
+  formatMaxSlippageNumber,
+  formatPerpsDuration,
+  formatPositionFunding,
   formatCrossMarginRatio,
   formatLiquidationDistance,
   parseCurrencyString,
@@ -1557,50 +1560,81 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('formatAccountLeverage', () => {
-    it('formats one decimal with an x suffix', () => {
-      expect(formatAccountLeverage(2, 'en-US')).toBe('2.0x');
-      expect(formatAccountLeverage(1.04, 'en-US')).toBe('1.0x');
+  describe('wrappers bound to the app language', () => {
+    const originalLocale = I18n.locale;
+
+    afterEach(() => {
+      I18n.locale = originalLocale;
     });
 
-    it('uses the locale decimal separator', () => {
-      expect(formatAccountLeverage(2.5, 'de-DE')).toBe('2,5x');
-    });
+    it.each([
+      {
+        locale: 'en',
+        slippage: '0.5',
+        funding: '-$1,234.50',
+        payment: '-$0.50',
+        duration: '1 hr 30 min',
+        leverage: '2.53x',
+      },
+      {
+        locale: 'de',
+        slippage: '0,5',
+        funding: '-1.234,50 $',
+        payment: '-0,50 $',
+        duration: '1 Std. 30 Min.',
+        leverage: '2,53x',
+      },
+    ])(
+      'formats in $locale',
+      ({ locale, slippage, funding, payment, duration, leverage }) => {
+        I18n.locale = locale;
+
+        expect(formatMaxSlippageNumber(300)).toBe('3');
+        expect(formatMaxSlippageNumber(50)).toBe(slippage);
+        expect(formatPositionFunding(1234.5).replace(/\s/g, ' ')).toBe(funding);
+        expect(formatFundingPayment(-0.5).replace(/\s/g, ' ')).toBe(payment);
+        expect(formatPerpsDuration(5_400_000).replace(/\s/g, ' ')).toBe(
+          duration,
+        );
+        expect(formatLeverage(2.53)).toBe(leverage);
+      },
+    );
+
+    it.each(['en', 'de'])(
+      'shows placeholders for missing values in %s',
+      (locale) => {
+        I18n.locale = locale;
+
+        expect(formatPositionFunding(undefined)).toBe('$---');
+        expect(formatPositionFunding('')).toBe('$---');
+        expect(formatFundingPayment(undefined)).toBe('$---');
+        expect(formatPerpsDuration(undefined)).toBe('--');
+      },
+    );
   });
 
   describe('formatLeverage', () => {
-    it('should format leverage with x suffix', () => {
-      expect(formatLeverage(2)).toBe('2.0x');
-      expect(formatLeverage('5.5')).toBe('5.5x');
-      expect(formatLeverage(10.25)).toBe('10.3x');
+    it.each([
+      [2, '2x'],
+      ['5.5', '5.5x'],
+      [2.789, '2.79x'],
+      [0.2, '0.2x'],
+      [1000, '1,000x'],
+    ])('formats %s as %s', (leverage, expected) => {
+      expect(formatLeverage(leverage)).toBe(expected);
     });
 
-    it('should handle edge cases', () => {
-      expect(formatLeverage(0)).toBe('0.0x');
-      expect(formatLeverage('1')).toBe('1.0x');
-      expect(formatLeverage(100.999)).toBe('101.0x');
-    });
+    it.each([undefined, null, '', 'invalid', NaN, -2.5])(
+      'shows the placeholder for %s',
+      (leverage) => {
+        expect(formatLeverage(leverage)).toBe(
+          PERPS_CONSTANTS.FallbackDataDisplay,
+        );
+      },
+    );
 
-    it('should handle invalid inputs', () => {
-      expect(formatLeverage('invalid')).toBe(
-        PERPS_CONSTANTS.FallbackDataDisplay,
-      );
-      expect(formatLeverage(NaN)).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
-      expect(formatLeverage('')).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
-    });
-
-    it('should handle negative leverage', () => {
-      expect(formatLeverage(-2.5)).toBe('-2.5x');
-    });
-
-    it('should round to 1 decimal place', () => {
-      expect(formatLeverage(2.789)).toBe('2.8x');
-      expect(formatLeverage(15.123)).toBe('15.1x');
-    });
-
-    it('should handle very large leverage values', () => {
-      expect(formatLeverage(999.9)).toBe('999.9x');
-      expect(formatLeverage('1000')).toBe('1000.0x');
+    it('keeps a requested fixed precision', () => {
+      expect(formatLeverage(2, { minimumFractionDigits: 2 })).toBe('2.00x');
     });
   });
 
