@@ -18,6 +18,8 @@ import {
   Checkbox,
   FontWeight,
   TextButton,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -27,8 +29,6 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import Routes from '../../../../../constants/navigation/Routes';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
 import type {
   TransakBuyQuote,
@@ -40,7 +40,6 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import styleSheet from './MicaConsent.styles';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 
 /**
  * Generates an ISO 8601 timestamp with timezone offset (e.g. 2024-01-15T10:30:00+01:00)
@@ -320,22 +319,23 @@ const MicaConsent = (): React.JSX.Element => {
 
             {error && (
               <BannerAlert
-                severity={BannerAlertSeverity.Error}
+                severity={BannerAlertSeverity.Danger}
                 title={strings('deposit.mica.errorTitle')}
                 description={error}
-                style={styles.errorBanner}
-                actionButtonProps={
+                twClassName="mb-4"
+                actionButtonLabel={
                   capturedConsentedAt
-                    ? {
-                        variant: ButtonVariants.Link,
-                        label: strings('deposit.mica.retry_button'),
-                        onPress: () => {
-                          void handleRetry();
-                        },
-                        disabled: loading || retrying,
+                    ? strings('deposit.mica.retry_button')
+                    : undefined
+                }
+                actionButtonOnPress={
+                  capturedConsentedAt
+                    ? () => {
+                        void handleRetry();
                       }
                     : undefined
                 }
+                actionButtonProps={{ isDisabled: loading || retrying }}
               />
             )}
 

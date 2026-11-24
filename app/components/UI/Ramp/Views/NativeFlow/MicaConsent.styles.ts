@@ -38,9 +38,6 @@ const styleSheet = (params: { theme: Theme }) => {
     checkboxSpacing: {
       height: 16,
     },
-    errorBanner: {
-      marginBottom: 16,
-    },
     footerContent: {
       gap: 8,
     },

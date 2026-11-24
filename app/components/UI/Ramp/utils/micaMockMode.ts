@@ -5,7 +5,6 @@
 
 import type {
   TransakAdditionalRequirementsResponse,
-  TransakAdditionalRequirement,
   Provider,
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';

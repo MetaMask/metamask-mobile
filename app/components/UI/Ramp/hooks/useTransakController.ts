@@ -24,7 +24,6 @@ import type {
   TransakState,
   TransakPatchUserRequestBody,
   TransakOrder,
-  RampsController,
 } from '@metamask/ramps-controller';
 
 export interface UseTransakControllerResult {

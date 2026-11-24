@@ -15,15 +15,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import PoweredByTransak from '../../components/PoweredByTransak';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import DepositProgressBar from '../../components/DepositProgressBar';
@@ -108,27 +107,24 @@ const MicaKycFormLayout = ({
 
             {error && (
               <BannerAlert
-                severity={BannerAlertSeverity.Error}
+                severity={BannerAlertSeverity.Danger}
                 title={strings('deposit.mica.errorTitle')}
                 description={error}
-                style={styles.errorBanner}
+                twClassName="mb-4"
               />
             )}
 
             {missingFields && (
               <BannerAlert
-                severity={BannerAlertSeverity.Error}
+                severity={BannerAlertSeverity.Danger}
                 title={missingFields.title}
                 description={missingFields.description}
-                actionButtonProps={{
-                  variant: ButtonVariants.Link,
-                  label: missingFields.retryLabel,
-                  onPress: () => {
-                    void missingFields.onRetry();
-                  },
-                  disabled: missingFields.retrying,
+                actionButtonLabel={missingFields.retryLabel}
+                actionButtonOnPress={() => {
+                  void missingFields.onRetry();
                 }}
-                style={styles.errorBanner}
+                actionButtonProps={{ isDisabled: missingFields.retrying }}
+                twClassName="mb-4"
               />
             )}
 

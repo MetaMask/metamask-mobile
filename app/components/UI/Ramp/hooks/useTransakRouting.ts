@@ -973,13 +973,15 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             );
             const formsRequired = additionalRequirements?.formsRequired || [];
 
-            const consentForm = formsRequired.find((f) => f.type === 'CONSENT');
-            if (consentForm) {
+            const hasConsentForm = formsRequired.some(
+              (f) => f.type === 'CONSENT',
+            );
+            if (hasConsentForm) {
               if (depth < 5) {
                 navigation.navigate(Routes.RAMP.MICA_CONSENT, {
                   quote,
                   quoteId: quote.quoteId,
-                  ...(baseRouteParams ?? {}),
+                  ...baseRouteParams,
                 });
               } else {
                 Logger.error(
@@ -1005,7 +1007,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                     workFlowRunId: '',
                     ...sourceOfIncomeForm.metadata,
                   },
-                  ...(baseRouteParams ?? {}),
+                  ...baseRouteParams,
                 });
               } else {
                 Logger.error(
@@ -1033,7 +1035,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                       workFlowRunId: '',
                       ...additionalDetailsNationalityForm.metadata,
                     },
-                    ...(baseRouteParams ?? {}),
+                    ...baseRouteParams,
                   },
                 );
               } else {

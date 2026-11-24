@@ -28,9 +28,6 @@ const styleSheet = (params: { theme: Theme }) => {
     button: {
       marginTop: 8,
     },
-    errorBanner: {
-      marginBottom: 16,
-    },
     poweredBy: {
       marginTop: 24,
       alignSelf: 'center',
