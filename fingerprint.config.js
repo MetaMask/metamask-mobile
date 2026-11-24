@@ -165,8 +165,8 @@ const config = {
     // New scripts added here are assumed not to affect native compilation.
     '.github/scripts/qa-automation/**',
 
-    // Swaps performance budgets: reads Sentry and posts to Slack, doesn't build.
-    '.github/scripts/swaps/performance-budgets/**',
+    // Swaps CI reports: read Sentry or CI artifacts and post to Slack, don't build.
+    '.github/scripts/swaps/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.
@@ -193,11 +193,11 @@ const config = {
     '.github/workflows/flaky-test-report.yml',
     '.github/workflows/analyze-app-profiling.yml',
     '.github/workflows/qa-stats.yml',
+    '.github/workflows/swaps-cpu-profile-report.yml',
     '.github/workflows/swaps-performance-budgets.yml',
     '.github/workflows/post-merge-validation.yml',
 
     // Release/branch bookkeeping (merges, syncs, changelog) - no native or OTA build step.
-    '.github/workflows/create-cherry-pick-pr.yml',
     '.github/workflows/create-release-draft.yml',
     '.github/workflows/merge-previous-release-branches.yml',
     '.github/workflows/merge-stable-sync-pr.yml',

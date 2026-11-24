@@ -5,6 +5,10 @@ import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { ApproveMethod } from '../../../types/approve';
 import { EditSpendingCapModal } from './edit-spending-cap-modal';
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));

@@ -15,12 +15,23 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -42,12 +53,17 @@ import ReactionPickerBalloon, {
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
+import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
-import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
+import {
+  socialFeedPostAnalytics,
+  socialFeedPostSubject,
+} from '../utils/socialPositionAnalytics';
 import {
   SocialEvent,
   type SocialBlockedReason,
+  type SocialCopyTradeAnalyticsProperties,
   type SocialPositionAnalyticsProperties,
 } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
@@ -56,7 +72,7 @@ export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
   onCopyTradeInteraction?: (
-    position: SocialPositionAnalyticsProperties,
+    position: SocialCopyTradeAnalyticsProperties,
   ) => void;
   onReactionInteraction?: (
     action: 'added' | 'removed',
@@ -79,11 +95,16 @@ export interface SocialFeedPostShellProps {
    * pass this so they cannot copy their own trade.
    */
   showCopyTrade?: boolean;
+  /**
+   * When false, the attached GIF keeps its frame and drops the decoded image.
+   * Virtualized rows pass this from list viewability. Defaults to visible.
+   */
+  gifVisible?: boolean;
 }
 
 interface ShellCopyTradeTracking {
   postAnalytics: SocialPositionAnalyticsProperties;
-  notifyCopy?: (position: SocialPositionAnalyticsProperties) => void;
+  notifyCopy?: (position: SocialCopyTradeAnalyticsProperties) => void;
   notifyBlocked?: (
     position: SocialPositionAnalyticsProperties,
     reason: SocialBlockedReason,
@@ -109,10 +130,10 @@ const useShellCopyTrade = (
         notifyBlocked?.(postAnalytics, blockedReason);
         return false;
       }
-      notifyCopy?.(postAnalytics);
+      notifyCopy?.({ ...postAnalytics, ...socialFeedPostSubject(post) });
       return true;
     },
-    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, postAnalytics],
+    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, post, postAnalytics],
   );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
@@ -152,7 +173,8 @@ interface SocialFeedPostFooterProps {
   onToggleEmotion: (emotion: string) => void;
   onBurstAnchor: (nonce: number, frame: EmojiWindowFrame) => void;
   onOpenPicker: () => void;
-  reactionAnchorRef: React.RefObject<View | null>;
+  /** The chip row. The picker opens from its leading edge. */
+  reactionRowRef: React.RefObject<View | null>;
   emojiColor: string;
 }
 
@@ -167,7 +189,7 @@ const SocialFeedPostFooter = ({
   onToggleEmotion,
   onBurstAnchor,
   onOpenPicker,
-  reactionAnchorRef,
+  reactionRowRef,
   emojiColor,
 }: SocialFeedPostFooterProps) => {
   if (!canReact && copyCount === undefined) {
@@ -185,9 +207,12 @@ const SocialFeedPostFooter = ({
     >
       {canReact ? (
         <Box
+          ref={reactionRowRef}
+          collapsable={false}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={2}
+          testID={`${SocialFeedPostShellSelectorsIDs.REACTION_ROW}-${postId}`}
           twClassName="flex-1 min-w-0 flex-wrap"
         >
           {chips.map((reaction) => (
@@ -204,24 +229,20 @@ const SocialFeedPostFooter = ({
               testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${postId}-${reaction.emotion}`}
             />
           ))}
-          <View ref={reactionAnchorRef} collapsable={false}>
-            <ButtonBase
-              size={ButtonBaseSize.Sm}
-              twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
-              accessibilityLabel={strings(
-                'social_leaderboard.feed.add_reaction',
-              )}
-              onPress={onOpenPicker}
-              testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${postId}`}
-            >
-              <EmojiAddIcon
-                width={16}
-                height={16}
-                color={emojiColor}
-                name="emoji-add"
-              />
-            </ButtonBase>
-          </View>
+          <ButtonBase
+            size={ButtonBaseSize.Sm}
+            twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+            accessibilityLabel={strings('social_leaderboard.feed.add_reaction')}
+            onPress={onOpenPicker}
+            testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${postId}`}
+          >
+            <EmojiAddIcon
+              width={16}
+              height={16}
+              color={emojiColor}
+              name="emoji-add"
+            />
+          </ButtonBase>
         </Box>
       ) : null}
 
@@ -240,9 +261,12 @@ const SocialFeedPostFooter = ({
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />
-          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero. */}
+          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero.
+              No container glide until Reanimated 4.6+ (TSA-1725): it could
+              leave the count drawn over the post's GIF. */}
           <AnimatedNumericText
             animated={getHardwareTier() !== 'LOW'}
+            animateContainerLayout={false}
             color={TextColor.TextAlternative}
             fontFamily={FontFamily.Default}
             value={String(copyCount)}
@@ -265,6 +289,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   requireSocialTerms = false,
   requireSocialProfile = false,
   showCopyTrade = true,
+  gifVisible = true,
 }) => {
   const tracked = useSocialFeedTracking();
   const { location } = useSocialFeedSurface();
@@ -274,8 +299,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const notifyPicker = onReactionPickerOpened ?? tracked.onReactionPickerOpened;
   const tw = useTailwind();
   const { colors } = useTheme();
-  const reactionAnchorRef = useRef<View>(null);
+  const reactionRowRef = useRef<View>(null);
   const postRef = useRef<View>(null);
+  const windowOffsetY = useContext(SocialFeedWindowOffsetContext);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -389,8 +415,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         return;
       }
 
-      reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
-        setPickerAnchor({ x, y, width, height });
+      reactionRowRef.current?.measureInWindow((x, y, width, height) => {
+        playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+        setPickerAnchor({ x, y: y + windowOffsetY, width, height });
         setPickerVisible(true);
         notifyPicker?.();
       });
@@ -399,6 +426,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       notifyPicker,
+      windowOffsetY,
     ],
   );
 
@@ -407,9 +435,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   }, []);
 
   const toggleEmotion = useCallback(
-    function toggle(emotion: string): void {
+    function toggle(emotion: string, withHaptic = true): void {
       if (
-        !ensureSocialTermsForInteraction(() => toggle(emotion)) ||
+        !ensureSocialTermsForInteraction(() => toggle(emotion, withHaptic)) ||
         !ensureSocialProfileOnboarding() ||
         isPending
       ) {
@@ -429,6 +457,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             : {}),
         },
       );
+      // The tray emoji already plays this tick before it calls onPick.
+      if (withHaptic) {
+        playSelection().catch(() => undefined);
+      }
       pickEmotion(emotion).catch(() => undefined);
     },
     [
@@ -446,8 +478,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const handlePick = useCallback(
     (emotion: string) => {
-      setPickerVisible(false);
-      toggleEmotion(emotion);
+      toggleEmotion(emotion, false);
     },
     [toggleEmotion],
   );
@@ -511,6 +542,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
+          verifiedBadge: `${SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
           identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
@@ -554,6 +586,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             <Box twClassName="rounded-2xl overflow-hidden">
               <SocialFeedGif
                 uri={post.gifUri}
+                visible={gifVisible}
                 testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
               />
             </Box>
@@ -570,7 +603,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               onToggleEmotion={toggleEmotion}
               onBurstAnchor={placeBurst}
               onOpenPicker={openPicker}
-              reactionAnchorRef={reactionAnchorRef}
+              reactionRowRef={reactionRowRef}
               emojiColor={colors.icon.alternative}
             />
           ) : null}

@@ -1,9 +1,15 @@
 import React from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, act, waitFor } from '@testing-library/react-native';
 import { Nft } from '@metamask/assets-controllers';
 import TestRenderer from 'react-test-renderer';
 import { Text as NativeText } from 'react-native';
 import NftGridItem from './NftGridItem';
+import { fireImpact, ImpactMoment } from '../../../util/haptics';
+
+jest.mock('../../../util/haptics', () => ({
+  ...jest.requireActual('../../../util/haptics'),
+  fireImpact: jest.fn(),
+}));
 
 let mockDisplayNftMedia = true;
 jest.mock('react-redux', () => ({
@@ -96,6 +102,23 @@ describe('NftGridItem', () => {
     jest.clearAllMocks();
     mockOnLoad = undefined;
     mockDisplayNftMedia = true;
+  });
+
+  it('fires a haptic and notifies the parent on long press', () => {
+    const { getByTestId } = render(
+      <NftGridItem
+        item={mockNft}
+        onLongPress={mockOnLongPress}
+        source="mobile-nft-list"
+      />,
+    );
+
+    fireEvent(getByTestId('collectible-Test NFT-456'), 'longPress');
+
+    expect(jest.mocked(fireImpact)).toHaveBeenCalledWith(
+      ImpactMoment.SecondaryCTA,
+    );
+    expect(mockOnLongPress).toHaveBeenCalledWith(mockNft);
   });
 
   it('shows skeleton while image is loading when NFT has an image', () => {

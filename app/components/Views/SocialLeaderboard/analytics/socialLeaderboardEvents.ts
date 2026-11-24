@@ -141,17 +141,6 @@ export type SocialLeaderboardSource =
   | 'explore_stocks'
   | 'explore_perps';
 
-export type LeaderboardScreenViewedSource = Extract<
-  SocialLeaderboardSource,
-  | 'home_banner'
-  | 'nav_tab'
-  | 'nux'
-  | 'notification'
-  | 'deep_link'
-  | 'home_carousel'
-  | 'explore_perps'
->;
-
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
   | 'leaderboard'

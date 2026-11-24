@@ -12,10 +12,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-} from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import {
   selectShowTestNetworks,
   selectTokenNetworkFilter,
@@ -105,7 +102,6 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const styles = createStyles(colors);
   const sheetRef = useRef<ReusableModalRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
   const isGasFeesSponsoredNetworkEnabled = useSelector(
@@ -377,7 +373,6 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setTokenNetworkFilter(
         getTokenNetworkFilterAfterNetworkDelete(
-          isAllNetwork,
           tokenNetworkFilter,
           chainId,
         ) as Record<string, boolean>,

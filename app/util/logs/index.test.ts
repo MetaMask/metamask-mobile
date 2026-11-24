@@ -954,6 +954,9 @@ describe('logs :: generateStateLogs', () => {
         assetsLoadingStatus: expect.objectContaining({
           includeInStateLogs: true,
         }),
+        assetsBackgroundLoadingStatus: expect.objectContaining({
+          includeInStateLogs: true,
+        }),
       });
 
       Reflect.set(Engine.context, 'AssetsController', { metadata });
@@ -969,6 +972,7 @@ describe('logs :: generateStateLogs', () => {
           assetPreferences: { 'eip155:1/erc20:0xdef': { hidden: true } },
           selectedCurrency: 'usd',
           assetsLoadingStatus: { isLoading: false },
+          assetsBackgroundLoadingStatus: { isLoading: false },
         };
 
         const logs = generateParsedLogs({

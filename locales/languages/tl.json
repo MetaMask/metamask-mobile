@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Kopyahin ang {{field}}",
       "copied_label": "Nakopya ang {{field}}",
-      "copy_all_button": "Kopyahin ang lahat ng mga detalye",
-      "copied_all_label": "Kinopyang mga detalye ng bangko",
       "button": "Tapos na",
       "waiting_for_details": "Lilitaw dito ang mga detalye ng account maya-maya.",
       "loading_details": "Naglo-load ang mga detalye ng account",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "sa",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} sa {{price}}",
-        "size_at_market_cap": "{{size}} sa {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 araw)",
@@ -1995,22 +1991,6 @@
         "4": "Huw",
         "5": "Biy",
         "6": "Sab"
-      },
-      "tooltip": {
-        "label": "{{action}} sa {{price}}",
-        "bought": "Nabili",
-        "sold": "Binenta",
-        "perps_closed": "Nakasara",
-        "perps_long_opened": "Bukas na long",
-        "perps_long_added": "Idinagdag sa long",
-        "perps_long_reduced": "Binawasang long",
-        "perps_short_opened": "Binuksan ang short",
-        "perps_short_added": "Idinagdag sa short",
-        "perps_short_reduced": "Binili pabalik",
-        "spot_opened": "Nabili",
-        "spot_added": "Bumili ng higit pa",
-        "spot_reduced": "Nagbenta ng ilan",
-        "spot_closed": "Ibinenta lahat"
       }
     },
     "trader_position": {
@@ -2477,9 +2457,7 @@
         "funding": "Pagpopondo",
         "close": "Isara",
         "reverse": "Ibalik",
-        "share": "Ibahagi",
-        "isolated": "Naka-isolate",
-        "cross": "Cross"
+        "share": "Ibahagi"
       },
       "order_card": {
         "size": "Laki",
@@ -3618,8 +3596,7 @@
     "cross_position": {
       "badge": "Cross",
       "no_liquidation_price": "N/A",
-      "liquidation_info": "Tungkol sa cross liquidation price",
-      "margin_used": "Ginamit na margin ng posisyon"
+      "liquidation_info": "Tungkol sa cross liquidation price"
     },
     "crossMargin": {
       "title": "Hindi suportado ang cross margin",
@@ -4116,8 +4093,7 @@
       "retry": "Subukang muli",
       "review": "Suriin ang order",
       "buy": "Bumili",
-      "venue_changed": "Nagbago ang iyong market ng prediksyon. Isara ang order na ito para magpatuloy.",
-      "delete": "Tanggalin"
+      "venue_changed": "Nagbago ang iyong market ng prediksyon. Isara ang order na ito para magpatuloy."
     },
     "order_approval": {
       "title": "Suriin ang order mo",
@@ -4898,9 +4874,7 @@
     "bullet3": "Iba pang kaugnay na mga materyal sa promosyon",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Sumasang-ayon ako",
-    "cancel": "Salamat na lang",
-    "paragraph1a": "Dagdag pa sa ",
-    "link": "MetaMetrics"
+    "cancel": "Salamat na lang"
   },
   "multi_rpc_migration_modal": {
     "description": "Sinusuportahan na namin ngayon ang maramihang RPC para sa isang network. Pinili ang pinakabago mong RPC bilang ang default para lutasin ang magkakasalungat na impormasyon",
@@ -9920,7 +9894,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Kumita, mag-trade, at gumastos mula sa isang balanse",
       "body_prefix": "Ang MetaMask Money ay isang stablecoin account na kumikita nang hanggang",
-      "body_suffix": "—na may built in sa pagti-trade, pagpapadala, at paggasta.",
+      "body_suffix": "- na may built in sa pagti-trade, pagpapadala, at paggasta.",
       "body_no_apy": "Ang MetaMask Money ay isang stablecoin account na kumikita sa pamamagitan ng pagti-trade, pagpapadala, at paggastos na naka-built in.",
       "benefit_convert_title": "Nako-convert sa MetaMask USD, 1:1",
       "benefit_convert_body": "Ang mga pondo na idinadagdag mo ay nako-convert ng 1:1 sa MetaMask USD, nang walang bayarin.",
@@ -9992,7 +9966,6 @@
     },
     "action": {
       "add": "Idagdag",
-      "transfer": "Ipadala",
       "card": "Card",
       "details": "Mga detalye"
     },
@@ -10114,8 +10087,6 @@
       "contact_support": "Kontakin ang suporta"
     },
     "transfer_sheet": {
-      "title": "Magpadala ng mga pondo sa",
-      "between_accounts": "Iba pang account",
       "perps_account": "Perps account",
       "predictions_account": "Account sa Predictions",
       "send_external": "Panlabas na address",
@@ -11079,7 +11050,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} (na) order",
-      "spend_summary": "Gumagastos ka ng {{amount}} {{symbol}} kada {{everyValue}} {{unit}} sa loob ng {{repeatCount}} beses",
+      "spend_summary": {
+        "swapping": "Nagsu-swap",
+        "for": "para kay/sa",
+        "every": "bawat",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "isang beses",
         "other": "{{count}} times"

@@ -9,7 +9,6 @@ export type {
   SocialFeedInlineRow,
   SocialFeedProps,
   SocialFeedRefreshHandle,
-  SocialFeedScrollMode,
 } from './SocialFeed.types';
 export {
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,

@@ -95,6 +95,10 @@ const getDecimalsError = (dec: string): string => {
   return '';
 };
 
+const getOptionalNetworkClientId = (
+  networkClientId: string | null,
+): string | undefined => networkClientId ?? undefined;
+
 // --- Hook: token metadata fetching ---
 
 function useTokenMetadata(
@@ -134,28 +138,27 @@ function useTokenMetadata(
         if (cancelled) return;
         setIsSmartContract(Boolean(isContract));
 
-        if (!isContract) return;
+        if (isContract) {
+          const { AssetsContractController } = Engine.context;
+          const clientId = getOptionalNetworkClientId(networkClientId);
+          const [d, s, n] = await Promise.all([
+            AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
+            AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
+            AssetsContractController.getERC20TokenName(trimmed, clientId),
+          ]);
+          if (cancelled) return;
 
-        const { AssetsContractController } = Engine.context;
-        const clientId = networkClientId ?? undefined;
-        const [d, s, n] = await Promise.all([
-          AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
-          AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
-          AssetsContractController.getERC20TokenName(trimmed, clientId),
-        ]);
-        if (cancelled) return;
-
-        setDecimals(String(d));
-        setSymbol(s);
-        setName(n);
+          setDecimals(String(d));
+          setSymbol(s);
+          setName(n);
+        }
       } catch (error) {
         Logger.error(
           error as Error,
           'useTokenMetadata: failed to fetch token metadata',
         );
-      } finally {
-        if (!cancelled) setIsLoading(false);
       }
+      if (!cancelled) setIsLoading(false);
     };
 
     run();
@@ -294,6 +297,8 @@ const AddCustomToken = ({
       throw error;
     }
 
+    let didFailImport = false;
+    let importError: unknown;
     try {
       // addCustomAsset also clears the hidden flag. Hiding a custom token
       // removes it from customAssets, so merely unhiding a hidden token
@@ -306,10 +311,13 @@ const AddCustomToken = ({
         chainId: caipChainId,
       });
     } catch (error) {
+      didFailImport = true;
+      importError = error;
       Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
-      throw error;
-    } finally {
-      endTrace({ name: TraceName.ImportTokens });
+    }
+    endTrace({ name: TraceName.ImportTokens });
+    if (didFailImport) {
+      throw importError;
     }
 
     try {

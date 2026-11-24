@@ -1,9 +1,10 @@
+import BigNumber from 'bignumber.js';
 import { IconName } from '@metamask/design-system-react-native';
 import type { NeoBankMicrodeposit } from '@metamask/ramps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import type { MicrodepositActivity } from '../types/moneyActivity';
-import { moneyFormatIncomingAmount } from './moneyFormatFiat';
+import { moneyFormatUsd } from './moneyFormatFiat';
 
 /**
  * Builds the row identity. MoonPay sends no id, and its list is cumulative
@@ -74,10 +75,12 @@ export function mapMicrodeposits(
 export function microdepositDisplayInfo(
   activity: MicrodepositActivity,
 ): MoneyTransactionDisplayInfo {
-  const primaryAmount = moneyFormatIncomingAmount(
-    activity.amount,
-    activity.currencyCode,
-  );
+  const amount = new BigNumber(activity.amount);
+  // Inflow dollar line, same helper and sign as an on-chain deposit.
+  const fiatAmount =
+    amount.isFinite() && amount.isGreaterThan(0)
+      ? `+${moneyFormatUsd(amount.abs())}`
+      : '';
 
   return {
     label: strings('money.transaction.microdeposit'),
@@ -86,11 +89,10 @@ export function microdepositDisplayInfo(
           name: activity.counterpartyName,
         })
       : strings('money.transaction.microdeposit_from_bank'),
-    primaryAmount,
-    fiatAmount: '',
+    primaryAmount: '',
+    fiatAmount,
     isIncoming: true,
     icon: IconName.Bank,
     status: 'confirmed',
-    showPrimaryAmount: Boolean(primaryAmount),
   };
 }

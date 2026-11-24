@@ -1,3 +1,4 @@
+import { Icon, IconSize } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
 import {
@@ -333,12 +334,12 @@ describe('SocialPostComposerView', () => {
     ).toBeDisabled();
   });
 
-  it('keeps text past 250 characters and disables Post', () => {
+  it('keeps text past 2500 characters and disables Post', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(260),
+      'a'.repeat(2501),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -347,23 +348,23 @@ describe('SocialPostComposerView', () => {
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props.value,
-    ).toHaveLength(260);
+    ).toHaveLength(2501);
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
     ).toHaveTextContent(
-      'social_leaderboard.composer.character_count:{"count":260,"limit":250}',
+      'social_leaderboard.composer.character_count:{"count":2501,"limit":2500}',
     );
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
   });
 
-  it('keeps Post enabled at 250 characters', () => {
+  it('keeps Post enabled at 2500 characters', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(250),
+      'a'.repeat(2500),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -373,6 +374,34 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeEnabled();
+  });
+
+  it('counts each emoji as one character and keeps Post enabled at 2500 emoji', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      '😀'.repeat(2500),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveTextContent(
+      'social_leaderboard.composer.character_count:{"count":2500,"limit":2500}',
+    );
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+    expect(
+      screen.queryByTestId(
+        SocialPostComposerViewSelectorsIDs.POST_BUTTON_BLOCKED,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('rejects comments that contain a url', () => {
@@ -448,6 +477,25 @@ describe('SocialPostComposerView', () => {
       'submit_blocked',
       { blocked_submit_reason: 'empty_caption' },
     );
+  });
+
+  it('records a blocked submit when the caption is longer than 2500 characters', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'a'.repeat(2501),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    pressBlockedPost();
+
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'submit_blocked',
+      { blocked_submit_reason: 'too_long' },
+    );
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
   });
 
   it('enables the Post button once the comment has text', () => {
@@ -976,6 +1024,50 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('draws the attachment close ring outside a smaller icon', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'onImageChange',
+      { nativeEvent: { uri: 'https://media.test/party.gif' } },
+    );
+
+    [
+      SocialPostComposerViewSelectorsIDs.REMOVE_POSITION,
+      SocialPostComposerViewSelectorsIDs.REMOVE_GIF,
+    ].forEach((testID) => {
+      const button = screen.getByTestId(testID);
+      const disc = StyleSheet.flatten(button.props.style);
+      let ringNode = button.parent;
+      while (
+        ringNode &&
+        StyleSheet.flatten(ringNode.props.style)?.borderWidth !== 2
+      ) {
+        ringNode = ringNode.parent;
+      }
+      const ring = StyleSheet.flatten(ringNode?.props.style);
+
+      expect(within(button).UNSAFE_getByType(Icon).props.size).toBe(
+        IconSize.Md,
+      );
+      expect(button).toHaveProp('hitSlop', 6);
+      expect(disc).toEqual(expect.objectContaining({ width: 32, height: 32 }));
+      expect(ring).toEqual(
+        expect.objectContaining({
+          width: 36,
+          height: 36,
+          borderWidth: 2,
+          top: -14,
+          right: -14,
+        }),
+      );
+    });
   });
 
   it('shows a gif preview when the keyboard inserts an image', () => {

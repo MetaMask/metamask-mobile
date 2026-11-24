@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Salin {{field}}",
       "copied_label": "Disalin {{field}}",
-      "copy_all_button": "Salin semua detailnya",
-      "copied_all_label": "Detail bank telah disalin",
       "button": "Selesai",
       "waiting_for_details": "Detail akun Anda akan segera muncul di sini.",
       "loading_details": "Memuat detail akun",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "pada",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} pada {{price}}",
-        "size_at_market_cap": "{{size}} pada {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 hari)",
@@ -1995,22 +1991,6 @@
         "4": "Kam",
         "5": "Jum",
         "6": "Sab"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Dibeli",
-        "sold": "Terjual",
-        "perps_closed": "Ditutup",
-        "perps_long_opened": "Long terbuka",
-        "perps_long_added": "Ditambahkan ke posisi long",
-        "perps_long_reduced": "Dikurangi dari posisi long",
-        "perps_short_opened": "Posisi short dibuka",
-        "perps_short_added": "Ditambahkan ke posisi short",
-        "perps_short_reduced": "Dibeli kembali",
-        "spot_opened": "Dibeli",
-        "spot_added": "Membeli lagi",
-        "spot_reduced": "Dijual sebagian",
-        "spot_closed": "Dijual semua"
       }
     },
     "trader_position": {
@@ -2477,9 +2457,7 @@
         "funding": "Pendanaan",
         "close": "Tutup",
         "reverse": "Balik",
-        "share": "Bagikan",
-        "isolated": "Terisolasi",
-        "cross": "Silang"
+        "share": "Bagikan"
       },
       "order_card": {
         "size": "Ukuran",
@@ -3618,8 +3596,7 @@
     "cross_position": {
       "badge": "Silang",
       "no_liquidation_price": "T/A",
-      "liquidation_info": "Tentang harga likuidasi silang",
-      "margin_used": "Margin posisi yang digunakan"
+      "liquidation_info": "Tentang harga likuidasi silang"
     },
     "crossMargin": {
       "title": "Margin silang tidak didukung",
@@ -4116,8 +4093,7 @@
       "retry": "Coba lagi",
       "review": "Tinjau order",
       "buy": "Beli",
-      "venue_changed": "Pasar prediksi Anda berubah. Tutup order ini untuk melanjutkan.",
-      "delete": "Hapus"
+      "venue_changed": "Pasar prediksi Anda berubah. Tutup order ini untuk melanjutkan."
     },
     "order_approval": {
       "title": "Tinjau order",
@@ -4898,9 +4874,7 @@
     "bullet3": "Materi promosi lain yang relevan",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Saya setuju",
-    "cancel": "Tidak, terima kasih",
-    "paragraph1a": "Sebagai tambahan ",
-    "link": "MetaMetrics"
+    "cancel": "Tidak, terima kasih"
   },
   "multi_rpc_migration_modal": {
     "description": "Saat ini kami mendukung berbagai RPC untuk satu jaringan. RPC terbaru Anda telah dipilih sebagai RPC default untuk mengatasi informasi yang saling bertentangan",
@@ -9920,7 +9894,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Hasilkan, perdagangkan, dan gunakan dari satu saldo",
       "body_prefix": "MetaMask Money merupakan akun stablecoin yang menghasilkan hingga ",
-      "body_suffix": "—dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
+      "body_suffix": "- dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
       "body_no_apy": "MetaMask Money merupakan akun stablecoin yang dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
       "benefit_convert_title": "Dikonversi ke MetaMask USD, 1:1",
       "benefit_convert_body": "Dana yang Anda tambahkan dikonversi dengan rasio 1:1 ke MetaMask USD, tanpa biaya apa pun.",
@@ -9992,7 +9966,6 @@
     },
     "action": {
       "add": "Tambah",
-      "transfer": "Kirim",
       "card": "Kartu",
       "details": "Detail"
     },
@@ -10114,8 +10087,6 @@
       "contact_support": "Hubungi dukungan"
     },
     "transfer_sheet": {
-      "title": "Kirim dana ke",
-      "between_accounts": "Akun lain",
       "perps_account": "Akun perp",
       "predictions_account": "Akun Predictions",
       "send_external": "Alamat eksternal",
@@ -11079,7 +11050,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} order",
-      "spend_summary": "Anda menggunakan {{amount}} {{symbol}} setiap {{everyValue}} {{unit}} sebanyak {{repeatCount}} kali",
+      "spend_summary": {
+        "swapping": "Bertukar",
+        "for": "untuk",
+        "every": "setiap",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "satu kali",
         "other": "{{count}} times"

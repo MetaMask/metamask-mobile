@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Copiar {{field}}",
       "copied_label": "Se copió {{field}}",
-      "copy_all_button": "Copiar todos los datos",
-      "copied_all_label": "Datos bancarios copiados",
       "button": "Hecho",
       "waiting_for_details": "Los datos de tu cuenta aparecerán aquí en breve.",
       "loading_details": "Cargando los datos de la cuenta",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "en",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} a {{price}}",
-        "size_at_market_cap": "{{size}} en {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 días)",
@@ -1995,22 +1991,6 @@
         "4": "Jue.",
         "5": "Vie.",
         "6": "Sáb."
-      },
-      "tooltip": {
-        "label": "{{action}} a {{price}}",
-        "bought": "Compró",
-        "sold": "Vendido",
-        "perps_closed": "Cerrado",
-        "perps_long_opened": "Posición larga abierta",
-        "perps_long_added": "Aumentó su posición larga",
-        "perps_long_reduced": "Redujo su posición larga",
-        "perps_short_opened": "Posición corta abierta",
-        "perps_short_added": "Aumentó su posición corta",
-        "perps_short_reduced": "Recompró",
-        "spot_opened": "Compró",
-        "spot_added": "Compró más",
-        "spot_reduced": "Vendió una parte",
-        "spot_closed": "Vendió todo"
       }
     },
     "trader_position": {
@@ -2477,9 +2457,7 @@
         "funding": "Financiación",
         "close": "Cerrar",
         "reverse": "Revertir",
-        "share": "Compartir",
-        "isolated": "Aislado",
-        "cross": "Cruzado"
+        "share": "Compartir"
       },
       "order_card": {
         "size": "Tamaño",
@@ -3618,8 +3596,7 @@
     "cross_position": {
       "badge": "Cruzado",
       "no_liquidation_price": "N/A",
-      "liquidation_info": "Acerca del precio de liquidación cruzada",
-      "margin_used": "Margen de posición usado"
+      "liquidation_info": "Acerca del precio de liquidación cruzada"
     },
     "crossMargin": {
       "title": "Margen cruzado no compatible",
@@ -4116,8 +4093,7 @@
       "retry": "Inténtalo de nuevo",
       "review": "Revisar la orden",
       "buy": "Comprar",
-      "venue_changed": "Tu mercado de predicción cambió. Cierra esta orden para continuar.",
-      "delete": "Eliminar"
+      "venue_changed": "Tu mercado de predicción cambió. Cierra esta orden para continuar."
     },
     "order_approval": {
       "title": "Revisa tu orden",
@@ -4898,9 +4874,7 @@
     "bullet3": "Otros materiales promocionales relevantes",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Acepto",
-    "cancel": "No, gracias",
-    "paragraph1a": "Además de ",
-    "link": "MetaMetrics"
+    "cancel": "No, gracias"
   },
   "multi_rpc_migration_modal": {
     "description": "Ahora admitimos varias RPC para una sola red. Su RPC más reciente se ha seleccionado como la predeterminada para resolver información conflictiva",
@@ -9992,7 +9966,6 @@
     },
     "action": {
       "add": "Agregar",
-      "transfer": "Enviar",
       "card": "Tarjeta",
       "details": "Detalles"
     },
@@ -10114,8 +10087,6 @@
       "contact_support": "Contactar a soporte"
     },
     "transfer_sheet": {
-      "title": "Enviar fondos a",
-      "between_accounts": "Otra cuenta",
       "perps_account": "Cuenta de Perps",
       "predictions_account": "Cuenta de Predicciones",
       "send_external": "Dirección externa",
@@ -11079,7 +11050,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} x {{count}} órdenes",
-      "spend_summary": "Gastas {{amount}} {{symbol}} cada {{everyValue}} {{unit}} durante {{repeatCount}} veces",
+      "spend_summary": {
+        "swapping": "Canjeando",
+        "for": "por",
+        "every": "cada",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "una vez",
         "other": "{{count}} times"

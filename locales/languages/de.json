@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} kopieren",
       "copied_label": "{{field}} kopiert",
-      "copy_all_button": "Alle Daten kopieren",
-      "copied_all_label": "Bankdaten wurden kopiert",
       "button": "Fertig",
       "waiting_for_details": "Ihre Kontodaten werden in Kürze hier angezeigt.",
       "loading_details": "Kontodaten werden geladen",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "bei",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} zum {{price}}",
-        "size_at_market_cap": "{{size}} bei {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} GuV (30 Tage)",
@@ -1995,22 +1991,6 @@
         "4": "Do.",
         "5": "Fr.",
         "6": "Sa."
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Gekauft",
-        "sold": "Verkauft",
-        "perps_closed": "Geschlossen",
-        "perps_long_opened": "Geöffnete Long-Position",
-        "perps_long_added": "Zu Long hinzugefügt",
-        "perps_long_reduced": "Long wurde reduziert",
-        "perps_short_opened": "Short-Position eröffnet",
-        "perps_short_added": "Zu Short hinzugefügt",
-        "perps_short_reduced": "Zurückgekauft",
-        "spot_opened": "Gekauft",
-        "spot_added": "Mehr gekauft",
-        "spot_reduced": "Einige verkauft",
-        "spot_closed": "Alle verkauft"
       }
     },
     "trader_position": {
@@ -2477,9 +2457,7 @@
         "funding": "Finanzierung",
         "close": "Schließen",
         "reverse": "Umkehren",
-        "share": "Teilen",
-        "isolated": "Isoliert",
-        "cross": "Cross"
+        "share": "Teilen"
       },
       "order_card": {
         "size": "Größe",
@@ -3618,8 +3596,7 @@
     "cross_position": {
       "badge": "Cross",
       "no_liquidation_price": "N. z.",
-      "liquidation_info": "Über den Cross-Liquidationspreis",
-      "margin_used": "Verwendete Positions-Margin"
+      "liquidation_info": "Über den Cross-Liquidationspreis"
     },
     "crossMargin": {
       "title": "Cross-Margin nicht unterstützt",
@@ -4116,8 +4093,7 @@
       "retry": "Erneut versuchen",
       "review": "Order überprüfen",
       "buy": "Kaufen",
-      "venue_changed": "Ihr Prognosemarkt hat sich geändert. Schließen Sie diesen Auftrag, um fortzufahren.",
-      "delete": "Löschen"
+      "venue_changed": "Ihr Prognosemarkt hat sich geändert. Schließen Sie diesen Auftrag, um fortzufahren."
     },
     "order_approval": {
       "title": "Prüfen Sie Ihre Bestellung",
@@ -4898,9 +4874,7 @@
     "bullet3": "Andere relevante Werbematerialien",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Ich stimme zu",
-    "cancel": "Nein, danke",
-    "paragraph1a": "Zusätzlich zu ",
-    "link": "MetaMetrics"
+    "cancel": "Nein, danke"
   },
   "multi_rpc_migration_modal": {
     "description": "Wir unterstützen nun mehrere RPCs für ein einzelnes Netzwerk. Ihr aktuellster RPC (ferngesteuerter Prozeduraufruf) wurde standardmäßig ausgewählt, um widersprüchliche Informationen aufzulösen",
@@ -9992,7 +9966,6 @@
     },
     "action": {
       "add": "Hinzufügen",
-      "transfer": "Senden",
       "card": "Karte",
       "details": "Details"
     },
@@ -10114,8 +10087,6 @@
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
-      "title": "Geld überweisen an",
-      "between_accounts": "Ein anderes Konto",
       "perps_account": "Perps-Konto",
       "predictions_account": "Predictions-Konto",
       "send_external": "Externe Adresse",
@@ -11079,7 +11050,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} Orders",
-      "spend_summary": "Sie geben {{amount}} {{symbol}} alle {{everyValue}} {{unit}} über {{repeatCount}} Mal aus",
+      "spend_summary": {
+        "swapping": "Swappen",
+        "for": "für",
+        "every": "jede",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "einmal",
         "other": "{{count}} times"

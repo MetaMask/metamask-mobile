@@ -1,8 +1,5 @@
 import { PredictDeviceAuthService } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
-import {
-  predictDeviceAuthServiceInit,
-  resolvePredictDeviceAuthIssuerUrl,
-} from './predict-device-auth-service-init';
+import { predictDeviceAuthServiceInit } from './predict-device-auth-service-init';
 
 const mockClear = jest.fn();
 /** Drops the approved intents too; it clears the session like `clear`. */
@@ -227,23 +224,5 @@ describe('predictDeviceAuthServiceInit', () => {
     expect(deps.isEnabled()).toBe(false);
 
     expect(call).toHaveBeenCalledWith('RemoteFeatureFlagController:getState');
-  });
-});
-
-describe('resolvePredictDeviceAuthIssuerUrl', () => {
-  it('uses the development override only in development builds', () => {
-    expect(
-      resolvePredictDeviceAuthIssuerUrl(true, 'https://issuer.example'),
-    ).toBe('https://issuer.example');
-    expect(
-      resolvePredictDeviceAuthIssuerUrl(false, 'https://issuer.example'),
-    ).toBeUndefined();
-  });
-
-  it('uses the temporary issuer only in development builds', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl(true, undefined)).toBe(
-      'https://predict-api.dev-api.cx.metamask.io',
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl(false, undefined)).toBeUndefined();
   });
 });

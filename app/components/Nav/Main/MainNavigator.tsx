@@ -10,7 +10,11 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import type { ParamListBase, RouteProp } from '@react-navigation/native';
+import {
+  getFocusedRouteNameFromRoute,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import {
@@ -58,12 +62,8 @@ import CashTokensFullView from '../../Views/CashTokensFullView';
 import WatchlistFullScreenView from '../../UI/Assets/watchlist/Views/WatchlistFullScreenView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
-import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
-import QRTabSwitcher from '../../Views/QRTabSwitcher';
-import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
-import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -148,7 +148,6 @@ import {
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
   fadeNativeOptions,
@@ -176,13 +175,16 @@ import {
   MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
-import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
+import MoneyEarningsView from '../../UI/Money/Views/MoneyEarningsView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -197,6 +199,9 @@ import {
   PredictPreviewSheetProvider,
 } from '../../UI/Predict';
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
+import { CollectiblesLayout } from '../../UI/Collectibles/routes/CollectiblesLayout';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -245,7 +250,6 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
-import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
 import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
@@ -261,9 +265,7 @@ import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
-import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
-import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDeeplinkBridge/MoneyDepositDeeplinkBridge';
 
@@ -274,16 +276,8 @@ const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
-  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
-});
-
 const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
   capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
-  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
 
 // Shared defaults for every native stack in this file: no native header (each
@@ -367,10 +361,6 @@ const WalletTabStackFlow = () => {
         name="WalletView"
         component={WalletWithMessenger}
         options={{ animation: 'none' }}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
       />
     </NativeStack.Navigator>
   );
@@ -645,15 +635,16 @@ const SettingsFlow = () => {
       <NativeStack.Screen name="ContactsSettings" component={Contacts} />
       <NativeStack.Screen name="ContactForm" component={ContactForm} />
       <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
-      />
-      <NativeStack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
       />
       <NativeStack.Screen name="ResetPassword" component={ResetPassword} />
       <NativeStack.Screen name="WalletRecovery" component={WalletRecovery} />
+      {/*
+        This stack owns goBack for its backup steps. OnboardingNav,
+        SetPasswordFlow, and SettingsFlow are separate stacks, so each one
+        registers the steps that flow pushes.
+      */}
       <NativeStack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
@@ -915,7 +906,8 @@ const HomeTabs = () => {
               lazy: true,
               // UIKit picks the inactive colour.
               tabBarActiveTintColor: colors.icon.default,
-              tabBarMinimizeBehavior: 'onScrollDown',
+              // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
+              tabBarMinimizeBehavior: 'none',
               tabBarStyle: TAB_BAR_VISIBLE_STYLE,
               overrideScrollViewContentInsetAdjustmentBehavior: false,
             }}
@@ -997,6 +989,11 @@ const NotificationsModeView = () => (
 
 const SetPasswordFlow = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    {/*
+      This stack owns goBack for ChoosePassword, the backup steps, and
+      OptinMetrics. OnboardingNav, SetPasswordFlow, and SettingsFlow are
+      separate stacks, so each one registers the steps that flow pushes.
+    */}
     <NativeStack.Screen
       name="ChoosePassword"
       component={ChoosePasswordWithMessenger}
@@ -1047,12 +1044,16 @@ const MainNavigator = () => {
 
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Predict routes are registered while Predict is available for the
   // Active Venue, the same gate its entry points use.
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1135,10 +1136,6 @@ const MainNavigator = () => {
           component={AcceptInviteSheet}
         />
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
-        />
-        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
           component={TaxFormQuestionSheet}
         />
@@ -1159,7 +1156,7 @@ const MainNavigator = () => {
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
-       * invite sheet dismisses — same pattern as Money onboarding.
+       * invite sheet dismisses — same pattern as the Money splash.
        */}
       <NativeStack.Screen
         name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
@@ -1278,19 +1275,6 @@ const MainNavigator = () => {
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
       />
-      <NativeStack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcherWithMessenger}
-      />
-      <NativeStack.Screen
-        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-        component={VerificationCodeBottomSheet}
-        options={addDeviceVerificationCodeScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWalletWithMessenger}
-      />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
         <NativeStack.Screen name="NftDetails" component={NftDetails} />
         <NativeStack.Screen
@@ -1343,7 +1327,18 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
+        options={({ route }) => {
+          const focusedBridgeRouteName =
+            getFocusedRouteNameFromRoute(route) ?? Routes.BRIDGE.BRIDGE_VIEW;
+          return {
+            ...slideFromRightNativeOptions,
+            // On iOS a full screen gesture here also catches swipes on pushed
+            // Bridge screens and pops the whole Bridge stack instead of them.
+            ...(focusedBridgeRouteName === Routes.BRIDGE.BRIDGE_VIEW
+              ? { fullScreenGestureEnabled: true }
+              : null),
+          };
+        }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1380,6 +1375,13 @@ const MainNavigator = () => {
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
             />
+            {isEarningsHistoryEnabled && (
+              <NativeStack.Screen
+                name={Routes.MONEY.EARNINGS}
+                component={MoneyEarningsView}
+                options={{ gestureEnabled: false }}
+              />
+            )}
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}
               component={MusdRescueSendScreen}
@@ -1401,11 +1403,6 @@ const MainNavigator = () => {
               component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
-          <NativeStack.Screen
-            name={Routes.MONEY.ONBOARDING}
-            component={MoneyOnboardingView}
-            options={fadeNativeOptions}
-          />
           <NativeStack.Screen
             name={Routes.MONEY.SPLASH}
             component={MoneySplashView}
@@ -1505,6 +1502,13 @@ const MainNavigator = () => {
             options={transparentModalStackOptions}
           />
         </>
+      )}
+      {isCollectiblesEnabled && (
+        <NativeStack.Screen
+          name={collectiblesRoutes.root}
+          component={CollectiblesLayout}
+          options={slideFromRightNativeOptions}
+        />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <NativeStack.Screen
