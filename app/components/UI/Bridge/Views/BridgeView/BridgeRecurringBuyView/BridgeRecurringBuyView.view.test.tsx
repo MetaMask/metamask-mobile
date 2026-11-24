@@ -1241,7 +1241,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
         );
         expect(confirmButton).toHaveTextContent(
-          strings('bridge.recurring.min_order_amount', { amount: '€90.00' }),
+          strings('bridge.recurring.min_order_amount', { amount: '€90' }),
         );
         expect(confirmButton.props.accessibilityState.busy).not.toBe(true);
         expect(confirmButton.props.accessibilityState.disabled).toBe(true);

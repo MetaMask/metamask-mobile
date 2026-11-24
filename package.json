@@ -207,7 +207,7 @@
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
     "d3-color": "3.1.0",
     "napi-postinstall": "npm:npm-empty-package@1.0.0",
-    "axios": "^1.20.0",
+    "axios": "^1.21.1",
     "lodash": "4.18.1",
     "redux-persist-filesystem-storage/react-native-blob-util": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
     "@segment/sovran-react-native/react-native-get-random-values": "^2.0.0",
@@ -326,7 +326,13 @@
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
-    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
+    "launch-editor@npm:^2.14.1": "2.14.2",
+    "http-proxy@npm:^1.18.1/follow-redirects": "1.16.3",
+    "@open-rpc/server-js@npm:1.9.3/body-parser": "1.20.9",
+    "@react-native-community/cli-server-api@npm:20.1.0/body-parser": "1.20.9",
+    "express@npm:4.22.2/body-parser": "1.20.9",
+    "mockttp@npm:3.15.2/body-parser": "1.20.9"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -531,7 +537,7 @@
     "@walletconnect/utils": "^2.23.0",
     "@xmldom/xmldom": "^0.8.15",
     "asyncstorage-down": "4.2.0",
-    "axios": "^1.20.0",
+    "axios": "^1.21.1",
     "bignumber.js": "^9.0.1",
     "bitcoin-address-validation": "2.2.3",
     "bnjs4": "npm:bn.js@^4.12.3",
@@ -869,7 +875,7 @@
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "ws": "^8.19.0",
+    "ws": "^8.20.1",
     "xhr2": "^0.2.1"
   },
   "engines": {
