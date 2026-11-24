@@ -55,4 +55,14 @@ describe('RecoverySetupProgressBottomSheet', () => {
       screen.getByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
     ).toBeOnTheScreen();
   });
+
+  it('exposes progressbar accessibility attributes on the loading indicator', () => {
+    render(<RecoverySetupProgressBottomSheet title="Updating recovery" />);
+
+    const spinner = screen.getByTestId(
+      RECOVERY_SETUP_PROGRESS_TEST_IDS.SPINNER,
+    );
+    expect(spinner.props.accessibilityRole).toBe('progressbar');
+    expect(spinner.props.accessibilityLabel).toBe('Updating recovery');
+  });
 });

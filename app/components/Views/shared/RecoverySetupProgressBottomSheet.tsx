@@ -40,9 +40,14 @@ const RecoverySetupProgressBottomSheet = ({
       keyboardAvoidingViewEnabled={false}
       testID={RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET}
     >
-      <Box twClassName="flex flex-col items-center gap-4 px-4 pt-6 pb-8">
+      <Box
+        accessibilityLiveRegion="polite"
+        twClassName="flex flex-col items-center gap-4 px-4 pt-6 pb-8"
+      >
         <ActivityIndicator
           size="large"
+          accessibilityRole="progressbar"
+          accessibilityLabel={title}
           testID={RECOVERY_SETUP_PROGRESS_TEST_IDS.SPINNER}
         />
         <Text variant={TextVariant.HeadingMd} twClassName="text-center">

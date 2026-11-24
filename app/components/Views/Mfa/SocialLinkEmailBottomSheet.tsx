@@ -8,7 +8,10 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Text,
   TextField,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { MfaSettingsSelectorsIDs } from './Mfa.testIds';
@@ -26,10 +29,11 @@ interface SocialLinkEmailBottomSheetProps {
 const SocialLinkEmailBottomSheet = ({
   onSubmit,
   onClose,
-}: SocialLinkEmailBottomSheetProps) => {
+}: SocialLinkEmailBottomSheetProps): React.JSX.Element => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [email, setEmail] = useState('');
   const trimmed = email.trim();
+  const emailLabel = strings('mfa.settings.social_link_email_placeholder');
 
   const handleRequestClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -57,11 +61,15 @@ const SocialLinkEmailBottomSheet = ({
           {strings('mfa.settings.social_link_email_title')}
         </BottomSheetHeader>
         <Box twClassName="flex flex-col gap-2 px-4 pb-4">
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+            {emailLabel}
+          </Text>
           <TextField
             value={email}
             onChangeText={setEmail}
-            placeholder={strings('mfa.settings.social_link_email_placeholder')}
+            placeholder={emailLabel}
             inputProps={{
+              accessibilityLabel: emailLabel,
               keyboardType: 'email-address',
               autoCapitalize: 'none',
               autoCorrect: false,
