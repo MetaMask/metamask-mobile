@@ -3,6 +3,7 @@ import {
   type AnalyticsTrackingEvent,
 } from './AnalyticsEventBuilder';
 import type {
+  AnalyticsContext,
   AnalyticsEventProperties,
   AnalyticsUserTraits,
 } from '@metamask/analytics-controller';
@@ -118,6 +119,22 @@ describe('analytics', () => {
   });
 
   describe('trackEvent', () => {
+    it('forwards optional context separately from event properties', () => {
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('versioned_event').build();
+      const context: AnalyticsContext = {
+        protocols: { event_version: 2 },
+      };
+
+      analytics.trackEvent(event, context);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        event,
+        context,
+      );
+    });
+
     it('queues trackEvent operation', () => {
       const event = AnalyticsEventBuilder.createEventBuilder('test_event')
         .addProperties({ prop1: 'value1' })

@@ -2,6 +2,7 @@ import type {
   AnalyticsEventProperties,
   AnalyticsUserTraits,
   AnalyticsTrackingEvent,
+  AnalyticsContext,
 } from '@metamask/analytics-controller';
 
 /**
@@ -25,8 +26,12 @@ export interface AnalyticsHelper {
    * Track an event
    *
    * @param event - Analytics tracking event
+   * @param context - Optional context forwarded to the analytics platform
    */
-  trackEvent: (event: AnalyticsTrackingEvent) => void;
+  trackEvent: (
+    event: AnalyticsTrackingEvent,
+    context?: AnalyticsContext,
+  ) => void;
 
   /**
    * Track a screen view
