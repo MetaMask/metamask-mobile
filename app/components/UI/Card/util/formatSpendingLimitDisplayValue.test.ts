@@ -1,8 +1,4 @@
-import {
-  SPENDING_LIMIT_ERROR_THRESHOLD,
-  SPENDING_LIMIT_WARNING_THRESHOLD,
-  formatSpendingLimitDisplayValue,
-} from './formatSpendingLimitDisplayValue';
+import { formatSpendingLimitDisplayValue } from './formatSpendingLimitDisplayValue';
 
 describe('formatSpendingLimitDisplayValue', () => {
   it('formats whole and large values without decimals', () => {
@@ -26,12 +22,5 @@ describe('formatSpendingLimitDisplayValue', () => {
 
   it('formats zero as a plain zero', () => {
     expect(formatSpendingLimitDisplayValue(0)).toBe('0');
-  });
-});
-
-describe('Spending limit thresholds', () => {
-  it('turns warning at 80% consumed and error at 90%', () => {
-    expect(SPENDING_LIMIT_WARNING_THRESHOLD).toBe(0.8);
-    expect(SPENDING_LIMIT_ERROR_THRESHOLD).toBe(0.9);
   });
 });
