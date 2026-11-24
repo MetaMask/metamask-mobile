@@ -40,13 +40,13 @@ const THUMBNAIL_RADIUS_CLASSES: Record<BannerCompactThumbnailShape, string> = {
  */
 const isImageSource = (
   value: NonNullable<BannerCompactProps['thumbnail']>,
-): boolean =>
+): value is ImageSourcePropType =>
   typeof value === 'number' ||
   (typeof value === 'object' &&
     value !== null &&
     !React.isValidElement(value) &&
-    !Array.isArray(value) &&
-    typeof (value as { uri?: unknown }).uri === 'string');
+    (Array.isArray(value) ||
+      typeof (value as { uri?: unknown }).uri === 'string'));
 
 interface RowContentProps {
   thumbnail: BannerCompactProps['thumbnail'];
@@ -70,55 +70,62 @@ const RowContent = ({
   hasCloseButton,
   actionLabel,
   actionTestID,
-}: RowContentProps) => (
-  <>
-    {thumbnail === undefined ? null : (
-      <Box
-        twClassName={`h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden ${THUMBNAIL_RADIUS_CLASSES[thumbnailShape]}`}
-        testID={thumbnailTestID}
-      >
-        {isImageSource(thumbnail) ? (
-          <Image
-            source={thumbnail}
-            style={{ width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE }}
-            resizeMode="contain"
-          />
-        ) : (
-          thumbnail
-        )}
-      </Box>
-    )}
-    <Box twClassName="flex-1 gap-0.5">
-      {/* pr-8 keeps the title clear of the close button over its row. */}
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        twClassName={hasCloseButton ? 'pr-8' : undefined}
-        numberOfLines={1}
-      >
-        {title}
-      </Text>
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        numberOfLines={2}
-      >
-        {description}
-      </Text>
-      {actionLabel ? (
+}: RowContentProps) => {
+  const thumbnailNode =
+    thumbnail === undefined || thumbnail === null ? null : isImageSource(
+        thumbnail,
+      ) ? (
+      <Image
+        source={thumbnail}
+        style={{ width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE }}
+        resizeMode="contain"
+      />
+    ) : (
+      thumbnail
+    );
+
+  return (
+    <>
+      {thumbnailNode === null ? null : (
+        <Box
+          twClassName={`h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden ${THUMBNAIL_RADIUS_CLASSES[thumbnailShape]}`}
+          testID={thumbnailTestID}
+        >
+          {thumbnailNode}
+        </Box>
+      )}
+      <Box twClassName="flex-1 gap-0.5">
+        {/* pr-8 keeps the title clear of the close button over its row. */}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName={hasCloseButton ? 'pr-8' : undefined}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
         <Text
           variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.PrimaryDefault}
-          twClassName="mt-1"
-          testID={actionTestID}
+          color={TextColor.TextAlternative}
+          numberOfLines={2}
         >
-          {actionLabel}
+          {description}
         </Text>
-      ) : null}
-    </Box>
-  </>
-);
+        {actionLabel ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryDefault}
+            twClassName="mt-1"
+            testID={actionTestID}
+          >
+            {actionLabel}
+          </Text>
+        ) : null}
+      </Box>
+    </>
+  );
+};
 
 /**
  * A compact status banner: a leading 72x72 thumbnail beside a title, a

@@ -44,12 +44,13 @@ const CARD_STATE_CONFIG: Record<
     isDismissible: false,
   },
   verifying: {
-    thumbnail: (
+    // The Money home card's scanner Rive; its static art is the fallback.
+    thumbnail: VERIFYING_HERO.heroAnimation ? (
       <MoneyVbaHomeCardHeroAnimation
         animation={VERIFYING_HERO.heroAnimation}
         fallback={VERIFYING_THUMBNAIL}
       />
-    ),
+    ) : undefined,
     isPressable: false,
     isDismissible: false,
   },
