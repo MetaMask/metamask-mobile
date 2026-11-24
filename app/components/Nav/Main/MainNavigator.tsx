@@ -175,13 +175,16 @@ import {
   MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
-import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
+import MoneyEarningsView from '../../UI/Money/Views/MoneyEarningsView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -247,7 +250,6 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
-import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
 import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
@@ -1042,6 +1044,9 @@ const MainNavigator = () => {
 
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1131,10 +1136,6 @@ const MainNavigator = () => {
           component={AcceptInviteSheet}
         />
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
-        />
-        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
           component={TaxFormQuestionSheet}
         />
@@ -1155,7 +1156,7 @@ const MainNavigator = () => {
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
-       * invite sheet dismisses — same pattern as Money onboarding.
+       * invite sheet dismisses — same pattern as the Money splash.
        */}
       <NativeStack.Screen
         name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
@@ -1374,6 +1375,13 @@ const MainNavigator = () => {
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
             />
+            {isEarningsHistoryEnabled && (
+              <NativeStack.Screen
+                name={Routes.MONEY.EARNINGS}
+                component={MoneyEarningsView}
+                options={{ gestureEnabled: false }}
+              />
+            )}
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}
               component={MusdRescueSendScreen}
@@ -1395,11 +1403,6 @@ const MainNavigator = () => {
               component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
-          <NativeStack.Screen
-            name={Routes.MONEY.ONBOARDING}
-            component={MoneyOnboardingView}
-            options={fadeNativeOptions}
-          />
           <NativeStack.Screen
             name={Routes.MONEY.SPLASH}
             component={MoneySplashView}

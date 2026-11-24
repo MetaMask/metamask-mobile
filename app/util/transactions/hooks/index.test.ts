@@ -472,6 +472,10 @@ describe('getTransactionControllerHooks', () => {
       skipIfBalance: false,
     };
 
+    const REQUIRED_PAYMENT_TOKEN = {
+      assetId: `eip155:42161/erc20:${REQUIRED_TOKEN.address}`,
+    };
+
     const GAS_TOKEN = {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0xa4b1',
@@ -496,7 +500,7 @@ describe('getTransactionControllerHooks', () => {
     it('throws for perps deposit without quotes when paying with a different token', async () => {
       const hooks = getTransactionControllerHooks(
         buildPayStateRequest({
-          paymentToken: { address: '0x123', chainId: '0x1' },
+          paymentToken: { assetId: 'eip155:1/erc20:0x123' },
           quotes: [],
           sourceAmounts: [],
           tokens: [REQUIRED_TOKEN],
@@ -511,7 +515,7 @@ describe('getTransactionControllerHooks', () => {
     it('throws for perps deposit without quotes when a required conversion is pending', async () => {
       const hooks = getTransactionControllerHooks(
         buildPayStateRequest({
-          paymentToken: REQUIRED_TOKEN,
+          paymentToken: REQUIRED_PAYMENT_TOKEN,
           quotes: [],
           sourceAmounts: [{ targetTokenAddress: REQUIRED_TOKEN.address }],
           tokens: [REQUIRED_TOKEN],
@@ -526,7 +530,7 @@ describe('getTransactionControllerHooks', () => {
     it('does not throw for perps deposit paying with the required token when only optional conversions are pending', async () => {
       const hooks = getTransactionControllerHooks(
         buildPayStateRequest({
-          paymentToken: REQUIRED_TOKEN,
+          paymentToken: REQUIRED_PAYMENT_TOKEN,
           quotes: [],
           sourceAmounts: [{ targetTokenAddress: GAS_TOKEN.address }],
           tokens: [REQUIRED_TOKEN, GAS_TOKEN],
@@ -542,8 +546,7 @@ describe('getTransactionControllerHooks', () => {
       const hooks = getTransactionControllerHooks(
         buildPayStateRequest({
           paymentToken: {
-            ...REQUIRED_TOKEN,
-            address: REQUIRED_TOKEN.address.toLowerCase(),
+            assetId: `eip155:42161/erc20:${REQUIRED_TOKEN.address.toLowerCase()}`,
           },
           quotes: [{ strategy: 'none' }],
           sourceAmounts: [],

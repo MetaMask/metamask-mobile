@@ -172,7 +172,7 @@ export const renderPayWithBottomSheetView = ({
   renderScreenWithRoutes(
     PayWithBottomSheet as unknown as React.ComponentType,
     { name: Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET },
-    [{ name: Routes.PREDICT.MODALS.ROOT }],
+    [{ name: Routes.PREDICT.ROOT }],
     {
       state: buildPredictFundingState({
         venue,

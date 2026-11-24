@@ -51,6 +51,7 @@ const readyCapabilities = (
   descriptor: {
     venueId: 'test-venue' as PredictVenueId,
     displayName: 'Test Venue',
+    environment: 'production',
     actions: [],
     feeds: feeds as Record<string, PredictFeedId>,
     categories: [],

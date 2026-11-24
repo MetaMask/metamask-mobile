@@ -26,5 +26,8 @@ export const FollowConnectionsViewSelectorsIDs = {
 export const getConnectionRowTestId = (id: string): string =>
   `follow-connections-row-${id}`;
 
+export const getConnectionVerifiedBadgeTestId = (id: string): string =>
+  `follow-connections-verified-${id}`;
+
 export const getConnectionFollowButtonTestId = (id: string): string =>
   `follow-connections-follow-button-${id}`;

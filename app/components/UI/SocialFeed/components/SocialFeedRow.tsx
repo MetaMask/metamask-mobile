@@ -29,6 +29,11 @@ export interface SocialFeedRowProps {
   requireSocialProfile?: boolean;
   /** Viewer's profile ID to hide copy trade on their own posts. */
   viewerProfileId?: string;
+  /**
+   * Decodes an attached GIF only while the row is on screen. Off-screen rows
+   * keep the frame so recycling does not jump.
+   */
+  gifVisible?: boolean;
 }
 
 const areReactionsEqual = (
@@ -60,6 +65,7 @@ export const areSocialFeedRowPropsEqual = (
   previous.requireSocialTerms === next.requireSocialTerms &&
   previous.requireSocialProfile === next.requireSocialProfile &&
   previous.viewerProfileId === next.viewerProfileId &&
+  previous.gifVisible === next.gifVisible &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -94,6 +100,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   requireSocialTerms,
   requireSocialProfile,
   viewerProfileId,
+  gifVisible = true,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
   return (
@@ -113,6 +120,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
           showCopyTrade={post.item.author.id !== viewerProfileId}
+          gifVisible={gifVisible}
         />
       </Box>
       {dividerTestID ? (

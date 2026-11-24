@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "पर",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{price}} पर {{size}}",
-        "size_at_market_cap": "{{marketCap}} {{abbreviation}} पर {{size}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 दिन)",
@@ -1993,22 +1991,6 @@
         "4": "गुरु",
         "5": "शुक्र",
         "6": "शनि"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "खरीदा गया",
-        "sold": "बेचा गया",
-        "perps_closed": "बंद किया गया",
-        "perps_long_opened": "खुला लॉन्ग",
-        "perps_long_added": "लॉन्ग में जोड़ा गया",
-        "perps_long_reduced": "लॉन्ग घटाई गई",
-        "perps_short_opened": "शॉर्ट ओपन किया गया",
-        "perps_short_added": "शॉर्ट में जोड़ा गया",
-        "perps_short_reduced": "वापस खरीदा",
-        "spot_opened": "खरीदा गया",
-        "spot_added": "और खरीदा",
-        "spot_reduced": "कुछ बेचा",
-        "spot_closed": "सब बेच दिया"
       }
     },
     "trader_position": {
@@ -9912,7 +9894,7 @@
       "eyebrow": "MetaMask मनी",
       "title": "वन बैलेंस से कमाएं, ट्रेड करें और खर्च करें",
       "body_prefix": "MetaMask Money एक स्टेबलकॉइन अकाउंट है जो ट्रेडिंग, भेजने और खर्च करने की बिल्ट-इन सुविधा के साथ-साथ ",
-      "body_suffix": "—तक कमाता है।",
+      "body_suffix": "- तक कमाता है।",
       "body_no_apy": "MetaMask Money एक स्टेबलकॉइन अकाउंट है जिसमें ट्रेडिंग, भेजने और खर्च करने की बिल्ट-इन सुविधा है।",
       "benefit_convert_title": "MetaMask USD, 1:1 में कन्वर्ट होता है",
       "benefit_convert_body": "आप जो फ़ंड डालते हैं, वे बिना किसी फ़ीस के 1:1 MetaMask USD में कन्वर्ट होते हैं।",
