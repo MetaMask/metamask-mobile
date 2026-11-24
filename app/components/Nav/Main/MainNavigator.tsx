@@ -246,7 +246,6 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
-import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
 import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
@@ -1128,10 +1127,6 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
           component={AcceptInviteSheet}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}

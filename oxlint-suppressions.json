@@ -12147,11 +12147,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/Money/TermsSheet.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/Money/TradingActivityListView.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -25531,7 +25526,7 @@
   },
   "tests/component-view/renderers/rewardsMoney.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 9
+      "count": 8
     },
     "typescript/promise-function-async": {
       "count": 20
