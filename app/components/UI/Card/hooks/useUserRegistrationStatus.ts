@@ -46,11 +46,14 @@ export const useUserRegistrationStatus =
       },
     });
 
+    // Only this instance's live poll may write the SDK user. A disabled query
+    // still returns cached registration data, and writing that on a signed-in
+    // Card home would replace the signed-in user with a stale onboarding DTO.
     useEffect(() => {
-      if (data) {
+      if (data && isPolling) {
         setUser(data);
       }
-    }, [data, setUser]);
+    }, [data, isPolling, setUser]);
 
     const verificationState: CardVerificationState =
       data?.verificationState ?? user?.verificationState ?? 'PENDING';

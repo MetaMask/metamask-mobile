@@ -459,10 +459,22 @@ describe('useUserRegistrationStatus', () => {
   });
 
   describe('setUser effect', () => {
-    it('calls setUser when data is available', () => {
+    it('does not call setUser for cached data while polling is off', () => {
       mockUseQueryReturn.data = mockUserResponse;
 
       renderHook(() => useUserRegistrationStatus());
+
+      expect(mockSetUser).not.toHaveBeenCalled();
+    });
+
+    it('calls setUser after polling starts when data is available', () => {
+      mockUseQueryReturn.data = mockUserResponse;
+
+      const { result } = renderHook(() => useUserRegistrationStatus());
+
+      act(() => {
+        result.current.startPolling();
+      });
 
       expect(mockSetUser).toHaveBeenCalledWith(mockUserResponse);
     });
