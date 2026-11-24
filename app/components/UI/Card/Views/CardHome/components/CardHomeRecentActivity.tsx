@@ -4,6 +4,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Spinner,
   FontWeight,
   Icon,
   IconColor,
@@ -26,6 +27,11 @@ import { CardHomeSelectors } from '../CardHome.testIds';
 
 interface CardHomeRecentActivityProps {
   transactions: CardTransaction[];
+  /** True while the first page has not arrived. An empty list is not loading. */
+  isLoading?: boolean;
+  /** True when the first page failed. Distinct from an empty history. */
+  hasError?: boolean;
+  onRetry?: () => void;
   /**
    * Opens the full Transaction history (same destination as the old row).
    * When absent (no history destination), See all is hidden.
@@ -136,10 +142,14 @@ const ActivityListItem = ({
  * the Manage rows), plus a "See all" button that opens the full history.
  * There is no section title — the segment label already names this list.
  * With no transactions it shows a top-aligned MMDS TabEmptyState so the
- * segment control does not jump when switching to Manage.
+ * segment control does not jump when switching to Manage. A first fetch
+ * still in flight, or one that failed, is not that empty state.
  */
 const CardHomeRecentActivity = ({
   transactions,
+  isLoading = false,
+  hasError = false,
+  onRetry,
   onSeeAll,
   onTransactionPress,
   privacyMode,
@@ -161,11 +171,49 @@ const CardHomeRecentActivity = ({
     </Box>
   ) : null;
 
+  if (!hasTransactions && isLoading) {
+    return (
+      <Box
+        testID={CardHomeSelectors.RECENT_ACTIVITY}
+        twClassName="items-center px-4 pt-6"
+      >
+        <Box testID={CardHomeSelectors.RECENT_ACTIVITY_LOADING}>
+          <Spinner spinnerIconProps={{ size: IconSize.Xl }} />
+        </Box>
+      </Box>
+    );
+  }
+
+  if (!hasTransactions && hasError) {
+    return (
+      <Box
+        testID={CardHomeSelectors.RECENT_ACTIVITY}
+        twClassName="items-center px-4 pt-6"
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={CardHomeSelectors.RECENT_ACTIVITY_ERROR}
+        >
+          {strings('card.transactions.load_error')}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={onRetry}
+          twClassName="mt-3 self-center"
+          testID={CardHomeSelectors.RECENT_ACTIVITY_RETRY}
+        >
+          {strings('card.transactions.retry')}
+        </Button>
+        {seeAllButton}
+      </Box>
+    );
+  }
+
   return (
-    <Box
-      testID={CardHomeSelectors.RECENT_ACTIVITY}
-      twClassName={hasTransactions ? undefined : 'flex-1'}
-    >
+    <Box testID={CardHomeSelectors.RECENT_ACTIVITY}>
       {hasTransactions ? (
         <>
           {recent.map((transaction) => (
@@ -180,7 +228,7 @@ const CardHomeRecentActivity = ({
         </>
       ) : (
         <Box
-          twClassName="flex-1 items-center justify-center px-4"
+          twClassName="items-center px-4 pt-6"
           testID={CardHomeSelectors.RECENT_ACTIVITY_EMPTY}
         >
           <TabEmptyState

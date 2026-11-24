@@ -13,13 +13,30 @@ export interface UseCardRecentTransactionsOptions {
   enabled?: boolean;
 }
 
+export interface CardRecentTransactions {
+  /** Newest first, capped at {@link CARD_RECENT_TRANSACTIONS_LIMIT}. */
+  transactions: CardTransaction[];
+  /** True while the first page has not arrived. */
+  isLoading: boolean;
+  error: unknown;
+  refetch: () => Promise<unknown>;
+}
+
 /**
  * The most recent card transactions for Card home's Recent activity panel,
  * newest first, capped at {@link CARD_RECENT_TRANSACTIONS_LIMIT}.
+ * Loading and error stay distinct from an empty list so the panel does not
+ * flash "No transactions yet" while the first fetch is in flight.
  */
 export function useCardRecentTransactions(
   options: UseCardRecentTransactionsOptions = {},
-): CardTransaction[] {
-  const { items } = useCardTransactions({ enabled: options.enabled });
-  return useMemo(() => items.slice(0, CARD_RECENT_TRANSACTIONS_LIMIT), [items]);
+): CardRecentTransactions {
+  const { items, isLoading, error, refetch } = useCardTransactions({
+    enabled: options.enabled,
+  });
+  const transactions = useMemo(
+    () => items.slice(0, CARD_RECENT_TRANSACTIONS_LIMIT),
+    [items],
+  );
+  return { transactions, isLoading, error, refetch };
 }

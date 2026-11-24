@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -116,6 +117,7 @@ import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
 import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
+import { cardQueries } from '../../queries';
 import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
 } from './components/CardHomeActionButtonRow';
@@ -386,16 +388,24 @@ const CardHome = () => {
   }, []);
 
   // --- Pull-to-refresh ---
+  const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     refreshUkMigrationState();
     try {
-      await refetch();
+      // Activity rows live in their own query. Invalidating only refetches
+      // the list while that segment is on screen.
+      await Promise.all([
+        refetch(),
+        queryClient.invalidateQueries({
+          queryKey: cardQueries.transactions.keys.all(),
+        }),
+      ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch, refreshUkMigrationState]);
+  }, [refetch, refreshUkMigrationState, queryClient]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(
@@ -759,7 +769,12 @@ const CardHome = () => {
     showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
   const showManageOptions =
     !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
-  const recentTransactions = useCardRecentTransactions({
+  const {
+    transactions: recentTransactions,
+    isLoading: isRecentActivityLoading,
+    error: recentActivityError,
+    refetch: refetchRecentTransactions,
+  } = useCardRecentTransactions({
     enabled: showRecentActivity && isFocused,
   });
 
@@ -1143,6 +1158,11 @@ const CardHome = () => {
             {showRecentActivity && (
               <CardHomeRecentActivity
                 transactions={recentTransactions}
+                isLoading={isRecentActivityLoading}
+                hasError={Boolean(recentActivityError)}
+                onRetry={() => {
+                  void refetchRecentTransactions();
+                }}
                 onSeeAll={
                   transactionHistoryDestination
                     ? () =>

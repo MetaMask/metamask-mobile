@@ -50,6 +50,9 @@ const renderPanel = (
   renderWithProvider(
     <CardHomeRecentActivity
       transactions={props.transactions ?? [buildTransaction()]}
+      isLoading={props.isLoading}
+      hasError={props.hasError}
+      onRetry={props.onRetry}
       onSeeAll={props.onSeeAll}
       onTransactionPress={props.onTransactionPress}
       privacyMode={props.privacyMode}
@@ -106,6 +109,39 @@ describe('CardHomeRecentActivity', () => {
 
     expect(getByText('Coffee Shop')).toBeOnTheScreen();
     expect(queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL)).toBeNull();
+  });
+
+  it('shows a spinner instead of the empty state while the first page loads', () => {
+    const { getByTestId, queryByTestId } = renderPanel({
+      transactions: [],
+      isLoading: true,
+      onSeeAll: jest.fn(),
+    });
+
+    expect(
+      getByTestId(CardHomeSelectors.RECENT_ACTIVITY_LOADING),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY)).toBeNull();
+  });
+
+  it('shows an error and retries instead of the empty state', () => {
+    const onRetry = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderPanel({
+      transactions: [],
+      hasError: true,
+      onRetry,
+      onSeeAll: jest.fn(),
+    });
+
+    expect(getByText('card.transactions.load_error')).toBeOnTheScreen();
+    expect(queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY)).toBeNull();
+    expect(
+      getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(CardHomeSelectors.RECENT_ACTIVITY_RETRY));
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
   it('shows the Activity empty state when there are no transactions', () => {

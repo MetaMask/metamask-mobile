@@ -110,6 +110,7 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        listTransactions: jest.fn().mockResolvedValue({ items: [] }),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
           phone: '+441234567890',

@@ -40,14 +40,12 @@ describe('useCardRecentTransactions', () => {
 
     const { result } = renderHook(() => useCardRecentTransactions());
 
-    expect(result.current).toHaveLength(CARD_RECENT_TRANSACTIONS_LIMIT);
-    expect(result.current.map((transaction) => transaction.id)).toEqual([
-      'tx-0',
-      'tx-1',
-      'tx-2',
-      'tx-3',
-      'tx-4',
-    ]);
+    expect(result.current.transactions).toHaveLength(
+      CARD_RECENT_TRANSACTIONS_LIMIT,
+    );
+    expect(
+      result.current.transactions.map((transaction) => transaction.id),
+    ).toEqual(['tx-0', 'tx-1', 'tx-2', 'tx-3', 'tx-4']);
   });
 
   it('returns everything when there are fewer transactions than the limit', () => {
@@ -57,10 +55,9 @@ describe('useCardRecentTransactions', () => {
 
     const { result } = renderHook(() => useCardRecentTransactions());
 
-    expect(result.current.map((transaction) => transaction.id)).toEqual([
-      'tx-0',
-      'tx-1',
-    ]);
+    expect(
+      result.current.transactions.map((transaction) => transaction.id),
+    ).toEqual(['tx-0', 'tx-1']);
   });
 
   it('forwards enabled so the fetch stays idle until Activity is open', () => {
@@ -76,6 +73,23 @@ describe('useCardRecentTransactions', () => {
 
     const { result } = renderHook(() => useCardRecentTransactions());
 
-    expect(result.current).toEqual([]);
+    expect(result.current.transactions).toEqual([]);
+  });
+
+  it('surfaces the first-page loading and error states', () => {
+    const refetch = jest.fn();
+    const error = new Error('unavailable');
+    mockUseCardTransactions.mockReturnValue({
+      items: [],
+      isLoading: true,
+      error,
+      refetch,
+    } as never);
+
+    const { result } = renderHook(() => useCardRecentTransactions());
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.error).toBe(error);
+    expect(result.current.refetch).toBe(refetch);
   });
 });
