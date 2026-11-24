@@ -9,11 +9,13 @@ import type {
   MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
+import { getPhoneNumberEntryTestIds } from '../../PhoneNumberEntry/PhoneNumberEntry.testIds';
 import CodeStep from './CodeStep';
 import EmailEntryStep from './EmailEntryStep';
 import FailureStep from './FailureStep';
 import IntroStep from './IntroStep';
 import PasskeyStep from './PasskeyStep';
+import PhoneEntryStep from './PhoneEntryStep';
 import PickerStep from './PickerStep';
 import TotpSetupStep from './TotpSetupStep';
 
@@ -1033,5 +1035,63 @@ describe('TotpSetupStep', () => {
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
 
     expect(onAction).toHaveBeenCalledWith({ type: 'continue' });
+  });
+});
+
+describe('PhoneEntryStep', () => {
+  const phoneIds = getPhoneNumberEntryTestIds(
+    MfaFlowSelectorsIDs.PHONE_ENTRY_PREFIX,
+  );
+  const phoneStep = { name: 'phoneEntry' as const };
+
+  it('renders the flow copy and sends the entered number as an action', async () => {
+    const onAction = jest.fn();
+    const { getByText, getByTestId } = render(
+      <PhoneEntryStep
+        step={phoneStep}
+        state={{ busy: false }}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText('Verify your phone number')).toBeOnTheScreen();
+    fireEvent.changeText(getByTestId(phoneIds.INPUT), '4155552671');
+    fireEvent.press(getByTestId(phoneIds.SUBMIT_BUTTON));
+
+    await waitFor(() =>
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'submitPhone',
+        phone: {
+          e164: '+14155552671',
+          country: 'US',
+          national: '4155552671',
+        },
+      }),
+    );
+  });
+
+  it('starts from the prefilled number', () => {
+    const { getByTestId } = render(
+      <PhoneEntryStep
+        step={{ ...phoneStep, prefillPhone: '+447911123456' }}
+        state={{ busy: false }}
+        onAction={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId(phoneIds.INPUT).props.value).toBe('7911 123456');
+  });
+
+  it('shows the flow error and links to its help', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = render(
+      <PhoneEntryStep
+        step={phoneStep}
+        state={{ busy: false, error: 'rate_limited' }}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByTestId(MfaFlowSelectorsIDs.ERROR)).toBeOnTheScreen();
   });
 });
