@@ -117,6 +117,28 @@ describe('KycVerifyIdentity', () => {
     expect(indicator.props.accessibilityLabel).toBe('Step 1 of 2');
   });
 
+  it('counts against the total a longer flow passes', () => {
+    const { getByTestId } = renderWithProvider(
+      <KycVerifyIdentity
+        onContinue={mockOnContinue}
+        onExit={mockOnExit}
+        totalSteps={3}
+      />,
+    );
+
+    const indicator = getByTestId(KycVerifyIdentitySelectorsIDs.STEP_INDICATOR);
+    expect(indicator).toHaveTextContent('Step 1 of 3');
+    expect(indicator.props.accessibilityLabel).toBe('Step 1 of 3');
+  });
+
+  it('separates the steps from the idOS partner section', () => {
+    const { getByTestId } = renderScreen();
+
+    expect(
+      getByTestId(KycVerifyIdentitySelectorsIDs.PARTNER_DIVIDER),
+    ).toBeOnTheScreen();
+  });
+
   it('renders the agreement sentence with both MetaMask links inline', () => {
     const { getByTestId } = renderScreen();
 
