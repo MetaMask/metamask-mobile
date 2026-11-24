@@ -33,6 +33,9 @@ ignores:
   # Ledger DMK packages staged for subsequent PRs (already wired in metro.config.js)
   - '@ledgerhq/context-module'
   - '@ledgerhq/device-signer-kit-ethereum'
+  # MFA recovery stack: wired in jest.config.js + babel.config.js; app imports land in later stack PRs
+  - '@metamask/mfa-recovery-controller'
+  - '@cubist-labs/cubesigner-sdk'
   # app/shims/walletconnect-relay-auth.ts (and its test) import the copy of
   # relay-auth that @walletconnect/core resolves, so the shim follows core's
   # version instead of pinning its own
