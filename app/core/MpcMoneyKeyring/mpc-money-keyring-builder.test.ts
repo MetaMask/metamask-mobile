@@ -3,8 +3,12 @@ import {
   type MpcMoneyKeyringOptions,
 } from '@metamask/eth-money-mpc-keyring/v2';
 import { EthAccountType, EthScope } from '@metamask/keyring-api';
+import { getMfaRequirement } from '@metamask/money-account-mfa-whitelist';
+import { bytesToHex, concatBytes, stringToBytes } from '@metamask/utils';
+import { keccak_256 } from '@noble/hashes/sha3';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
 import {
+  MPC_MFA_WHITELIST_CONFIG,
   buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
 } from './mpc-money-keyring-builder';
@@ -112,5 +116,62 @@ describe('buildMpcMoneyKeyringV2Builder', () => {
     await expect(
       wrapper.deleteAccount('7f392e73-9dbb-4ac8-a912-25f0bfa944ae'),
     ).rejects.toThrow('MpcMoneyKeyring: deleting accounts is not supported');
+  });
+});
+
+describe('MPC_MFA_WHITELIST_CONFIG', () => {
+  const successor = '0x1111111111111111111111111111111111111111';
+  const predecessor = '0x2222222222222222222222222222222222222222';
+  const now = Date.parse('2026-11-24T10:00:00.000Z');
+
+  const buildSuccessorMessage = (domain: string) =>
+    [
+      `${domain} wants you to sign in with your Ethereum account:`,
+      successor,
+      '',
+      `Associate ${successor} as the successor of ${predecessor} for CHOMP Money Account migration.`,
+      '',
+      `URI: https://${domain}/`,
+      'Version: 1',
+      'Chain ID: 143',
+      'Nonce: abc123',
+      'Issued At: 2026-11-24T09:59:00.000Z',
+      'Expiration Time: 2026-11-24T10:04:00.000Z',
+      'Request ID: req-1',
+      'Resources:',
+      '- urn:chomp:profile:profile-1',
+      '- urn:chomp:purpose:ASSOCIATE_SUCCESSOR',
+      `- urn:chomp:predecessor:${predecessor}`,
+    ].join('\n');
+
+  const getRequirement = (domain: string) => {
+    const bytes = stringToBytes(buildSuccessorMessage(domain));
+    const hash = bytesToHex(
+      keccak_256(
+        concatBytes([
+          stringToBytes(`\x19Ethereum Signed Message:\n${bytes.length}`),
+          bytes,
+        ]),
+      ),
+    );
+    return getMfaRequirement(
+      {
+        method: 'signPersonalMessage',
+        address: successor,
+        message: bytesToHex(bytes),
+      },
+      { address: successor, hash, config: MPC_MFA_WHITELIST_CONFIG, now },
+    );
+  };
+
+  it('skips 2FA for the CHOMP successor association message', () => {
+    expect(getRequirement('chomp.dev-api.cx.metamask.io')).toStrictEqual({
+      mfaRequired: false,
+      rule: 'chomp-successor-association',
+    });
+  });
+
+  it('requires 2FA for a successor association message from another domain', () => {
+    expect(getRequirement('example.com').mfaRequired).toBe(true);
   });
 });

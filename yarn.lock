@@ -9297,16 +9297,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/abi-utils@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@metamask/abi-utils@npm:2.0.4"
-  dependencies:
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^9.0.0"
-  checksum: 10/3d32d42c6e98fc4719b2b53597e573764b80936c7cc31d884c87729c4c4f74a30e93096db87aaa7cbcec9d3bb7d22b1adfc98a8bcb4c7c2f17bfbddaa4367d34
-  languageName: node
-  linkType: hard
-
 "@metamask/abi-utils@npm:^3.0.0":
   version: 3.0.0
   resolution: "@metamask/abi-utils@npm:3.0.0"
@@ -11067,15 +11057,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-mfa-whitelist@npm:0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/money-account-mfa-whitelist@npm:0.2.0"
+"@metamask/money-account-mfa-whitelist@npm:0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/money-account-mfa-whitelist@npm:0.3.0"
   dependencies:
-    "@metamask/abi-utils": "npm:^2.0.4"
+    "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/delegation-core": "npm:^2.2.1"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.2"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/431140cb5abaa56c2d60ed290e6805ed8d261919f12518044779d3e57fc01ca57282ef375e6240d2875c9b0f1334b02018898e2b42e8f0b29ce69a2dce4a9ed8
+  checksum: 10/7579e5e369f1ea82ebc8fa20857d10fdc1e251af4d0c20c84b35d1ac544d338ea36ec7ef67f6e0f831d3670cdc2a9715b957613a409150f53fbda9edf1385849
   languageName: node
   linkType: hard
 
@@ -38474,7 +38464,7 @@ __metadata:
     "@metamask/money-account-balance-service": "npm:^3.2.1"
     "@metamask/money-account-controller": "npm:^3.0.1"
     "@metamask/money-account-lifecycle-controller": "npm:^1.1.0"
-    "@metamask/money-account-mfa-whitelist": "npm:^0.2.0"
+    "@metamask/money-account-mfa-whitelist": "npm:^0.3.0"
     "@metamask/money-account-upgrade-controller": "npm:^7.0.0"
     "@metamask/money-account-utils": "npm:^2.2.1"
     "@metamask/mpc-react-native": "npm:^0.2.2"

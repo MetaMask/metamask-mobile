@@ -56,6 +56,7 @@ export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
     },
   ],
   cardSignInDomain: 'link.metamask.io',
+  chompSignInDomain: 'chomp.dev-api.cx.metamask.io',
 };
 
 /**
