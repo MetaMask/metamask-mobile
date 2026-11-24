@@ -19,15 +19,31 @@ const MONEY = 'Money Home after importing SRP with funded balance';
 function scenario(
   name,
   jsWorkMs,
-  { projectName = 'browserstack-android', segmentCount = 2 } = {},
+  {
+    projectName = 'browserstack-android',
+    segmentCount = 2,
+    firstAttempt = {},
+  } = {},
 ) {
-  return { projectName, scenario: name, jsWorkMs, segmentCount };
+  return {
+    projectName,
+    scenario: name,
+    jsWorkMs,
+    segmentCount,
+    firstAttempt: {
+      measured: true,
+      jsWorkMs,
+      segmentCount,
+      ...firstAttempt,
+    },
+  };
 }
 
-function report(runId, scenarios) {
+function report(runId, scenarios, headSha = null) {
   return {
     meta: {
       runId,
+      headSha,
       runUrl: `https://example.com/${runId}`,
       createdAt: `2026-09-23T0${runId}:00:00.000Z`,
       profileCount: scenarios.length,
@@ -295,11 +311,9 @@ test('baseline runs that lost segments do not drag the average down', () => {
   );
 });
 
-test('a baseline run with no JS work is incomplete even without a segment count', () => {
+test('a baseline run with no JS work is incomplete', () => {
   const baseline = [100, 100, 100, 100, 100, 0].map((jsWorkMs, index) =>
-    report(String(index + 1), [
-      { projectName: 'browserstack-android', scenario: PERPS, jsWorkMs },
-    ]),
+    report(String(index + 1), [scenario(PERPS, jsWorkMs)]),
   );
   const exception = buildScheduledException(
     report('8', [scenario(PERPS, 140)]),
@@ -310,7 +324,7 @@ test('a baseline run with no JS work is incomplete even without a segment count'
   assert.equal(exception.meta.hasFindings, false);
 });
 
-test('reports from before segment counts were stored are judged by JS work alone', () => {
+test('reports from before first-attempt measurements are incomplete, not compared', () => {
   const baseline = STEADY.map((jsWorkMs, index) =>
     report(String(index + 1), [
       { projectName: 'browserstack-android', scenario: PERPS, jsWorkMs },
@@ -322,8 +336,9 @@ test('reports from before segment counts were stored are judged by JS work alone
     { previousReport: report('7', [scenario(PERPS, 165)]) },
   );
 
-  assert.equal(exception.meta.excludedIncompleteCount, 0);
-  assert.equal(exception.findings.length, 1);
+  assert.equal(exception.meta.excludedIncompleteCount, STEADY.length);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+  assert.equal(exception.findings.length, 0);
 });
 
 test('a spike in the baseline is excluded so it cannot hide a real regression', () => {
@@ -545,4 +560,76 @@ test('a team without a Slack group is named without a mention', () => {
   assert.doesNotMatch(slack, /subteam|<!/);
   assert.match(performance, /Owner: performance-team/);
   assert.doesNotMatch(performance, /subteam/);
+});
+
+test('the check compares the first attempt, not a longer retry', () => {
+  const retried = scenario(PERPS, 300, {
+    firstAttempt: { jsWorkMs: 110 },
+  });
+  const exception = buildScheduledException(
+    report('8', [retried]),
+    baselineOf(STEADY),
+    { previousReport: report('7', [retried]) },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 1);
+});
+
+test('a scenario whose first attempt was not measured is not compared', () => {
+  const unmeasured = scenario(PERPS, 300, {
+    firstAttempt: { measured: false, jsWorkMs: 0 },
+  });
+  const exception = buildScheduledException(
+    report('8', [unmeasured]),
+    baselineOf(STEADY),
+    { previousReport: report('7', [unmeasured]) },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
+test('a scenario whose whole baseline is the same commit is not a regression', () => {
+  const sameCommit = STEADY.map((jsWorkMs, index) =>
+    report(String(index + 1), [scenario(PERPS, jsWorkMs)], 'abc123'),
+  );
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    sameCommit,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
+test('an incomplete run from another commit does not make a same-commit baseline mixed', () => {
+  const baseline = [
+    ...STEADY.map((jsWorkMs, index) =>
+      report(String(index + 1), [scenario(PERPS, jsWorkMs)], 'abc123'),
+    ),
+    report('9', [scenario(PERPS, 0)], 'def456'),
+  ];
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    baseline,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
+test('a baseline that mixes commits is still compared', () => {
+  const mixed = STEADY.map((jsWorkMs, index) =>
+    report(String(index + 1), [scenario(PERPS, jsWorkMs)], index % 2 ? 'def456' : 'abc123'),
+  );
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    mixed,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, true);
 });
