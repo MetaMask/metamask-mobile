@@ -6,6 +6,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderBridgeViewForMoneySwap } from '../../../../../../tests/component-view/renderers/bridge';
+import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import {
   clearLimitOrdersDataServiceMock,
   setupLimitOrdersDataServiceMock,
@@ -89,6 +90,60 @@ const expectMoneyHomeInsteadOfPostTrade = async ({
   ).not.toBeOnTheScreen();
 };
 
+const expectPostTradeFailedInsteadOfMoneyHome = async ({
+  getByTestId,
+}: Pick<MoneySwapRender, 'getByTestId'>) => {
+  await waitFor(() => {
+    expect(
+      JSON.parse(
+        String(
+          getByTestId(getRouteParamsProbeTestId(Routes.BRIDGE.MODALS.ROOT))
+            .props.children,
+        ),
+      ),
+    ).toEqual({
+      screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+      params: expect.objectContaining({
+        status: PostTradeStatus.Failed,
+      }),
+    });
+  });
+};
+
+const renderDepositSwap = () =>
+  renderBridgeViewForMoneySwap({
+    deterministicFiat: true,
+    destTokenAddress: MONEY_TOKEN.address,
+    overrides: {
+      bridge: {
+        ...DEFAULT_BRIDGE,
+        destToken: MONEY_TOKEN,
+        selectedDestChainId: '0x1',
+        isDestTokenManuallySet: true,
+      },
+    },
+  });
+
+const renderWithdrawSwap = () =>
+  renderBridgeViewForMoneySwap({
+    deterministicFiat: true,
+    srcTokenAddress: MONEY_TOKEN.address,
+    destTokenAddress: USDC_DEST.address,
+    srcAmount: '1000000',
+    overrides: {
+      bridge: {
+        ...DEFAULT_BRIDGE,
+        sourceAmount: '1',
+        sourceToken: MONEY_TOKEN,
+        destToken: {
+          ...USDC_DEST,
+        },
+        selectedDestChainId: '0x1',
+        isDestTokenManuallySet: true,
+      },
+    },
+  });
+
 describeForPlatforms('BridgeView money swap flows', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
@@ -110,18 +165,7 @@ describeForPlatforms('BridgeView money swap flows', () => {
   });
 
   it('sends the user to money home after confirming a deposit swap', async () => {
-    const screen = renderBridgeViewForMoneySwap({
-      deterministicFiat: true,
-      destTokenAddress: MONEY_TOKEN.address,
-      overrides: {
-        bridge: {
-          ...DEFAULT_BRIDGE,
-          destToken: MONEY_TOKEN,
-          selectedDestChainId: '0x1',
-          isDestTokenManuallySet: true,
-        },
-      },
-    });
+    const screen = renderDepositSwap();
 
     await pressEnabledConfirm(screen);
 
@@ -132,24 +176,7 @@ describeForPlatforms('BridgeView money swap flows', () => {
   });
 
   it('sends the user to money home after confirming a withdraw swap', async () => {
-    const screen = renderBridgeViewForMoneySwap({
-      deterministicFiat: true,
-      srcTokenAddress: MONEY_TOKEN.address,
-      destTokenAddress: USDC_DEST.address,
-      srcAmount: '1000000',
-      overrides: {
-        bridge: {
-          ...DEFAULT_BRIDGE,
-          sourceAmount: '1',
-          sourceToken: MONEY_TOKEN,
-          destToken: {
-            ...USDC_DEST,
-          },
-          selectedDestChainId: '0x1',
-          isDestTokenManuallySet: true,
-        },
-      },
-    });
+    const screen = renderWithdrawSwap();
 
     await pressEnabledConfirm(screen);
 
@@ -157,5 +184,27 @@ describeForPlatforms('BridgeView money swap flows', () => {
     expect(submitTx).toHaveBeenCalledWith(
       expect.objectContaining({ operation: MoneyAccountAction.Withdraw }),
     );
+  });
+
+  it('shows the failed post-trade sheet after a pre-deposit swap submit fails', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    submitTx.mockRejectedValue(new Error('Network error'));
+    const screen = renderDepositSwap();
+
+    await pressEnabledConfirm(screen);
+
+    await expectPostTradeFailedInsteadOfMoneyHome(screen);
+    consoleSpy.mockRestore();
+  });
+
+  it('sends the user to money home after a withdraw submit fails', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    submitTx.mockRejectedValue(new Error('Network error'));
+    const screen = renderWithdrawSwap();
+
+    await pressEnabledConfirm(screen);
+
+    await expectMoneyHomeInsteadOfPostTrade(screen);
+    consoleSpy.mockRestore();
   });
 });

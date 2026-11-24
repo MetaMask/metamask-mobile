@@ -17,6 +17,7 @@ import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeT
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import {
   MetaMetricsSwapsEventSource,
+  MoneyAccountAction,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -35,6 +36,7 @@ import { prefetchQuoteTokens } from '../../../../Views/SocialLeaderboard/PostTra
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { selectProfileControllerLinkedEvmAddress } from '../../../../../selectors/profileController';
 import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-operations';
+import { isSameBridgeToken } from '../../utils/tokenUtils';
 
 interface Params {
   activeQuote?: QuoteResponse | null;
@@ -166,7 +168,11 @@ export const useBridgeConfirm = ({
       };
     } finally {
       dispatch(setIsSubmittingTx(false));
-      if (resolveMoneyAccountOperation(sourceToken, destToken)) {
+      const isFailed = modalParams.status === PostTradeStatus.Failed;
+      const moneyOp = resolveMoneyAccountOperation(sourceToken, destToken);
+      const isPreDepositSwapFail =
+        isFailed && moneyOp === MoneyAccountAction.Deposit;
+      if (moneyOp && !isPreDepositSwapFail) {
         navigation.navigate(
           Routes.HOME_TABS,
           {
