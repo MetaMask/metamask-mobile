@@ -2202,7 +2202,13 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    // perps-controller 26.0.0 projects held Cross positions; the before→after
+    // row stays off for them until product signs off on Cross projections.
+    enabled:
+      isPositionModifyPreviewEnabled &&
+      !isScaleOrder &&
+      !isTwapOrder &&
+      currentMarketPosition?.leverage?.type !== 'cross',
   });
 
   const existingPositionLeverageForValidation =
