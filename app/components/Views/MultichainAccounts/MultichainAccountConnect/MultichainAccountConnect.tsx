@@ -610,7 +610,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       DevLogger.log(
         `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
       );
-      Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+      void Engine.context.PermissionController.rejectPermissionsRequest(
+        requestId,
+      );
       if (channelIdOrHostname && accountsLength === 0) {
         // Remove Potential SDK connection
         SDKConnect.getInstance().removeChannel({
@@ -839,7 +841,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             setScreen(AccountConnectScreens.MaliciousWarning);
             break;
           }
-          handleConfirm();
+          void handleConfirm();
           break;
         }
         case USER_INTENT.Cancel: {
