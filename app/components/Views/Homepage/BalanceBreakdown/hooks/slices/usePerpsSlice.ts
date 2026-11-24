@@ -11,6 +11,8 @@ import {
 } from '../../../../../UI/Perps/selectors/perpsController';
 import type { BalanceSlice, FiatConverter } from '../../types';
 import { PERPS_HOMEPAGE_THROTTLE_MS } from '../../constants';
+import { getBaselineVenueIds } from '../../../../../UI/Perps/utils/getBaselineVenueIds';
+import { PROVIDER_CONFIG } from '../../../../../UI/Perps/constants/perpsConfig';
 
 export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPerpsEnabledFlag);
@@ -32,13 +34,14 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const convertedValue = toUserCurrency(totalBalanceUsd);
   const isPartial = aggregate?.status === 'partial';
   const totalBalance1dAgoFiat = useMemo(() => {
-    // Match the baseline to every venue represented in the live total. A
+    // Match the baseline to the venues represented in the live total. A
     // missing or non-finite observation makes the change figure unavailable.
-    const venueIds: string[] = account?.providerStates
-      ? Object.keys(account.providerStates)
-      : account
-        ? [account.providerId ?? activeProvider ?? 'hyperliquid']
-        : [];
+    const venueIds = getBaselineVenueIds(
+      account,
+      activeProvider && activeProvider !== 'aggregated'
+        ? activeProvider
+        : PROVIDER_CONFIG.DefaultProvider,
+    );
     if (venueIds.length === 0) {
       return undefined;
     }
@@ -81,7 +84,10 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     () => ({
       key: 'perps',
       isVisible: isEnabled,
-      valueFiat: status === 'ready' ? (convertedValue ?? 0) : 0,
+      // A partial total is real money on the venues that reported, so it is
+      // shown; the 1-day change is withheld until every venue reports.
+      valueFiat:
+        status === 'ready' || status === 'partial' ? (convertedValue ?? 0) : 0,
       status,
       value1dAgoFiat: status === 'ready' ? totalBalance1dAgoFiat : undefined,
     }),

@@ -5,6 +5,8 @@ import { RootState } from '../../../../reducers';
 import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
 import { selectPerpsBalances } from '../selectors/perpsController';
 import { usePerpsLiveAccount } from './stream';
+import { getBaselineVenueIds } from '../utils/getBaselineVenueIds';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Hook for getting aggregated Perps balance using hybrid approach:
@@ -47,11 +49,10 @@ export function usePerpsPortfolioBalance() {
       // Match the historical baseline to the venues represented in the live
       // total. Missing or non-finite observations make the baseline unavailable,
       // rather than counting an incomplete history as zero.
-      const venueIds: string[] = account?.providerStates
-        ? Object.keys(account.providerStates)
-        : account
-          ? [account.providerId ?? 'hyperliquid']
-          : [];
+      const venueIds = getBaselineVenueIds(
+        account,
+        PROVIDER_CONFIG.DefaultProvider,
+      );
       let historical1dAgoBalance: number | undefined =
         venueIds.length > 0 ? 0 : undefined;
 

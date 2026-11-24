@@ -37,13 +37,14 @@ export const parseVenueSymbolKey = (
 /**
  * Whether a streamed row belongs to the venue a subscriber asked for.
  *
- * No requested venue: the subscriber follows the active/default venue, so it
- * accepts any update (keeps existing callers working in both modes). A
- * requested venue with an untagged update (direct mode or legacy cache) matches
- * too — the only live venue is the active one. When both sides are tagged, the
- * venues must be equal.
+ * An untagged update (direct mode or legacy cache) always matches — the only
+ * live venue is the active one. A tagged update must come from the requested
+ * venue or, when the subscriber names none, from the routing default venue,
+ * so an untagged subscriber never takes the other exchange's tick for the same
+ * symbol.
  */
 export const venueMatchesSubscription = (
-  requested?: PerpsProviderType,
-  actual?: PerpsProviderType,
-): boolean => !requested || !actual || requested === actual;
+  requested: PerpsProviderType | undefined,
+  actual: PerpsProviderType | undefined,
+  defaultProvider: PerpsProviderType,
+): boolean => !actual || (requested ?? defaultProvider) === actual;

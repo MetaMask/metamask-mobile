@@ -53,7 +53,7 @@ describe('usePerpsSlice', () => {
     });
   });
 
-  it('excludes partial stream totals until completeness metadata recovers', () => {
+  it('shows the partial subtotal without a 1d change until every venue reports', () => {
     const liveAccount = {
       account: {
         spendableBalance: '100',
@@ -81,7 +81,7 @@ describe('usePerpsSlice', () => {
     expect(result.current).toMatchObject({
       status: 'partial',
       isVisible: true,
-      valueFiat: 0,
+      valueFiat: 200,
       value1dAgoFiat: undefined,
     });
 

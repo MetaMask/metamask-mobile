@@ -186,6 +186,23 @@ const rowMatchesVenue = (
 ): boolean =>
   !rowProviderId || !targetProviderId || rowProviderId === targetProviderId;
 
+/**
+ * The venue an untagged (default-routed) subscriber follows (TAT-4407).
+ *
+ * `activeProvider` is the mode, not a venue: in two-venue mode it is
+ * `'aggregated'`, which never matches a stamped `hyperliquid`/`lighter` row.
+ * Direct mode uses the single active venue; aggregated mode uses the
+ * controller's routing default.
+ */
+const getRoutingDefaultProvider = (): PerpsProviderType => {
+  const { activeProvider, defaultProvider } =
+    Engine.context.PerpsController.state;
+  if (activeProvider && activeProvider !== 'aggregated') {
+    return activeProvider;
+  }
+  return defaultProvider ?? PROVIDER_CONFIG.DefaultProvider;
+};
+
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
@@ -289,8 +306,23 @@ abstract class StreamChannel<T> {
 
     this.lastDeliveredAt = Date.now();
     this.subscribers.forEach((subscriber) => {
-      this.deliverToSubscriber(subscriber, updates, source);
+      const payload = this.getPayloadForSubscriber(subscriber, updates);
+      if (payload !== undefined) {
+        this.deliverToSubscriber(subscriber, payload, source);
+      }
     });
+  }
+
+  /**
+   * Payload a broadcast delivers to one subscriber. The base delivers the
+   * broadcast unchanged; venue-scoped channels override this to hand each
+   * subscriber its own venue's data, or `undefined` to skip it (TAT-4407).
+   */
+  protected getPayloadForSubscriber(
+    _subscriber: StreamSubscription<T>,
+    updates: T,
+  ): T | undefined {
+    return updates;
   }
 
   /**
@@ -998,7 +1030,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // mode updates carry no providerId and keep the bare-symbol key.
         const priceMap: Record<string, PriceUpdate> = {};
         const changedKeys = new Set<string>();
-        const defaultProvider = this.getDefaultProvider();
+        const defaultProvider = getRoutingDefaultProvider();
         updates.forEach((update) => {
           const priceUpdate = this.toPriceUpdate(update);
           const cacheKey = buildVenueSymbolKey(
@@ -1054,7 +1086,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           (params.providerId
             ? undefined
             : this.priceCache.get(
-                buildVenueSymbolKey(symbol, this.getDefaultProvider()),
+                buildVenueSymbolKey(symbol, getRoutingDefaultProvider()),
               ));
       }
       if (price) {
@@ -1063,11 +1095,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       }
     });
     return Object.keys(cached).length > 0 ? cached : null;
-  }
-
-  private getDefaultProvider(): PerpsProviderType {
-    return (Engine.context.PerpsController.state.activeProvider ??
-      PROVIDER_CONFIG.DefaultProvider) as PerpsProviderType;
   }
 
   protected getClearedData(): Record<string, PriceUpdate> {
@@ -1103,7 +1130,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // default venue.
     return (
       this.priceCache.get(
-        buildVenueSymbolKey(symbol, this.getDefaultProvider()),
+        buildVenueSymbolKey(symbol, getRoutingDefaultProvider()),
       ) ?? null
     );
   }
@@ -1172,7 +1199,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           const price =
             allPrices?.[buildVenueSymbolKey(symbol, params.providerId)] ??
             allPrices?.[symbol] ??
-            allPrices?.[buildVenueSymbolKey(symbol, this.getDefaultProvider())];
+            allPrices?.[
+              buildVenueSymbolKey(symbol, getRoutingDefaultProvider())
+            ];
           if (price) {
             filtered[symbol] = price;
           }
@@ -2176,12 +2205,13 @@ class OICapStreamChannel extends StreamChannel<string[]> {
   private readonly wsSubscriptionsPerVenue = new Map<string, () => void>();
 
   protected connect() {
-    // Legacy generic subscribers (no symbol/venue) keep the pre-TAT-4407
-    // behaviour: one default-routed controller stream delivering venue-wide
-    // caps to every subscriber.
-    if (this.subscribers.size > 0) {
-      this.connectVenue(undefined);
-    }
+    // One controller stream per venue that has a subscriber. Untagged
+    // subscribers (including the prewarm) share the default-routed stream.
+    // Base reconnect() calls this after disconnect(), so every venue's stream
+    // is restored, not only the default one.
+    const venues = new Set<PerpsProviderType | undefined>();
+    this.subscribers.forEach((subscriber) => venues.add(subscriber.providerId));
+    venues.forEach((providerId) => this.connectVenue(providerId));
   }
 
   private connectVenue(providerId: PerpsProviderType | undefined): void {
@@ -2200,21 +2230,32 @@ class OICapStreamChannel extends StreamChannel<string[]> {
           return;
         }
         this.capsByVenue.set(venueKey, caps);
-        this.cache.set('oiCaps', this.mergeCaps());
-        // Cap ticks are low-frequency and venue-wide; deliver to every
-        // subscriber and let each one filter by its own symbol.
-        this.notifySubscribers(this.mergeCaps());
+        if (venueKey === 'default') {
+          // The generic cache keeps the pre-TAT-4407 shape: the default-routed
+          // venue's caps. Venue caps are never unioned — a Lighter market must
+          // not inherit Hyperliquid's at-cap flag.
+          this.cache.set('oiCaps', caps);
+        }
+        // Cap ticks are low-frequency and venue-wide; each subscriber gets its
+        // own venue's list (see getPayloadForSubscriber) and filters by symbol.
+        this.notifySubscribers(caps, 'fresh', providerId);
       },
     });
     this.wsSubscriptionsPerVenue.set(venueKey, wsUnsubscribe);
   }
 
-  private mergeCaps(): string[] {
-    const all = new Set<string>();
-    this.capsByVenue.forEach((caps) => {
-      caps.forEach((symbol) => all.add(symbol));
-    });
-    return Array.from(all);
+  protected getPayloadForSubscriber(
+    subscriber: StreamSubscription<string[]>,
+    updates: string[],
+  ): string[] | undefined {
+    const venueCaps = this.capsByVenue.get(subscriber.providerId ?? 'default');
+    if (venueCaps) {
+      return venueCaps;
+    }
+    // A venue that has not reported yet gets nothing rather than another
+    // venue's caps. Untagged subscribers keep the generic payload (e.g. a
+    // seeded cache replayed on resume).
+    return subscriber.providerId ? undefined : updates;
   }
 
   protected getCachedData(): string[] | null {
@@ -2231,7 +2272,10 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     params: Pick<StreamSubscription<string[]>, 'symbols' | 'providerId'>,
   ): string[] | null {
     const venueCaps = this.capsByVenue.get(params.providerId ?? 'default');
-    return venueCaps ?? this.getCachedData();
+    if (venueCaps) {
+      return venueCaps;
+    }
+    return params.providerId ? null : this.getCachedData();
   }
 
   /**
@@ -2314,15 +2358,6 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     this.wsSubscriptionsPerVenue.forEach((unsubscribe) => unsubscribe());
     this.wsSubscriptionsPerVenue.clear();
     super.disconnect();
-    // Re-establish the default-venue stream when generic subscribers remain
-    // (the base reconnect() calls connect() with subscribers still present).
-  }
-
-  public reconnect(): void {
-    this.disconnect();
-    if (this.subscribers.size > 0) {
-      this.connectVenue(undefined);
-    }
   }
 }
 
@@ -2385,7 +2420,11 @@ class TopOfBookStreamChannel extends StreamChannel<
         const update = updates.find(
           (u) =>
             u.symbol === subscribedSymbol &&
-            venueMatchesSubscription(subscribedProviderId, u.providerId),
+            venueMatchesSubscription(
+              subscribedProviderId,
+              u.providerId,
+              getRoutingDefaultProvider(),
+            ),
         );
         if (update) {
           // Track first top-of-book data (only once per connection)
@@ -2586,7 +2625,11 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
         const update = updates.find(
           (u) =>
             u.symbol === subscribedSymbol &&
-            venueMatchesSubscription(subscribedProviderId, u.providerId),
+            venueMatchesSubscription(
+              subscribedProviderId,
+              u.providerId,
+              getRoutingDefaultProvider(),
+            ),
         );
         if (update) {
           this.cachedPriceUpdate = update;

@@ -77,6 +77,7 @@ import {
   handlePerpsCufPositionsDelivered,
 } from '../../../app/components/UI/Perps/utils/perpsCufTrace';
 import {
+  type AccountAggregateMetadata,
   type AccountState,
   type CandleData,
   CandlePeriod,
@@ -529,6 +530,12 @@ export interface PerpsStreamOverrides {
   /** When set, usePerpsLiveAccount() receives this account state. */
   account?: unknown;
   /**
+   * Completeness metadata for the account stream (TAT-4407). `partial` models
+   * an aggregated total where a venue has not reported. Defaults to null
+   * (single-venue state).
+   */
+  aggregate?: AccountAggregateMetadata | null;
+  /**
    * When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details).
    * `null` leaves the channel empty until `emitPositions`, so the order view stays on its loading label.
    */
@@ -584,9 +591,10 @@ function createTestStreamManager(
         );
   const account = {
     ...createAccountChannel(streamOverrides?.account ?? initialAccount),
-    // Aggregated-stream API (TAT-4407): view tests render single-venue state,
-    // so there is no completeness metadata and no per-venue breakdown.
-    getAggregateMetadata: (): null => null,
+    // Aggregated-stream API (TAT-4407): view tests render single-venue state
+    // unless a test supplies completeness metadata. No per-venue breakdown.
+    getAggregateMetadata: (): AccountAggregateMetadata | null =>
+      streamOverrides?.aggregate ?? null,
     getVenueAccountStates: (): unknown[] => [],
   };
   const prices = createPricesChannel(

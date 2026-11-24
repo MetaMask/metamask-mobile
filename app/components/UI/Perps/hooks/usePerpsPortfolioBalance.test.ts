@@ -265,6 +265,48 @@ describe('usePerpsPortfolioBalance', () => {
       expect(result.current.perpsBalance1dAgo).toBeCloseTo(1430, 2);
     });
 
+    it('excludes pending and unavailable venues from the 1d baseline', () => {
+      const mockBalances = {
+        hyperliquid: {
+          totalBalance: '1000.50',
+          unrealizedPnl: '-50.25',
+          accountValue1dAgo: '950.00',
+          lastUpdated: Date.now(),
+        },
+        lighter: {
+          totalBalance: '500.25',
+          unrealizedPnl: '25.10',
+          accountValue1dAgo: '480.00',
+          lastUpdated: Date.now(),
+        },
+      };
+
+      const accountData = {
+        spendableBalance: '1000.50',
+        withdrawableBalance: '1000.50',
+        marginUsed: '0',
+        unrealizedPnl: '-50.25',
+        returnOnEquity: '0',
+        totalBalance: '1000.50',
+        providerStates: {
+          hyperliquid: {
+            status: 'available',
+            providerId: 'hyperliquid',
+            state: {} as AccountState,
+          },
+          lighter: { status: 'pending', providerId: 'lighter' },
+        },
+      } as unknown as AccountState;
+
+      setupMocks(mockBalances, accountData);
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
+
+      // The live total covers Hyperliquid only, so Lighter's history must not
+      // enter the baseline.
+      expect(result.current.perpsBalance1dAgo).toBeCloseTo(950, 2);
+    });
+
     it('unsets the 1d baseline when a venue in the live total has none', () => {
       const mockBalances = {
         hyperliquid: {

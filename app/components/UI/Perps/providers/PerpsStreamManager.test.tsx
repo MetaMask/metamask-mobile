@@ -3708,6 +3708,61 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenCalledWith(['BTC']);
     });
 
+    it("never delivers one venue's caps to another venue's subscriber", () => {
+      const venueCallbacks = new Map<string, (caps: string[]) => void>();
+      mockSubscribeToOICaps.mockImplementation(
+        (params: {
+          providerId?: string;
+          callback: (caps: string[]) => void;
+        }) => {
+          venueCallbacks.set(params.providerId ?? 'default', params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const lighterCallback = jest.fn();
+      const defaultCallback = jest.fn();
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: lighterCallback,
+        throttleMs: 0,
+      });
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: defaultCallback,
+        throttleMs: 0,
+      });
+
+      act(() => venueCallbacks.get('default')?.(['BTC']));
+      act(() => venueCallbacks.get('lighter')?.(['ETH']));
+
+      expect(lighterCallback).not.toHaveBeenCalledWith(
+        expect.arrayContaining(['BTC']),
+      );
+      expect(lighterCallback).toHaveBeenLastCalledWith(['ETH']);
+      expect(defaultCallback).not.toHaveBeenCalledWith(
+        expect.arrayContaining(['ETH']),
+      );
+      expect(defaultCallback).toHaveBeenLastCalledWith(['BTC']);
+    });
+
+    it('restores every venue stream on reconnect', () => {
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      mockSubscribeToOICaps.mockClear();
+
+      testStreamManager.oiCaps.reconnect();
+
+      expect(mockSubscribeToOICaps).toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
+    });
+
     it('notifies subscribers when markets reach OI cap', async () => {
       let oiCapCallback: ((caps: string[]) => void) | null = null;
       mockSubscribeToOICaps.mockImplementation(
@@ -6895,6 +6950,91 @@ describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
         ]);
       });
       expect(callback2).not.toHaveBeenCalled();
+    });
+
+    it('routes untagged subscribers to the default venue in aggregated mode', () => {
+      mockEngine.context.PerpsController.state = {
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
+      } as unknown as typeof mockEngine.context.PerpsController.state;
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        callbacks[0]([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+          {
+            symbol: 'BTC',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+      });
+
+      expect(callback).toHaveBeenLastCalledWith({
+        BTC: expect.objectContaining({ price: '50000' }),
+      });
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC')?.price).toBe(
+        '50000',
+      );
+    });
+
+    it('keeps an untagged top-of-book subscriber on the default venue', () => {
+      mockEngine.context.PerpsController.state = {
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
+      } as unknown as typeof mockEngine.context.PerpsController.state;
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      priceCallback([
+        {
+          symbol: 'BTC',
+          bestBid: '1',
+          bestAsk: '2',
+          providerId: 'lighter',
+        },
+      ]);
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '1' }),
+      );
+
+      priceCallback([
+        {
+          symbol: 'BTC',
+          bestBid: '50000',
+          bestAsk: '50001',
+          providerId: 'hyperliquid',
+        },
+      ]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '50000', bestAsk: '50001' }),
+      );
     });
   });
 
