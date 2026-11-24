@@ -13,6 +13,15 @@ export type SliceStatus =
   | 'error'
   | 'ineligible';
 
+// Exhaustive so every new status must decide whether its value is displayable.
+export const hasSliceValue: Record<SliceStatus, boolean> = {
+  ready: true,
+  partial: true,
+  loading: false,
+  error: false,
+  ineligible: false,
+};
+
 export type FiatConverter = (usdAmount: number) => number | undefined;
 
 export interface SliceDelta {

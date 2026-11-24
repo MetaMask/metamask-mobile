@@ -67,6 +67,7 @@ describe('HomepageBalanceBreakdown Perps row', () => {
       HomepageBalanceBreakdownTestIds.ROW('perps'),
     );
 
+    expect(row).toHaveAccessibleName(/\$1,500\.00/);
     expect(
       within(row).getByTestId(HomepageBalanceBreakdownTestIds.VALUE('perps')),
     ).toHaveTextContent('$1,500.00');

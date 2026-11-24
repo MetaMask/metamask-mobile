@@ -9,7 +9,7 @@ import {
   type CandleData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { parseVenueSymbolKey } from '../venueKeys';
+import { buildVenueSymbolKey, parseVenueSymbolKey } from '../venueKeys';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -346,9 +346,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   ): string {
     // Venue-scoped cache key (TAT-4407): candles for the same symbol from two
     // venues are different data. Untagged keys keep the legacy format.
-    return providerId
-      ? `${providerId}:${symbol}-${interval}`
-      : `${symbol}-${interval}`;
+    return `${buildVenueSymbolKey(symbol, providerId)}-${interval}`;
   }
 
   /**
@@ -980,7 +978,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Re-establish connections for each active cache key
     activeCacheKeys.forEach((cacheKey) => {
       // Strip the optional venue prefix (TAT-4407, format
-      // "provider:symbol-interval"), then parse coin and interval from the
+      // "venue-scoped symbol + interval"), then parse coin and interval from the
       // remainder (format: "coin-interval"). Coin symbols can contain hyphens
       // (e.g., "ETH-USD"), so split from the right — the interval is always
       // the last segment after the final hyphen.

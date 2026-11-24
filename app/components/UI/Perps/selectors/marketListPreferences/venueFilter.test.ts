@@ -86,6 +86,25 @@ describe('SET_PERPS_MARKET_LIST_PREFERENCES reducer (TAT-4407)', () => {
     ]);
   });
 
+  it('preserves a filter on unrelated edits but clears it on an explicit reset', () => {
+    const saved = settingsReducer(
+      undefined,
+      setPerpsMarketListPreferences({ selectedProviderIds: ['lighter'] }),
+    );
+    const edited = settingsReducer(
+      saved,
+      setPerpsMarketListPreferences({ showFavoritesOnly: true }),
+    );
+    expect(edited.perpsMarketListPreferences.selectedProviderIds).toEqual([
+      'lighter',
+    ]);
+    expect(
+      settingsReducer(
+        edited,
+        setPerpsMarketListPreferences({ selectedProviderIds: undefined }),
+      ).perpsMarketListPreferences.selectedProviderIds,
+    ).toBeUndefined();
+  });
   it('refuses an update that would leave the selection empty', () => {
     const initial = settingsReducer(
       undefined,

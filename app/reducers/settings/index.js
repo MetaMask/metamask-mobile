@@ -1,3 +1,4 @@
+import { isPerpsVenueId } from '../../components/UI/Perps/constants/venueIds';
 import AppConstants from '../../core/AppConstants';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
@@ -155,16 +156,15 @@ const settingsReducer = (state = initialState, action) => {
       const requestedSelectedProviderIds = Array.isArray(
         next.selectedProviderIds,
       )
-        ? next.selectedProviderIds.filter(
-            (id) =>
-              typeof id === 'string' &&
-              (id === 'hyperliquid' || id === 'lighter'),
-          )
+        ? next.selectedProviderIds.filter(isPerpsVenueId)
         : undefined;
       const selectedProviderIds =
         requestedSelectedProviderIds && requestedSelectedProviderIds.length > 0
           ? requestedSelectedProviderIds
-          : state.perpsMarketListPreferences?.selectedProviderIds;
+          : Object.hasOwn(next, 'selectedProviderIds') &&
+              next.selectedProviderIds === undefined
+            ? undefined
+            : state.perpsMarketListPreferences?.selectedProviderIds;
       return {
         ...state,
         perpsMarketListPreferences: {

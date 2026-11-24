@@ -7,12 +7,13 @@ import { useDefiSlice } from './slices/useDefiSlice';
 import { useFiatNormalizer } from './useFiatNormalizer';
 import { SLICE_ORDER } from '../constants';
 import { computeAggregateHero24hDelta } from '../utils/aggregateHero24hDelta';
-import type {
-  BalanceSlice,
-  BreakdownData,
-  HeroData,
-  SliceData,
-  SliceKey,
+import {
+  hasSliceValue,
+  type BalanceSlice,
+  type BreakdownData,
+  type HeroData,
+  type SliceData,
+  type SliceKey,
 } from '../types';
 
 function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
@@ -21,9 +22,7 @@ function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
 } {
   // A `partial` slice still contributes real money to the total; only its
   // completeness claim is degraded (TAT-4407).
-  const ready = SLICE_ORDER.filter((k) =>
-    ['ready', 'partial'].includes(slices[k].status),
-  );
+  const ready = SLICE_ORDER.filter((k) => hasSliceValue[slices[k].status]);
   // Money vault accounts are not part of AccountsController/account groups, so
   // the Money and Tokens slice sources are disjoint and can be summed directly.
   const totalFiat = ready.reduce((s, k) => s + slices[k].valueFiat, 0);
@@ -40,7 +39,7 @@ function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
       ...slices[key],
       percentOfTotal:
         allocationTotalFiat > 0 &&
-        ['ready', 'partial'].includes(slices[key].status) &&
+        hasSliceValue[slices[key].status] &&
         slices[key].valueFiat > 0
           ? slices[key].valueFiat / allocationTotalFiat
           : 0,
@@ -56,8 +55,8 @@ function aggregateStatus(
   const eligibleSlices = SLICE_ORDER.filter(
     (k) => slices[k].status !== 'ineligible',
   );
-  const hasReadySlice = eligibleSlices.some((k) =>
-    ['ready', 'partial'].includes(slices[k].status),
+  const hasReadySlice = eligibleSlices.some(
+    (k) => hasSliceValue[slices[k].status],
   );
   const hasLoadingSlice = eligibleSlices.some(
     (k) => slices[k].status === 'loading',
@@ -66,7 +65,9 @@ function aggregateStatus(
   // A zero-valued ready slice is not enough to conclude the portfolio is empty
   // while another eligible balance is still loading.
   if (hasReadySlice && (totalFiat !== 0 || !hasLoadingSlice)) {
-    return 'ready';
+    return eligibleSlices.some((key) => slices[key].status === 'partial')
+      ? 'partial'
+      : 'ready';
   }
 
   if (hasLoadingSlice) {
@@ -110,13 +111,13 @@ export function useBalanceBreakdown(): BreakdownData {
   );
   const isHeroPartiallyLoaded = useMemo(
     () =>
-      heroStatus === 'ready' &&
+      hasSliceValue[heroStatus] &&
       SLICE_ORDER.some((key) => slices[key].status === 'loading'),
     [heroStatus, slices],
   );
   const hasHeroErroredSlice = useMemo(
     () =>
-      heroStatus === 'ready' &&
+      hasSliceValue[heroStatus] &&
       SLICE_ORDER.some((key) => slices[key].status === 'error'),
     [heroStatus, slices],
   );
