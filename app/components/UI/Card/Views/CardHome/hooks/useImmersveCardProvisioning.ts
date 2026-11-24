@@ -101,6 +101,9 @@ export function useImmersveCardProvisioning(
   const wasProvisioningRef = useRef(isProvisioning);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const quietRecheckAttemptRef = useRef(0);
+  // Failed reconciles and createCard calls only. Funding-settling waits back
+  // off on the shared counter above but never spend this budget.
+  const errorRetryCountRef = useRef(0);
   // An error retry that could not be scheduled because the device was offline,
   // or whose timer was cleared on the way offline. Coming back online runs it.
   const retryDroppedOfflineRef = useRef(false);
@@ -164,6 +167,7 @@ export function useImmersveCardProvisioning(
       setPendingAction(null);
       handled.current = false;
       quietRecheckAttemptRef.current = 0;
+      errorRetryCountRef.current = 0;
       retryDroppedOfflineRef.current = false;
       createCardStartedRef.current = false;
       // Only a real card (provisioning just ended) clears the wait. A home
@@ -321,9 +325,14 @@ export function useImmersveCardProvisioning(
     ) {
       return undefined;
     }
-    const interval = setInterval(() => {
-      setRecheckCount((count) => count + 1);
-    }, CARD_SETUP_PENDING_POLL_MS);
+    // A review rechecks every 15s on every network, the same cadence as Card
+    // home's own review poll. A slower provisioning interval still wins.
+    const interval = setInterval(
+      () => {
+        setRecheckCount((count) => count + 1);
+      },
+      Math.max(pollIntervalMs, CARD_SETUP_PENDING_POLL_MS),
+    );
     return () => clearInterval(interval);
   }, [
     kycReviewSelfCheck,
@@ -363,11 +372,11 @@ export function useImmersveCardProvisioning(
         retryDroppedOfflineRef.current = true;
         return;
       }
-      if (
-        limitAttempts &&
-        quietRecheckAttemptRef.current >= QUIET_RECHECK_MAX_ATTEMPTS
-      ) {
-        return;
+      if (limitAttempts) {
+        if (errorRetryCountRef.current >= QUIET_RECHECK_MAX_ATTEMPTS) {
+          return;
+        }
+        errorRetryCountRef.current += 1;
       }
       const attempt = quietRecheckAttemptRef.current;
       quietRecheckAttemptRef.current = attempt + 1;
@@ -384,6 +393,7 @@ export function useImmersveCardProvisioning(
     };
     const resetQuietRecheck = () => {
       quietRecheckAttemptRef.current = 0;
+      errorRetryCountRef.current = 0;
     };
 
     (async () => {
@@ -652,6 +662,7 @@ export function useImmersveCardProvisioning(
       return;
     }
     quietRecheckAttemptRef.current = 0;
+    errorRetryCountRef.current = 0;
     retryDroppedOfflineRef.current = false;
     setHasResolvedStatus(false);
     setRecheckCount((count) => count + 1);
