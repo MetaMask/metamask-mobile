@@ -74,13 +74,13 @@ class AmountCapHelper {
    * not consume the entire balance.
    *
    * @param amountFiat - Fiat amount to clamp.
-   * @param balanceUsd - Current balance in USD.
+   * @param balanceUsd - Current balance in USD (number, string, or undefined).
    * @param transactionMeta - Transaction metadata.
    * @returns Clamped amount, or the original amount if no cap applies.
    */
   static clampToFirstDepositCap(
     amountFiat: string,
-    balanceUsd: string | undefined,
+    balanceUsd: number | string | undefined,
     transactionMeta: TransactionMeta | undefined,
   ): string {
     if (
@@ -199,6 +199,7 @@ export function useTransactionCustomAmount({
   const previousTransactionIdRef = useRef(transactionId);
   const keepAmountAfterReplacementRef = useRef(false);
   const pendingClampRef = useRef(false);
+  const ignoreNextAutomaticTokenChangeRef = useRef(false);
 
   const previousPayTokenKeyRef = useRef(payTokenKey);
   useEffect(() => {
@@ -209,8 +210,15 @@ export function useTransactionCustomAmount({
       hasToken && previousPayTokenKeyRef.current !== payTokenKey;
 
     if (isGenuineChange) {
-      userHasEditedRef.current = false;
-      keepAmountAfterReplacementRef.current = false;
+      // After a replacement, automatic token selection picks a different token
+      // (Hyperliquid on Arbitrum vs Lighter on mainnet). Ignore the first
+      // automatic change to preserve the kept amount; clear on later user changes.
+      if (ignoreNextAutomaticTokenChangeRef.current) {
+        ignoreNextAutomaticTokenChangeRef.current = false;
+      } else {
+        userHasEditedRef.current = false;
+        keepAmountAfterReplacementRef.current = false;
+      }
       prefetchQuoteRequestRef.current = undefined;
       prefetchedQuoteAmountHumanRef.current = undefined;
       prefetchedQuotePayTokenKeyRef.current = undefined;
@@ -526,6 +534,7 @@ export function useTransactionCustomAmount({
     if (amountFiat !== '0') {
       keepAmountAfterReplacementRef.current = true;
       pendingClampRef.current = true;
+      ignoreNextAutomaticTokenChangeRef.current = true;
     }
   }, [amountFiat, transactionId]);
 

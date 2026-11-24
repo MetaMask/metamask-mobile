@@ -2834,7 +2834,7 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe(prefilledAmount);
     });
 
-    it('clears keepAmountAfterReplacementRef on pay-token change so prefill applies again', async () => {
+    it('clears keepAmountAfterReplacementRef after automatic token change, then user token change applies prefill', async () => {
       mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
       const { result, rerender } = runHook({
@@ -2855,9 +2855,8 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('42');
 
-      // Switch to a different token — keepAmountAfterReplacementRef is cleared
-      // on genuine pay-token change, so prefill applies. Perps deposits prefill
-      // to 50% regardless of stablecoin status.
+      // First token change after replacement is automatic (provider switch),
+      // so the amount is preserved
       mockPayToken(ETHEREUM_USDC_ADDRESS, '800');
 
       await act(async () => {
@@ -2865,7 +2864,18 @@ describe('useTransactionCustomAmount', () => {
         jest.runAllTimers();
       });
 
-      expect(result.current.amountFiat).toBe('400');
+      expect(result.current.amountFiat).toBe('42');
+
+      // Second token change is user-initiated, so keepAmountAfterReplacementRef
+      // is cleared and prefill applies. Perps deposits prefill to 50%.
+      mockPayToken(ETHEREUM_DAI_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('600');
     });
 
     it('clamps a 100% Hyperliquid Max to 90% when switching into a first Lighter deposit', async () => {
@@ -3142,6 +3152,66 @@ describe('useTransactionCustomAmount', () => {
 
       // Amount should still be 350, not changed to the new prefill (1000)
       expect(result.current.amountFiat).toBe('350');
+    });
+
+    it('keeps amount through automatic token change after replacement, then clears on user token change', async () => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+        prefilledAmount: {
+          default: { enabled: false },
+          overrides: {
+            perpsDeposit: { enabled: true },
+          },
+        },
+      });
+
+      // Start with token A at $1000
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      // Prefill to 50% = $500
+      expect(result.current.amountFiat).toBe('500');
+
+      // User edits to $700
+      await act(async () => {
+        result.current.updatePendingAmount('700');
+      });
+
+      expect(result.current.amountFiat).toBe('700');
+
+      // Replace transaction
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('700');
+
+      // Automatic token selection picks a different token (token B at $800)
+      // This simulates Hyperliquid -> Lighter provider switch picking different chains
+      mockPayToken(ETHEREUM_USDC_ADDRESS, '800');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Amount should still be 700, not changed to new prefill (400 = 50% of 800)
+      expect(result.current.amountFiat).toBe('700');
+
+      // Now user manually changes to a third token (token C at $1200)
+      mockPayToken(ETHEREUM_DAI_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // This was a user-initiated change, so prefill applies: 50% of 1200 = 600
+      expect(result.current.amountFiat).toBe('600');
     });
   });
 });
