@@ -18,9 +18,8 @@ import {
   mergeInFlightClaims,
   type EarningsHistoryListItem,
 } from '../utils/claimEarnings';
-import { underReviewBlockedBaseUnits } from '../utils/earningsSummaryTotals';
 import { EarningsHistoryRow } from '../components/Money/EarningsHistoryRows';
-import RewardsPausedBanner from '../components/Money/RewardsPausedBanner';
+import RewardsEarningsBanners from '../components/Money/RewardsEarningsBanners';
 import RewardsMoneyListScreen from '../components/Money/RewardsMoneyListScreen';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
@@ -66,21 +65,18 @@ const RewardsEarningsHistoryView: React.FC = () => {
     !summaryData &&
     (!earningsSummaryEntry || Boolean(earningsSummaryEntry.loading));
   const historyFirstLoad = list.isLoading || list.items === null;
-  const pausedBaseUnits =
-    summaryLoading || historyFirstLoad
-      ? null
-      : underReviewBlockedBaseUnits(summaryData);
-  const header =
-    pausedBaseUnits && localizedText ? (
-      <Box twClassName="px-4 pb-4 pt-2">
-        <RewardsPausedBanner
-          baseUnits={pausedBaseUnits}
+  const bannerSummary = summaryLoading || historyFirstLoad ? null : summaryData;
+  const header = (
+    <Box twClassName="pt-2">
+      {localizedText ? (
+        <RewardsEarningsBanners
+          summary={bannerSummary}
           localizedText={localizedText}
+          twClassName="px-4 pb-4"
         />
-      </Box>
-    ) : (
-      <Box twClassName="pt-2" />
-    );
+      ) : null}
+    </Box>
+  );
 
   const renderItem = useCallback(
     (item: EarningsHistoryListItem) =>

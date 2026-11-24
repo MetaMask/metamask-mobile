@@ -11,6 +11,8 @@ import {
 import { useCommissions } from '../hooks/useCommissions';
 import { EARN_ACTION_HEADER_TEST_IDS } from '../components/Money/EarnActionHeader.testIds';
 import { EARN_FAMILY_EARNINGS_TEST_IDS } from '../components/Money/EarnFamilyEarningsSection.testIds';
+import { REWARDS_HELD_BANNER_TEST_IDS } from '../components/Money/RewardsHeldBanner.testIds';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows.testIds';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import RewardsCopyTradingView, {
@@ -170,6 +172,56 @@ describe('RewardsCopyTradingView', () => {
     expect(
       getByTestId(EARN_FAMILY_EARNINGS_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the held banner for this family only, below the history title', () => {
+    const family = {
+      lifetime: '56000000',
+      pending: '0',
+      claimed: '0',
+      voided: '0',
+      held: '56000000',
+      blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+    };
+    const state = {
+      ...STATE,
+      rewardsMoney: {
+        ...STATE.rewardsMoney,
+        earningsSummary: {
+          [PROFILE_ID]: {
+            loading: false,
+            error: false,
+            data: {
+              ...CLAIMABLE_EARNINGS_SUMMARY,
+              self_earned: {
+                ...CLAIMABLE_EARNINGS_SUMMARY.self_earned,
+                by_claim_family: {
+                  REFERRAL_TRADE_FEE_CASHBACK: {
+                    ...family,
+                    held: '9000000',
+                    blocking_reason: 'SUSPENDED',
+                  },
+                },
+              },
+              earned_by_others: {
+                ...CLAIMABLE_EARNINGS_SUMMARY.earned_by_others,
+                by_claim_family: { SOCIAL_FOLLOW_TRADE: family },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <RewardsCopyTradingView />,
+      { state },
+    );
+
+    expect(getByTestId(REWARDS_HELD_BANNER_TEST_IDS.BANNER)).toHaveTextContent(
+      '$56.00 of rewards held.Learn more',
+    );
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
   });
 
   it('opens the composer from the header action', () => {

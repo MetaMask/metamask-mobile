@@ -12,6 +12,7 @@ import EarnActionHeader, { type EarnActionHeaderCta } from './EarnActionHeader';
 import EarnFamilyEarningsSection, {
   type EarnFamilyExtraRow,
 } from './EarnFamilyEarningsSection';
+import RewardsEarningsBanners from './RewardsEarningsBanners';
 import { deriveSummarySection } from './Tabs/earningsSummarySection';
 import { EARN_PAGE_HEADER_TEST_IDS } from './EarnPageHeader.testIds';
 
@@ -60,6 +61,8 @@ const EarnPageHeader: React.FC<EarnPageHeaderProps> = ({
     );
   }, [fetchEarningsSummary]);
 
+  const summary = deriveSummarySection(summaryEntry);
+
   return (
     <>
       <EarnActionHeader
@@ -70,7 +73,7 @@ const EarnPageHeader: React.FC<EarnPageHeaderProps> = ({
       />
       <EarnFamilyEarningsSection
         localizedText={localizedText}
-        summary={deriveSummarySection(summaryEntry)}
+        summary={summary}
         branch={branch}
         family={family}
         extraRows={extraRows}
@@ -83,6 +86,12 @@ const EarnPageHeader: React.FC<EarnPageHeaderProps> = ({
         title={localizedText.history}
         twClassName="pt-0 pb-4"
         testID={EARN_PAGE_HEADER_TEST_IDS.HISTORY_HEADER}
+      />
+      <RewardsEarningsBanners
+        summary={summary.data}
+        localizedText={localizedText}
+        scope={{ branch, family }}
+        twClassName="px-4 pb-4"
       />
     </>
   );

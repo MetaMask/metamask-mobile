@@ -14,6 +14,7 @@ import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../tests/
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
+import { REWARDS_HELD_BANNER_TEST_IDS } from '../components/Money/RewardsHeldBanner.testIds';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
 import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../components/Money/TradingActivityListSkeleton.testIds';
@@ -399,6 +400,46 @@ describe('RewardsEarningsHistoryView', () => {
       {
         title: LOCALIZED_TEXT.rewardsPausedTitle,
         description: LOCALIZED_TEXT.rewardsPausedDescription,
+      },
+    );
+  });
+
+  it('shows the held banner for income held for tax and opens the held sheet', () => {
+    const state = underReviewState();
+    state.rewardsMoney.earningsSummary[PROFILE_ID].data = {
+      ...UNDER_REVIEW_SUMMARY,
+      self_earned: { ...UNDER_REVIEW_SUMMARY.self_earned, by_claim_family: {} },
+      earned_by_others: {
+        ...UNDER_REVIEW_SUMMARY.earned_by_others,
+        by_claim_family: {
+          SOCIAL_FOLLOW_TRADE: {
+            lifetime: '56000000',
+            pending: '0',
+            claimed: '0',
+            held: '56000000',
+            blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state },
+    );
+
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+    expect(getByTestId(REWARDS_HELD_BANNER_TEST_IDS.BANNER)).toHaveTextContent(
+      '$56.00 of rewards held.Learn more',
+    );
+
+    fireEvent.press(getByTestId(REWARDS_HELD_BANNER_TEST_IDS.BANNER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: LOCALIZED_TEXT.rewardsHeldTitle,
+        description: LOCALIZED_TEXT.rewardsHeldDescription,
       },
     );
   });
