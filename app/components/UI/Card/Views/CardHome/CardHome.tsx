@@ -843,7 +843,10 @@ const CardHome = () => {
       return true;
     }
     if (a.type === 'card_provisioning') {
-      return provisioningView !== 'hidden';
+      // Same rule as CardAlertSection, which renders nothing for these.
+      return (
+        provisioningView !== 'hidden' && provisioningView !== 'reconciling'
+      );
     }
     return false;
   });
