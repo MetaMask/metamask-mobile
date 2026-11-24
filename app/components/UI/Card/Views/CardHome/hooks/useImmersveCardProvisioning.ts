@@ -38,14 +38,27 @@ import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
 import { CardActions, withCardProvider } from '../../../util/metrics';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 import { useImmersveKycOutcome } from '../../../hooks/useImmersveKycOutcome';
+import { CARD_SETUP_PENDING_POLL_MS } from './useCardSetupPendingRefresh';
 
 const POLL_INTERVAL_MS = 5000;
+/**
+ * Failed quiet retries stop after this many. A funding allowance that is
+ * still settling keeps retrying at the delay cap.
+ */
+const QUIET_RECHECK_MAX_ATTEMPTS = 6;
+/** Cap for the exponential quiet-retry delay. */
+const QUIET_RECHECK_MAX_DELAY_MS = 60_000;
 
 export interface CardProvisioningOptions {
   /** `null` turns polling off. Omitted keeps the default interval. */
   pollIntervalMs?: number | null;
   navigateFromOutsideCard?: boolean;
   recheckOnFocus?: boolean;
+  /**
+   * Card home's waiting view re-checks a manual KYC review on its own.
+   * Money home leaves this off and keeps the tier-derived poll instead.
+   */
+  kycReviewSelfCheck?: boolean;
 }
 
 export function useImmersveCardProvisioning(
@@ -87,7 +100,21 @@ export function useImmersveCardProvisioning(
   const wasFundingSettlingRef = useRef(isFundingSettling);
   const wasProvisioningRef = useRef(isProvisioning);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const quietRecheckAttemptRef = useRef(0);
+  // Failed reconciles and createCard calls only. Funding-settling waits back
+  // off on the shared counter above but never spend this budget.
+  const errorRetryCountRef = useRef(0);
+  // Last next_action reported as IMMERSVE_ONBOARDING_ROUTED. Rechecks of an
+  // unchanged step (a review still pending) do not report it again.
+  const lastRoutedActionTypeRef = useRef<string | null>(null);
+  // An error retry that could not be scheduled because the device was offline,
+  // or whose timer was cleared on the way offline. Coming back online runs it.
+  const retryDroppedOfflineRef = useRef(false);
+  const createCardStartedRef = useRef(false);
   const [recheckCount, setRecheckCount] = useState(0);
+  // A review self-check in flight. Pauses the self-check timer without
+  // touching hasResolvedStatus, so the review banner and card art stay put.
+  const [isSelfCheckRunning, setIsSelfCheckRunning] = useState(false);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
   );
@@ -121,6 +148,7 @@ export function useImmersveCardProvisioning(
   pollIntervalMsRef.current = pollIntervalMs;
   const navigateFromOutsideCard = options?.navigateFromOutsideCard === true;
   const recheckOnFocus = options?.recheckOnFocus === true;
+  const kycReviewSelfCheck = options?.kycReviewSelfCheck === true;
   const [focusRecheckCount, setFocusRecheckCount] = useState(0);
   const wasFocusedRef = useRef(isFocused);
   // Set only when this screen opens a Card flow. Bottom sheets and other
@@ -138,6 +166,12 @@ export function useImmersveCardProvisioning(
       setHasResolvedStatus(false);
       setPendingAction(null);
       handled.current = false;
+      setIsSelfCheckRunning(false);
+      quietRecheckAttemptRef.current = 0;
+      errorRetryCountRef.current = 0;
+      lastRoutedActionTypeRef.current = null;
+      retryDroppedOfflineRef.current = false;
+      createCardStartedRef.current = false;
       // Only a real card (provisioning just ended) clears the wait. A home
       // screen that has not loaded its provisioning alert yet must not.
       if (wasProvisioningRef.current && isFundingSettlingRef.current) {
@@ -187,8 +221,9 @@ export function useImmersveCardProvisioning(
     !isReconciling &&
     pollIntervalMs !== null;
 
-  // Going offline drops a waiting retry. Coming back starts one, unless a
-  // reconcile is already running or a retry is already waiting.
+  // Going offline drops a waiting retry. Coming back restarts a funding
+  // settle, and an error retry that was dropped before its timer could run.
+  // A reconcile already running, or a retry already waiting, is left alone.
   const wasOfflineRef = useRef(pollIntervalMs === null);
   useEffect(() => {
     const wasOffline = wasOfflineRef.current;
@@ -197,18 +232,20 @@ export function useImmersveCardProvisioning(
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
         settleTimerRef.current = null;
+        retryDroppedOfflineRef.current = true;
       }
       return;
     }
     if (
       !wasOffline ||
       !isProvisioning ||
-      !isFundingSettling ||
+      (!isFundingSettling && !retryDroppedOfflineRef.current) ||
       isReconciling ||
       settleTimerRef.current
     ) {
       return;
     }
+    retryDroppedOfflineRef.current = false;
     setRecheckCount((count) => count + 1);
   }, [pollIntervalMs, isProvisioning, isFundingSettling, isReconciling]);
 
@@ -241,7 +278,8 @@ export function useImmersveCardProvisioning(
     if (
       (!openedCardFlow && !reviewsKyc) ||
       !isProvisioning ||
-      !hasResolvedStatus
+      !hasResolvedStatus ||
+      isSelfCheckRunning
     ) {
       return;
     }
@@ -255,6 +293,7 @@ export function useImmersveCardProvisioning(
     recheckOnFocus,
     isProvisioning,
     hasResolvedStatus,
+    isSelfCheckRunning,
     pendingAction,
   ]);
 
@@ -272,6 +311,7 @@ export function useImmersveCardProvisioning(
         !isFocusedRef.current ||
         !isProvisioning ||
         !hasResolvedStatus ||
+        isSelfCheckRunning ||
         pendingAction?.type !== 'pending'
       ) {
         return;
@@ -280,7 +320,51 @@ export function useImmersveCardProvisioning(
       setFocusRecheckCount((count) => count + 1);
     });
     return () => subscription.remove();
-  }, [recheckOnFocus, isProvisioning, hasResolvedStatus, pendingAction?.type]);
+  }, [
+    recheckOnFocus,
+    isProvisioning,
+    hasResolvedStatus,
+    isSelfCheckRunning,
+    pendingAction?.type,
+  ]);
+
+  // Card home opts in so a manual KYC review moves on by itself. Money home
+  // does not: it already polls on the tier-derived interval, and a fixed 15s
+  // timer would ignore that cadence (including "stop" when the interval is
+  // null). Refocus and app-foreground rechecks stay immediate.
+  useEffect(() => {
+    if (
+      !kycReviewSelfCheck ||
+      pollIntervalMs === null ||
+      !isProvisioning ||
+      !isFocused ||
+      isReconciling ||
+      isSelfCheckRunning ||
+      pendingAction?.type !== 'pending'
+    ) {
+      return undefined;
+    }
+    // A review rechecks every 15s on every network, the same cadence as Card
+    // home's own review poll. A slower provisioning interval still wins. The
+    // check runs quietly: the screen keeps the review state, and the timer
+    // pauses until the check lands instead of cancelling it.
+    const interval = setInterval(
+      () => {
+        setIsSelfCheckRunning(true);
+        setRecheckCount((count) => count + 1);
+      },
+      Math.max(pollIntervalMs, CARD_SETUP_PENDING_POLL_MS),
+    );
+    return () => clearInterval(interval);
+  }, [
+    kycReviewSelfCheck,
+    pollIntervalMs,
+    isProvisioning,
+    isFocused,
+    isReconciling,
+    isSelfCheckRunning,
+    pendingAction?.type,
+  ]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
@@ -293,23 +377,46 @@ export function useImmersveCardProvisioning(
     handled.current = true;
     let cancelled = false;
     const existingId = reduxFundingSourceIdRef.current;
-    // Shared by the funding-still-pending path and a failed recheck. A throw
-    // used to leave "Card being created" with nothing scheduled to try again.
-    const scheduleSettlingRecheck = () => {
+    // Shared by the funding-still-pending path, a failed createCard and a
+    // failed reconcile: a throw must never leave the waiting view stuck with
+    // nothing scheduled to try again.
+    const scheduleQuietRecheck = ({
+      limitAttempts = true,
+    }: {
+      limitAttempts?: boolean;
+    } = {}) => {
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
       }
-      // Offline callers pass null and must not keep asking.
+      // Offline callers pass null and must not keep asking. Remember the
+      // drop so coming back online runs this retry.
       const intervalMs = pollIntervalMsRef.current;
       if (intervalMs === null) {
+        retryDroppedOfflineRef.current = true;
         return;
       }
+      if (limitAttempts) {
+        if (errorRetryCountRef.current >= QUIET_RECHECK_MAX_ATTEMPTS) {
+          return;
+        }
+        errorRetryCountRef.current += 1;
+      }
+      const attempt = quietRecheckAttemptRef.current;
+      quietRecheckAttemptRef.current = attempt + 1;
+      const delayMs = Math.min(
+        intervalMs * 2 ** attempt,
+        QUIET_RECHECK_MAX_DELAY_MS,
+      );
       settleTimerRef.current = setTimeout(() => {
         settleTimerRef.current = null;
         if (!cancelled) {
           setRecheckCount((count) => count + 1);
         }
-      }, intervalMs);
+      }, delayMs);
+    };
+    const resetQuietRecheck = () => {
+      quietRecheckAttemptRef.current = 0;
+      errorRetryCountRef.current = 0;
     };
 
     (async () => {
@@ -357,20 +464,26 @@ export function useImmersveCardProvisioning(
         if (action.type === 'active') {
           setPendingAction(null);
           clearFundingSettling();
-          // Funding lifecycle only when we actually create the card.
-          trackEventRef.current(
-            createEventBuilderRef
-              .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED)
-              .addProperties(
-                withCardProvider(CardProviderIds.Immersve, {
-                  step: 'provisioning_create_card',
-                }),
-              )
-              .build(),
-          );
+          // Funding lifecycle only when we actually create the card. An
+          // automatic retry must not emit STARTED again; the first attempt
+          // already opened that lifecycle.
+          if (!createCardStartedRef.current) {
+            createCardStartedRef.current = true;
+            trackEventRef.current(
+              createEventBuilderRef
+                .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED)
+                .addProperties(
+                  withCardProvider(CardProviderIds.Immersve, {
+                    step: 'provisioning_create_card',
+                  }),
+                )
+                .build(),
+            );
+          }
           try {
             await controller.createCard(id);
             if (cancelled) return;
+            resetQuietRecheck();
             trackEventRef.current(
               createEventBuilderRef
                 .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED)
@@ -398,6 +511,7 @@ export function useImmersveCardProvisioning(
                   )
                   .build(),
               );
+              resetQuietRecheck();
               return;
             }
             trackEventRef.current(
@@ -417,14 +531,19 @@ export function useImmersveCardProvisioning(
                 data: { method: 'createCard' },
               },
             });
+            // The card was not created. Ask again shortly instead of leaving
+            // the waiting view up with nothing scheduled to move it on.
+            scheduleQuietRecheck();
           }
         } else if (isFundingSettlingRef.current && action.type === 'funding') {
           // The allowance is submitted. Stay on "Card being created" and ask
-          // again once Immersve has had time to observe it. One reconcile at
+          // again once Immersve has had time to observe it. This wait is not
+          // an error, so it keeps going at the delay cap. One reconcile at
           // a time: the next run starts only after this one has finished.
-          scheduleSettlingRecheck();
+          scheduleQuietRecheck({ limitAttempts: false });
         } else {
           clearFundingSettling();
+          resetQuietRecheck();
           // Mid-onboarding — no Funding Process STARTED (avoids orphan starts).
           setPendingAction(action);
           if (
@@ -439,7 +558,10 @@ export function useImmersveCardProvisioning(
               })
               .catch(() => undefined);
           }
-          if (cancelled) return;
+          if (cancelled || lastRoutedActionTypeRef.current === action.type) {
+            return;
+          }
+          lastRoutedActionTypeRef.current = action.type;
           trackEventRef.current(
             createEventBuilderRef
               .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -463,6 +585,7 @@ export function useImmersveCardProvisioning(
           // Use BUTTON (not Funding COMPLETED) so we don't orphan a completion
           // without a matching CARD_FUNDING_PROCESS_STARTED.
           setPendingAction(null);
+          resetQuietRecheck();
           trackEventRef.current(
             createEventBuilderRef
               .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -479,9 +602,10 @@ export function useImmersveCardProvisioning(
           return;
         }
         handled.current = false;
-        if (isFundingSettlingRef.current) {
-          scheduleSettlingRecheck();
-        }
+        // Quiet retry: a failed status check must not leave the waiting view
+        // stuck. Ask again on the next quiet cadence unless the device is
+        // offline (a null interval means "stop asking").
+        scheduleQuietRecheck();
         trackEventRef.current(
           createEventBuilderRef
             .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -504,6 +628,7 @@ export function useImmersveCardProvisioning(
       } finally {
         if (!cancelled) {
           setHasResolvedStatus(true);
+          setIsSelfCheckRunning(false);
         }
       }
     })();
@@ -554,11 +679,28 @@ export function useImmersveCardProvisioning(
     navigateFromOutsideCard,
   ]);
 
+  // Re-runs the reconcile check. The waiting view uses it so a pull to
+  // refresh re-checks the review it is waiting on. Mirrors the focus
+  // recheck: the resolved flag drops first so the screen reads reconciling
+  // until the new check lands, and a recheck while one is already running
+  // (from the focus path or the review self-check) is a no-op.
+  const recheck = useCallback(() => {
+    if (isReconciling || isSelfCheckRunning) {
+      return;
+    }
+    quietRecheckAttemptRef.current = 0;
+    errorRetryCountRef.current = 0;
+    retryDroppedOfflineRef.current = false;
+    setHasResolvedStatus(false);
+    setRecheckCount((count) => count + 1);
+  }, [isReconciling, isSelfCheckRunning]);
+
   return {
     isProvisioning,
     isReconciling,
     pendingAction,
     resumePendingAction,
+    recheck,
     markCardFlowOpened,
     isProvisioningPollActive,
   };

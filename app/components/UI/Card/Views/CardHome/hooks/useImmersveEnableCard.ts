@@ -73,6 +73,7 @@ export function useImmersveEnableCard(
     isReconciling,
     pendingAction,
     resumePendingAction,
+    recheck,
     isProvisioning,
     markCardFlowOpened,
     isProvisioningPollActive,
@@ -186,6 +187,8 @@ export function useImmersveEnableCard(
     provisioningView,
     setupStep,
     isProvisioningPollActive,
+    /** Re-runs the provisioning reconcile (waiting-view pull to refresh). */
+    recheck,
     // The link flag clears before the effect drops this funding step. Keep the
     // button disabled through that commit so a second press cannot submit
     // another allowance.

@@ -128,6 +128,7 @@ import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
 import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import { deriveMoneyCardSetupPollIntervalMs } from '../../../Money/utils/moneyMetaMaskCardMode';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
@@ -279,13 +280,26 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const {
     canEnableCard,
     enableCard,
     provisioningView,
     isEnableCardPending,
     isProvisioningPollActive,
-  } = useCardEnableCard(data, { recheckOnFocus: true });
+    recheck: recheckProvisioning,
+  } = useCardEnableCard(data, {
+    recheckOnFocus: true,
+    // The waiting view re-checks a manual review on its own. The provisioning
+    // poll follows the same network cadence as Money home: off when offline,
+    // 15s on slow cellular, and 5s otherwise.
+    kycReviewSelfCheck: true,
+    pollIntervalMs: deriveMoneyCardSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+    ),
+  });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -350,8 +364,6 @@ const CardHome = () => {
   // unknown network keeps 3s while the card is being created and 15s in
   // review. Immersve's own 5s poll already covers the creating state, so
   // this interval stays off while that one is running.
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
   const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
     isPending: waitingState.kind === 'waiting',
     isAuthenticated,
@@ -416,11 +428,21 @@ const CardHome = () => {
     setIsRefreshing(true);
     refreshUkMigrationState();
     try {
-      if (waitingState.kind === 'waiting' && !isAuthenticated) {
-        // Re-check the thing being waited on: the onboarding registration
-        // status. Everything else waits on card home data itself.
-        await refreshRegistrationStatus();
-        return;
+      if (waitingState.kind === 'waiting') {
+        // Re-check the thing being waited on: the Immersve reconcile for an
+        // under-review status or a card still being created, and the
+        // onboarding registration status when signed out. Everything else
+        // waits on card home data itself.
+        if (
+          waitingState.step === 'immersve-review' ||
+          waitingState.step === 'creating-card'
+        ) {
+          recheckProvisioning();
+        }
+        if (!isAuthenticated) {
+          await refreshRegistrationStatus();
+          return;
+        }
       }
       await refetch();
     } finally {
@@ -430,6 +452,7 @@ const CardHome = () => {
     refetch,
     refreshUkMigrationState,
     refreshRegistrationStatus,
+    recheckProvisioning,
     waitingState,
     isAuthenticated,
   ]);
