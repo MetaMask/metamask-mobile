@@ -1,6 +1,7 @@
 import type { Json } from '@metamask/utils';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import type { WalletOptions } from '@metamask/wallet';
+import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import type {
   EncryptionKey,
@@ -8,6 +9,7 @@ import type {
 } from '../../../Encryptor/types';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
+import type { RootMessenger } from '../../types';
 
 type SeedlessOnboardingControllerOptions = NonNullable<
   WalletOptions['instanceOptions']['seedlessOnboardingController']
@@ -107,9 +109,15 @@ export const seedlessOnboardingEncryptorAdapter = {
  * `@metamask/wallet` `Wallet`. The wallet owns the controller messenger and
  * persisted state, so those are excluded here.
  *
+ * @param options - Builder options.
+ * @param options.messenger - Root messenger used to read the `mfaRecovery` remote flag lazily.
  * @returns The SeedlessOnboardingController instance options.
  */
-export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboardingControllerOptions {
+export function getSeedlessOnboardingControllerInstanceOptions({
+  messenger,
+}: {
+  messenger: RootMessenger;
+}): SeedlessOnboardingControllerOptions {
   if (!web3AuthNetwork) {
     throw new Error(
       `Missing environment variables for SeedlessOnboardingController\n
@@ -128,5 +136,11 @@ export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboar
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
+    mfaFlag: () => {
+      const { remoteFeatureFlags } = messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      return selectMfaRecoveryEnabled.resultFunc(remoteFeatureFlags);
+    },
   };
 }

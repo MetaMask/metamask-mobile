@@ -192,7 +192,7 @@
   },
   "resolutions": {
     "@metamask/auth-network-utils": "0.5.0",
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-3f9d60a48",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-562e62272",
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -455,7 +455,7 @@
     "@metamask/sample-controllers": "^6.1.0",
     "@metamask/scure-bip39": "^2.1.1",
     "@metamask/sdk-communication-layer": "0.33.1",
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-3f9d60a48",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-562e62272",
     "@metamask/selected-network-controller": "^27.1.0",
     "@metamask/sentinel-api-service": "^2.1.0",
     "@metamask/shield-controller": "^7.1.2",
