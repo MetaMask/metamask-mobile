@@ -3,7 +3,6 @@ import {
   ActionButtonType,
   ActionLocation,
 } from '../../../util/analytics/actionButtonTracking';
-import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_INTERACTION_TYPE,
@@ -72,7 +71,10 @@ export const FUND_STEP_RECEIVE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping
         action_name: ActionButtonType.RECEIVE,
       },
       [EVENT_NAME.ADDRESS_LIST_VIEWED]: {
-        source: AddressListViewedSource.ONBOARDING_CHECKLIST,
+        // Same value as AddressListViewedSource.ONBOARDING_CHECKLIST. Kept as a
+        // literal: importing addressListViewedTracking here creates an import
+        // cycle through constants/network when analytics.ts loads this registry.
+        source: 'onboarding_checklist',
       },
     },
   };
