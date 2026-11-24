@@ -95,6 +95,11 @@ export interface SocialFeedPostShellProps {
    * pass this so they cannot copy their own trade.
    */
   showCopyTrade?: boolean;
+  /**
+   * When false, the attached GIF keeps its frame and drops the decoded image.
+   * Virtualized rows pass this from list viewability. Defaults to visible.
+   */
+  gifVisible?: boolean;
 }
 
 interface ShellCopyTradeTracking {
@@ -284,6 +289,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   requireSocialTerms = false,
   requireSocialProfile = false,
   showCopyTrade = true,
+  gifVisible = true,
 }) => {
   const tracked = useSocialFeedTracking();
   const { location } = useSocialFeedSurface();
@@ -579,6 +585,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             <Box twClassName="rounded-2xl overflow-hidden">
               <SocialFeedGif
                 uri={post.gifUri}
+                visible={gifVisible}
                 testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
               />
             </Box>

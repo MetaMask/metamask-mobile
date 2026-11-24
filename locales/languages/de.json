@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} kopieren",
       "copied_label": "{{field}} kopiert",
-      "copy_all_button": "Alle Daten kopieren",
-      "copied_all_label": "Bankdaten wurden kopiert",
       "button": "Fertig",
       "waiting_for_details": "Ihre Kontodaten werden in Kürze hier angezeigt.",
       "loading_details": "Kontodaten werden geladen",

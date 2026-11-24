@@ -30,7 +30,7 @@ describe('TraderAvatar', () => {
     expect(screen.UNSAFE_queryByType(AvatarAccount)).toBeNull();
   });
 
-  it('renders the avatar with expo-image disk caching so recycled FlatList cells reuse cached images', () => {
+  it('keeps the avatar on disk so a recycled cell does not pin a decoded bitmap', () => {
     renderWithProvider(
       <TraderAvatar
         imageUrl={REAL_AVATAR_URL}
@@ -42,7 +42,7 @@ describe('TraderAvatar', () => {
     );
 
     const image = screen.UNSAFE_getByType(Image);
-    expect(image.props.cachePolicy).toBe('memory-disk');
+    expect(image.props.cachePolicy).toBe('disk');
     expect(image.props.recyclingKey).toBe('trader-1');
     expect(image.props.contentFit).toBe('cover');
   });
