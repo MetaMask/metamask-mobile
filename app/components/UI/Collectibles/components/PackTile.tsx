@@ -26,7 +26,9 @@ interface Props {
 }
 
 export function PackTile({ pack }: Props) {
-  const count = getIntlNumberFormatter(I18n.locale).format(pack.openedCount);
+  const formattedCount = getIntlNumberFormatter(I18n.locale).format(
+    pack.openedCount,
+  );
   const isTrending = pack.openedCount >= flameThreshold;
 
   return (
@@ -42,7 +44,7 @@ export function PackTile({ pack }: Props) {
             isTrending
               ? 'collectibles.home.opens_trending'
               : 'collectibles.home.opens',
-            { count },
+            { count: pack.openedCount, formattedCount },
           )}
         >
           <CapsuleGlass className="h-6 gap-1 px-2">
@@ -54,7 +56,7 @@ export function PackTile({ pack }: Props) {
               />
             )}
             <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
-              {count}
+              {formattedCount}
             </Text>
           </CapsuleGlass>
         </View>

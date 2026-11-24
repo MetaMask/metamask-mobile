@@ -5466,8 +5466,14 @@
     "home": {
       "empty": "No packs available",
       "empty_description": "Check back soon or browse other packs.",
-      "opens": "{{count}} opens",
-      "opens_trending": "{{count}} opens, trending"
+      "opens": {
+        "one": "{{formattedCount}} open",
+        "other": "{{formattedCount}} opens"
+      },
+      "opens_trending": {
+        "one": "{{formattedCount}} open, trending",
+        "other": "{{formattedCount}} opens, trending"
+      }
     }
   },
   "collectible": {
