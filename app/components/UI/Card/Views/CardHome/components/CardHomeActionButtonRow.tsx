@@ -53,8 +53,9 @@ export interface CardHomeActionVisibility {
 }
 
 /**
- * Same gating the View card details, View PIN and Freeze rows had in
- * `ManageCardOptions`, so each button shows exactly where its row did.
+ * Which quick actions to show. A signed-in cardholder sees Details, PIN, and
+ * Freeze even at a zero balance. The old Baanx manage rows hid those until
+ * the card was funded; these buttons do not.
  */
 export const getCardHomeActionVisibility = ({
   card,
@@ -102,8 +103,8 @@ const styles = StyleSheet.create({
 
 /**
  * Card home quick actions under the card panel. Same tiles as the Money home
- * action row (`MainActionButtonGlass`); each button is optional so it follows
- * the gating its list row used to have.
+ * action row (`MainActionButtonGlass`). Each button is optional. Visibility
+ * comes from `getCardHomeActionVisibility`.
  */
 const CardHomeActionButtonRow = ({
   add,
