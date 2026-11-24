@@ -253,6 +253,12 @@ export const PREDICT_VENUE_ACTIONS = [
 ] as const;
 export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
 
+/** Which venue deployment the catalog describes. Drives deposit chain and
+ * transfer mode in every build. */
+export const PREDICT_VENUE_ENVIRONMENTS = ['sandbox', 'production'] as const;
+export type PredictVenueEnvironment =
+  (typeof PREDICT_VENUE_ENVIRONMENTS)[number];
+
 /**
  * Stable, kebab-case product key for a discovery Feed, for example
  * `nfl-games`. The Predict API owns the vocabulary (PRED-1522), so any
@@ -283,10 +289,50 @@ export interface PredictVenueFeedScreen {
   tabs: readonly PredictVenueFeedScreenTab[];
 }
 
+/**
+ * One PredictNext Home section (PRED-1527). `screen` names the Feed Screen
+ * its header opens; the header opens nothing while the Venue's `screens` lack
+ * it. Feed keys are keys of the same catalog's `feeds`.
+ */
+export type PredictHomeSection =
+  /** The Trending carousel, ranked from the Games of its source Feeds. */
+  | {
+      kind: 'trending';
+      /** In read order; never empty. */
+      sources: readonly PredictFeedKey[];
+      screen?: string;
+    }
+  /** A row of the Games of one Feed. */
+  | {
+      kind: 'games-row';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen?: string;
+    }
+  /** The catalog's `categories`, as chips. */
+  | { kind: 'categories' }
+  /** A preview of one Feed's first Events. */
+  | {
+      kind: 'feed-preview';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen: string;
+    };
+
+/** PredictNext Home, as the Venue catalog lays it out. */
+export interface PredictVenueHome {
+  /** In display order; at most eight, reading at most eight Feeds. */
+  sections: readonly PredictHomeSection[];
+}
+
 /** The support part of a Venue descriptor: the wire shape of the Venue
  * catalog (`GET /v1/venues/{venueId}/catalog`). */
 export interface PredictVenueCatalog {
   venueId: PredictVenueId;
+  /** Optional on legacy catalogs; required to enable deposits. */
+  environment?: PredictVenueEnvironment;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
   /** The Venue's Categories in display order, each named by its Feed key.
@@ -295,6 +341,9 @@ export interface PredictVenueCatalog {
   searchSupported: boolean;
   /** The Venue's Feed Screens. Empty when the catalog serves none. */
   screens: readonly PredictVenueFeedScreen[];
+  /** PredictNext Home's sections. Undefined when the catalog serves no
+   * usable `home`, and Home then shows no Feed sections. */
+  home?: PredictVenueHome;
 }
 
 export interface PredictBalance {
