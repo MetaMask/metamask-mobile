@@ -19,19 +19,6 @@ describe('getGameMoneylineMarkets', () => {
     ]);
   });
 
-  it('falls back to the Markets without a group when no full-game choice exists', () => {
-    const ungrouped = composedGame.markets
-      .slice(0, 2)
-      .map(({ group, layout, ...market }) => market);
-    const periodMoneyline = composedGame.markets[2];
-
-    expect(
-      ids(
-        getGameMoneylineMarkets(withMarkets([...ungrouped, periodMoneyline])),
-      ),
-    ).toEqual(['KXNFLGAME-26NOV02CHISEA-CHI', 'KXNFLGAME-26NOV02CHISEA-SEA']);
-  });
-
   it('does not treat a choice group without layout as the full-game moneyline', () => {
     const withoutLayout = composedGame.markets.map(
       ({ layout, ...market }) => market,

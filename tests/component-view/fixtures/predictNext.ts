@@ -24,6 +24,7 @@ import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/mess
 import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { fullGameMoneylineMetadata } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictGameLive,
@@ -329,6 +330,7 @@ export const makePredictNextGameEvent = (
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
   const [awayOutcome, homeOutcome] = event.markets[0].outcomes;
+  const moneyline = fullGameMoneylineMetadata(`${id}:moneyline`);
 
   return {
     ...event,
@@ -356,11 +358,13 @@ export const makePredictNextGameEvent = (
     markets: [
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-away-market` as PredictEntityId,
         outcomes: [{ ...awayOutcome, gameSelection: 'away' }, homeOutcome],
       },
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-home-market` as PredictEntityId,
         outcomes: [
           {
@@ -379,6 +383,7 @@ export const makePredictNextGameEvent = (
   };
 };
 
+/** A flat Game fixture to exercise Event screen rendering without layout metadata. */
 export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   const game = makePredictNextGameEvent(
     'nfl-composite',
@@ -390,7 +395,7 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   return {
     ...game,
     markets: [
-      ...game.markets,
+      ...game.markets.map(({ group, layout, ...market }) => market),
       ...makePredictNextTotalsEvent().markets,
       ...makePredictNextSpreadsEvent().markets,
     ],
