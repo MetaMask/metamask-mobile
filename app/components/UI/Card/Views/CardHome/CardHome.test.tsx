@@ -4900,6 +4900,27 @@ describe('CardHome Component', () => {
         });
       };
 
+      it('re-checks a card that is still being created', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'provisioning';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        await pullToRefresh();
+
+        expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
       it('re-checks the Immersve review and the data when signed in', async () => {
         mockCanEnableCard = false;
         mockProvisioningView = 'kyc_under_review';
