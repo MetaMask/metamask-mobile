@@ -19,7 +19,7 @@ export enum MoneyPostOnboardingRedirectType {
   CARD = 'card',
 }
 
-/** Card screen to open after Money onboarding when the redirect type is CARD. */
+/** Card screen to open after the Money splash when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
 export interface MoneyPreferredPaymentToken {
@@ -47,11 +47,8 @@ export type MoneyPostOnboardingRedirect =
       cardScreen: MoneyCardReturnScreen;
     };
 
-export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
+export interface MoneySplashParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
-}
-
-export interface MoneySplashParams extends MoneyOnboardingParams {
   /** Opens the splash as a read-only explainer: no CTA, no FAQ, and it does not mark the splash as seen. */
   infoMode?: boolean;
 }
@@ -148,7 +145,6 @@ export interface MoneyMusdRescueRecipientSelection {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
-    MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;

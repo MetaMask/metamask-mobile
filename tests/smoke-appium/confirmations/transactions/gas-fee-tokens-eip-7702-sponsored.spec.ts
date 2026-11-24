@@ -17,6 +17,7 @@ import {
   setupMockRequest,
   setupMockPostRequest,
 } from '../../../api-mocking/helpers/mockHelpers.js';
+import { accountsMultiaccountBalancesV4 } from '../../../api-mocking/api-mocks.js';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
@@ -146,27 +147,23 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
     Object.assign({}, ...remoteFeatureEip7702),
   );
 
-  await setupMockRequest(mockServer, {
-    url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-    response: {
-      balances: [
-        {
-          object: 'token',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'ETH',
-          name: 'Ether',
-          type: 'native',
-          decimals: 18,
-          chainId: 1337,
-          balance: '10.000000000000000000',
-          accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
-        },
-      ],
-      unprocessedNetworks: [],
-    },
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  await accountsMultiaccountBalancesV4.register(mockServer, () => ({
+    count: 1,
+    balances: [
+      {
+        object: 'token',
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        type: 'native',
+        decimals: 18,
+        chainId: 1337,
+        balance: '10.000000000000000000',
+        accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+      },
+    ],
+    unprocessedNetworks: [],
+  }));
 };
 
 const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
