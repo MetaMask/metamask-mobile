@@ -427,7 +427,7 @@ describe('useBridgeConfirm', () => {
 
   describe('money account operations', () => {
     const moneyToken: BridgeToken = {
-      ...mockBridgeReducerState.destToken,
+      ...(mockBridgeReducerState.destToken as BridgeToken),
       isMoneyToken: true,
     };
 
