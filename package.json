@@ -194,7 +194,6 @@
     "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^4.2.0",
     "@metamask/geolocation-controller": "^2.0.0",
-    "@metamask/kyc-controller@npm:^0.16.0": "patch:@metamask-previews/kyc-controller@npm%3A0.16.0-preview-9726c3b7f#~/.yarn/patches/@metamask-kyc-controller-npm-0.16.0-passthru.patch",
     "@metamask/utils": "^12.0.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -358,7 +357,7 @@
     "@metamask/approval-controller": "^10.0.0",
     "@metamask/assets-controller": "^20.3.0",
     "@metamask/assets-controllers": "^113.3.0",
-    "@metamask/authenticated-user-storage": "^4.1.0",
+    "@metamask/authenticated-user-storage": "npm:@metamask-previews/authenticated-user-storage@4.2.0-preview-6f89cf588",
     "@metamask/base-controller": "^10.0.0",
     "@metamask/base-data-service": "^2.1.0",
     "@metamask/bitcoin-wallet-snap": "^3.3.0",
@@ -412,7 +411,7 @@
     "@metamask/keyring-sdk": "^4.0.0",
     "@metamask/keyring-snap-client": "^10.0.1",
     "@metamask/keyring-utils": "^5.0.0",
-    "@metamask/kyc-controller": "^0.16.0",
+    "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.16.0-preview-6f89cf588",
     "@metamask/logging-controller": "^10.0.0",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/messenger": "^3.0.0",
@@ -442,7 +441,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-controller": "^3.0.0",
     "@metamask/profile-metrics-controller": "^5.2.1",
-    "@metamask/profile-sync-controller": "^36.0.0",
+    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@36.1.2-preview-6f89cf588",
     "@metamask/ramps-controller": "^29.0.0",
     "@metamask/react-data-query": "^1.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
@@ -958,12 +957,6 @@
       "eas-cli>@expo/logger>bunyan>dtrace-provider": false,
       "appium-uiautomator2-driver>appium-android-driver>appium-chromedriver>@appium/base-driver>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false
-    }
-  },
-  "previewBuilds": {
-    "@metamask/kyc-controller": {
-      "type": "non-breaking",
-      "previewVersion": "0.16.0-preview-9726c3b7f"
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",

@@ -52,7 +52,6 @@ describe('createKalshiVendorRequestSigner', () => {
     const signer = createKalshiVendorRequestSigner();
 
     const signed = await signer({
-      vendor: 'kalshi',
       requests: [
         { operation: 'enrollment/intents' },
         { operation: 'users/link', email: '  a@b.co ' },
@@ -101,7 +100,6 @@ describe('createKalshiVendorRequestSigner', () => {
     const signer = createKalshiVendorRequestSigner();
 
     const signed = await signer({
-      vendor: 'kalshi',
       requests: [{ operation: 'users/link/verify', code: ' 888888 ' }],
     });
 
@@ -132,9 +130,7 @@ describe('createKalshiVendorRequestSigner', () => {
   ])('refuses to sign without %s', async (_name, request, message) => {
     const signer = createKalshiVendorRequestSigner();
 
-    await expect(
-      signer({ vendor: 'kalshi', requests: [request] }),
-    ).rejects.toThrow(message);
+    await expect(signer({ requests: [request] })).rejects.toThrow(message);
     expect(mockSignOnboardingRequest).not.toHaveBeenCalled();
   });
 
@@ -143,7 +139,6 @@ describe('createKalshiVendorRequestSigner', () => {
 
     await expect(
       signer({
-        vendor: 'kalshi',
         requests: [{ operation: 'users/unlink' as never }],
       }),
     ).rejects.toThrow('unsupported operation users/unlink');
@@ -248,7 +243,6 @@ describe('createKalshiVendorRequestSigner', () => {
 
     await expect(
       signer({
-        vendor: 'kalshi',
         requests: [{ operation: 'enrollment/intents' }],
       }),
     ).rejects.toThrow('device signing is unavailable');

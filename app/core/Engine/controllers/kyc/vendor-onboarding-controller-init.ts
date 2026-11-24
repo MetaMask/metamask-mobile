@@ -27,7 +27,7 @@ export const vendorOnboardingControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     state: persistedState.VendorOnboardingController,
     sumsubLauncher,
-    vendorRequestSigners: { kalshi: createKalshiVendorRequestSigner() },
+    kalshiRequestSigner: createKalshiVendorRequestSigner(),
   });
 
   return { controller };

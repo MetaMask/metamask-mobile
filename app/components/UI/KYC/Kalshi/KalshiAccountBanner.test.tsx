@@ -36,7 +36,7 @@ const render = (step?: KycStep | null, status: KycStepStatus | null = 'none') =>
       engine: {
         backgroundState: {
           VendorOnboardingController: {
-            vendors: step ? { kalshi: { step, status, sessionId: null } } : {},
+            vendors: step ? { kalshi: { step, status } } : {},
           },
         },
       },

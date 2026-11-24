@@ -21,15 +21,16 @@ export type KalshiScreen =
 /**
  * What the phone knows beyond the step.
  *
- * MetaMask MFA and the first Kalshi email both happen before the session
- * exists, on `mfa`. `kalshi_email_link` is the email code, and the way back
- * to correct the address. `kalshi_phone_link` is the phone number and, once
- * it has been sent, its code. Only the phone knows which of those screens
- * is showing.
+ * `kalshi_email_link` covers the Kalshi email and its code. The email field
+ * shows until the code was sent from this screen, because the address is what
+ * opens the session, and again when the user goes back to change it.
+ * `kalshi_phone_link` covers the phone number and, once it was sent, its code.
+ * kyc-api cannot tell those screens apart, so only the phone knows which is
+ * showing.
  */
 export interface KalshiScreenContext {
-  /** MetaMask MFA finished, so the email field is showing. */
-  emailEntry: boolean;
+  /** The email code was sent from this screen and is being entered. */
+  emailSent: boolean;
   /** On the code step, the user went back to change the address. */
   editingEmail: boolean;
   /** The phone code was sent from this screen and is being entered. */
@@ -54,12 +55,14 @@ export function deriveKalshiScreen(
     case undefined:
     case null:
       return 'loading';
+    case 'mfa':
+      return 'confirm';
     case 'terms':
       return 'terms';
-    case 'mfa':
-      return context.emailEntry ? 'email' : 'confirm';
     case 'kalshi_email_link':
-      return context.editingEmail ? 'email' : 'email_code';
+      return context.emailSent && !context.editingEmail
+        ? 'email_code'
+        : 'email';
     case 'kalshi_phone_link':
       return context.phoneCodeSent ? 'phone_code' : 'phone';
     case 'sumsub':

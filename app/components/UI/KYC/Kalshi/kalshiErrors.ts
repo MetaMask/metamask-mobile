@@ -17,6 +17,8 @@ const MESSAGES: Partial<Record<KycKalshiErrorCode, string>> = {
     'Kalshi couldn’t confirm this request. Try again.',
   kalshi_signed_request_sub_mismatch:
     'This Kalshi sign-in doesn’t match your MetaMask account. Sign out of MetaMask, sign back in, and try again.',
+  kalshi_signed_request_email_mismatch:
+    'Kalshi has to be linked to the email you confirmed with MetaMask. Enter that address and try again.',
   kalshi_signed_request_a2t_invalid:
     'MetaMask couldn’t prove your Kalshi sign-in. Try again.',
   kalshi_signed_request_a2t_missing:

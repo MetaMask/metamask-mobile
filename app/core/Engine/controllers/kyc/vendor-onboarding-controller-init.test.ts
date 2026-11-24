@@ -84,7 +84,9 @@ describe('vendorOnboardingControllerInit', () => {
         kalshi: {
           step: 'mfa',
           status: 'none',
-          sessionId: 'sid-1',
+          mfaCompleted: false,
+          acceptedDisclaimerIds: [],
+          pendingConsents: null,
         },
       },
     };
@@ -114,8 +116,8 @@ describe('vendorOnboardingControllerInit', () => {
     vendorOnboardingControllerInit(getInitRequestMock());
 
     expect(createKalshiVendorRequestSigner).toHaveBeenCalledTimes(1);
-    expect(getLastConstructorArgs()?.vendorRequestSigners).toStrictEqual({
-      kalshi: expect.any(Function),
-    });
+    expect(getLastConstructorArgs()?.kalshiRequestSigner).toStrictEqual(
+      expect.any(Function),
+    );
   });
 });
