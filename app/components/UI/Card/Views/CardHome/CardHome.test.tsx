@@ -2858,6 +2858,25 @@ describe('CardHome Component', () => {
     expect(screen.queryByTestId('card-provisioning-alert-skeleton')).toBeNull();
   });
 
+  it('does not flash the creating copy while an Immersve check is in flight', () => {
+    mockProvisioningView = 'reconciling';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Setting up your card')).toBeOnTheScreen();
+    expect(screen.queryByText('Creating your card')).toBeNull();
+  });
+
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
     mockCanEnableCard = false;
     mockProvisioningView = 'kyc_under_review';

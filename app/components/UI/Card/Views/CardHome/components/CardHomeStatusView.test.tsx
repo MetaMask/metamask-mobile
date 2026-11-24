@@ -3,11 +3,28 @@ import { Text } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import CardHomeStatusView, {
   CardHomeStatusViewSelectors,
+  resolveCardHomeWaitingCopyStep,
 } from './CardHomeStatusView';
 import { useReduceMotionState } from '../../../../Money/hooks/useReduceMotion';
 
 jest.mock('../../../../Money/hooks/useReduceMotion', () => ({
   useReduceMotionState: jest.fn(() => true),
+}));
+
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = null;
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = null;
+
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
+
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
 }));
 
 const mockUseReduceMotionState = jest.mocked(useReduceMotionState);
@@ -26,6 +43,8 @@ describe('CardHomeStatusView', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockUseReduceMotionState.mockReturnValue(true);
+    mockNetworkTier = null;
+    mockHardwareTier = null;
   });
 
   afterEach(() => {
@@ -89,19 +108,26 @@ describe('CardHomeStatusView', () => {
     ).toBe('auto');
   });
 
-  it('renders with the breathing prop active', () => {
-    const { getByTestId } = render(
-      <CardHomeStatusView
-        asset={<Text testID="status-asset">Card art</Text>}
-        title="We're reviewing your identity"
-        description="This can take a little while."
-        breathing
-        primaryButton={{ label: 'Done', onPress: jest.fn() }}
-      />,
-    );
+  it('shows the button immediately when the device is offline', () => {
+    mockUseReduceMotionState.mockReturnValue(false);
+    mockNetworkTier = 'NONE';
+    mockHardwareTier = null;
+    const { getByTestId } = renderView();
 
-    expect(getByTestId(CardHomeStatusViewSelectors.ASSET)).toBeOnTheScreen();
-    expect(getByTestId(CardHomeStatusViewSelectors.TITLE)).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeStatusViewSelectors.FOOTER).props.pointerEvents,
+    ).toBe('auto');
+  });
+
+  it('shows the button immediately on a low-end phone with a slow connection', () => {
+    mockUseReduceMotionState.mockReturnValue(false);
+    mockNetworkTier = 'SLOW_CELLULAR';
+    mockHardwareTier = 'LOW';
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(CardHomeStatusViewSelectors.FOOTER).props.pointerEvents,
+    ).toBe('auto');
   });
 
   it('withholds interaction while the Reduce Motion check is pending', () => {
@@ -115,5 +141,28 @@ describe('CardHomeStatusView', () => {
     expect(
       getByTestId(CardHomeStatusViewSelectors.FOOTER).props.pointerEvents,
     ).toBe('none');
+  });
+});
+
+describe('resolveCardHomeWaitingCopyStep', () => {
+  it('keeps the last settled copy during a reconcile check', () => {
+    expect(
+      resolveCardHomeWaitingCopyStep('immersve-reconciling', 'identity-review'),
+    ).toBe('identity-review');
+    expect(
+      resolveCardHomeWaitingCopyStep('immersve-reconciling', 'creating-card'),
+    ).toBe('creating-card');
+  });
+
+  it('uses the neutral copy when a reconcile check is the first step', () => {
+    expect(resolveCardHomeWaitingCopyStep('immersve-reconciling', null)).toBe(
+      'signed-out-kyc-pending',
+    );
+  });
+
+  it('returns the step itself once the check has settled', () => {
+    expect(resolveCardHomeWaitingCopyStep('creating-card', null)).toBe(
+      'creating-card',
+    );
   });
 });

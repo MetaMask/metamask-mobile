@@ -110,6 +110,7 @@ import {
   SETUP_ALERT_TYPES,
   resolveCardHomeWaitingState,
   type CardHomeWaitingState,
+  type CardHomeWaitingStep,
 } from './hooks/CardHomeWaitingState';
 import useCardSetupPendingRefresh, {
   CARD_SETUP_PENDING_POLL_MS,
@@ -117,6 +118,7 @@ import useCardSetupPendingRefresh, {
 } from './hooks/useCardSetupPendingRefresh';
 import CardHomeStatusView, {
   CARD_HOME_WAITING_COPY,
+  resolveCardHomeWaitingCopyStep,
 } from './components/CardHomeStatusView';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
@@ -637,6 +639,7 @@ const CardHome = () => {
     isUkMigrationSoft && !isUkMigrationSoftBannerDismissed;
 
   const hasOpenedUkMigrationSheet = useRef(false);
+  const lastSettledWaitingStepRef = useRef<CardHomeWaitingStep | null>(null);
   useEffect(() => {
     if (!isUkMigrationSoft || hasOpenedUkMigrationSheet.current || isLoading) {
       return;
@@ -675,6 +678,12 @@ const CardHome = () => {
       provisioningView,
     ],
   );
+  if (
+    waitingState.kind === 'waiting' &&
+    waitingState.step !== 'immersve-reconciling'
+  ) {
+    lastSettledWaitingStepRef.current = waitingState.step;
+  }
 
   // Re-checks while a pending state is up, so it moves on by itself: a
   // faster cadence while the card is being created, the slow one while
@@ -965,7 +974,13 @@ const CardHome = () => {
   // --- Waiting view: identity in review, card being created, Immersve
   // review/reconcile checks, or signed out while verification is pending.
   if (waitingState.kind === 'waiting') {
-    const waitingCopy = CARD_HOME_WAITING_COPY[waitingState.step];
+    const waitingCopy =
+      CARD_HOME_WAITING_COPY[
+        resolveCardHomeWaitingCopyStep(
+          waitingState.step,
+          lastSettledWaitingStepRef.current,
+        )
+      ];
     return (
       <SafeAreaView
         edges={['right', 'bottom', 'left']}
@@ -982,7 +997,6 @@ const CardHome = () => {
           endButtonIconProps={[moreButtonProps]}
         />
         <CardHomeStatusView
-          breathing={waitingState.step !== 'signed-out-kyc-pending'}
           asset={
             <Box
               // Dimmed: the card is not live yet, so the art reads as pending.

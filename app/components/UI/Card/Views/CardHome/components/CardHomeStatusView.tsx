@@ -5,7 +5,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import { AnimationDuration } from '@metamask/design-tokens';
@@ -25,6 +24,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MarketingMomentTitle from '../../../../MarketingMomentTitle';
 import { useReduceMotionState } from '../../../../Money/hooks/useReduceMotion';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import type { CardHomeWaitingStep } from '../hooks/CardHomeWaitingState';
 
 export const CardHomeStatusViewSelectors = {
@@ -92,8 +93,6 @@ export interface CardHomeStatusViewProps {
   primaryButton: CardHomeStatusViewButton;
   /** Optional pull-to-refresh, e.g. to re-check a pending card. */
   refreshControl?: ScrollViewProps['refreshControl'];
-  /** When true, the card art breathes (gentle scale/opacity loop). */
-  breathing?: boolean;
   testID?: string;
 }
 
@@ -111,16 +110,23 @@ const CardHomeStatusView = ({
   description,
   primaryButton,
   refreshControl,
-  breathing = false,
   testID = CardHomeStatusViewSelectors.CONTAINER,
 }: CardHomeStatusViewProps) => {
   const tw = useTailwind();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   // `null` while the Reduce Motion check is in flight; nothing shows until it
   // resolves, so the first paint never flashes.
   const reduceMotion = useReduceMotionState();
+  // Offline: no entrance, on every hardware tier (unknown hardware included).
+  // A low-end phone on a slow cell connection skips it too. An unknown
+  // network keeps the entrance; it is not offline.
+  const suppressEntrance =
+    networkTier === 'NONE' ||
+    (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
 
   let cascadeState: CascadeState = 'pending';
-  if (reduceMotion === true) {
+  if (reduceMotion === true || (reduceMotion === false && suppressEntrance)) {
     cascadeState = 'static';
   } else if (reduceMotion === false) {
     cascadeState = 'play';
@@ -129,32 +135,6 @@ const CardHomeStatusView = ({
   const titleStyle = useCascadeStyle(1, cascadeState);
   const descriptionStyle = useCascadeStyle(2, cascadeState);
   const buttonStyle = useCascadeStyle(BUTTON_STEP, cascadeState);
-
-  // -- Card art breathing -------------------------------------------------
-  // A gentle scale/opacity loop on the card art, active only in the
-  // reviewing and creating states. Under Reduce Motion (or before the check
-  // resolves) the art stays still.
-
-  const breatheProgress = useSharedValue(0);
-  useEffect(() => {
-    if (breathing && reduceMotion === false) {
-      breatheProgress.value = withRepeat(
-        withTiming(1, {
-          duration: 2000,
-          easing: Easing.inOut(Easing.ease),
-        }),
-        -1,
-        true,
-      );
-    } else {
-      breatheProgress.value = 0;
-    }
-  }, [breathing, reduceMotion, breatheProgress]);
-
-  const breathingStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + breatheProgress.value * 0.02 }],
-    opacity: 1 - breatheProgress.value * 0.1,
-  }));
 
   // A view at zero opacity still takes taps, so the button only becomes
   // pressable once its fade-in starts (straight away under Reduce Motion).
@@ -221,7 +201,7 @@ const CardHomeStatusView = ({
           testID={CardHomeStatusViewSelectors.ASSET}
         >
           <Animated.View style={[tw.style('w-full'), assetStyle]}>
-            <Animated.View style={breathingStyle}>{asset}</Animated.View>
+            {asset}
           </Animated.View>
         </Box>
       </ScrollView>
@@ -252,8 +232,11 @@ export default CardHomeStatusView;
 
 /**
  * Per-state copy for the waiting view, keyed by the resolver's waiting
- * steps. Connor-approved copy: the two Immersve check states collapse into
- * the identity-review and creating-card pairs, so only three variants ship.
+ * steps. The Immersve review uses the identity-review copy. The in-flight
+ * reconcile check does not use the creating copy: that flash is what made
+ * "Creating your card" appear before the check had resolved. Its map entry
+ * is the neutral fallback; `resolveCardHomeWaitingCopyStep` prefers the last
+ * settled step when there is one.
  */
 export const CARD_HOME_WAITING_COPY: Record<
   CardHomeWaitingStep,
@@ -277,7 +260,22 @@ export const CARD_HOME_WAITING_COPY: Record<
     descriptionKey: 'card.card_home.setup_pending.creating.description',
   },
   'immersve-reconciling': {
-    titleKey: 'card.card_home.setup_pending.creating.title',
-    descriptionKey: 'card.card_home.setup_pending.creating.description',
+    titleKey: 'card.card_home.setup_pending.signed_out_pending.title',
+    descriptionKey:
+      'card.card_home.setup_pending.signed_out_pending.description',
   },
+};
+
+/** Copy key for a waiting step. A reconcile check keeps the last settled copy. */
+export const resolveCardHomeWaitingCopyStep = (
+  step: CardHomeWaitingStep,
+  lastSettledStep: CardHomeWaitingStep | null,
+): CardHomeWaitingStep => {
+  if (step !== 'immersve-reconciling') {
+    return step;
+  }
+  if (lastSettledStep && lastSettledStep !== 'immersve-reconciling') {
+    return lastSettledStep;
+  }
+  return 'signed-out-kyc-pending';
 };
