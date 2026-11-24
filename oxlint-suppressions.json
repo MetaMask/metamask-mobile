@@ -1729,7 +1729,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Bridge/components/SwapsRecurringBuyConfirmButton/index.tsx": {
