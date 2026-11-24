@@ -12689,7 +12689,7 @@
   },
   "app/components/UI/Rewards/hooks/useGetVipTransactions.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 10
+      "count": 11
     }
   },
   "app/components/UI/Rewards/hooks/useInFlightClaims.test.ts": {
@@ -12781,7 +12781,7 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
+      "count": 6
     }
   },
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.ts": {
@@ -23913,7 +23913,7 @@
   },
   "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
+      "count": 11
     }
   },
   "app/store/sagas/rewardsBulkLinkAccountGroups.ts": {
