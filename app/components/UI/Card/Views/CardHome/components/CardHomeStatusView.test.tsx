@@ -53,7 +53,7 @@ describe('CardHomeStatusView', () => {
   });
 
   it('renders the asset, title, description and primary button', () => {
-    const { getByTestId, getByText } = renderView();
+    const { getByTestId } = renderView();
 
     expect(
       getByTestId(CardHomeStatusViewSelectors.CONTAINER),
@@ -66,7 +66,7 @@ describe('CardHomeStatusView', () => {
     expect(
       getByTestId(CardHomeStatusViewSelectors.DESCRIPTION),
     ).toHaveTextContent('Most applications are reviewed within a few hours.');
-    expect(getByText('Done')).toBeOnTheScreen();
+    expect(getByTestId('done-button')).toBeOnTheScreen();
   });
 
   it('calls the primary action when the button is pressed', () => {

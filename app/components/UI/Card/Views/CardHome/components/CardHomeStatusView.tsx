@@ -35,6 +35,7 @@ export const CardHomeStatusViewSelectors = {
   DESCRIPTION: 'card-home-status-view-description',
   FOOTER: 'card-home-status-view-footer',
   PRIMARY_BUTTON: 'card-home-status-view-primary-button',
+  SCROLL_VIEW: 'card-home-status-view-scroll-view',
 };
 
 // -- Content cascade ---------------------------------------------------------
@@ -157,6 +158,7 @@ const CardHomeStatusView = ({
   return (
     <Box twClassName="flex-1" testID={testID}>
       <ScrollView
+        testID={CardHomeStatusViewSelectors.SCROLL_VIEW}
         contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
         showsVerticalScrollIndicator={false}
         // Bounce is needed for pull-to-refresh to be reachable.
