@@ -34,6 +34,7 @@ import { resolveSwapSocialPostTrade } from '../../components/PostTradeBottomShee
 import { prefetchQuoteTokens } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { selectProfileControllerLinkedEvmAddress } from '../../../../../selectors/profileController';
+import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-operations';
 
 interface Params {
   activeQuote?: QuoteResponse | null;
@@ -165,10 +166,21 @@ export const useBridgeConfirm = ({
       };
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-        params: modalParams,
-      });
+      if (resolveMoneyAccountOperation(sourceToken, destToken)) {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      } else {
+        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+          params: modalParams,
+        });
+      }
     }
   };
 

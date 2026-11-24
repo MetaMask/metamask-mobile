@@ -425,6 +425,57 @@ describe('useBridgeConfirm', () => {
     });
   });
 
+  describe('money account operations', () => {
+    const moneyToken: BridgeToken = {
+      ...mockBridgeReducerState.destToken,
+      isMoneyToken: true,
+    };
+
+    it.each([
+      [
+        'deposit',
+        {
+          ...mockBridgeReducerState,
+          destToken: moneyToken,
+        },
+      ],
+      [
+        'withdraw',
+        {
+          ...mockBridgeReducerState,
+          sourceToken: {
+            ...mockBridgeReducerState.sourceToken,
+            isMoneyToken: true,
+          },
+        },
+      ],
+    ])(
+      'navigates to money home after a %s instead of opening the post-trade sheet',
+      async (_label, bridge) => {
+        const { result } = renderHook(defaultParams, { bridge });
+
+        await act(async () => {
+          await result.current();
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+          }),
+        );
+      },
+    );
+  });
+
   describe.each([
     ['activeQuote is null', { activeQuote: null }],
     ['walletAddress is missing', {}],
