@@ -107,6 +107,7 @@ describe('handleSocialPostUrl', () => {
         pnl30d: 1200,
         tradeCount30d: 30,
         followerCount: 7,
+        verified: false,
       },
     });
     expect(mockNavigateToProfile).not.toHaveBeenCalled();
