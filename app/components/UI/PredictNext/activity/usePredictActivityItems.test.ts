@@ -214,6 +214,15 @@ describe('usePredictActivityItems', () => {
         'trade-sell',
         'settlement-1',
       ]);
+      expect(result.current.items[1]?.data).toMatchObject({
+        side: 'yes',
+        shares: '10',
+        price: '0.61',
+        outcomeLabel: 'Kansas City',
+        marketQuestion: 'Kansas City to win?',
+        realizedPnl: '0.27',
+      });
+      expect(result.current.items[0]?.data).not.toHaveProperty('realizedPnl');
       expect(result.current).toMatchObject({
         isLoading: false,
         error: null,

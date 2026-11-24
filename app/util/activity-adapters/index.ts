@@ -9,6 +9,7 @@ export type {
   ActivityKind,
   PerpsOrderKind,
   PredictSettlementExtras,
+  PredictTradeExtras,
   Status,
   TokenAmount,
 } from './types';

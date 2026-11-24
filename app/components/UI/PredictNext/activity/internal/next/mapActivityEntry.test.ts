@@ -64,11 +64,17 @@ describe('mapActivityEntry', () => {
         },
         eventTitle: 'Kansas City at Buffalo',
         icon: 'https://example.com/kc-buf.png',
+        outcomeLabel: 'Kansas City',
+        marketQuestion: 'Kansas City to win?',
+        side: 'yes',
+        shares: '10',
+        price: '0.61',
+        realizedPnl: '0.27',
       },
     });
   });
 
-  it('maps a buy to a placed prediction debit', () => {
+  it('maps a buy to a placed prediction debit and leaves PnL absent', () => {
     const item = map({
       ...sell,
       action: 'buy',
@@ -78,6 +84,45 @@ describe('mapActivityEntry', () => {
     expect(item.type).toBe('predictionPlaced');
     expect(item.data).toMatchObject({
       token: { amount: '5.93', direction: 'out' },
+      outcomeLabel: 'Kansas City',
+      marketQuestion: 'Kansas City to win?',
+      side: 'yes',
+      shares: '10',
+      price: '0.61',
+    });
+    expect(item.data).not.toHaveProperty('realizedPnl');
+  });
+
+  it('maps a Trade with no context to side, shares, and price only', () => {
+    const item = map({
+      ...sell,
+      context: undefined,
+      realizedPnl: undefined,
+    } as PredictTradeEntry);
+
+    expect(item.data).toMatchObject({
+      eventTitle: undefined,
+      icon: undefined,
+      side: 'yes',
+      shares: '10',
+      price: '0.61',
+    });
+    expect(item.data).not.toHaveProperty('outcomeLabel');
+    expect(item.data).not.toHaveProperty('marketQuestion');
+  });
+
+  it("names a Trade's Outcome with its context's Market labels", () => {
+    const item = map({
+      ...sell,
+      context: {
+        ...context,
+        outcomeLabel: 'Yes',
+        marketLabels: ['Josh Jacobs', '60+'],
+      },
+    } as PredictTradeEntry);
+
+    expect(item.data).toMatchObject({
+      outcomeLabel: 'Yes · Josh Jacobs · 60+',
     });
   });
 

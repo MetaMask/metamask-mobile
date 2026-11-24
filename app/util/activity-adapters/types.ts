@@ -122,11 +122,33 @@ export interface PredictSettlementExtras {
   realizedPnl?: string;
 }
 
+/**
+ * Trade details, carried on the item so the details screen renders without a
+ * second Activity read. Amounts are plain decimal strings. The Balance
+ * movement stays on `data.token`. Side, shares, and price are absent on
+ * legacy Polymarket rows, which do not use this projection.
+ */
+export interface PredictTradeExtras {
+  /** Joined Outcome name. Absent when the Trade has no context. */
+  outcomeLabel?: string;
+  marketQuestion?: string;
+  /** Side the Predict User traded. */
+  side?: 'yes' | 'no';
+  /** Filled shares. */
+  shares?: string;
+  /** Fee-exclusive price per share. */
+  price?: string;
+  /** Signed. Present on sells when the cost basis is known. */
+  realizedPnl?: string;
+}
+
 type ActivityDataExtras<ActivityType> = ActivityType extends 'predictionSettled'
   ? PredictSettlementExtras & PredictDataExtras & ActivityDataExtrasCommon
-  : ActivityType extends PredictActivityKind
-    ? PredictDataExtras & ActivityDataExtrasCommon
-    : ActivityDataExtrasCommon;
+  : ActivityType extends 'predictionPlaced' | 'predictionCashedOut'
+    ? PredictTradeExtras & PredictDataExtras & ActivityDataExtrasCommon
+    : ActivityType extends PredictActivityKind
+      ? PredictDataExtras & ActivityDataExtrasCommon
+      : ActivityDataExtrasCommon;
 
 interface ActivityDataExtrasCommon {
   fees?: ActivityFee[];

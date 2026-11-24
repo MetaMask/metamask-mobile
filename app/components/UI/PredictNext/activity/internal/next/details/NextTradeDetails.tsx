@@ -21,14 +21,11 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../../../../Predict/utils/format';
-import { useNextVenueId } from '../../../../implementation';
-import { getOutcomeName } from '../../../../utils/entryCopy';
 import {
   PredictMarketContext,
   StatusAndDateRows,
 } from '../../legacy/details/PredictDetailsShared';
 import { useOpenPredictHome } from '../../legacy/details/useOpenPredictHome';
-import { useNextActivityEntry } from '../useNextActivityEntry';
 
 export type PredictTradeListItem = Extract<
   ActivityListItem,
@@ -67,47 +64,45 @@ function NetPnlSection({ realizedPnl }: Readonly<{ realizedPnl: number }>) {
   );
 }
 
+const SIDE_LABEL_KEYS = {
+  yes: 'predict.market_details.yes',
+  no: 'predict.market_details.no',
+} as const;
+
 /**
- * Details for a canonical Trade, in the Polymarket details layout. The item
- * carries the amount and presentation; the canonical entry adds the Outcome,
- * shares, price and a sell's realized PnL. A row whose entry is not loaded
- * keeps what the item has and omits the rest.
+ * Details for a canonical Trade, in the Polymarket details layout. The mapper
+ * carries the amount, Outcome, shares, price, and a sell's realized PnL.
+ * A legacy row that omits those fields shows only what it has.
  */
 export function NextTradeDetails({
   item,
 }: Readonly<{ item: PredictTradeListItem }>) {
-  const venueId = useNextVenueId();
-  const { entry, isLoading } = useNextActivityEntry(venueId, item.hash);
+  const { data } = item;
   const openPredictHome = useOpenPredictHome();
-
-  if (!entry && isLoading) {
-    return null;
-  }
-
-  const trade = entry?.type === 'trade' ? entry : undefined;
   const isBuy = item.type === 'predictionPlaced';
-  const tokenAmount = item.data.token
-    ? getHumanReadableTokenAmount(item.data.token)
+  const tokenAmount = data.token
+    ? getHumanReadableTokenAmount(data.token)
     : undefined;
   const amount =
     tokenAmount === undefined
       ? undefined
       : formatCurrencyValue(Number(tokenAmount));
   const realizedPnl =
-    trade?.realizedPnl === undefined ? undefined : Number(trade.realizedPnl);
+    data.realizedPnl === undefined ? undefined : Number(data.realizedPnl);
+  const outcome =
+    data.outcomeLabel ??
+    (data.side ? strings(SIDE_LABEL_KEYS[data.side]) : undefined);
 
   return (
     <ActivityDetailsTemplateFrame
       metadata={
         <ActivityDetailSection>
           <PredictMarketContext
-            icon={item.data.icon}
-            outcome={
-              trade ? getOutcomeName(trade.side, trade.context) : undefined
-            }
+            icon={data.icon}
+            outcome={outcome}
             title={
-              trade?.context?.marketQuestion ??
-              item.data.eventTitle ??
+              data.marketQuestion ??
+              data.eventTitle ??
               strings('predict_next.portfolio.unknown_market')
             }
           />
@@ -122,11 +117,19 @@ export function NextTradeDetails({
                 ? strings('predict.transactions.shares_bought')
                 : strings('predict.transactions.shares_sold')
             }
-            value={trade ? formatPositionSize(trade.shares) : undefined}
+            value={
+              data.shares === undefined
+                ? undefined
+                : formatPositionSize(data.shares)
+            }
           />
           <ActivityDetailRow
             label={strings('predict.transactions.price_per_share')}
-            value={trade ? formatSharePrice(trade.price) : undefined}
+            value={
+              data.price === undefined
+                ? undefined
+                : formatSharePrice(data.price)
+            }
           />
         </ActivityDetailSection>
       }

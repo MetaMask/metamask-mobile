@@ -23,6 +23,9 @@ const toUsdToken = (
  * key, so the row has no explorer link. `status` is always `success`: canonical
  * Activity only holds executed Trades and completed Settlements.
  *
+ * Trade and Settlement details ride on the item. The details template reads
+ * that item and does not query Activity.
+ *
  * @param entry - A canonical Trade or Settlement.
  * @param chainId - The Venue's Activity chain id from `getVenueActivityChainId`.
  * @returns The shared Activity item.
@@ -68,6 +71,18 @@ export const mapActivityEntry = (
     data: {
       ...presentation,
       token: toUsdToken(entry.amount, isBuy ? 'out' : 'in'),
+      ...(context
+        ? {
+            outcomeLabel: getOutcomeName(entry.side, context),
+            marketQuestion: context.marketQuestion,
+          }
+        : {}),
+      side: entry.side,
+      shares: entry.shares,
+      price: entry.price,
+      ...(entry.realizedPnl === undefined
+        ? {}
+        : { realizedPnl: entry.realizedPnl }),
     },
   };
 };

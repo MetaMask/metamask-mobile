@@ -5,9 +5,8 @@ import { PredictSettlementDetails } from '../../legacy/details/PredictSettlement
 import { NextTradeDetails } from './NextTradeDetails';
 
 /**
- * The next branch's details template for `prediction*` kinds. Trades render
- * in the Polymarket layout, Settlements through the shared Settlement
- * template, which needs no lookup. Deposits and Withdraws are wallet
+ * The next branch's details template for `prediction*` kinds. Trades and
+ * Settlements render from the item. Deposits and Withdraws are wallet
  * transactions, not Predict Activity, so they render as on every lane.
  */
 export function NextActivityDetails({
