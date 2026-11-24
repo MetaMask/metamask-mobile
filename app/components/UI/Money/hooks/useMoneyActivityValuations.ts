@@ -220,8 +220,6 @@ function requestParams(
 interface ValuationQueryGroup {
   params: ValuationRequestParams[];
   targets: VaultShareValuationTarget[];
-  cached: VaultShareValuationCacheEntry[];
-  cachedByIdentity: Map<string, VaultShareValuationCacheEntry>;
   pageIndices: number[];
 }
 
@@ -278,17 +276,9 @@ function mergeValuationQueryGroups(
   existingGroup: ValuationQueryGroup,
   newGroup: ValuationQueryGroup,
 ): ValuationQueryGroup {
-  const cached = [
-    ...entriesByIdentity([
-      ...existingGroup.cached,
-      ...newGroup.cached,
-    ]).values(),
-  ];
   return {
     params: mergeRequestParams(existingGroup.params, newGroup.params),
     targets: mergeValuationTargets(existingGroup.targets, newGroup.targets),
-    cached,
-    cachedByIdentity: entriesByIdentity(cached),
     pageIndices: [
       ...new Set([...existingGroup.pageIndices, ...newGroup.pageIndices]),
     ].sort((a, b) => a - b),
@@ -314,8 +304,6 @@ function buildValuationQueryGroups(
     const pageGroup: ValuationQueryGroup = {
       params: requestParams(missing, page.targets),
       targets: page.targets,
-      cached: page.cached,
-      cachedByIdentity: page.cachedByIdentity,
       pageIndices: [pageIndex],
     };
     const groupKey = JSON.stringify(
