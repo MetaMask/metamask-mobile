@@ -104,6 +104,9 @@ export function useImmersveCardProvisioning(
   // Failed reconciles and createCard calls only. Funding-settling waits back
   // off on the shared counter above but never spend this budget.
   const errorRetryCountRef = useRef(0);
+  // Last next_action reported as IMMERSVE_ONBOARDING_ROUTED. Rechecks of an
+  // unchanged step (a review still pending) do not report it again.
+  const lastRoutedActionTypeRef = useRef<string | null>(null);
   // An error retry that could not be scheduled because the device was offline,
   // or whose timer was cleared on the way offline. Coming back online runs it.
   const retryDroppedOfflineRef = useRef(false);
@@ -162,6 +165,7 @@ export function useImmersveCardProvisioning(
       handled.current = false;
       quietRecheckAttemptRef.current = 0;
       errorRetryCountRef.current = 0;
+      lastRoutedActionTypeRef.current = null;
       retryDroppedOfflineRef.current = false;
       createCardStartedRef.current = false;
       // Only a real card (provisioning just ended) clears the wait. A home
@@ -328,8 +332,11 @@ export function useImmersveCardProvisioning(
     }
     // A review rechecks every 15s on every network, the same cadence as Card
     // home's own review poll. A slower provisioning interval still wins.
+    // Same as the other recheck paths: drop the resolved flag first so the
+    // check reads as reconciling, which also pauses this timer until it lands.
     const interval = setInterval(
       () => {
+        setHasResolvedStatus(false);
         setRecheckCount((count) => count + 1);
       },
       Math.max(pollIntervalMs, CARD_SETUP_PENDING_POLL_MS),
@@ -536,7 +543,10 @@ export function useImmersveCardProvisioning(
               })
               .catch(() => undefined);
           }
-          if (cancelled) return;
+          if (cancelled || lastRoutedActionTypeRef.current === action.type) {
+            return;
+          }
+          lastRoutedActionTypeRef.current = action.type;
           trackEventRef.current(
             createEventBuilderRef
               .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
