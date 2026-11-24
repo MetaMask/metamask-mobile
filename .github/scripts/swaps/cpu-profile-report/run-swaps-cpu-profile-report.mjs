@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   PERFORMANCE_WORKFLOW,
+  REPORT_WORKFLOW,
   SCENARIOS,
   SLACK_CHANNEL_ID,
 } from './swaps-cpu-profile-report.config.mjs';
@@ -41,6 +42,42 @@ function readArtifactJson(runId, artifact, file) {
   const target = path.join(directory, `${runId}-${artifact}`);
   gh(['run', 'download', `${runId}`, '-R', repo, '-n', artifact, '-D', target]);
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
+}
+
+/** Last week's summary from this workflow's recent runs, or null on the first run or after a missed week. */
+function previousSummary({ start }) {
+  const previousStart = new Date(start - 7 * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    const runs = JSON.parse(
+      gh(
+        ['run', 'list', '-R', repo, '-w', REPORT_WORKFLOW].concat([
+          '-s',
+          'success',
+          '-L',
+          '10',
+          '--json',
+          'databaseId',
+        ]),
+      ),
+    );
+    for (const { databaseId } of runs) {
+      try {
+        const summary = readArtifactJson(
+          databaseId,
+          'swaps-cpu-profile-summary',
+          'summary.json',
+        );
+        if (summary.window?.start === previousStart) {
+          return summary;
+        }
+      } catch {
+        // A run without the artifact is not a baseline.
+      }
+    }
+  } catch (error) {
+    console.warn(`[baseline] ${error.stderr?.trim() || error.message}`);
+  }
+  return null;
 }
 
 /** chat.postMessage reports errors as HTTP 200 with `ok: false`. */
@@ -129,6 +166,7 @@ async function main() {
     devices,
     runsFound: runIds.length,
     runUrl: env.GITHUB_RUN_URL || '',
+    previous: previousSummary(window),
   });
   console.log(`${message}\n`);
   if (dryRun) {

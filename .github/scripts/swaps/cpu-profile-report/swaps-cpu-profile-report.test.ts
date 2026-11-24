@@ -20,6 +20,11 @@ const audit = (widest: number, self: number) => ({
   nonSwapsConcurrentAreas: [{ area: 'React Native renderer', selfMs: 600 }],
   caveat: null,
 });
+const selector = {
+  name: 'anonymous',
+  url: '/app/core/redux/slices/bridge/index.ts',
+  line: 993,
+};
 const report = (profile: object) => ({
   scenarios: [{ scenario: key, profiles: [profile] }],
 });
@@ -83,14 +88,21 @@ describe('scenarioSample', () => {
     );
   });
 
-  it('adds self time and areas across segments and keeps the widest span', () => {
+  it('adds self time and areas across segments and keeps the widest span and its function', () => {
     const segments = {
+      meta: { headSha: 'abc123' },
       scenarios: [
         {
           scenario: key,
           profiles: [
             { symbolicated: true, skillAudit: audit(300, 40) },
-            { symbolicated: true, skillAudit: audit(500, 10) },
+            {
+              symbolicated: true,
+              skillAudit: {
+                ...audit(500, 10),
+                topSwapsFrames: [{ ...selector, inclusiveMs: 500.2 }],
+              },
+            },
           ],
         },
       ],
@@ -99,6 +111,12 @@ describe('scenarioSample', () => {
     expect(sample.audit).toMatchObject({
       swapsOwnedSelfMs: 50,
       swapsWidestInclusiveMs: 500,
+      widestFunction: {
+        name: 'anonymous',
+        file: '/app/core/redux/slices/bridge/index.ts',
+        line: 993,
+        commit: 'abc123',
+      },
     });
     expect(summarizeScenario([sample])).toMatchObject({
       runs: [{ widestSpanMs: 500, ownedSelfMs: 50 }],
@@ -122,21 +140,28 @@ describe('scenarioSample', () => {
 });
 
 describe('buildSlackMessage', () => {
-  it('lists median and p90 per scenario, and says when no run was usable', () => {
-    const used = [audit(300, 40), audit(340, 50), audit(400, 60)].map(
-      (item) => ({
-        status: 'used',
-        audit: item,
-      }),
-    );
+  const used = (widest: number, self: number, extra: object = {}) => ({
+    status: 'used',
+    audit: { ...audit(widest, self), ...extra },
+  });
+  const options = {
+    window: { label: '2026-11-16 – 2026-11-22 UTC' },
+    runsRead: 4,
+    runsFound: 5,
+    devices: ['Pixel 8 Pro'],
+    runUrl: 'https://example.com/run',
+  };
+
+  it('leads with the p90 per scenario and says why runs were dropped', () => {
     const message = buildSlackMessage(
       [
         {
           label: 'ETH swap',
           summary: summarizeScenario([
-            ...used,
+            used(300, 40),
+            used(340, 50),
+            used(400, 60),
             { status: 'failed' },
-            { status: 'ambiguous' },
           ]),
         },
         {
@@ -144,51 +169,84 @@ describe('buildSlackMessage', () => {
           summary: summarizeScenario([{ status: 'missing' }]),
         },
       ],
-      {
-        window: { label: '2026-11-09 – 2026-11-15 UTC' },
-        runsRead: 4,
-        runsFound: 4,
-        devices: ['Pixel 8 Pro', 'Pixel 9'],
-        runUrl: 'https://example.com/run',
-      },
+      options,
     );
-    expect(message).toContain('on main (Pixel 8 Pro, Pixel 9)');
-    expect(message).toContain(
-      '*ETH swap*: used 3 of 5 runs (dropped: failed test 1, unsymbolicated 0, missing 0)\n1 skipped: ambiguous device match',
+    expect(message).toBe(
+      [
+        ':bar_chart: *Swaps CPU profile report, 2026-11-16 – 2026-11-22 UTC* (shadow mode, no flags)',
+        "*ETH swap*: widest span 388ms at p90, no baseline yet; the analysis doesn't name the function.",
+        '*Cross-chain swap*: no usable runs this week.',
+        '',
+        "Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. p90 is over this week's scheduled runs on main (Pixel 8 Pro).",
+        'Coverage: 1 of 5 runs had no profile analysis; ETH swap: 1 of 4 runs failed before measuring; Cross-chain swap: 1 of 1 runs had no profile.',
+        '<https://example.com/run|Run log>',
+      ].join('\n'),
     );
-    expect(message).toContain('median 340ms · p90 388ms');
-    expect(message).toContain('median 50ms · p90 58ms');
-    expect(message).toContain(
-      '*Cross-chain swap*: used 0 of 1 runs (dropped: failed test 0, unsymbolicated 0, missing 1)',
-    );
-    expect(message).toContain('No passing, symbolicated runs this week.');
   });
 
-  it('escapes Slack markup and renames the no-source-path area', () => {
-    const sample = {
-      status: 'used',
-      audit: {
-        ...audit(300, 40),
-        swapsOwnedAreas: [{ area: '<!channel> & co', selfMs: 40 }],
-        nonSwapsConcurrentAreas: [
-          { area: 'Unknown (unsymbolicated)', selfMs: 5 },
-        ],
-      },
+  it('compares with last week and shows only what moved notably', () => {
+    const fn = {
+      name: 'anonymous',
+      file: selector.url,
+      line: 993,
+      commit: 'abc123',
     };
+    const summary = (calledMs: number, concurrentArea: string) =>
+      summarizeScenario([
+        used(1000, 40, {
+          widestFunction: fn,
+          nonSwapsOnPathAreas: [
+            { area: 'fast-equals (dependency)', selfMs: calledMs },
+          ],
+          nonSwapsConcurrentAreas: [{ area: concurrentArea, selfMs: 600 }],
+        }),
+      ]);
     const message = buildSlackMessage(
-      [{ label: 'ETH swap', summary: summarizeScenario([sample]) }],
+      [{ label: 'Cross-chain swap', summary: summary(900, '<!here> & co') }],
       {
-        window: { label: 'week' },
-        runsRead: 1,
-        runsFound: 1,
+        ...options,
+        runsRead: 5,
         devices: ['<@U123>'],
+        previous: {
+          scenarios: [
+            {
+              label: 'Cross-chain swap',
+              summary: {
+                ...summary(600, '<!here> & co'),
+                widestSpanMs: { median: 800, p90: 800 },
+              },
+            },
+          ],
+        },
       },
     );
-    expect(message).toContain('&lt;!channel&gt; &amp; co 40ms');
-    expect(message).toContain('(&lt;@U123&gt;)');
-    expect(message).not.toMatch(/<!channel>|<@U123>/);
     expect(message).toContain(
-      'Co-running, not Swaps: Native or no source path 5ms',
+      '*Cross-chain swap*: widest span 1,000ms at p90, up 25% from 800ms last week; from an anonymous function in <https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993|app/core/redux/slices/bridge/index.ts:993>.\nCalled by swaps (upper bound): fast-equals (dependency) 900ms (was 600ms)\n\n',
+    );
+    expect(message).not.toMatch(/Running alongside|Coverage|<!here>|<@U123>/);
+    expect(message).toContain('(&lt;@U123&gt;)');
+
+    const renamed = buildSlackMessage(
+      [
+        {
+          label: 'Cross-chain swap',
+          summary: summary(900, 'Unknown (unsymbolicated)'),
+        },
+      ],
+      {
+        ...options,
+        previous: {
+          scenarios: [
+            {
+              label: 'Cross-chain swap',
+              summary: summary(900, '<!here> & co'),
+            },
+          ],
+        },
+      },
+    );
+    expect(renamed).toContain(
+      'Running alongside, not Swaps: Native or no source path 600ms (was 0ms)',
     );
   });
 });

@@ -70,30 +70,46 @@ export function scenarioSample(report, failed, { testName }) {
   return profiles.length && audited
     ? {
         status: 'used',
-        audit: mergeSegments(profiles.map((profile) => profile.skillAudit)),
+        audit: mergeSegments(
+          profiles.map((profile) => profile.skillAudit),
+          report.meta?.headSha,
+        ),
       }
     : { status: 'unsymbolicated' };
 }
 
+/** The swaps function behind a segment's widest span; the analyzer only lists functions with time of their own, so it can be missing. */
+function widestFunction(audit, commit) {
+  const frame = (audit.topSwapsFrames || []).find(
+    (candidate) =>
+      Math.abs(candidate.inclusiveMs - audit.swapsWidestInclusiveMs) < 0.5,
+  );
+  return frame
+    ? { name: frame.name, file: frame.url, line: frame.line, commit }
+    : null;
+}
+
 /** A capture can span several Hermes segments: self time and areas add up, the widest span is the largest. */
-function mergeSegments(audits) {
+function mergeSegments(audits, commit) {
   const concat = (field) => audits.flatMap((audit) => audit[field] || []);
+  const widest = audits.reduce((a, b) =>
+    (b.swapsWidestInclusiveMs || 0) > (a.swapsWidestInclusiveMs || 0) ? b : a,
+  );
   return {
     swapsOwnedSelfMs: audits.reduce(
       (total, audit) => total + (audit.swapsOwnedSelfMs || 0),
       0,
     ),
-    swapsWidestInclusiveMs: Math.max(
-      ...audits.map((audit) => audit.swapsWidestInclusiveMs || 0),
-    ),
+    swapsWidestInclusiveMs: widest.swapsWidestInclusiveMs || 0,
+    widestFunction: widestFunction(widest, commit),
     swapsOwnedAreas: concat('swapsOwnedAreas'),
     nonSwapsOnPathAreas: concat('nonSwapsOnPathAreas'),
     nonSwapsConcurrentAreas: concat('nonSwapsConcurrentAreas'),
   };
 }
 
-/** The three areas with the most self time per run on average; a run without the area counts as 0. */
-function topAreas(audits, field) {
+/** Areas by average self time per run, largest first; a run without the area counts as 0. */
+function areaAverages(audits, field) {
   const totals = new Map();
   for (const audit of audits) {
     for (const { area, selfMs } of audit[field] || []) {
@@ -103,8 +119,7 @@ function topAreas(audits, field) {
   return [...totals]
     .map(([area, total]) => ({ area, avgMs: total / audits.length }))
     .filter(({ avgMs }) => avgMs > 0)
-    .sort((a, b) => b.avgMs - a.avgMs)
-    .slice(0, 3);
+    .sort((a, b) => b.avgMs - a.avgMs);
 }
 
 export function summarizeScenario(samples) {
@@ -127,19 +142,24 @@ export function summarizeScenario(samples) {
   const runs = audits.map((audit) => ({
     widestSpanMs: audit.swapsWidestInclusiveMs || 0,
     ownedSelfMs: audit.swapsOwnedSelfMs || 0,
+    widestFunction: audit.widestFunction,
   }));
   const stats = (values) => ({
     median: percentile(values, 0.5),
     p90: percentile(values, 0.9),
   });
+  const widestSpanMs = stats(runs.map((run) => run.widestSpanMs));
+  const distance = (run) => Math.abs(run.widestSpanMs - widestSpanMs.p90);
+  const p90Run = runs.reduce((a, b) => (distance(b) < distance(a) ? b : a));
   return {
     counts,
     runs,
-    widestSpanMs: stats(runs.map((run) => run.widestSpanMs)),
+    widestSpanMs,
+    widestFunction: p90Run.widestFunction,
     ownedSelfMs: stats(runs.map((run) => run.ownedSelfMs)),
-    ownedAreas: topAreas(audits, 'swapsOwnedAreas'),
-    calledBySwaps: topAreas(audits, 'nonSwapsOnPathAreas'),
-    coRunning: topAreas(audits, 'nonSwapsConcurrentAreas'),
+    ownedAreas: areaAverages(audits, 'swapsOwnedAreas'),
+    calledBySwaps: areaAverages(audits, 'nonSwapsOnPathAreas'),
+    coRunning: areaAverages(audits, 'nonSwapsConcurrentAreas'),
   };
 }
 
@@ -156,49 +176,117 @@ const AREA_NAMES = new Map([
   ['Unknown (unsymbolicated)', 'Native or no source path'],
   ['@expo/cli (dependency)', 'Metro module loading (@expo/cli)'],
 ]);
-const formatAreas = (areas) =>
-  areas.length
-    ? areas
-        .map(
-          ({ area, avgMs }) =>
-            `${escapeSlack(AREA_NAMES.get(area) ?? area)} ${formatMs(avgMs)}`,
-        )
-        .join(', ')
-    : 'none';
+const AREA_GROUPS = [
+  ['ownedAreas', 'Swaps code'],
+  ['calledBySwaps', 'Called by swaps (upper bound)'],
+  ['coRunning', 'Running alongside, not Swaps'],
+];
+const DROP_REASONS = [
+  ['failed', 'failed before measuring'],
+  ['unsymbolicated', 'had unreadable profiles'],
+  ['missing', 'had no profile'],
+  ['ambiguous', 'matched more than one device'],
+];
+const movedNotably = (current, previous) =>
+  Math.abs(current - previous) >= Math.max(previous * 0.25, 20);
 
-export function buildSlackMessage(
-  scenarios,
-  { window, runsRead, runsFound, devices, runUrl = '' },
-) {
-  const lines = [
-    `:bar_chart: *Swaps CPU profile report, ${window.label}*`,
-    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}). Areas show average self time per run; "called by swaps" is an upper bound, since a function swaps calls even once counts with all its self time.`,
-  ];
-  for (const { label, summary } of scenarios) {
-    const { used, failed, unsymbolicated, missing, ambiguous } = summary.counts;
-    const total = used + failed + unsymbolicated + missing + ambiguous;
-    lines.push(
-      '',
-      `*${label}*: used ${used} of ${total} runs (dropped: failed test ${failed}, unsymbolicated ${unsymbolicated}, missing ${missing})`,
+function weekOverWeek(current, previous) {
+  if (!previous) {
+    return 'no baseline yet';
+  }
+  const percent = Math.round(((current - previous) / previous) * 100);
+  return `${percent < 0 ? 'down' : 'up'} ${Math.abs(percent)}% from ${formatMs(previous)} last week`;
+}
+
+function describeFunction(fn) {
+  if (!fn?.file?.startsWith('/app/')) {
+    return "the analysis doesn't name the function";
+  }
+  const file = fn.file.slice(1);
+  const name =
+    fn.name === 'anonymous'
+      ? 'an anonymous function'
+      : `\`${escapeSlack(fn.name)}\``;
+  const url = encodeURI(
+    `https://github.com/MetaMask/metamask-mobile/blob/${fn.commit || 'main'}/${file}#L${fn.line}`,
+  );
+  return `from ${name} in <${url}|${escapeSlack(file)}:${fn.line}>`;
+}
+
+/** Breakdown lines for what moved notably since last week; none without a baseline. */
+function movedSinceLastWeek(summary, previous) {
+  if (!previous?.widestSpanMs) {
+    return [];
+  }
+  const lines = AREA_GROUPS.flatMap(([field, title]) => {
+    const before = new Map(
+      (previous[field] || []).map(({ area, avgMs }) => [area, avgMs]),
     );
-    if (ambiguous) {
-      lines.push(`${ambiguous} skipped: ambiguous device match`);
-    }
-    if (!summary.widestSpanMs) {
-      lines.push('No passing, symbolicated runs this week.');
-      continue;
-    }
-    const { widestSpanMs: widest, ownedSelfMs: self } = summary;
+    const moved = summary[field]
+      .slice(0, 3)
+      .filter(({ area, avgMs }) => movedNotably(avgMs, before.get(area) ?? 0))
+      .map(
+        ({ area, avgMs }) =>
+          `${escapeSlack(AREA_NAMES.get(area) ?? area)} ${formatMs(avgMs)} (was ${formatMs(before.get(area) ?? 0)})`,
+      );
+    return moved.length ? [`${title}: ${moved.join(', ')}`] : [];
+  });
+  const self = summary.ownedSelfMs.p90;
+  const selfBefore = previous.ownedSelfMs.p90;
+  if (movedNotably(self, selfBefore)) {
     lines.push(
-      `Widest swaps-owned span: median ${formatMs(widest.median)} · p90 ${formatMs(widest.p90)}`,
-      `Swaps-owned self time: median ${formatMs(self.median)} · p90 ${formatMs(self.p90)}`,
-      `Top swaps areas: ${formatAreas(summary.ownedAreas)}`,
-      `Called by swaps (upper bound): ${formatAreas(summary.calledBySwaps)}`,
-      `Co-running, not Swaps: ${formatAreas(summary.coRunning)}`,
+      `Time in swaps code itself: ${formatMs(self)} at p90 (was ${formatMs(selfBefore)})`,
     );
   }
+  return lines;
+}
+
+/**
+ * @param {{ label: string, summary: object }[]} scenarios
+ * @param {{ window: { label: string }, runsRead: number, runsFound: number, devices: string[], runUrl?: string, previous?: object | null }} options - `previous` is last week's saved summary, if any.
+ */
+export function buildSlackMessage(
+  scenarios,
+  { window, runsRead, runsFound, devices, runUrl = '', previous },
+) {
+  const lines = [
+    `:bar_chart: *Swaps CPU profile report, ${window.label}* (shadow mode, no flags)`,
+  ];
+  const coverage =
+    runsRead < runsFound
+      ? [`${runsFound - runsRead} of ${runsFound} runs had no profile analysis`]
+      : [];
+  for (const { label, summary } of scenarios) {
+    const total = Object.values(summary.counts).reduce((a, b) => a + b, 0);
+    DROP_REASONS.forEach(([status, reason]) => {
+      if (summary.counts[status]) {
+        coverage.push(
+          `${label}: ${summary.counts[status]} of ${total} runs ${reason}`,
+        );
+      }
+    });
+    if (!summary.widestSpanMs) {
+      lines.push(`*${label}*: no usable runs this week.`);
+      continue;
+    }
+    const before = previous?.scenarios?.find(
+      (scenario) => scenario.label === label,
+    )?.summary;
+    const p90 = summary.widestSpanMs.p90;
+    lines.push(
+      `*${label}*: widest span ${formatMs(p90)} at p90, ${weekOverWeek(p90, before?.widestSpanMs?.p90)}; ${describeFunction(summary.widestFunction)}.`,
+      ...movedSinceLastWeek(summary, before),
+    );
+  }
+  lines.push(
+    '',
+    `Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. p90 is over this week's scheduled runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}).`,
+  );
+  if (coverage.length) {
+    lines.push(`Coverage: ${coverage.join('; ')}.`);
+  }
   if (runUrl) {
-    lines.push('', `<${runUrl}|Run log>`);
+    lines.push(`<${runUrl}|Run log>`);
   }
   return lines.join('\n');
 }
