@@ -10,7 +10,6 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   PERFORMANCE_WORKFLOW,
-  REPORT_WORKFLOW,
   SCENARIOS,
   SLACK_CHANNEL_ID,
 } from './swaps-cpu-profile-report.config.mjs';
@@ -29,12 +28,22 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const gh = (args) =>
   execFileSync('gh', args, { encoding: 'utf8', stdio: 'pipe' });
 
-/** IDs of the scheduled runs of a workflow, newest first. */
-const scheduledRuns = (workflow, ...flags) => {
-  const args = ['run', 'list', '-R', repo, '-w', workflow, '-e', 'schedule'];
-  const runs = gh([...args, ...flags, '--json', 'databaseId']);
+function listRuns({ start, end }) {
+  // `a..b` includes `b`, so the range stops one second before the next week starts.
+  const created = `${start.toISOString()}..${new Date(end - 1000).toISOString()}`;
+  const runs = gh(
+    ['run', 'list', '-R', repo, '-w', PERFORMANCE_WORKFLOW]
+      .concat(['-e', 'schedule', '-b', 'main', '--created', created])
+      .concat(['-L', '100', '--json', 'databaseId']),
+  );
   return JSON.parse(runs).map((run) => run.databaseId);
-};
+}
+
+/** The weekly summary artifact is named by its window's first and last day, so last week's can be looked up directly. */
+function summaryArtifact({ start, end }) {
+  const day = (date) => date.toISOString().slice(0, 10);
+  return `swaps-cpu-profile-summary-${day(start)}_${day(new Date(end - DAY_MS))}`;
+}
 
 function readArtifactJson(runId, artifact, file) {
   const target = path.join(directory, `${runId}-${artifact}`);
@@ -42,15 +51,23 @@ function readArtifactJson(runId, artifact, file) {
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
 }
 
-/** Last week's summary, from the latest successful scheduled run of this workflow; null on the first run or after a missed week. */
+/** Last week's summary from its newest unexpired artifact on main; null on the first run or after a missed week. */
 function previousSummary({ start }) {
+  const name = summaryArtifact({
+    start: new Date(start - 7 * DAY_MS),
+    end: start,
+  });
   try {
-    const [runId] = scheduledRuns(REPORT_WORKFLOW, '-s', 'success', '-L', '1');
-    const summary =
-      runId &&
-      readArtifactJson(runId, 'swaps-cpu-profile-summary', 'summary.json');
-    const previousStart = new Date(start - 7 * DAY_MS).toISOString();
-    return summary?.window?.start === previousStart ? summary : null;
+    const { artifacts } = JSON.parse(
+      gh(['api', `repos/${repo}/actions/artifacts?name=${name}`]),
+    );
+    const artifact = artifacts.find(
+      ({ expired, workflow_run: run }) =>
+        !expired && run?.head_branch === 'main',
+    );
+    return artifact
+      ? readArtifactJson(artifact.workflow_run.id, name, 'summary.json')
+      : null;
   } catch (error) {
     console.warn(`[baseline] ${error.stderr?.trim() || error.message}`);
     return null;
@@ -94,12 +111,7 @@ async function main() {
   }
 
   const window = lastWeek();
-  // `a..b` includes `b`, so the range stops one second before the next week starts.
-  const created = `${window.start.toISOString()}..${new Date(window.end - 1000).toISOString()}`;
-  const runIds = scheduledRuns(
-    PERFORMANCE_WORKFLOW,
-    ...['-b', 'main', '-L', '100', '--created', created],
-  );
+  const runIds = listRuns(window);
   const samples = SCENARIOS.map(() => []);
   const deviceNames = new Set();
   let runsRead = 0;
@@ -142,6 +154,13 @@ async function main() {
     path.join(env.OUT_DIR, 'summary.json'),
     `${JSON.stringify({ window, runIds, runsRead, devices, scenarios }, null, 2)}\n`,
   );
+  // Dry runs name no artifact, so the workflow uploads no baseline from them.
+  if (env.GITHUB_OUTPUT && !dryRun) {
+    fs.appendFileSync(
+      env.GITHUB_OUTPUT,
+      `artifact=${summaryArtifact(window)}\n`,
+    );
+  }
   const details = {
     window,
     runsRead,
