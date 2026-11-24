@@ -6,4 +6,11 @@ export const collectiblesTestIds = {
   tradeMenuItem: 'collectibles-trade-menu-item',
   tile: (code: string) => `collectibles-pack-tile-${code}`,
   flame: (code: string) => `collectibles-pack-tile-flame-${code}`,
+  landing: 'collectibles-landing',
+  landingHero: 'collectibles-landing-hero',
+  landingNavButton: (name: string) => `collectibles-landing-nav-${name}`,
+  landingSection: (name: string) => `collectibles-landing-section-${name}`,
+  packsScreen: 'collectibles-packs-screen',
+  collectionScreen: 'collectibles-collection-screen',
+  marketScreen: 'collectibles-market-screen',
 } as const;

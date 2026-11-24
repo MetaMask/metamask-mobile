@@ -1,11 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { collectiblesRoutes } from '../routeNames';
+import {
+  collectiblesRoutes,
+  type CollectiblesStackParamList,
+} from '../routeNames';
 import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
+import { CollectiblesPacksScreen } from './CollectiblesPacksScreen';
+import { CollectiblesCollectionScreen } from './CollectiblesCollectionScreen';
+import { CollectiblesMarketScreen } from './CollectiblesMarketScreen';
 
-type ParamList = Record<typeof collectiblesRoutes.home, undefined>;
-
-const Stack = createNativeStackNavigator<ParamList>();
+const Stack = createNativeStackNavigator<CollectiblesStackParamList>();
 
 export function CollectiblesLayout() {
   return (
@@ -13,6 +17,18 @@ export function CollectiblesLayout() {
       <Stack.Screen
         name={collectiblesRoutes.home}
         component={CollectiblesHomeScreen}
+      />
+      <Stack.Screen
+        name={collectiblesRoutes.packs}
+        component={CollectiblesPacksScreen}
+      />
+      <Stack.Screen
+        name={collectiblesRoutes.collection}
+        component={CollectiblesCollectionScreen}
+      />
+      <Stack.Screen
+        name={collectiblesRoutes.market}
+        component={CollectiblesMarketScreen}
       />
     </Stack.Navigator>
   );
