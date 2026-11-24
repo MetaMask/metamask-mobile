@@ -192,7 +192,6 @@ describe('PredictFundingService withdrawal transport', () => {
       PREVIEW_ID,
       { signal: caller.signal },
     );
-    // eslint-disable-next-line jest/valid-expect -- assertion is awaited after the abort is triggered below
     const cancelled = expect(second).rejects.toMatchObject({
       name: 'AbortError',
     });

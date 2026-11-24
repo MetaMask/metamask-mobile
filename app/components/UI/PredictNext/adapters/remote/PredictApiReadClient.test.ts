@@ -1370,7 +1370,6 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.commitWithdraw(venueId, previewId);
-        // eslint-disable-next-line jest/valid-expect -- assertion is awaited after the abort is triggered below
         const rejected = expect(pending).rejects.toMatchObject({
           name: 'AbortError',
         });
@@ -1400,7 +1399,6 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.observeWithdraw(venueId, previewId);
-        // eslint-disable-next-line jest/valid-expect -- assertion is awaited after the abort is triggered below
         const rejected = expect(pending).rejects.toMatchObject({
           name: 'AbortError',
         });

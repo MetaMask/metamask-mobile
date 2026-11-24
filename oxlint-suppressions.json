@@ -12147,11 +12147,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/Money/TermsSheet.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/Money/TradingActivityListView.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -19678,7 +19673,7 @@
   },
   "app/components/Views/confirmations/hooks/pay/usePayTokenAccountBalance.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/Views/confirmations/hooks/pay/usePayWithNoFeeToken.test.ts": {
@@ -20210,11 +20205,6 @@
   },
   "app/components/Views/confirmations/utils/signature.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
-  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
   },
@@ -25544,7 +25534,7 @@
   },
   "tests/component-view/renderers/rewardsMoney.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 9
+      "count": 8
     },
     "typescript/promise-function-async": {
       "count": 20
@@ -27028,6 +27018,11 @@
   "tests/websocket/server.test.ts": {
     "typescript/no-base-to-string": {
       "count": 2
+    }
+  },
+  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
     }
   }
 }
