@@ -798,6 +798,16 @@ const CardHome = () => {
     isRevealingCardDetails,
   });
 
+  // The freeze file only contains the virtual face. Metal and physical cards,
+  // a blocked card (which dims), and the one-shot arrival reveal keep their
+  // own art. Setup reconciliation keeps the image skeleton.
+  const showFreezeCardArt =
+    !arrival.usesRiveCard &&
+    !isSetupReconciling &&
+    data?.card?.type === CardType.VIRTUAL &&
+    data?.card?.status !== CardStatus.BLOCKED &&
+    (showFreezeAnimation || (isAuthenticated && !isLoading));
+
   // Freezing or unfreezing while the card details are open closes them, so
   // the Freeze/Melt animation is what plays instead of the details. Both
   // mutations keep isSuccess after they settle, so this clears on the
@@ -1077,11 +1087,11 @@ const CardHome = () => {
                   twClassName={`overflow-visible ${isSignedOutKycPending ? 'opacity-50' : ''}`}
                   testID={CardHomeSelectors.CARD_ART}
                 >
-                  {/* The Rive card stays mounted whenever the signed-in card is shown,
-                      so freeze/unfreeze only fire triggers — no swapping layers.
-                      While the card details are revealed it is only hidden, and
-                      the details render on top at the card face's exact bounds. */}
-                  {showFreezeAnimation || (isAuthenticated && !isLoading) ? (
+                  {/* Freeze/unfreeze only fire triggers on the mounted virtual
+                      face. While the card details are revealed it is only
+                      hidden, and the details render on top at the card face's
+                      exact bounds. */}
+                  {showFreezeCardArt ? (
                     <Box twClassName="relative">
                       <Box
                         twClassName={

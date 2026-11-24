@@ -73,6 +73,7 @@ import {
   screen,
   waitFor,
   within,
+  type ReactTestInstance,
 } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking, Platform, StyleSheet } from 'react-native';
@@ -144,6 +145,10 @@ let mockCardNavigationParent:
       getParent: () => undefined;
     }
   | undefined;
+let mockArrivalOverride: {
+  usesRiveCard: boolean;
+  playReveal: boolean;
+} | null = null;
 
 import {
   useFocusEffect,
@@ -381,6 +386,33 @@ const mockUseCardRecentTransactions = jest.fn(
     refetch: jest.fn(),
   }),
 );
+
+jest.mock('./hooks/useCardArrivalAnimation', () => {
+  const actual = jest.requireActual('./hooks/useCardArrivalAnimation');
+  return {
+    ...actual,
+    useCardArrivalAnimation: (params: unknown) => {
+      if (mockArrivalOverride) {
+        return {
+          usesRiveCard: mockArrivalOverride.usesRiveCard,
+          playReveal: mockArrivalOverride.playReveal,
+          revealKey: 1,
+          revealDelayMs: 0,
+          cardStyle: {},
+        };
+      }
+      return actual.useCardArrivalAnimation(params);
+    },
+  };
+});
+
+jest.mock('../../../Money/components/MoneyCardTiltAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockTilt = ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+  return { __esModule: true, default: MockTilt };
+});
 
 jest.mock('../../hooks/useCardRecentTransactions', () => ({
   useCardRecentTransactions: (options?: { enabled?: boolean }) =>
@@ -1370,6 +1402,20 @@ const CardHomeWithToast = () => (
 
 // Helper: Render component with proper wrapper
 // Terms and Contact support live in the header's More sheet.
+function artHasProp(
+  node: ReactTestInstance,
+  expected: Record<string, unknown>,
+): boolean {
+  const props = node.props as Record<string, unknown>;
+  const matches = Object.entries(expected).every(
+    ([key, value]) => props[key] === value,
+  );
+  if (matches) return true;
+  return node.children.some(
+    (child) => typeof child !== 'string' && artHasProp(child, expected),
+  );
+}
+
 function openMoreSheet() {
   fireEvent.press(screen.getByTestId(CardHomeSelectors.MORE_BUTTON));
 }
@@ -1456,6 +1502,7 @@ describe('CardHome Component', () => {
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCardNavigationParent = undefined;
+    mockArrivalOverride = null;
     mockCanEnableCard = false;
     mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
@@ -2808,7 +2855,7 @@ describe('CardHome Component', () => {
     ).toBeDisabled();
   });
 
-  it('keeps the card art mounted and disables Enable card while setup is being checked', () => {
+  it('shows the card skeleton and disables Enable card while setup is being checked', () => {
     mockCanEnableCard = true;
     mockProvisioningView = 'reconciling';
     setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
@@ -2821,14 +2868,12 @@ describe('CardHome Component', () => {
 
     render();
 
-    // The Rive card stays mounted for a signed-in user, so the card art area
-    // shows the animation's static card instead of the image skeleton.
+    // No card face exists yet, so reconciliation keeps the image skeleton
+    // instead of the virtual freeze animation.
+    expect(screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE)).toBeNull();
     expect(
-      screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      screen.getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
-    ).toBeNull();
     expect(
       screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).toBeDisabled();
@@ -4364,6 +4409,62 @@ describe('CardHome Component', () => {
       );
       expect(scheduledTimers).toHaveLength(0);
       setTimeoutSpy.mockRestore();
+    });
+
+    it('keeps metal card art instead of the virtual freeze animation', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.METAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+      expect(
+        artHasProp(screen.getByTestId(CardHomeSelectors.CARD_ART), {
+          fill: '#360853',
+        }),
+      ).toBe(true);
+    });
+
+    it('dims a blocked card instead of playing the freeze animation', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.BLOCKED },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+      expect(
+        artHasProp(screen.getByTestId(CardHomeSelectors.CARD_ART), {
+          opacity: 0.5,
+        }),
+      ).toBe(true);
+    });
+
+    it('plays the arrival reveal instead of the freeze animation', () => {
+      mockArrivalOverride = { usesRiveCard: true, playReveal: true };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
     });
 
     it('stacks the card art wrapper above the content below so the drips fall over the action buttons', () => {
