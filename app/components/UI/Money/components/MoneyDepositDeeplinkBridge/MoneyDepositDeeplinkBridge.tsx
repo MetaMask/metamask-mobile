@@ -110,9 +110,9 @@ const MoneyDepositDeeplinkBridge = () => {
       return;
     }
 
-    if (decision.destination === 'onboarding') {
+    if (decision.destination === 'splash') {
       navigation.dispatch((state) => ({
-        ...StackActions.replace(Routes.MONEY.ONBOARDING, {
+        ...StackActions.replace(Routes.MONEY.SPLASH, {
           postOnboardingRedirect: {
             type: MoneyPostOnboardingRedirectType.DEPOSIT,
             ...(preferredPaymentToken ? { preferredPaymentToken } : {}),

@@ -1,6 +1,7 @@
 export { useVenueCapabilities } from './useVenueCapabilities';
 export {
   canPerformVenueAction,
+  getVenueEnvironment,
   getVenueFeedId,
   isVenueSearchSupported,
   resolveSurfaceFeeds,
