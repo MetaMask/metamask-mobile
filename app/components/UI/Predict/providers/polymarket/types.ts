@@ -169,6 +169,7 @@ export interface PolymarketApiMarket {
    */
   positionIds?: string | string[];
   line?: number;
+  eventStartTime?: string;
   cryptoMarketConfig?: {
     twapEnabled?: boolean;
     twapLookbackSeconds?: number | null;

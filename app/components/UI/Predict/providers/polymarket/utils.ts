@@ -1287,6 +1287,7 @@ export const parsePolymarketEvents = (
       const priceToBeat = parseEventPriceToBeat(event);
       const twapWindowSeconds = parseTwapWindowSeconds(markets);
       const cryptoPriceProvider = parseCryptoPriceProvider(event, markets);
+      const startTime = event.startTime ?? event.markets?.[0]?.eventStartTime;
 
       const parsedMarket = {
         id: event.id,
@@ -1300,6 +1301,7 @@ export const parsePolymarketEvents = (
           : PredictMarketStatus.OPEN,
         active: event.active,
         recurrence: getRecurrence(event.series),
+        ...(startTime && { startTime }),
         endDate: event.endDate,
         category,
         tags: tags.map((t) => t.slug),

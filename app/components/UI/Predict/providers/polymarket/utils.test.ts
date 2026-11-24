@@ -4378,6 +4378,63 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('parses startTime from event.startTime and falls back to markets[0].eventStartTime', () => {
+    const eventWithStartTime: PolymarketApiEvent = {
+      id: 'gold-event-start-time',
+      slug: 'xau-updown-15m-1795464000',
+      title: 'Gold Up or Down 15m',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      startTime: '2026-11-10T23:15:00Z',
+      series: [],
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          eventStartTime: '2026-11-10T23:00:00Z',
+        },
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+    const eventWithMarketStartTime: PolymarketApiEvent = {
+      ...eventWithStartTime,
+      id: 'gold-event-market-start-time',
+      startTime: undefined,
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          eventStartTime: '2026-11-10T23:15:00Z',
+        },
+      ],
+    };
+    const eventWithoutStartTime: PolymarketApiEvent = {
+      ...eventWithStartTime,
+      id: 'gold-event-no-start-time',
+      startTime: undefined,
+      markets: [],
+    };
+
+    expect(
+      parsePolymarketEvents(
+        [eventWithStartTime, eventWithMarketStartTime, eventWithoutStartTime],
+        'crypto',
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'gold-event-start-time',
+        startTime: '2026-11-10T23:15:00Z',
+      }),
+      expect.objectContaining({
+        id: 'gold-event-market-start-time',
+        startTime: '2026-11-10T23:15:00Z',
+      }),
+      expect.not.objectContaining({ startTime: expect.anything() }),
+    ]);
+  });
+
   it.each([
     ['zero', 0],
     ['negative', -1],
