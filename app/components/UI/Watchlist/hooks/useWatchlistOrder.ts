@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -48,8 +48,6 @@ interface UseWatchlistOrderResult {
 
 interface UseWatchlistOrderOptions {
   enabled: boolean;
-  /** Kept for callers while mixed hydration readiness is tracked separately. */
-  isReady?: boolean;
 }
 
 const areOrdersEqual = (
@@ -66,7 +64,6 @@ export const useWatchlistOrder = (
 ): UseWatchlistOrderResult => {
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const queueKey = getOrderQueueKey(accountGroupId);
-  const initializedPersistedOrderKeyRef = useRef<string | null>(null);
   const fallbackOrderRef = useRef<{
     queueKey: string;
     keys: string[];
@@ -78,22 +75,19 @@ export const useWatchlistOrder = (
   );
   const orderQuery = useQuery({
     queryKey,
-    queryFn: async () => readWatchlistOrder(accountGroupId),
+    queryFn: async () => {
+      const order = await readWatchlistOrder(accountGroupId);
+      if (!orderWriteQueues.has(queueKey)) {
+        lastPersistedOrders.set(queueKey, order);
+      }
+      return order;
+    },
     enabled,
     staleTime: Infinity,
     retry: WATCHLIST_ORDER_READ_RETRY_COUNT,
     retryDelay: 0,
   });
   const canPersistOrder = enabled && orderQuery.isSuccess;
-  useEffect(() => {
-    if (
-      orderQuery.isSuccess &&
-      initializedPersistedOrderKeyRef.current !== queueKey
-    ) {
-      lastPersistedOrders.set(queueKey, orderQuery.data);
-      initializedPersistedOrderKeyRef.current = queueKey;
-    }
-  }, [orderQuery.data, orderQuery.isSuccess, queueKey]);
   const refetchOrder = orderQuery.refetch;
   const retry = useCallback(async () => {
     await refetchOrder();

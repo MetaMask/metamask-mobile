@@ -71,7 +71,6 @@ describe('useWatchlistOrder', () => {
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
-          isReady: false,
         }),
       { wrapper },
     );
@@ -95,7 +94,6 @@ describe('useWatchlistOrder', () => {
       () =>
         useWatchlistOrder([tokenA], {
           enabled: true,
-          isReady: false,
         }),
       { wrapper },
     );
@@ -168,7 +166,6 @@ describe('useWatchlistOrder', () => {
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
-          isReady: true,
         }),
       { wrapper },
     );
@@ -216,7 +213,6 @@ describe('useWatchlistOrder', () => {
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
-          isReady: true,
         }),
       { wrapper },
     );
@@ -247,7 +243,6 @@ describe('useWatchlistOrder', () => {
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
-          isReady: true,
         }),
       { wrapper },
     );
@@ -280,7 +275,6 @@ describe('useWatchlistOrder', () => {
       () =>
         useWatchlistOrder([tokenA, tokenB, tokenC], {
           enabled: true,
-          isReady: true,
         }),
       { wrapper },
     );
@@ -295,6 +289,51 @@ describe('useWatchlistOrder', () => {
           .persistOrder([tokenC.key, tokenB.key, tokenA.key])
           .catch(() => undefined),
       ]);
+    });
+
+    expect(queryClient.getQueryData(['watchlist-order', 'group-1'])).toEqual(
+      durableOrder,
+    );
+  });
+
+  it('does not overwrite durable rollback order when a second hook mounts mid-write', async () => {
+    const tokenA = createToken('token:a');
+    const tokenB = createToken('token:b');
+    const durableOrder = [tokenA.key, tokenB.key];
+    mockedReadWatchlistOrder.mockResolvedValue(durableOrder);
+    let rejectWrite: ((error: Error) => void) | undefined;
+    mockedWriteWatchlistOrder.mockImplementation(
+      async () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectWrite = reject;
+        }),
+    );
+    const { wrapper, queryClient } = createWrapper();
+    const first = renderHook(
+      () => useWatchlistOrder([tokenA, tokenB], { enabled: true }),
+      { wrapper },
+    );
+    await waitFor(() => expect(first.result.current.isReady).toBe(true));
+
+    let pendingWrite: Promise<void> = Promise.resolve();
+    act(() => {
+      pendingWrite = first.result.current
+        .persistOrder([tokenB.key, tokenA.key])
+        .catch(() => undefined);
+    });
+    await waitFor(() =>
+      expect(mockedWriteWatchlistOrder).toHaveBeenCalledTimes(1),
+    );
+
+    // Mounting a second hook while the optimistic write is in flight must not
+    // treat the cached optimistic order as the durable rollback baseline.
+    renderHook(() => useWatchlistOrder([tokenA, tokenB], { enabled: true }), {
+      wrapper,
+    });
+
+    await act(async () => {
+      rejectWrite?.(new Error('write failed'));
+      await pendingWrite;
     });
 
     expect(queryClient.getQueryData(['watchlist-order', 'group-1'])).toEqual(

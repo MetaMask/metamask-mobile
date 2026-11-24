@@ -176,33 +176,41 @@ const MixedPerpsRow = ({
   );
 };
 
-const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
+interface WatchlistFullScreenShellProps {
+  tokenCount: number;
+  isLoading: boolean;
+  isEmpty: boolean;
+  hasItems: boolean;
+  isEditMode: boolean;
+  canEdit: boolean;
+  onEditPress: () => void;
+  onDonePress: () => Promise<void>;
+  onExitEditMode?: () => void;
+  showInitialSkeletons: boolean;
+  showEmptyCta: boolean;
+  children: React.ReactNode;
+}
+
+const WatchlistFullScreenShell = ({
+  tokenCount,
+  isLoading,
+  isEmpty,
+  hasItems,
+  isEditMode,
+  canEdit,
+  onEditPress,
+  onDonePress,
+  onExitEditMode,
+  showInitialSkeletons,
+  showEmptyCta,
+  children,
+}: WatchlistFullScreenShellProps): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const routeParams = route.params as WatchlistFullViewRouteParams | undefined;
-  const { data, isLoading } = useTokenWatchlistQuery();
-  const updateListMutation = useTokenWatchlistUpdateListMutation();
   const [isSearchMode, setIsSearchMode] = useState(false);
-
-  const queryTokens = useMemo(
-    () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
-    [data],
-  );
-
-  const {
-    isEditMode,
-    displayTokens,
-    handleEditPress,
-    handleDonePress,
-    onRemoveFromDraft,
-    handleReorder,
-  } = useWatchlistEditDraft({ queryTokens, updateListMutation });
-
-  const hasItems = displayTokens.length > 0;
-  const tokenCount = data?.length ?? 0;
-  const isEmpty = !isLoading && !hasItems;
 
   useTrackWatchlistPageViewed({
     tokenCount,
@@ -225,32 +233,13 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
     setIsSearchMode(true);
   }, []);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: TrendingAsset; index: number }) => (
-      <Animated.View
-        exiting={isEditMode ? rowExitAnimation : undefined}
-        layout={isEditMode ? rowLayoutAnimation : undefined}
-      >
-        <WatchlistEditableRow
-          token={item}
-          position={index}
-          isEditMode={isEditMode}
-          onRemoveFromDraft={onRemoveFromDraft}
-        />
-      </Animated.View>
-    ),
-    [isEditMode, onRemoveFromDraft],
-  );
-
-  const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
-
   const endAccessory = useMemo(() => {
     if (isEditMode) {
       const doneButton = (
         <ButtonBase
           size={ButtonBaseSize.Md}
           onPress={() => {
-            handleDonePress().catch(() => undefined);
+            onDonePress().catch(() => undefined);
           }}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
           accessibilityLabel={strings('token_watchlist.done')}
@@ -279,15 +268,15 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
           size={ButtonIconSize.Md}
           onPress={handleSearchPress}
           testID={WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON}
-          accessibilityLabel="Search"
+          accessibilityLabel={strings('wallet.search_accessibility_label')}
           twClassName={HEADER_ICON_BUTTON_CLASS}
         />
-        {hasItems ? (
+        {hasItems && canEdit ? (
           <ButtonIcon
             iconProps={{ color: IconColor.IconDefault }}
             iconName={IconName.Edit}
             size={ButtonIconSize.Md}
-            onPress={handleEditPress}
+            onPress={onEditPress}
             testID={WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON}
             accessibilityLabel={strings('token_watchlist.edit')}
             twClassName={HEADER_ICON_BUTTON_CLASS}
@@ -296,40 +285,37 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
       </Box>
     );
 
-    if (!isGlassHeader) {
-      return headerActions;
-    }
-
-    return (
+    return isGlassHeader ? (
       <CapsuleGlass twClassName="shrink-0 px-2">{headerActions}</CapsuleGlass>
+    ) : (
+      headerActions
     );
   }, [
-    isGlassHeader,
-    handleDonePress,
-    handleEditPress,
+    canEdit,
     handleSearchPress,
     hasItems,
     isEditMode,
+    isGlassHeader,
+    onDonePress,
+    onEditPress,
   ]);
 
-  const listContent = useMemo(() => {
-    if (isSearchMode) {
-      return null;
-    }
+  const headerBackHandler = isEditMode ? onExitEditMode : handleBack;
 
-    if (isLoading) {
+  const renderBody = (): React.ReactNode => {
+    if (showInitialSkeletons) {
       return (
         <View style={styles.listContainer}>
-          {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
             <TrendingTokensSkeleton
-              key={`watchlist-fullscreen-skeleton-${i}`}
+              key={`watchlist-fullscreen-skeleton-${index}`}
             />
           ))}
         </View>
       );
     }
 
-    if (!hasItems) {
+    if (showEmptyCta) {
       return (
         <View style={styles.emptyContentContainer}>
           <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
@@ -337,35 +323,8 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
       );
     }
 
-    return (
-      <ReorderableList
-        data={displayTokens}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        onReorder={handleReorder}
-        dragEnabled={isEditMode}
-        itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
-        style={[
-          styles.listContainer,
-          isEditMode && styles.listContainerEditMode,
-        ]}
-        showsVerticalScrollIndicator={false}
-        testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
-      />
-    );
-  }, [
-    displayTokens,
-    handleReorder,
-    hasItems,
-    isEditMode,
-    isLoading,
-    isSearchMode,
-    keyExtractor,
-    renderItem,
-    styles.emptyContentContainer,
-    styles.listContainer,
-    styles.listContainerEditMode,
-  ]);
+    return children;
+  };
 
   return (
     <View
@@ -377,14 +336,14 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          onBack={isEditMode ? undefined : handleBack}
+          onBack={headerBackHandler}
           backButtonProps={
-            isEditMode
-              ? undefined
-              : {
-                  accessibilityLabel: 'Back',
+            headerBackHandler
+              ? {
+                  accessibilityLabel: strings('navigation.back'),
                   testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
                 }
+              : undefined
           }
           endAccessory={endAccessory}
           testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
@@ -404,26 +363,96 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
               {strings('token_watchlist.fullscreen_title')}
             </Text>
           </View>
-
-          {listContent}
+          {renderBody()}
         </>
       )}
     </View>
   );
 };
 
+const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
+  const { styles } = useStyles(styleSheet, {});
+  const { data, isLoading } = useTokenWatchlistQuery();
+  const updateListMutation = useTokenWatchlistUpdateListMutation();
+
+  const queryTokens = useMemo(
+    () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
+    [data],
+  );
+
+  const {
+    isEditMode,
+    displayTokens,
+    handleEditPress,
+    handleDonePress,
+    onRemoveFromDraft,
+    handleReorder,
+  } = useWatchlistEditDraft({ queryTokens, updateListMutation });
+
+  const hasItems = displayTokens.length > 0;
+  const isEmpty = !isLoading && !hasItems;
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: TrendingAsset; index: number }) => (
+      <Animated.View
+        exiting={isEditMode ? rowExitAnimation : undefined}
+        layout={isEditMode ? rowLayoutAnimation : undefined}
+      >
+        <WatchlistEditableRow
+          token={item}
+          position={index}
+          isEditMode={isEditMode}
+          onRemoveFromDraft={onRemoveFromDraft}
+        />
+      </Animated.View>
+    ),
+    [isEditMode, onRemoveFromDraft],
+  );
+
+  const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
+
+  return (
+    <WatchlistFullScreenShell
+      tokenCount={data?.length ?? 0}
+      isLoading={isLoading}
+      isEmpty={isEmpty}
+      hasItems={hasItems}
+      isEditMode={isEditMode}
+      canEdit
+      onEditPress={handleEditPress}
+      onDonePress={async () => {
+        await handleDonePress();
+      }}
+      showInitialSkeletons={isLoading}
+      showEmptyCta={!hasItems}
+    >
+      <ReorderableList
+        data={displayTokens}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        onReorder={handleReorder}
+        dragEnabled={isEditMode}
+        itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
+        style={[
+          styles.listContainer,
+          isEditMode && styles.listContainerEditMode,
+        ]}
+        showsVerticalScrollIndicator={false}
+        testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
+      />
+    </WatchlistFullScreenShell>
+  );
+};
+
 const MixedWatchlistFullScreenView = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute();
-  const routeParams = route.params as WatchlistFullViewRouteParams | undefined;
   const {
     items,
     tokens,
     perps,
     canUseLivePerpsPrices,
+    canUseMotion,
     canRefresh,
     tokenCount,
     isInitialLoading,
@@ -437,7 +466,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       showToasts: false,
     });
   const { navigateToMarketDetails } = usePerpsNavigation();
-  const [isSearchMode, setIsSearchMode] = useState(false);
   const [draftItems, setDraftItems] = useState<UnifiedWatchlistItem[] | null>(
     null,
   );
@@ -446,46 +474,41 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const isCommittingRef = useRef(false);
   const [commitError, setCommitError] = useState(false);
   const isEditMode = draftItems !== null;
+
+  const queryTokens = useMemo(
+    () => tokens.items.map((token) => token.token),
+    [tokens.items],
+  );
   const {
     handleEditPress: handleTokenEditPress,
     handleDonePress: handleTokenDonePress,
     onRemoveFromDraft: onRemoveTokenFromDraft,
   } = useWatchlistEditDraft({
-    queryTokens: tokens.items.map((token) => token.token),
+    queryTokens,
     autoCommitWhenEmpty: false,
     reverseStorageOrder: false,
     updateListMutation: updateTokenListMutation,
   });
 
   const visibleItems = draftItems ?? items;
-
   const hasItems = visibleItems.length > 0;
   const hasError = Boolean(tokens.error ?? perps.error);
   const isEmpty = !isInitialLoading && !hasItems && !hasError;
+
+  const exitEditMode = useCallback(() => {
+    baselineItemsRef.current = [];
+    draftAccountGroupIdRef.current = undefined;
+    setDraftItems(null);
+    setCommitError(false);
+  }, []);
 
   useEffect(() => {
     if (!isEditMode || draftAccountGroupIdRef.current === accountGroupId) {
       return;
     }
 
-    baselineItemsRef.current = [];
-    draftAccountGroupIdRef.current = undefined;
-    setDraftItems(null);
-    setCommitError(false);
-  }, [accountGroupId, isEditMode]);
-
-  useTrackWatchlistPageViewed({
-    tokenCount,
-    isEmpty,
-    isLoading: isInitialLoading,
-    source: routeParams?.source ?? WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
-  });
-
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  }, [navigation]);
+    exitEditMode();
+  }, [accountGroupId, exitEditMode, isEditMode]);
 
   const handlePerpPress = useCallback(
     (market: PerpsMarketData) => {
@@ -563,10 +586,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       if (isOrderReady) {
         await persistOrder(finalOrder);
       }
-      setCommitError(false);
-      baselineItemsRef.current = [];
-      draftAccountGroupIdRef.current = undefined;
-      setDraftItems(null);
+      exitEditMode();
     } catch {
       // Membership hooks already restore their own state on failure.
       if (draftAccountGroupIdRef.current === draftAccountGroupId) {
@@ -577,6 +597,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     }
   }, [
     draftItems,
+    exitEditMode,
     handleTokenDonePress,
     isOrderReady,
     persistOrder,
@@ -624,30 +645,34 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     [draftItems, isOrderReady],
   );
 
+  const animateEditRow = isEditMode && canUseMotion;
+
   const renderItem = useCallback(
-    ({ item, index }: { item: UnifiedWatchlistItem; index: number }) => {
-      if (item.kind === 'token') {
-        return (
+    ({ item, index }: { item: UnifiedWatchlistItem; index: number }) => (
+      <Animated.View
+        exiting={animateEditRow ? rowExitAnimation : undefined}
+        layout={animateEditRow ? rowLayoutAnimation : undefined}
+      >
+        {item.kind === 'token' ? (
           <WatchlistEditableRow
             token={item.token}
             position={index}
             isEditMode={isEditMode}
             onRemoveFromDraft={() => handleRemoveFromWatchlist(item)}
           />
-        );
-      }
-
-      return (
-        <MixedPerpsRow
-          item={item}
-          isEditMode={isEditMode}
-          canUseLivePerpsPrices={canUseLivePerpsPrices}
-          onPress={handlePerpPress}
-          onRemove={() => handleRemoveFromWatchlist(item)}
-        />
-      );
-    },
+        ) : (
+          <MixedPerpsRow
+            item={item}
+            isEditMode={isEditMode}
+            canUseLivePerpsPrices={canUseLivePerpsPrices}
+            onPress={handlePerpPress}
+            onRemove={() => handleRemoveFromWatchlist(item)}
+          />
+        )}
+      </Animated.View>
+    ),
     [
+      animateEditRow,
       canUseLivePerpsPrices,
       handlePerpPress,
       handleRemoveFromWatchlist,
@@ -655,199 +680,61 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     ],
   );
 
-  const endAccessory = useMemo(() => {
-    if (isEditMode) {
-      const doneButton = (
-        <ButtonBase
-          size={ButtonBaseSize.Md}
-          onPress={() => {
-            handleDonePress().catch(() => undefined);
-          }}
-          testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
-          accessibilityLabel={strings('token_watchlist.done')}
-          twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
-        >
-          {strings('token_watchlist.done')}
-        </ButtonBase>
-      );
-
-      return isGlassHeader ? (
-        <CapsuleGlass twClassName="shrink-0">{doneButton}</CapsuleGlass>
-      ) : (
-        doneButton
-      );
-    }
-
-    const searchButton = (
-      <ButtonIcon
-        iconProps={{ color: IconColor.IconDefault }}
-        iconName={IconName.Search}
-        size={ButtonIconSize.Md}
-        onPress={() => setIsSearchMode(true)}
-        testID={WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON}
-        accessibilityLabel={strings('wallet.search_accessibility_label')}
-        twClassName={HEADER_ICON_BUTTON_CLASS}
-      />
-    );
-    const editButton =
-      hasItems && isOrderReady && !isInitialLoading ? (
-        <ButtonIcon
-          iconProps={{ color: IconColor.IconDefault }}
-          iconName={IconName.Edit}
-          size={ButtonIconSize.Md}
-          onPress={handleEditPress}
-          testID={WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON}
-          accessibilityLabel={strings('token_watchlist.edit')}
-          twClassName={HEADER_ICON_BUTTON_CLASS}
-        />
-      ) : null;
-    const headerActions = (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
-      >
-        {searchButton}
-        {editButton}
-      </Box>
-    );
-
-    return isGlassHeader ? (
-      <CapsuleGlass twClassName="shrink-0 px-2">{headerActions}</CapsuleGlass>
-    ) : (
-      headerActions
-    );
-  }, [
-    handleDonePress,
-    handleEditPress,
-    hasItems,
-    isEditMode,
-    isGlassHeader,
-    isInitialLoading,
-    isOrderReady,
-  ]);
-
-  const listContent = useMemo(() => {
-    if (isInitialLoading && !hasItems) {
-      return (
-        <View style={styles.listContainer}>
-          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-            <TrendingTokensSkeleton
-              key={`watchlist-fullscreen-skeleton-${index}`}
-            />
-          ))}
-        </View>
-      );
-    }
-
-    if (hasError && !hasItems && !commitError) {
-      return (
-        <WatchlistErrorRow
-          onRetry={
-            canRefresh
-              ? (): void => {
-                  refresh().catch(() => undefined);
-                }
-              : undefined
-          }
-        />
-      );
-    }
-
-    if (!hasItems && !isEditMode && !commitError) {
-      return (
-        <View style={styles.emptyContentContainer}>
-          <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
-        </View>
-      );
-    }
-
-    return (
-      <View
-        style={[
-          styles.listContainer,
-          isEditMode && styles.listContainerEditMode,
-        ]}
-      >
-        {commitError ? (
-          <WatchlistErrorRow
-            message={strings('token_watchlist.save_error')}
-            onRetry={(): void => {
-              handleDonePress().catch(() => undefined);
-            }}
-          />
-        ) : null}
-        <ReorderableList
-          data={visibleItems}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.key}
-          onReorder={handleReorder}
-          dragEnabled={isEditMode && isOrderReady}
-          itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
-          showsVerticalScrollIndicator={false}
-          testID={WatchlistFullScreenViewSelectorsIDs.MIXED_LIST}
-        />
-      </View>
-    );
-  }, [
-    canRefresh,
-    commitError,
-    hasError,
-    hasItems,
-    handleDonePress,
-    handleReorder,
-    isInitialLoading,
-    isEditMode,
-    isOrderReady,
-    refresh,
-    renderItem,
-    styles.emptyContentContainer,
-    styles.listContainer,
-    styles.listContainerEditMode,
-    visibleItems,
-  ]);
+  const retryLoadHandler = canRefresh
+    ? (): void => {
+        refresh().catch(() => undefined);
+      }
+    : undefined;
 
   return (
-    <View
-      style={styles.container}
-      testID={WatchlistFullScreenViewSelectorsIDs.CONTAINER}
+    <WatchlistFullScreenShell
+      tokenCount={tokenCount}
+      isLoading={isInitialLoading}
+      isEmpty={isEmpty}
+      hasItems={hasItems}
+      isEditMode={isEditMode}
+      canEdit={isOrderReady && !isInitialLoading}
+      onEditPress={handleEditPress}
+      onDonePress={handleDonePress}
+      onExitEditMode={commitError ? exitEditMode : undefined}
+      showInitialSkeletons={isInitialLoading && !hasItems}
+      showEmptyCta={!hasItems && !isEditMode && !hasError && !commitError}
     >
-      {!isSearchMode ? (
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          includesTopInset
-          onBack={isEditMode ? undefined : handleBack}
-          backButtonProps={
-            isEditMode
-              ? undefined
-              : {
-                  accessibilityLabel: strings('navigation.back'),
-                  testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
-                }
-          }
-          endAccessory={endAccessory}
-          testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
-        />
-      ) : null}
-
-      {isSearchMode ? (
-        <WatchlistSearchContent onDismiss={() => setIsSearchMode(false)} />
+      {hasError && !hasItems && !commitError ? (
+        <WatchlistErrorRow onRetry={retryLoadHandler} />
       ) : (
-        <>
-          <View style={styles.titleContainer}>
-            <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Bold}
-              testID={WatchlistFullScreenViewSelectorsIDs.TITLE}
-            >
-              {strings('token_watchlist.fullscreen_title')}
-            </Text>
-          </View>
-          {listContent}
-        </>
+        <View
+          style={[
+            styles.listContainer,
+            isEditMode && styles.listContainerEditMode,
+          ]}
+        >
+          {commitError ? (
+            <WatchlistErrorRow
+              message={strings('token_watchlist.save_error')}
+              onRetry={(): void => {
+                handleDonePress().catch(() => undefined);
+              }}
+            />
+          ) : null}
+          {hasError && !commitError ? (
+            <WatchlistErrorRow onRetry={retryLoadHandler} />
+          ) : null}
+          <ReorderableList
+            data={visibleItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.key}
+            onReorder={handleReorder}
+            dragEnabled={isEditMode && isOrderReady}
+            itemLayoutAnimation={
+              animateEditRow ? rowLayoutAnimation : undefined
+            }
+            showsVerticalScrollIndicator={false}
+            testID={WatchlistFullScreenViewSelectorsIDs.MIXED_LIST}
+          />
+        </View>
       )}
-    </View>
+    </WatchlistFullScreenShell>
   );
 };
 

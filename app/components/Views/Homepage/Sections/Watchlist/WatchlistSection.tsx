@@ -96,23 +96,152 @@ interface WatchlistSectionProps {
   totalSectionsLoaded: number;
 }
 
+interface WatchlistSectionShellProps extends WatchlistSectionProps {
+  enabled: boolean;
+  isLoading: boolean;
+  isEmpty: boolean;
+  itemCount: number;
+  showInitialSkeletons: boolean;
+  showFallback: boolean;
+  showSuggestedSkeletons: boolean;
+  refresh: () => Promise<void>;
+  children: React.ReactNode;
+}
+
+const useTrackAndAddWatchlistToken = (
+  onAfterAdd?: (assetId: string) => void,
+): ((token: WatchlistTokenWithBalance) => void) => {
+  const addMutation = useTokenWatchlistAddItemMutation();
+  const analytics = useAnalytics();
+
+  return useCallback(
+    (token: WatchlistTokenWithBalance) => {
+      const assetId = String(token.assetId);
+      addMutation.mutate(token, {
+        onSuccess: () => {
+          analytics.trackEvent(
+            analytics
+              .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+              .addProperties({
+                source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
+                asset_id: assetId,
+                asset_type: getWatchlistAssetType(assetId),
+                has_balance: token.isInWallet,
+              })
+              .build(),
+          );
+          onAfterAdd?.(assetId);
+        },
+      });
+    },
+    [addMutation, analytics, onAfterAdd],
+  );
+};
+
+const WatchlistSectionShell = forwardRef<
+  SectionRefreshHandle,
+  WatchlistSectionShellProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      enabled,
+      isLoading,
+      isEmpty,
+      itemCount,
+      showInitialSkeletons,
+      showFallback,
+      showSuggestedSkeletons,
+      refresh,
+      children,
+    },
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const navigation = useNavigation<AppNavigationProp>();
+
+    const handleSectionPress = useCallback(() => {
+      navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
+    }, [navigation]);
+
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: enabled ? sectionViewRef : null,
+      isLoading,
+      sectionName: HomeSectionNames.WATCHLIST,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty,
+      itemCount,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.WATCHLIST,
+      contentReady: !isLoading,
+      isEmpty,
+      demandStarted: enabled,
+      cacheState: isLoading ? 'cold' : 'warm',
+      isLoading,
+      enabled,
+    });
+
+    if (!enabled) {
+      return null;
+    }
+
+    const renderContent = (): React.ReactNode => {
+      if (showInitialSkeletons) {
+        return Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, index) => (
+          <TrendingTokensSkeleton key={`watchlist-skeleton-${index}`} />
+        ));
+      }
+
+      if (showFallback) {
+        return <WatchlistEmptyFallback />;
+      }
+
+      if (showSuggestedSkeletons) {
+        return (
+          <Box testID="watchlist-suggested-skeleton">
+            {Array.from({ length: SUGGESTED_SKELETON_COUNT }, (_, index) => (
+              <TrendingTokensSkeleton
+                key={`watchlist-suggested-skeleton-${index}`}
+              />
+            ))}
+          </Box>
+        );
+      }
+
+      return children;
+    };
+
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
+        <SectionHeader
+          title={strings('homepage.sections.watchlist')}
+          isInteractive
+          onPress={handleSectionPress}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')}
+        />
+        <SectionRow>{renderContent()}</SectionRow>
+      </View>
+    );
+  },
+);
+
 const LegacyWatchlistSection = forwardRef<
   SectionRefreshHandle,
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const sectionViewRef = useRef<View>(null);
-  const navigation = useNavigation<AppNavigationProp>();
-
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
   const { data: suggestedPool, isLoading: isSuggestedLoading } =
     useSuggestedWatchlistItemsQuery();
-  const addMutation = useTokenWatchlistAddItemMutation();
   const watchlistAssetIds = useTokenWatchlistAssetIds();
-
-  const analytics = useAnalytics();
-
-  const title = strings('homepage.sections.watchlist');
+  const handleAddPress = useTrackAndAddWatchlistToken();
 
   const displayTokens = useMemo(
     () =>
@@ -130,89 +259,26 @@ const LegacyWatchlistSection = forwardRef<
   );
 
   const isEmpty = !isLoading && displayTokens.length === 0;
-  const itemCount = displayTokens.length;
-
-  const handleSectionPress = useCallback(() => {
-    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
-  }, [navigation]);
-
-  const handleAddPress = useCallback(
-    (token: WatchlistTokenWithBalance) => {
-      const assetId = String(token.assetId);
-      addMutation.mutate(token, {
-        onSuccess: () => {
-          analytics.trackEvent(
-            analytics
-              .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
-              .addProperties({
-                source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
-                asset_id: assetId,
-                asset_type: getWatchlistAssetType(assetId),
-                has_balance: token.isInWallet,
-              })
-              .build(),
-          );
-        },
-      });
-    },
-    [addMutation, analytics],
-  );
-
   const refresh = useCallback(async () => {
     await refetch();
   }, [refetch]);
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
-  const { onLayout } = useHomeViewedEvent({
-    sectionRef: isWatchlistEnabled ? sectionViewRef : null,
-    isLoading,
-    sectionName: HomeSectionNames.WATCHLIST,
-    sectionIndex,
-    totalSectionsLoaded,
-    isEmpty,
-    itemCount,
-  });
-
-  useSectionPerformance({
-    sectionId: HomeSectionNames.WATCHLIST,
-    contentReady: !isLoading,
-    isEmpty,
-    demandStarted: isWatchlistEnabled,
-    cacheState: isLoading ? 'cold' : 'warm',
-    isLoading,
-    enabled: isWatchlistEnabled,
-  });
-
-  const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
-  const showSuggestedSection = suggestedTokens.length > 0;
-  const showFallback =
-    isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
-
-  const renderSectionContent = (): React.ReactNode => {
-    if (isLoading) {
-      return Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, i) => (
-        <TrendingTokensSkeleton key={`watchlist-skeleton-${i}`} />
-      ));
-    }
-
-    if (showFallback) {
-      return <WatchlistEmptyFallback />;
-    }
-
-    if (showSuggestedSkeletons) {
-      return (
-        <Box testID="watchlist-suggested-skeleton">
-          {Array.from({ length: SUGGESTED_SKELETON_COUNT }, (_, index) => (
-            <TrendingTokensSkeleton
-              key={`watchlist-suggested-skeleton-${index}`}
-            />
-          ))}
-        </Box>
-      );
-    }
-
-    return (
+  return (
+    <WatchlistSectionShell
+      ref={ref}
+      sectionIndex={sectionIndex}
+      totalSectionsLoaded={totalSectionsLoaded}
+      enabled={isWatchlistEnabled}
+      isLoading={isLoading}
+      isEmpty={isEmpty}
+      itemCount={displayTokens.length}
+      showInitialSkeletons={isLoading}
+      showFallback={
+        isEmpty && !isSuggestedLoading && suggestedTokens.length === 0
+      }
+      showSuggestedSkeletons={isEmpty && isSuggestedLoading}
+      refresh={refresh}
+    >
       <>
         {displayTokens.map((token, index) => (
           <WatchlistAnimatedRow key={token.assetId}>
@@ -224,32 +290,15 @@ const LegacyWatchlistSection = forwardRef<
             />
           </WatchlistAnimatedRow>
         ))}
-        {showSuggestedSection && (
+        {suggestedTokens.length > 0 ? (
           <WatchlistSuggestedSection
             tokens={suggestedTokens}
             hasWatchlist={displayTokens.length > 0}
             onAddPress={handleAddPress}
           />
-        )}
+        ) : null}
       </>
-    );
-  };
-
-  if (!isWatchlistEnabled) {
-    return null;
-  }
-
-  return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
-      <SectionDivider />
-      <SectionHeader
-        title={title}
-        isInteractive
-        onPress={handleSectionPress}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')}
-      />
-      <SectionRow>{renderSectionContent()}</SectionRow>
-    </View>
+    </WatchlistSectionShell>
   );
 });
 
@@ -257,8 +306,6 @@ const MixedWatchlistSection = forwardRef<
   SectionRefreshHandle,
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const sectionViewRef = useRef<View>(null);
-  const navigation = useNavigation<AppNavigationProp>();
   const {
     items,
     tokens,
@@ -278,13 +325,45 @@ const MixedWatchlistSection = forwardRef<
   } = useUnifiedWatchlist();
   const { data: suggestedPool, isLoading: isSuggestedLoading } =
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
-  const addMutation = useTokenWatchlistAddItemMutation();
-  const analytics = useAnalytics();
   const { navigateToMarketDetails } = usePerpsNavigation();
   const { addToWatchlist: addPerpToWatchlist, removeFromWatchlist } =
     usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
       showToasts: false,
     });
+
+  const handleAfterTokenAdd = useCallback(
+    (assetId: string) => {
+      if (isOrderReady) {
+        appendOrderKey(getTokenWatchlistKey(assetId)).catch(() => undefined);
+      }
+    },
+    [appendOrderKey, isOrderReady],
+  );
+  const handleAddPress = useTrackAndAddWatchlistToken(handleAfterTokenAdd);
+
+  const handleAddPerpPress = useCallback(
+    async (market: PerpsMarketData) => {
+      const didAdd = await addPerpToWatchlist(market.symbol);
+      if (!didAdd || !isOrderReady) {
+        return;
+      }
+      await appendOrderKey(getPerpsWatchlistKey(market.symbol)).catch(
+        () => undefined,
+      );
+    },
+    [addPerpToWatchlist, appendOrderKey, isOrderReady],
+  );
+
+  const handlePerpPress = useCallback(
+    (market: PerpsMarketData) => {
+      navigateToMarketDetails(
+        market,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+      );
+    },
+    [navigateToMarketDetails],
+  );
+
   const displayItems = items.slice(0, MAX_ITEMS_DISPLAYED);
   const remainingSuggestedCount = Math.max(
     0,
@@ -309,115 +388,35 @@ const MixedWatchlistSection = forwardRef<
       tokens.items,
     ],
   );
+
   const hasError = Boolean(tokens.error ?? perps.error);
   const isEmpty = !isInitialLoading && displayItems.length === 0 && !hasError;
-  const showSuggestedSkeletons =
-    isEmpty && isSuggestedLoading && suggestedRows.length === 0;
-  const showSuggestedSection = suggestedRows.length > 0;
-  const showFallback =
-    isEmpty && !isSuggestedLoading && suggestedRows.length === 0;
-
-  const handleSectionPress = useCallback(() => {
-    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
-  }, [navigation]);
-
-  const handleAddPress = useCallback(
-    (token: WatchlistTokenWithBalance) => {
-      const assetId = String(token.assetId);
-      addMutation.mutate(token, {
-        onSuccess: () => {
-          analytics.trackEvent(
-            analytics
-              .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
-              .addProperties({
-                source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
-                asset_id: assetId,
-                asset_type: getWatchlistAssetType(assetId),
-                has_balance: token.isInWallet,
-              })
-              .build(),
-          );
-          if (isOrderReady) {
-            const addedKey = getTokenWatchlistKey(assetId);
-            appendOrderKey(addedKey).catch(() => undefined);
-          }
-        },
-      });
-    },
-    [addMutation, analytics, appendOrderKey, isOrderReady],
-  );
-
-  const handleAddPerpPress = useCallback(
-    async (market: PerpsMarketData) => {
-      const didAdd = await addPerpToWatchlist(market.symbol);
-      if (!didAdd || !isOrderReady) {
-        return;
+  const retryHandler = canRefresh
+    ? (): void => {
+        refresh().catch(() => undefined);
       }
-      const addedKey = getPerpsWatchlistKey(market.symbol);
-      await appendOrderKey(addedKey).catch(() => undefined);
-    },
-    [addPerpToWatchlist, appendOrderKey, isOrderReady],
-  );
+    : undefined;
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
-  const { onLayout } = useHomeViewedEvent({
-    sectionRef: sectionViewRef,
-    isLoading: isInitialLoading,
-    sectionName: HomeSectionNames.WATCHLIST,
-    sectionIndex,
-    totalSectionsLoaded,
-    isEmpty,
-    itemCount: displayItems.length,
-  });
-
-  useSectionPerformance({
-    sectionId: HomeSectionNames.WATCHLIST,
-    contentReady: !isInitialLoading,
-    isEmpty,
-    isLoading: isInitialLoading,
-    enabled: true,
-  });
-
-  const renderSectionContent = (): React.ReactNode => {
-    if (isInitialLoading && displayItems.length === 0) {
-      return Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, index) => (
-        <TrendingTokensSkeleton key={`watchlist-skeleton-${index}`} />
-      ));
-    }
-
-    if (hasError && displayItems.length === 0) {
-      return (
-        <WatchlistErrorRow
-          onRetry={
-            canRefresh
-              ? (): void => {
-                  refresh().catch(() => undefined);
-                }
-              : undefined
-          }
-        />
-      );
-    }
-
-    if (showFallback) {
-      return <WatchlistEmptyFallback />;
-    }
-
-    if (showSuggestedSkeletons) {
-      return (
-        <Box testID="watchlist-suggested-skeleton">
-          {Array.from({ length: SUGGESTED_SKELETON_COUNT }, (_, index) => (
-            <TrendingTokensSkeleton
-              key={`watchlist-suggested-skeleton-${index}`}
-            />
-          ))}
-        </Box>
-      );
-    }
-
-    return (
+  return (
+    <WatchlistSectionShell
+      ref={ref}
+      sectionIndex={sectionIndex}
+      totalSectionsLoaded={totalSectionsLoaded}
+      enabled
+      isLoading={isInitialLoading}
+      isEmpty={isEmpty}
+      itemCount={displayItems.length}
+      showInitialSkeletons={isInitialLoading && displayItems.length === 0}
+      showFallback={
+        isEmpty && !isSuggestedLoading && suggestedRows.length === 0
+      }
+      showSuggestedSkeletons={
+        isEmpty && isSuggestedLoading && suggestedRows.length === 0
+      }
+      refresh={refresh}
+    >
       <>
+        {hasError ? <WatchlistErrorRow onRetry={retryHandler} /> : null}
         {displayItems.map((item, index) => {
           if (item.kind === 'token') {
             return (
@@ -454,27 +453,18 @@ const MixedWatchlistSection = forwardRef<
                 showBadge={false}
                 enableLivePrices={canUseLivePerpsPrices}
                 twClassName="-mx-4 w-auto px-4"
-                onPress={(market) =>
-                  navigateToMarketDetails(
-                    market,
-                    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-                  )
-                }
+                onPress={handlePerpPress}
               />
             </WatchlistAnimatedRow>
           );
         })}
-        {showSuggestedSection ? (
+        {suggestedRows.length > 0 &&
+        !(hasError && displayItems.length === 0) ? (
           <WatchlistSuggestedSection
             rows={suggestedRows}
             hasWatchlist={displayItems.length > 0}
             onAddPress={handleAddPress}
-            onPerpPress={(market) =>
-              navigateToMarketDetails(
-                market,
-                PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-              )
-            }
+            onPerpPress={handlePerpPress}
             onAddPerpPress={(market) => {
               handleAddPerpPress(market).catch(() => undefined);
             }}
@@ -483,20 +473,7 @@ const MixedWatchlistSection = forwardRef<
           />
         ) : null}
       </>
-    );
-  };
-
-  return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
-      <SectionDivider />
-      <SectionHeader
-        title={strings('homepage.sections.watchlist')}
-        isInteractive
-        onPress={handleSectionPress}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')}
-      />
-      <SectionRow>{renderSectionContent()}</SectionRow>
-    </View>
+    </WatchlistSectionShell>
   );
 });
 
