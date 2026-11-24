@@ -28,7 +28,11 @@ export function getMfaRecoveryStatus(
 }
 
 function trimTrailingSlash(namespace: string): string {
-  return namespace.replace(/\/+$/u, '');
+  let end = namespace.length;
+  while (end > 0 && namespace[end - 1] === '/') {
+    end -= 1;
+  }
+  return namespace.slice(0, end);
 }
 
 /**

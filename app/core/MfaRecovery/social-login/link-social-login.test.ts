@@ -6,9 +6,9 @@ import { LinkSocialLoginError, linkSocialLogin } from './link-social-login';
 const encode = (value: object): string =>
   Buffer.from(JSON.stringify(value))
     .toString('base64')
-    .replace(/\+/gu, '-')
-    .replace(/\//gu, '_')
-    .replace(/[=]+$/u, '');
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
 
 const socialJwt = (claims: object): string =>
   `header.${encode(claims)}.signature`;

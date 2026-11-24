@@ -16,9 +16,9 @@ const PASSKEY: Identifier = {
 
 function base64Url(bytes: Uint8Array): string {
   return bytesToBase64(bytes)
-    .replace(/\+/gu, '-')
-    .replace(/\//gu, '_')
-    .replace(/[=]+$/u, '');
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
 }
 
 describe('PlatformPasskeyIdentifierAuthProvider', () => {
