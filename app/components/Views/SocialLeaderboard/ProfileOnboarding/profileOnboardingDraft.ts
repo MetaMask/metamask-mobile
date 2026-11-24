@@ -84,13 +84,29 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
   return 'available';
 };
 
-export const displayNameFromUsername = (value: string): string =>
-  normalizeUsername(value)
+export const displayNameFromUsername = (value: string): string => {
+  const username = normalizeUsername(value);
+  // A CamelCase word boundary needs a two-letter word before it so that a lone
+  // leading letter ("i" in "iPhone") does not split off. A second pass handles
+  // an all-caps run before a capitalised word ("ETHMaxi" → "ETH Maxi").
+  const camelSplit = username
+    .replace(/([A-Za-z][a-z])(?=[A-Z][a-z])/g, '$1 ')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
+  // The numbered suffix splits off when the handle has at least one camelCase
+  // boundary, so generated names work ("BonkTurboQueen343" → "… 343",
+  // "CryptoKing99" → "… 99") but tickers stay put ("BTC202" → "BTC202").
+  const hasCamelBoundary =
+    /[A-Za-z][a-z][A-Z][a-z]/.test(username) || /[A-Z]{2}[a-z]/.test(username);
+  const withNumber = hasCamelBoundary
+    ? camelSplit.replace(/([a-zA-Z])(\d+)$/, '$1 $2')
+    : camelSplit;
+  return withNumber
     .toLowerCase()
-    .split('_')
+    .split(/[\s_]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+};
 
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = generateUsername();

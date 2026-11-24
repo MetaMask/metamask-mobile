@@ -41,12 +41,47 @@ describe('profileOnboardingDraft', () => {
 
     const draft = createInitialOnboardingDraft();
 
-    expect(draft.username).toBe('bonk_turbo_queen');
+    expect(draft.username).toBe('BonkTurboQueen');
     expect(draft.displayName).toBe('Bonk Turbo Queen');
   });
 
   it('builds a display name from an underscored handle', () => {
     expect(displayNameFromUsername('wen_cat')).toBe('Wen Cat');
+  });
+
+  it('builds a display name from a CamelCase handle', () => {
+    expect(displayNameFromUsername('BonkTurboQueen')).toBe('Bonk Turbo Queen');
+    expect(displayNameFromUsername('GmZenWolf')).toBe('Gm Zen Wolf');
+    expect(displayNameFromUsername('ETHMaxi')).toBe('Eth Maxi');
+  });
+
+  it('puts a space before the number in a numbered handle', () => {
+    expect(displayNameFromUsername('BonkTurboQueen343')).toBe(
+      'Bonk Turbo Queen 343',
+    );
+    expect(displayNameFromUsername('WenMoon343')).toBe('Wen Moon 343');
+    expect(displayNameFromUsername('bonk_turbo_queen_343')).toBe(
+      'Bonk Turbo Queen 343',
+    );
+    expect(displayNameFromUsername('CryptoKing99')).toBe('Crypto King 99');
+    expect(displayNameFromUsername('ETHMaxi343')).toBe('Eth Maxi 343');
+  });
+
+  it('keeps digits inside typed handles attached as before', () => {
+    expect(displayNameFromUsername('wen_cat2')).toBe('Wen Cat2');
+    expect(displayNameFromUsername('web3dev')).toBe('Web3dev');
+    expect(displayNameFromUsername('crypto24')).toBe('Crypto24');
+  });
+
+  it('does not split a single leading letter off a CamelCase word', () => {
+    expect(displayNameFromUsername('iPhone')).toBe('Iphone');
+    expect(displayNameFromUsername('eBay')).toBe('Ebay');
+  });
+
+  it('keeps a trailing number attached when the handle has no CamelCase', () => {
+    expect(displayNameFromUsername('BTC202')).toBe('Btc202');
+    expect(displayNameFromUsername('bitcoin100')).toBe('Bitcoin100');
+    expect(displayNameFromUsername('iPhone100')).toBe('Iphone100');
   });
 
   it('keeps display name generation unchanged for mixed-case usernames', () => {
@@ -294,7 +329,7 @@ describe('profileOnboardingDraft', () => {
     expect(manual.path).toBe('manual');
     expect(manual.useXAvatar).toBe(false);
     expect(manual.xUsername).toBeNull();
-    expect(manual.username).toBe('bonk_turbo_queen');
+    expect(manual.username).toBe('BonkTurboQueen');
     expect(manual.linkedAccountId).toBe('acc-1');
     expect(buildOnboardedSocialProfile(manual).connectedToX).toBe(false);
     expect(buildOnboardedSocialProfile(manual).xHandle).toBeNull();

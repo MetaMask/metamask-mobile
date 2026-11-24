@@ -2415,7 +2415,7 @@ describe('SocialProfileOnboardingView', () => {
     });
 
     const numberedHandle = usernameValue();
-    expect(numberedHandle).toMatch(/_\d{3}$/);
+    expect(numberedHandle).toMatch(/^[A-Za-z]+\d{3}$/);
     expect(numberedHandle).not.toBe(pendingChecks[0].username);
     expect(pendingChecks).toHaveLength(2);
     expect(pendingChecks[1].username).toBe(numberedHandle);
