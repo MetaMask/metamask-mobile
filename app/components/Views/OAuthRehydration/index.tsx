@@ -93,6 +93,7 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
+import Engine from '../../../core/Engine';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -106,6 +107,7 @@ import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
 import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
+import { useMfa } from '../../../util/identity/mfa';
 import type {
   MfaMethod,
   MfaReason,
@@ -117,11 +119,24 @@ import {
   WalletRecoveryVerify,
 } from './WalletRecovery';
 import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
-import {
-  listActiveSocialLoginMethods,
-  verifyForSocialLogin,
-} from './util/lockedSocialMfa';
 import { promptPostMfaDeviceBiometrics } from './promptPostMfaDeviceBiometrics';
+
+/**
+ * Best-effort social identifier pairing before locked MFA verify.
+ * Failure is non-fatal — verify can still proceed.
+ */
+const exchangeSocialTokenForLockedMfa = async () => {
+  try {
+    await Engine.context.AuthenticationController.exchangeSocialAccessToken();
+  } catch (exchangeError) {
+    Logger.log('OAuthRehydration: social login exchange failed', {
+      message:
+        exchangeError instanceof Error
+          ? exchangeError.message
+          : String(exchangeError),
+    });
+  }
+};
 
 type WalletRecoveryStep = 'loading' | 'verify' | 'password'; // existing password — only from custom picker (or no-MFA fallback)
 
@@ -596,6 +611,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const continueAfterVerifiedInFlightRef = useRef(false);
   /** Arrival verify (OS sheet) is in flight. Hardware back must not leave it. */
   const lockedVerifyInFlightRef = useRef(false);
+  const { listActiveSocialLoginMethods, verifyForSocialLogin } = useMfa();
 
   const lockedMfaReason = useMemo(
     (): MfaReason => ({
@@ -645,10 +661,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [componentAuthenticationType, requestBiometricsAccessControlForIOS]);
 
   /**
-   * Pre-password locked social MFA via host `lockedSocialMfa` helpers.
-   * Arrival tries passkey then totp. Email is included only for Telegram,
-   * where that inbox is not the sign-in factor. Social pairing runs inside
-   * `verifyForSocialLogin`.
+   * Pre-password locked social MFA via `useMfa`.
+   * Lists enrolled factors once, verifies the highest allowed one, and on
+   * cancel opens the full-screen methods list. Email OTP is only allowed for
+   * Telegram (sign-in email is never a Google/Apple recovery factor).
    */
   const offerLockedSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
@@ -660,25 +676,45 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setVerifyError(null);
     setPasswordFromVerify(false);
     lockedVerifyInFlightRef.current = true;
+    let allowedMethods: MfaMethod[] = [];
     try {
-      // Google/Apple sign-in email is the first factor, so it is not a
-      // recovery factor. Telegram's inbox is separate, so email stays.
-      const arrivalMethods: MfaMethod[] | undefined =
-        authConnection === 'telegram' ? undefined : ['passkey', 'totp'];
-      const verification = await verifyForSocialLogin({
+      try {
+        const methods = await listActiveSocialLoginMethods();
+        // Google/Apple sign-in email is the first factor, so it is not a
+        // recovery factor. Telegram's inbox is separate, so email stays.
+        allowedMethods =
+          authConnection === 'telegram'
+            ? methods
+            : methods.filter((method) => method !== 'email_otp');
+      } catch (listError) {
+        Logger.log('OAuthRehydration: locked MFA list failed', {
+          code: getMfaErrorCode(listError),
+        });
+        setWalletRecoveryStep('password');
+        return;
+      }
+      if (allowedMethods.length === 0) {
+        setWalletRecoveryStep('password');
+        return;
+      }
+      setFallbackMethods(allowedMethods);
+
+      const highestMethod = allowedMethods[0];
+      await exchangeSocialTokenForLockedMfa();
+      await verifyForSocialLogin({
         reason: lockedMfaReason,
-        methods: arrivalMethods,
+        method: highestMethod,
       });
       Logger.log('OAuthRehydration: locked social MFA', {
         status: 'verified',
-        method: verification?.verifiedMethod,
+        method: highestMethod,
       });
-      lastVerifiedMfaMethodRef.current = verification?.verifiedMethod ?? null;
+      lastVerifiedMfaMethodRef.current = highestMethod;
       await continueAfterVerified();
     } catch (mfaError) {
       const code = getMfaErrorCode(mfaError);
-      // OS passkey cancel (host watcher → kit cancel) or back from kit
-      // passkey retry → full-page methods list.
+      // OS passkey cancel (kit ends verifyOnly) or back from kit retry →
+      // full-page methods list.
       if (code === 'flow_cancelled') {
         Logger.log('OAuthRehydration: locked social MFA', {
           status: 'fallback_verify',
@@ -686,20 +722,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           message:
             mfaError instanceof Error ? mfaError.message : String(mfaError),
         });
-        try {
-          const methods = await listActiveSocialLoginMethods();
-          if (methods.length === 0) {
-            setWalletRecoveryStep('password');
-            return;
-          }
-          setFallbackMethods(methods);
-          setWalletRecoveryStep('verify');
-        } catch (listError) {
-          Logger.log('OAuthRehydration: locked MFA list failed', {
-            code: getMfaErrorCode(listError),
-          });
+        if (allowedMethods.length === 0) {
           setWalletRecoveryStep('password');
+          return;
         }
+        setFallbackMethods(allowedMethods);
+        setWalletRecoveryStep('verify');
         return;
       }
       Logger.log('OAuthRehydration: locked social MFA', {
@@ -716,6 +744,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     canOfferSocialMfaVerify,
     authConnection,
     lockedMfaReason,
+    listActiveSocialLoginMethods,
+    verifyForSocialLogin,
     continueAfterVerified,
   ]);
 
@@ -740,6 +770,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setVerifyError(null);
       setError(null);
       try {
+        await exchangeSocialTokenForLockedMfa();
         await verifyForSocialLogin({
           reason: lockedMfaReason,
           method: mfaMethod,
@@ -766,7 +797,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setVerifyBusy(false);
       }
     },
-    [authConnection, lockedMfaReason, continueAfterVerified],
+    [
+      authConnection,
+      lockedMfaReason,
+      verifyForSocialLogin,
+      continueAfterVerified,
+    ],
   );
 
   const onRehydrateLogin = useCallback(async () => {

@@ -6,7 +6,7 @@ import {
 } from './bindings';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { startMfaFlow } from './engine/activeFlow';
-import { METHOD_COST_RANKING } from './engine/planner';
+import { getVerifiableMethods, METHOD_COST_RANKING } from './engine/planner';
 import Logger from '../../Logger';
 import {
   MetaMetricsEvents,
@@ -19,6 +19,7 @@ import type {
   EnrollOptions,
   MfaFlowOptions,
   MfaFlowResult,
+  MfaMethod,
   MfaReason,
   VerifyOrEnrollOptions,
 } from './engine/types';
@@ -70,25 +71,42 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
   });
 
 /**
+ * Lists MFA factors that can verify while the wallet is locked
+ * (`refreshSocialLoginCredentials`), in kit cost order.
+ */
+const listActiveSocialLoginMethods = async (): Promise<MfaMethod[]> => {
+  const controller = createSocialLoginControllerAdapter();
+  const credentials = await controller.refreshEnrolledCredentials();
+  return getVerifiableMethods(credentials, 'mobile');
+};
+
+/**
  * Proves it's the user during social-login wallet recovery, while the wallet
- * is still locked. Never enrolls: the flow fetches the credentials the
- * profile already has and verifies with one of the active ones that this
- * platform supports. Resolves with the flow's result, rejects with
- * `credential_not_enrolled` when there is none to verify with, or with the
- * code of an error the kit has already shown.
+ * is still locked. Never enrolls. When `method` is set, verifies only that
+ * factor (host picker / arrival highest factor). Otherwise uses the default
+ * cost order (passkey → totp → email). Rejects with
+ * `credential_not_enrolled` when none is active, or with the code of an
+ * error the kit has already shown.
+ *
+ * Callers that need the social identifier paired first should run
+ * `exchangeSocialAccessToken` themselves before this (non-fatal on failure).
  */
 const verifyForSocialLogin = ({
   reason,
+  method,
 }: {
   reason: MfaReason;
-}): Promise<MfaFlowResult> =>
-  startMfaFlow({
-    // Every method may verify: the flow keeps the active ones this platform
-    // runs, and never plans a setup.
+  /** When set, verify only this enrolled factor. */
+  method?: MfaMethod;
+}): Promise<MfaFlowResult> => {
+  const methods = method ? [method] : [...METHOD_COST_RANKING];
+  return startMfaFlow({
+    // A single-method verifyOnly plan auto-starts that method. Passing
+    // every method keeps today's default cost-order verify.
     request: {
       kind: 'verifyOrEnroll',
-      methods: [...METHOD_COST_RANKING],
-      verifyWith: [...METHOD_COST_RANKING],
+      methods,
+      verifyWith: methods,
       verifyOnly: true,
     },
     reason,
@@ -96,6 +114,7 @@ const verifyForSocialLogin = ({
     // One adapter per flow: it keeps the flow's own verification token.
     controller: createSocialLoginControllerAdapter(),
   });
+};
 
 /**
  * The MFA kit for features and settings.
@@ -109,14 +128,21 @@ const verifyForSocialLogin = ({
  * the screens), and lint rejects it outside this folder.
  * - `enroll`: sets up one method, for example from settings. No intro, no
  * verification after.
- * - `verifyForSocialLogin`: social-login wallet recovery, before the wallet
- * is unlocked. Verifies with a method the profile already has; never
- * enrolls.
+ * - `listActiveSocialLoginMethods`: locked recovery — which factors can
+ * verify (`refreshSocialLoginCredentials` + `getVerifiableMethods`).
+ * - `verifyForSocialLogin`: locked recovery verify. Optional `method` for a
+ * single factor; otherwise cost-order default. Never enrolls.
  * - `credentials`: the profile's methods, as last fetched from the server.
  *
  * @returns The kit's entry points and the credential list.
  */
 export const useMfa = () => {
   const credentials = useSelector(selectEnrolledCredentials);
-  return { credentials, verifyOrEnroll, enroll, verifyForSocialLogin };
+  return {
+    credentials,
+    verifyOrEnroll,
+    enroll,
+    listActiveSocialLoginMethods,
+    verifyForSocialLogin,
+  };
 };

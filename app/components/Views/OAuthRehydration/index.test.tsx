@@ -214,11 +214,16 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => {
 
 const mockVerifyForSocialLogin = jest.fn();
 const mockListActiveSocialLoginMethods = jest.fn();
-jest.mock('./util/lockedSocialMfa', () => ({
-  listActiveSocialLoginMethods: (...args: unknown[]) =>
-    mockListActiveSocialLoginMethods(...args),
-  verifyForSocialLogin: (...args: unknown[]) =>
-    mockVerifyForSocialLogin(...args),
+jest.mock('../../../util/identity/mfa', () => ({
+  useMfa: () => ({
+    credentials: [],
+    verifyOrEnroll: jest.fn(),
+    enroll: jest.fn(),
+    listActiveSocialLoginMethods: (...args: unknown[]) =>
+      mockListActiveSocialLoginMethods(...args),
+    verifyForSocialLogin: (...args: unknown[]) =>
+      mockVerifyForSocialLogin(...args),
+  }),
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -1555,6 +1560,11 @@ describe('OAuthRehydration', () => {
       },
     };
 
+    beforeEach(() => {
+      // Arrival lists once, then verifies the highest allowed factor.
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+    });
+
     const enableMfaFlags = () => {
       mockSelectMfaUiKitEnabled.mockReturnValue(true);
       mockSelectMoneyEnableMfaFlag.mockReturnValue(true);
@@ -1669,11 +1679,6 @@ describe('OAuthRehydration', () => {
 
     it('continues to password when no MFA methods are enrolled', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('none'), {
-          mfaCode: 'credential_not_enrolled',
-        }),
-      );
       mockListActiveSocialLoginMethods.mockResolvedValue([]);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
@@ -1685,7 +1690,7 @@ describe('OAuthRehydration', () => {
           getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
         ).toBeOnTheScreen();
       });
-      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
     });
 
     it('continues to password when the highest MFA factor fails without cancel', async () => {
@@ -1708,7 +1713,10 @@ describe('OAuthRehydration', () => {
       expect(
         queryByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
       ).toBeNull();
-      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
+      expect(mockListActiveSocialLoginMethods).toHaveBeenCalled();
+      expect(mockVerifyForSocialLogin).toHaveBeenCalledWith(
+        expect.objectContaining({ method: 'passkey' }),
+      );
     });
 
     it('times out the loading gate when social auth never arrives', async () => {
@@ -1981,9 +1989,12 @@ describe('OAuthRehydration', () => {
 
     it('does not auto-start email OTP for Google or Apple', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'passkey',
-      });
+      mockListActiveSocialLoginMethods.mockResolvedValue([
+        'passkey',
+        'totp',
+        'email_otp',
+      ]);
+      mockVerifyForSocialLogin.mockResolvedValue({});
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
@@ -1998,15 +2009,14 @@ describe('OAuthRehydration', () => {
         reason: expect.objectContaining({
           operation: 'settings.social_mfa_verify',
         }),
-        methods: ['passkey', 'totp'],
+        method: 'passkey',
       });
     });
 
-    it('keeps email in the arrival order for Telegram', async () => {
+    it('keeps email available for Telegram arrival verify', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'email_otp',
-      });
+      mockListActiveSocialLoginMethods.mockResolvedValue(['email_otp']);
+      mockVerifyForSocialLogin.mockResolvedValue({});
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: {
@@ -2029,7 +2039,7 @@ describe('OAuthRehydration', () => {
         reason: expect.objectContaining({
           operation: 'settings.social_mfa_verify',
         }),
-        methods: undefined,
+        method: 'email_otp',
       });
     });
 
@@ -2199,7 +2209,6 @@ describe('OAuthRehydration', () => {
 
     it('opens the password screen when listing fallback methods fails', async () => {
       enableMfaFlags();
-      cancelHighestFactorOnce();
       mockListActiveSocialLoginMethods.mockRejectedValueOnce(
         new Error('list failed'),
       );
@@ -2407,9 +2416,8 @@ describe('OAuthRehydration', () => {
         mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
           AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
         );
-        mockVerifyForSocialLogin.mockResolvedValue({
-          verifiedMethod: 'totp',
-        });
+        mockListActiveSocialLoginMethods.mockResolvedValue(['totp']);
+        mockVerifyForSocialLogin.mockResolvedValue({});
 
         const { getByTestId, queryByTestId } = renderWithProvider(
           <OAuthRehydration />,

@@ -24606,7 +24606,7 @@
   },
   "app/util/identity/mfa/useMfa.ts": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 3
     }
   },
   "app/util/jsonRpcRequest.ts": {
