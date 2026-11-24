@@ -24,7 +24,7 @@ import cardFrontFullRes from '../../../../../images/card_freeze_card_front.png';
 // assert the overlay geometry, the data binding, and drive `onError`.
 const mockTrigger = jest.fn();
 const mockPlayIfNeeded = jest.fn();
-const mockAwaitViewReady = jest.fn(() => Promise.resolve());
+const mockAwaitViewReady = jest.fn(async () => undefined);
 const mockRiveFile = { __mockRiveFile: true };
 const mockViewModelInstance = { __mockViewModelInstance: true };
 const mockUseRiveFile = jest.fn();
@@ -200,6 +200,21 @@ describe('CardFreezeUnfreezeAnimation', () => {
     await waitFor(() => {
       expect(mockTrigger).toHaveBeenCalledWith('freeze');
     });
+  });
+
+  it('waits for the Rive view before firing a mount-time freeze', async () => {
+    mockViewReady = false;
+    const { rerender } = render(animationElement(true));
+
+    expect(mockTrigger).not.toHaveBeenCalled();
+
+    mockViewReady = true;
+    rerender(animationElement(true));
+
+    await waitFor(() => {
+      expect(mockTrigger).toHaveBeenCalledTimes(1);
+    });
+    expect(mockTrigger).toHaveBeenCalledWith('freeze');
   });
 
   it('renders only the static fallback under reduce motion', () => {

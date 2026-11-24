@@ -4533,6 +4533,42 @@ describe('CardHome Component', () => {
       ).toBeNull();
     });
 
+    it('hands the card from the arrival reveal to the freeze animation after a freeze', () => {
+      mockArrivalOverride = { usesRiveCard: true, playReveal: false };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows the static card face instead of the arrival reveal while offline', () => {
       mockArrivalOverride = { usesRiveCard: true, playReveal: true };
       mockNetworkTier = 'NONE';

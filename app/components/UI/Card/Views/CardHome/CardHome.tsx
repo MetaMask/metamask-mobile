@@ -807,12 +807,23 @@ const CardHome = () => {
     networkTier !== 'NONE' &&
     !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
 
+  // The arrival reveal holds the card only until a Freeze or Unfreeze press
+  // this visit; then the freeze file takes over so the ice or melt plays.
+  const hasUsedFreezeThisVisit =
+    actions.freeze.isPending ||
+    actions.freeze.isSuccess ||
+    actions.freeze.isError ||
+    actions.unfreeze.isPending ||
+    actions.unfreeze.isSuccess ||
+    actions.unfreeze.isError;
+  const arrivalHoldsCard = arrival.usesRiveCard && !hasUsedFreezeThisVisit;
+
   // The freeze file only contains the virtual face. Metal and physical cards,
-  // a blocked card (which dims), and the one-shot arrival reveal keep their
-  // own art. Setup reconciliation keeps the image skeleton.
+  // a blocked card (which dims), and the arrival reveal keep their own art.
+  // Setup reconciliation keeps the image skeleton.
   const showFreezeCardArt =
     allowCardRive &&
-    !arrival.usesRiveCard &&
+    !arrivalHoldsCard &&
     !isSetupReconciling &&
     data?.card?.type === CardType.VIRTUAL &&
     data?.card?.status !== CardStatus.BLOCKED &&

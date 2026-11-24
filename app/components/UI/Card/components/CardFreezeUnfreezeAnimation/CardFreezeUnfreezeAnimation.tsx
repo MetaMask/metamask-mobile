@@ -153,7 +153,9 @@ const CardFreezeUnfreezeAnimation = ({
   const fireUnfreezeRef = useRef(fireUnfreezeTrigger);
   fireUnfreezeRef.current = fireUnfreezeTrigger;
 
+  // riveViewRef is set only once the native view is ready to play.
   const canFire =
+    Boolean(riveViewRef) &&
     Boolean(viewModelInstance) &&
     freezeTriggerError === null &&
     unfreezeTriggerError === null;
