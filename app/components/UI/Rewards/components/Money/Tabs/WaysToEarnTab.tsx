@@ -21,12 +21,19 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
 import {
   isCopyTradingOnly,
+  refereeMoneySections,
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
 } from '../../../../../../reducers/rewardsMoney/selectors';
-import { navigateToSocialLeaderboard } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
+import { selectCandidateSubscriptionId } from '../../../../../../reducers/rewards/selectors';
+import {
+  navigateToSocialLeaderboard,
+  navigateToSocialTab,
+} from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import type {
   ClaimDto,
   EarningsSummaryDto,
@@ -53,6 +60,7 @@ import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
+import { useRewardCampaigns } from '../../../hooks/useRewardCampaigns';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
 import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
@@ -67,6 +75,20 @@ import { EarningsHistoryRow } from '../EarningsHistoryRows';
 import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
+import {
+  earnActionRows,
+  type EarnActionRow,
+  type EarnActionRowKey,
+} from './earnActionRows';
+import EarnActionSection from './EarnActionSection';
+import {
+  campaignActionRow,
+  campaignDetailsRoute,
+  latestOpenableCampaign,
+  NEXT_STEP_CAMPAIGN_KEY,
+  optInActionRow,
+} from './nextStepCampaign';
+import { EARN_ACTION_SECTION_TEST_IDS } from './EarnActionSection.testIds';
 import {
   deriveSummarySection,
   musdAmount,
@@ -313,14 +335,23 @@ const HistorySection: React.FC<{
 // Tab.
 // ---------------------------------------------------------------------------
 
+/** Every row Next steps can hold: the shared ways to earn, then a campaign. */
+type NextStepRowKey = EarnActionRowKey | typeof NEXT_STEP_CAMPAIGN_KEY;
+
 interface WaysToEarnTabProps {
   profileId: string;
   persona: MoneyDashboardPersona;
+  /** Opens the share code sheet the dashboard owns. */
+  onOpenShareCode: () => void;
+  /** Switches the dashboard to its Campaigns tab. */
+  onOpenCampaigns: () => void;
 }
 
 const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
   profileId,
   persona,
+  onOpenShareCode,
+  onOpenCampaigns,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const openTradeActions = useCallback(() => {
@@ -343,6 +374,50 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
   const openSocialTab = useCallback(() => {
     navigateToSocialLeaderboard(navigation.navigate);
   }, [navigation]);
+  const socialEnabled = useSelector(selectIsSocialV1Enabled);
+  const {
+    categorizedCampaigns: { active: activeCampaigns },
+  } = useRewardCampaigns();
+  const liveCampaign = latestOpenableCampaign(activeCampaigns);
+  // A user who has opted into rewards goes straight to the campaign. Anyone
+  // else lands on the Campaigns tab, where the opt-in is offered.
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  // selectRewardsSubscriptionId reads null while the subscription lookup is
+  // still 'pending' or 'retry'. Wait for it, so a subscribed user is never
+  // offered the opt-in row.
+  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
+  const subscriptionKnown =
+    Boolean(subscriptionId) ||
+    (candidateSubscriptionId !== 'pending' &&
+      candidateSubscriptionId !== 'retry');
+  const openNextStep = useCallback(
+    (key: NextStepRowKey) => {
+      if (key === 'referrals') {
+        onOpenShareCode();
+      } else if (key === 'trading') {
+        openTradeActions();
+      } else if (key === NEXT_STEP_CAMPAIGN_KEY) {
+        const route = liveCampaign ? campaignDetailsRoute(liveCampaign) : null;
+        if (subscriptionId && liveCampaign && route) {
+          navigateToRewardsRoute(navigation, route, {
+            campaignId: liveCampaign.id,
+          });
+        } else {
+          onOpenCampaigns();
+        }
+      } else {
+        navigateToSocialTab(navigation.navigate);
+      }
+    },
+    [
+      liveCampaign,
+      navigation,
+      onOpenCampaigns,
+      onOpenShareCode,
+      openTradeActions,
+      subscriptionId,
+    ],
+  );
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
@@ -475,6 +550,23 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
   );
   const claimEnabled = canClaimEarnings(summary.data, routeOptions);
   const taxHeld = incomeHeldOnOpenRoute(summary.data, routeOptions);
+  // A subscribed user is offered the live campaign. A user who has not opted
+  // in is offered the opt-in instead, once the subscription lookup settles.
+  let campaignRows: EarnActionRow<NextStepRowKey>[] = [];
+  if (subscriptionId) {
+    campaignRows = liveCampaign ? [campaignActionRow(liveCampaign)] : [];
+  } else if (subscriptionKnown) {
+    campaignRows = [optInActionRow(localizedText)];
+  }
+  const nextStepRows: EarnActionRow<NextStepRowKey>[] = [
+    ...earnActionRows(
+      persona,
+      localizedText,
+      refereeMoneySections(roles),
+      socialEnabled,
+    ),
+    ...campaignRows,
+  ];
 
   return (
     <Box testID={WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER}>
@@ -552,11 +644,24 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
           ) : null}
         </Box>
       ) : null}
+      {nextStepRows.length > 0 ? (
+        <EarnActionSection
+          title={localizedText.nextSteps}
+          rows={nextStepRows}
+          onPressRow={openNextStep}
+          followsSection={summary.show}
+          testIDs={{
+            container: EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS,
+            header: EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS_HEADER,
+            row: EARN_ACTION_SECTION_TEST_IDS.NEXT_STEPS_ROW,
+          }}
+        />
+      ) : null}
       {history.show ? (
         <HistorySection
           localizedText={localizedText}
           state={history}
-          followsSection={summary.show}
+          followsSection={summary.show || nextStepRows.length > 0}
           copyTradingOnly={copyTradingOnly}
           pausedBaseUnits={
             summary.loading || history.loading

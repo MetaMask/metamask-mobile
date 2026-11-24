@@ -12156,14 +12156,6 @@
       "count": 47
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.tsx": {
     "typescript/promise-function-async": {
       "count": 1
@@ -25654,7 +25646,7 @@
   },
   "tests/component-view/renderers/rewardsMoney.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 9
+      "count": 8
     },
     "typescript/promise-function-async": {
       "count": 18

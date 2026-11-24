@@ -289,6 +289,12 @@ function RewardsFlowProbe() {
         name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
         component={routeProbe(Routes.REWARDS_TRADING_COMMISSIONS_VIEW)}
       />
+      <FlowStack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
+        component={createRouteParamsProbe(
+          Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+        )}
+      />
     </FlowStack.Navigator>
   );
 }
@@ -324,6 +330,10 @@ function RootModalFlowProbe() {
         name={Routes.WEBVIEW.SIMPLE}
         component={SupportWebviewProbe}
       />
+      <FlowStack.Screen
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        component={routeProbe(Routes.MODAL.TRADE_WALLET_ACTIONS)}
+      />
     </FlowStack.Navigator>
   );
 }
@@ -331,6 +341,7 @@ function RootModalFlowProbe() {
 function rewardsFlowRoutes() {
   return [
     { name: Routes.REWARDS_FLOW, Component: RewardsFlowProbe },
+    { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     {
       name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
       Component: createRouteParamsProbe(
@@ -451,6 +462,16 @@ export function renderRewardsDashboard(
     { state },
   );
 
+  shareStoreWithReduxService(result.store);
+
+  return { ...result, engine };
+}
+
+/**
+ * Makes `ReduxService.store` the rendered store, for code that reads Redux
+ * outside React. Undo it with `restoreRewardsDashboardStore`.
+ */
+function shareStoreWithReduxService(store: unknown): void {
   restoreRewardsDashboardStore();
   let previousStore: ReduxStore | undefined;
   try {
@@ -458,15 +479,13 @@ export function renderRewardsDashboard(
   } catch {
     previousStore = undefined;
   }
-  ReduxService.store = result.store as unknown as ReduxStore;
+  ReduxService.store = store as ReduxStore;
   restoreRewardsDashboardReduxStore = () => {
     restoreRewardsDashboardReduxStore = undefined;
     if (previousStore) {
       ReduxService.store = previousStore;
     }
   };
-
-  return { ...result, engine };
 }
 
 export function renderRewardsMoneyDashboard(
@@ -530,16 +549,34 @@ export function renderRewardsSettingsView(
   };
 }
 
-export function renderWaysToEarnTab(options: RenderRewardsMoneyOptions = {}) {
+export function renderWaysToEarnTab({
+  onOpenShareCode = () => undefined,
+  onOpenCampaigns = () => undefined,
+  ...options
+}: RenderRewardsMoneyOptions & {
+  onOpenShareCode?: () => void;
+  onOpenCampaigns?: () => void;
+} = {}) {
   const persona = options.persona ?? 'referee';
 
   function Screen() {
     return (
-      <WaysToEarnTab profileId={REWARDS_MONEY_PROFILE_ID} persona={persona} />
+      <WaysToEarnTab
+        profileId={REWARDS_MONEY_PROFILE_ID}
+        persona={persona}
+        onOpenShareCode={onOpenShareCode}
+        onOpenCampaigns={onOpenCampaigns}
+      />
     );
   }
 
-  return renderMoneyScreen(Screen, 'WaysToEarnTab', { ...options, persona });
+  const result = renderMoneyScreen(Screen, 'WaysToEarnTab', {
+    ...options,
+    persona,
+  });
+  // Opening the Social tab reads its onboarding state from `ReduxService`.
+  shareStoreWithReduxService(result.store);
+  return result;
 }
 
 export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {

@@ -535,6 +535,10 @@ const RewardsMoneyDashboard: React.FC = () => {
                     <WaysToEarnTab
                       profileId={profileId}
                       persona={moneyDashboardPersona(referralMe)}
+                      onOpenShareCode={() => setIsShareOpen(true)}
+                      onOpenCampaigns={() =>
+                        selectTab(TAB_ORDER.indexOf('campaigns'))
+                      }
                     />
                   </Box>
                 ) : null}

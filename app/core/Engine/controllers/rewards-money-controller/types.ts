@@ -148,10 +148,14 @@ export type EarnRatesView = {
  */
 export type ReferralLocalizedTextKey =
   | 'waysToEarn'
+  | 'nextSteps'
   | 'overviewTab'
   | 'earningsTab'
   | 'performanceTitle'
   | 'earnEligibleFees'
+  | 'referFriends'
+  | 'tradeAndEarn'
+  | 'postTrades'
   | 'yourReferralCode'
   | 'share'
   | 'referrals'
@@ -245,6 +249,7 @@ export type ReferralLocalizedTextKey =
   | 'offerDurationHour'
   | 'offerDurationHours'
   | 'invitedReferredBy'
+  | 'invitedOptInTitle'
   | 'invitedOptInDescription'
   | 'invitedOptInAction'
   | 'invitedOptInSuccessToast'

@@ -13,6 +13,7 @@ import {
   REFERRAL_LOCALIZED_TEXT,
 } from '../../../../../../../tests/component-view/presets/rewardsMoney';
 import { avatarIconNameIn } from '../testUtils';
+import { EARN_ACTION_SECTION_TEST_IDS } from './EarnActionSection.testIds';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
 /** Resolved `text-success-default` in the light theme the view tests render in. */
@@ -124,20 +125,27 @@ describe('EarningsTab', () => {
     expect(queryByText(REFERRAL_LOCALIZED_TEXT.referrals)).toBeNull();
   });
 
-  it.each([['CASHBACK_EXPERIMENT'], ['COPY_TRADING']])(
-    'hides the section for a referee with only the %s role',
-    async (role) => {
-      const { findByTestId, queryByTestId } = renderEarningsTab({
+  it.each([
+    ['CASHBACK_EXPERIMENT', 'trading', 'social'],
+    ['COPY_TRADING', 'social', 'trading'],
+  ])(
+    'shows only the matching row for a referee with only the %s role',
+    async (role, shown, hidden) => {
+      const { findByTestId, getByTestId, queryByTestId } = renderEarningsTab({
         persona: 'referee',
         summary: BREAKDOWN_SUMMARY,
         referralMe: refereeWithRoles([role]),
       });
 
       expect(
-        await findByTestId(EARNINGS_TAB_TEST_IDS.CONTAINER),
+        await findByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN),
       ).toBeOnTheScreen();
-      expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
-      expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER)).toBeNull();
+      expect(
+        getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-${shown}`),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-${hidden}`),
+      ).toBeNull();
     },
   );
 
@@ -159,18 +167,22 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
   });
 
-  it('hides the trading commissions row for a referrer while Social V1 is off', async () => {
-    const { findByTestId, queryByTestId } = renderEarningsTab({
+  it('keeps only the referrals row for a referrer while Social V1 is off', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = renderEarningsTab({
       persona: 'referrer',
       summary: BREAKDOWN_SUMMARY,
       socialV1: false,
     });
 
     expect(
-      await findByTestId(EARNINGS_TAB_TEST_IDS.CONTAINER),
+      await findByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN),
     ).toBeOnTheScreen();
-    // One row is left, and a single earning type needs no split.
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-referrals`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+    ).toBeNull();
   });
 
   it('omits the section for a plain persona', async () => {
@@ -183,5 +195,122 @@ describe('EarningsTab', () => {
       await findByTestId(EARNINGS_TAB_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
+  });
+
+  describe('Ways to earn', () => {
+    it('lists Refer friends and Post trades for a referrer above Your earnings', async () => {
+      const { findByTestId, getByTestId, getByText, queryByTestId } =
+        renderEarningsTab({
+          persona: 'referrer',
+          summary: BREAKDOWN_SUMMARY,
+        });
+
+      expect(
+        await findByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
+      ).toBeOnTheScreen();
+      expect(getByText(REFERRAL_LOCALIZED_TEXT.waysToEarn)).toBeOnTheScreen();
+      const referFriends = getByTestId(
+        `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`,
+      );
+      expect(getByText(REFERRAL_LOCALIZED_TEXT.referFriends)).toBeOnTheScreen();
+      expect(
+        getByText(REFERRAL_LOCALIZED_TEXT.earnEligibleFees),
+      ).toBeOnTheScreen();
+      expect(avatarIconNameIn(referFriends)).toBe(IconName.UserCircleAdd);
+      expect(
+        avatarIconNameIn(
+          getByTestId(
+            `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-social`,
+          ),
+        ),
+      ).toBe(IconName.People);
+      expect(
+        queryByTestId(
+          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-trading`,
+        ),
+      ).toBeNull();
+      expect(
+        getByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('lists Trade and earn and Post trades for a referee', async () => {
+      const { findByTestId, getByTestId, getByText, queryByTestId } =
+        renderEarningsTab({
+          persona: 'referee',
+          summary: BREAKDOWN_SUMMARY,
+        });
+
+      expect(
+        await findByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
+      ).toBeOnTheScreen();
+      expect(getByText(REFERRAL_LOCALIZED_TEXT.tradeAndEarn)).toBeOnTheScreen();
+      expect(
+        getByText(REFERRAL_LOCALIZED_TEXT.invitedBenefitTitle),
+      ).toBeOnTheScreen();
+      expect(
+        avatarIconNameIn(
+          getByTestId(
+            `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-trading`,
+          ),
+        ),
+      ).toBe(IconName.SwapVertical);
+      expect(getByText(REFERRAL_LOCALIZED_TEXT.postTrades)).toBeOnTheScreen();
+      expect(
+        getByText(REFERRAL_LOCALIZED_TEXT.copyTradingInfoDescription),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`,
+        ),
+      ).toBeNull();
+    });
+
+    it('lists only Post trades for a plain user', async () => {
+      const { findByTestId, getByTestId, queryByTestId } = renderEarningsTab({
+        persona: 'plain',
+        summary: BREAKDOWN_SUMMARY,
+      });
+
+      expect(
+        await findByTestId(
+          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-social`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-referrals`,
+        ),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          `${EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW}-trading`,
+        ),
+      ).toBeNull();
+    });
+
+    it('omits Post trades and the section while Social V1 is off for a plain user', async () => {
+      const { findByTestId, queryByTestId } = renderEarningsTab({
+        persona: 'plain',
+        summary: BREAKDOWN_SUMMARY,
+        socialV1: false,
+      });
+
+      expect(
+        await findByTestId(EARNINGS_TAB_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN),
+      ).toBeNull();
+      expect(
+        queryByTestId(EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER),
+      ).toBeNull();
+    });
   });
 });

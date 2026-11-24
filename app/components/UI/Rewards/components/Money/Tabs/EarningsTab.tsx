@@ -9,6 +9,7 @@ import {
   BoxFlexDirection,
   IconColor,
   IconName,
+  SectionDivider,
   SectionHeader,
   Skeleton,
   Text,
@@ -37,8 +38,16 @@ import {
   earnedByOthersLifetime,
   selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
+import { earnActionRows } from './earnActionRows';
+import EarnActionSection from './EarnActionSection';
+import { EARN_ACTION_SECTION_TEST_IDS } from './EarnActionSection.testIds';
 import { deriveSummarySection, musdAmount } from './earningsSummarySection';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
+
+/** Ways to earn rows do not open anything yet. Destinations land later. */
+function openWayToEarn(): void {
+  return undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Your earnings section: lifetime totals per earning family.
@@ -126,12 +135,15 @@ const BreakdownSection: React.FC<{
   localizedText: ReferralLocalizedText;
   rows: BreakdownRow[];
   loading: boolean;
-}> = ({ localizedText, rows, loading }) => (
+  /** Ways to earn above this section supplies the divider and header spacing. */
+  followsSection: boolean;
+}> = ({ localizedText, rows, loading, followsSection }) => (
   <>
+    {followsSection ? <SectionDivider marginVertical={8} /> : null}
     <SectionHeader
       // A payload cached before the server added the key has no yourEarnings.
       title={localizedText.yourEarnings ?? localizedText.breakdown}
-      twClassName="pt-4 pb-4"
+      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
       testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER}
     />
     <Box twClassName="px-4 pb-8">
@@ -189,7 +201,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
-  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const roles = useSelector(
     (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
   );
@@ -214,11 +226,17 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
     summary.data,
     localizedText,
     sections,
-    showTradingCommissions,
+    isSocialV1Enabled,
   );
-  // One earning type does not need a split. The section appears only when
-  // two rows remain after the role and Social V1 filters.
-  const showBreakdown = summary.show && rows.length >= 2;
+  const waysToEarnRows = earnActionRows(
+    persona,
+    localizedText,
+    sections,
+    isSocialV1Enabled,
+  );
+  const showWaysToEarn = waysToEarnRows.length > 0;
+  // The role and Social V1 filters decide the rows. One row is enough.
+  const showBreakdown = summary.show && rows.length >= 1;
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
@@ -240,11 +258,25 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
           />
         </Box>
       ) : null}
+      {showWaysToEarn ? (
+        <EarnActionSection
+          title={localizedText.waysToEarn}
+          rows={waysToEarnRows}
+          onPressRow={openWayToEarn}
+          followsSection={false}
+          testIDs={{
+            container: EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN,
+            header: EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER,
+            row: EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW,
+          }}
+        />
+      ) : null}
       {showBreakdown ? (
         <BreakdownSection
           localizedText={localizedText}
           rows={rows}
           loading={summary.loading}
+          followsSection={showWaysToEarn}
         />
       ) : null}
     </Box>

@@ -822,9 +822,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY),
     );
     expect(
-      campaignsOptIn.getByText(
-        strings('rewards.campaign.opt_in_section_title'),
-      ),
+      campaignsOptIn.getByText(REFERRAL_LOCALIZED_TEXT.invitedOptInTitle),
     ).toBeOnTheScreen();
     expect(
       campaignsOptIn.getByText(REFERRAL_LOCALIZED_TEXT.invitedOptInDescription),

@@ -17,10 +17,10 @@ const LOCALIZED_TEXT = {
   balanceSubtext: 'mUSD in total earnings',
   held: 'Held',
   heldSubtext:
-    'mUSD available to claim once tax determination is clear and hold is removed',
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   pending: 'Pending',
   pendingSubtext:
-    'mUSD available to claim once pending is clear and {minimum} is met',
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   mUSD: 'mUSD',
   claim: 'Claim',
   paused: 'Paused',
@@ -696,7 +696,7 @@ describe('ClaimableRewardsCard subtext', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
     ).toHaveTextContent(
-      'mUSD available to claim once tax determination is clear and hold is removed',
+      'mUSD available to claim once tax determination is cleared and hold is removed',
     );
   });
 
@@ -714,7 +714,7 @@ describe('ClaimableRewardsCard subtext', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
     ).toHaveTextContent(
-      'mUSD available to claim once pending is clear and $1.00 is met',
+      'mUSD available to claim once pending is cleared and $1.00 is met',
     );
   });
 
@@ -730,7 +730,7 @@ describe('ClaimableRewardsCard subtext', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
     ).toHaveTextContent(
-      'mUSD available to claim once pending is clear and minimum is met',
+      'mUSD available to claim once pending is cleared and minimum is met',
     );
     expect(queryByText(/\{minimum\}/)).toBeNull();
   });

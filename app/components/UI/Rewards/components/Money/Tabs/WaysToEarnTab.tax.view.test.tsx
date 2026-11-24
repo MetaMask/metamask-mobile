@@ -297,7 +297,7 @@ describe('WaysToEarnTab tax documentation', () => {
       summary: HELD_ONLY,
     });
 
-    expect(await findByText('Held • mUSD')).toBeOnTheScreen();
+    expect(await findByText('Held')).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -315,7 +315,7 @@ describe('WaysToEarnTab tax documentation', () => {
       summary: HELD_ONLY,
     });
 
-    expect(await findByText('Held • mUSD')).toBeOnTheScreen();
+    expect(await findByText('Held')).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');

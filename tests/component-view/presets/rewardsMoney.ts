@@ -38,10 +38,14 @@ export { MONAD_MAINNET_CHAIN_ID };
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
+  nextSteps: 'Next steps',
   overviewTab: 'Overview',
   earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  referFriends: 'Refer friends',
+  tradeAndEarn: 'Trade and earn',
+  postTrades: 'Post trades',
   yourReferralCode: 'Your referral code',
   share: 'Share',
   referrals: 'Referrals',
@@ -53,12 +57,12 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimed: 'Claimed',
   held: 'Held',
   heldSubtext:
-    'mUSD available to claim once tax determination is clear and hold is removed',
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   blocked: 'Blocked',
   voided: 'Voided',
   pending: 'Pending',
   pendingSubtext:
-    'mUSD available to claim once pending is clear and {minimum} is met',
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   claimSuccessToast: 'Claim sent',
   claimPartialSuccessToast: 'Part of your claim was sent',
   claimFailureToast: 'Claim failed',
@@ -109,7 +113,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
   copyTradingEmptyAction: 'Start sharing',
   copyTradingInfoDescription:
-    'Earn 15% from fees when someone copies your trade.',
+    'Earn 15% from fees when someone copies your trade',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -141,6 +145,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   offerDurationHour: 'hour',
   offerDurationHours: 'hours',
   invitedReferredBy: 'Referred by',
+  invitedOptInTitle: 'Opt in title',
   invitedOptInDescription: 'Opt in description',
   invitedOptInAction: 'Opt in',
   invitedOptInSuccessToast: 'Opted in',

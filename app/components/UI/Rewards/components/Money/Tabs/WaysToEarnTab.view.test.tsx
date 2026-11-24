@@ -722,7 +722,7 @@ describe('WaysToEarnTab', () => {
         claimReady: true,
       });
 
-    expect(await findByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(await findByText('Available to claim')).toBeOnTheScreen();
     expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
     const claimButton = getByTestId(
       CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON,
@@ -940,7 +940,7 @@ describe('WaysToEarnTab', () => {
       },
     });
 
-    expect(await findByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(await findByText('Available to claim')).toBeOnTheScreen();
     expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
