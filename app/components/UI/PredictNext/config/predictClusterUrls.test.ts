@@ -91,7 +91,7 @@ describe.each([
 describe('venue profile registry', () => {
   it('uses the same fixed registry URL for dev and uat', () => {
     expect(VENUE_PROFILE_REGISTRY_URL).toBe(
-      'https://pub-4571681e7ae145b0abdff881a1172b04.r2.dev/predict/venue-profiles',
+      'https://client-config.api.cx.metamask.io/v1/config/predict/venue-profiles',
     );
     expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev))).toBe(
       VENUE_PROFILE_REGISTRY_URL,
@@ -122,5 +122,21 @@ describe('venue profile registry', () => {
         isDevelopment: true,
       }),
     ).toBeUndefined();
+  });
+
+  it('uses a configured override in every cluster', () => {
+    const override = 'http://127.0.0.1:8787/predict/venue-profiles';
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Prod), override)).toBe(
+      override,
+    );
+    expect(
+      resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev), ` ${override} `),
+    ).toBe(override);
+  });
+
+  it('ignores a blank override', () => {
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev), '   ')).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
   });
 });

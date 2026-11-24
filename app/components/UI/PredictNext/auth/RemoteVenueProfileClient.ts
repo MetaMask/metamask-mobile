@@ -86,7 +86,7 @@ export class RemoteVenueProfileClient {
     etag?: string;
     signal?: AbortSignal;
   }): Promise<VenueProfileFetchResult> {
-    return this.#read(`${encode(id)}/revoked.json`, etag, signal);
+    return this.#read(`${encode(id)}/revoked`, etag, signal);
   }
 
   async fetchProfile({
@@ -99,7 +99,7 @@ export class RemoteVenueProfileClient {
     signal?: AbortSignal;
   }): Promise<string> {
     const result = await this.#read(
-      `${encode(id)}/v${String(version)}.json`,
+      `${encode(id)}/v${String(version)}`,
       undefined,
       signal,
     );

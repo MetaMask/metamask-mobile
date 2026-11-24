@@ -212,7 +212,7 @@ describe('funding.deposit signing', () => {
         arrayBuffer: async () => new TextEncoder().encode(body).buffer,
       }) as unknown as Response;
     const fetchMock = jest.fn(async (url: string) =>
-      respond(url.endsWith('/revoked.json') ? BUNDLED_REVOKED_RAW : remote),
+      respond(url.endsWith('/revoked') ? BUNDLED_REVOKED_RAW : remote),
     );
     const resolver = new VenueProfileResolver({
       getSigningProfile: async () => ({ id: VENUE_PROFILE_ID, version: 1 }),

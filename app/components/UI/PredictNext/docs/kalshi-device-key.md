@@ -84,7 +84,7 @@ supplies. In both cases the template comes from outside this client.
 The profile that renders and signs venue requests is readable JSON served by
 mm-config-registry (see [ADR-0005](./adr/0005-remote-venue-profiles.md)). The
 phone asks predict-api for the version its cluster is configured to use, then
-downloads that version and `revoked.json` from the registry URL constant,
+downloads that version and `revoked` from the registry URL constant,
 falling back to the last answer, the MMKV cache, and finally a bundled byte
 copy of version 1. It reads documents as bytes and decodes UTF-8 fatally: a
 body with invalid encoding is rejected, and a BOM is preserved so the hash

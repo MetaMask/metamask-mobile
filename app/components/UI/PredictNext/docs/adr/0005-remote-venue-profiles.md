@@ -38,7 +38,7 @@ phone's code checks before it signs.
 /v1/venues/kalshi/signing-profile` is listed in predict-api's public auth
    paths, so a phone can call it without a token; it returns `{id, version}`,
    not profile content or revocations. At boot and every 15 minutes
-   predict-api reads `revoked.json` and published profile files up to the
+   predict-api reads `revoked` and published profile files up to the
    configured version, four at a time, keeping its last good snapshot (or its
    bundled byte copies) when the revocation list or a read fails. A missing
    version is skipped; a single malformed version is logged and skipped
@@ -50,7 +50,7 @@ phone's code checks before it signs.
    endpoint still reports it; read proposals are then checked against the
    highest usable version below it.
 3. **The phone downloads and checks.** The phone asks predict-api for the
-   version, then downloads `revoked.json` and `v<version>.json` from the
+   version, then downloads `revoked` and `v<version>` from the
    registry. It validates the profile and its id and version, applies the build
    ceiling, checks revocation and the stored floor, and signs with a pinned
    snapshot carrying `profile.{id,version,sha256}`. It raises the floor after
@@ -65,10 +65,11 @@ phone's code checks before it signs.
    A cached revocation `ETag` is discarded when the cached list is not
    adopted, so a later conditional request cannot turn a rejected list into a 304. Concurrent refreshes share one request, so answers cannot land out of
    order.
-4. **The registry URL is a code constant.** Both repositories use
-   `https://pub-4571681e7ae145b0abdff881a1172b04.r2.dev/predict/venue-profiles`
-   for dev and uat. Before production it moves to a client-config route or a
-   MetaMask domain serving the same paths and bytes. Nothing from predict-api,
+4. **The registry URL is a code constant.** Both repositories use the
+   client-config route
+   `https://client-config.api.cx.metamask.io/v1/config/predict/venue-profiles`.
+   Public paths are extensionless (`<id>/v<N>`, `<id>/revoked`); the Worker
+   maps them to the `.json` objects in R2 and serves the same bytes. Nothing from predict-api,
    remote config or a profile can change the phone's URL. The phone reads the
    registry and predict-api only when it resolves a dev or uat Predict
    cluster; any other build uses bundled version 1 alone. The mobile cache and

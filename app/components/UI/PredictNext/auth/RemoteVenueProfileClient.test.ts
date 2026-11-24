@@ -62,7 +62,7 @@ describe('RemoteVenueProfileClient', () => {
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe(
-      'https://pub-4571681e7ae145b0abdff881a1172b04.r2.dev/predict/venue-profiles/kalshi-demo-signing/revoked.json',
+      'https://client-config.api.cx.metamask.io/v1/config/predict/venue-profiles/kalshi-demo-signing/revoked',
     );
     expect(init?.headers).toMatchObject({
       Accept: 'application/json',
@@ -100,7 +100,7 @@ describe('RemoteVenueProfileClient', () => {
       }),
     ).resolves.toBe(raw);
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://pub-4571681e7ae145b0abdff881a1172b04.r2.dev/predict/venue-profiles/kalshi-demo-signing/v1.json',
+      'https://client-config.api.cx.metamask.io/v1/config/predict/venue-profiles/kalshi-demo-signing/v1',
     );
   });
 
@@ -123,8 +123,8 @@ describe('RemoteVenueProfileClient', () => {
       await client.fetchRevoked({ id: 'kalshi-demo-signing' });
 
       expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-        'https://registry.example/profiles/kalshi-demo-signing/v1.json',
-        'https://registry.example/profiles/kalshi-demo-signing/revoked.json',
+        'https://registry.example/profiles/kalshi-demo-signing/v1',
+        'https://registry.example/profiles/kalshi-demo-signing/revoked',
       ]);
     },
   );
