@@ -1,8 +1,9 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import HiddenTokensView from './HiddenTokensView';
 
@@ -15,6 +16,13 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     AssetsController: { unhideAsset: jest.fn(), addCustomAsset: jest.fn() },
+  },
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
   },
 }));
 
@@ -137,4 +145,41 @@ describe('HiddenTokensView', () => {
       ).not.toHaveBeenCalled();
     },
   );
+
+  it('logs a failure when the scoped account lookup throws', () => {
+    const error = new Error('scope failed');
+    mockSelectAccountByScope.mockImplementation(() => {
+      throw error;
+    });
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(ImportTokenViewSelectorsIDs.UNHIDE_BUTTON));
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      error,
+      'HiddenTokensView: unhideAsset failed',
+    );
+    expect(
+      Engine.context.AssetsController.addCustomAsset,
+    ).not.toHaveBeenCalled();
+    expect(Engine.context.AssetsController.unhideAsset).not.toHaveBeenCalled();
+  });
+
+  it('logs a failure when re-adding a zero-balance token rejects', async () => {
+    const error = new Error('add failed');
+    (
+      Engine.context.AssetsController.addCustomAsset as jest.Mock
+    ).mockRejectedValueOnce(error);
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(ImportTokenViewSelectorsIDs.UNHIDE_BUTTON));
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'HiddenTokensView: unhideAsset failed',
+      );
+    });
+    expect(Engine.context.AssetsController.unhideAsset).not.toHaveBeenCalled();
+  });
 });
