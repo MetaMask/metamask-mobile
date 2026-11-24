@@ -459,7 +459,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         enabled ? refreshWithPendingPosts() : undefined,
         minimumRefresh,
       ]);
-      onRefresh?.();
+      void onRefresh?.();
     } finally {
       setRefreshing(false);
     }
