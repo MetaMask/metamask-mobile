@@ -24983,14 +24983,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-x@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "base-x@npm:1.1.0"
-  checksum: 10/ca5f485f3868579e908187ccd50f4295a3ed3bd56a5d5dd266ba59a70c391155eabe50cd7976e6b696b5f7eca512019a886fcc6f27b4a738da1611249b3446f7
-  languageName: node
-  linkType: hard
-
-"base-x@npm:^3.0.2, base-x@npm:^3.0.8":
+"base-x@npm:3.0.11, base-x@npm:^3.0.2, base-x@npm:^3.0.8":
   version: 3.0.11
   resolution: "base-x@npm:3.0.11"
   dependencies:
