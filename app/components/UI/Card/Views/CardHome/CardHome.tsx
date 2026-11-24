@@ -103,6 +103,16 @@ import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import useSignedOutKycPending from './hooks/useSignedOutKycPending';
+import {
+  SETUP_ALERT_TYPES,
+  resolveCardHomeWaitingState,
+  type CardHomeWaitingState,
+} from './hooks/CardHomeWaitingState';
+import useCardSetupPendingRefresh, {
+  deriveCardHomeSetupPollIntervalMs,
+} from './hooks/useCardSetupPendingRefresh';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -141,12 +151,6 @@ interface CardHomeRouteParams {
   /** Opened from the KYC timeout or pending notification while still in review. */
   fromKycPending?: boolean;
 }
-
-const SETUP_ALERT_TYPES = new Set([
-  'kyc_pending',
-  'card_provisioning',
-  'allowance_revoked',
-]);
 
 const CardHome = () => {
   // --- Data ---
@@ -275,8 +279,13 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data, { recheckOnFocus: true });
+  const {
+    canEnableCard,
+    enableCard,
+    provisioningView,
+    isEnableCardPending,
+    isProvisioningPollActive,
+  } = useCardEnableCard(data, { recheckOnFocus: true });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -309,6 +318,51 @@ const CardHome = () => {
   const hasSetupActions = effectiveActions.some(
     (a) => a.type === 'enable_card',
   );
+
+  // One derived waiting state for everything the card home is still waiting
+  // on (A07 / A08 / A09 and the Immersve review and reconcile checks). It
+  // drives the re-check cadence below and keeps the re-check logic in one
+  // place; the screen keeps main's existing layout and copy for each state.
+  const waitingState = useMemo<CardHomeWaitingState>(
+    () =>
+      resolveCardHomeWaitingState({
+        isLoading,
+        isUkMigrationForced,
+        isAuthenticated,
+        isSignedOutKycPending,
+        hasDashboardActions: effectiveActions.length > 0,
+        alerts,
+        provisioningView,
+      }),
+    [
+      isLoading,
+      isUkMigrationForced,
+      isAuthenticated,
+      isSignedOutKycPending,
+      effectiveActions,
+      alerts,
+      provisioningView,
+    ],
+  );
+
+  // Re-checks while a pending state is up, so it moves on by itself.
+  // Offline: no fetch. Slow cellular: the rare 15s cadence. A fast or
+  // unknown network keeps 3s while the card is being created and 15s in
+  // review. Immersve's own 5s poll already covers the creating state, so
+  // this interval stays off while that one is running.
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
+    isPending: waitingState.kind === 'waiting',
+    isAuthenticated,
+    isFocused,
+    pollIntervalMs: deriveCardHomeSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+      waitingState.kind === 'waiting' && waitingState.step === 'creating-card',
+    ),
+    suspendSignedInPoll: isProvisioningPollActive,
+  });
 
   // --- Money Account linkage ---
   const {
@@ -362,11 +416,23 @@ const CardHome = () => {
     setIsRefreshing(true);
     refreshUkMigrationState();
     try {
+      if (waitingState.kind === 'waiting' && !isAuthenticated) {
+        // Re-check the thing being waited on: the onboarding registration
+        // status. Everything else waits on card home data itself.
+        await refreshRegistrationStatus();
+        return;
+      }
       await refetch();
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch, refreshUkMigrationState]);
+  }, [
+    refetch,
+    refreshUkMigrationState,
+    refreshRegistrationStatus,
+    waitingState,
+    isAuthenticated,
+  ]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(
