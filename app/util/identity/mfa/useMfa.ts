@@ -53,8 +53,7 @@ const clientOptions: Pick<
 };
 
 /**
- * Non-hook entry for features that must prove or enroll MFA outside React
- * (for example automatic passwordless recovery setup after unlock).
+ * Non-hook entry for features that must prove or enroll MFA outside the `useMfa` hook.
  */
 export const verifyOrEnroll = ({
   reason,

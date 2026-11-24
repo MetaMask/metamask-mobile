@@ -19,9 +19,10 @@ import {
   removePasskeyFromRecovery,
   syncRecoveryAfterEnroll,
 } from '../../../core/MfaRecovery/syncRecoveryIdentifiers';
+import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import SocialLinkEmailBottomSheet from '../shared/SocialLinkEmailBottomSheet';
 import RecoverySetupProgressBottomSheet from '../shared/RecoverySetupProgressBottomSheet';
+import SocialLinkEmailBottomSheet from './SocialLinkEmailBottomSheet';
 
 type RecoverySyncPhase = 'idle' | 'running' | 'hidden' | 'linking';
 type RecoveryProgressCopy = 'setup' | 'update';
@@ -35,7 +36,7 @@ const waitForModalsToSettle = async (): Promise<void> =>
     : Promise.resolve();
 
 interface RecoverySync {
-  /** Runs recovery sync for a newly enrolled method; rejects on failure. */
+  /** Runs best-effort recovery sync for a newly enrolled method; logs failures. */
   syncRecovery: (method: MfaMethod, reason: MfaReason) => Promise<void>;
   /**
    * Removes a passkey from recovery before it is removed from Auth; rejects on
@@ -120,13 +121,16 @@ const useRecoverySync = (): RecoverySync => {
     <Result,>(fn: () => Promise<Result>) =>
       async (): Promise<Result> => {
         showPhase('hidden');
+        await waitForModalsToSettle();
         try {
-          await waitForModalsToSettle();
-          return await fn();
-        } finally {
+          const result = await fn();
           showPhase('hidden');
           await waitForModalsToSettle();
           showPhase('running');
+          return result;
+        } catch (error) {
+          showPhase('hidden');
+          throw error;
         }
       },
     [showPhase],
@@ -178,6 +182,11 @@ const useRecoverySync = (): RecoverySync => {
             ? stepAsideWhile(askSocialLinkEmail)
             : undefined,
         });
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error('Recovery sync failed'),
+          { tags: { feature: 'mfa', operation: reason.operation } },
+        );
       } finally {
         showPhase('idle');
       }

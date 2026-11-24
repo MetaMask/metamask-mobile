@@ -62,6 +62,16 @@ describe('findSocialIdentifier', () => {
     ).toBeUndefined();
   });
 
+  it('matches the issuer namespace with a trailing slash', () => {
+    const trailingSlash = {
+      ...AUTH_SOCIAL_IDENTIFIER,
+      namespace: `${AUTH_SOCIAL_IDENTIFIER.namespace}/`,
+    };
+    expect(findSocialIdentifier([trailingSlash], GOOGLE_LOGIN)).toBe(
+      trailingSlash,
+    );
+  });
+
   it('returns undefined without a social login', () => {
     expect(findSocialIdentifier([AUTH_SOCIAL_IDENTIFIER], {})).toBeUndefined();
   });

@@ -24,7 +24,6 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { useMfa } from '../../../../util/identity/mfa';
 import type { MfaReason } from '../../../../util/identity/mfa/engine/types';
-import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
 import { getActivePasskeys } from '../credentials';
 import { getLastUsedLine, getPasskeyName } from '../labels';
@@ -57,14 +56,7 @@ const MfaPasskeys = () => {
       return;
     }
 
-    try {
-      await syncRecovery('passkey', ADD_PASSKEY_REASON);
-    } catch (error) {
-      Logger.error(
-        error instanceof Error ? error : new Error('Recovery sync failed'),
-        { tags: { feature: 'mfa', operation: ADD_PASSKEY_REASON.operation } },
-      );
-    }
+    await syncRecovery('passkey', ADD_PASSKEY_REASON);
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,

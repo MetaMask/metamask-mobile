@@ -23,7 +23,6 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
-import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMfaUiKitMethods } from '../../../../selectors/featureFlagController/mfaUiKit';
@@ -96,14 +95,7 @@ const MfaSettings = () => {
       return;
     }
 
-    try {
-      await syncRecovery(method, { operation: ADD_OPERATIONS[method] });
-    } catch (error) {
-      Logger.error(
-        error instanceof Error ? error : new Error('Recovery sync failed'),
-        { tags: { feature: 'mfa', operation: ADD_OPERATIONS[method] } },
-      );
-    }
+    await syncRecovery(method, { operation: ADD_OPERATIONS[method] });
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,

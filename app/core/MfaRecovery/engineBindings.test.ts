@@ -21,65 +21,7 @@ jest.mock('./services/mfa-recovery-service', () => ({
 
 import { MfaRecoveryService } from './services/mfa-recovery-service';
 import { getMfaRecoveryServiceMessenger } from '../Engine/messengers/mfa-recovery-controller-messenger';
-import {
-  canProveSocialIdentifier,
-  createMfaRecoveryService,
-  createPasswordlessRecoveryService,
-  getRecoveryIdentifierType,
-} from './engineBindings';
-import { PASSWORDLESS_RECOVERY_OPERATION } from './passwordlessSocialRecovery';
-
-describe('canProveSocialIdentifier', () => {
-  it('allows Google on iOS and Android', () => {
-    expect(canProveSocialIdentifier('ios', 'google')).toBe(true);
-    expect(canProveSocialIdentifier('android', 'google')).toBe(true);
-  });
-
-  it('rejects Google on an unsupported platform', () => {
-    expect(canProveSocialIdentifier('web', 'google')).toBe(false);
-  });
-
-  it('allows Apple on iOS only', () => {
-    expect(canProveSocialIdentifier('ios', 'apple')).toBe(true);
-    expect(canProveSocialIdentifier('android', 'apple')).toBe(false);
-  });
-
-  it('rejects Telegram and a missing provider', () => {
-    expect(canProveSocialIdentifier('ios', 'telegram')).toBe(false);
-    expect(canProveSocialIdentifier('ios', undefined)).toBe(false);
-    expect(canProveSocialIdentifier('android', undefined)).toBe(false);
-  });
-});
-
-describe('getRecoveryIdentifierType', () => {
-  const originalApiEnv = process.env.MM_API_ENV;
-
-  afterEach(() => {
-    if (originalApiEnv === undefined) {
-      delete process.env.MM_API_ENV;
-    } else {
-      process.env.MM_API_ENV = originalApiEnv;
-    }
-  });
-
-  it('returns passkey on the dev API environment', () => {
-    process.env.MM_API_ENV = 'dev';
-
-    expect(getRecoveryIdentifierType()).toBe('passkey');
-  });
-
-  it('returns social on the uat API environment', () => {
-    process.env.MM_API_ENV = 'uat';
-
-    expect(getRecoveryIdentifierType()).toBe('social');
-  });
-
-  it('returns social when the API environment is unset', () => {
-    delete process.env.MM_API_ENV;
-
-    expect(getRecoveryIdentifierType()).toBe('social');
-  });
-});
+import { createMfaRecoveryService } from './engineBindings';
 
 describe('createMfaRecoveryService', () => {
   beforeEach(() => {
@@ -127,30 +69,5 @@ describe('createMfaRecoveryService', () => {
     expect(getMfaRecoveryServiceMessenger).toHaveBeenLastCalledWith(
       mockEngine.controllerMessenger,
     );
-  });
-});
-
-describe('createPasswordlessRecoveryService', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('builds the service for the passwordless recovery operation', () => {
-    const service = createPasswordlessRecoveryService();
-
-    expect(service).toBeInstanceOf(MfaRecoveryService);
-    expect(MfaRecoveryService).toHaveBeenCalledWith(
-      expect.objectContaining({
-        verifyMfa: expect.any(Function),
-        approvalOperation: PASSWORDLESS_RECOVERY_OPERATION,
-      }),
-    );
-  });
-
-  it('gives the service a verification that does not prompt', async () => {
-    createPasswordlessRecoveryService();
-    const [{ verifyMfa }] = jest.mocked(MfaRecoveryService).mock.calls[0];
-
-    await expect(verifyMfa()).resolves.toBeUndefined();
   });
 });

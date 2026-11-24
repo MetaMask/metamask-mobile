@@ -295,18 +295,10 @@ export class MfaRecoveryService {
     const aal2Token = await this.mintAal2Token();
     const { authConnectionId, groupedAuthConnectionId } =
       getToprfRecoveryConfig();
-    try {
-      await this.#messenger.call(
-        'SeedlessOnboardingController:authenticateForRecovery',
-        { aal2Token, authConnectionId, groupedAuthConnectionId },
-      );
-    } catch (error) {
-      Logger.log('MfaRecovery openRecoverySession failed', {
-        message: (error as Error)?.message,
-        stack: (error as Error)?.stack,
-      });
-      throw error;
-    }
+    await this.#messenger.call(
+      'SeedlessOnboardingController:authenticateForRecovery',
+      { aal2Token, authConnectionId, groupedAuthConnectionId },
+    );
   }
 
   /**
@@ -362,32 +354,22 @@ export class MfaRecoveryService {
     await this.verifyMfa();
     await this.#resumePendingOperation();
 
-    let { epoch, authIdentifiers } = await this.#messenger.call(
+    const initial = await this.#messenger.call(
       'MfaRecoveryController:getIdentifiers',
     );
-    let trustedAuth = await this.#filterTrusted(authIdentifiers);
+    const initialTrusted = await this.#filterTrusted(initial.authIdentifiers);
 
     if (
       requirePasskey &&
-      !trustedAuth.some((identifier) => identifier.type === 'passkey')
+      !initialTrusted.some((identifier) => identifier.type === 'passkey')
     ) {
       throw new IdentifierNotApprovedError('passkey');
     }
 
-    if (!findSocialIdentifier(trustedAuth, this.#seedlessState())) {
-      const socialLinkEmail = (
-        await this.#options.getSocialLinkEmail?.()
-      )?.trim();
-      await this.linkSocialLogin(
-        socialLinkEmail !== undefined && socialLinkEmail.length > 0
-          ? socialLinkEmail
-          : undefined,
-      );
-      ({ epoch, authIdentifiers } = await this.#messenger.call(
-        'MfaRecoveryController:getIdentifiers',
-      ));
-      trustedAuth = await this.#filterTrusted(authIdentifiers);
-    }
+    const { epoch, trustedAuth } = await this.#ensureSocialIdentifier(
+      initial.epoch,
+      initialTrusted,
+    );
 
     // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
     // signature, so fall back to the SRP signing key's identifier.
@@ -522,6 +504,30 @@ export class MfaRecoveryService {
       epoch,
     );
     return { identifierType: target.type, change: 'removed', epoch: newEpoch };
+  }
+
+  async #ensureSocialIdentifier(
+    epoch: number,
+    trustedAuth: Identifier[],
+  ): Promise<{ epoch: number; trustedAuth: Identifier[] }> {
+    if (findSocialIdentifier(trustedAuth, this.#seedlessState())) {
+      return { epoch, trustedAuth };
+    }
+    const socialLinkEmail = (
+      await this.#options.getSocialLinkEmail?.()
+    )?.trim();
+    await this.linkSocialLogin(
+      socialLinkEmail !== undefined && socialLinkEmail.length > 0
+        ? socialLinkEmail
+        : undefined,
+    );
+    const refreshed = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
+    return {
+      epoch: refreshed.epoch,
+      trustedAuth: await this.#filterTrusted(refreshed.authIdentifiers),
+    };
   }
 
   async #filterTrusted(

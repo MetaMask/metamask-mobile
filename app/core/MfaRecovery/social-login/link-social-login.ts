@@ -1,6 +1,6 @@
 import { keccak_256 as keccak256 } from '@noble/hashes/sha3';
 import { getEnvUrls, type Env } from '@metamask/profile-sync-controller/sdk';
-import { bytesToHex } from '@metamask/utils';
+import { bytesToHex, remove0x, stringToBytes } from '@metamask/utils';
 import { redactForDisplay } from '../redactForDisplay';
 
 const PAIR_IDENTIFIER_PATH = '/api/v2/profile/pair/identifier';
@@ -80,9 +80,9 @@ function readClaims(jwt: string): SocialTokenClaims {
  * trimmed email. A Google social token's subject must equal it.
  */
 function hashEmail(email: string): string {
-  return bytesToHex(
-    keccak256(new TextEncoder().encode(email.trim().toLowerCase())),
-  ).slice(2);
+  return remove0x(
+    bytesToHex(keccak256(stringToBytes(email.trim().toLowerCase()))),
+  );
 }
 
 function subjectMatchesEmail(sub: string, email: string): boolean {

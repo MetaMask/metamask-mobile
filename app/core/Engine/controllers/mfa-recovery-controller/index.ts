@@ -9,7 +9,6 @@ import {
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaDevBuild } from '../../../../util/identity/mfa/isMfaDevBuild';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
-import Logger from '../../../../util/Logger';
 import { hydrateDevSocialLinkEmail } from '../../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { MessengerClientInitFunction } from '../../types';
 import {
@@ -89,19 +88,6 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
     getClient: createCubistClientGetter({ tokenProvider, isEnabled }),
     ...tryGetCubistEscrowConfig(),
   });
-  const applyMutation = escrow.applyMutation.bind(escrow);
-  escrow.applyMutation = async (...args) => {
-    try {
-      return await applyMutation(...args);
-    } catch (error) {
-      Logger.log('MfaRecovery applyMutation failed', {
-        code: (error as { code?: string }).code,
-        name: (error as Error).name,
-        message: (error as Error).message,
-      });
-      throw error;
-    }
-  };
 
   const controller = new MfaRecoveryController({
     messenger: controllerMessenger,

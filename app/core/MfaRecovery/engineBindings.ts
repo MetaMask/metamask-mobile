@@ -1,14 +1,10 @@
 import Engine from '../Engine';
-import Logger from '../../util/Logger';
-import { ApiEnv, getApiEnv } from '../apiEnv';
+import { getMfaRecoveryServiceMessenger } from '../Engine/messengers/mfa-recovery-controller-messenger';
 import {
   MfaRecoveryService,
   type MfaRecoveryServiceMessenger,
   type MfaRecoveryServiceOptions,
-  type RecoveryIdentifierType,
 } from './services/mfa-recovery-service';
-import { getMfaRecoveryServiceMessenger } from '../Engine/messengers/mfa-recovery-controller-messenger';
-import { PASSWORDLESS_RECOVERY_OPERATION } from './passwordlessSocialRecovery';
 
 /**
  * Delegation registers the messenger on the root for good, so build it once
@@ -20,10 +16,6 @@ let serviceMessenger:
 
 function getServiceMessenger(): MfaRecoveryServiceMessenger {
   const root = Engine.controllerMessenger;
-  Logger.log('MfaRecovery getServiceMessenger', {
-    hasSeedlessController:
-      Engine.context?.SeedlessOnboardingController !== undefined,
-  });
   if (serviceMessenger?.root !== root) {
     serviceMessenger = {
       root,
@@ -49,45 +41,4 @@ export function createMfaRecoveryService(
     ...options,
     messenger: getServiceMessenger(),
   });
-}
-
-/**
- * Builds the service the locked passwordless recovery flow runs on. The user
- * verifies before recovery starts, so the service must not prompt again.
- */
-export function createPasswordlessRecoveryService(): MfaRecoveryService {
-  return createMfaRecoveryService({
-    verifyMfa: async () => undefined,
-    approvalOperation: PASSWORDLESS_RECOVERY_OPERATION,
-  });
-}
-
-/**
- * Whether the social provider can sign in again with a caller nonce on this
- * platform. Android Apple and Telegram sign in through the auth server, which
- * does not return the provider's ID token.
- *
- * @param platform - `Platform.OS`.
- * @param authConnection - The seedless social login provider.
- * @returns Whether a social identifier can be proven.
- */
-export function canProveSocialIdentifier(
-  platform: string,
-  authConnection: string | undefined,
-): boolean {
-  if (authConnection === 'google') {
-    return platform === 'ios' || platform === 'android';
-  }
-  if (authConnection === 'apple') {
-    return platform === 'ios';
-  }
-  return false;
-}
-
-/**
- * The identifier the locked recovery reads the Recovery Secret with: the
- * passkey on the dev API environment, the social login elsewhere.
- */
-export function getRecoveryIdentifierType(): RecoveryIdentifierType {
-  return getApiEnv() === ApiEnv.Dev ? 'passkey' : 'social';
 }

@@ -11,8 +11,9 @@ import type {
   MfaFlowResult,
   MfaReason,
 } from '../../../util/identity/mfa/engine/types';
+import Logger from '../../../util/Logger';
 import { RECOVERY_SETUP_PROGRESS_TEST_IDS } from '../shared/RecoverySetupProgressBottomSheet';
-import { SOCIAL_LINK_EMAIL_TEST_IDS } from '../shared/SocialLinkEmailBottomSheet';
+import { MfaSettingsSelectorsIDs } from './Mfa.testIds';
 import useRecoverySync from './useRecoverySync';
 
 jest.mock('../../../core/MfaRecovery/syncRecoveryIdentifiers', () => ({
@@ -136,7 +137,7 @@ const advance = async (ms: number): Promise<void> =>
 const progressSheet = (): ReturnType<typeof screen.queryByTestId> =>
   screen.queryByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET);
 const socialLinkSheet = (): ReturnType<typeof screen.queryByTestId> =>
-  screen.queryByTestId(SOCIAL_LINK_EMAIL_TEST_IDS.SHEET);
+  screen.queryByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_SHEET);
 
 describe('useRecoverySync', () => {
   const originalOS = Platform.OS;
@@ -186,19 +187,26 @@ describe('useRecoverySync', () => {
     expect(progressSheet()).toBeNull();
   });
 
-  it('removes the progress sheet and rejects when the sync fails', async () => {
+  it('removes the progress sheet and logs when the sync fails', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
     const sync = deferred();
     mockSync.mockReturnValue(sync.promise);
     const { startSync } = renderRecoverySync();
     const result = startSync();
-    result.catch(() => undefined);
 
+    const syncError = new Error('sync failed');
     await act(async () => {
-      sync.reject(new Error('sync failed'));
+      sync.reject(syncError);
+      await result;
     });
 
-    await expect(result).rejects.toThrow('sync failed');
+    expect(errorSpy).toHaveBeenCalledWith(syncError, {
+      tags: { feature: 'mfa', operation: REASON.operation },
+    });
     expect(progressSheet()).toBeNull();
+    errorSpy.mockRestore();
   });
 
   it('hides the progress sheet while verifying and restores it afterwards', async () => {
@@ -266,11 +274,13 @@ describe('useRecoverySync', () => {
     await advance(MODAL_SETTLE_MS);
     expect(socialLinkSheet()).toBeOnTheScreen();
     fireEvent.changeText(
-      screen.getByTestId(SOCIAL_LINK_EMAIL_TEST_IDS.INPUT),
+      screen.getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_INPUT),
       ' qa@example.com ',
     );
     await act(async () => {
-      fireEvent.press(screen.getByTestId(SOCIAL_LINK_EMAIL_TEST_IDS.CONFIRM));
+      fireEvent.press(
+        screen.getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_CONFIRM),
+      );
     });
     expect(socialLinkSheet()).toBeNull();
     await advance(MODAL_SETTLE_MS);

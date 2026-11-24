@@ -1,6 +1,9 @@
 import type { MfaMethod } from '../../util/identity/mfa/engine/types';
 import { createMfaRecoveryService } from './engineBindings';
-import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
+
+/** Operation named on the Auth approvals recovery setup and updates request. */
+export const PASSWORDLESS_RECOVERY_SETUP_OPERATION =
+  'wallet.passwordless_recovery_setup';
 
 export interface SyncRecoveryAfterEnrollOptions {
   /** Proves the user so the recovery approvals are accepted. */

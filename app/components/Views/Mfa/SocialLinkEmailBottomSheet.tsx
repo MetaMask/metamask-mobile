@@ -11,13 +11,7 @@ import {
   TextField,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-
-/** Same values as the `Mfa` route's social link email IDs (shared code can't import a route). */
-export const SOCIAL_LINK_EMAIL_TEST_IDS = {
-  SHEET: 'mfa-settings-social-link-email-sheet',
-  INPUT: 'mfa-settings-social-link-email-input',
-  CONFIRM: 'mfa-settings-social-link-email-confirm',
-} as const;
+import { MfaSettingsSelectorsIDs } from './Mfa.testIds';
 
 interface SocialLinkEmailBottomSheetProps {
   /** Called with the trimmed email; the caller unmounts the sheet. */
@@ -57,7 +51,7 @@ const SocialLinkEmailBottomSheet = ({
         ref={sheetRef}
         keyboardAvoidingViewEnabled={false}
         onClose={onClose}
-        testID={SOCIAL_LINK_EMAIL_TEST_IDS.SHEET}
+        testID={MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_SHEET}
       >
         <BottomSheetHeader onClose={handleRequestClose}>
           {strings('mfa.settings.social_link_email_title')}
@@ -71,7 +65,7 @@ const SocialLinkEmailBottomSheet = ({
               keyboardType: 'email-address',
               autoCapitalize: 'none',
               autoCorrect: false,
-              testID: SOCIAL_LINK_EMAIL_TEST_IDS.INPUT,
+              testID: MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_INPUT,
             }}
           />
           <Button
@@ -80,7 +74,7 @@ const SocialLinkEmailBottomSheet = ({
             isFullWidth
             isDisabled={trimmed.length === 0}
             onPress={handleConfirm}
-            testID={SOCIAL_LINK_EMAIL_TEST_IDS.CONFIRM}
+            testID={MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_CONFIRM}
           >
             {strings('mfa.settings.social_link_email_confirm')}
           </Button>

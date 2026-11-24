@@ -27,6 +27,10 @@ export function getMfaRecoveryStatus(
   return state.envelope === undefined ? 'NotEnabled' : 'Enabled';
 }
 
+function trimTrailingSlash(namespace: string): string {
+  return namespace.replace(/\/+$/u, '');
+}
+
 /**
  * Picks Auth's social identifier for the seedless social login, matched by
  * the login's OIDC issuer.
@@ -40,7 +44,8 @@ export function findSocialIdentifier(
     : undefined;
   return authIdentifiers.find(
     (identifier) =>
-      identifier.type === 'social' && identifier.namespace === namespace,
+      identifier.type === 'social' &&
+      trimTrailingSlash(identifier.namespace) === namespace,
   );
 }
 
