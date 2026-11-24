@@ -47,6 +47,8 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
+import KalshiPrototypePredictionsHome from '../../UI/KYC/Kalshi/prototype/KalshiPrototypePredictionsHome';
+import KalshiPrototypeOnboarding from '../../UI/KYC/Kalshi/prototype/KalshiPrototypeOnboarding';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
@@ -619,6 +621,26 @@ const SettingsFlow = () => {
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
           />
+        )
+      }
+      {
+        /**
+         * Dev-only Kalshi onboarding prototype. The Developer Options row
+         * opens the prototype Predictions screen, whose get-started card
+         * opens the flow. The fake backend lives in
+         * `app/components/UI/KYC/Kalshi/prototype/`.
+         */
+        isTestEnvironment && (
+          <>
+            <NativeStack.Screen
+              name={Routes.SETTINGS.KALSHI_PROTOTYPE_HOME}
+              component={KalshiPrototypePredictionsHome}
+            />
+            <NativeStack.Screen
+              name={Routes.SETTINGS.KALSHI_PROTOTYPE_ONBOARDING}
+              component={KalshiPrototypeOnboarding}
+            />
+          </>
         )
       }
       <NativeStack.Screen
