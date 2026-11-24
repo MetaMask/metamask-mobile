@@ -39,7 +39,7 @@ export interface UserProfileMetaData {
   [UserProfileProperty.THEME]: string | null | undefined;
   [UserProfileProperty.TOKEN_DETECTION]: string;
   [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
-  [UserProfileProperty.SECURITY_PROVIDERS]: string;
+  [UserProfileProperty.SECURITY_PROVIDERS]: string[];
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: boolean;
