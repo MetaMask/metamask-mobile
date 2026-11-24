@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { applyScaleLayout } from '../scaleLayout';
+import { __resetPaneMarginsForTests, setReservedTopPx } from '../paneMargins';
 import { __resetThemeForTests, initThemeFromConfig } from '../theme';
 import {
   __resetStateForTests,
@@ -9,7 +10,11 @@ import {
   setHasExplicitCurrentPriceLine,
   setWidget,
 } from '../../core/state';
-import type { ChartTheme, TVChartingLibraryWidget } from '../../core/types';
+import type {
+  ChartTheme,
+  TVActiveChart,
+  TVChartingLibraryWidget,
+} from '../../core/types';
 
 const baseTheme: ChartTheme = {
   backgroundColor: 'rgb(0,0,0)',
@@ -57,6 +62,7 @@ describe('applyScaleLayout', () => {
   beforeEach(() => {
     __resetStateForTests();
     __resetThemeForTests();
+    __resetPaneMarginsForTests();
     delete (window as unknown as { ReactNativeWebView?: unknown })
       .ReactNativeWebView;
     delete (window as unknown as { CONFIG?: unknown }).CONFIG;
@@ -122,6 +128,28 @@ describe('applyScaleLayout', () => {
     );
     expect(overrides['paneProperties.topMargin']).toBe(12);
     expect(overrides['paneProperties.bottomMargin']).toBe(8);
+  });
+
+  // -- topMargin respects overlay headroom reservation -----------------------
+
+  it('keeps an overlay-reserved topMargin across chart-type switches', () => {
+    initThemeFromConfig(baseTheme);
+    const { widget, applyOverrides } = makeWidget();
+    setWidget(widget);
+    setChartReady(true);
+    const chart = {
+      getPanes: () => [{ getHeight: () => 200 }],
+    } as unknown as TVActiveChart;
+    setReservedTopPx(40, chart);
+    applyOverrides.mockClear();
+
+    applyScaleLayout(1);
+
+    const overrides = applyOverrides.mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(overrides['paneProperties.topMargin']).toBe(20);
   });
 
   // -- gridLineColor ---------------------------------------------------------

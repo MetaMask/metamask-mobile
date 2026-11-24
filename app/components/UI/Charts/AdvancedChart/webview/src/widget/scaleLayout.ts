@@ -19,9 +19,9 @@ import {
   getHasExplicitCurrentPriceLine,
 } from '../core/state';
 import type { ChartType, TVChartingLibraryWidget } from '../core/types';
+import { getPaneTopMarginPercent, markTopMarginApplied } from './paneMargins';
 import { getThemeLastPriceLineColor } from './theme';
 
-const PANE_TOP_MARGIN = 12;
 const PANE_BOTTOM_MARGIN = 8;
 
 function buildScaleLayoutOverrides(): Record<string, unknown> {
@@ -44,7 +44,10 @@ function buildScaleLayoutOverrides(): Record<string, unknown> {
     'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
     'paneProperties.vertGridProperties.color': gridLineColor,
     'paneProperties.horzGridProperties.color': gridLineColor,
-    'paneProperties.topMargin': PANE_TOP_MARGIN,
+    // Base 12%, raised while an overlay (avatar markers) reserves headroom —
+    // see paneMargins.ts. Reading it here keeps chart-type switches from
+    // resetting the reservation.
+    'paneProperties.topMargin': getPaneTopMarginPercent(),
     'paneProperties.bottomMargin': PANE_BOTTOM_MARGIN,
     ...(theme?.backgroundColor
       ? {
@@ -72,7 +75,10 @@ export function applyScaleLayout(_type?: ChartType): void {
   const widget = getWidget();
   if (!widget || !isChartReady()) return;
   try {
-    widget.applyOverrides(buildScaleLayoutOverrides());
+    const overrides = buildScaleLayoutOverrides();
+    widget.applyOverrides(overrides);
+    const topMargin = overrides['paneProperties.topMargin'];
+    if (typeof topMargin === 'number') markTopMarginApplied(topMargin);
   } catch (error) {
     reportErrorToRN(error);
     return;

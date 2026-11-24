@@ -45,6 +45,7 @@ import {
   getVisibleTimeRangeSec,
   priceToY,
 } from '../../core/chartCoordinates';
+import { setReservedTopPx } from '../../widget/paneMargins';
 import {
   clearAvatarElements,
   getAvatarElements,
@@ -73,6 +74,17 @@ const COUNT_BADGE_SIZE = AVATAR_SIZE - 4;
 const REFRESH_DEBOUNCE_MS = 120;
 /** Gap (px) between the candle's high and the bottom edge of the avatar. */
 const MARKER_GAP_PX = 10;
+/** Breathing room (px) kept between a face's top edge and the pane top. */
+const TOP_EDGE_PAD_PX = 2;
+/**
+ * Pixels the overlay needs above the highest visible price: gap + one face +
+ * edge padding. Reserved through TradingView's auto-scale top margin (see
+ * widget/paneMargins.ts) so the highest candle's avatars are never clipped.
+ * The count disc hangs BELOW the faces, so it needs no headroom.
+ */
+const RESERVED_TOP_PX = MARKER_GAP_PX + AVATAR_SIZE + TOP_EDGE_PAD_PX;
+/** Smallest allowed face center Y — keeps the whole face inside the pane. */
+const MIN_FACE_CENTER_Y = AVATAR_SIZE / 2 + TOP_EDGE_PAD_PX;
 /**
  * How long (ms) to keep the per-frame reposition loop alive after the last
  * pan/zoom signal. Pinch-zoom and inertial pan don't reliably bracket with
@@ -476,7 +488,14 @@ function positionClusters(
       continue;
     }
     // Lift the avatar so its bottom edge sits MARKER_GAP_PX above the high.
-    const centerY = anchorY - MARKER_GAP_PX - AVATAR_SIZE / 2;
+    // Fallback clamp: the reserved top margin normally leaves room, but when
+    // auto-scale is off (user dragged the price axis) or the pane is too short
+    // for the capped margin, keep the face fully inside the pane instead of
+    // clipping it at the top.
+    const centerY = Math.max(
+      MIN_FACE_CENTER_Y,
+      anchorY - MARKER_GAP_PX - AVATAR_SIZE / 2,
+    );
     el.style.transform = `translate(calc(${centerX}px - 50%),calc(${centerY}px - 50%))`;
     el.style.display = 'block';
     // Reset stacking each frame; the badged face of a group is lifted above its
@@ -533,6 +552,8 @@ export function positionAvatarMarkers(): void {
     return;
   }
   if (!chart) return;
+  // Keep headroom reserved for the faces (no-op unless pane height changed).
+  setReservedTopPx(RESERVED_TOP_PX, chart);
   const range = getVisibleTimeRangeSec(chart);
   if (!range || range.hi <= range.lo) return;
   const plotWidth = getPlotWidth(chart);
@@ -577,6 +598,7 @@ export function renderAvatarMarkers(): void {
   const markers = getAvatarMarkers();
   if (!markers?.length) {
     clearAvatarMarkers();
+    setReservedTopPx(0);
     return;
   }
   if (!getTheme()) return;
@@ -589,6 +611,8 @@ export function handleSetAvatarMarkers(payload: SetAvatarMarkersPayload): void {
   setAvatarImages(payload?.avatars ?? null);
   if (getAvatarMarkers() === null) {
     clearAvatarMarkers();
+    // Markers removed (e.g. flag off / no trades): give the headroom back.
+    setReservedTopPx(0);
     return;
   }
   // RN posts rarely (e.g. once avatar URLs resolve to data URIs); force a clean
