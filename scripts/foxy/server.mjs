@@ -3,14 +3,14 @@
 // dashboard + REST API (also used by mcp.mjs).
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile, mkdir, appendFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WebSocketServer } from 'ws';
 import { loadCodeowners, resolveFrameOwners } from './codeowners.mjs';
 import { createViewIndexer } from './views.mjs';
-import { createPackageLinker } from './packages.mjs';
+import { createPackageLinker, createTagIndex } from './packages.mjs';
 import {
   parseUrl,
   parseFrame,
@@ -54,10 +54,25 @@ function githubInfo() {
   return { repo, ref };
 }
 const GITHUB = githubInfo();
+/** What is running: Foxy's version, and the branch and commit of the checkout it runs from, so a capture can be matched to the code that made it. */
+function buildInfo() {
+  const git = (...args) => {
+    try { return execFileSync('git', ['-C', REPO, ...args], { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; }
+  };
+  let version = null;
+  try { version = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8')).version || null; } catch { /* no package.json: the version is left out */ }
+  const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
+  return {
+    version,
+    branch: branch && branch !== 'HEAD' ? branch : null, // HEAD on its own means a detached checkout
+    commit: git('rev-parse', '--short', 'HEAD') || null,
+    dirty: git('status', '--porcelain') !== '', // uncommitted changes anywhere in the checkout
+  };
+}
 /** Screen name -> where it is defined in the app source (see views.mjs). */
 const VIEWS = createViewIndexer(REPO);
 /** A frame inside node_modules -> its package's source on GitHub (see packages.mjs). */
-const PACKAGE_LINK = createPackageLinker(REPO);
+const PACKAGE_LINK = createPackageLinker(REPO, createTagIndex());
 const LOG_FILE =
   process.env.FOXY_LOG_FILE || join(__dirname, 'logs', 'foxy.jsonl');
 
@@ -349,6 +364,7 @@ const httpServer = createServer(async (req, res) => {
         logFile: LOG_FILE,
         codeowners: { repo: Boolean(repoRules), core: Boolean(coreRules) },
         github: GITHUB,
+        build: buildInfo(),
       });
     } else if (p === '/api/view') {
       json(res, { route: url.searchParams.get('route'), source: VIEWS.get(url.searchParams.get('route') || '') });
@@ -467,6 +483,10 @@ httpServer.listen(PORT, () => {
   console.log(`  Metro:     ${METRO} (used to symbolicate stacks)`);
   console.log(`  Log:       ${LOG_FILE}`);
   console.log(`  GitHub:    ${GITHUB.repo} @ ${GITHUB.ref.slice(0, 12)} (call-site links)`);
+  {
+    const b = buildInfo();
+    console.log(`  Build:     Foxy ${b.version ?? '?'} · ${b.branch ?? 'detached HEAD'} · ${b.commit ?? 'no commit'}${b.dirty ? ' · uncommitted changes' : ''}`);
+  }
   console.log(`  Owners:    app CODEOWNERS ${repoRules ? 'loaded' : 'NOT found'}, core CODEOWNERS ${coreRules ? 'loaded' : `NOT found (${CORE})`}\n`);
   console.log('  Waiting for the app (set FOXY="true" in .js.env, restart Metro)...\n');
 });

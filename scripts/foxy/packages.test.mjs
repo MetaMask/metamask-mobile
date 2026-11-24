@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { decodeMappings, originalLine, createPackageLinker } from './packages.mjs';
+import { decodeMappings, originalLine, createPackageLinker, createTagIndex } from './packages.mjs';
 
 test('decodeMappings reads VLQ segments, carrying line state across lines', () => {
   // "AAAA" = gen col 0 -> source 0 line 0; "CAEC" = gen col +1, source line +2 (line 3)
@@ -68,4 +68,55 @@ test('createPackageLinker falls back to the package folder at its release tag, t
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('a repo outside MetaMask/core links to the exact file and line at its release tag', () => {
+  const root = mkdtempSync(join(tmpdir(), 'foxy-pkgs-'));
+  try {
+    const write = (rel, body) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), body); };
+    write('node_modules/@metamask/abi-utils/package.json', JSON.stringify({ name: '@metamask/abi-utils', version: '3.0.0', repository: { type: 'git', url: 'git+https://github.com/MetaMask/abi-utils.git' } }));
+    write('node_modules/@metamask/abi-utils/dist/index.js', 'compiled');
+    write('node_modules/@metamask/abi-utils/dist/index.js.map', JSON.stringify({ sources: ['../src/index.ts'], mappings: 'AAAA;CAEC' }));
+    write('node_modules/@metamask/nested/package.json', JSON.stringify({ name: '@metamask/nested', version: '1.0.0', repository: { type: 'git', url: 'https://github.com/MetaMask/mono.git', directory: 'packages/nested' } }));
+    write('node_modules/@metamask/nested/dist/n.js', 'compiled');
+    write('node_modules/@metamask/nested/dist/n.js.map', JSON.stringify({ sources: ['../src/n.ts'], mappings: 'AAAA;CAEC' }));
+    const tags = { get: (slug) => (slug === 'MetaMask/abi-utils' ? new Set(['v3.0.0']) : slug === 'MetaMask/mono' ? new Set(['@metamask/nested@1.0.0']) : new Set()) };
+    const link = createPackageLinker(root, tags);
+    assert.equal(
+      link({ kind: 'controller', file: '@metamask/abi-utils/dist/index.js', line: 2, col: 2 }).url,
+      'https://github.com/MetaMask/abi-utils/blob/v3.0.0/src/index.ts#L3',
+    );
+    assert.equal(
+      link({ kind: 'controller', file: '@metamask/nested/dist/n.js', line: 2, col: 2 }).url,
+      'https://github.com/MetaMask/mono/blob/%40metamask/nested%401.0.0/packages/nested/src/n.ts#L3',
+      'a monorepo package uses its repository.directory and its own tag',
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a repo outside MetaMask/core falls back to its front page until its tags are known, and when no tag matches', () => {
+  const root = mkdtempSync(join(tmpdir(), 'foxy-pkgs-'));
+  try {
+    const write = (rel, body) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), body); };
+    write('node_modules/@metamask/abi-utils/package.json', JSON.stringify({ name: '@metamask/abi-utils', version: '3.0.0', repository: 'https://github.com/MetaMask/abi-utils' }));
+    write('node_modules/@metamask/abi-utils/dist/index.js.map', JSON.stringify({ sources: ['../src/index.ts'], mappings: 'AAAA;CAEC' }));
+    const loading = createPackageLinker(root, { get: () => null });
+    assert.equal(loading.call(null, { kind: 'controller', file: '@metamask/abi-utils/dist/index.js', line: 2, col: 2 }).url, 'https://github.com/MetaMask/abi-utils');
+    const noTag = createPackageLinker(root, { get: () => new Set(['v2.0.0']) });
+    assert.equal(noTag({ kind: 'controller', file: '@metamask/abi-utils/dist/index.js', line: 2, col: 2 }).url, 'https://github.com/MetaMask/abi-utils', 'no tag for 3.0.0');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('createTagIndex reads the tags once, in the background', async () => {
+  let calls = 0;
+  const index = createTagIndex(async (slug) => { calls += 1; return new Set([`tag-of-${slug}`]); });
+  assert.equal(index.get('MetaMask/x'), null, 'null while loading');
+  assert.equal(index.get('MetaMask/x'), null);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.deepEqual([...index.get('MetaMask/x')], ['tag-of-MetaMask/x']);
+  assert.equal(calls, 1, 'one lookup per repo');
 });
