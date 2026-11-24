@@ -1,7 +1,6 @@
 import { debounce } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface LiquidationPriceParams {
@@ -19,13 +18,14 @@ interface LiquidationPriceOptions {
  * Hook to calculate liquidation price based on trading parameters
  * @param params - Parameters for liquidation price calculation
  * @param options - Optional configuration including debounce delay
- * @returns Liquidation price as a formatted string
+ * @returns The liquidation price, `undefined` while the estimate is unavailable
+ * (invalid inputs, not yet calculated, or rejected). Format it for display.
  */
 export const usePerpsLiquidationPrice = (
   params: LiquidationPriceParams,
   options?: LiquidationPriceOptions,
 ): {
-  liquidationPrice: string;
+  liquidationPrice: string | undefined;
   isCalculating: boolean;
   error: string | null;
 } => {
@@ -99,7 +99,7 @@ export const usePerpsLiquidationPrice = (
   }, [calculatePrice, entryPrice, leverage, asset]);
 
   return {
-    liquidationPrice: liquidationPrice ?? PERPS_CONSTANTS.FallbackPriceDisplay,
+    liquidationPrice,
     isCalculating,
     error,
   };

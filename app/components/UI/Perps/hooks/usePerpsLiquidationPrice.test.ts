@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { PERPS_CONSTANTS, PERPS_ERROR_CODES } from '@metamask/perps-controller';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -68,9 +68,7 @@ describe('usePerpsLiquidationPrice', () => {
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
     });
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe('Calculation failed');
   });
 
@@ -98,9 +96,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
-      expect(result.current.liquidationPrice).toBe(
-        PERPS_CONSTANTS.FallbackPriceDisplay,
-      );
+      expect(result.current.liquidationPrice).toBeUndefined();
     });
     expect(result.current.error).toBe(
       PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE,
@@ -143,9 +139,7 @@ describe('usePerpsLiquidationPrice', () => {
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
     });
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(
       'Invalid leverage: 100x exceeds maximum allowed leverage of 40x',
     );
@@ -163,9 +157,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Should immediately return without calculating
     expect(result.current.isCalculating).toBe(false);
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
@@ -182,9 +174,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Should immediately return without calculating
     expect(result.current.isCalculating).toBe(false);
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
@@ -201,9 +191,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Should immediately return without calculating
     expect(result.current.isCalculating).toBe(false);
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
@@ -266,9 +254,7 @@ describe('usePerpsLiquidationPrice', () => {
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
     });
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe('Failed to calculate liquidation price');
   });
 });

@@ -2157,7 +2157,7 @@ export const usePerpsProOrderForm = ({
       currentMarketPosition ||
       marketMaxLeverage === undefined
     ) {
-      return '';
+      return undefined;
     }
     const estimate = estimateCrossLiquidationPrice({
       entryPrice: effectivePrice,
@@ -2168,7 +2168,9 @@ export const usePerpsProOrderForm = ({
       spotCollateral: liveAccount?.spotCollateral,
       providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
     });
-    return estimate === undefined ? '' : new BigNumber(estimate).toFixed();
+    return estimate === undefined
+      ? undefined
+      : new BigNumber(estimate).toFixed();
   }, [
     marginMode,
     isScaleOrder,
@@ -2618,7 +2620,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -4355,7 +4357,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
