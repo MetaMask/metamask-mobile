@@ -100,8 +100,21 @@ describe('profileOnboardingDraft', () => {
     );
   });
 
-  it('treats letters followed by digits as separate words in typed handles', () => {
-    expect(displayNameFromUsername('wen_cat2')).toBe('Wen Cat 2');
+  it('keeps digits inside typed handles attached as before', () => {
+    expect(displayNameFromUsername('wen_cat2')).toBe('Wen Cat2');
+    expect(displayNameFromUsername('web3dev')).toBe('Web3dev');
+    expect(displayNameFromUsername('crypto24')).toBe('Crypto24');
+  });
+
+  it('does not split a single leading letter off a CamelCase word', () => {
+    expect(displayNameFromUsername('iPhone')).toBe('Iphone');
+    expect(displayNameFromUsername('eBay')).toBe('Ebay');
+  });
+
+  it('keeps a trailing number attached when the handle has no CamelCase', () => {
+    expect(displayNameFromUsername('BTC202')).toBe('Btc202');
+    expect(displayNameFromUsername('bitcoin100')).toBe('Bitcoin100');
+    expect(displayNameFromUsername('iPhone100')).toBe('Iphone100');
   });
 
   it('keeps display name generation unchanged for mixed-case usernames', () => {

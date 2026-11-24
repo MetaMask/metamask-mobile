@@ -84,19 +84,26 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
   return 'available';
 };
 
-export const displayNameFromUsername = (value: string): string =>
-  normalizeUsername(value)
-    // Split CamelCase handles such as "BonkTurboQueen" at lower-to-upper
-    // boundaries before lowercasing. Runs of capitals ("WEN") stay together.
-    .replace(/([a-z])(?=[A-Z][a-z])/g, '$1 ')
-    // A number after letters starts a new word, so "BonkTurboQueen343" reads
-    // "Bonk Turbo Queen 343" like the old underscore format did.
-    .replace(/([a-zA-Z])(?=\d)/g, '$1 ')
+export const displayNameFromUsername = (value: string): string => {
+  const username = normalizeUsername(value);
+  // A CamelCase word boundary needs a two-letter word before it. That keeps a
+  // lone leading letter such as the "i" in "iPhone" from splitting off.
+  const camelSplit = username.replace(/([A-Za-z][a-z])(?=[A-Z][a-z])/g, '$1 ');
+  // The numbered suffix only splits off when the handle has a camel-case
+  // boundary. Generated numbered names always have one, so "BonkTurboQueen343"
+  // becomes "Bonk Turbo Queen 343". "BTC202" and "bitcoin100" have none, so
+  // they stay attached.
+  const hasCamelBoundary = /[A-Za-z][a-z][A-Z][a-z]/.test(username);
+  const withNumber = hasCamelBoundary
+    ? camelSplit.replace(/([a-zA-Z])(?=\d{3}$)/g, '$1 ')
+    : camelSplit;
+  return withNumber
     .toLowerCase()
     .split(/[\s_]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+};
 
 const pickRandom = <Item>(items: readonly Item[]): Item =>
   items[Math.floor(Math.random() * items.length)];
