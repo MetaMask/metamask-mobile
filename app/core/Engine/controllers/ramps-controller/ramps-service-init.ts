@@ -4,6 +4,7 @@ import {
   RampsService,
   RampsServiceMessenger,
   RampsEnvironment,
+  RampsClientBuild,
 } from '@metamask/ramps-controller';
 import { getBaseSemVerVersion } from '../../../../util/version';
 import { ApiEnv, getApiEnv } from '../../../apiEnv';
@@ -32,16 +33,28 @@ export function getRampsContext(): string {
 }
 
 /**
+ * Only release candidate builds report `rc`; beta, exp, flask, dev and
+ * production builds report `prod`.
+ */
+export function getRampsClientBuild(): RampsClientBuild {
+  return process.env.METAMASK_ENVIRONMENT === 'rc'
+    ? RampsClientBuild.ReleaseCandidate
+    : RampsClientBuild.Production;
+}
+
+/**
  * MetaMask client identity sent on every on-ramp request, used by the API
  * for version-gated feature flags.
  */
 export function getRampsClientIdentity(): {
   clientProduct: 'metamask-mobile';
   clientVersion: string;
+  clientBuild: RampsClientBuild;
 } {
   return {
     clientProduct: 'metamask-mobile',
     clientVersion: getBaseSemVerVersion(),
+    clientBuild: getRampsClientBuild(),
   };
 }
 

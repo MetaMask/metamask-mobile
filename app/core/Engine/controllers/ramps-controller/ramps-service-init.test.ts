@@ -6,11 +6,13 @@ import {
   RampsService,
   RampsServiceMessenger,
   RampsEnvironment,
+  RampsClientBuild,
 } from '@metamask/ramps-controller';
 import {
   rampsServiceInit,
   getRampsEnvironment,
   getRampsContext,
+  getRampsClientBuild,
 } from './ramps-service-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { getBaseSemVerVersion } from '../../../../util/version';
@@ -22,6 +24,7 @@ jest.mock('@metamask/ramps-controller', () => {
 
   return {
     RampsEnvironment: actualRampsController.RampsEnvironment,
+    RampsClientBuild: actualRampsController.RampsClientBuild,
     RampsService: jest.fn(),
   };
 });
@@ -64,6 +67,39 @@ describe('getRampsEnvironment', () => {
   });
 });
 
+describe('getRampsClientBuild', () => {
+  const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
+
+  afterEach(() => {
+    if (originalEnvironment !== undefined) {
+      process.env.METAMASK_ENVIRONMENT = originalEnvironment;
+    } else {
+      delete process.env.METAMASK_ENVIRONMENT;
+    }
+  });
+
+  it('returns rc for the rc environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'rc';
+
+    expect(getRampsClientBuild()).toBe(RampsClientBuild.ReleaseCandidate);
+  });
+
+  it.each(['production', 'beta', 'exp', 'dev', 'e2e', 'unknown', ''])(
+    'returns prod for the %p environment',
+    (environment) => {
+      process.env.METAMASK_ENVIRONMENT = environment;
+
+      expect(getRampsClientBuild()).toBe(RampsClientBuild.Production);
+    },
+  );
+
+  it('returns prod when the environment is unset', () => {
+    delete process.env.METAMASK_ENVIRONMENT;
+
+    expect(getRampsClientBuild()).toBe(RampsClientBuild.Production);
+  });
+});
+
 describe('getRampsContext', () => {
   const originalOS = Platform.OS;
 
@@ -89,9 +125,11 @@ describe('rampsServiceInit', () => {
   >;
   const originalOS = Platform.OS;
   const originalApiEnv = process.env.MM_API_ENV;
+  const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
 
   beforeEach(() => {
     jest.resetAllMocks();
+    delete process.env.METAMASK_ENVIRONMENT;
     jest.mocked(getBaseSemVerVersion).mockReturnValue('8.9.0');
     delete process.env.MM_API_ENV;
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
@@ -104,6 +142,11 @@ describe('rampsServiceInit', () => {
 
   afterEach(() => {
     Platform.OS = originalOS;
+    if (originalEnvironment !== undefined) {
+      process.env.METAMASK_ENVIRONMENT = originalEnvironment;
+    } else {
+      delete process.env.METAMASK_ENVIRONMENT;
+    }
     if (originalApiEnv !== undefined) {
       process.env.MM_API_ENV = originalApiEnv;
     } else {
@@ -127,7 +170,20 @@ describe('rampsServiceInit', () => {
       fetch,
       clientProduct: 'metamask-mobile',
       clientVersion: '8.9.0',
+      clientBuild: RampsClientBuild.Production,
     });
+  });
+
+  it('passes the rc client build to the service for rc builds', () => {
+    process.env.METAMASK_ENVIRONMENT = 'rc';
+
+    rampsServiceInit(initRequestMock);
+
+    expect(rampsServiceClassMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientBuild: RampsClientBuild.ReleaseCandidate,
+      }),
+    );
   });
 
   it('passes the correct messenger to the service', () => {
@@ -233,6 +289,7 @@ describe('rampsServiceInit', () => {
         fetch,
         clientProduct: 'metamask-mobile',
         clientVersion: '8.9.0',
+        clientBuild: RampsClientBuild.Production,
       });
     });
 
@@ -248,6 +305,7 @@ describe('rampsServiceInit', () => {
         fetch,
         clientProduct: 'metamask-mobile',
         clientVersion: '8.9.0',
+        clientBuild: RampsClientBuild.Production,
       });
     });
   });
