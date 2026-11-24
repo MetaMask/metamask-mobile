@@ -279,6 +279,8 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const {
     canEnableCard,
     enableCard,
@@ -286,7 +288,13 @@ const CardHome = () => {
     isEnableCardPending,
     isProvisioningPollActive,
     recheck: recheckProvisioning,
-  } = useCardEnableCard(data, { recheckOnFocus: true });
+  } = useCardEnableCard(data, {
+    recheckOnFocus: true,
+    // The waiting view re-checks a manual review on its own. Offline stops
+    // that timer and the provisioning poll; an unknown network keeps both.
+    kycReviewSelfCheck: true,
+    ...(networkTier === 'NONE' ? { pollIntervalMs: null } : {}),
+  });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -351,8 +359,6 @@ const CardHome = () => {
   // unknown network keeps 3s while the card is being created and 15s in
   // review. Immersve's own 5s poll already covers the creating state, so
   // this interval stays off while that one is running.
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
   const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
     isPending: waitingState.kind === 'waiting',
     isAuthenticated,
