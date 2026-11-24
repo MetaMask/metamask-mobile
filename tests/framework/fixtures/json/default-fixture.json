@@ -155,10 +155,7 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null,
-          "cardLinks": null,
-          "cardLinksFetchedAt": null,
-          "cardLinkApiBlocked": false
+          "signInLink": null
         },
         "ClaimsController": {
           "claims": [],
@@ -232,12 +229,12 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {},
-          "defaultMoneyAccountId": null
+          "defaultMoneyAccountId": null,
+          "moneyAccounts": {}
         },
         "MoneyAccountLifecycleController": {
-          "moneyAccounts": {},
-          "addressRegistrations": {}
+          "addressRegistrations": {},
+          "moneyAccounts": {}
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -714,15 +711,15 @@
               "featureVersion": "2",
               "minimumVersion": "7.46.0"
             },
-            "tronAccounts": {
-              "enabled": true,
-              "featureVersion": null,
-              "minimumVersion": null
-            },
             "stellarAccounts": {
               "enabled": true,
               "featureVersion": null,
               "minimumVersion": "0.0.0"
+            },
+            "tronAccounts": {
+              "enabled": true,
+              "featureVersion": null,
+              "minimumVersion": null
             }
           }
         },
@@ -747,7 +744,6 @@
         },
         "TransactionController": {
           "methodData": {},
-          "swapsTransactions": {},
           "transactions": []
         },
         "UiSlotsController": {
@@ -834,10 +830,6 @@
       "lastKnownBalance": null,
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
-    },
-    "socialEarlyAccess": {
-      "profileId": null,
-      "hasAccess": false
     },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
@@ -993,10 +985,10 @@
     "security": {
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
+      "dataSharingPreference": null,
       "isNFTAutoDetectionModalViewed": false,
       "osAuthEnabled": false,
-      "shouldShowConsentSheet": true,
-      "dataSharingPreference": null
+      "shouldShowConsentSheet": true
     },
     "securityAlerts": {
       "alerts": {}
@@ -1024,6 +1016,10 @@
       "primaryCurrency": "ETH",
       "searchEngine": "Google",
       "showAccountOnLeaderboard": true
+    },
+    "socialEarlyAccess": {
+      "hasAccess": false,
+      "profileId": null
     },
     "swaps": {
       "0x1": {

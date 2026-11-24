@@ -985,6 +985,7 @@ module.exports = {
     process: true,
     beforeAll: true,
     afterAll: true,
+    afterEach: true,
     describe: true,
     expect: true,
     it: true,

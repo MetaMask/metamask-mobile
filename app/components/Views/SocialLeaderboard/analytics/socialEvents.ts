@@ -207,6 +207,15 @@ export interface SocialPositionAnalyticsProperties {
   trader_address?: string;
   trader_username?: string;
 }
+/**
+ * A copy-trade tap: the trade's trader plus the source post the copy came
+ * from and that post's author.
+ */
+export interface SocialCopyTradeAnalyticsProperties
+  extends SocialPositionAnalyticsProperties {
+  post_id?: string;
+  author_trader_id?: string;
+}
 export interface SocialScreenViewedProperties
   extends SocialPositionAnalyticsProperties {
   screen_name: SocialScreenName;

@@ -197,6 +197,12 @@ export const PredictDepositScreen = (): React.JSX.Element => {
       });
       return;
     }
+    if (outcome.kind === 'already_resolved') {
+      if (outcome.deposit.status === 'failed') {
+        setNotice('failed');
+      }
+      return;
+    }
     setNotice(noticeFor(outcome));
   }, []);
 

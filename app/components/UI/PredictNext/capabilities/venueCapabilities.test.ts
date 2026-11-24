@@ -1,7 +1,6 @@
 import { POLYMARKET_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
-  PREDICT_FEED_KEYS,
   PREDICT_VENUE_ACTIONS,
   type PredictFeedId,
   type PredictVenueId,
@@ -62,6 +61,7 @@ describe('resolveVenueCapabilities', () => {
           },
           categories: [],
           searchSupported: true,
+          screens: [],
         },
       });
     });
@@ -221,7 +221,9 @@ describe('capability selectors', () => {
         ),
       ).toBe(false);
       expect(
-        PREDICT_FEED_KEYS.some((key) => getVenueFeedId(capabilities, key)),
+        Object.keys(KALSHI_STATIC_VENUE_CATALOG.feeds).some((key) =>
+          getVenueFeedId(capabilities, key),
+        ),
       ).toBe(false);
       expect(isVenueSearchSupported(capabilities)).toBe(false);
     },
@@ -240,6 +242,7 @@ describe('resolveSurfaceFeeds', () => {
       feeds: feeds as Record<string, PredictFeedId>,
       categories: [],
       searchSupported: false,
+      screens: [],
     },
   });
 
@@ -269,7 +272,7 @@ describe('resolveSurfaceFeeds', () => {
     expect(result).toEqual([]);
   });
 
-  it('shows Kalshi V1 its football sections, Politics, and the Sports and RWAs tabs', () => {
+  it('shows Kalshi V1 its football slots and the Sports and RWAs tabs', () => {
     const kalshi = resolveVenueCapabilities(
       KALSHI,
       read({ data: KALSHI_STATIC_VENUE_CATALOG }),
@@ -290,22 +293,6 @@ describe('resolveSurfaceFeeds', () => {
       'rwas',
       'sports',
     ]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.nextHomeSections)).toEqual([
-      'sports-football-nfl',
-      'sports-football-ncaa',
-      'politics',
-    ]);
-  });
-
-  it('shows Polymarket no Politics topic Feed, so no Politics section', () => {
-    const polymarket = resolveVenueCapabilities(POLYMARKET, read());
-
-    expect(
-      resolveSurfaceFeeds(
-        polymarket,
-        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
-      ).map(({ sectionId }) => sectionId),
-    ).toEqual([]);
   });
 
   it('keeps every surface Polymarket shows today', () => {
