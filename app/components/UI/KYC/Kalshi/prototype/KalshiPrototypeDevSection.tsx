@@ -21,28 +21,36 @@ import {
 import {
   activateKalshiPrototypeScenario,
   resetKalshiPrototype,
+  resolveKalshiPrototypeDecision,
 } from './prototypeRuntime';
+import { useKalshiPrototypeRuntime } from './useKalshiPrototype';
 import { KalshiPrototypeDevSectionSelectorsIDs } from './KalshiPrototypeDevSection.testIds';
 
 /**
  * The Developer Options row for the Kalshi onboarding prototype. Turning it
  * on installs the fake backend and opens the prototype's scaled-back
- * Predictions screen, whose get-started card starts the flow; the scenario
- * sheet pre-arms a path for leg 2's scripted scenarios. `Reset prototype`
- * tears the fake down again.
+ * Predictions screen, whose status card starts (or resumes) the flow; each
+ * scenario button pre-arms a path. `Reset prototype` tears the fake down
+ * again, and the resolve control settles a pending review the way kyc-api's
+ * next poll would.
  *
  * @returns The section, or `null` outside development builds.
  */
 const KalshiPrototypeDeveloperOptionsSection = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const runtime = useKalshiPrototypeRuntime();
   const copy = PROTOTYPE_COPY.devOptions;
 
   if (!__DEV__) {
     return null;
   }
 
+  const isReviewPending =
+    runtime.script?.vendor.step === 'decision' &&
+    runtime.script.vendor.status === 'pending';
+
   // Each scenario installs the fakes and opens the prototype Predictions
-  // screen; its get-started card starts the flow.
+  // screen; its status card starts (or resumes) the flow.
   const startScenario = (scenario: PrototypeScenarioId) => {
     activateKalshiPrototypeScenario(scenario);
     navigation.navigate(Routes.SETTINGS.KALSHI_PROTOTYPE_HOME);
@@ -71,6 +79,31 @@ const KalshiPrototypeDeveloperOptionsSection = () => {
           {PROTOTYPE_SCENARIOS[scenario].title}
         </Button>
       ))}
+      {isReviewPending ? (
+        <Box twClassName="gap-3">
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
+            {copy.resolveReview.title}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={() => resolveKalshiPrototypeDecision('approved')}
+            testID={KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_VERIFIED}
+          >
+            {copy.resolveReview.verified}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={() => resolveKalshiPrototypeDecision('rejected')}
+            testID={KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_CANT_VERIFY}
+          >
+            {copy.resolveReview.cantVerify}
+          </Button>
+        </Box>
+      ) : null}
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}

@@ -49,4 +49,28 @@ describe('getKalshiPrototypeRouteForScript', () => {
       }),
     ).toBeUndefined();
   });
+
+  it('resumes the left-part-way scenario on the phone number screen', () => {
+    expect(getKalshiPrototypeRouteForScript(enterScenario('leftPartWay'))).toBe(
+      KalshiPrototypeRoutes.PHONE_ENTRY,
+    );
+  });
+
+  it('opens the step-up scenario straight on the Sumsub step', () => {
+    expect(
+      getKalshiPrototypeRouteForScript(enterScenario('stepUpRequired')),
+    ).toBe(KalshiPrototypeRoutes.SUMSUB);
+  });
+
+  it('opens the card-state scenarios on the decision screen', () => {
+    expect(getKalshiPrototypeRouteForScript(enterScenario('verifying'))).toBe(
+      KalshiPrototypeRoutes.DECISION,
+    );
+    expect(getKalshiPrototypeRouteForScript(enterScenario('cantVerify'))).toBe(
+      KalshiPrototypeRoutes.DECISION,
+    );
+    expect(getKalshiPrototypeRouteForScript(enterScenario('verified'))).toBe(
+      KalshiPrototypeRoutes.DECISION,
+    );
+  });
 });
