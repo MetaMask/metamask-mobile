@@ -1072,8 +1072,11 @@ const PerpsMarketListView = ({
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
 
-      {/* Exchange (venue) Filter Bottom Sheet — TAT-4407 */}
-      {exchangeFilterState?.isVisible ? (
+      {/* Exchange (venue) Filter Bottom Sheet — TAT-4407. The sheet opens on
+          mount (no isVisible prop), so it is mounted only while the user has
+          the trigger open; `isVisible` on the filter state only controls the
+          trigger button. */}
+      {exchangeFilterState?.isVisible && isExchangeFilterSheetVisible ? (
         <PerpsExchangeFilterSheet
           selectedProviderIds={exchangeFilterState.selectedProviderIds}
           onSave={(providerIds: PerpsProviderType[]) => {

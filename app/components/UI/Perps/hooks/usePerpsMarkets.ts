@@ -8,9 +8,9 @@ import {
   type PerpsMarketData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import Engine from '../../../../core/Engine';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { selectEffectivePerpsVenueFilter } from '../selectors/marketListPreferences';
+import { selectPerpsDefaultProvider } from '../selectors/perpsController';
 import {
   hasPreloadedData,
   getPreloadedData,
@@ -97,9 +97,6 @@ export interface UsePerpsMarketsOptions {
 
 // Re-export parseVolume for backward compatibility
 export { parseVolume };
-
-const getDefaultProvider = (): PerpsProviderType =>
-  Engine.context.PerpsController?.state?.defaultProvider ?? 'hyperliquid';
 
 /**
  * Filter the venue rows to the selected providers, sort, then group with the
@@ -207,8 +204,10 @@ export const usePerpsMarkets = (
   // at least one venue) and the routing default provider, both consumed by
   // core's groupMarketsByMarketKey.
   const selectedProviderIds = useSelector(selectEffectivePerpsVenueFilter);
-  const [defaultProviderState] = useState(() => getDefaultProvider());
-  const defaultProvider = defaultProviderState;
+  // Reactive (TAT-4407 fix): grouping must follow the live default provider,
+  // not the value captured on first mount.
+  const defaultProvider =
+    useSelector(selectPerpsDefaultProvider) ?? 'hyperliquid';
   const initialChannelMarkets = streamManager.marketData.getSnapshot();
   const [markets, setMarkets] = useState<PerpsMarketRow[]>(() => {
     const cached =

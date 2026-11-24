@@ -9,6 +9,7 @@ import {
   selectAvailableProviderIds,
   selectEffectivePerpsVenueFilter,
 } from '../selectors/marketListPreferences';
+import { selectPerpsDefaultProvider } from '../selectors/perpsController';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets } from './usePerpsMarkets';
 
@@ -971,20 +972,16 @@ describe('usePerpsMarkets › grouped market rows (TAT-4407)', () => {
 
   function configureVenueSelectors(
     filter: PerpsProviderType[],
-    defaultProvider: string,
+    defaultProvider: PerpsProviderType,
   ) {
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === selectEffectivePerpsVenueFilter) return filter;
       if (selector === selectAvailableProviderIds) {
         return ['hyperliquid', 'lighter'];
       }
+      if (selector === selectPerpsDefaultProvider) return defaultProvider;
       return undefined;
     });
-    // defaultProvider is read from controller state in getDefaultProvider().
-    const controller = jest.requireMock('../../../../core/Engine').context
-      .PerpsController;
-    (controller.state as Record<string, unknown>).defaultProvider =
-      defaultProvider;
   }
 
   it('produces one row per backend marketKey, showing the default provider data', async () => {
