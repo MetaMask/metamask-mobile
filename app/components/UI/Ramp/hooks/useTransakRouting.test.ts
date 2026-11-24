@@ -978,138 +978,67 @@ describe('useTransakRouting', () => {
 
       const route = async (
         config?: Parameters<typeof useTransakRouting>[0],
-        depth = 0,
       ): Promise<void> => {
         const { result } = renderHook(() => useTransakRouting(config));
         await act(async () => {
-          await result.current.routeAfterAuthentication(
-            mockQuote as never,
-            25,
-            depth,
-          );
+          await result.current.routeAfterAuthentication(mockQuote as never, 25);
         });
       };
 
-      const loggedMessages = (): string[] =>
-        (
-          jest.requireMock('../../../../util/Logger').error as jest.Mock
-        ).mock.calls.map(([error]) => (error as Error).message);
+      const micaForms = [
+        ['CONSENT', 'RampMicaConsent'],
+        ['SOURCE_OF_INCOME', 'RampSourceOfIncome'],
+        ['ADDITIONAL_DETAILS_NATIONALITY', 'RampAdditionalDetailsNationality'],
+      ];
 
-      it('navigates to the MiCA consent screen for a CONSENT form', async () => {
-        mockAdditionalForms([{ type: 'CONSENT' }]);
+      it.each(micaForms)(
+        'navigates to the screen for a %s form with its metadata',
+        async (type, screen) => {
+          const metadata = { options: [{ name: 'Savings', value: 'savings' }] };
+          mockAdditionalForms([{ type, metadata }]);
+
+          await route();
+
+          expect(mockNavigate).toHaveBeenCalledWith(screen, {
+            quote: mockQuote,
+            quoteId: 'test-quote-id',
+            metadata,
+          });
+        },
+      );
+
+      it.each(micaForms)(
+        'forwards the headless session and empty metadata for a %s form',
+        async (type, screen) => {
+          mockAdditionalForms([{ type }]);
+
+          await route({
+            baseRoute: 'RampHeadlessHost',
+            baseRouteParams: { headlessSessionId: 'hs-1' },
+          });
+
+          expect(mockNavigate).toHaveBeenCalledWith(screen, {
+            quote: mockQuote,
+            quoteId: 'test-quote-id',
+            metadata: {},
+            headlessSessionId: 'hs-1',
+          });
+        },
+      );
+
+      it('routes to the consent form before the other MiCA forms', async () => {
+        mockAdditionalForms([
+          { type: 'ADDITIONAL_DETAILS_NATIONALITY' },
+          { type: 'SOURCE_OF_INCOME' },
+          { type: 'CONSENT' },
+        ]);
 
         await route();
 
-        expect(mockNavigate).toHaveBeenCalledWith('RampMicaConsent', {
-          quote: mockQuote,
-          quoteId: 'test-quote-id',
-        });
-      });
-
-      it('forwards the headless session to the MiCA consent screen', async () => {
-        mockAdditionalForms([{ type: 'CONSENT' }]);
-
-        await route({
-          baseRoute: 'RampHeadlessHost',
-          baseRouteParams: { headlessSessionId: 'hs-1' },
-        });
-
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
           'RampMicaConsent',
-          expect.objectContaining({ headlessSessionId: 'hs-1' }),
-        );
-      });
-
-      it('logs instead of navigating when the consent depth is exceeded', async () => {
-        mockAdditionalForms([{ type: 'CONSENT' }]);
-
-        await route(undefined, 5);
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(loggedMessages()).toContain('MiCA consent depth exceeded: 5');
-      });
-
-      it('navigates to source of income with the source of funds options', async () => {
-        const sourceOfFundsTypeOptions = [
-          { name: 'Savings', value: 'savings' },
-        ];
-        mockAdditionalForms([
-          { type: 'SOURCE_OF_INCOME', metadata: { sourceOfFundsTypeOptions } },
-        ]);
-
-        await route();
-
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'RampSourceOfIncome',
-          expect.objectContaining({
-            quoteId: 'test-quote-id',
-            metadata: expect.objectContaining({ sourceOfFundsTypeOptions }),
-          }),
-        );
-      });
-
-      it('falls back to empty metadata when source of income has none', async () => {
-        mockAdditionalForms([{ type: 'SOURCE_OF_INCOME' }]);
-
-        await route();
-
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'RampSourceOfIncome',
-          expect.objectContaining({
-            metadata: expect.objectContaining({ options: [] }),
-          }),
-        );
-      });
-
-      it('logs instead of navigating when the source of income depth is exceeded', async () => {
-        mockAdditionalForms([{ type: 'SOURCE_OF_INCOME' }]);
-
-        await route(undefined, 5);
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(loggedMessages()).toContain(
-          'Source of income depth exceeded: 5',
-        );
-      });
-
-      it('navigates to employment and nationality with its options', async () => {
-        const employmentStatusOptions = [
-          { name: 'Employed', value: 'employed' },
-        ];
-        const countryOfCitizenshipOptions = [{ name: 'Germany', value: 'DE' }];
-        mockAdditionalForms([
-          {
-            type: 'ADDITIONAL_DETAILS_NATIONALITY',
-            metadata: { employmentStatusOptions, countryOfCitizenshipOptions },
-          },
-        ]);
-
-        await route({
-          baseRoute: 'RampHeadlessHost',
-          baseRouteParams: { headlessSessionId: 'hs-1' },
-        });
-
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'RampAdditionalDetailsNationality',
-          expect.objectContaining({
-            quoteId: 'test-quote-id',
-            headlessSessionId: 'hs-1',
-            metadata: expect.objectContaining({
-              employmentStatusOptions,
-              countryOfCitizenshipOptions,
-            }),
-          }),
-        );
-      });
-
-      it('logs instead of navigating when the nationality depth is exceeded', async () => {
-        mockAdditionalForms([{ type: 'ADDITIONAL_DETAILS_NATIONALITY' }]);
-
-        await route(undefined, 5);
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(loggedMessages()).toContain(
-          'Additional details nationality depth exceeded: 5',
+          expect.objectContaining({ quoteId: 'test-quote-id' }),
         );
       });
     });

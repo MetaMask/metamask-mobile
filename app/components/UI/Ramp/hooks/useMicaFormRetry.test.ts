@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
-import { useMicaFormRetry, type MicaFormType } from './useMicaFormRetry';
+import { useMicaFormRetry } from './useMicaFormRetry';
+import type { MicaFormType } from '../utils/micaForms';
 import Logger from '../../../../util/Logger';
 
 const mockNavigate = jest.fn();

@@ -41,6 +41,7 @@ import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
+import { MICA_FORM_ROUTES, MICA_FORM_TYPES } from '../utils/micaForms';
 import { useRampsOrders } from './useRampsOrders';
 import {
   closeSession,
@@ -973,78 +974,17 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             );
             const formsRequired = additionalRequirements?.formsRequired || [];
 
-            const hasConsentForm = formsRequired.some(
-              (f) => f.type === 'CONSENT',
+            const micaFormType = MICA_FORM_TYPES.find((type) =>
+              formsRequired.some((f) => f.type === type),
             );
-            if (hasConsentForm) {
-              if (depth < 5) {
-                navigation.navigate(Routes.RAMP.MICA_CONSENT, {
-                  quote,
-                  quoteId: quote.quoteId,
-                  ...baseRouteParams,
-                });
-              } else {
-                Logger.error(
-                  new Error(`MiCA consent depth exceeded: ${depth}`),
-                );
-              }
-              return;
-            }
-
-            const sourceOfIncomeForm = formsRequired.find(
-              (f) => f.type === 'SOURCE_OF_INCOME',
-            );
-            if (sourceOfIncomeForm) {
-              if (depth < 5) {
-                navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
-                  quote,
-                  quoteId: quote.quoteId,
-                  metadata: {
-                    options: sourceOfIncomeForm.metadata?.options ?? [],
-                    documentProofOptions: [],
-                    expiresAt: '',
-                    kycUrl: '',
-                    workFlowRunId: '',
-                    ...sourceOfIncomeForm.metadata,
-                  },
-                  ...baseRouteParams,
-                });
-              } else {
-                Logger.error(
-                  new Error(`Source of income depth exceeded: ${depth}`),
-                );
-              }
-              return;
-            }
-
-            const additionalDetailsNationalityForm = formsRequired.find(
-              (f) => f.type === 'ADDITIONAL_DETAILS_NATIONALITY',
-            );
-            if (additionalDetailsNationalityForm) {
-              if (depth < 5) {
-                navigation.navigate(
-                  Routes.RAMP.ADDITIONAL_DETAILS_NATIONALITY,
-                  {
-                    quote,
-                    quoteId: quote.quoteId,
-                    metadata: {
-                      options: [],
-                      documentProofOptions: [],
-                      expiresAt: '',
-                      kycUrl: '',
-                      workFlowRunId: '',
-                      ...additionalDetailsNationalityForm.metadata,
-                    },
-                    ...baseRouteParams,
-                  },
-                );
-              } else {
-                Logger.error(
-                  new Error(
-                    `Additional details nationality depth exceeded: ${depth}`,
-                  ),
-                );
-              }
+            const micaForm = formsRequired.find((f) => f.type === micaFormType);
+            if (micaFormType && micaForm) {
+              navigation.navigate(MICA_FORM_ROUTES[micaFormType], {
+                quote,
+                quoteId: quote.quoteId,
+                metadata: micaForm.metadata ?? {},
+                ...baseRouteParams,
+              });
               return;
             }
 

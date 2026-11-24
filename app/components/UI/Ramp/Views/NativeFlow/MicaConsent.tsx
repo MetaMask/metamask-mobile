@@ -3,42 +3,34 @@
  * and requires acceptance of data processing consent and Terms/Privacy Policy.
  */
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, Linking } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Text,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Box,
   Checkbox,
   FontWeight,
   TextButton,
-  BannerAlert,
-  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
-import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { useTransakRouting } from '../../hooks/useTransakRouting';
-import Routes from '../../../../../constants/navigation/Routes';
-import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useTransakController } from '../../hooks/useTransakController';
+import { useMicaSubmit } from '../../hooks/useMicaSubmit';
 import type {
+  TransakAdditionalRequirement,
   TransakBuyQuote,
   TransakUserDetails,
   TransakUserDetailsAddress,
 } from '@metamask/ramps-controller';
-import { useSelector } from 'react-redux';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import {
+  TRANSAK_SUPPORT_URL,
+  TRANSAK_TERMS_URL_WORLD,
+} from '../../constants/transak';
+import MicaKycFormLayout from './MicaKycFormLayout';
 import styleSheet from './MicaConsent.styles';
 
 /**
@@ -105,47 +97,41 @@ export function formatConsentAddress(
 export interface MicaConsentParams {
   quote: TransakBuyQuote;
   quoteId: string;
-  /** Optional callback to continue KYC flow (for testing or direct navigation) */
-  onConsentSubmitted?: () => void;
+  metadata?: TransakAdditionalRequirement['metadata'];
   headlessSessionId?: string;
 }
 
+const openExternalUrl = (url: string, failureMessage: string) => {
+  Linking.openURL(url).catch((err) =>
+    Logger.error(err as Error, failureMessage),
+  );
+};
+
 const MicaConsent = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
-  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { quote, quoteId, onConsentSubmitted, headlessSessionId } =
-    useParams<MicaConsentParams>();
+  const { quote, quoteId, headlessSessionId } = useParams<MicaConsentParams>();
   const {
     getUserDetails,
     submitMicaConsent: submitMicaConsentController,
     getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
-  // For headless buy flows, post-auth resets must land back on the Host
-  // (which carries the live `headlessSessionId`) instead of BuildQuote.
-  const transakRoutingConfig = useMemo(
-    () => ({
-      screenLocation: 'MicaConsent Screen',
-      ...(headlessSessionId
-        ? {
-            baseRoute: Routes.RAMP.HEADLESS_HOST,
-            baseRouteParams: { headlessSessionId },
-          }
-        : {}),
-    }),
-    [headlessSessionId],
-  );
-  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
+  const { loading, error, setError, submit } = useMicaSubmit({
+    screenLocation: 'MicaConsent Screen',
+    quote,
+    quoteId,
+    headlessSessionId,
+    getKycRequirement,
+    getAdditionalRequirements,
+    submitError: strings('deposit.mica.consentSubmitError'),
+    logContext: 'MicaConsent',
+  });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false);
   const [termsAndPrivacyConsent, setTermsAndPrivacyConsent] = useState(false);
   const [capturedConsentedAt, setCapturedConsentedAt] = useState<string | null>(
     null,
   );
-  const [retrying, setRetrying] = useState(false);
   const [userDetails, setUserDetails] = useState<TransakUserDetails | null>(
     null,
   );
@@ -170,7 +156,7 @@ const MicaConsent = (): React.JSX.Element => {
         );
       }
     }
-  }, [getUserDetails]);
+  }, [getUserDetails, setError]);
 
   // Fetch user details on mount
   React.useEffect(() => {
@@ -183,111 +169,35 @@ const MicaConsent = (): React.JSX.Element => {
     };
   }, [loadUserDetails]);
 
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleOpenTransakSupport = useCallback(() => {
-    Linking.openURL('https://support.transak.com').catch((err) =>
-      Logger.error(err as Error, 'Failed to open Transak support URL'),
-    );
-  }, []);
-
   const handleRetry = useCallback(async () => {
     if (!capturedConsentedAt) {
       Logger.error(new Error('MicaConsent: No captured consentedAt for retry'));
       return;
     }
 
-    setRetrying(true);
-    setError(null);
-    setLoading(true);
-
-    try {
-      const result = await submitMicaConsentController(capturedConsentedAt);
-
-      if (result.status === 'FAILED') {
-        setError(strings('deposit.mica.consentSubmitError'));
-        return;
-      }
-
-      await getKycRequirement(quoteId);
-      await getAdditionalRequirements(quoteId);
-
-      if (onConsentSubmitted) {
-        onConsentSubmitted();
-      } else {
-        await routeAfterAuthentication(quote);
-      }
-    } catch (err) {
-      Logger.error(err as Error, 'MicaConsent: Failed to retry consent');
-      setError(
-        parseUserFacingError(err, strings('deposit.mica.consentSubmitError')),
-      );
-    } finally {
-      setLoading(false);
-      setRetrying(false);
-    }
-  }, [
-    capturedConsentedAt,
-    submitMicaConsentController,
-    quoteId,
-    getKycRequirement,
-    getAdditionalRequirements,
-    onConsentSubmitted,
-    quote,
-    routeAfterAuthentication,
-  ]);
+    await submit(
+      async () => submitMicaConsentController(capturedConsentedAt),
+      'Failed to retry consent',
+    );
+  }, [capturedConsentedAt, submit, submitMicaConsentController]);
 
   const handleSubmit = useCallback(async () => {
     if (!dataProcessingConsent || !termsAndPrivacyConsent) {
       return;
     }
 
-    setError(null);
-    setLoading(true);
+    const consentedAt = generateConsentTimestamp();
+    setCapturedConsentedAt(consentedAt);
 
-    try {
-      const consentedAt = generateConsentTimestamp();
-      setCapturedConsentedAt(consentedAt);
-
-      const result = await submitMicaConsentController(consentedAt);
-
-      if (result.status === 'FAILED') {
-        setError(strings('deposit.mica.consentSubmitError'));
-        return;
-      }
-
-      await getKycRequirement(quoteId);
-      await getAdditionalRequirements(quoteId);
-
-      if (onConsentSubmitted) {
-        onConsentSubmitted();
-      } else {
-        await routeAfterAuthentication(quote);
-      }
-    } catch (err) {
-      Logger.error(err as Error, 'MicaConsent: Failed to submit consent');
-      setError(
-        parseUserFacingError(err, strings('deposit.mica.consentSubmitError')),
-      );
-    } finally {
-      setLoading(false);
-    }
+    await submit(
+      async () => submitMicaConsentController(consentedAt),
+      'Failed to submit consent',
+    );
   }, [
     dataProcessingConsent,
     termsAndPrivacyConsent,
+    submit,
     submitMicaConsentController,
-    quoteId,
-    getKycRequirement,
-    getAdditionalRequirements,
-    onConsentSubmitted,
-    quote,
-    routeAfterAuthentication,
   ]);
 
   // A failed details fetch is retried by reloading the details; otherwise the
@@ -306,223 +216,151 @@ const MicaConsent = (): React.JSX.Element => {
   const isFormValid =
     dataProcessingConsent && termsAndPrivacyConsent && userDetails !== null;
 
+  const notProvided = strings('deposit.mica.notProvided');
+  const userDataRows = userDetails
+    ? [
+        {
+          label: strings('deposit.mica.name'),
+          value: [userDetails.firstName, userDetails.lastName].join(' '),
+        },
+        {
+          label: strings('deposit.mica.dob'),
+          value: formatConsentDob(userDetails.dob, notProvided),
+        },
+        {
+          label: strings('deposit.mica_consent.address_label'),
+          value: formatConsentAddress(userDetails.address) || notProvided,
+        },
+        {
+          label: strings('deposit.mica_consent.mobile_number_label'),
+          value: userDetails.mobileNumber || notProvided,
+        },
+      ]
+    : [];
+
   return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          title={strings('deposit.mica_consent.header_title')}
-          onBack={handleBack}
-          onClose={handleClose}
-          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
-          closeButtonProps={{ testID: 'deposit-close-navbar-button' }}
-          includesTopInset
-        />
-        <KeyboardAwareScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          enableOnAndroid
-          enableAutomaticScroll
-          showsVerticalScrollIndicator={false}
-        >
-          <ScreenLayout.Content>
-            <View style={styles.section}>
-              <Text variant={TextVariant.HeadingMd} style={styles.heading}>
-                {strings('deposit.mica.continueWithTransak')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} style={styles.description}>
-                {strings('deposit.mica.description')}
-              </Text>
-            </View>
-
-            {error && (
-              <BannerAlert
-                severity={BannerAlertSeverity.Danger}
-                title={strings('deposit.mica.errorTitle')}
-                description={error}
-                twClassName="mb-4"
-                actionButtonLabel={
-                  bannerRetryHandler
-                    ? strings('deposit.mica.retry_button')
-                    : undefined
-                }
-                actionButtonOnPress={bannerRetryHandler}
-                actionButtonProps={{ isDisabled: loading || retrying }}
-              />
-            )}
-
-            <View style={styles.section}>
-              <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
-                {strings('deposit.mica.reviewYourInformation')}
-              </Text>
-              <Box style={styles.userDataBox} twClassName="rounded-lg">
-                {userDetails ? (
-                  <>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.userDataRow}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Bold}
-                      >
-                        {strings('deposit.mica.name')}:{' '}
-                      </Text>
-                      {userDetails.firstName} {userDetails.lastName}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.userDataRow}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Bold}
-                      >
-                        {strings('deposit.mica.dob')}:{' '}
-                      </Text>
-                      {formatConsentDob(
-                        userDetails.dob,
-                        strings('deposit.mica.notProvided'),
-                      )}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.userDataRow}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Bold}
-                      >
-                        {strings('deposit.mica_consent.address_label')}:{' '}
-                      </Text>
-                      {formatConsentAddress(userDetails.address) ||
-                        strings('deposit.mica.notProvided')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      style={styles.userDataRow}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Bold}
-                      >
-                        {strings('deposit.mica_consent.mobile_number_label')}
-                        :{' '}
-                      </Text>
-                      {userDetails.mobileNumber ||
-                        strings('deposit.mica.notProvided')}
-                    </Text>
-                  </>
-                ) : (
-                  <Text variant={TextVariant.BodyMd}>
-                    {userDetailsFailed
-                      ? strings('deposit.mica.userDetailsError')
-                      : strings('deposit.mica.loadingDetails')}
-                  </Text>
-                )}
-              </Box>
-              <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
-                {strings('deposit.mica_consent.support_notice_prefix')}{' '}
-                <Text
-                  variant={TextVariant.BodySm}
-                  style={styles.linkText}
-                  onPress={handleOpenTransakSupport}
-                >
-                  {strings('deposit.mica_consent.support_link_text')}
+    <MicaKycFormLayout
+      headerTitle={strings('deposit.mica_consent.header_title')}
+      title={strings('deposit.mica.continueWithTransak')}
+      subtitle={strings('deposit.mica.description')}
+      error={error}
+      errorRetry={
+        bannerRetryHandler
+          ? {
+              label: strings('deposit.mica.retry_button'),
+              onRetry: bannerRetryHandler,
+            }
+          : undefined
+      }
+      loading={loading}
+      isSubmitDisabled={!isFormValid}
+      onSubmit={handleSubmit}
+      submitLabel={strings('deposit.mica.agreeAndContinue')}
+      showPrivacyNotice={false}
+    >
+      <View>
+        <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+          {strings('deposit.mica.reviewYourInformation')}
+        </Text>
+        <Box style={styles.userDataBox} twClassName="rounded-lg">
+          {userDetails ? (
+            userDataRows.map(({ label, value }) => (
+              <Text
+                key={label}
+                variant={TextVariant.BodyMd}
+                style={styles.userDataRow}
+              >
+                <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+                  {label}:{' '}
                 </Text>
-                {strings('deposit.mica_consent.support_notice_suffix')}
+                {value}
               </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Checkbox
-                isSelected={dataProcessingConsent}
-                onChange={setDataProcessingConsent}
-                twClassName="items-start"
-                testID="mica-consent-data-processing-checkbox"
-                accessibilityLabel={strings(
-                  'deposit.mica_consent.data_processing_consent',
-                )}
-                label={
-                  <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
-                    {strings('deposit.mica_consent.data_processing_consent')}
-                  </Text>
-                }
-              />
-              <View style={styles.checkboxSpacing} />
-              <Checkbox
-                isSelected={termsAndPrivacyConsent}
-                onChange={setTermsAndPrivacyConsent}
-                twClassName="items-start"
-                testID="mica-consent-terms-checkbox"
-                accessibilityLabel={[
-                  strings('deposit.mica_consent.terms_consent_prefix'),
-                  strings('deposit.mica_consent.terms_link_text'),
-                  strings('deposit.mica_consent.terms_consent_middle'),
-                  strings('deposit.mica_consent.privacy_link_text'),
-                ].join(' ')}
-                label={
-                  <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
-                    {strings('deposit.mica_consent.terms_consent_prefix')}{' '}
-                    <TextButton
-                      variant={TextVariant.BodyMd}
-                      onPress={() => {
-                        Linking.openURL(
-                          'https://transak.com/terms-of-service',
-                        ).catch((err) =>
-                          Logger.error(
-                            err as Error,
-                            'Failed to open Terms URL',
-                          ),
-                        );
-                      }}
-                    >
-                      {strings('deposit.mica_consent.terms_link_text')}
-                    </TextButton>{' '}
-                    {strings('deposit.mica_consent.terms_consent_middle')}{' '}
-                    <TextButton
-                      variant={TextVariant.BodyMd}
-                      onPress={() => {
-                        Linking.openURL(
-                          'https://transak.com/privacy-policy',
-                        ).catch((err) =>
-                          Logger.error(
-                            err as Error,
-                            'Failed to open Privacy URL',
-                          ),
-                        );
-                      }}
-                    >
-                      {strings('deposit.mica_consent.privacy_link_text')}
-                    </TextButton>
-                    .
-                  </Text>
-                }
-              />
-            </View>
-          </ScreenLayout.Content>
-        </KeyboardAwareScrollView>
-      </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content style={styles.footerContent}>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={() => {
-              void handleSubmit();
-            }}
-            isLoading={loading}
-            isDisabled={!isFormValid || loading}
-            isFullWidth
+            ))
+          ) : (
+            <Text variant={TextVariant.BodyMd}>
+              {userDetailsFailed
+                ? strings('deposit.mica.userDetailsError')
+                : strings('deposit.mica.loadingDetails')}
+            </Text>
+          )}
+        </Box>
+        <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
+          {strings('deposit.mica_consent.support_notice_prefix')}{' '}
+          <Text
+            variant={TextVariant.BodySm}
+            style={styles.linkText}
+            onPress={() =>
+              openExternalUrl(
+                TRANSAK_SUPPORT_URL,
+                'Failed to open Transak support URL',
+              )
+            }
           >
-            {strings('deposit.mica.agreeAndContinue')}
-          </Button>
-          <PoweredByTransak name="powered-by-transak-logo" />
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
-    </ScreenLayout>
+            {strings('deposit.mica_consent.support_link_text')}
+          </Text>
+          {strings('deposit.mica_consent.support_notice_suffix')}
+        </Text>
+      </View>
+
+      <View>
+        <Checkbox
+          isSelected={dataProcessingConsent}
+          onChange={setDataProcessingConsent}
+          twClassName="items-start"
+          testID="mica-consent-data-processing-checkbox"
+          accessibilityLabel={strings(
+            'deposit.mica_consent.data_processing_consent',
+          )}
+          label={
+            <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
+              {strings('deposit.mica_consent.data_processing_consent')}
+            </Text>
+          }
+        />
+        <View style={styles.checkboxSpacing} />
+        <Checkbox
+          isSelected={termsAndPrivacyConsent}
+          onChange={setTermsAndPrivacyConsent}
+          twClassName="items-start"
+          testID="mica-consent-terms-checkbox"
+          accessibilityLabel={[
+            strings('deposit.mica_consent.terms_consent_prefix'),
+            strings('deposit.mica_consent.terms_link_text'),
+            strings('deposit.mica_consent.terms_consent_middle'),
+            strings('deposit.mica_consent.privacy_link_text'),
+          ].join(' ')}
+          label={
+            <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
+              {strings('deposit.mica_consent.terms_consent_prefix')}{' '}
+              <TextButton
+                variant={TextVariant.BodyMd}
+                onPress={() =>
+                  openExternalUrl(
+                    TRANSAK_TERMS_URL_WORLD,
+                    'Failed to open Terms URL',
+                  )
+                }
+              >
+                {strings('deposit.mica_consent.terms_link_text')}
+              </TextButton>{' '}
+              {strings('deposit.mica_consent.terms_consent_middle')}{' '}
+              <TextButton
+                variant={TextVariant.BodyMd}
+                onPress={() =>
+                  openExternalUrl(
+                    'https://transak.com/privacy-policy',
+                    'Failed to open Privacy URL',
+                  )
+                }
+              >
+                {strings('deposit.mica_consent.privacy_link_text')}
+              </TextButton>
+              .
+            </Text>
+          }
+        />
+      </View>
+    </MicaKycFormLayout>
   );
 };
 

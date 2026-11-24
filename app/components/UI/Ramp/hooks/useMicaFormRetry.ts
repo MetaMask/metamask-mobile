@@ -5,16 +5,9 @@ import type {
   TransakBuyQuote,
 } from '@metamask/ramps-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
-
-const MICA_FORM_ROUTES = {
-  SOURCE_OF_INCOME: Routes.RAMP.SOURCE_OF_INCOME,
-  ADDITIONAL_DETAILS_NATIONALITY: Routes.RAMP.ADDITIONAL_DETAILS_NATIONALITY,
-} as const;
-
-export type MicaFormType = keyof typeof MICA_FORM_ROUTES;
+import { MICA_FORM_ROUTES, type MicaFormType } from '../utils/micaForms';
 
 interface UseMicaFormRetryOptions {
   formType: MicaFormType;

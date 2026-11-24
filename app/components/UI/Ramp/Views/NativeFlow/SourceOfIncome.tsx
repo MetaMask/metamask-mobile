@@ -13,17 +13,14 @@ import {
 import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { useTransakRouting } from '../../hooks/useTransakRouting';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useFormatters } from '../../../../hooks/useFormatters';
-import Logger from '../../../../../util/Logger';
 import type {
   TransakAdditionalRequirement,
   TransakBuyQuote,
 } from '@metamask/ramps-controller';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useMicaFormRetry } from '../../hooks/useMicaFormRetry';
-import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useMicaSubmit } from '../../hooks/useMicaSubmit';
 import OptionSelectField from './components/OptionSelectField';
 import styleSheet from './SourceOfIncome.styles';
 import { KYC_STEP } from '../../utils/kycProgress';
@@ -37,40 +34,28 @@ export interface SourceOfIncomeParams {
   quote: TransakBuyQuote;
   quoteId: string;
   metadata: SourceOfIncomeMetadata;
-  /** Optional callback to continue KYC flow (for testing or direct navigation) */
-  onSourceOfIncomeSubmitted?: () => void;
   headlessSessionId?: string;
 }
 
 const SourceOfIncome = (): React.JSX.Element => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const {
-    quote,
-    quoteId,
-    metadata,
-    onSourceOfIncomeSubmitted,
-    headlessSessionId,
-  } = useParams<SourceOfIncomeParams>();
+  const { quote, quoteId, metadata, headlessSessionId } =
+    useParams<SourceOfIncomeParams>();
   const {
     submitSourceOfIncome: submitSourceOfIncomeController,
     getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
-  // For headless buy flows, post-auth resets must land back on the Host
-  // (which carries the live `headlessSessionId`) instead of BuildQuote.
-  const transakRoutingConfig = useMemo(
-    () => ({
-      screenLocation: 'SourceOfIncome Screen',
-      ...(headlessSessionId
-        ? {
-            baseRoute: Routes.RAMP.HEADLESS_HOST,
-            baseRouteParams: { headlessSessionId },
-          }
-        : {}),
-    }),
-    [headlessSessionId],
-  );
-  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
+  const { loading, error, setError, submit } = useMicaSubmit({
+    screenLocation: 'SourceOfIncome Screen',
+    quote,
+    quoteId,
+    headlessSessionId,
+    getKycRequirement,
+    getAdditionalRequirements,
+    submitError: strings('deposit.mica.sourceOfIncomeSubmitError'),
+    logContext: 'SourceOfIncome',
+  });
   const { formatCurrency } = useFormatters();
 
   const currencySymbol = useMemo(() => {
@@ -81,8 +66,6 @@ const SourceOfIncome = (): React.JSX.Element => {
     }).replace(/[0-9.,\s\u00A0]/g, '');
   }, [formatCurrency, quote?.fiatCurrency]);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [monthlyVolume, setMonthlyVolume] = useState('');
   const [sourceOfFundsType, setSourceOfFundsType] = useState('');
 
@@ -117,47 +100,14 @@ const SourceOfIncome = (): React.JSX.Element => {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const result = await submitSourceOfIncomeController(
-        monthlyVolume,
-        sourceOfFundsType,
-      );
-
-      if (result.status === 'FAILED') {
-        setError(strings('deposit.mica.sourceOfIncomeSubmitError'));
-        return;
-      }
-
-      await getKycRequirement(quoteId);
-      await getAdditionalRequirements(quoteId);
-
-      if (onSourceOfIncomeSubmitted) {
-        onSourceOfIncomeSubmitted();
-      } else {
-        await routeAfterAuthentication(quote);
-      }
-    } catch (err) {
-      Logger.error(err as Error, 'SourceOfIncome: Failed to submit');
-      setError(
-        parseUserFacingError(
-          err,
-          strings('deposit.mica.sourceOfIncomeSubmitError'),
-        ),
-      );
-    } finally {
-      setLoading(false);
-    }
+    await submit(async () =>
+      submitSourceOfIncomeController(monthlyVolume, sourceOfFundsType),
+    );
   }, [
     monthlyVolume,
     sourceOfFundsType,
-    quoteId,
-    getKycRequirement,
-    getAdditionalRequirements,
-    onSourceOfIncomeSubmitted,
-    quote,
-    routeAfterAuthentication,
+    setError,
+    submit,
     submitSourceOfIncomeController,
   ]);
 

@@ -6,21 +6,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    scrollView: {
-      flex: 1,
-    },
-    content: {
-      flexGrow: 1,
-    },
-    section: {
-      marginBottom: 20,
-    },
-    heading: {
-      marginBottom: 8,
-    },
-    description: {
-      color: colors.text.alternative,
-    },
     sectionTitle: {
       marginBottom: 12,
     },
@@ -37,9 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     checkboxSpacing: {
       height: 16,
-    },
-    footerContent: {
-      gap: 8,
     },
     linkText: {
       color: colors.primary.default,

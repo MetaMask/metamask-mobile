@@ -1,7 +1,7 @@
 /**
- * Shared layout for the MiCA KYC form screens (source of income, employment
- * and nationality): header, progress, title, error and missing-fields
- * banners, and the privacy + continue footer.
+ * Shared layout for the MiCA KYC screens (consent, source of income,
+ * employment and nationality): header, progress, title, error and
+ * missing-fields banners, and the privacy + continue footer.
  */
 
 import React, { useCallback } from 'react';
@@ -38,17 +38,27 @@ export interface MicaKycFormMissingFields {
   onRetry: () => Promise<void>;
 }
 
+export interface MicaKycFormErrorRetry {
+  label: string;
+  onRetry: () => void;
+}
+
 interface MicaKycFormLayoutProps {
   headerTitle: string;
   title: string;
   subtitle: string;
-  step: KycStep;
+  /** Omit to hide the KYC progress bar. */
+  step?: KycStep;
   error: string | null;
+  /** Retry action shown on the error banner. */
+  errorRetry?: MicaKycFormErrorRetry;
   /** Set when the form options are missing and must be refetched. */
   missingFields?: MicaKycFormMissingFields;
   loading: boolean;
   isSubmitDisabled: boolean;
   onSubmit: () => Promise<void>;
+  submitLabel?: string;
+  showPrivacyNotice?: boolean;
   children: React.ReactNode;
 }
 
@@ -58,10 +68,13 @@ const MicaKycFormLayout = ({
   subtitle,
   step,
   error,
+  errorRetry,
   missingFields,
   loading,
   isSubmitDisabled,
   onSubmit,
+  submitLabel = strings('deposit.source_of_income.continue_button'),
+  showPrivacyNotice = true,
   children,
 }: MicaKycFormLayoutProps): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
@@ -94,7 +107,7 @@ const MicaKycFormLayout = ({
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
-            <DepositProgressBar {...getKycProgress(step, true)} />
+            {step && <DepositProgressBar {...getKycProgress(step, true)} />}
 
             <View style={styles.section}>
               <Text variant={TextVariant.HeadingMd} style={styles.title}>
@@ -105,14 +118,25 @@ const MicaKycFormLayout = ({
               </Text>
             </View>
 
-            {error && (
-              <BannerAlert
-                severity={BannerAlertSeverity.Danger}
-                title={strings('deposit.mica.errorTitle')}
-                description={error}
-                twClassName="mb-4"
-              />
-            )}
+            {error &&
+              (errorRetry ? (
+                <BannerAlert
+                  severity={BannerAlertSeverity.Danger}
+                  title={strings('deposit.mica.errorTitle')}
+                  description={error}
+                  twClassName="mb-4"
+                  actionButtonLabel={errorRetry.label}
+                  actionButtonOnPress={errorRetry.onRetry}
+                  actionButtonProps={{ isDisabled: loading }}
+                />
+              ) : (
+                <BannerAlert
+                  severity={BannerAlertSeverity.Danger}
+                  title={strings('deposit.mica.errorTitle')}
+                  description={error}
+                  twClassName="mb-4"
+                />
+              ))}
 
             {missingFields && (
               <BannerAlert
@@ -135,11 +159,13 @@ const MicaKycFormLayout = ({
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
-          <PrivacySection>
-            <Text variant={TextVariant.BodySm}>
-              {strings('deposit.source_of_income.privacy_text')}
-            </Text>
-          </PrivacySection>
+          {showPrivacyNotice && (
+            <PrivacySection>
+              <Text variant={TextVariant.BodySm}>
+                {strings('deposit.source_of_income.privacy_text')}
+              </Text>
+            </PrivacySection>
+          )}
 
           <Button
             variant={ButtonVariant.Primary}
@@ -151,7 +177,7 @@ const MicaKycFormLayout = ({
             isDisabled={isSubmitDisabled || loading}
             isFullWidth
           >
-            {strings('deposit.source_of_income.continue_button')}
+            {submitLabel}
           </Button>
 
           <PoweredByTransak name="powered-by-transak-logo" />

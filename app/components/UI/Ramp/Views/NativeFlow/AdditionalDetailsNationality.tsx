@@ -3,19 +3,16 @@
  * This is the ADDITIONAL_DETAILS_NATIONALITY form that appears after SOURCE_OF_INCOME.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { useTransakRouting } from '../../hooks/useTransakRouting';
-import Routes from '../../../../../constants/navigation/Routes';
-import Logger from '../../../../../util/Logger';
 import type {
   TransakAdditionalRequirement,
   TransakBuyQuote,
 } from '@metamask/ramps-controller';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useMicaFormRetry } from '../../hooks/useMicaFormRetry';
-import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useMicaSubmit } from '../../hooks/useMicaSubmit';
 import OptionSelectField from './components/OptionSelectField';
 import { KYC_STEP } from '../../utils/kycProgress';
 import MicaKycFormLayout from './MicaKycFormLayout';
@@ -30,37 +27,28 @@ export interface AdditionalDetailsNationalityParams {
   quote: TransakBuyQuote;
   quoteId: string;
   metadata: AdditionalDetailsNationalityMetadata;
-  /** Optional callback to continue KYC flow (for testing or direct navigation) */
-  onSubmitted?: () => void;
   headlessSessionId?: string;
 }
 
 const AdditionalDetailsNationality = (): React.JSX.Element => {
-  const { quote, quoteId, metadata, onSubmitted, headlessSessionId } =
+  const { quote, quoteId, metadata, headlessSessionId } =
     useParams<AdditionalDetailsNationalityParams>();
   const {
     submitAdditionalDetailsNationality,
     getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
-  // For headless buy flows, post-auth resets must land back on the Host
-  // (which carries the live `headlessSessionId`) instead of BuildQuote.
-  const transakRoutingConfig = useMemo(
-    () => ({
-      screenLocation: 'AdditionalDetailsNationality Screen',
-      ...(headlessSessionId
-        ? {
-            baseRoute: Routes.RAMP.HEADLESS_HOST,
-            baseRouteParams: { headlessSessionId },
-          }
-        : {}),
-    }),
-    [headlessSessionId],
-  );
-  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
+  const { loading, error, setError, submit } = useMicaSubmit({
+    screenLocation: 'AdditionalDetailsNationality Screen',
+    quote,
+    quoteId,
+    headlessSessionId,
+    getKycRequirement,
+    getAdditionalRequirements,
+    submitError: strings('deposit.additional_details_nationality.submitError'),
+    logContext: 'AdditionalDetailsNationality',
+  });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [employmentStatus, setEmploymentStatus] = useState('');
   const [countryOfCitizenship, setCountryOfCitizenship] = useState('');
 
@@ -97,50 +85,17 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const result = await submitAdditionalDetailsNationality(
+    await submit(async () =>
+      submitAdditionalDetailsNationality(
         employmentStatus,
         countryOfCitizenship,
-      );
-
-      if (result.status === 'FAILED') {
-        setError(strings('deposit.additional_details_nationality.submitError'));
-        return;
-      }
-
-      await getKycRequirement(quoteId);
-      await getAdditionalRequirements(quoteId);
-
-      if (onSubmitted) {
-        onSubmitted();
-      } else {
-        await routeAfterAuthentication(quote);
-      }
-    } catch (err) {
-      Logger.error(
-        err as Error,
-        'AdditionalDetailsNationality: Failed to submit',
-      );
-      setError(
-        parseUserFacingError(
-          err,
-          strings('deposit.additional_details_nationality.submitError'),
-        ),
-      );
-    } finally {
-      setLoading(false);
-    }
+      ),
+    );
   }, [
     employmentStatus,
     countryOfCitizenship,
-    quoteId,
-    getKycRequirement,
-    getAdditionalRequirements,
-    onSubmitted,
-    quote,
-    routeAfterAuthentication,
+    setError,
+    submit,
     submitAdditionalDetailsNationality,
   ]);
 

@@ -524,7 +524,7 @@ describe('MicaConsent', () => {
       fireEvent.press(utils.getByText('deposit.mica_consent.terms_link_text'));
 
       expect(openURL).toHaveBeenCalledWith(
-        'https://transak.com/terms-of-service',
+        'https://www.transak.com/terms-of-service',
       );
     });
 
