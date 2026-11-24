@@ -421,7 +421,7 @@ describe('softReloadAppForFixtures', () => {
       const drv = createDrv({ execute, activateApp });
 
       await expect(runIosSoftReload(drv)).rejects.toThrow(
-        /not in foreground after soft-reload post-launch \(queryAppState=1\)/,
+        /not in foreground during post-launch \(queryAppState=1\)/,
       );
 
       expect(activateApp).not.toHaveBeenCalled();
@@ -435,7 +435,7 @@ describe('softReloadAppForFixtures', () => {
       const drv = createDrv({ execute, activateApp });
 
       await expect(runIosSoftReload(drv)).rejects.toThrow(
-        /not in foreground after soft-reload post-launch \(queryAppState=3\)/,
+        /not in foreground during post-launch \(queryAppState=3\)/,
       );
 
       expect(activateApp).toHaveBeenCalledTimes(1);
@@ -451,7 +451,7 @@ describe('softReloadAppForFixtures', () => {
       const drv = createDrv({ execute, activateApp });
 
       await expect(runIosSoftReload(drv)).rejects.toThrow(
-        /not in foreground after soft-reload post-bootstrap \(queryAppState=1\)/,
+        /not in foreground during post-bootstrap \(queryAppState=1\)/,
       );
 
       expect(activateApp).not.toHaveBeenCalled();

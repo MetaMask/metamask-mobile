@@ -52,8 +52,30 @@ export const isTestIdDisplayed = async (
   }
 };
 
-export const isLoginScreenDisplayed = (): Promise<boolean> =>
-  isTestIdDisplayed(LoginViewSelectors.CONTAINER);
+/**
+ * Login chrome that can report displayed while the parent `login` container
+ * exists with `displayed === false` (same Appium a11y class as wallet-home).
+ */
+const LOGIN_CHILD_INDICATOR_IDS = [
+  LoginViewSelectors.PASSWORD_INPUT,
+  LoginViewSelectors.LOGIN_BUTTON_ID,
+  LoginViewSelectors.TITLE_ID,
+] as const;
+
+/**
+ * True when the unlock / login screen is showing.
+ * Prefer child indicators (password / Unlock / title) over the parent
+ * `login` container — on iOS the container can sit in the tree with
+ * `isDisplayed=false` while children are already visible.
+ */
+export const isLoginScreenDisplayed = async (): Promise<boolean> => {
+  for (const testId of LOGIN_CHILD_INDICATOR_IDS) {
+    if (await isTestIdDisplayed(testId)) {
+      return true;
+    }
+  }
+  return isTestIdDisplayed(LoginViewSelectors.CONTAINER);
+};
 
 export const isWalletContainerDisplayed = (): Promise<boolean> =>
   isTestIdDisplayed(WalletViewSelectorsIDs.WALLET_CONTAINER);
