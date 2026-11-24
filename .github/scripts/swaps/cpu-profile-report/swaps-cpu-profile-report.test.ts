@@ -159,7 +159,7 @@ describe('buildSlackMessage', () => {
     runUrl: 'https://example.com/run',
   };
 
-  it('leads with the p90 per scenario and says why runs were dropped', () => {
+  it('leads with the median per scenario and says why runs were dropped', () => {
     const message = buildSlackMessage(
       [
         {
@@ -180,34 +180,42 @@ describe('buildSlackMessage', () => {
     );
     expect(message).toBe(
       [
-        ':bar_chart: *Swaps CPU profile report, 2026-11-16 – 2026-11-22 UTC* (shadow mode, no flags)',
-        "*ETH swap*: widest span 388ms at p90, no baseline yet; the analysis doesn't name the function.",
+        ':bar_chart: *Swaps CPU profile report, 2026-11-16 – 2026-11-22 UTC*',
+        "*ETH swap*: widest span median 340ms, no baseline yet; p90 388ms; the analysis doesn't name the function.",
         '*Cross-chain swap*: no usable runs this week.',
         '',
-        "Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. p90 is over this week's scheduled runs on main (Pixel 8 Pro).",
+        "Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. Median and p90 are over this week's scheduled runs on main (Pixel 8 Pro). A scenario is flagged when its median is more than 20% above the median of every run in the previous three weeks.",
         'Coverage: 1 of 5 runs had no profile analysis; ETH swap: 1 of 4 runs failed before measuring; Cross-chain swap: 1 of 1 runs had no profile.',
         '<https://example.com/run|Full report>',
       ].join('\n'),
     );
   });
 
-  it('compares with last week and links the function to its line', () => {
-    const summary = (widest: number) =>
-      summarizeScenario([used(widest, 40, { widestFunction: fn })]);
-    const message = buildSlackMessage(
-      [{ label: 'Cross-chain swap', summary: summary(1000) }],
-      {
-        ...options,
-        runsRead: 5,
-        devices: ['<@U123>'],
-        previous: {
-          scenarios: [{ label: 'Cross-chain swap', summary: summary(800) }],
-        },
-      },
-    );
+  it('flags a median over 20% above the pooled previous weeks and links the function to its line', () => {
+    const post = (widest: number, baseline: object[]) =>
+      buildSlackMessage(
+        [
+          {
+            label: 'Cross-chain swap',
+            summary: summarizeScenario([
+              used(widest, 40, { widestFunction: fn }),
+            ]),
+          },
+        ],
+        { ...options, runsRead: 5, devices: ['<@U123>'], baseline },
+      );
+    const weeks = [
+      { 'Cross-chain swap': [700, 800, 900, 800, 800] },
+      { 'Cross-chain swap': [800, 800, 800, 800, 800] },
+    ];
+    const message = post(1000, weeks);
     expect(message).toContain(
-      '*Cross-chain swap*: widest span 1,000ms at p90, up 25% from 800ms last week; from an anonymous function in <https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993|app/core/redux/slices/bridge/index.ts:993>.\n',
+      ':red_circle: *Cross-chain swap*: widest span median 1,000ms, up 25% from the 800ms median of the previous 2 weeks, over the 20% limit; p90 1,000ms, from an anonymous function in <https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993|app/core/redux/slices/bridge/index.ts:993>.\n',
     );
+    expect(post(950, weeks)).toContain(
+      '\n*Cross-chain swap*: widest span median 950ms, up 19% from the 800ms median of the previous 2 weeks; p90',
+    );
+    expect(post(1000, weeks.slice(1))).toContain('1,000ms, no baseline yet;');
     expect(message).toContain('(&lt;@U123&gt;)');
     expect(message).not.toMatch(/Coverage|<@U123>/);
   });
@@ -235,6 +243,7 @@ describe('buildFullReport', () => {
       runsRead: 2,
       runsFound: 3,
       devices: ['Pixel 8 Pro'],
+      baseline: [{ 'Cross-chain swap': Array(10).fill(500) }],
     });
     const link =
       'an anonymous function in [app/core/redux/slices/bridge/index.ts:993](https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993)';
@@ -242,7 +251,7 @@ describe('buildFullReport', () => {
       'Coverage: 1 of 3 runs had no profile analysis; Cross-chain swap: 1 of 2 runs failed before measuring.',
     );
     expect(markdown).toContain(
-      `- Widest span: median 1,000ms, p90 1,000ms, no baseline yet; at p90, ${link}.`,
+      `### :red_circle: Cross-chain swap (flagged)\n\n- Widest span: median 1,000ms, up 100% from the 500ms median of last week; p90 1,000ms; at p90, ${link}.`,
     );
     expect(markdown).toContain('| fast-equals (dependency) | 900ms |');
     expect(markdown).toContain('| Native or no source path | 600ms |');

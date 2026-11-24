@@ -1,10 +1,15 @@
 /**
  * Weekly Swaps CPU profile report: per swap scenario, the swaps breakdown
  * (`skillAudit`) that the app-profiling analysis writes to each scheduled
- * run's `report.json`, over the previous UTC week. Shadow mode: no flags.
+ * run's `report.json`, over the previous UTC week, flagged against the
+ * previous three weeks.
  */
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+/** Flag when this week's widest-span median is more than this far above the baseline median. */
+const FLAG_ABOVE = 0.2;
+/** Fewer pooled runs than this, about half a normal week, is no baseline. */
+const MIN_BASELINE_RUNS = 10;
 
 /** The previous complete UTC week, Monday 00:00 to Monday 00:00. */
 export function lastWeek(now = new Date()) {
@@ -195,12 +200,20 @@ const DROP_REASONS = [
 const REPO_URL = 'https://github.com/MetaMask/metamask-mobile';
 const NOT_NAMED = "the analysis doesn't name the function";
 
-function weekOverWeek(current, previous) {
-  if (!previous) {
-    return 'no baseline yet';
+/** This week's widest-span median against the median of every run's widest span in the earlier weeks, `{ [label]: number[] }` each. */
+function compareWithBaseline(summary, label, weeks = []) {
+  const spans = weeks.flatMap((week) => week[label] || []);
+  if (spans.length < MIN_BASELINE_RUNS) {
+    return { flagged: false, text: 'no baseline yet' };
   }
-  const percent = Math.round(((current - previous) / previous) * 100);
-  return `${percent < 0 ? 'down' : 'up'} ${Math.abs(percent)}% from ${formatMs(previous)} last week`;
+  const baseline = percentile(spans, 0.5);
+  const change = summary.widestSpanMs.median / baseline - 1;
+  const percent = Math.round(change * 100);
+  const count = weeks.filter((week) => week[label]?.length).length;
+  return {
+    flagged: change > FLAG_ABOVE,
+    text: `${percent < 0 ? 'down' : 'up'} ${Math.abs(percent)}% from the ${formatMs(baseline)} median of ${count === 1 ? 'last week' : `the previous ${count} weeks`}`,
+  };
 }
 
 /** "name in <link to its line on GitHub>", or null when the analysis doesn't name the function. */
@@ -238,30 +251,25 @@ function footer(scenarios, { runsRead, runsFound, devices }, escape) {
     });
   }
   return [
-    `Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. p90 is over this week's scheduled runs on main (${escape(devices.join(', ')) || 'device unknown'}).`,
+    `Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. Median and p90 are over this week's scheduled runs on main (${escape(devices.join(', ')) || 'device unknown'}). A scenario is flagged when its median is more than ${FLAG_ABOVE * 100}% above the median of every run in the previous three weeks.`,
     ...(coverage.length ? [`Coverage: ${coverage.join('; ')}.`] : []),
   ];
 }
 
-const lastWeekP90 = (previous, label) =>
-  previous?.scenarios?.find((scenario) => scenario.label === label)?.summary
-    ?.widestSpanMs?.p90;
-
-/** The weekly post; `options.previous` is last week's saved summary, if any. */
+/** The weekly post; `options.baseline` is the previous weeks' widest spans, newest first. */
 export function buildSlackMessage(scenarios, options) {
-  const { window, runUrl, previous } = options;
-  const lines = [
-    `:bar_chart: *Swaps CPU profile report, ${window.label}* (shadow mode, no flags)`,
-  ];
+  const { window, runUrl, baseline } = options;
+  const lines = [`:bar_chart: *Swaps CPU profile report, ${window.label}*`];
   for (const { label, summary } of scenarios) {
     if (!summary.widestSpanMs) {
       lines.push(`*${label}*: no usable runs this week.`);
       continue;
     }
-    const p90 = summary.widestSpanMs.p90;
+    const { median, p90 } = summary.widestSpanMs;
+    const { flagged, text } = compareWithBaseline(summary, label, baseline);
     const fn = slackFunction(summary.widestFunction);
     lines.push(
-      `*${label}*: widest span ${formatMs(p90)} at p90, ${weekOverWeek(p90, lastWeekP90(previous, label))}; ${fn ? `from ${fn}` : NOT_NAMED}.`,
+      `${flagged ? `:red_circle: *${label}*` : `*${label}*`}: widest span median ${formatMs(median)}, ${text}${flagged ? `, over the ${FLAG_ABOVE * 100}% limit` : ''}; p90 ${formatMs(p90)}${fn ? `, from ${fn}` : `; ${NOT_NAMED}`}.`,
     );
   }
   lines.push('', ...footer(scenarios, options, escapeSlack));
@@ -285,14 +293,21 @@ export function buildFullReport(scenarios, options) {
     'Own time is the time spent in swaps functions themselves, without the code they called. Areas show average own time per run. "Called by swaps" is an upper bound: a function swaps calls even once counts with all its own time.',
   ];
   for (const { label, summary } of scenarios) {
-    lines.push('', `### ${label}`, '');
     if (!summary.widestSpanMs) {
-      lines.push('No usable runs this week.');
+      lines.push('', `### ${label}`, '', 'No usable runs this week.');
       continue;
     }
     const { widestSpanMs: widest, ownedSelfMs: own } = summary;
+    const { flagged, text } = compareWithBaseline(
+      summary,
+      label,
+      options.baseline,
+    );
     lines.push(
-      `- Widest span: median ${formatMs(widest.median)}, p90 ${formatMs(widest.p90)}, ${weekOverWeek(widest.p90, lastWeekP90(options.previous, label))}; at p90, ${markdownFunction(summary.widestFunction)}.`,
+      '',
+      `### ${flagged ? `:red_circle: ${label} (flagged)` : label}`,
+      '',
+      `- Widest span: median ${formatMs(widest.median)}, ${text}; p90 ${formatMs(widest.p90)}; at p90, ${markdownFunction(summary.widestFunction)}.`,
       `- Swaps own time: median ${formatMs(own.median)}, p90 ${formatMs(own.p90)}.`,
     );
     for (const [field, title] of AREA_GROUPS) {

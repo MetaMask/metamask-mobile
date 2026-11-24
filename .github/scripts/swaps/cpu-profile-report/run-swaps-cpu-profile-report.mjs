@@ -51,12 +51,8 @@ function readArtifactJson(runId, artifact, file) {
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
 }
 
-/** Last week's summary from its newest unexpired artifact on main; null on the first run or after a missed week. */
-function previousSummary({ start }) {
-  const name = summaryArtifact({
-    start: new Date(start - 7 * DAY_MS),
-    end: start,
-  });
+/** A week's summary from its newest unexpired artifact on main; null after a missed week. */
+function savedSummary(name) {
   try {
     const { artifacts } = JSON.parse(
       gh(['api', `repos/${repo}/actions/artifacts?name=${name}`]),
@@ -72,6 +68,31 @@ function previousSummary({ start }) {
     console.warn(`[baseline] ${error.stderr?.trim() || error.message}`);
     return null;
   }
+}
+
+/** Each of the three previous weeks' widest spans per scenario; the seed stands in for weeks before the report saved summaries. */
+function baselineWeeks({ start }) {
+  const seed = JSON.parse(
+    fs.readFileSync(
+      new URL('./swaps-cpu-profile-baseline-seed.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  return [1, 2, 3].map((weeksBack) => {
+    const name = summaryArtifact({
+      start: new Date(start - weeksBack * 7 * DAY_MS),
+      end: new Date(start - (weeksBack - 1) * 7 * DAY_MS),
+    });
+    const summary = savedSummary(name);
+    return summary
+      ? Object.fromEntries(
+          summary.scenarios.map(({ label, summary: { runs = [] } }) => [
+            label,
+            runs.map((run) => run.widestSpanMs),
+          ]),
+        )
+      : seed[name] || {};
+  });
 }
 
 async function main() {
@@ -136,7 +157,7 @@ async function main() {
     runsRead,
     devices,
     runsFound: runIds.length,
-    previous: previousSummary(window),
+    baseline: baselineWeeks(window),
   };
   fs.writeFileSync(
     env.GITHUB_STEP_SUMMARY || path.join(env.OUT_DIR, 'report.md'),
