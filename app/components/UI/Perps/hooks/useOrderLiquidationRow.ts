@@ -1,82 +1,81 @@
 import { useMemo } from 'react';
-import type {
-  CrossMarginSummary,
-  PerpsProviderType,
+import {
+  PERFORMANCE_CONFIG,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
-  estimateCrossLiquidationPrice,
   selectOrderLiquidationRow,
   type OrderLiquidationRow,
 } from '../utils/crossMarginSummary';
+import { usePerpsCrossLiquidationEstimate } from './usePerpsCrossLiquidationEstimate';
 
 interface UseOrderLiquidationRowParams {
   isCrossOrder: boolean;
   isPositionLoading: boolean;
+  symbol: string;
   entryPrice: number;
+  /** Unsigned order size in base units. */
   positionSize: string;
-  isLong: boolean;
-  maxLeverage: number | undefined;
-  marginTableId?: number;
-  crossMarginSummary: CrossMarginSummary | undefined;
-  spotCollateral: string | undefined;
+  direction: 'long' | 'short';
+  leverage: number;
   providerId: PerpsProviderType;
-  existingSignedSize: number;
   hasValidAmount: boolean;
-  isolatedPrice: string;
+  isolatedPrice: string | undefined;
 }
 
 /**
- * Liquidation row for an order ticket. Cross orders use the account estimate.
- * Isolated orders use the controller price. The view only renders the result.
+ * Liquidation row for an order ticket. Cross orders use the Core account
+ * estimate. Isolated orders use the controller price. The view only renders
+ * the result.
  */
 export const useOrderLiquidationRow = ({
   isCrossOrder,
   isPositionLoading,
+  symbol,
   entryPrice,
   positionSize,
-  isLong,
-  maxLeverage,
-  marginTableId,
-  crossMarginSummary,
-  spotCollateral,
+  direction,
+  leverage,
   providerId,
-  existingSignedSize,
   hasValidAmount,
   isolatedPrice,
-}: UseOrderLiquidationRowParams): OrderLiquidationRow =>
-  useMemo(() => {
-    const crossEstimate =
-      !isCrossOrder || isPositionLoading || typeof maxLeverage !== 'number'
-        ? ({ status: 'unknown' } as const)
-        : estimateCrossLiquidationPrice({
-            entryPrice,
-            size: Number.parseFloat(positionSize),
-            isLong,
-            maxLeverage,
-            crossMarginSummary,
-            spotCollateral,
-            providerId,
-            existingSignedSize,
-            marginTableId,
-          });
-    return selectOrderLiquidationRow({
+}: UseOrderLiquidationRowParams): OrderLiquidationRow & {
+  /** True until the first cross estimate resolves for the current market. */
+  isAwaitingCrossEstimate: boolean;
+} => {
+  const { estimate: crossEstimate, isCalculating } =
+    usePerpsCrossLiquidationEstimate(
+      {
+        symbol,
+        direction,
+        size: positionSize,
+        entryPrice,
+        leverage,
+        providerId,
+        enabled: isCrossOrder && !isPositionLoading,
+      },
+      { debounceMs: PERFORMANCE_CONFIG.ValidationDebounceMs },
+    );
+
+  const isAwaitingCrossEstimate =
+    isCrossOrder && isCalculating && crossEstimate === undefined;
+
+  return useMemo(
+    () => ({
+      ...selectOrderLiquidationRow({
+        isCrossOrder,
+        crossEstimate,
+        hasValidAmount,
+        isolatedPrice,
+      }),
+      isAwaitingCrossEstimate,
+    }),
+    [
       isCrossOrder,
       crossEstimate,
       hasValidAmount,
       isolatedPrice,
-    });
-  }, [
-    isCrossOrder,
-    isPositionLoading,
-    entryPrice,
-    positionSize,
-    isLong,
-    maxLeverage,
-    marginTableId,
-    crossMarginSummary,
-    spotCollateral,
-    providerId,
-    existingSignedSize,
-    hasValidAmount,
-    isolatedPrice,
-  ]);
+      isAwaitingCrossEstimate,
+    ],
+  );
+};

@@ -14,7 +14,7 @@ import {
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
-  type AccountState,
+  type CrossLiquidationEstimate,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -222,10 +222,13 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
-let mockLiveAccount: Pick<
-  AccountState,
-  'crossMarginSummary' | 'spotCollateral'
-> | null = null;
+let mockCrossEstimate: CrossLiquidationEstimate | undefined;
+const mockUsePerpsCrossLiquidationEstimate = jest.fn(
+  (_params: { enabled: boolean }) => ({
+    estimate: _params.enabled ? mockCrossEstimate : undefined,
+    isCalculating: false,
+  }),
+);
 let mockLiveMarkPrice = '90000';
 let mockLiveOraclePrice = '90000';
 let mockSizeDecimals = 3;
@@ -419,10 +422,11 @@ jest.mock('../../../../hooks/stream', () => ({
     },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
-  usePerpsLiveAccount: () => ({
-    account: mockLiveAccount,
-    isInitialLoading: false,
-  }),
+}));
+
+jest.mock('../../../../hooks/usePerpsCrossLiquidationEstimate', () => ({
+  usePerpsCrossLiquidationEstimate: (params: { enabled: boolean }) =>
+    mockUsePerpsCrossLiquidationEstimate(params),
 }));
 
 let mockIsInitialized = true;
@@ -781,7 +785,8 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
-    mockLiveAccount = null;
+    mockCrossEstimate = undefined;
+    mockUsePerpsCrossLiquidationEstimate.mockClear();
     mockLiveMarkPrice = '90000';
     mockLiveOraclePrice = '90000';
     mockTotalFee = 5;
@@ -4057,7 +4062,7 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('shows no liquidation estimate for a Cross order', () => {
+    it('shows no liquidation estimate for a Cross order before Core resolves', () => {
       const { result } = renderWithCrossMargin();
 
       act(() => {
@@ -4069,117 +4074,46 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
-    // 50 collateral - 20 existing - 2.25 new maintenance leaves 27.75.
-    it.each([
-      ['long', '$75,949'],
-      ['short', '$103,704'],
-    ] as const)(
-      'estimates a Cross %s liquidation price from the cross account',
-      (direction, expected) => {
-        mockOrderForm.direction = direction;
-        mockLiveAccount = {
-          spotCollateral: '0',
-          crossMarginSummary: {
-            accountValue: '50',
-            maintenanceMargin: '20',
-            marginUsed: '40',
-            notional: '1600',
-          },
-        };
-        const { result } = renderWithCrossMargin();
-
-        act(() => {
-          result.current.onMarginModeSelect('cross');
-        });
-
-        expect(result.current.summary.liquidationPrice).toBe(expected);
-      },
-    );
-
-    it('shows no Cross liquidation estimate on a venue other than Hyperliquid', () => {
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
-      const { result } = renderProForm(
-        true,
-        true,
-        'hyperliquid',
-        false,
-        {},
-        {},
-        { ...market, providerId: 'lighter' },
-        {},
-        undefined,
-        true,
-      );
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe(
-        PERPS_CONSTANTS.FallbackDataDisplay,
-      );
-    });
-
-    it('waits for market max leverage before estimating a Cross liquidation price', () => {
-      mockMarketData = null;
-      mockMarketDataLoading = true;
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
+    it('requests the Core cross estimate for the order', () => {
+      mockOrderForm.direction = 'short';
       const { result } = renderWithCrossMargin();
 
       act(() => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe(
-        PERPS_CONSTANTS.FallbackDataDisplay,
+      expect(mockUsePerpsCrossLiquidationEstimate).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          direction: 'short',
+          entryPrice: 90000,
+          providerId: 'hyperliquid',
+          enabled: true,
+        }),
       );
     });
 
-    it('estimates from account value until spot collateral is published', () => {
-      mockLiveAccount = {
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
+    it('does not request the Core cross estimate for an isolated order', () => {
+      renderWithCrossMargin();
+
+      expect(mockUsePerpsCrossLiquidationEstimate).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('shows the Core cross liquidation price', () => {
+      mockCrossEstimate = { status: 'price', price: '75949.3' };
       const { result } = renderWithCrossMargin();
 
       act(() => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe('~$75,949');
+      expect(result.current.summary.liquidationPrice).toBe('$75,949');
     });
 
-    it('shows no liquidation price when the cross position cannot be liquidated', () => {
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '5000',
-          maintenanceMargin: '0',
-          marginUsed: '0',
-          notional: '0',
-        },
-      };
+    it('shows no liquidation price when the cross account covers the position', () => {
+      mockCrossEstimate = { status: 'none', reason: 'covered_by_account' };
       const { result } = renderWithCrossMargin();
 
       act(() => {
@@ -4191,41 +4125,8 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('estimates a Cross liquidation price while adding to an open position', () => {
-      mockExistingPosition = {
-        size: '0.01',
-        leverage: { type: 'cross', value: 5 },
-      };
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      // 0.012 BTC at $90,000. 50 collateral, 8.75 other maintenance, 13.5 result maintenance.
-      expect(result.current.summary.liquidationPrice).toBe('$87,658');
-    });
-
-    it('keeps the Cross liquidation price unknown while positions are loading', () => {
-      mockPositionStreamLoading = true;
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
+    it('shows the fallback when Core has no cross estimate', () => {
+      mockCrossEstimate = { status: 'unavailable', reason: 'provider' };
       const { result } = renderWithCrossMargin();
 
       act(() => {
@@ -4237,24 +4138,18 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('labels a tiered market liquidation price as approximate', () => {
-      mockMarketData = { szDecimals: 3, maxLeverage: 40, marginTableId: 56 };
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
+    it('keeps the Cross liquidation price unknown while positions are loading', () => {
+      mockPositionStreamLoading = true;
+      mockCrossEstimate = { status: 'price', price: '75949.3' };
       const { result } = renderWithCrossMargin();
 
       act(() => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toBe('~$75,949');
+      expect(result.current.summary.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
     });
 
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {

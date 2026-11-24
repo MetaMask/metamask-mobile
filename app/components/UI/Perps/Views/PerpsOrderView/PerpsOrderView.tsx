@@ -2626,23 +2626,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const existingSignedSize = Number.parseFloat(
     currentMarketPosition?.size ?? '0',
   );
-  // Cross orders liquidate against the account. The hook owns that estimate
-  // and the isolated fallback, so this view only renders the row.
+  // Cross orders liquidate against the account. The hook owns the Core
+  // estimate and the isolated fallback, so this view only renders the row.
   const orderLiquidation = useOrderLiquidationRow({
     isCrossOrder,
     isPositionLoading: isCurrentPositionLoading,
+    symbol: orderForm.asset,
     entryPrice: effectivePrice,
     positionSize,
-    isLong: orderForm.direction === 'long',
-    maxLeverage:
-      typeof marketData?.maxLeverage === 'number'
-        ? marketData.maxLeverage
-        : undefined,
-    marginTableId: marketData?.marginTableId,
-    crossMarginSummary: account?.crossMarginSummary,
-    spotCollateral: account?.spotCollateral,
+    direction: orderForm.direction,
+    leverage: orderForm.leverage,
     providerId: liquidationProviderId,
-    existingSignedSize,
     hasValidAmount,
     isolatedPrice: liquidationPrice,
   });
@@ -2883,13 +2877,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       parsedLiquidationPrice > 0;
     // Keep the last valid price visible during a refetch. The liquidation hook
     // retains it while calculating; only the initial unresolved request needs
-    // a skeleton. Cross estimates are synchronous.
-    const isTradeSheetLiquidationLoading =
-      !isCrossOrder &&
-      (isLoadingMarketData ||
+    // a skeleton. The cross estimate hook keeps its last result the same way.
+    const isTradeSheetLiquidationLoading = isCrossOrder
+      ? hasValidAmount && orderLiquidation.isAwaitingCrossEstimate
+      : isLoadingMarketData ||
         (hasValidAmount &&
           isCalculatingLiquidationPrice &&
-          !hasLiquidationPrice));
+          !hasLiquidationPrice);
     const tradeSheetLiquidationPrice = orderLiquidation.display;
     const tradeSheetLiquidationDistance =
       orderLiquidation.distancePrice === undefined

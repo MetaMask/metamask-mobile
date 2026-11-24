@@ -171,6 +171,10 @@ describe('PerpsOrderView', () => {
       .mockReset()
       .mockResolvedValue('0.00');
     jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockReset()
+      .mockResolvedValue({ status: 'unavailable', reason: 'provider' });
+    jest
       .mocked(Engine.context.PerpsController.updatePositionTPSL)
       .mockReset()
       .mockResolvedValue({ success: true });
@@ -695,7 +699,7 @@ describe('PerpsOrderView', () => {
       expect(calculateLiquidationPrice).toHaveBeenCalled();
       expect(
         screen.getByTestId(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
-      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
     });
     expect(
       screen.getByTestId(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
@@ -1819,8 +1823,15 @@ describe('PerpsOrderView', () => {
     maxLeverage: 50,
     marginTableId: 25,
   };
-  // 2.55 ETH at $2,500. $1,000 collateral, $137.50 other maintenance, $63.75 result maintenance.
   const expectedCrossLiquidationPrice = '$2,183.6';
+  const mockCoreCrossEstimate = (
+    estimate: Awaited<
+      ReturnType<typeof Engine.context.PerpsController.estimateCrossLiquidation>
+    > = { status: 'price', price: '2183.6007' },
+  ) =>
+    jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockResolvedValue(estimate);
   const existingCrossPositionStream = {
     account: crossAccount,
     positions: [
@@ -1887,6 +1898,7 @@ describe('PerpsOrderView', () => {
 
   it('places an order on an existing cross position when cross margin is enabled', async () => {
     const restoreMarkets = useEthCrossMarket();
+    const estimateCrossLiquidation = mockCoreCrossEstimate();
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     try {
       const { stream } = renderPerpsOrderView({
@@ -1907,6 +1919,14 @@ describe('PerpsOrderView', () => {
           ),
         ).toHaveTextContent(expectedCrossLiquidationPrice);
       });
+      expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'long',
+          leverage: 10,
+          providerId: 'hyperliquid',
+        }),
+      );
 
       fireEvent.press(
         screen.getByTestId(
@@ -1948,6 +1968,7 @@ describe('PerpsOrderView', () => {
 
   it('shows the cross liquidation estimate on a lite cross order', async () => {
     const restoreMarkets = useEthCrossMarket();
+    mockCoreCrossEstimate();
     try {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
@@ -2003,6 +2024,7 @@ describe('PerpsOrderView', () => {
 
   it('omits the remaining liquidation price from auto close when a cross reduce does not flip', async () => {
     const restoreMarkets = useEthCrossMarket();
+    mockCoreCrossEstimate();
     try {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
@@ -2042,21 +2064,13 @@ describe('PerpsOrderView', () => {
 
   it('shows no liquidation price when a cross order cannot be liquidated', async () => {
     const restoreMarkets = useEthCrossMarket();
+    mockCoreCrossEstimate({ status: 'none', reason: 'covered_by_account' });
     try {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         crossMarginEnabled: true,
         initialParams: existingCrossOrderParams,
-        streamOverrides: {
-          ...existingCrossPositionStream,
-          account: createCrossMarginAccountForViews({
-            balance: '100000',
-            accountValue: '100000',
-            maintenanceMargin: '0',
-            marginUsed: '0',
-            notional: '0',
-          }),
-        },
+        streamOverrides: existingCrossPositionStream,
       });
 
       await waitForDeferredOrderData();

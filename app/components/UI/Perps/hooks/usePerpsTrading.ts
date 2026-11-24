@@ -20,7 +20,9 @@ import {
   type CancelOrderParams,
   type CancelOrderResult,
   type ClosePositionParams,
+  type CrossLiquidationEstimate,
   type EditOrderParams,
+  type EstimateCrossLiquidationParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
   type FlipPositionParams,
@@ -388,6 +390,16 @@ export function usePerpsTrading() {
     [],
   );
 
+  const estimateCrossLiquidation = useCallback(
+    async (
+      params: EstimateCrossLiquidationParams,
+    ): Promise<CrossLiquidationEstimate> => {
+      const controller = Engine.context.PerpsController;
+      return controller.estimateCrossLiquidation(params);
+    },
+    [],
+  );
+
   const calculateMaintenanceMargin = useCallback(
     async (params: MaintenanceMarginParams): Promise<number> => {
       const controller = Engine.context.PerpsController;
@@ -504,6 +516,7 @@ export function usePerpsTrading() {
     withdraw,
     calculateLiquidationPrice,
     previewPositionModify,
+    estimateCrossLiquidation,
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,
