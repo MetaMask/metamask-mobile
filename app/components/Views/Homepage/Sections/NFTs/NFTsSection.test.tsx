@@ -572,13 +572,13 @@ describe('NFTsSection', () => {
       let resolveSecondDetection: () => void = () => undefined;
       mockDetectNfts
         .mockImplementationOnce(
-          () =>
+          async () =>
             new Promise<void>((resolve) => {
               resolveFirstDetection = resolve;
             }),
         )
         .mockImplementationOnce(
-          () =>
+          async () =>
             new Promise<void>((resolve) => {
               resolveSecondDetection = resolve;
             }),
