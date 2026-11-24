@@ -196,6 +196,7 @@ const KalshiOnboarding = () => {
   const { verifyOrEnroll } = useMfa();
   const flowState = useSelector(selectKalshiFlow);
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   /**
    * The MFA token, held until the Kalshi email opens the session. Kept in a
    * ref so it never reaches state or storage.
@@ -222,7 +223,7 @@ const KalshiOnboarding = () => {
   const step = flowState?.step;
   const status = flowState?.status ?? 'none';
   const screen = deriveKalshiScreen(step, status, {
-    emailSent: Boolean(flowState?.sessionId),
+    emailSent,
     editingEmail,
     phoneCodeSent,
   });
@@ -404,8 +405,8 @@ const KalshiOnboarding = () => {
       VendorOnboardingController.submitTerms({
         vendor: VENDOR,
         disclaimerIds: terms.vendorDisclaimerIds,
-        idOS: toKeys(terms.idOS),
-        kycProvider: toKeys(terms.kycProvider),
+        idOS: terms.idOS,
+        kycProvider: terms.kycProvider,
         // Demo choice. Whether the user is asked is a product decision.
         credentialReusabilityConsentGiven: false,
       }),
@@ -447,17 +448,20 @@ const KalshiOnboarding = () => {
   };
 
   /**
-   * With a session already open, kyc-api asks for MFA because the session's
-   * capability authorization expired or was wiped. Resuming the session
-   * submits fresh authorizations and needs no MFA token.
+   * When kyc-api still asks for MFA after it was recorded, a session is
+   * already open and its capability authorization expired or was wiped.
+   * Resuming the session submits fresh authorizations.
    */
   const confirmWithMetaMask = () => {
     setAwaitingTerms(true);
     return run(async () => {
       try {
-        const next = flowState?.sessionId
-          ? await VendorOnboardingController.startSession({ vendor: VENDOR })
-          : await recordMfa();
+        let next = await recordMfa();
+        if (next === 'mfa') {
+          next = await VendorOnboardingController.startSession({
+            vendor: VENDOR,
+          });
+        }
         if (next === 'mfa') {
           throw new Error(
             'MetaMask confirmed you, but setup didn’t move on. Try again.',
@@ -499,11 +503,13 @@ const KalshiOnboarding = () => {
    * Signs `users/link` for the address typed here. Before a session exists
    * this opens it, with the enrollment intent, and the address has to be the
    * verified MetaMask email: the relay rejects any other. On the code step it
-   * sends a new code on the same session.
+   * sends a new code on the same session. After the screen was opened again
+   * the phone cannot tell whether a session exists, so `startSession` resumes
+   * the one the step carries or opens a new one.
    */
   const sendEmailCode = (email: string) =>
     run(async () => {
-      if (flowState?.sessionId) {
+      if (emailSent) {
         await runKalshiSignedAction(() =>
           VendorOnboardingController.sendEmailOtp({ vendor: VENDOR, email }),
         );
@@ -518,6 +524,7 @@ const KalshiOnboarding = () => {
         );
         aal2Token.current = undefined;
       }
+      setEmailSent(true);
       setEditingEmail(false);
       emailDefault.current = email;
     });
@@ -529,10 +536,7 @@ const KalshiOnboarding = () => {
     setEditingEmail(true);
   };
 
-  /**
-   * Sends the code again to the address last sent. After a reinstall the
-   * phone no longer knows it, so the user types it again.
-   */
+  /** Sends the code again to the address last sent. */
   const resendEmailCode = () =>
     emailDefault.current ? sendEmailCode(emailDefault.current) : editEmail();
 
@@ -626,7 +630,7 @@ const KalshiOnboarding = () => {
       input,
       navigation,
       flowState?.mfaCompleted,
-      flowState?.sessionId,
+      emailSent,
     ]);
 
   const secondary: { label: string; onPress: () => void } | undefined =

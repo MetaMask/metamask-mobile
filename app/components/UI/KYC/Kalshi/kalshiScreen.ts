@@ -22,13 +22,14 @@ export type KalshiScreen =
  * What the phone knows beyond the step.
  *
  * `kalshi_email_link` covers the Kalshi email and its code. The email field
- * shows until a session exists, because the address is what opens the
- * session, and again when the user goes back to change it. `kalshi_phone_link`
- * covers the phone number and, once it was sent, its code. kyc-api cannot
- * tell those screens apart, so only the phone knows which is showing.
+ * shows until the code was sent from this screen, because the address is what
+ * opens the session, and again when the user goes back to change it.
+ * `kalshi_phone_link` covers the phone number and, once it was sent, its code.
+ * kyc-api cannot tell those screens apart, so only the phone knows which is
+ * showing.
  */
 export interface KalshiScreenContext {
-  /** A session exists, so the email code was sent and is being entered. */
+  /** The email code was sent from this screen and is being entered. */
   emailSent: boolean;
   /** On the code step, the user went back to change the address. */
   editingEmail: boolean;

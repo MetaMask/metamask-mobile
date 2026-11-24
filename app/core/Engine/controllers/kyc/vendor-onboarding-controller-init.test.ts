@@ -84,7 +84,9 @@ describe('vendorOnboardingControllerInit', () => {
         kalshi: {
           step: 'mfa',
           status: 'none',
-          sessionId: 'sid-1',
+          mfaCompleted: false,
+          acceptedDisclaimerIds: [],
+          pendingConsents: null,
         },
       },
     };
