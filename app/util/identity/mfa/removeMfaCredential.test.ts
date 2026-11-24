@@ -1,4 +1,5 @@
 import Engine from '../../../core/Engine';
+import Logger from '../../Logger';
 import { removeMfaCredential } from './removeMfaCredential';
 
 jest.mock('../../../core/Engine', () => ({
@@ -6,6 +7,11 @@ jest.mock('../../../core/Engine', () => ({
     AuthenticationController: { removeCredential: jest.fn() },
     MfaRecoveryController: { untrustPasskey: jest.fn() },
   },
+}));
+
+jest.mock('../../Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 describe('removeMfaCredential', () => {
@@ -35,14 +41,14 @@ describe('removeMfaCredential', () => {
     });
   });
 
-  it('untrusts a passkey before removing it from Auth', async () => {
+  it('removes a passkey from Auth before untrusting it', async () => {
     const order: string[] = [];
-    untrustPasskey.mockImplementationOnce(async () => {
-      order.push('untrust');
-    });
     removeCredential.mockImplementationOnce(async () => {
       order.push('remove');
       return [];
+    });
+    untrustPasskey.mockImplementationOnce(async () => {
+      order.push('untrust');
     });
 
     await removeMfaCredential(
@@ -50,17 +56,17 @@ describe('removeMfaCredential', () => {
       { operation: 'settings.removePasskey' },
     );
 
-    expect(order).toStrictEqual(['untrust', 'remove']);
-    expect(untrustPasskey).toHaveBeenCalledWith('passkey-cred-id');
+    expect(order).toStrictEqual(['remove', 'untrust']);
     expect(removeCredential).toHaveBeenCalledWith({
       credentialId: 'passkey-cred-id',
       reason: { operation: 'settings.removePasskey' },
     });
+    expect(untrustPasskey).toHaveBeenCalledWith('passkey-cred-id');
   });
 
-  it('does not remove the passkey from Auth if untrusting fails', async () => {
-    const error = new Error('untrust failed');
-    untrustPasskey.mockRejectedValueOnce(error);
+  it('does not untrust the passkey if Auth removal fails', async () => {
+    const error = new Error('auth remove failed');
+    removeCredential.mockRejectedValueOnce(error);
 
     await expect(
       removeMfaCredential(
@@ -68,6 +74,21 @@ describe('removeMfaCredential', () => {
         { operation: 'settings.removePasskey' },
       ),
     ).rejects.toBe(error);
-    expect(removeCredential).not.toHaveBeenCalled();
+    expect(untrustPasskey).not.toHaveBeenCalled();
+  });
+
+  it('logs and resolves if untrusting fails after Auth already removed the passkey', async () => {
+    const untrustError = new Error('storage unavailable');
+    untrustPasskey.mockRejectedValueOnce(untrustError);
+
+    await expect(
+      removeMfaCredential(
+        { id: 'passkey-cred-id', type: 'passkey', status: 'active' },
+        { operation: 'settings.removePasskey' },
+      ),
+    ).resolves.toBeUndefined();
+    expect(Logger.error).toHaveBeenCalledWith(untrustError, {
+      tags: { feature: 'mfa', operation: 'settings.removePasskey' },
+    });
   });
 });

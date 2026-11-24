@@ -7,33 +7,53 @@ import Logger from '../../Logger';
 import { MfaFlowError } from './engine/errors';
 import type { MfaControllerAdapter } from './engine/types';
 
+const untrustPasskeyBestEffort = async (
+  credentialId: string,
+  operation: string,
+): Promise<void> => {
+  try {
+    await Engine.context.MfaRecoveryController.untrustPasskey(credentialId);
+  } catch (error) {
+    Logger.error(
+      error instanceof Error
+        ? error
+        : new Error('Failed to untrust passkey after enrollment error'),
+      { tags: { feature: 'mfa', operation } },
+    );
+  }
+};
+
 export const mobileMfaControllerAdapter: MfaControllerAdapter = {
   refreshEnrolledCredentials: () =>
     Engine.context.AuthenticationController.refreshEnrolledCredentials(),
   beginCredentialEnrollment: (request) =>
     Engine.context.AuthenticationController.beginCredentialEnrollment(request),
   completeCredentialEnrollment: async (request) => {
-    const credentials =
-      await Engine.context.AuthenticationController.completeCredentialEnrollment(
+    if (request.proof.type !== 'passkey') {
+      return await Engine.context.AuthenticationController.completeCredentialEnrollment(
         request,
       );
-    if (request.proof.type === 'passkey') {
-      try {
-        await Engine.context.MfaRecoveryController.trustIdentifier({
-          type: 'passkey',
-          attestationObject:
-            request.proof.attestation.response.attestationObject,
-        });
-      } catch (error) {
-        Logger.error(
-          error instanceof Error
-            ? error
-            : new Error('Failed to trust enrolled passkey for MFA recovery'),
-          { tags: { feature: 'mfa', operation: request.reason.operation } },
-        );
-      }
     }
-    return credentials;
+
+    // Trust the passkey attestation before enrolling it with Auth. Because
+    // WebAuthn attestation is only emitted at creation, failing loudly here
+    // lets the MFA flow offer a retry instead of enrolling an unrecoverable
+    // passkey. If Auth subsequently rejects the enrollment, roll back trust.
+    await Engine.context.MfaRecoveryController.trustIdentifier({
+      type: 'passkey',
+      attestationObject: request.proof.attestation.response.attestationObject,
+    });
+    try {
+      return await Engine.context.AuthenticationController.completeCredentialEnrollment(
+        request,
+      );
+    } catch (error) {
+      await untrustPasskeyBestEffort(
+        request.proof.attestation.id,
+        request.reason.operation,
+      );
+      throw error;
+    }
   },
   beginCredentialVerification: (request) =>
     Engine.context.AuthenticationController.beginCredentialVerification(

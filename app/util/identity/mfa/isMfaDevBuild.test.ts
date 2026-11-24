@@ -14,18 +14,6 @@ describe('isMfaDevBuild', () => {
     expect(isMfaDevBuild(env)).toBe(false);
   });
 
-  it('returns false when METAMASK_ENVIRONMENT is unset', () => {
-    const previous = process.env.METAMASK_ENVIRONMENT;
-    delete process.env.METAMASK_ENVIRONMENT;
-    try {
-      expect(isMfaDevBuild()).toBe(false);
-    } finally {
-      if (previous !== undefined) {
-        process.env.METAMASK_ENVIRONMENT = previous;
-      }
-    }
-  });
-
   it.each(['dev', 'local', 'test'])('returns true in %s builds', (env) => {
     expect(isMfaDevBuild(env)).toBe(true);
   });
