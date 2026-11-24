@@ -1100,6 +1100,7 @@ const ChoosePassword = () => {
                 variant={ListItemVariant.MultiLine}
                 isInteractive
                 onPress={setSelection}
+                accessoryGap={3}
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}

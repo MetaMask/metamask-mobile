@@ -420,6 +420,7 @@ const OptinMetrics = () => {
               variant={ContentVariant.MultiLine}
               isInteractive
               onPress={handleBasicUsageToggle}
+              accessoryGap={3}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
@@ -462,6 +463,7 @@ const OptinMetrics = () => {
                 variant={ContentVariant.MultiLine}
                 isInteractive
                 onPress={handleMarketingToggle}
+                accessoryGap={3}
                 testID={
                   MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
                 }
