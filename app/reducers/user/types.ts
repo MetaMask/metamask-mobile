@@ -55,7 +55,6 @@ export interface UserState {
   multichainAccountsIntroModalSeen: boolean;
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
-  moneyOnboardingSeen: boolean;
   moneySplashSeen: boolean;
   moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;

@@ -3,7 +3,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../app/core/Engine';
-import MoneySplashView from '../../../app/components/UI/Money/Views/MoneySplashView';
+import { MoneySplashView } from '../../../app/components/UI/Money/Views/MoneySplashView/MoneySplashView';
 import Routes from '../../../app/constants/navigation/Routes';
 import NavigationService from '../../../app/core/NavigationService/NavigationService';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
@@ -21,8 +21,6 @@ function installNetworkClientMock() {
 
 export interface RenderMoneySplashViewOptions {
   splashSeen?: boolean;
-  onboardingSeen?: boolean;
-  onboardingEnabled?: boolean;
   /** APY decimal, or null to simulate a missing APY. */
   apy?: number | null;
   /** Omit the vault config so deposit setup fails and falls back to Money home. */
@@ -65,8 +63,6 @@ const MoneySplashScreen = () => {
 
 export function renderMoneySplashView({
   splashSeen = false,
-  onboardingSeen = false,
-  onboardingEnabled = false,
   apy = 0.062,
   hasVaultConfig = true,
   params,
@@ -86,8 +82,6 @@ export function renderMoneySplashView({
 
   const state = moneySplashViewState({
     splashSeen,
-    onboardingSeen,
-    onboardingEnabled,
     hasVaultConfig,
   });
   const routes = [
@@ -95,8 +89,11 @@ export function renderMoneySplashView({
       name: Routes.MONEY.CONFIRMATIONS_ROOT,
       Component: createRouteParamsProbe(Routes.MONEY.CONFIRMATIONS_ROOT),
     },
+    {
+      name: Routes.CARD.ROOT,
+      Component: createRouteParamsProbe(Routes.CARD.ROOT),
+    },
     { name: Routes.HOME_TABS },
-    { name: Routes.MONEY.ONBOARDING },
   ];
 
   if (pushedOverHost) {
