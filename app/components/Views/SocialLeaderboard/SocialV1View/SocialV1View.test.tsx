@@ -54,6 +54,7 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
 let mockRouteParams: {
   showNotificationsBanner?: boolean;
   initialTab?: SocialShellTab;
+  source?: string;
 } = {};
 
 jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
