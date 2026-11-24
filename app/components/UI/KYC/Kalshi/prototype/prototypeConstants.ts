@@ -74,7 +74,7 @@ export const GEORGE_COPY = {
   codeRefused:
     'That code is wrong or has expired. Check it and try again, or send a new code.',
   waiting: {
-    title: 'Verifying your identity',
+    title: 'Verifying identity',
     body: 'This usually takes a few minutes. You can leave and come back.',
     checkAgain: 'Check again',
   },
