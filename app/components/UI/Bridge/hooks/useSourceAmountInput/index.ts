@@ -32,6 +32,7 @@ import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { strings } from '../../../../../../locales/i18n';
+import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-operations';
 
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
@@ -77,6 +78,7 @@ const getFiatToggleEventProperties = ({
     token_symbol_source: sourceToken?.symbol ?? '',
     token_symbol_destination: destToken?.symbol ?? null,
     feature_id: featureId,
+    money_account_action: resolveMoneyAccountOperation(sourceToken, destToken),
   };
 };
 
