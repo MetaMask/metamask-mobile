@@ -6115,6 +6115,37 @@ describe('CardHome Component', () => {
         ).toBeOnTheScreen();
       });
 
+      it('disables the freeze toggle while card details are loading', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+        const defaultTokenState = (
+          useCardDetailsToken as jest.Mock
+        ).getMockImplementation();
+        (useCardDetailsToken as jest.Mock).mockImplementation(() => ({
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: true,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: null,
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        }));
+
+        render();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
+        ).toBeDisabled();
+        (useCardDetailsToken as jest.Mock).mockImplementation(
+          defaultTokenState,
+        );
+      });
+
       it('does not show freeze toggle when card is not freezable', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({

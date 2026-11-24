@@ -59,11 +59,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  frozenFallback: {
+    opacity: 0.5,
+  },
   /** Blocks all touches so the tiles below stay tappable. */
   noPointer: {
     pointerEvents: 'none',
   },
 });
+
+// Stable across renders: Nitro installs the asset loader when the file loads,
+// so a new options object would reload the ~4.4 MB file.
+const RIVE_FILE_OPTIONS = {
+  referencedAssets: {
+    [CARD_FRONT_ASSET_NAME]: { source: cardFrontFullRes as number },
+  },
+};
 
 export interface CardFreezeUnfreezeAnimationProps {
   /** Whether the card is currently frozen (drives which trigger fires). */
@@ -104,11 +115,7 @@ const CardFreezeUnfreezeAnimation = ({
 }: CardFreezeUnfreezeAnimationProps) => {
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
-  const { riveFile } = useRiveFile(cardFreezeUnfreezeRiv, {
-    referencedAssets: {
-      [CARD_FRONT_ASSET_NAME]: { source: cardFrontFullRes as number },
-    },
-  });
+  const { riveFile } = useRiveFile(cardFreezeUnfreezeRiv, RIVE_FILE_OPTIONS);
   const { riveViewRef, setHybridRef } = useRive();
   const { instance: viewModelInstance } = useViewModelInstance(riveFile, {
     async: true,
@@ -162,6 +169,9 @@ const CardFreezeUnfreezeAnimation = ({
 
   useEffect(() => {
     if (!canFire) {
+      // A view or view model that comes back starts from the unfrozen state,
+      // so treat it as a fresh mount: re-apply a freeze, never replay a melt.
+      hasFiredRef.current = false;
       return;
     }
     if (!hasFiredRef.current) {
@@ -222,7 +232,8 @@ const CardFreezeUnfreezeAnimation = ({
       {(!isRiveReady || !hasLaidOut) && (
         <Image
           source={animate ? cardFrontFullRes : fallbackSource}
-          style={StyleSheet.absoluteFill}
+          // The static art has no ice, so dim a frozen card like CardImage.
+          style={[StyleSheet.absoluteFill, isFrozen && styles.frozenFallback]}
           resizeMode="contain"
           accessible={false}
         />

@@ -785,6 +785,8 @@ const CardHome = () => {
     isAuthenticated;
   const isFreezeLoading =
     actions.freeze.isPending || actions.unfreeze.isPending;
+  const isCardDetailsLoading =
+    actions.isCardDetailsLoading || actions.isSensitiveDetailsLoading;
 
   // The card-details reveal signal (also drives useCardArrivalAnimation):
   // the details flow occupies the card art while it loads or shows details.
@@ -1105,7 +1107,10 @@ const CardHome = () => {
                 itself ignores touches (pointerEvents="none"). */}
             <Box twClassName="mt-4 mx-4 z-20">
               <Animated.View
-                style={[tw.style('w-full relative'), arrival.cardStyle]}
+                style={[
+                  tw.style('w-full relative overflow-visible'),
+                  arrival.cardStyle,
+                ]}
               >
                 {/* Muted while identity is in review, so the card doesn't look ready. */}
                 <Box
@@ -1117,10 +1122,14 @@ const CardHome = () => {
                       hidden, and the details render on top at the card face's
                       exact bounds. */}
                   {showFreezeCardArt ? (
-                    <Box twClassName="relative">
+                    // Every wrapper stays overflow-visible: Android clips by
+                    // default, which would cut the drips off at the card edge.
+                    <Box twClassName="relative overflow-visible">
                       <Box
                         twClassName={
-                          isRevealingCardDetails ? 'opacity-0' : undefined
+                          isRevealingCardDetails
+                            ? 'overflow-visible opacity-0'
+                            : 'overflow-visible'
                         }
                         testID={CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER}
                       >
@@ -1270,7 +1279,9 @@ const CardHome = () => {
                           void actions.handleToggleFreeze();
                         },
                         isFrozen,
-                        disabled: isFreezeLoading,
+                        // A details fetch in flight would cover the freeze
+                        // animation, and clearing details cannot cancel it.
+                        disabled: isFreezeLoading || isCardDetailsLoading,
                       }
                     : undefined
                 }
