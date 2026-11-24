@@ -44,6 +44,7 @@ import {
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 import ToastService from '../../../../core/ToastService';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import {
   incrementShareSheetCount,
   markClaimSheetSeen,
@@ -496,7 +497,9 @@ export const usePerpsClosePosition = (
                   postTradePrompt?.kind === 'post_to_feed_toast'
                   ? {
                       ...successToast,
-                      linkButtonOptions: {
+                      // Link variant renders in the toast's trailing slot, on the right.
+                      closeButtonOptions: {
+                        variant: ButtonVariants.Link,
                         label: strings(
                           'social_leaderboard.post_trade_share.post_to_feed',
                         ),

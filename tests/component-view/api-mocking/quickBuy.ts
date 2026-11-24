@@ -20,6 +20,7 @@ import ReactQueryService from '../../../app/core/ReactQueryService';
 import { QUOTE_TOKENS_QUERY_KEY } from '../../../app/components/Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import { updateBgState } from '../../../app/core/redux/slices/engine';
 import { disableNetConnect, teardownNock } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import {
   USDC_DEST,
   USDT_DEST,
@@ -104,6 +105,8 @@ export function setupQuickBuyApiMock(): void {
     }
     return originalFetch(url, init);
   });
+
+  installDefaultApiMocks();
 }
 
 type MessengerCall = typeof Engine.controllerMessenger.call;

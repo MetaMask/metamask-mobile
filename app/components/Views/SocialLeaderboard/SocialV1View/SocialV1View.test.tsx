@@ -434,9 +434,17 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
 describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     mockRouteParams = {};
     mockIsFocused = true;
     act(() => {
@@ -763,6 +771,14 @@ describe('SocialV1View', () => {
       false,
     );
     expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+  });
+
+  it('holds the pages back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockSocialFeed).not.toHaveBeenCalled();
   });
 
   it('renders Trending through the shared virtualized feed', () => {
