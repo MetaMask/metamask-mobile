@@ -144,7 +144,7 @@ const KycPending = ({
           topAccessory={
             <Box
               alignItems={BoxAlignItems.Center}
-              twClassName="mb-6 w-full"
+              twClassName="mb-5 w-full"
               testID={KycPendingSelectorsIDs.ILLUSTRATION}
             >
               {VERIFYING_HERO.heroAnimation ? (

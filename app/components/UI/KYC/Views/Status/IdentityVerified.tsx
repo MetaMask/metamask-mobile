@@ -123,7 +123,7 @@ const KycIdentityVerified = ({
           topAccessory={
             <Box
               alignItems={BoxAlignItems.Center}
-              twClassName="mb-6 w-full"
+              twClassName="mb-5 w-full"
               testID={KycIdentityVerifiedSelectorsIDs.ILLUSTRATION}
             >
               <VerifiedCheckAnimation
