@@ -1,6 +1,7 @@
 import { parseVolume, type OrderBookData } from '@metamask/perps-controller';
 import { calculateMarketOrderLiquidity } from '../../../app/components/UI/Perps/utils/slippageCalculation';
 import {
+  applyE2EPerpsControllerMocks,
   createE2EMockStreamManager,
   E2EControllerOverrides,
 } from './perps-controller-mixin';
@@ -184,5 +185,50 @@ describe('E2EControllerOverrides.subscribeToOrderBook', () => {
     jest.runAllTimers();
 
     expect(callback).not.toHaveBeenCalled();
+  });
+});
+
+describe('applyE2EPerpsControllerMocks account state protection', () => {
+  interface FakeState { accountState: unknown }
+  type StateListener = (state: FakeState) => void;
+
+  const createFakeController = () => {
+    const listeners: StateListener[] = [];
+    const state: FakeState = { accountState: null };
+    const controller = {
+      state,
+      messenger: {
+        subscribe: jest.fn((event: string, listener: StateListener) => {
+          if (event === 'PerpsController:stateChanged') {
+            listeners.push(listener);
+          }
+        }),
+      },
+      update: jest.fn((recipe: (draft: FakeState) => void) => {
+        recipe(state);
+        listeners.forEach((listener) => listener(state));
+      }),
+    };
+    return { controller, state };
+  };
+
+  it('re-seeds the mock account when the controller clears accountState', () => {
+    const { controller, state } = createFakeController();
+
+    applyE2EPerpsControllerMocks(controller);
+    expect(state.accountState).not.toBeNull();
+
+    controller.update((draft) => {
+      draft.accountState = null;
+    });
+
+    expect(state.accountState).not.toBeNull();
+  });
+
+  it('does not throw when the controller has no messenger', () => {
+    const { controller } = createFakeController();
+    const { messenger: _messenger, ...withoutMessenger } = controller;
+
+    expect(() => applyE2EPerpsControllerMocks(withoutMessenger)).not.toThrow();
   });
 });
