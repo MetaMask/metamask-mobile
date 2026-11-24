@@ -742,6 +742,27 @@ const CardHome = () => {
       Boolean(actions.cardDetailsImageUrl),
   });
 
+  // Activity / Manage segments only in the active and frozen states of a
+  // fully set-up card that has a history destination. Every other state
+  // keeps the management list as before, with no segments.
+  const showHomeSegments =
+    transactionHistoryDestination !== null &&
+    !isLoading &&
+    isAuthenticated &&
+    (data?.card?.status === CardStatus.ACTIVE ||
+      data?.card?.status === CardStatus.FROZEN) &&
+    !hasSetupActions &&
+    !hasSetupAlerts &&
+    !hasAlertOnlyState &&
+    !isUkMigrationForced;
+  const showRecentActivity =
+    showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
+  const showManageOptions =
+    !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
+  const recentTransactions = useCardRecentTransactions({
+    enabled: showRecentActivity && isFocused,
+  });
+
   // Callers that open Card Home directly still leave when logged out.
   // Signed-out KYC review is the only layout this screen renders without a session.
   if (!isAuthenticated && !isSignedOutKycPending) {
@@ -820,27 +841,6 @@ const CardHome = () => {
         isUkMigrationForced ||
         isBlocked ||
         showVerificationPendingBanner));
-
-  // Activity / Manage segments only in the active and frozen states of a
-  // fully set-up card that has a history destination. Every other state
-  // keeps the management list as before, with no segments.
-  const showHomeSegments =
-    transactionHistoryDestination !== null &&
-    !isLoading &&
-    isAuthenticated &&
-    (data?.card?.status === CardStatus.ACTIVE ||
-      data?.card?.status === CardStatus.FROZEN) &&
-    !hasSetupActions &&
-    !hasSetupAlerts &&
-    !hasAlertOnlyState &&
-    !isUkMigrationForced;
-  const showRecentActivity =
-    showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
-  const showManageOptions =
-    !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
-  const recentTransactions = useCardRecentTransactions({
-    enabled: showRecentActivity && isFocused,
-  });
 
   // --- Main render ---
   return (
@@ -1208,70 +1208,72 @@ const CardHome = () => {
               !isBlocked &&
               !isUkMigrationForced &&
               showManageOptions && (
-              <ManageCardOptions
-                card={data?.card}
-                account={data?.account}
-                capabilities={capabilities}
-                isSpendingLimitActive={isSpendingLimitActive}
-                isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-                isAuthenticated={isAuthenticated}
-                isLoading={isLoading}
-                hasSetupActions={hasSetupActions}
-                hasAlertOnlyState={hasAlertOnlyState}
-                hasSetupAlerts={hasSetupAlerts}
-                userLocation={userLocation}
-                isFrozen={isFrozen}
-                isFreezeLoading={
-                  actions.freeze.isPending || actions.unfreeze.isPending
-                }
-                isPinLoading={actions.isPinLoading}
-                cardDetailsVisible={
-                  (!!actions.cardDetailsImageUrl ||
-                    !!actions.cardSensitiveDetails) &&
-                  isAuthenticated
-                }
-                onViewCardDetails={actions.viewCardDetailsAction}
-                onViewPin={actions.viewPinAction}
-                onSetPin={actions.setPinAction}
-                onToggleFreeze={actions.handleToggleFreeze}
-                onManageSpendingLimit={actions.manageSpendingLimitAction}
-                onContactDetails={actions.contactDetailsAction}
-                showDigitalWalletInstructions={walletEntry === 'instructions'}
-                onDigitalWalletInstructions={
-                  actions.digitalWalletInstructionsAction
-                }
-                showHowToUseApplePay={isCardInWallet && !canAddToWallet}
-                onHowToUseApplePay={actions.howToUseApplePayAction}
-                showUnlinkMoneyAccount={canUnlinkMoneyAccount}
-                onUnlinkMoneyAccount={() =>
-                  actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
-                }
-                showRevokeAllowance={canRevokeAllowance}
-                onRevokeAllowance={actions.revokeAllowanceAction}
-                fundingAccountName={fundingAccountName}
-                onOrderMetalCard={actions.orderMetalCardAction}
-                onChangeAsset={actions.changeAssetAction}
-                hasPriorityTokenBalance={hasPriorityTokenBalance}
-                hideQuickActionRows={
-                  actionVisibility.details ||
-                  actionVisibility.pin ||
-                  actionVisibility.freeze
-                }
-                onCashback={actions.cashbackAction}
-                onTravel={actions.navigateToTravelPage}
-                onTransactionHistory={
-                  transactionHistoryDestination
-                    ? () =>
-                        actions.transactionHistoryAction(
-                          transactionHistoryDestination,
-                        )
-                    : undefined
-                }
-                showTransactionHistoryDuringSetup={
-                  isImmersve && hasSetupActions
-                }
-              />
-            )}
+                <ManageCardOptions
+                  card={data?.card}
+                  account={data?.account}
+                  capabilities={capabilities}
+                  isSpendingLimitActive={isSpendingLimitActive}
+                  isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+                  isAuthenticated={isAuthenticated}
+                  isLoading={isLoading}
+                  hasSetupActions={hasSetupActions}
+                  hasAlertOnlyState={hasAlertOnlyState}
+                  hasSetupAlerts={hasSetupAlerts}
+                  userLocation={userLocation}
+                  isFrozen={isFrozen}
+                  isFreezeLoading={
+                    actions.freeze.isPending || actions.unfreeze.isPending
+                  }
+                  isPinLoading={actions.isPinLoading}
+                  cardDetailsVisible={
+                    (!!actions.cardDetailsImageUrl ||
+                      !!actions.cardSensitiveDetails) &&
+                    isAuthenticated
+                  }
+                  onViewCardDetails={actions.viewCardDetailsAction}
+                  onViewPin={actions.viewPinAction}
+                  onSetPin={actions.setPinAction}
+                  onToggleFreeze={actions.handleToggleFreeze}
+                  onManageSpendingLimit={actions.manageSpendingLimitAction}
+                  onContactDetails={actions.contactDetailsAction}
+                  showDigitalWalletInstructions={walletEntry === 'instructions'}
+                  onDigitalWalletInstructions={
+                    actions.digitalWalletInstructionsAction
+                  }
+                  showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+                  onHowToUseApplePay={actions.howToUseApplePayAction}
+                  showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+                  onUnlinkMoneyAccount={() =>
+                    actions.unlinkMoneyAccountAction(
+                      fallbackFundingSourceSymbol,
+                    )
+                  }
+                  showRevokeAllowance={canRevokeAllowance}
+                  onRevokeAllowance={actions.revokeAllowanceAction}
+                  fundingAccountName={fundingAccountName}
+                  onOrderMetalCard={actions.orderMetalCardAction}
+                  onChangeAsset={actions.changeAssetAction}
+                  hasPriorityTokenBalance={hasPriorityTokenBalance}
+                  hideQuickActionRows={
+                    actionVisibility.details ||
+                    actionVisibility.pin ||
+                    actionVisibility.freeze
+                  }
+                  onCashback={actions.cashbackAction}
+                  onTravel={actions.navigateToTravelPage}
+                  onTransactionHistory={
+                    transactionHistoryDestination
+                      ? () =>
+                          actions.transactionHistoryAction(
+                            transactionHistoryDestination,
+                          )
+                      : undefined
+                  }
+                  showTransactionHistoryDuringSetup={
+                    isImmersve && hasSetupActions
+                  }
+                />
+              )}
 
             {isAuthenticated && (
               <CardHomeFooter
