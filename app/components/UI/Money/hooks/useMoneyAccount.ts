@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { providerErrors } from '@metamask/rpc-errors';
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
@@ -49,6 +50,8 @@ export {
 
 const LOG_TAG = '[Money Account]';
 
+export const DEPOSIT_CONFIRMATION_LOAD_TIMEOUT_MS = 15000;
+
 export interface InitiateDepositOptions {
   /** Initial editable deposit amount in USD, automatically quoted for token deposits. */
   amount?: string;
@@ -88,6 +91,55 @@ function waitForNextFrame(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => resolve());
   });
+}
+
+function hasBatchTransaction(batchId: Hex): boolean {
+  return Engine.context.TransactionController.state.transactions.some(
+    (transaction) => transaction.batchId === batchId,
+  );
+}
+
+// Once the deposit has been abandoned the batch can still reach approval, which
+// would leave an unapproved transaction with no confirmation on screen.
+function rejectBatchApprovalWhenRequested(batchId: Hex): () => void {
+  let isSubscribed = true;
+  const rejectIfRequested = (): void => {
+    const transaction =
+      Engine.context.TransactionController.state.transactions.find(
+        (candidate) => candidate.batchId === batchId,
+      );
+    if (
+      !transaction ||
+      !Engine.context.ApprovalController.hasRequest({ id: transaction.id })
+    ) {
+      return;
+    }
+    isSubscribed = false;
+    Engine.controllerMessenger.unsubscribe(
+      'ApprovalController:stateChange',
+      rejectIfRequested,
+    );
+    Engine.rejectPendingApproval(
+      transaction.id,
+      providerErrors.userRejectedRequest(),
+      { ignoreMissing: true, logErrors: false },
+    );
+  };
+
+  Engine.controllerMessenger.subscribe(
+    'ApprovalController:stateChange',
+    rejectIfRequested,
+  );
+  return () => {
+    if (!isSubscribed) {
+      return;
+    }
+    isSubscribed = false;
+    Engine.controllerMessenger.unsubscribe(
+      'ApprovalController:stateChange',
+      rejectIfRequested,
+    );
+  };
 }
 
 function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
@@ -200,7 +252,31 @@ export function useMoneyAccountDeposit() {
         replace: options?.replaceConfirmation,
       });
 
-      try {
+      const rollBackConfirmation = (errorObj: Error): void => {
+        if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
+          if (options?.forceBottomSheet) {
+            // The container ref routes Back to the focused confirmation,
+            // not the nested navigator that initiated the deposit.
+            NavigationService.navigation.goBack();
+          } else {
+            navigation.goBack();
+          }
+        }
+        if (!isFiatOrderDeclineError(errorObj.message)) {
+          showToast(
+            MoneyToastOptions.deposit.failed({ intent: options?.intent }),
+          );
+          showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
+        }
+        Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
+      };
+
+      // `addTransactionBatch` only settles once the user confirms or rejects,
+      // and the loading confirmation cannot be dismissed, so a batch that
+      // never reaches the transaction list would strand the user there.
+      let abandonError: Error | undefined;
+
+      const setUpDeposit = async (): Promise<void> => {
         // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
         await waitForNextFrame();
 
@@ -214,6 +290,10 @@ export function useMoneyAccountDeposit() {
           provider: depositSetup.provider,
           initialiseWithoutData: true,
         });
+
+        if (abandonError) {
+          throw abandonError;
+        }
 
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
@@ -243,29 +323,42 @@ export function useMoneyAccountDeposit() {
             { ...depositTx, type: options?.transactionType ?? depositTx.type },
           ],
         });
+      };
+      const setup = setUpDeposit();
+
+      let rejectOnTimeout: (error: Error) => void = () => undefined;
+      const timedOut = new Promise<never>((_resolve, reject) => {
+        rejectOnTimeout = reject;
+      });
+      const confirmationLoadWatchdog = setTimeout(() => {
+        if (hasBatchTransaction(batchId)) {
+          return;
+        }
+        abandonError = new Error(
+          `${LOG_TAG} Deposit confirmation did not load within ${DEPOSIT_CONFIRMATION_LOAD_TIMEOUT_MS}ms`,
+        );
+        clearMoneyAccountDepositIntent(batchId);
+        rollBackConfirmation(abandonError);
+        const stopRejectingBatch = rejectBatchApprovalWhenRequested(batchId);
+        setup.catch(() => undefined).finally(stopRejectingBatch);
+        rejectOnTimeout(abandonError);
+      }, DEPOSIT_CONFIRMATION_LOAD_TIMEOUT_MS);
+
+      try {
+        await Promise.race([setup, timedOut]);
       } catch (error) {
+        if (error === abandonError) {
+          throw error;
+        }
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
-          if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
-            if (options?.forceBottomSheet) {
-              // The container ref routes Back to the focused confirmation,
-              // not the nested navigator that initiated the deposit.
-              NavigationService.navigation.goBack();
-            } else {
-              navigation.goBack();
-            }
-          }
-          if (!isFiatOrderDeclineError(errorObj.message)) {
-            showToast(
-              MoneyToastOptions.deposit.failed({ intent: options?.intent }),
-            );
-            showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
-          }
-          Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
+          rollBackConfirmation(errorObj);
         }
         // Rethrow so the caller can log the failed initiation.
         throw error;
+      } finally {
+        clearTimeout(confirmationLoadWatchdog);
       }
     },
     [
