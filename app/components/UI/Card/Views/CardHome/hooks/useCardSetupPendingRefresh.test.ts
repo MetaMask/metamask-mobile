@@ -6,6 +6,7 @@ import useUserRegistrationStatus from '../../../hooks/useUserRegistrationStatus'
 import {
   CARD_SETUP_CREATING_POLL_MS,
   CARD_SETUP_PENDING_POLL_MS,
+  deriveCardHomeSetupPollIntervalMs,
   useCardSetupPendingRefresh,
 } from './useCardSetupPendingRefresh';
 
@@ -272,5 +273,68 @@ describe('useCardSetupPendingRefresh', () => {
     await result.current.refreshRegistrationStatus();
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch while offline', () => {
+    renderHook(() =>
+      useCardSetupPendingRefresh({
+        isPending: true,
+        isAuthenticated: true,
+        isFocused: true,
+        pollIntervalMs: null,
+      }),
+    );
+
+    jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS * 3);
+    appStateHandler?.('active');
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockStartPolling).not.toHaveBeenCalled();
+  });
+
+  it('does not interval-fetch while Immersve is already polling', () => {
+    renderHook(() =>
+      useCardSetupPendingRefresh({
+        isPending: true,
+        isAuthenticated: true,
+        isFocused: true,
+        suspendSignedInPoll: true,
+      }),
+    );
+
+    jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS * 3);
+    expect(mockFetch).not.toHaveBeenCalled();
+
+    appStateHandler?.('active');
+    expect(mockFetch).toHaveBeenCalledWith({ force: true });
+  });
+});
+
+describe('deriveCardHomeSetupPollIntervalMs', () => {
+  it('does not poll when there is no network, on every hardware tier', () => {
+    expect(deriveCardHomeSetupPollIntervalMs('LOW', 'NONE', true)).toBeNull();
+    expect(deriveCardHomeSetupPollIntervalMs(null, 'NONE', false)).toBeNull();
+    expect(deriveCardHomeSetupPollIntervalMs('HIGH', 'NONE', true)).toBeNull();
+  });
+
+  it('uses the rare cadence on a slow cellular link, including while creating', () => {
+    expect(
+      deriveCardHomeSetupPollIntervalMs('LOW', 'SLOW_CELLULAR', true),
+    ).toBe(CARD_SETUP_PENDING_POLL_MS);
+    expect(
+      deriveCardHomeSetupPollIntervalMs('HIGH', 'SLOW_CELLULAR', false),
+    ).toBe(CARD_SETUP_PENDING_POLL_MS);
+  });
+
+  it('keeps the product cadence on a fast or unknown network', () => {
+    expect(deriveCardHomeSetupPollIntervalMs('MID', 'WIFI', true)).toBe(
+      CARD_SETUP_CREATING_POLL_MS,
+    );
+    expect(deriveCardHomeSetupPollIntervalMs('MID', null, false)).toBe(
+      CARD_SETUP_PENDING_POLL_MS,
+    );
+    expect(deriveCardHomeSetupPollIntervalMs(null, 'FAST_CELLULAR', true)).toBe(
+      CARD_SETUP_CREATING_POLL_MS,
+    );
   });
 });

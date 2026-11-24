@@ -109,9 +109,10 @@ import {
   type CardHomeWaitingState,
 } from './hooks/CardHomeWaitingState';
 import useCardSetupPendingRefresh, {
-  CARD_SETUP_PENDING_POLL_MS,
-  CARD_SETUP_CREATING_POLL_MS,
+  deriveCardHomeSetupPollIntervalMs,
 } from './hooks/useCardSetupPendingRefresh';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -278,8 +279,13 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data, { recheckOnFocus: true });
+  const {
+    canEnableCard,
+    enableCard,
+    provisioningView,
+    isEnableCardPending,
+    isProvisioningPollActive,
+  } = useCardEnableCard(data, { recheckOnFocus: true });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -339,17 +345,23 @@ const CardHome = () => {
     ],
   );
 
-  // Re-checks while a pending state is up, so it moves on by itself: a
-  // faster cadence while the card is being created (A08), the slow one while
-  // reviewing or reconciling. Foreground returns re-check immediately.
+  // Re-checks while a pending state is up, so it moves on by itself.
+  // Offline: no fetch. Slow cellular: the rare 15s cadence. A fast or
+  // unknown network keeps 3s while the card is being created and 15s in
+  // review. Immersve's own 5s poll already covers the creating state, so
+  // this interval stays off while that one is running.
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
     isPending: waitingState.kind === 'waiting',
     isAuthenticated,
     isFocused,
-    pollIntervalMs:
-      waitingState.kind === 'waiting' && waitingState.step === 'creating-card'
-        ? CARD_SETUP_CREATING_POLL_MS
-        : CARD_SETUP_PENDING_POLL_MS,
+    pollIntervalMs: deriveCardHomeSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+      waitingState.kind === 'waiting' && waitingState.step === 'creating-card',
+    ),
+    suspendSignedInPoll: isProvisioningPollActive,
   });
 
   // --- Money Account linkage ---

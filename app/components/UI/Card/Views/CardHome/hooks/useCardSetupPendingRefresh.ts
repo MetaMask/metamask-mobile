@@ -4,6 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { selectOnboardingId } from '../../../../../../core/redux/slices/card';
+import type { HardwareTier } from '../../../../../../util/deviceCapability';
+import type { NetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { deriveMoneyCardSetupPollIntervalMs } from '../../../../Money/utils/moneyMetaMaskCardMode';
 import useUserRegistrationStatus from '../../../hooks/useUserRegistrationStatus';
 import { cardQueries } from '../../../queries';
 
@@ -18,11 +21,38 @@ interface UseCardSetupPendingRefreshOptions {
   isAuthenticated: boolean;
   isFocused: boolean;
   /**
-   * Signed-in poll cadence in ms. Defaults to `CARD_SETUP_PENDING_POLL_MS`;
-   * callers pass `CARD_SETUP_CREATING_POLL_MS` while the card is being
-   * created (A08) and the default while reviewing or reconciling.
+   * Signed-in poll cadence in ms. `null` means the network tier is offline,
+   * so neither the interval nor a foreground refetch runs. Defaults to
+   * `CARD_SETUP_PENDING_POLL_MS`.
    */
-  pollIntervalMs?: number;
+  pollIntervalMs?: number | null;
+  /**
+   * Skip the signed-in interval when Immersve is already polling card home
+   * data. A foreground return still refreshes once.
+   */
+  suspendSignedInPoll?: boolean;
+}
+
+/**
+ * Card home's setup poll, using the same offline / slow-link split as Money
+ * home. A fast or unknown network keeps this screen's own cadence: 3s while
+ * the card is being created, 15s while it is in review. Hardware is read so
+ * the screen follows the device matrix; the Money helper uses the network
+ * column, and `null` hardware stays on that column.
+ */
+export function deriveCardHomeSetupPollIntervalMs(
+  hardware: HardwareTier | null,
+  network: NetworkTier | null,
+  isCreating: boolean,
+): number | null {
+  const tierInterval = deriveMoneyCardSetupPollIntervalMs(hardware, network);
+  if (tierInterval === null) {
+    return null;
+  }
+  if (tierInterval >= CARD_SETUP_PENDING_POLL_MS) {
+    return CARD_SETUP_PENDING_POLL_MS;
+  }
+  return isCreating ? CARD_SETUP_CREATING_POLL_MS : CARD_SETUP_PENDING_POLL_MS;
 }
 
 const forceFetchCardHomeData = () => {
@@ -50,17 +80,22 @@ export const useCardSetupPendingRefresh = ({
   isAuthenticated,
   isFocused,
   pollIntervalMs = CARD_SETUP_PENDING_POLL_MS,
+  suspendSignedInPoll = false,
 }: UseCardSetupPendingRefreshOptions) => {
   const isActive = isPending && isFocused;
-  const isSignedInActive = isActive && isAuthenticated;
-  const isSignedOutActive = isActive && !isAuthenticated;
+  const isSignedInActive =
+    isActive && isAuthenticated && pollIntervalMs != null;
+  const isSignedOutActive =
+    isActive && !isAuthenticated && pollIntervalMs != null;
 
   // Signed in: poll Card home data.
   useEffect(() => {
-    if (!isSignedInActive) {
+    if (!isSignedInActive || pollIntervalMs == null) {
       return undefined;
     }
-    const interval = setInterval(forceFetchCardHomeData, pollIntervalMs);
+    const interval = suspendSignedInPoll
+      ? null
+      : setInterval(forceFetchCardHomeData, pollIntervalMs);
     const subscription = AppState.addEventListener(
       'change',
       (state: AppStateStatus) => {
@@ -70,10 +105,12 @@ export const useCardSetupPendingRefresh = ({
       },
     );
     return () => {
-      clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
       subscription.remove();
     };
-  }, [isSignedInActive, pollIntervalMs]);
+  }, [isSignedInActive, pollIntervalMs, suspendSignedInPoll]);
 
   // Signed out: poll the onboarding registration status.
   const { startPolling, stopPolling } = useUserRegistrationStatus();

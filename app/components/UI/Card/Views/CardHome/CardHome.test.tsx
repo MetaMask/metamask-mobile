@@ -356,6 +356,12 @@ let mockProvisioningView:
   | 'hidden'
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
+let mockIsProvisioningPollActive = false;
+let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null =
+  null;
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
 let mockIsSignedOutKycPending = false;
 jest.mock('./hooks/useSignedOutKycPending', () => ({
   __esModule: true,
@@ -384,6 +390,7 @@ jest.mock('./hooks/useCardEnableCard', () => ({
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
     isEnableCardPending: mockIsEnableCardPending,
+    isProvisioningPollActive: mockIsProvisioningPollActive,
   })),
 }));
 
@@ -567,6 +574,7 @@ jest.mock(
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.0.0'),
+  getTotalMemorySync: jest.fn(() => 8 * 1024 * 1024 * 1024),
 }));
 
 // Mock deposit feature flag selectors
@@ -1367,6 +1375,8 @@ describe('CardHome Component', () => {
     mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
+    mockIsProvisioningPollActive = false;
+    mockNetworkTier = null;
     mockEnableCard.mockClear();
     jest.clearAllMocks();
 
@@ -4769,6 +4779,50 @@ describe('CardHome Component', () => {
             isPending: true,
             isAuthenticated: true,
             pollIntervalMs: CARD_SETUP_CREATING_POLL_MS,
+            suspendSignedInPoll: false,
+          }),
+        );
+      });
+
+      it('does not poll while the network tier is offline', () => {
+        mockNetworkTier = 'NONE';
+        setupPendingAlert('kyc_pending');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            pollIntervalMs: null,
+          }),
+        );
+      });
+
+      it('uses the rare cadence on a slow cellular link while creating', () => {
+        mockNetworkTier = 'SLOW_CELLULAR';
+        mockProvisioningView = 'provisioning';
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            pollIntervalMs: CARD_SETUP_PENDING_POLL_MS,
+          }),
+        );
+      });
+
+      it('does not stack a second poll on Immersve’s provisioning interval', () => {
+        mockIsProvisioningPollActive = true;
+        mockProvisioningView = 'provisioning';
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            suspendSignedInPoll: true,
           }),
         );
       });
