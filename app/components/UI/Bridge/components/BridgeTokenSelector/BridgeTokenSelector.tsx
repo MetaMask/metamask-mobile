@@ -43,7 +43,6 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  FeatureId,
   formatChainIdToCaip,
   isNativeAddress,
   UnifiedSwapBridgeEventName,
@@ -66,6 +65,7 @@ import WatchlistEmptyDark from '../../../../../images/watchlist-empty-dark.svg';
 import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
+import { TokenSelectorMoneyItem } from '../TokenSelectorMoneyItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { type BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
@@ -101,6 +101,11 @@ import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useMoneyToken } from '../../hooks/useBridgeMoneyToken';
+import {
+  getBridgeTokenSelectorRowKey,
+  isBridgeTokenSelectorRowSelected,
+} from './bridgeTokenSelectorRow';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -177,6 +182,23 @@ const BridgeTokenSelectorRow = React.memo(
         }),
       [token.chainId],
     );
+
+    if (token.isMoneyToken) {
+      return (
+        <TokenSelectorMoneyItem
+          token={token}
+          isSelected={isSelected}
+          onPress={onTokenPress}
+        >
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Sm}
+            onPress={handleInfoPress}
+            iconProps={{ color: IconColor.IconAlternative }}
+          />
+        </TokenSelectorMoneyItem>
+      );
+    }
 
     return (
       <TokenSelectorItem
@@ -512,6 +534,8 @@ export const BridgeTokenSelectorContent: React.FC<
     enabled: !balanceOnly,
   });
 
+  const moneyToken = useMoneyToken({ type });
+
   const balanceOnlyTokens = useMemo(
     () =>
       tokensWithBalance.filter(
@@ -696,7 +720,7 @@ export const BridgeTokenSelectorContent: React.FC<
     ],
   );
 
-  const displayData = useMemo(() => {
+  const assetDisplayData = useMemo(() => {
     if (isWatchlistListMode && isWatchlistLoading) {
       return Array(8).fill(null);
     }
@@ -754,6 +778,21 @@ export const BridgeTokenSelectorContent: React.FC<
     watchlistMergedSearchResults,
     validTokens,
   ]);
+
+  const displayData = useMemo(() => {
+    const query = searchString.trim().toLowerCase();
+    const moneyMatchesSearch =
+      moneyToken &&
+      [moneyToken.name, moneyToken.symbol, moneyToken.address].some((value) =>
+        value?.toLowerCase().includes(query),
+      );
+
+    if (!moneyMatchesSearch) {
+      return assetDisplayData;
+    }
+
+    return [moneyToken, ...assetDisplayData];
+  }, [moneyToken, assetDisplayData, searchString]);
 
   const showWatchlistEmptyCta =
     isWatchlistListMode &&
@@ -956,9 +995,7 @@ export const BridgeTokenSelectorContent: React.FC<
         return <SkeletonItem />;
       }
 
-      const isSelected =
-        selectedToken?.address === item.address &&
-        selectedToken?.chainId === item.chainId;
+      const isSelected = isBridgeTokenSelectorRowSelected(selectedToken, item);
 
       return (
         <BridgeTokenSelectorRow
@@ -978,12 +1015,6 @@ export const BridgeTokenSelectorContent: React.FC<
       getIsNoFeeAsset,
       isRWAEnabled,
     ],
-  );
-
-  const keyExtractor = useCallback(
-    (item: BridgeToken | null, index: number) =>
-      item ? `${item.chainId}-${item.address}` : `skeleton-${index}`,
-    [],
   );
 
   // Load more results when user scrolls to the bottom
@@ -1146,7 +1177,7 @@ export const BridgeTokenSelectorContent: React.FC<
           contentContainerStyle={styles.tokensListContainer}
           data={displayData}
           renderItem={renderToken}
-          keyExtractor={keyExtractor}
+          keyExtractor={getBridgeTokenSelectorRowKey}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator
           showsHorizontalScrollIndicator={false}

@@ -3,6 +3,8 @@ export const CLAIMABLE_REWARDS_CARD_TEST_IDS = {
   AMOUNT: 'claimable-rewards-card-amount',
   BALANCE_BREAKDOWN: 'claimable-rewards-card-balance-breakdown',
   CLAIM_BUTTON: 'claimable-rewards-card-claim-button',
+  CLAIM_WAIT: 'claimable-rewards-card-claim-wait',
+  EARNED_ELSEWHERE_CAPTION: 'claimable-rewards-card-earned-elsewhere-caption',
   PAUSED_BUTTON: 'claimable-rewards-card-paused-button',
   CLAIMED_BUTTON: 'claimable-rewards-card-claimed-button',
   LAST_7_DAYS: 'claimable-rewards-card-last-7-days',

@@ -3,6 +3,8 @@ export const TrendingViewSelectorsIDs = {
   EXPLORE_RWAS_SCROLL_VIEW: 'explore-rwas-scroll-view',
   EXPLORE_CRYPTO_SCROLL_VIEW: 'explore-crypto-scroll-view',
   EXPLORE_DAPPS_SCROLL_VIEW: 'explore-dapps-scroll-view',
+  EXPLORE_DAPPS_NETWORKS_CAROUSEL: 'explore-dapps_networks-carousel',
+  SITE_RECENTS_TILE_PREFIX: 'site-recents-tile-',
   EXPLORE_HEADER_ROOT: 'explore-header-root',
   EXPLORE_SAFE_AREA: 'explore-safe-area',
   SECTION_HEADER_VIEW_ALL_TOKENS: 'section-header-view-all-tokens',
