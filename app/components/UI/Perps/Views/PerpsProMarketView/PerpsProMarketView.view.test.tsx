@@ -4194,7 +4194,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         () => {
           expect(
             screen.getByTestId(`${ids.NOTICE}-validation-0`),
-          ).toHaveTextContent(strings('perps.errors.unknownError'));
+          ).toHaveTextContent(strings('perps.order.validation.failed'));
           expect(screen.queryByText(unclassifiedValidationError)).toBeNull();
           expect(placeOrder).not.toHaveBeenCalled();
           expect(placeOrderButton).toBeDisabled();
