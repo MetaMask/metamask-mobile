@@ -733,4 +733,46 @@ describe('PerpsClosePositionView', () => {
       expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
     },
   );
+
+  it('shows the already-closed toast instead of the failure toast when the close result reports POSITION_NOT_FOUND', async () => {
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+    closePosition.mockResolvedValueOnce({
+      success: false,
+      error: 'Position is no longer available',
+      errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+    });
+    const position = createLongPositionForViews();
+
+    const { stream } = renderPerpsClosePositionView({
+      includeToasts: true,
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+    emitEthPrice(stream, '2500');
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.press(confirmButton);
+    });
+
+    expect(
+      await screen.findByText(strings('perps.close_position.already_closed')),
+    ).toBeOnTheScreen();
+    expect(closePosition).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByText(
+        strings('perps.close_position.failed_to_close_position'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
 });
