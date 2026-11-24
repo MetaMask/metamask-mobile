@@ -147,6 +147,19 @@ describe('EarningsChartPlot', () => {
     ).toEqual(expect.objectContaining({ opacity: 0.35 }));
   });
 
+  it('forwards press-in from an unavailable slot', () => {
+    const onPointPressIn = jest.fn();
+    const { getByTestId } = renderPlot({ onPointPressIn });
+    const unavailableSlot = getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(2));
+
+    fireEvent(unavailableSlot, 'pressIn');
+
+    expect(onPointPressIn).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({ amountUsd: null }),
+    );
+  });
+
   it('forwards point, layout, and touch callbacks', () => {
     const onPointPressIn = jest.fn();
     const onPointPressOut = jest.fn();

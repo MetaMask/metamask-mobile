@@ -43,8 +43,9 @@ export const useEarningsChartScrub = ({
 
   const handlePointPressIn = useCallback(
     (index: number, point: EarningsPoint): void => {
+      scrubOriginX.current = ((index + 0.5) / points.length) * plotWidth;
+
       if (isAvailableBucket(point)) {
-        scrubOriginX.current = ((index + 0.5) / points.length) * plotWidth;
         updateActiveIndex(index);
       }
     },

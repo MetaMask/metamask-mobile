@@ -141,6 +141,37 @@ describe('useEarningsChartScrub', () => {
     expect(setScrollEnabled).toHaveBeenLastCalledWith(true);
   });
 
+  it('selects the point under the finger when scrubbing starts on an unavailable point', () => {
+    const unavailablePoint = createPoint({
+      amountUsd: null,
+      available: false,
+    });
+    const points = [
+      unavailablePoint,
+      unavailablePoint,
+      unavailablePoint,
+      ...availablePoints,
+    ];
+    const { result } = renderHook(() =>
+      useEarningsChartScrub({
+        points,
+        plotWidth: 300,
+      }),
+    );
+    const { panHandlers } = result.current.panResponder;
+
+    act(() => {
+      result.current.handlePointPressIn(2, points[2]);
+      panHandlers.onMoveShouldSetResponderCapture?.(
+        createGestureEvent(125, 125),
+      );
+      panHandlers.onResponderGrant?.(createGestureEvent(125, 125));
+      panHandlers.onResponderMove?.(createGestureEvent(175, 125));
+    });
+
+    expect(result.current.activeIndex).toBe(3);
+  });
+
   it('resets selection without changing scroll state', () => {
     const setScrollEnabled = jest.fn();
     const { result } = renderHook(() =>

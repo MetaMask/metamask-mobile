@@ -97,7 +97,6 @@ const EarningsChartPlot = ({
             return (
               <Pressable
                 key={point.start}
-                disabled={!isAvailable}
                 onPressIn={() => onPointPressIn(index, point)}
                 onPressOut={onPointPressOut}
                 testID={MoneyEarningsViewTestIds.CHART_SLOT(index)}
