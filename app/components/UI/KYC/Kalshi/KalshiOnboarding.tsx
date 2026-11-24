@@ -76,7 +76,6 @@ interface TermsCatalog {
   idOS: KycConsentRecord[];
   kycProvider: KycConsentRecord[];
   vendorDisclaimerIds: string[];
-  country: string;
 }
 
 const toKeys = (
@@ -362,7 +361,6 @@ const KalshiOnboarding = () => {
         idOS: toKeys(session.idOS),
         kycProvider: toKeys(session.kycProvider),
         vendorDisclaimerIds: vendorDocuments.map(({ id }) => id),
-        country,
       });
     });
   }, [run, screen, terms]);
@@ -405,7 +403,6 @@ const KalshiOnboarding = () => {
     return run(() =>
       VendorOnboardingController.submitTerms({
         vendor: VENDOR,
-        country: terms.country,
         disclaimerIds: terms.vendorDisclaimerIds,
         idOS: toKeys(terms.idOS),
         kycProvider: toKeys(terms.kycProvider),
@@ -424,34 +421,43 @@ const KalshiOnboarding = () => {
    * MetaMask prompt again is what fails after a confirm that did not move
    * the step.
    */
+  const recordMfa = async () => {
+    if (!aal2Token.current && !mfaCompleted.current) {
+      const result = await verifyOrEnroll({
+        methods: ['email_otp'],
+        verifyWith: 'email_otp',
+        reason: {
+          operation: 'ukyc.kalshi.verifyEmail',
+          presentation: 'card',
+        },
+      });
+      const token = result.token?.accessToken;
+      if (!token) {
+        throw new Error('MetaMask couldn’t confirm your email.');
+      }
+      const emailCredential = result.credentials?.find(
+        (credential) => credential.type === 'email_otp',
+      );
+      if (emailCredential?.type === 'email_otp' && !emailDefault.current) {
+        emailDefault.current = emailCredential.email;
+      }
+      aal2Token.current = token;
+    }
+    return VendorOnboardingController.recordMfaCompleted({ vendor: VENDOR });
+  };
+
+  /**
+   * With a session already open, kyc-api asks for MFA because the session's
+   * capability authorization expired or was wiped. Resuming the session
+   * submits fresh authorizations and needs no MFA token.
+   */
   const confirmWithMetaMask = () => {
     setAwaitingTerms(true);
     return run(async () => {
       try {
-        if (!aal2Token.current && !mfaCompleted.current) {
-          const result = await verifyOrEnroll({
-            methods: ['email_otp'],
-            verifyWith: 'email_otp',
-            reason: {
-              operation: 'ukyc.kalshi.verifyEmail',
-              presentation: 'card',
-            },
-          });
-          const token = result.token?.accessToken;
-          if (!token) {
-            throw new Error('MetaMask couldn’t confirm your email.');
-          }
-          const emailCredential = result.credentials?.find(
-            (credential) => credential.type === 'email_otp',
-          );
-          if (emailCredential?.type === 'email_otp' && !emailDefault.current) {
-            emailDefault.current = emailCredential.email;
-          }
-          aal2Token.current = token;
-        }
-        const next = await VendorOnboardingController.recordMfaCompleted({
-          vendor: VENDOR,
-        });
+        const next = flowState?.sessionId
+          ? await VendorOnboardingController.startSession({ vendor: VENDOR })
+          : await recordMfa();
         if (next === 'mfa') {
           throw new Error(
             'MetaMask confirmed you, but setup didn’t move on. Try again.',
@@ -613,7 +619,15 @@ const KalshiOnboarding = () => {
       }
       // The handlers close over the current input and terms.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [screen, terms, termsPage, input, navigation, flowState?.mfaCompleted]);
+    }, [
+      screen,
+      terms,
+      termsPage,
+      input,
+      navigation,
+      flowState?.mfaCompleted,
+      flowState?.sessionId,
+    ]);
 
   const secondary: { label: string; onPress: () => void } | undefined =
     screen === 'terms' && termsPage > 0

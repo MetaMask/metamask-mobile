@@ -119,7 +119,7 @@ const typeInto = (screen: ReturnType<typeof render>, value: string) =>
  * @returns The rendered screen, still on the confirm step.
  */
 async function confirmWithMetaMask() {
-  const screen = render('mfa');
+  const screen = render('mfa', 'none', null);
   fireEvent.press(primary(screen));
   await waitFor(() => expect(flow.recordMfaCompleted).toHaveBeenCalled());
   return screen;
@@ -233,7 +233,7 @@ describe('KalshiOnboarding', () => {
           resolveMfa = resolve;
         }),
       );
-      const screen = render('mfa');
+      const screen = render('mfa', 'none', null);
 
       fireEvent.press(primary(screen));
       expect(
@@ -315,7 +315,6 @@ describe('KalshiOnboarding', () => {
       await waitFor(() => expect(flow.submitTerms).toHaveBeenCalledTimes(1));
       expect(flow.submitTerms.mock.calls[0][0]).toMatchInlineSnapshot(`
         {
-          "country": "USA",
           "credentialReusabilityConsentGiven": false,
           "disclaimerIds": [
             "tos-v1",
@@ -358,7 +357,7 @@ describe('KalshiOnboarding', () => {
 
     it('does not ask MetaMask again after a confirm that stayed on MFA', async () => {
       flow.recordMfaCompleted.mockResolvedValue('mfa');
-      const screen = render('mfa');
+      const screen = render('mfa', 'none', null);
 
       fireEvent.press(primary(screen));
       expect(
@@ -381,6 +380,30 @@ describe('KalshiOnboarding', () => {
       });
       expect(flow.startSession).not.toHaveBeenCalled();
       expect(screen.queryByText('Your email')).toBeNull();
+    });
+
+    it('refreshes the open session instead of asking MetaMask', async () => {
+      const screen = render('mfa');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() =>
+        expect(flow.startSession).toHaveBeenCalledWith({ vendor: 'kalshi' }),
+      );
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(flow.recordMfaCompleted).not.toHaveBeenCalled();
+    });
+
+    it('says setup did not move on when the refreshed session still needs MFA', async () => {
+      flow.startSession.mockResolvedValue('mfa');
+      const screen = render('mfa');
+
+      fireEvent.press(primary(screen));
+
+      expect(
+        await screen.findByText(/setup didn’t move on/u),
+      ).toBeOnTheScreen();
+      expect(flow.recordMfaCompleted).not.toHaveBeenCalled();
     });
 
     it('opens the session with the MFA token and the typed email', async () => {
@@ -452,7 +475,7 @@ describe('KalshiOnboarding', () => {
 
     it('says so when MetaMask returns no token', async () => {
       mockVerifyOrEnroll.mockResolvedValue({});
-      const screen = render('mfa');
+      const screen = render('mfa', 'none', null);
 
       fireEvent.press(primary(screen));
 
@@ -464,7 +487,7 @@ describe('KalshiOnboarding', () => {
 
     it('stays quiet when the user cancels MFA', async () => {
       mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
-      const screen = render('mfa');
+      const screen = render('mfa', 'none', null);
 
       fireEvent.press(primary(screen));
 
