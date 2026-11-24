@@ -183,10 +183,11 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     activeItems.length === 0;
 
   const pillOptions: PillOption[] = visiblePills.map(
-    ({ key, labelKey, iconName }) => ({
+    ({ key, labelKey, iconName, iconOnly }) => ({
       key,
       name: strings(labelKey),
       iconName,
+      iconOnly,
     }),
   );
 

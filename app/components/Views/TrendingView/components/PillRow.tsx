@@ -20,6 +20,7 @@ export interface PillOption {
   name: string;
   /** Optional leading icon rendered before the label. */
   iconName?: IconName;
+  iconOnly?: boolean;
 }
 
 interface PillRowProps {
@@ -58,6 +59,7 @@ const PillRow: React.FC<PillRowProps> = ({
                 key={pill.key}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={pill.iconOnly ? pill.name : undefined}
                 onPress={() => onSelect(pill.key)}
                 testID={`${testIdPrefix}-pill-${pill.key}`}
                 style={tw.style(
@@ -68,7 +70,7 @@ const PillRow: React.FC<PillRowProps> = ({
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
+                  twClassName={pill.iconOnly ? 'h-6 gap-0' : 'gap-1'}
                 >
                   {pill.iconName ? (
                     <Icon
@@ -81,16 +83,20 @@ const PillRow: React.FC<PillRowProps> = ({
                       }
                     />
                   ) : null}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={
-                      isSelected ? TextColor.InfoInverse : TextColor.TextDefault
-                    }
-                    testID={`${testIdPrefix}-pill-label-${pill.key}`}
-                  >
-                    {pill.name}
-                  </Text>
+                  {pill.iconOnly ? null : (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={
+                        isSelected
+                          ? TextColor.InfoInverse
+                          : TextColor.TextDefault
+                      }
+                      testID={`${testIdPrefix}-pill-label-${pill.key}`}
+                    >
+                      {pill.name}
+                    </Text>
+                  )}
                 </Box>
               </Pressable>
             );

@@ -240,6 +240,16 @@ describe('CryptoTokensPillBlock', () => {
       const { getByTestId, queryByTestId } = renderBlock();
 
       expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-pill-watchlist')).toHaveProp(
+        'accessibilityLabel',
+        'perps.watchlist.filter_badge_label',
+      );
+      expect(
+        queryByTestId('crypto-tokens-pill-label-watchlist'),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId('crypto-tokens-pill-label-trending'),
+      ).toBeOnTheScreen();
       expect(queryByTestId('token-row-WNEW')).toBeOnTheScreen();
       expect(queryByTestId('token-row-WOLD')).toBeOnTheScreen();
       expect(queryByTestId('token-row-BTC')).not.toBeOnTheScreen();

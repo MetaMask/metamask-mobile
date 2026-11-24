@@ -24,6 +24,7 @@ export interface CryptoPillDefinition {
   minItems: number;
   /** Optional leading pill icon. */
   iconName?: IconName;
+  iconOnly?: boolean;
   /** Token API request; omitted for the watchlist pill. */
   request?: CryptoPillRequestParams;
 }
@@ -43,10 +44,11 @@ export interface CryptoChainPillDefinition {
 
 export const CRYPTO_WATCHLIST_PILL: CryptoPillDefinition = {
   key: 'watchlist',
-  labelKey: 'perps.home.watchlist',
+  labelKey: 'perps.watchlist.filter_badge_label',
   sectionName: 'tokens_watchlist',
   minItems: 0,
   iconName: IconName.StarFilled,
+  iconOnly: true,
 };
 
 export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
