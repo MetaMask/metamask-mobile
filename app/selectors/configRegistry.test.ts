@@ -32,7 +32,7 @@ describe('configRegistry selectors', () => {
 
     it('returns default state when ConfigRegistryController is missing', () => {
       const state = { engine: { backgroundState: {} } };
-      const result = getConfigRegistryState(state as never);
+      const result = getConfigRegistryState(state);
       expect(result.configs).toEqual({ networks: {}, eventsConfig: null });
       expect(result.version).toBeNull();
       expect(result.lastFetched).toBeNull();
@@ -414,7 +414,7 @@ describe('configRegistry selectors', () => {
           imageUrl: 'http://insecure.example.com/x.svg',
         } as never,
       });
-      const result = getRegistryNetworkImagesByChainId(state as never);
+      const result = getRegistryNetworkImagesByChainId(state);
       expect(result['0x1863d']).toEqual({
         uri: 'https://example.com/elysium.svg',
       });
