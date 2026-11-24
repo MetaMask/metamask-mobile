@@ -78,6 +78,12 @@ interface ManageCardOptionsProps {
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
+  /**
+   * Render only the spending-limit row. Card home uses this on the Activity
+   * tab, and for a blocked card, so the amounts stay visible where the old
+   * progress bar was.
+   */
+  spendingLimitOnly?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -123,6 +129,7 @@ const ManageCardOptions = ({
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
+  spendingLimitOnly = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -180,6 +187,40 @@ const ManageCardOptions = ({
     !hideManageOptions &&
     showTransactionHistoryDuringSetup &&
     !isFullySetUp;
+
+  // Amounts follow the old progress bar: a limited, supported allowance stays
+  // visible at a zero balance. The other manage rows still wait for funds.
+  const showSpendingLimitRow =
+    isAuthenticated &&
+    Boolean(capabilities?.supportsFundingLimits) &&
+    !isLoading &&
+    (!hideManageOptions || showLimitedSpendingAmounts);
+
+  const spendingLimitRow = showSpendingLimitRow ? (
+    <ManageCardListItem
+      title={strings(
+        'card.card_home.manage_card_options.manage_spending_limit',
+      )}
+      description={
+        hasSpendingLimitAmounts
+          ? strings(showSpendingLimitDescription, {
+              remaining: formatSpendingLimitDisplayValue(
+                spendingLimitRemainingValue,
+              ),
+              total: formatSpendingLimitDisplayValue(spendingLimitTotalValue),
+              symbol: spendingLimitSymbol ?? '',
+            })
+          : strings(showSpendingLimitDescription)
+      }
+      rightIcon={IconName.ArrowRight}
+      onPress={onManageSpendingLimit}
+      testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+    />
+  ) : null;
+
+  if (spendingLimitOnly) {
+    return spendingLimitRow;
+  }
 
   return (
     <>
@@ -338,32 +379,7 @@ const ManageCardOptions = ({
               testID="freeze-card-list-item"
             />
           )}
-        {isAuthenticated &&
-          capabilities?.supportsFundingLimits &&
-          !isLoading &&
-          !hideManageOptions && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={
-                hasSpendingLimitAmounts
-                  ? strings(showSpendingLimitDescription, {
-                      remaining: formatSpendingLimitDisplayValue(
-                        spendingLimitRemainingValue,
-                      ),
-                      total: formatSpendingLimitDisplayValue(
-                        spendingLimitTotalValue,
-                      ),
-                      symbol: spendingLimitSymbol ?? '',
-                    })
-                  : strings(showSpendingLimitDescription)
-              }
-              rightIcon={IconName.ArrowRight}
-              onPress={onManageSpendingLimit}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {spendingLimitRow}
         {isFullySetUp &&
           capabilities?.supportsContactDetails &&
           !hideManageOptions && (

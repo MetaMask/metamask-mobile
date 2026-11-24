@@ -652,7 +652,8 @@ const CardHome = () => {
     isAuthenticated &&
     data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
     isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
-    !hasSetupActions;
+    !hasSetupActions &&
+    !isUkMigrationForced;
 
   const isSpendingLimitActive =
     data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
@@ -1235,10 +1236,11 @@ const CardHome = () => {
             )}
 
             {isAuthenticated &&
-              !isBlocked &&
               !isUkMigrationForced &&
-              showManageOptions && (
+              ((showManageOptions && !isBlocked) ||
+                showSpendingLimitProgress) && (
                 <ManageCardOptions
+                  spendingLimitOnly={!(showManageOptions && !isBlocked)}
                   card={data?.card}
                   account={data?.account}
                   capabilities={capabilities}

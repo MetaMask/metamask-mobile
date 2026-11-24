@@ -1105,6 +1105,7 @@ function setupLoadCardDataMock(
     delegationSettings: Record<string, unknown> | null;
     countryOfResidence: string | null;
     alerts: { type: string; dismissable: boolean }[];
+    tokenBalance: number;
   }>,
 ) {
   const defaults = {
@@ -1264,8 +1265,8 @@ function setupLoadCardDataMock(
         ...config.priorityToken,
         balanceFiat: '$1,000.00',
         balanceFormatted: '1000.000000 USDC',
-        rawFiatNumber: 1000,
-        rawTokenBalance: 1000,
+        rawFiatNumber: config.tokenBalance ?? 1000,
+        rawTokenBalance: config.tokenBalance ?? 1000,
       }
     : null;
 
@@ -4035,6 +4036,39 @@ describe('CardHome Component', () => {
       originalSpendingCap: '1000',
       caipChainId: 'eip155:59144',
       ...overrides,
+    });
+
+    it('shows the remaining and total amounts on the Activity segment', () => {
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: limitedToken(),
+        allTokens: [limitedToken()],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      render({ segment: 'activity' });
+
+      expect(screen.getByText('500 USDC of 1000 USDC left')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows the remaining and total amounts when the token balance is zero', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: limitedToken(),
+        allTokens: [limitedToken()],
+        isAuthenticated: true,
+        warning: null,
+        tokenBalance: 0,
+      });
+
+      render();
+
+      expect(screen.getByText('500 USDC of 1000 USDC left')).toBeOnTheScreen();
     });
 
     it('shows the remaining and total amounts when authenticated and limited', () => {
