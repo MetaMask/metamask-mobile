@@ -1013,9 +1013,12 @@ describe('isPendingBranchShortlink', () => {
     'https://link.metamask.io/',
     'https://example.com/invite-home',
     'metamask://invite-home',
-  ])('returns false for known action, empty path, or non-Branch URL: %s', (url) => {
-    expect(isPendingBranchShortlink(url)).toBe(false);
-  });
+  ])(
+    'returns false for known action, empty path, or non-Branch URL: %s',
+    (url) => {
+      expect(isPendingBranchShortlink(url)).toBe(false);
+    },
+  );
 });
 
 describe('DeeplinkManager.start Android shortlink deferral', () => {
@@ -1038,7 +1041,7 @@ describe('DeeplinkManager.start Android shortlink deferral', () => {
     let linkingUrlHandler: ((event: { url: string }) => void) | undefined;
     jest.spyOn(Linking, 'addEventListener').mockImplementation((event, cb) => {
       if (event === 'url') {
-        linkingUrlHandler = cb as (event: { url: string }) => void;
+        linkingUrlHandler = cb;
       }
       return { remove: jest.fn() } as unknown as ReturnType<
         typeof Linking.addEventListener
