@@ -1023,6 +1023,7 @@ describe('createMfaFlow', () => {
 
     it('shows the passkey retry screen when the system sheet fails for a non-cancel reason', async () => {
       const fake = createFakeController([passkey]);
+      passkeyAdapter.get.mockClear();
       passkeyAdapter.get.mockRejectedValueOnce(new Error('hardware failed'));
       const { flow } = await startFlow(
         { kind: 'verifyOrEnroll', methods: ['passkey'], verifyWith: 'passkey' },
@@ -1033,6 +1034,10 @@ describe('createMfaFlow', () => {
         step: { name: 'passkey', purpose: 'verify' },
         error: 'server_error',
       });
+
+      await act(flow, { type: 'continue' });
+      expect(passkeyAdapter.get).toHaveBeenCalledTimes(2);
+      await expect(flow.result).resolves.toBeDefined();
     });
   });
 
