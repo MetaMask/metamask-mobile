@@ -525,4 +525,38 @@ describe('V2KycProcessing', () => {
 
     expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
   });
+
+  it('polls the user details again every 10 seconds while KYC is pending', async () => {
+    renderWithTheme(<V2KycProcessing />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const callsAfterMount = mockGetUserDetails.mock.calls.length;
+    expect(callsAfterMount).toBeGreaterThan(0);
+
+    await act(async () => {
+      jest.advanceTimersByTime(10000);
+    });
+    expect(mockGetUserDetails).toHaveBeenCalledTimes(callsAfterMount + 1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(10000);
+    });
+    expect(mockGetUserDetails).toHaveBeenCalledTimes(callsAfterMount + 2);
+  });
+
+  it('stops polling the user details after unmount', async () => {
+    const { unmount } = renderWithTheme(<V2KycProcessing />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    unmount();
+    const callsAtUnmount = mockGetUserDetails.mock.calls.length;
+
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+
+    expect(mockGetUserDetails).toHaveBeenCalledTimes(callsAtUnmount);
+  });
 });

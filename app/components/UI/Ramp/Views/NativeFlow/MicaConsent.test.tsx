@@ -6,6 +6,7 @@ import MicaConsent, {
   formatConsentDob,
 } from './MicaConsent';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import Logger from '../../../../../util/Logger';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -61,6 +62,22 @@ jest.mock('../../hooks/useTransakController', () => ({
 
 const mockRouteAfterAuthentication = jest.fn();
 const mockUseTransakRouting = jest.fn();
+const mockLayoutProps = jest.fn();
+
+// Render the real layout but expose its props, so the submit handler can be
+// invoked directly (the disabled footer button never fires it).
+jest.mock('./MicaKycFormLayout', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('./MicaKycFormLayout');
+  return {
+    __esModule: true,
+    ...actual,
+    default: (props: Record<string, unknown>): unknown => {
+      mockLayoutProps(props);
+      return ReactActual.createElement(actual.default, props);
+    },
+  };
+});
 
 jest.mock('../../hooks/useTransakRouting', () => ({
   useTransakRouting: (config: unknown) => {
@@ -581,5 +598,220 @@ describe('MicaConsent', () => {
     fireEvent.press(utils.getByTestId('deposit-close-navbar-button'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(2);
+  });
+
+  it('formats address with the country code when the country name is absent', () => {
+    expect(
+      formatConsentAddress({
+        addressLine1: 'Rue de Rivoli 1',
+        addressLine2: 'Floor 2',
+        state: '',
+        city: 'Paris',
+        postCode: '75001',
+        country: '',
+        countryCode: 'FR',
+      }),
+    ).toBe('Rue de Rivoli 1, Floor 2\n75001 Paris, FR');
+  });
+
+  it('formats an address that only has a street', () => {
+    expect(
+      formatConsentAddress({
+        addressLine1: 'Friedrichstrasse 10',
+      } as unknown as Parameters<typeof formatConsentAddress>[0]),
+    ).toBe('Friedrichstrasse 10');
+  });
+
+  it('shows "not provided" for missing date of birth, address and mobile number', async () => {
+    mockGetUserDetails.mockResolvedValue({
+      firstName: 'Jane',
+      lastName: 'Roe',
+    });
+    const utils = renderScreen();
+
+    await waitFor(() => {
+      expect(utils.getByText(/Jane Roe/)).toBeOnTheScreen();
+    });
+
+    expect(
+      utils.getByText(/deposit\.mica\.dob:\s+deposit\.mica\.notProvided/),
+    ).toBeOnTheScreen();
+    expect(
+      utils.getByText(
+        /deposit\.mica_consent\.address_label:\s+deposit\.mica\.notProvided/,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      utils.getByText(
+        /deposit\.mica_consent\.mobile_number_label:\s+deposit\.mica\.notProvided/,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  describe('consent timestamp', () => {
+    let timezoneSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      timezoneSpy = jest.spyOn(Date.prototype, 'getTimezoneOffset');
+    });
+
+    afterEach(() => {
+      timezoneSpy.mockRestore();
+    });
+
+    const submittedTimestamp = async (): Promise<string> => {
+      const utils = renderScreen();
+      await checkBothConsents(utils);
+      await act(async () => {
+        fireEvent.press(utils.getByLabelText('deposit.mica.agreeAndContinue'));
+      });
+      return mockSubmitMicaConsent.mock.calls[0][0] as string;
+    };
+
+    it('uses a negative UTC offset for timezones behind UTC', async () => {
+      timezoneSpy.mockReturnValue(300);
+
+      expect(await submittedTimestamp()).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-05:00$/,
+      );
+    });
+
+    it('uses a positive UTC offset with minutes for timezones ahead of UTC', async () => {
+      timezoneSpy.mockReturnValue(-330);
+
+      expect(await submittedTimestamp()).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+05:30$/,
+      );
+    });
+  });
+
+  describe('failure logging', () => {
+    let loggerError: jest.SpyInstance;
+    let openURL: jest.SpyInstance;
+    let consoleError: jest.SpyInstance;
+
+    beforeEach(() => {
+      loggerError = jest.spyOn(Logger, 'error').mockImplementation(() => {
+        // swallow logs in tests
+      });
+      openURL = jest.spyOn(Linking, 'openURL');
+      consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      loggerError.mockRestore();
+      openURL.mockRestore();
+      consoleError.mockRestore();
+    });
+
+    it('logs when an external link fails to open', async () => {
+      const openError = new Error('no handler');
+      openURL.mockRejectedValue(openError);
+      const utils = renderScreen();
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByText('deposit.mica_consent.support_link_text'),
+        );
+      });
+
+      expect(loggerError).toHaveBeenCalledWith(
+        openError,
+        'Failed to open Transak support URL',
+      );
+    });
+
+    it('logs the details failure and still shows the retry banner', async () => {
+      const detailsError = new Error('details unavailable');
+      mockGetUserDetails.mockRejectedValue(detailsError);
+      const utils = renderScreen();
+
+      await waitFor(() => {
+        expect(utils.getByText('deposit.mica.retry_button')).toBeOnTheScreen();
+      });
+
+      expect(loggerError).toHaveBeenCalledWith(
+        detailsError,
+        'MicaConsent: Failed to fetch user details',
+      );
+    });
+
+    it('logs unexpected errors escaping the initial details load', async () => {
+      const detailsError = new Error('details unavailable');
+      const loggingError = new Error('logger failed');
+      mockGetUserDetails.mockRejectedValue(detailsError);
+      loggerError.mockImplementationOnce(() => {
+        throw loggingError;
+      });
+
+      renderScreen();
+
+      await waitFor(() => {
+        expect(loggerError).toHaveBeenCalledWith(
+          loggingError,
+          'MicaConsent: Unhandled error in effect',
+        );
+      });
+    });
+
+    it('does not touch state when the details request fails after unmount', async () => {
+      let rejectDetails: (reason: Error) => void = () => undefined;
+      mockGetUserDetails.mockReturnValue(
+        new Promise((_resolve, reject) => {
+          rejectDetails = reject;
+        }),
+      );
+      const utils = renderScreen();
+      utils.unmount();
+
+      await act(async () => {
+        rejectDetails(new Error('late failure'));
+      });
+
+      expect(loggerError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'late failure' }),
+        'MicaConsent: Failed to fetch user details',
+      );
+      expect(consoleError).not.toHaveBeenCalled();
+    });
+
+    it('does not touch state when the details request resolves after unmount', async () => {
+      let resolveDetails: (details: typeof mockUserDetails) => void = () =>
+        undefined;
+      mockGetUserDetails.mockReturnValue(
+        new Promise((resolve) => {
+          resolveDetails = resolve;
+        }),
+      );
+      const utils = renderScreen();
+      utils.unmount();
+
+      await act(async () => {
+        resolveDetails(mockUserDetails);
+      });
+
+      expect(loggerError).not.toHaveBeenCalled();
+      expect(consoleError).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not submit when the handler runs before both consents are given', async () => {
+    const utils = renderScreen();
+    await waitFor(() => {
+      expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+    });
+    fireEvent.press(utils.getByTestId('mica-consent-data-processing-checkbox'));
+
+    await act(async () => {
+      await mockLayoutProps.mock.lastCall?.[0].onSubmit();
+    });
+
+    expect(mockSubmitMicaConsent).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 });

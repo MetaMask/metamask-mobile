@@ -54,6 +54,22 @@ jest.mock('../../hooks/useTransakController', () => ({
 
 const mockRouteAfterAuthentication = jest.fn();
 const mockUseTransakRouting = jest.fn();
+const mockLayoutProps = jest.fn();
+
+// Render the real layout but expose its props, so the submit handler can be
+// invoked directly (the disabled footer button never fires it).
+jest.mock('./MicaKycFormLayout', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('./MicaKycFormLayout');
+  return {
+    __esModule: true,
+    ...actual,
+    default: (props: Record<string, unknown>): unknown => {
+      mockLayoutProps(props);
+      return ReactActual.createElement(actual.default, props);
+    },
+  };
+});
 
 jest.mock('../../hooks/useTransakRouting', () => ({
   useTransakRouting: (config: unknown) => {
@@ -349,5 +365,82 @@ describe('AdditionalDetailsNationality', () => {
     renderScreen();
 
     expect(mockUseTransakRouting.mock.calls[0][0].baseRoute).toBeUndefined();
+  });
+
+  it('shows the missing fields banner when the metadata has no employment status options', () => {
+    mockUseParamsReturn.metadata = {
+      ...mockMetadata,
+      employmentStatusOptions: undefined as never,
+    };
+
+    const { getByText } = renderScreen();
+
+    expect(
+      getByText('deposit.source_of_income.fields_missing_title'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the missing fields banner when the metadata has no citizenship options', () => {
+    mockUseParamsReturn.metadata = {
+      ...mockMetadata,
+      countryOfCitizenshipOptions: undefined as never,
+    };
+
+    const { getByText } = renderScreen();
+
+    expect(
+      getByText('deposit.source_of_income.fields_missing_title'),
+    ).toBeOnTheScreen();
+  });
+
+  it('requires an employment status when the handler runs without one selected', async () => {
+    const utils = renderScreen();
+    selectOption(utils, COUNTRY_SELECT, 'DE');
+
+    await act(async () => {
+      await mockLayoutProps.mock.lastCall?.[0].onSubmit();
+    });
+
+    expect(
+      utils.getByText('deposit.mica.employmentStatusRequired'),
+    ).toBeOnTheScreen();
+    expect(mockSubmitAdditionalDetailsNationality).not.toHaveBeenCalled();
+  });
+
+  it('requires a country of citizenship when the handler runs without one selected', async () => {
+    const utils = renderScreen();
+    selectOption(utils, EMPLOYMENT_SELECT, 'employed');
+
+    await act(async () => {
+      await mockLayoutProps.mock.lastCall?.[0].onSubmit();
+    });
+
+    expect(
+      utils.getByText('deposit.mica.nationalityRequired'),
+    ).toBeOnTheScreen();
+    expect(mockSubmitAdditionalDetailsNationality).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+  });
+
+  it('clears a validation error once the form is submitted with both values', async () => {
+    const utils = renderScreen();
+    selectOption(utils, EMPLOYMENT_SELECT, 'employed');
+    await act(async () => {
+      await mockLayoutProps.mock.lastCall?.[0].onSubmit();
+    });
+    expect(
+      utils.getByText('deposit.mica.nationalityRequired'),
+    ).toBeOnTheScreen();
+
+    selectOption(utils, COUNTRY_SELECT, 'DE');
+    await pressContinue(utils);
+
+    expect(
+      utils.queryByText('deposit.mica.nationalityRequired'),
+    ).not.toBeOnTheScreen();
+    expect(mockSubmitAdditionalDetailsNationality).toHaveBeenCalledWith(
+      'employed',
+      'DE',
+    );
   });
 });

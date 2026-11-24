@@ -60,6 +60,22 @@ jest.mock('../../hooks/useTransakController', () => ({
 
 const mockRouteAfterAuthentication = jest.fn();
 const mockUseTransakRouting = jest.fn();
+const mockLayoutProps = jest.fn();
+
+// Render the real layout but expose its props, so the submit handler can be
+// invoked directly (the disabled footer button never fires it).
+jest.mock('./MicaKycFormLayout', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('./MicaKycFormLayout');
+  return {
+    __esModule: true,
+    ...actual,
+    default: (props: Record<string, unknown>): unknown => {
+      mockLayoutProps(props);
+      return ReactActual.createElement(actual.default, props);
+    },
+  };
+});
 
 jest.mock('../../hooks/useTransakRouting', () => ({
   useTransakRouting: (config: unknown) => {
@@ -69,7 +85,7 @@ jest.mock('../../hooks/useTransakRouting', () => ({
 }));
 
 const mockUseParamsReturn: {
-  quote: { quoteId: string; fiatAmount: number; fiatCurrency: string };
+  quote: { quoteId: string; fiatAmount: number; fiatCurrency?: string };
   quoteId: string;
   metadata: typeof mockMetadata;
   headlessSessionId: string | undefined;
@@ -100,6 +116,11 @@ describe('SourceOfIncome', () => {
     jest.clearAllMocks();
     mockUseParamsReturn.metadata = mockMetadata;
     mockUseParamsReturn.headlessSessionId = undefined;
+    mockUseParamsReturn.quote = {
+      quoteId: 'test-quote-id',
+      fiatAmount: 100,
+      fiatCurrency: 'EUR',
+    };
     mockSubmitSourceOfIncome.mockResolvedValue({ status: 'SUBMITTED' });
     mockGetKycRequirement.mockResolvedValue(undefined);
     mockGetAdditionalRequirements.mockResolvedValue(undefined);
@@ -361,6 +382,127 @@ describe('SourceOfIncome', () => {
       expect(
         getByText('deposit.source_of_income.continue_button'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  it('shows the missing fields banner when the metadata has no source of funds options', () => {
+    mockUseParamsReturn.metadata = {
+      ...mockMetadata,
+      sourceOfFundsTypeOptions: undefined as never,
+    };
+
+    const { getByText } = renderScreen();
+
+    expect(
+      getByText('deposit.source_of_income.fields_missing_title'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render a currency symbol when the quote has no fiat currency', () => {
+    mockUseParamsReturn.quote = { quoteId: 'test-quote-id', fiatAmount: 100 };
+
+    const { queryByText } = renderScreen();
+
+    expect(queryByText('€')).not.toBeOnTheScreen();
+  });
+
+  describe('input validation', () => {
+    const selectSourceOfFunds = (
+      utils: ReturnType<typeof renderScreen>,
+    ): void => {
+      fireEvent.press(
+        utils.getByTestId('source-of-income-source-of-funds-select'),
+      );
+      const params = mockNavigate.mock.calls[0][1] as {
+        onSelect: (value: string) => void;
+      };
+      act(() => {
+        params.onSelect('savings');
+      });
+    };
+
+    it.each([['0'], ['-25'], ['abc']])(
+      'rejects a monthly volume of "%s" without submitting',
+      async (volume) => {
+        const utils = renderScreen();
+        fireEvent.changeText(
+          utils.getByTestId('source-of-income-monthly-volume-input'),
+          volume,
+        );
+        selectSourceOfFunds(utils);
+
+        await act(async () => {
+          fireEvent.press(
+            utils.getByText('deposit.source_of_income.continue_button'),
+          );
+        });
+
+        expect(
+          utils.getByText('deposit.mica.monthlyVolumeInvalid'),
+        ).toBeOnTheScreen();
+        expect(mockSubmitSourceOfIncome).not.toHaveBeenCalled();
+        expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+      },
+    );
+
+    it('clears a previous validation error when the form is submitted again', async () => {
+      const utils = renderScreen();
+      const volumeInput = utils.getByTestId(
+        'source-of-income-monthly-volume-input',
+      );
+      fireEvent.changeText(volumeInput, '0');
+      selectSourceOfFunds(utils);
+      await act(async () => {
+        fireEvent.press(
+          utils.getByText('deposit.source_of_income.continue_button'),
+        );
+      });
+      expect(
+        utils.getByText('deposit.mica.monthlyVolumeInvalid'),
+      ).toBeOnTheScreen();
+
+      fireEvent.changeText(volumeInput, '500');
+      await act(async () => {
+        fireEvent.press(
+          utils.getByText('deposit.source_of_income.continue_button'),
+        );
+      });
+
+      expect(
+        utils.queryByText('deposit.mica.monthlyVolumeInvalid'),
+      ).not.toBeOnTheScreen();
+      expect(mockSubmitSourceOfIncome).toHaveBeenCalledWith('500', 'savings');
+    });
+
+    it('requires a monthly volume when the handler runs with an empty field', async () => {
+      const utils = renderScreen();
+
+      await act(async () => {
+        await mockLayoutProps.mock.lastCall?.[0].onSubmit();
+      });
+
+      expect(
+        utils.getByText('deposit.mica.monthlyVolumeInvalid'),
+      ).toBeOnTheScreen();
+      expect(mockSubmitSourceOfIncome).not.toHaveBeenCalled();
+    });
+
+    it('requires a source of funds when the handler runs without one selected', async () => {
+      const utils = renderScreen();
+      fireEvent.changeText(
+        utils.getByTestId('source-of-income-monthly-volume-input'),
+        '1000',
+      );
+
+      await act(async () => {
+        await mockLayoutProps.mock.lastCall?.[0].onSubmit();
+      });
+
+      expect(
+        utils.getByText('deposit.mica.sourceOfFundsRequired'),
+      ).toBeOnTheScreen();
+      expect(mockSubmitSourceOfIncome).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
     });
   });
 });

@@ -1043,6 +1043,42 @@ describe('useTransakRouting', () => {
       });
     });
 
+    it('falls back to empty strings when the IDPROOF metadata has no kycUrl or workFlowRunId', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [{ type: 'IDPROOF', metadata: {} }],
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never, 25);
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAdditionalVerification',
+              params: expect.objectContaining({
+                kycUrl: '',
+                workFlowRunId: '',
+                amount: 25,
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
     it('handles ADDITIONAL_FORMS_REQUIRED with IDPROOF when user amount is omitted', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
