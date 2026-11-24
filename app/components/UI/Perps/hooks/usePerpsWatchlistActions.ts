@@ -34,12 +34,18 @@ interface UsePerpsWatchlistActionsOptions {
   showToasts?: boolean;
 }
 
-const includesSymbol = (symbols: string[], symbol: string): boolean => {
+const findWatchedSymbol = (
+  symbols: string[],
+  symbol: string,
+): string | undefined => {
   const normalizedSymbol = symbol.toLowerCase();
-  return symbols.some(
+  return symbols.find(
     (watchedSymbol) => watchedSymbol.toLowerCase() === normalizedSymbol,
   );
 };
+
+const includesSymbol = (symbols: string[], symbol: string): boolean =>
+  findWatchedSymbol(symbols, symbol) !== undefined;
 
 /**
  * Provides add/remove watchlist actions with analytics and error reporting.
@@ -130,11 +136,12 @@ export const usePerpsWatchlistActions = (
       try {
         const controller = Engine.context.PerpsController;
         const watchlistBefore = controller.getWatchlistMarkets();
-        if (!includesSymbol(watchlistBefore, symbol)) {
+        const storedSymbol = findWatchedSymbol(watchlistBefore, symbol);
+        if (!storedSymbol) {
           return true;
         }
         // Not awaited before the toast — see addToWatchlist.
-        const persisted = controller.toggleWatchlistMarket(symbol);
+        const persisted = controller.toggleWatchlistMarket(storedSymbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (!includesSymbol(watchlistAfter, symbol)) {

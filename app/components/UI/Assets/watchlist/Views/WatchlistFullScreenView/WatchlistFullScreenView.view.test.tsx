@@ -42,6 +42,7 @@ import {
   getUnavailablePerpRemoveButtonTestId,
   getUnavailablePerpRowTestId,
 } from '../../../../Watchlist/WatchlistUnavailablePerpRow';
+import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
 import Engine from '../../../../../../core/Engine';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
@@ -199,7 +200,7 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       perpsWatchlistSymbols: [],
     });
 
-    expect(await findByTestId('watchlist-error-row')).toBeOnTheScreen();
+    expect(await findByTestId(WatchlistErrorRowTestIds.ROW)).toBeOnTheScreen();
   });
 
   it('removes an unavailable watched Perps market from edit mode', async () => {

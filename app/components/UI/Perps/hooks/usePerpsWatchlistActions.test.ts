@@ -444,6 +444,19 @@ describe('usePerpsWatchlistActions', () => {
 
       expect(mockToggleWatchlistMarket).not.toHaveBeenCalled();
     });
+
+    it('passes the stored symbol casing when removing a market', async () => {
+      mockGetWatchlistMarkets.mockReturnValueOnce(['eth']).mockReturnValue([]);
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      let didRemove = false;
+      await act(async () => {
+        didRemove = await result.current.removeFromWatchlist('ETH');
+      });
+
+      expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('eth');
+      expect(didRemove).toBe(true);
+    });
   });
 
   it('can suppress toasts for watchlist surfaces', async () => {

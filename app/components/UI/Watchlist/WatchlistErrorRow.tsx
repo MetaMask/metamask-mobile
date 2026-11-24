@@ -11,6 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+import { WatchlistErrorRowTestIds } from './WatchlistErrorRow.testIds';
 
 interface WatchlistErrorRowProps {
   onRetry?: () => void;
@@ -34,7 +35,7 @@ const WatchlistErrorRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="justify-between py-3"
-      testID="watchlist-error-row"
+      testID={WatchlistErrorRowTestIds.ROW}
     >
       <Text
         variant={TextVariant.BodySm}

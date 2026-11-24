@@ -217,6 +217,7 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     canRefresh: !isOffline || Boolean(orderError),
     canFetchSuggestions: !isOffline && hardwareTier !== 'LOW',
     tokenMembershipAssetIds,
+    perpsMembershipSymbols: isPerpsEnabled ? watchlistSymbols : EMPTY_SYMBOLS,
     tokenCount: isTokenWatchlistEnabled ? tokenMembershipAssetIds.length : 0,
     perpsCount: isPerpsEnabled ? watchlistSymbols.length : 0,
     isInitialLoading:

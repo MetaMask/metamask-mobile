@@ -46,6 +46,7 @@ export interface UnifiedWatchlistResult {
   canRefresh: boolean;
   canFetchSuggestions: boolean;
   tokenMembershipAssetIds: string[];
+  perpsMembershipSymbols: string[];
   tokenCount: number;
   perpsCount: number;
   isInitialLoading: boolean;
