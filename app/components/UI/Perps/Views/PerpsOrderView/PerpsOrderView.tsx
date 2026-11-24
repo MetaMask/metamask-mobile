@@ -819,12 +819,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     properties: perpsScreenViewedProps,
   });
 
-  // Ensure oracle price (markPrice) is available for margin calculation.
+  // Ensure the venue mark price (markPrice) is available for margin calculation.
   // The PriceStreamChannel subscribes without includeMarketData, so the
-  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
-  // undefined when entering from Token Details (no prior market data sub).
-  // This subscription populates the cache for the traded asset so that
-  // subsequent allMids price updates include markPrice.
+  // HyperLiquid marketDataCache has no mark or oracle price and markPrice is
+  // always undefined when entering from Token Details (no prior market data
+  // sub). This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice and oraclePrice.
   //
   // We gate on isInitialized (from usePerpsConnection) so the subscription
   // is deferred until the controller is ready. This mirrors the pattern in
@@ -838,7 +838,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       includeMarketData: true,
       callback: () => {
         // No-op callback — the side effect of populating the
-        // marketDataCache with oraclePrice is all we need.
+        // marketDataCache with the mark and oracle prices is all we need.
       },
     });
 
@@ -1064,7 +1064,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Position size, margin, and effective price are derived together. For limit
   // orders with a valid limit price, that price is used for sizing/margin;
-  // otherwise the market price (sizing) and oracle mark price (margin) are used.
+  // otherwise the market price (sizing) and venue mark price (margin) are used.
   const { effectivePrice, positionSize, marginRequired } = useMemo(
     () =>
       deriveOrderSizing({
