@@ -629,7 +629,17 @@ export class OAuthService {
     );
     const idToken = await loginHandler.getProviderIdToken();
 
-    const payload: unknown = JSON.parse(loginHandler.decodeIdToken(idToken));
+    let payload: unknown;
+    try {
+      payload = JSON.parse(loginHandler.decodeIdToken(idToken));
+    } catch (error) {
+      throw new OAuthError(
+        error instanceof Error
+          ? error
+          : 'Failed to decode provider ID token payload',
+        OAuthErrorType.InvalidOauthStateError,
+      );
+    }
     if (
       typeof payload !== 'object' ||
       payload === null ||

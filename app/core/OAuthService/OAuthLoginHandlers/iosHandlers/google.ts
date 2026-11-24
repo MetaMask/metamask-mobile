@@ -71,12 +71,19 @@ export class IosGoogleLoginHandler extends BaseGoogleLoginHandler {
       );
     }
 
+    if (!authRequest.codeVerifier) {
+      throw new OAuthError(
+        `${this.handlerName}: Missing PKCE code verifier`,
+        OAuthErrorType.GoogleLoginError,
+      );
+    }
+
     const tokenResponse = await exchangeCodeAsync(
       {
         clientId,
         code: result.params.code,
         redirectUri,
-        extraParams: { code_verifier: authRequest.codeVerifier ?? '' },
+        extraParams: { code_verifier: authRequest.codeVerifier },
       },
       { tokenEndpoint: GOOGLE_TOKEN_ENDPOINT },
     );

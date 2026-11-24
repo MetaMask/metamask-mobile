@@ -1611,4 +1611,16 @@ describe('getSocialIdTokenForNonce', () => {
       OAuthErrorType.InvalidOauthStateError,
     );
   });
+
+  it('wraps malformed ID token payloads in OAuthError', async () => {
+    mockModuleCreateLoginHandler.mockReturnValue({
+      getProviderIdToken: jest.fn().mockResolvedValue('token'),
+      decodeIdToken: jest.fn().mockReturnValue('{not-json'),
+    });
+
+    await expectOAuthError(
+      OAuthLoginService.getSocialIdTokenForNonce(requestedNonce),
+      OAuthErrorType.InvalidOauthStateError,
+    );
+  });
 });

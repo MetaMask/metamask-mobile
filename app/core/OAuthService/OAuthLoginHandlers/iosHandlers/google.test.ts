@@ -129,7 +129,7 @@ describe('IosGoogleLoginHandler', () => {
       });
     });
 
-    it('uses an empty code verifier when AuthRequest omits one', async () => {
+    it('throws GoogleLoginError when AuthRequest omits codeVerifier', async () => {
       (AuthRequest as jest.Mock).mockImplementation(() => ({
         promptAsync: mockPromptAsync,
         codeVerifier: undefined,
@@ -138,18 +138,11 @@ describe('IosGoogleLoginHandler', () => {
         type: 'success',
         params: { code: 'auth-code' },
       });
-      mockExchangeCodeAsync.mockResolvedValue({
-        idToken: 'google-id-token',
-      } as never);
 
-      await handler.getProviderIdToken();
-
-      expect(mockExchangeCodeAsync).toHaveBeenCalledWith(
-        expect.objectContaining({
-          extraParams: { code_verifier: '' },
-        }),
-        expect.any(Object),
-      );
+      await expect(handler.getProviderIdToken()).rejects.toMatchObject({
+        code: OAuthErrorType.GoogleLoginError,
+      });
+      expect(mockExchangeCodeAsync).not.toHaveBeenCalled();
     });
   });
 });
