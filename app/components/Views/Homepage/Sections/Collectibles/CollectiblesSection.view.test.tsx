@@ -32,7 +32,7 @@ describeForPlatforms('Collectibles on the wallet homepage', () => {
     });
     expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId('button-icon'));
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 
     await waitFor(() => {
       expect(
