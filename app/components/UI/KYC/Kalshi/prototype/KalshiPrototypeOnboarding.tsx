@@ -30,10 +30,10 @@ import KycIdentityVerified from '../../Views/Status/IdentityVerified';
 import VerifyIdentity from '../../Views/SumSub/VerifyIdentity';
 import PartnerTerms from '../../Views/SumSub/PartnerTerms';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
-import { nextWaitingPollDelayMs } from '../waitingPoll';
 import {
   PROTOTYPE_ENTRY_CHECK_DELAY_MS,
   PROTOTYPE_SUMSUB_LAUNCH_DELAY_MS,
+  PROTOTYPE_VERIFYING_DELAY_MS,
   GEORGE_COPY,
 } from './prototypeConstants';
 import {
@@ -417,7 +417,7 @@ const SumsubStep = () => {
 
 /**
  * The decision step: VBA's verifying view while the decision is pending,
- * polling the fake the way George's waiting screen polls kyc-api, then VBA's
+ * waiting 10 seconds for the fake review (closing it leaves it pending), then VBA's
  * verified view once it approves, in place on the same screen.
  */
 const DecisionStep = () => {
@@ -425,25 +425,23 @@ const DecisionStep = () => {
   const runtime = useKalshiPrototypeRuntime();
   const isApproved = runtime.script?.vendor.status === 'approved';
 
+  // The review comes back after a fixed wait, so the verifying screen can be
+  // looked at and closed. Closing leaves the review pending, and the card
+  // shows Verifying your identity.
   useEffect(() => {
     if (isApproved) {
       return undefined;
     }
-    let reads = 0;
     let stopped = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    function schedule() {
-      timer = setTimeout(read, nextWaitingPollDelayMs(reads));
-    }
-    async function read() {
-      await vendor.refreshStep({ vendor: 'kalshi' });
-      reads += 1;
-      if (!stopped) {
-        schedule();
+    const timer = setTimeout(async () => {
+      // The fake answers after a couple of reads; read until it does.
+      for (let read = 0; read < 5 && !stopped; read += 1) {
+        await vendor.refreshStep({ vendor: 'kalshi' });
+        if (getKalshiPrototypeRuntime().script?.vendor.status !== 'pending') {
+          break;
+        }
       }
-    }
-    // The first read is immediate, like George's screen reads on open.
-    void read();
+    }, PROTOTYPE_VERIFYING_DELAY_MS);
     return () => {
       stopped = true;
       clearTimeout(timer);
@@ -466,6 +464,7 @@ const DecisionStep = () => {
       description={GEORGE_COPY.waiting.body}
       buttonLabel={GEORGE_COPY.waiting.checkAgain}
       onLeave={onLeave}
+      onClose={onLeave}
     />
   );
 };

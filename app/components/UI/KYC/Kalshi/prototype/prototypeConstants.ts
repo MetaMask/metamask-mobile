@@ -23,6 +23,9 @@ export const PROTOTYPE_SUMSUB_LAUNCH_DELAY_MS = 1200;
 /** How long the entry status check (UKYC and Kalshi link) holds the fox loader. */
 export const PROTOTYPE_ENTRY_CHECK_DELAY_MS = 2000;
 
+/** How long the verifying screen waits before the review comes back. */
+export const PROTOTYPE_VERIFYING_DELAY_MS = 10000;
+
 /** How long the fake code check waits before it answers. */
 export const PROTOTYPE_CODE_CHECK_DELAY_MS = 400;
 

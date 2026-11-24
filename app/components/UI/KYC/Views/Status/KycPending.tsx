@@ -44,6 +44,7 @@ export const KycPendingSelectorsIDs = {
   CONTAINER: 'kyc-pending-container',
   ILLUSTRATION: 'kyc-pending-illustration',
   COME_BACK_LATER_BUTTON: 'kyc-pending-come-back-later-button',
+  CLOSE_BUTTON: 'kyc-pending-close-button',
 } as const;
 
 interface KycPendingProps {
@@ -57,6 +58,8 @@ interface KycPendingProps {
   description?: string;
   /** Replaces the default button label. Omitted keeps the shared UKYC one. */
   buttonLabel?: string;
+  /** Shows a close button in the header that calls this. Omitted: no close. */
+  onClose?: () => void;
 }
 
 const KycPending = ({
@@ -64,6 +67,7 @@ const KycPending = ({
   title,
   description,
   buttonLabel,
+  onClose,
 }: KycPendingProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   useTrackKycResultViewed('pending');
@@ -101,6 +105,12 @@ const KycPending = ({
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        onClose={onClose}
+        closeButtonProps={
+          onClose
+            ? { testID: KycPendingSelectorsIDs.CLOSE_BUTTON }
+            : undefined
+        }
       />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
