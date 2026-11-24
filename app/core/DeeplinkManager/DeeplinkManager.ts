@@ -5,6 +5,7 @@ import branch from 'react-native-branch';
 import { Linking, Platform } from 'react-native';
 import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { handleDeeplink } from './handlers/handleDeeplink';
 import FCMService, {
   toPushTapResult,
@@ -372,13 +373,17 @@ export class DeeplinkManager {
       onPushTap(AppOpenedPushProvider.Braze, { deeplink });
     });
 
-    Linking.getInitialURL().then((url) => {
-      if (!url) {
-        return;
-      }
-      Logger.log(`handleDeeplink:: got initial URL ${url}`);
-      handleLinkingUrl(url);
-    });
+    Linking.getInitialURL()
+      .then((url) => {
+        if (!url) {
+          return;
+        }
+        Logger.log(`handleDeeplink:: got initial URL ${url}`);
+        handleLinkingUrl(url);
+      })
+      .catch((error: unknown) => {
+        Logger.error(ensureError(error), 'Error handling initial deeplink');
+      });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
@@ -400,7 +405,11 @@ export class DeeplinkManager {
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
       );
-      getBranchDeeplink(rewritten ?? opts.uri, opts.uri);
+      getBranchDeeplink(rewritten ?? opts.uri, opts.uri).catch(
+        (error: unknown) => {
+          Logger.error(ensureError(error), 'Error handling Branch deeplink');
+        },
+      );
     });
   }
 }
