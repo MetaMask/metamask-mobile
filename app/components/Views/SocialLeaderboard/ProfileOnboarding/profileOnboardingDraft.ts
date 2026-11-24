@@ -95,7 +95,8 @@ export const displayNameFromUsername = (value: string): string => {
   // The numbered suffix splits off when the handle has at least one camelCase
   // boundary, so generated names work ("BonkTurboQueen343" → "… 343",
   // "CryptoKing99" → "… 99") but tickers stay put ("BTC202" → "BTC202").
-  const hasCamelBoundary = /[A-Za-z][a-z][A-Z][a-z]/.test(username);
+  const hasCamelBoundary =
+    /[A-Za-z][a-z][A-Z][a-z]/.test(username) || /[A-Z]{2}[a-z]/.test(username);
   const withNumber = hasCamelBoundary
     ? camelSplit.replace(/([a-zA-Z])(\d+)$/, '$1 $2')
     : camelSplit;

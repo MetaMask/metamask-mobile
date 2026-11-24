@@ -100,6 +100,7 @@ describe('profileOnboardingDraft', () => {
       'Bonk Turbo Queen 343',
     );
     expect(displayNameFromUsername('CryptoKing99')).toBe('Crypto King 99');
+    expect(displayNameFromUsername('ETHMaxi343')).toBe('Eth Maxi 343');
   });
 
   it('keeps digits inside typed handles attached as before', () => {
