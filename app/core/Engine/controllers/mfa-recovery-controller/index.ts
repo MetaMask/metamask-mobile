@@ -9,7 +9,10 @@ import {
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaDevBuild } from '../../../../util/identity/mfa/isMfaDevBuild';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
-import { hydrateDevSocialLinkEmail } from '../../../MfaRecovery/social-login/devSocialLinkEmail';
+import {
+  clearDevSocialLinkEmail,
+  hydrateDevSocialLinkEmail,
+} from '../../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   getRecoveryRegistrationLockProviderMessenger,
@@ -93,6 +96,7 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   initMessenger.subscribe('AuthenticationController:stateChange', (state) => {
     if (!state.isSignedIn) {
       clearCaches();
+      clearDevSocialLinkEmail();
     }
   });
 

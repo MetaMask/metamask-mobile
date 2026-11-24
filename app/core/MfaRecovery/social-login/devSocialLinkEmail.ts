@@ -5,7 +5,7 @@ const DEV_SOCIAL_LINK_EMAIL_STORAGE_KEY = '@MetaMask:mfaDevSocialLinkEmail';
 
 interface DevSocialLinkOverride {
   overrideEmail: string;
-  originalEmail?: string;
+  originalEmail: string;
 }
 
 let cachedOverride: DevSocialLinkOverride | undefined;
@@ -16,35 +16,36 @@ function parseOverride(raw: string): DevSocialLinkOverride | undefined {
     return undefined;
   }
   const { overrideEmail, originalEmail } = parsed as Record<string, unknown>;
-  if (typeof overrideEmail !== 'string' || overrideEmail.length === 0) {
+  if (
+    typeof overrideEmail !== 'string' ||
+    overrideEmail.length === 0 ||
+    typeof originalEmail !== 'string' ||
+    originalEmail.length === 0
+  ) {
     return undefined;
   }
-  return {
-    overrideEmail,
-    ...(typeof originalEmail === 'string' && originalEmail.length > 0
-      ? { originalEmail }
-      : {}),
-  };
+  return { overrideEmail, originalEmail };
 }
 
 /**
  * Records a dev verifier-replacement email after Auth links it so
  * `MfaRecoveryController` trusts the corresponding social identifier in dev
- * builds. No-op in production and beta builds.
+ * builds. No-op in non-dev builds or when either email is missing.
  */
 export function setDevSocialLinkEmail(
   overrideEmail: string | undefined,
   originalEmail?: string,
 ): void {
-  const trimmed = overrideEmail?.trim();
-  if (!isMfaDevBuild() || !trimmed) {
+  const trimmedOverride = overrideEmail?.trim();
+  const trimmedOriginal = originalEmail?.trim();
+  if (!isMfaDevBuild() || !trimmedOverride || !trimmedOriginal) {
     return;
   }
   cachedOverride = {
-    overrideEmail: trimmed,
-    ...(originalEmail ? { originalEmail } : {}),
+    overrideEmail: trimmedOverride,
+    originalEmail: trimmedOriginal,
   };
-  void Promise.resolve(
+  Promise.resolve(
     StorageWrapper.setItem(
       DEV_SOCIAL_LINK_EMAIL_STORAGE_KEY,
       JSON.stringify(cachedOverride),
@@ -55,7 +56,7 @@ export function setDevSocialLinkEmail(
 /**
  * Loads any persisted dev verifier-replacement email into memory so
  * `MfaRecoveryController` continues to trust it across app restarts in dev
- * builds. No-op in production and beta builds.
+ * builds. No-op in non-dev builds.
  */
 export async function hydrateDevSocialLinkEmail(): Promise<void> {
   if (!isMfaDevBuild()) {
@@ -71,28 +72,26 @@ export async function hydrateDevSocialLinkEmail(): Promise<void> {
   }
 }
 
-/** Clears the cached dev override (for tests or sign-out). */
+/** Clears the cached dev override (for tests or sign-out/reset). */
 export function clearDevSocialLinkEmail(): void {
   cachedOverride = undefined;
-  void Promise.resolve(
+  Promise.resolve(
     StorageWrapper.removeItem(DEV_SOCIAL_LINK_EMAIL_STORAGE_KEY),
   ).catch(() => undefined);
 }
 
 /**
  * Applies the dev verifier-replacement email to the seedless controller state
- * seen by `MfaRecoveryController` in dev builds. Returns `state` unchanged in
- * production/beta builds or when no matching override is set.
+ * seen by `MfaRecoveryController` in dev builds. Fails closed and returns
+ * `state` unchanged in non-dev builds or when no matching override is set.
  */
 export function applyDevSocialLinkEmail<
   TState extends { socialLoginEmail?: string },
 >(state: TState): TState {
-  if (!isMfaDevBuild() || !cachedOverride) {
-    return state;
-  }
   if (
-    cachedOverride.originalEmail !== undefined &&
-    state.socialLoginEmail !== undefined &&
+    !isMfaDevBuild() ||
+    !cachedOverride ||
+    !state.socialLoginEmail ||
     state.socialLoginEmail !== cachedOverride.originalEmail
   ) {
     return state;

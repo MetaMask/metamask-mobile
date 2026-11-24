@@ -57,6 +57,29 @@ describe('devSocialLinkEmail', () => {
     expect(applyDevSocialLinkEmail(otherState)).toBe(otherState);
   });
 
+  it('fails closed when originalEmail or state.socialLoginEmail is missing', () => {
+    setDevSocialLinkEmail('dev-alias@example.com', undefined);
+    expect(mockStorage.setItem).not.toHaveBeenCalled();
+
+    const state = { socialLoginEmail: 'real@example.com' };
+    expect(applyDevSocialLinkEmail(state)).toBe(state);
+
+    setDevSocialLinkEmail('dev-alias@example.com', 'real@example.com');
+    const missingEmailState: { socialLoginEmail?: string } = {};
+    expect(applyDevSocialLinkEmail(missingEmailState)).toBe(missingEmailState);
+  });
+
+  it('ignores persisted storage entries missing originalEmail when hydrating', async () => {
+    mockStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({ overrideEmail: 'persisted-alias@example.com' }),
+    );
+
+    await hydrateDevSocialLinkEmail();
+
+    const state = { socialLoginEmail: 'real@example.com' };
+    expect(applyDevSocialLinkEmail(state)).toBe(state);
+  });
+
   it('is a no-op in non-dev builds', async () => {
     mockIsMfaDevBuild.mockReturnValue(false);
 
