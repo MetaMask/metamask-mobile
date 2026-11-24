@@ -44,23 +44,28 @@ export function usePerpsPortfolioBalance() {
           .toNumber();
       }
 
-      // Historical balance from Redux (for 24h percentage calculations)
-      let historical1dAgoBalance = 0;
+      // Historical balance from Redux (for 24h percentage calculations),
+      // aggregated across all providers. A provider without a 1d-ago
+      // observation makes the total unavailable: a partial sum or a zero
+      // would misstate the baseline.
+      let historical1dAgoBalance: number | undefined = 0;
 
-      // Aggregate historical balance across all providers
       for (const providerBalance of Object.values(perpsBalances)) {
-        if (
-          providerBalance &&
-          typeof providerBalance === 'object' &&
-          'accountValue1dAgo' in providerBalance
-        ) {
-          const balance1dAgoUsd = new BigNumber(
-            providerBalance.accountValue1dAgo ?? '0',
-          );
-          historical1dAgoBalance += balance1dAgoUsd
-            .multipliedBy(conversionRate)
-            .toNumber();
+        if (!providerBalance || typeof providerBalance !== 'object') {
+          continue;
         }
+        const { accountValue1dAgo } = providerBalance;
+        const balance1dAgoUsd =
+          accountValue1dAgo === undefined
+            ? undefined
+            : new BigNumber(accountValue1dAgo);
+        if (!balance1dAgoUsd?.isFinite()) {
+          historical1dAgoBalance = undefined;
+          break;
+        }
+        historical1dAgoBalance += balance1dAgoUsd
+          .multipliedBy(conversionRate)
+          .toNumber();
       }
 
       return {
@@ -73,7 +78,8 @@ export function usePerpsPortfolioBalance() {
   return {
     // Current total account value in display currency (cash + positions)
     perpsBalance: totalBalance,
-    // Account value 24h ago in display currency (for % change calculation)
+    // Account value 24h ago in display currency (for % change calculation);
+    // undefined when a provider lacks the 1d-ago observation
     perpsBalance1dAgo: totalBalance1dAgo,
     // Current unrealized P&L from open positions in display currency
     unrealizedPnl: totalUnrealizedPnl,
