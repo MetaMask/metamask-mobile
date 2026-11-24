@@ -19,6 +19,7 @@ import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
 import { buildGenericQuoteRequest, type QuoteParams } from './utils';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
+import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 import {
   DEBOUNCE_WAIT,
   MIGRATED_FEATURE_IDS,
@@ -83,6 +84,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
 
   const genericQuoteRequest = useMemo(
     ():
@@ -96,6 +98,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
         },
         insufficientBalance,
         insufficientNativeReserveError: Boolean(insufficientNativeReserveError),
+        moneyAccountAddress: primaryMoneyAccount?.address,
       }),
     [
       insufficientBalance,
@@ -103,6 +106,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
       quoteParams,
       gasIncluded,
       gasIncluded7702,
+      primaryMoneyAccount?.address,
     ],
   );
 

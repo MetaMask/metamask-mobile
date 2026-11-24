@@ -46,7 +46,6 @@ import { isPerformanceSuiteActive } from '../framework/ai-locator/PerformanceLoc
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import { NewUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
@@ -793,18 +792,6 @@ export const closePredictModal = async (
     return false;
   }
 };
-
-/**
- * Taps through the Money intro onboarding modal if it appears, then waits for
- * it to dismiss. Safe to call when the modal is not shown (returns false).
- *
- * Delegates to MoneyOnboardingView.dismissIfPresent().
- *
- * @returns true when dismissed, false when it did not appear in time
- */
-export const dismissMoneyOnboardingIfPresent = async (
-  options: { timeoutMs?: number } = {},
-): Promise<boolean> => MoneyOnboardingView.dismissIfPresent(options);
 
 /**
  * Dismisses the marketing consent (Experience Enhancer) modal if it appears

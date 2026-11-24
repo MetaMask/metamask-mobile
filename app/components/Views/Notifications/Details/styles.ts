@@ -77,11 +77,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
     copyTextBtn: {
       color: colors.primary.default,
     },
-    ethLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
     gasDetails: {
       marginBottom: 80,
       paddingHorizontal: 16,

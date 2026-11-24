@@ -1,5 +1,5 @@
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionPayToken } from './useTransactionPayToken';
@@ -13,8 +13,7 @@ jest.mock('../send/useAccountTokens');
 jest.mock('../tokens/useTokenFiatRates');
 
 const PAY_TOKEN_MOCK = {
-  address: '0xabc' as Hex,
-  chainId: '0x1' as Hex,
+  assetId: 'eip155:1/erc20:0xabc',
   balanceUsd: '5.00',
   balanceRaw: '5000000000000000000',
   balanceHuman: '5',
@@ -25,6 +24,7 @@ const PAY_TOKEN_MOCK = {
 
 const ACCOUNT_TOKEN_MOCK = {
   address: '0xabc',
+  caipAssetId: 'eip155:1/erc20:0xabc',
   chainId: '0x1',
   decimals: 18,
   rawBalance: '0x1bc16d674ec80000' as Hex, // 2e18 = 2 ETH
@@ -99,9 +99,12 @@ describe('usePayTokenAccountBalance', () => {
     });
   });
 
-  it('matches token by address case-insensitively', () => {
+  it('matches token by asset ID case-insensitively', () => {
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { ...PAY_TOKEN_MOCK, address: '0xABC' as Hex },
+      payToken: {
+        ...PAY_TOKEN_MOCK,
+        assetId: 'eip155:1/erc20:0xABC',
+      } as TransactionPaymentToken,
       setPayToken: jest.fn(),
     });
 
@@ -112,7 +115,11 @@ describe('usePayTokenAccountBalance', () => {
 
   it('does not match token with same address but different chainId', () => {
     useAccountTokensMock.mockReturnValue([
-      { ...ACCOUNT_TOKEN_MOCK, chainId: '0x89' } as unknown as AssetType,
+      {
+        ...ACCOUNT_TOKEN_MOCK,
+        caipAssetId: 'eip155:137/erc20:0xabc',
+        chainId: '0x89',
+      } as unknown as AssetType,
     ]);
 
     const { result } = runHook();

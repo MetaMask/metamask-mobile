@@ -19,15 +19,31 @@ const MONEY = 'Money Home after importing SRP with funded balance';
 function scenario(
   name,
   jsWorkMs,
-  { projectName = 'browserstack-android', segmentCount = 2 } = {},
+  {
+    projectName = 'browserstack-android',
+    segmentCount = 2,
+    firstAttempt = {},
+  } = {},
 ) {
-  return { projectName, scenario: name, jsWorkMs, segmentCount };
+  return {
+    projectName,
+    scenario: name,
+    jsWorkMs,
+    segmentCount,
+    firstAttempt: {
+      measured: true,
+      jsWorkMs,
+      segmentCount,
+      ...firstAttempt,
+    },
+  };
 }
 
-function report(runId, scenarios) {
+function report(runId, scenarios, headSha = null) {
   return {
     meta: {
       runId,
+      headSha,
       runUrl: `https://example.com/${runId}`,
       createdAt: `2026-09-23T0${runId}:00:00.000Z`,
       profileCount: scenarios.length,
@@ -295,11 +311,9 @@ test('baseline runs that lost segments do not drag the average down', () => {
   );
 });
 
-test('a baseline run with no JS work is incomplete even without a segment count', () => {
+test('a baseline run with no JS work is incomplete', () => {
   const baseline = [100, 100, 100, 100, 100, 0].map((jsWorkMs, index) =>
-    report(String(index + 1), [
-      { projectName: 'browserstack-android', scenario: PERPS, jsWorkMs },
-    ]),
+    report(String(index + 1), [scenario(PERPS, jsWorkMs)]),
   );
   const exception = buildScheduledException(
     report('8', [scenario(PERPS, 140)]),
@@ -310,7 +324,7 @@ test('a baseline run with no JS work is incomplete even without a segment count'
   assert.equal(exception.meta.hasFindings, false);
 });
 
-test('reports from before segment counts were stored are judged by JS work alone', () => {
+test('reports from before first-attempt measurements are incomplete, not compared', () => {
   const baseline = STEADY.map((jsWorkMs, index) =>
     report(String(index + 1), [
       { projectName: 'browserstack-android', scenario: PERPS, jsWorkMs },
@@ -322,8 +336,9 @@ test('reports from before segment counts were stored are judged by JS work alone
     { previousReport: report('7', [scenario(PERPS, 165)]) },
   );
 
-  assert.equal(exception.meta.excludedIncompleteCount, 0);
-  assert.equal(exception.findings.length, 1);
+  assert.equal(exception.meta.excludedIncompleteCount, STEADY.length);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+  assert.equal(exception.findings.length, 0);
 });
 
 test('a spike in the baseline is excluded so it cannot hide a real regression', () => {
@@ -428,21 +443,22 @@ test('two scenarios crossing together are each named in the digest', () => {
   );
 });
 
-test('a finding links the GitHub issue that tracks it', () => {
+test('a finding links the Jira ticket that tracks it', () => {
   const exception = confirmedFinding();
 
   const withoutSync = buildScheduledExceptionSlack(exception);
-  assert.doesNotMatch(withoutSync, /GitHub issue|issues\//);
+  assert.doesNotMatch(withoutSync, /Jira ticket|atlassian\.net\/browse/);
 
   exception.findings[0].issue = {
+    jiraKey: 'TAT-501',
     number: 501,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
+    url: 'https://consensyssoftware.atlassian.net/browse/TAT-501',
     created: true,
   };
   const opened = buildScheduledExceptionSlack(exception);
   assert.match(opened, /Possible regression/);
   assert.match(opened, /owner mm-perps-engineering-team/);
-  assert.match(opened, /#501> opened/);
+  assert.match(opened, /TAT-501> opened/);
   assert.doesNotMatch(opened, /subteam|bug opened for review/);
   const performance = buildPerformanceChannelSlack(exception);
   assert.match(performance, /\*App profiling: bug opened for review\*/);
@@ -453,11 +469,12 @@ test('a finding links the GitHub issue that tracks it', () => {
   );
   assert.match(
     performance,
-    /Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\|#501>/,
+    /Bug: <https:\/\/consensyssoftware\.atlassian\.net\/browse\/TAT-501\|TAT-501>/,
   );
+  assert.match(performance, /filed in the owning team's Jira project/);
   assert.match(
     buildScheduledExceptionMarkdown(exception),
-    /owner mm-perps-engineering-team — \[#501\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\) opened/,
+    /owner mm-perps-engineering-team — \[TAT-501\]\(https:\/\/consensyssoftware\.atlassian\.net\/browse\/TAT-501\) opened/,
   );
 
   exception.findings[0].issue.created = false;
@@ -468,7 +485,7 @@ test('a finding links the GitHub issue that tracks it', () => {
   exception.findings[0].issue = { error: 'HTTP 403' };
   assert.match(
     buildScheduledExceptionSlack(exception),
-    /GitHub issue not created \(HTTP 403\)/,
+    /Jira ticket not created \(HTTP 403\)/,
   );
   assert.equal(buildPerformanceChannelSlack(exception), null);
 });
@@ -485,39 +502,41 @@ test('two newly opened bugs are each linked and mention their team', () => {
     },
   );
   exception.findings[0].issue = {
+    jiraKey: 'TAT-600',
     number: 600,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
+    url: 'https://consensyssoftware.atlassian.net/browse/TAT-600',
     created: true,
   };
   exception.findings[1].issue = {
+    jiraKey: 'TE-601',
     number: 601,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/601',
+    url: 'https://consensyssoftware.atlassian.net/browse/TE-601',
     created: true,
   };
 
   const slack = buildScheduledExceptionSlack(exception);
   const performance = buildPerformanceChannelSlack(exception);
 
-  assert.match(slack, /#600> opened/);
-  assert.match(slack, /#601> opened/);
+  assert.match(slack, /TAT-600> opened/);
+  assert.match(slack, /TE-601> opened/);
   assert.doesNotMatch(slack, /subteam/);
   assert.match(performance, /\*App profiling: bugs opened for review\*/);
   assert.match(performance, /A bug is open for each owning team/);
   assert.match(
     performance,
-    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/600\|#600>/,
+    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team> · Bug: <https:\/\/consensyssoftware\.atlassian\.net\/browse\/TAT-600\|TAT-600>/,
   );
   assert.match(
     performance,
-    /<!subteam\^S052NJFKX6Y\|mm-earn-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/601\|#601>/,
+    /<!subteam\^S052NJFKX6Y\|mm-earn-team> · Bug: <https:\/\/consensyssoftware\.atlassian\.net\/browse\/TE-601\|TE-601>/,
   );
   assert.match(
     buildScheduledExceptionMarkdown(exception),
-    /\[#600\]\(.*\/600\) opened/,
+    /\[TAT-600\]\(.*\/TAT-600\) opened/,
   );
   assert.match(
     buildScheduledExceptionMarkdown(exception),
-    /\[#601\]\(.*\/601\) opened/,
+    /\[TE-601\]\(.*\/TE-601\) opened/,
   );
 });
 
@@ -541,4 +560,76 @@ test('a team without a Slack group is named without a mention', () => {
   assert.doesNotMatch(slack, /subteam|<!/);
   assert.match(performance, /Owner: performance-team/);
   assert.doesNotMatch(performance, /subteam/);
+});
+
+test('the check compares the first attempt, not a longer retry', () => {
+  const retried = scenario(PERPS, 300, {
+    firstAttempt: { jsWorkMs: 110 },
+  });
+  const exception = buildScheduledException(
+    report('8', [retried]),
+    baselineOf(STEADY),
+    { previousReport: report('7', [retried]) },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 1);
+});
+
+test('a scenario whose first attempt was not measured is not compared', () => {
+  const unmeasured = scenario(PERPS, 300, {
+    firstAttempt: { measured: false, jsWorkMs: 0 },
+  });
+  const exception = buildScheduledException(
+    report('8', [unmeasured]),
+    baselineOf(STEADY),
+    { previousReport: report('7', [unmeasured]) },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
+test('a scenario whose whole baseline is the same commit is not a regression', () => {
+  const sameCommit = STEADY.map((jsWorkMs, index) =>
+    report(String(index + 1), [scenario(PERPS, jsWorkMs)], 'abc123'),
+  );
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    sameCommit,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
+test('an incomplete run from another commit does not make a same-commit baseline mixed', () => {
+  const baseline = [
+    ...STEADY.map((jsWorkMs, index) =>
+      report(String(index + 1), [scenario(PERPS, jsWorkMs)], 'abc123'),
+    ),
+    report('9', [scenario(PERPS, 0)], 'def456'),
+  ];
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    baseline,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
+test('a baseline that mixes commits is still compared', () => {
+  const mixed = STEADY.map((jsWorkMs, index) =>
+    report(String(index + 1), [scenario(PERPS, jsWorkMs)], index % 2 ? 'def456' : 'abc123'),
+  );
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    mixed,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, true);
 });

@@ -1,8 +1,17 @@
-import { handleSwapUrl } from '../handleSwapUrl';
+import { createSwapDeeplinkIntent, handleSwapUrl } from '../handleSwapUrl';
+import { startSwapBridgePageLoadTrace } from '../../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
+import { getDeeplinkProcessedAppStartType } from '../../../../Performance/DeeplinkPerformance';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux/ReduxService';
-import { resetBridgeState } from '../../../../redux/slices/bridge';
-import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
+import {
+  resetBridgeState,
+  setDestToken,
+  setSourceToken,
+} from '../../../../redux/slices/bridge';
+import {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../../../../components/UI/Bridge/types';
 import { BridgeTabKey } from '../../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES } from '../../../../../components/UI/Bridge/constants/limitOrders';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
@@ -25,6 +34,11 @@ jest.mock(
     startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
   }),
 );
+
+jest.mock('../../../../Performance/DeeplinkPerformance', () => ({
+  ...jest.requireActual('../../../../Performance/DeeplinkPerformance'),
+  getDeeplinkProcessedAppStartType: jest.fn(),
+}));
 
 // Mock fetchAssetMetadata from the utils module
 jest.mock(
@@ -102,7 +116,7 @@ const availableNetworkConfig = {
 };
 
 describe('handleSwapUrl', () => {
-  const expectedSourceToken = {
+  const expectedSourceToken: BridgeToken = {
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     chainId: '0x1',
     decimals: 6,
@@ -110,7 +124,7 @@ describe('handleSwapUrl', () => {
     symbol: 'USDC',
     image: 'https://example.com/usdc.png',
   };
-  const expectedDestToken = {
+  const expectedDestToken: BridgeToken = {
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     chainId: '0x1',
     decimals: 6,
@@ -922,6 +936,7 @@ describe('handleSwapUrl', () => {
   it('navigates to Bridge view with fallback when exception occurs', async () => {
     // Mock fetchAssetMetadata to throw an error
     mockFetchAssetMetadata.mockRejectedValue(new Error('API Error'));
+    (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
 
     const swapPath =
       'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -936,6 +951,45 @@ describe('handleSwapUrl', () => {
         location: 'Main View',
         initialTab: BridgeTabKey.Market,
       },
+    });
+    expect(startSwapBridgePageLoadTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ sourcePage: 'deeplink' }),
+      { appStartType: 'cold' },
+    );
+  });
+
+  it('seeds tokens and starts the trace in prepare, right before navigation', async () => {
+    const mockStartTrace = startSwapBridgePageLoadTrace as jest.Mock;
+    mockStartTrace.mockImplementationOnce((params: object) => ({
+      ...params,
+      swapViewTraceId: 'trace-id',
+    }));
+    (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
+
+    const intent = await createSwapDeeplinkIntent({
+      swapPath:
+        'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    });
+
+    expect(mockStartTrace).not.toHaveBeenCalled();
+
+    await intent.prepare?.();
+
+    expect(mockDispatch.mock.calls).toStrictEqual([
+      [resetBridgeState()],
+      [setSourceToken(expectedSourceToken)],
+      [setDestToken(expectedDestToken)],
+    ]);
+    expect(mockStartTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken: expectedSourceToken }),
+      { appStartType: 'cold' },
+    );
+    expect(mockStartTrace.mock.invocationCallOrder[0]).toBeGreaterThan(
+      mockDispatch.mock.invocationCallOrder[2],
+    );
+    expect(intent.target.params).toStrictEqual({
+      screen: 'BridgeView',
+      params: expect.objectContaining({ swapViewTraceId: 'trace-id' }),
     });
   });
 });

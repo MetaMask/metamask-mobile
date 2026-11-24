@@ -41,6 +41,8 @@ import {
   selectBulkLinkAccountProgress,
   selectPendingMasSeriesOptIn,
   selectBenefits,
+  selectBenefitsError,
+  selectBenefitsHasLoaded,
   selectVipDashboard,
   selectVipDashboardError,
   selectVipDashboardLoading,
@@ -279,12 +281,14 @@ describe('Rewards selectors', () => {
     if (
       Array.isArray(flat.benefits) ||
       flat.benefitsLoading !== undefined ||
-      flat.benefitsError !== undefined
+      flat.benefitsError !== undefined ||
+      flat.benefitsHasLoaded !== undefined
     ) {
       benefitsMap[subscriptionId] = {
         benefits: Array.isArray(flat.benefits) ? flat.benefits : [],
         loading: flat.benefitsLoading ?? false,
         error: flat.benefitsError ?? false,
+        hasLoaded: flat.benefitsHasLoaded ?? false,
       };
     }
 
@@ -349,6 +353,7 @@ describe('Rewards selectors', () => {
       benefits: _bf,
       benefitsLoading: _bfl,
       benefitsError: _bfe,
+      benefitsHasLoaded: _bfhl,
       vipDashboardLoading: _vdl,
       vipDashboardError: _vde,
       vipRefereeDashboardLoading: _vrdl,
@@ -3418,6 +3423,36 @@ describe('Rewards selectors', () => {
     it('returns benefits when they exist', () => {
       const state = createMockRootState({ benefits: [mockBenefit] });
       expect(selectBenefits(state)).toEqual([mockBenefit]);
+    });
+  });
+
+  describe('selectBenefitsError', () => {
+    it('returns false when the subscription has no benefits entry', () => {
+      expect(selectBenefitsError(createMockRootState({}))).toBe(false);
+    });
+
+    it('returns true when the stored read failed', () => {
+      const state = createMockRootState({ benefitsError: true });
+      expect(selectBenefitsError(state)).toBe(true);
+    });
+  });
+
+  describe('selectBenefitsHasLoaded', () => {
+    it('returns false when the subscription has no benefits entry', () => {
+      expect(selectBenefitsHasLoaded(createMockRootState({}))).toBe(false);
+    });
+
+    it('returns false while the first read has not settled', () => {
+      const state = createMockRootState({ benefitsLoading: true });
+      expect(selectBenefitsHasLoaded(state)).toBe(false);
+    });
+
+    it('returns true once a read has settled', () => {
+      const state = createMockRootState({
+        benefits: [],
+        benefitsHasLoaded: true,
+      });
+      expect(selectBenefitsHasLoaded(state)).toBe(true);
     });
   });
 
