@@ -1,17 +1,38 @@
 import '../mocks';
 import React from 'react';
 import type { QueryClient } from '@tanstack/react-query';
-import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import { Text } from 'react-native';
+import { act } from '@testing-library/react-native';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../render';
 import { initialStatePredictNext } from '../presets/predictNext';
 import { initialStatePredict } from '../presets/predict';
+import {
+  BOTH_VENUES_PREDICT_CONFIG,
+  predictVenueState,
+} from '../fixtures/predictNext';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import Engine from '../../../app/core/Engine';
+import { updateBgState } from '../../../app/core/redux/slices/engine';
+import { ToastContext } from '../../../app/component-library/components/Toast';
+import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
+import {
+  ControllerEventToastBridge,
+  type ToastRegistration,
+} from '../../../app/components/Nav/App/ControllerEventToastBridge';
 import Routes from '../../../app/constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import { PredictRoot } from '../../../app/components/UI/PredictNext';
 import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
 import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
 import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome';
 import { PredictEventScreen } from '../../../app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen';
 import {
@@ -21,23 +42,39 @@ import {
 import { PredictFeedScreen } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen';
 import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen';
 import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
+import { PredictDepositScreen } from '../../../app/components/UI/PredictNext/views/PredictDeposit/PredictDepositScreen';
+import { DepositEnvironmentOverride } from '../../../app/components/UI/PredictNext/views/PredictDeposit/internal/DepositEnvironment';
+import type { PredictDepositEnvironment } from '../../../app/components/UI/PredictNext/config/depositEnvironment';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
+import { PredictWithdrawScreen } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
 import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
 import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
+  PredictNextStackParamList,
+  PredictNextDepositParams,
   PredictNextEventParams,
   PredictNextFeedParams,
   PredictNextPortfolioParams,
   PredictNextSearchParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
 
-/** Mirrors production wiring: the Order Flow provider wraps the stack. */
+/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
+const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Mirrors production wiring: `PredictImplementationSwitch` provides the
+ * Active Venue above the stack, and the Order flow provider wraps it. The
+ * Withdraw flow is a stack screen, not a provider. */
 const withOrderFlow =
-  (Component: React.ComponentType): React.ComponentType =>
+  (
+    Component: React.ComponentType,
+    venueId: PredictVenueId = DEFAULT_VENUE_ID,
+  ): React.ComponentType =>
   (props) => (
     <PredictOrderFlowProvider>
-      <Component {...props} />
+      <NextVenueProvider venueId={venueId}>
+        <Component {...props} />
+      </NextVenueProvider>
     </PredictOrderFlowProvider>
   );
 
@@ -47,17 +84,10 @@ const EventScreen = withOrderFlow(
 const FeedScreen = withOrderFlow(
   PredictFeedScreen as unknown as React.ComponentType<object>,
 );
-/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
-const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
-
-/** Mirrors production wiring: the implementation switch provides the
- * resolved Active Venue to the stack's entry screen. */
+/** The implementation switch provides the resolved Active Venue to the
+ * stack's entry screen. */
 const homeScreenFor = (venueId: PredictVenueId) =>
-  withOrderFlow(() => (
-    <NextVenueProvider venueId={venueId}>
-      <PredictHome />
-    </NextVenueProvider>
-  ));
+  withOrderFlow(() => <PredictHome />, venueId);
 
 const HomeScreen = homeScreenFor(DEFAULT_VENUE_ID);
 const PortfolioScreen = withOrderFlow(
@@ -66,12 +96,38 @@ const PortfolioScreen = withOrderFlow(
 const SearchScreen = withOrderFlow(
   PredictSearchScreen as unknown as React.ComponentType<object>,
 );
+const WithdrawScreen = withOrderFlow(
+  PredictWithdrawScreen as unknown as React.ComponentType<object>,
+);
 
-export const renderPredictOrderFlow = (Component: React.ComponentType) =>
-  renderComponentViewScreen(
+/** Shows the params the Predict root route was opened with. */
+const PredictRootParamsProbe = () => {
+  const route = useRoute();
+  return (
+    <Text testID={getRouteParamsProbeTestId(Routes.PREDICT.ROOT)}>
+      {JSON.stringify(route.params)}
+    </Text>
+  );
+};
+
+/**
+ * The Order Flow over a probe screen, with the Predict root route registered
+ * as a params probe for the sheet's ways out of the PredictNext stack.
+ */
+export const renderPredictOrderFlow = (
+  Component: React.ComponentType,
+  { remoteFeatureFlags }: { remoteFeatureFlags?: Record<string, unknown> } = {},
+) =>
+  renderScreenWithRoutes(
     withOrderFlow(Component),
     { name: PredictNextRoutes.HOME },
-    { state: initialStatePredictNext().build() },
+    [{ name: Routes.PREDICT.ROOT, Component: PredictRootParamsProbe }],
+    {
+      state: (remoteFeatureFlags
+        ? initialStatePredictNext().withRemoteFeatureFlags(remoteFeatureFlags)
+        : initialStatePredictNext()
+      ).build(),
+    },
   );
 
 export const renderPredictNext = (
@@ -79,9 +135,12 @@ export const renderPredictNext = (
   {
     venueId = DEFAULT_VENUE_ID,
     remoteFeatureFlags = {},
+    queryClient,
   }: {
     venueId?: PredictVenueId;
     remoteFeatureFlags?: Record<string, unknown>;
+    /** A caller-owned client, for tests that warm or refetch the cache. */
+    queryClient?: QueryClient;
   } = {},
 ) =>
   renderScreenWithRoutes(
@@ -92,6 +151,8 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
       { name: PredictNextRoutes.PORTFOLIO, Component: PortfolioScreen },
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
+      { name: PredictNextRoutes.DEPOSIT },
+      { name: PredictNextRoutes.WITHDRAW, Component: WithdrawScreen },
       // A probe: Home never leaves Predict for the app's Explore tab.
       { name: Routes.TRENDING_VIEW },
     ],
@@ -100,6 +161,8 @@ export const renderPredictNext = (
         .withRemoteFeatureFlags(remoteFeatureFlags)
         .build(),
     },
+    undefined,
+    queryClient,
   );
 
 export const renderPredictSearchScreen = (
@@ -165,6 +228,7 @@ export const renderPredictPortfolioScreen = (
   initialParams: PredictNextPortfolioParams,
   privacyMode = false,
   queryClient?: QueryClient,
+  remoteFeatureFlags: Record<string, unknown> = {},
 ) =>
   renderScreenWithRoutes(
     PortfolioScreen,
@@ -172,8 +236,14 @@ export const renderPredictPortfolioScreen = (
     [
       { name: PredictNextRoutes.HOME, Component: HomeScreen },
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
+      { name: PredictNextRoutes.DEPOSIT },
+      { name: PredictNextRoutes.WITHDRAW, Component: WithdrawScreen },
     ],
-    { state: initialStatePredictNext(privacyMode).build() },
+    {
+      state: initialStatePredictNext(privacyMode)
+        .withRemoteFeatureFlags(remoteFeatureFlags)
+        .build(),
+    },
     { ...initialParams },
     queryClient,
   );
@@ -189,6 +259,57 @@ export const renderPredictFeedScreen = (initialParams: PredictNextFeedParams) =>
     { state: initialStatePredictNext().build() },
     { ...initialParams },
   );
+
+/**
+ * Stands in for the wallet's bottom-sheet confirmation, which the app root
+ * registers: it closes at once, as it does once the user confirms or
+ * rejects, and the wallet's answer comes from the mocked
+ * `TransactionController.addTransaction`.
+ */
+const ConfirmationSheetProbe = () => {
+  const navigation = useNavigation();
+  React.useEffect(() => {
+    navigation.goBack();
+  }, [navigation]);
+  return null;
+};
+
+/**
+ * The Kalshi deposit screen, opened from a Home probe as Home opens it, so
+ * leaving the screen lands back on that probe. `environment` replaces the
+ * build's deposit environment (a test build reads as the dev API: Base
+ * Sepolia, simulated transfer), so a test can drive the wallet transfer.
+ */
+export const renderPredictDepositScreen = (
+  params: PredictNextDepositParams,
+  { environment }: { environment?: PredictDepositEnvironment } = {},
+) => {
+  const HomeProbe = () => {
+    const navigation =
+      useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+    React.useEffect(() => {
+      navigation.navigate(PredictNextRoutes.DEPOSIT, params);
+    }, [navigation]);
+    return <Text testID={getRouteProbeTestId(PredictNextRoutes.HOME)} />;
+  };
+  const DepositScreen = () => (
+    <DepositEnvironmentOverride value={environment}>
+      <PredictDepositScreen />
+    </DepositEnvironmentOverride>
+  );
+  return renderScreenWithRoutes(
+    HomeProbe,
+    { name: PredictNextRoutes.HOME },
+    [
+      { name: PredictNextRoutes.DEPOSIT, Component: DepositScreen },
+      {
+        name: Routes.CONFIRMATION_REQUEST_MODAL,
+        Component: ConfirmationSheetProbe,
+      },
+    ],
+    { state: initialStatePredictNext().build() },
+  );
+};
 
 const PREDICT_ENTRY_POINT_ROUTE = 'PredictEntryPointProbe';
 
@@ -260,4 +381,92 @@ export const renderPredictRoot = ({
     [{ name: Routes.PREDICT.ROOT, Component: PredictRoot }],
     providerValues,
   );
+};
+
+export interface RenderPredictToastShellOptions {
+  /** Hook returning the `ControllerEventToastBridge` registrations to mount. */
+  useRegistrations: () => ToastRegistration[];
+  /** Screen or probe element mounted under `ToastContext.Provider`. */
+  screen: React.ReactNode;
+  venue?: PredictConfiguredVenue;
+  name?: string;
+}
+
+/**
+ * Mounts `ControllerEventToastBridge` alongside a screen inside a mocked
+ * `ToastContext.Provider` with both Predict venues enabled, returning helpers
+ * to switch Active Venue and inspect emitted toast labels.
+ */
+export const renderPredictToastShell = ({
+  useRegistrations,
+  screen: screenContent,
+  venue = 'kalshi',
+  name = 'PredictNotificationsProbe',
+}: RenderPredictToastShellOptions) => {
+  const showToast = jest.fn();
+  const toastRef = {
+    current: { showToast, closeToast: jest.fn() },
+  } as unknown as React.RefObject<ToastRef>;
+
+  const PredictToasts = () => {
+    const registrations = useRegistrations();
+    return <ControllerEventToastBridge registrations={registrations} />;
+  };
+
+  const AppShell = () => (
+    <ToastContext.Provider value={{ toastRef }}>
+      <PredictToasts />
+      {screenContent}
+    </ToastContext.Provider>
+  );
+
+  const engine = Engine as unknown as { state: Record<string, unknown> };
+  const originalEngineState = engine.state;
+  const view = renderComponentViewScreen(
+    AppShell,
+    { name },
+    {
+      state: initialStatePredict()
+        .withRemoteFeatureFlags({
+          predictConfig: BOTH_VENUES_PREDICT_CONFIG,
+        })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              PredictVenueController: predictVenueState(venue),
+            },
+          },
+        })
+        .build(),
+    },
+  );
+
+  const selectVenue = (nextVenue: PredictConfiguredVenue) => {
+    act(() => {
+      engine.state = {
+        ...engine.state,
+        PredictVenueController: predictVenueState(nextVenue),
+      };
+      view.store.dispatch(updateBgState({ key: 'PredictVenueController' }));
+    });
+  };
+
+  const toastLabels = (): string[][] =>
+    showToast.mock.calls.map(
+      ([options]: [{ labelOptions: { label: string }[] }]) =>
+        options.labelOptions.map((item) => item.label),
+    );
+
+  const toastTitles = (): string[] => toastLabels().map((labels) => labels[0]);
+
+  return {
+    ...view,
+    showToast,
+    selectVenue,
+    toastLabels,
+    toastTitles,
+    restoreEngineState: () => {
+      engine.state = originalEngineState;
+    },
+  };
 };

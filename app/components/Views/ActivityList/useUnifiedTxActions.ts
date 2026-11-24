@@ -11,8 +11,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
-import { strings } from '../../../../locales/i18n';
+import { toast } from '@metamask/design-system-react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -40,7 +39,7 @@ import {
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
-import { resolveTransactionUpdateErrorMessage } from '../../../util/confirmation/transactions';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
 
@@ -110,13 +109,7 @@ export function useUnifiedTxActions() {
   );
 
   const showTransactionUpdateErrorToast = useCallback((error: unknown) => {
-    toast({
-      title: strings('transaction_update_toast.title'),
-      description: resolveTransactionUpdateErrorMessage(error),
-      severity: ToastSeverity.Danger,
-      hasNoTimeout: false,
-      showCloseButton: false,
-    });
+    toast(getTransactionUpdateErrorToastOptions(error));
   }, []);
 
   const closeSpeedUpCancelModal = useCallback(() => {

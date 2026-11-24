@@ -139,6 +139,11 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     regions: ['US'],
     layout: 'UsBank',
   },
+  // Keep the new Money CTA splash disabled in smoke tests.
+  moneyEnableSplash: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
   // 2026-11-17 prod sync turned these on at versions the 8.21.0 E2E build
   // meets. Keep the registry at the prod values; pin the pre-sync UI here so
   // smoke tests do not pick up the new MFA screen, brand-refresh chrome, or
@@ -173,6 +178,43 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   homeBrandRefreshSurfaces: {
     enabled: false,
     minimumVersion: '0.0.0',
+  },
+  moneyMovementNeobankEur: {
+    enabled: false,
+    minimumVersion: '8.22.0',
+    currency: 'EUR',
+    regions: [
+      'AT',
+      'BE',
+      'HR',
+      'CY',
+      'CZ',
+      'DK',
+      'EE',
+      'FI',
+      'FR',
+      'DE',
+      'GR',
+      'HU',
+      'IS',
+      'IE',
+      'IT',
+      'LV',
+      'LI',
+      'LT',
+      'LU',
+      'MT',
+      'NL',
+      'NO',
+      'PL',
+      'PT',
+      'RO',
+      'SK',
+      'SI',
+      'ES',
+      'SE',
+    ],
+    layout: 'Sepa',
   },
 };
 

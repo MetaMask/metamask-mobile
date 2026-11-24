@@ -7,6 +7,7 @@ import {
 } from '../../Views/SocialLeaderboard/analytics';
 import type {
   SocialBlockedReason,
+  SocialCopyTradeAnalyticsProperties,
   SocialEventSource,
   SocialPositionAnalyticsProperties,
   SocialScreenName,
@@ -45,7 +46,7 @@ export const socialFeedTracksLocation = (
 
 interface SocialFeedTracking {
   onCopyTradeInteraction?: (
-    position: SocialPositionAnalyticsProperties,
+    position: SocialCopyTradeAnalyticsProperties,
   ) => void;
   onCopyTradeBlocked?: (
     position: SocialPositionAnalyticsProperties,
@@ -54,6 +55,7 @@ interface SocialFeedTracking {
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,
+    subject?: { post_id?: string; author_trader_id?: string },
   ) => void;
   onReactionPickerOpened?: () => void;
   onAuthorTap?: (position: SocialPositionAnalyticsProperties) => void;

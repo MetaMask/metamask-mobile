@@ -4,6 +4,8 @@ import {
   formatExchangeRate,
   formatPriceRangeLabel,
   formatTokenPrice,
+  getDefaultRecurringPriceRangeTokenSide,
+  getPriceRangeDecimals,
   isInvertedPriceRange,
   isValidPriceRange,
   matchingPricePercent,
@@ -13,17 +15,95 @@ import {
   tokenPairRateFromFiatRates,
 } from './priceRange';
 import { formatCurrency } from './currencyUtils';
+import { createMockToken } from '../testUtils/fixtures';
 
-jest.mock('./currencyUtils', () => ({
-  formatCurrency: jest.fn(
-    (amount: number | string, currency: string) =>
-      `${currency === 'USD' ? '$' : currency}${amount}`,
-  ),
-}));
+jest.mock('./currencyUtils', () => {
+  const actual = jest.requireActual('./currencyUtils');
+
+  return {
+    ...actual,
+    formatCurrency: jest.fn(
+      (amount: number | string, currency: string) =>
+        `${currency === 'USD' ? '$' : currency}${amount}`,
+    ),
+  };
+});
 
 const mockedFormatCurrency = formatCurrency as jest.MockedFunction<
   typeof formatCurrency
 >;
+
+const eth = createMockToken({
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: 'ETH',
+  decimals: 18,
+});
+const link = createMockToken({
+  address: '0x514910771af9ca656af840dff83e8264ecf986ca',
+  symbol: 'LINK',
+  decimals: 18,
+});
+const usdc = createMockToken({
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  symbol: 'USDC',
+  decimals: 6,
+});
+const usdt = createMockToken({
+  address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  symbol: 'USDT',
+  decimals: 6,
+});
+
+describe('getDefaultRecurringPriceRangeTokenSide', () => {
+  it.each([
+    {
+      pair: 'stable source and non-stable destination',
+      sourceToken: usdc,
+      destToken: eth,
+      expectedSide: 'dest',
+    },
+    {
+      pair: 'non-stable source and stable destination',
+      sourceToken: eth,
+      destToken: usdc,
+      expectedSide: 'source',
+    },
+    {
+      pair: 'two stablecoins',
+      sourceToken: usdc,
+      destToken: usdt,
+      expectedSide: 'dest',
+    },
+    {
+      pair: 'two non-stable tokens',
+      sourceToken: eth,
+      destToken: link,
+      expectedSide: 'dest',
+    },
+  ] as const)(
+    'returns $expectedSide for $pair',
+    ({ sourceToken, destToken, expectedSide }) => {
+      const result = getDefaultRecurringPriceRangeTokenSide({
+        sourceToken,
+        destToken,
+      });
+
+      expect(result).toBe(expectedSide);
+    },
+  );
+
+  it.each([
+    { sourceToken: undefined, destToken: eth },
+    { sourceToken: eth, destToken: undefined },
+  ])('returns dest for an incomplete pair', ({ sourceToken, destToken }) => {
+    const result = getDefaultRecurringPriceRangeTokenSide({
+      sourceToken,
+      destToken,
+    });
+
+    expect(result).toBe('dest');
+  });
+});
 
 describe('applyPercentToPrice', () => {
   it('writes 1800.00 for -10 percent of 2000', () => {
@@ -56,6 +136,28 @@ describe('applyPercentToPrice', () => {
     const result = applyPercentToPrice(1.234, -1);
 
     expect(result).toBe('1.22');
+  });
+
+  it.each([
+    { price: 0.0196, percent: -25, expected: '0.01470' },
+    { price: 0.0196, percent: 25, expected: '0.02450' },
+    { price: 0.00000422, percent: -1, expected: '0.000004178' },
+    { price: 0.00000422, percent: 1, expected: '0.000004262' },
+  ])(
+    'preserves significant digits for $percent percent of $price',
+    ({ price, percent, expected }) => {
+      const result = applyPercentToPrice(price, percent);
+
+      expect(result).toBe(expected);
+    },
+  );
+});
+
+describe('getPriceRangeDecimals', () => {
+  it('caps precision at twelve decimal places', () => {
+    const result = getPriceRangeDecimals(0.0000000001);
+
+    expect(result).toBe(12);
   });
 });
 
@@ -130,6 +232,25 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toBeUndefined();
   });
+
+  it('caps converted bounds at twelve decimal places', () => {
+    const result = convertPriceRangeToUsd(
+      {
+        tokenSide: 'dest',
+        currency: 'EUR',
+        min: '0.000004211234',
+        max: '0.000004311234',
+      },
+      1.087654321,
+    );
+
+    expect(result).toEqual({
+      side: 'dest',
+      currency: 'USD',
+      min: '0.000004580367',
+      max: '0.000004689132',
+    });
+  });
 });
 
 describe('parsePriceInput', () => {
@@ -162,10 +283,10 @@ describe('sanitizePriceInput', () => {
     expect(result).toBe('1200');
   });
 
-  it('keeps at most two decimal digits', () => {
-    const result = sanitizePriceInput('12.3456');
+  it('keeps at most twelve decimal digits', () => {
+    const result = sanitizePriceInput('12.34567890123456');
 
-    expect(result).toBe('12.34');
+    expect(result).toBe('12.345678901234');
   });
 
   it('keeps a trailing decimal while typing', () => {
@@ -269,6 +390,21 @@ describe('formatPriceRangeLabel', () => {
     expect(formatPriceRangeLabel('1800', '', 'USD')).toBe('≥ $1800.00');
     expect(formatPriceRangeLabel('', '2200', 'USD')).toBe('≤ $2200.00');
   });
+
+  it('preserves sub-unit range precision', () => {
+    mockedFormatCurrency.mockImplementation((amount) => `$${String(amount)}`);
+    mockedFormatCurrency.mockClear();
+
+    const result = formatPriceRangeLabel('0.01470', '0.02450', 'USD');
+
+    expect(result).toBe('$0.01470 - $0.02450');
+    expect(mockedFormatCurrency).toHaveBeenNthCalledWith(1, '0.01470', 'USD', {
+      maximumFractionDigits: 5,
+    });
+    expect(mockedFormatCurrency).toHaveBeenNthCalledWith(2, '0.02450', 'USD', {
+      maximumFractionDigits: 5,
+    });
+  });
 });
 
 describe('formatTokenPrice', () => {
@@ -284,6 +420,18 @@ describe('formatTokenPrice', () => {
     const result = formatTokenPrice('ETH', undefined, 'USD');
 
     expect(result).toBe(PRICE_RANGE_MISSING_VALUE);
+  });
+
+  it('formats sub-cent prices with significant digits', () => {
+    mockedFormatCurrency.mockReturnValue('$0.00000422');
+    mockedFormatCurrency.mockClear();
+
+    const result = formatTokenPrice('PEPE', 0.00000422, 'USD');
+
+    expect(result).toBe('1 PEPE = $0.00000422');
+    expect(mockedFormatCurrency).toHaveBeenCalledWith(0.00000422, 'USD', {
+      maximumFractionDigits: 9,
+    });
   });
 });
 

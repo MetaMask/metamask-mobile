@@ -11,7 +11,10 @@ import {
   recordFetchSample,
   startLatencyMonitoring,
 } from '../util/deviceCapability/latencyStore';
-import { useNetworkLatency } from './useNetworkLatency';
+import {
+  useNetworkLatency,
+  useSettledNetworkLatency,
+} from './useNetworkLatency';
 import { useNetworkTier } from './useNetworkTier';
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -160,6 +163,20 @@ describe('useNetworkLatency', () => {
     recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
 
     expect(renders).toBe(rendersBefore);
+  });
+
+  it('keeps the settled reading after the samples are cleared', () => {
+    const { result } = renderHook(() => ({
+      latency: useNetworkLatency(),
+      settled: useSettledNetworkLatency(),
+    }));
+    recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
+
+    act(() => {
+      clearLatencySamples();
+    });
+
+    expect(result.current).toEqual({ latency: 'UNKNOWN', settled: 'SLOW' });
   });
 
   it('re-renders only when the latency bucket changes', () => {

@@ -59,7 +59,7 @@ Background color of the icon.
 You will most likely never have to use this component directly since it is already used to contruct the [TabBar](../TabBar/TabBar.tsx) component, which will be the component that is consumed by developers.
 
 ```javascript
-import TabBarItem from 'app/component-library/components/Navigation/TabBarItem';
+import TabBarItem from '#app/component-library/components/Navigation/TabBarItem';
 
 <HorizontallyAlignedWrapper>
   <TabBarItem

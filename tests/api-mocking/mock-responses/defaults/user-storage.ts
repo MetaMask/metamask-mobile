@@ -17,6 +17,9 @@ const multichainGroupsUrl = `https://user-storage.api.cx.metamask.io/api/v1/user
 const assetsWatchlistUrl =
   'https://user-storage.api.cx.metamask.io/api/v1/preferences/assets-watchlist';
 
+const customTokensUrl =
+  'https://user-storage.api.cx.metamask.io/api/v1/preferences/custom-tokens';
+
 const notificationPreferencesUrl =
   'https://user-storage.api.cx.metamask.io/api/v1/preferences/notifications';
 
@@ -88,6 +91,12 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
       responseCode: 200,
       response: { assets: [], version: 1 },
     },
+    {
+      // AUS 4.2.0: AssetsController syncs custom tokens via getUserAssets.
+      urlEndpoint: customTokensUrl,
+      responseCode: 200,
+      response: { version: 1, importedAssets: [], hiddenAssets: [] },
+    },
   ],
   PUT: [
     {
@@ -141,6 +150,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint: assetsWatchlistUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: customTokensUrl,
       responseCode: 200,
       response: 'OK',
     },

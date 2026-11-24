@@ -22,6 +22,7 @@ import {
   createComponentViewQueryClient,
   renderComponentViewScreen,
   renderScreenWithRoutes,
+  ToasterBoundary,
 } from '../render';
 import {
   initialStatePerps,
@@ -527,8 +528,11 @@ const createMarketDataChannel = (marketData: unknown[]) =>
 export interface PerpsStreamOverrides {
   /** When set, usePerpsLiveAccount() receives this account state. */
   account?: unknown;
-  /** When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details). */
-  positions?: unknown[];
+  /**
+   * When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details).
+   * `null` leaves the channel empty until `emitPositions`, so the order view stays on its loading label.
+   */
+  positions?: unknown[] | null;
   /**
    * When set, usePerpsMarkets() receives this array (e.g. to test category
    * badges in Market List: crypto + commodity). `null` leaves the channel
@@ -566,7 +570,10 @@ export interface PerpsStreamOverrides {
 function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): TestStreamManagerBundle {
-  const positions = createPositionsChannel(streamOverrides?.positions ?? []);
+  const positions =
+    streamOverrides?.positions === null
+      ? mutableChannelWithInitialValue<Position[] | null>(null)
+      : createPositionsChannel(streamOverrides?.positions ?? []);
   const orders = createOrdersChannel(streamOverrides?.orders ?? []);
   const fills = mutableChannelWithInitialValue<OrderFill[]>([]);
   const marketData =
@@ -831,11 +838,14 @@ export function renderPerpsView(
       </Stack.Navigator>
     );
     // App toasts outlive the submitting route and remain visible after navigation.
-    const navigationTree = includeToasts ? (
+    // Perps still uses the legacy toast host; the design-system Toaster covers
+    // social and other migrated toasts rendered from the same tree.
+    const legacyTree = includeToasts ? (
       <PerpsTestToastHost>{stackTree}</PerpsTestToastHost>
     ) : (
       stackTree
     );
+    const navigationTree = <ToasterBoundary>{legacyTree}</ToasterBoundary>;
     return withStreamControls(
       renderWithProvider(navigationTree, { state }),
       stream,
@@ -945,6 +955,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes?: PerpsExtraRoute[];
     socialEnabled?: boolean;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const {
@@ -954,6 +965,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes,
     socialEnabled,
     includeToasts,
+    crossMarginEnabled,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
@@ -965,6 +977,7 @@ export function renderPerpsMarketDetailsView(
       extraRoutes,
       socialEnabled,
       includeToasts,
+      crossMarginEnabled,
     },
   );
 }
@@ -1090,6 +1103,7 @@ export function renderPerpsClosePositionView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;
@@ -1115,6 +1129,7 @@ export function renderPerpsClosePositionRouter(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;

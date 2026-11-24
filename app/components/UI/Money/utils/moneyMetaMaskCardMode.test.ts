@@ -29,7 +29,7 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBe('manage');
   });
 
-  it('returns link for an unauthenticated cardholder when base requirements are met', () => {
+  it('returns sign_in for a logged-out cardholder', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
@@ -37,10 +37,10 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardAuthenticated: false,
         hasMoneyAccountBaseRequirements: true,
       }),
-    ).toBe('link');
+    ).toBe('sign_in');
   });
 
-  it('returns null for an unauthenticated cardholder when base requirements are not met', () => {
+  it('returns sign_in for a logged-out cardholder without Money account requirements', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
@@ -48,7 +48,7 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardAuthenticated: false,
         hasMoneyAccountBaseRequirements: false,
       }),
-    ).toBeNull();
+    ).toBe('sign_in');
   });
 
   it('returns null when residency is blocked', () => {
@@ -168,16 +168,17 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBe('manage');
   });
 
-  it('prefers unauthenticated cardholder link over residency block', () => {
+  it('prefers sign_in over a linked balance and a residency block', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
         isCardholder: true,
         isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: true,
         isResidencyBlocked: true,
         hasMoneyAccountBaseRequirements: true,
       }),
-    ).toBe('link');
+    ).toBe('sign_in');
   });
 
   it('returns loading when card state is unresolved and Money account is visible', () => {

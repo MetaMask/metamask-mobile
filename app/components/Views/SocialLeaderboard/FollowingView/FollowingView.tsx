@@ -7,14 +7,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
+import { reportSocialServiceFailure } from '../../../../util/social/socialServiceTelemetry';
 import SocialFeed, {
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
+import { invalidateFollowingFeed } from '../../../UI/SocialFeed/data/socialFeedQueries';
 import type { SocialFeedQuery } from '../../../UI/SocialFeed/data/socialFeedSource';
 import type {
   SocialFeedPageHandle,
@@ -69,6 +74,8 @@ export interface FollowingViewProps {
   /** Clears the applied Following filters. */
   onClearFilters?: () => void;
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   testID?: string;
   scrollTestID?: string;
 }
@@ -76,8 +83,9 @@ export interface FollowingViewProps {
 /**
  * Social V1 Following: the posts of the traders the viewer follows, newest
  * first or by reactions. The server leaves the viewer's own posts out; they
- * stay on their Posts tab. There is no socket channel for this feed, so it refreshes on pull and after a
- * follow or unfollow.
+ * stay on their Posts tab. There is no socket channel for this feed. A
+ * follow leaves the loaded pages in place so suggested traders stay on
+ * screen. The feed reloads when this tab is opened again, or on pull.
  */
 const FollowingView: React.FC<FollowingViewProps> = ({
   isActive = true,
@@ -90,6 +98,8 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   testID,
   scrollTestID,
 }) => {
@@ -102,12 +112,52 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isFeedEmpty, setIsFeedEmpty] = useState(false);
+  // Suggestions stay up after a follow until the feed itself reloads.
+  const [holdSuggestions, setHoldSuggestions] = useState(false);
+  const leftFollowingRef = useRef(false);
 
   useEffect(() => {
     if (isActive) {
       setHasBeenActive(true);
     }
   }, [isActive]);
+
+  useEffect(() => {
+    if (!isActive) {
+      if (hasBeenActive) {
+        leftFollowingRef.current = true;
+      }
+      return;
+    }
+    if (!leftFollowingRef.current) {
+      return;
+    }
+    leftFollowingRef.current = false;
+    let cancelled = false;
+    invalidateFollowingFeed()
+      .then(() => {
+        if (!cancelled) {
+          setHoldSuggestions(false);
+        }
+      })
+      .catch((err: unknown) => {
+        reportSocialServiceFailure(
+          err,
+          {
+            surface: 'follow',
+            operation: 'invalidate_following_feed',
+            extraMessage: 'Following feed refresh failed',
+            source: 'FollowingView',
+            endpoint: 'feed',
+          },
+          { breadcrumb: false },
+        );
+      });
+    return () => {
+      cancelled = true;
+      leftFollowingRef.current = true;
+    };
+  }, [hasBeenActive, isActive]);
 
   useImperativeHandle(
     pageRef,
@@ -130,6 +180,16 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     !followsLoading &&
     !followsError &&
     followedTraders.length === 0;
+  const showSuggestions =
+    resolveFollows &&
+    !followsLoading &&
+    !followsError &&
+    (holdSuggestions || followedTraders.length === 0);
+  useEffect(() => {
+    if (followsNobody) {
+      setHoldSuggestions(true);
+    }
+  }, [followsNobody]);
   const emptyMode: FollowingEmptyMode = (() => {
     if (!resolveFollows) {
       return 'no-posts';
@@ -137,7 +197,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     if (followsLoading) {
       return 'loading';
     }
-    if (followsError || followedTraders.length > 0) {
+    if (followsError || !showSuggestions) {
       return 'no-posts';
     }
     return 'suggestions';
@@ -165,8 +225,13 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     { tab_name: Tab.FOLLOWING, source },
     isActive,
   );
+  const prepareRefresh = useCallback(
+    () => invalidateFollowingFeed({ refetchType: 'none' }),
+    [],
+  );
   const handleRefresh = useCallback(() => {
     trackInteraction(Interaction.REFRESH);
+    setHoldSuggestions(false);
   }, [trackInteraction]);
   const handleFeedSortChange = useCallback(
     (nextSort: FeedSort) => {
@@ -195,7 +260,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   );
 
   const renderHeader = useCallback(() => {
-    if (followsNobody) {
+    if (showSuggestions) {
       return null;
     }
     return (
@@ -209,7 +274,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
         <FeedSortFilterSelector value={feedSort} onPress={openSortSheet} />
       </SocialTabFilterBar>
     );
-  }, [feedSort, followsNobody, isFilterActive, onOpenFilters, openSortSheet]);
+  }, [feedSort, isFilterActive, onOpenFilters, openSortSheet, showSuggestions]);
 
   const emptyState = useMemo(
     () =>
@@ -240,9 +305,13 @@ const FollowingView: React.FC<FollowingViewProps> = ({
           filterPost={filterPost}
           comparePosts={feedSort === 'popular' ? byMostReactions : undefined}
           emptyState={emptyState}
+          prepareRefresh={prepareRefresh}
           onRefresh={handleRefresh}
           performance={feedPerformance}
           onScroll={onScroll}
+          contentTopInset={contentTopInset}
+          refreshProgressViewOffset={contentTopInset}
+          pendingPostsTopOffset={pendingPostsTopOffset}
           pageRef={feedPageRef}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}

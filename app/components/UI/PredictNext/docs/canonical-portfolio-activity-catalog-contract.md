@@ -34,7 +34,7 @@ Legacy Polymarket is the parity target. PredictNext surfaces are listed where th
 | Activity list rows                     | `PredictNext/activity/internal/legacy/usePredictActivityItems.ts`, `mapPredictActivity.ts`                                                                          | Shared kind, timestamp, USD amount and direction, Event title, image, stable identity                                                                        |
 | Activity details                       | `PredictNext/activity/internal/legacy/details/PredictProviderActivityDetails.tsx`                                                                                   | Title, outcome, image, amount, shares, price per share, net PnL on sells, payout and PnL on Settlements                                                      |
 | Rewards campaign rows                  | `UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx`                                                                                                   | Data comes from the Rewards backend (`PredictThePitchPositionDto`). Only navigation to an Event couples to Predict.                                          |
-| Venue sections, tabs, and entry points | `PredictNext/navigation/feedScreens.ts`, `PredictNext/views/PredictHome/internal/PortfolioActions.tsx`, PRED-1376 mapping table                                     | Supported actions, discovery Feeds by semantic key, search support                                                                                           |
+| Venue sections, tabs, and entry points | `PredictNext/navigation/feedScreens.ts`, `PredictNext/views/PredictHome/internal/PortfolioActions.tsx`, PRED-1376 mapping table                                     | Supported actions, discovery Feeds by semantic key, search support, Feed Screens and their tabs                                                              |
 
 Paths are relative to `app/components/`, except `util/`, which is relative to `app/`.
 
@@ -211,31 +211,69 @@ The Venue catalog is the backend-supplied part of PRED-1376's internal `PredictV
 type PredictVenueAction = 'buy' | 'sell' | 'claim' | 'deposit' | 'withdraw';
 
 /** Stable product key, kebab-case, for example "trending" or "nfl-games".
- * PRED-1376 owns the vocabulary and the surface-to-key mapping table. */
-type PredictFeedKey = string & { readonly __brand: 'PredictFeedKey' };
+ * The Predict API owns the vocabulary (PRED-1522). Mobile owns only its
+ * surface-to-key mapping table. */
+type PredictFeedKey = string;
+
+interface PredictVenueFeedScreen {
+  /** Kebab-case, unique. Deep links use it; a Category opens the screen
+   * whose `id` is its Feed key. */
+  id: string;
+  title: string;
+  subtitle?: string;
+  /** In display order, 1 to 8, ids unique within the screen. */
+  tabs: readonly { id: string; title: string; feed: PredictFeedKey }[];
+}
 
 interface PredictVenueCatalog {
   venueId: PredictVenueId;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Record<PredictFeedKey, PredictFeedId>>;
+  categories: readonly PredictFeedKey[];
   searchSupported: boolean;
+  /** Optional on the wire (PRED-1525); parsed to [] when absent. */
+  screens: readonly PredictVenueFeedScreen[];
+  /** Optional (PRED-1527); undefined when absent or unusable. */
+  home?: { sections: readonly PredictHomeSection[] };
 }
+
+/** In display order; at most 8. `screen` names a Feed Screen in `screens`. */
+type PredictHomeSection =
+  | { kind: 'trending'; sources: readonly PredictFeedKey[]; screen?: string }
+  | {
+      kind: 'games-row';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen?: string;
+    }
+  | { kind: 'categories' }
+  | {
+      kind: 'feed-preview';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen: string;
+    };
 ```
 
-| Field             | Rule                                                                                                                   | Needed by                                                |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `actions`         | The product actions the Venue supports. Unknown strings are dropped. A missing or malformed catalog enables no action. | Buy and Cash Out buttons, Claim CTA, funding affordances |
-| `feeds`           | Discovery Feeds by semantic key. A section or tab renders only when its key is present. Unknown keys are ignored.      | Home slots, Trending tabs, Feed Screens                  |
-| `searchSupported` | Whether `GET /search` is served for the Venue.                                                                         | Search entry points                                      |
+| Field             | Rule                                                                                                                      | Needed by                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `actions`         | The product actions the Venue supports. Unknown strings are dropped. A missing or malformed catalog enables no action.    | Buy and Cash Out buttons, Claim CTA, funding affordances |
+| `feeds`           | Discovery Feeds by semantic key. A section or tab renders only when its key is present. Unknown keys are ignored.         | Home slots, Trending tabs, Feed Screens                  |
+| `searchSupported` | Whether `GET /search` is served for the Venue.                                                                            | Search entry points                                      |
+| `categories`      | Home's Categories in display order, each a Feed key in `feeds`. A Category opens the Feed Screen whose `id` is its key.   | Home's Category chips                                    |
+| `screens`         | The Feed Screens and their ordered tabs, each tab on a Feed key in `feeds`. Optional; absent means no Feed Screens.       | Feed Screens, Category chips, Feed Screen deep links     |
+| `home`            | PredictNext Home's sections in display order, each reading Feed keys in `feeds`. Optional; absent means no Home sections. | PredictNext Home                                         |
 
-The catalog describes support only. It is distinct from rollout flags, Venue Status, eligibility, and Account Readiness. The backend still authorizes every write independently. Feed labels are localized client copy keyed by semantic key, so the catalog sends no display strings.
+The catalog describes support only. It is distinct from rollout flags, Venue Status, eligibility, and Account Readiness. The backend still authorizes every write independently. Feed Screens carry server titles: mobile shows its localized copy for the screen and tab IDs it knows (`predict_next.feed_screens` in the locale files) and the server's `title` and `subtitle` for the rest, so a screen added on the server reads sensibly without a release.
 
 PRED-1376 implements the client side:
 
-- **Vocabulary.** `PREDICT_FEED_KEYS` in `types/index.ts`. Mobile types `PredictFeedKey` as that closed union rather than a branded string; the parser drops keys outside it, so the wire format is unchanged. Add a key there before the backend serves it.
-- **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, Rewards campaign rows, and PredictNext Home sections and Feed Screen tabs to keys.
-- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog. `categories` is the exception: it only drives Home's chip row, so an entry that is not a string, not a Feed key in `feeds`, or a repeat is dropped and logged (`Logger.log`), as is a `categories` that is not an array. It never rejects the catalog.
-- **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method serves the static Kalshi catalog until PRED-1403 swaps in this route.
+- **Vocabulary.** The Predict API owns the Feed-key vocabulary, as decided under PRED-1522. Since PRED-1526 mobile types `PredictFeedKey` as an open string and accepts any kebab-case key the API serves, so a Feed the API adds reaches mobile without a release. `PREDICT_VENUE_ACTIONS` stays a closed list: actions are not Feed keys.
+- **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots and Explore tabs to keys. PredictNext Home is not in it: since PRED-1528 Home renders the parsed `home` sections in catalog order, each with its existing component, and each header opens the section's `screen` while `screens` has it. Feed Screens and their tabs are not in it: `navigation/feedScreens.ts` looks them up in the parsed `screens`, and a Feed Screen route or deep link names a screen ID the screen resolves against the catalog once it loads, showing its unavailable state when the catalog lacks it. A Rewards campaign's Venue is decided by `campaigns/campaignVenues.ts`, not by a Feed key.
+- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions and fields. A malformed `venueId`, `actions`, `feeds` object or `searchSupported`, or another Venue's `venueId`, rejects the whole catalog. Single entries never do: each is dropped and logged (`Logger.log`) and the rest kept. That covers a `feeds` entry whose key is not kebab-case or that has no Feed ID; a Category that is not a string, not a Feed key in `feeds`, or a repeat (and a `categories` that is not an array); and a Feed Screen that is malformed, repeats an earlier ID, or has no usable tab, or a tab that is malformed, repeats an ID within its screen, or names a Feed key missing from `feeds` (and a `screens` that is not an array). Home is parsed the same way, because the API will add section kinds and fields after a build ships: a section that is malformed, of an unknown kind, reads a Feed key missing from `feeds`, repeats an earlier ID (or is a second Trending or Categories), comes after the eighth kept section, or would take Home past eight distinct Feed reads is dropped and logged; a Trending source missing from `feeds` or repeated is dropped and the section kept; a `screen` missing from `screens` is kept and the header opens nothing. A `home` that is not an object with a `sections` array is dropped and logged, and Home then shows Balance, the Portfolio actions and its unavailable state.
+- **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method calls `GET /v1/venues/{venueId}/catalog`; there is no bundled Kalshi catalog in production. The deployment's `actions` are authoritative, including `withdraw`, which the API advertises only while its withdrawals fence serves the route. `KALSHI_STATIC_VENUE_CATALOG` (`contracts/v1/fixtures/kalshiVenueCatalog.ts`) is a test fixture only.
 - **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
 
 ## Invariants
@@ -266,7 +304,7 @@ GET /v1/venues/{venueId}/catalog
 ```
 
 - `200` with `PredictVenueCatalog`. `404` for an unknown Venue.
-- Not account-scoped. `Cache-Control: public, max-age=300`. Mobile stale time: 5 minutes. PRED-1376 owns the static fallback and failure behavior.
+- Not account-scoped. `Cache-Control: public, max-age=300`. Mobile stale time: 5 minutes. A failed read surfaces as an error and enables no action; mobile never falls back to a bundled catalog.
 
 ### Read the Portfolio Summary
 
@@ -779,22 +817,24 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-The Kalshi V1 catalog PRED-1376 ships as static client config, now with the Politics topic Feeds (PRED-1454). `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
+The Kalshi V1 catalog is served by the Predict API (PRED-1403), including the Politics topic Feeds (PRED-1454), and mobile never falls back to bundled config. `actions` describe deployment support: a deployment adds `withdraw` only while its withdrawals fence serves the route. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games, and `politics` is the Politics Category's default Feed, which for V1 is Trump. `categories` lists the Categories Home shows, in order.
 
 ```json
 {
   "venueId": "kalshi",
-  "actions": ["buy", "sell"],
+  "actions": ["buy", "sell", "deposit"],
   "feeds": {
     "sports": "sports-football-nfl-games",
     "nfl-games": "sports-football-nfl-games",
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",
     "college-football-props": "sports-football-ncaa-win-totals",
+    "politics": "politics-trump",
     "politics-trump": "politics-trump",
     "politics-congress": "politics-congress",
     "politics-iran": "politics-iran"
   },
+  "categories": ["sports", "politics"],
   "searchSupported": true
 }
 ```

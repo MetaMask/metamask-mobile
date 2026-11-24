@@ -102,6 +102,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
+    TransactionType.perpsLighterDepositAndOrder,
   ]);
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,

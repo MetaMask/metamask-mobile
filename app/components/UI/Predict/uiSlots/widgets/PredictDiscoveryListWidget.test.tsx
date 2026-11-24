@@ -88,6 +88,70 @@ describe('PredictDiscoveryListWidget', () => {
     expect(mockHomepagePredictDiscovery).toHaveBeenCalledTimes(1);
   });
 
+  it('passes configured row icons through and drops names this build does not ship', () => {
+    const host = {
+      enabled: true,
+      title: 'Predictions',
+      onViewAll: jest.fn(),
+      headerTestIdKey: 'predictions' as const,
+      registerDiscoveryRefetch: jest.fn(),
+      reportDiscoveryLoading: jest.fn(),
+    };
+    const slotWithIcons: UiSlot = {
+      ...slot,
+      dataReferences: [
+        {
+          ...reference,
+          params: {
+            ...reference.params,
+            items: [
+              {
+                type: 'event',
+                id: 'event-1',
+                slug: 'event-one',
+                iconName: 'Basketball',
+              },
+              {
+                type: 'series',
+                seriesId: 'btc-up-or-down-5m',
+                iconName: 'Trophy',
+              },
+              {
+                type: 'event',
+                id: 'event-2',
+                slug: 'event-two',
+                iconName: 'FutureIcon',
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    render(
+      <PredictDiscoveryListHostContext.Provider value={host}>
+        <PredictDiscoveryListWidget slot={slotWithIcons} />
+      </PredictDiscoveryListHostContext.Provider>,
+    );
+
+    const { slots } = jest.mocked(useHomepagePredictMarketSlots).mock
+      .calls[0][0];
+    expect(slots).toStrictEqual([
+      {
+        type: 'event',
+        id: 'event-1',
+        slug: 'event-one',
+        iconName: 'Basketball',
+      },
+      {
+        type: 'series',
+        series: BTC_UP_OR_DOWN_5M_SERIES,
+        iconName: 'Trophy',
+      },
+      { type: 'event', id: 'event-2', slug: 'event-two' },
+    ]);
+  });
+
   it('uses bundled slots and resets loading during unmount', () => {
     const reportDiscoveryLoading = jest.fn();
     const host = {

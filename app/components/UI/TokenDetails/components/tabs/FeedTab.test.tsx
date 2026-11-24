@@ -5,6 +5,14 @@ import { View } from 'react-native';
 import TokenDetailsFeedTab from './FeedTab';
 import { SocialFeed, type SocialFeedProps } from '../../../SocialFeed';
 
+jest.mock('../../../../Views/SocialLeaderboard/analytics', () => ({
+  SocialEvent: {
+    Screen: { TOKEN_DETAILS_FEED: 'token_details_feed' },
+    Source: { TOKEN_DETAILS_FEED: 'token_details_feed' },
+  },
+  useSocialScreenAnalytics: jest.fn(),
+}));
+
 jest.mock(
   '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
   () => ({
