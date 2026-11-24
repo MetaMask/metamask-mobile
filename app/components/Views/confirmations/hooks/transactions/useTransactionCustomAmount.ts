@@ -423,6 +423,7 @@ export function useTransactionCustomAmount({
       }
 
       userHasEditedRef.current = true;
+      keepAmountAfterReplacementRef.current = false;
       amountChangeTimeRef.current = Date.now();
 
       if (lastAmountInputTypeRef.current !== 'manual') {
@@ -529,8 +530,9 @@ export function useTransactionCustomAmount({
   }, [amountFiat, transactionId]);
 
   // Clamp the kept amount once per replacement, deferring until balanceUsd and
-  // the new transactionMeta are both available. Once clamped, clear both flags
-  // so prefill works again and successive replacements can clamp again.
+  // the new transactionMeta are both available. Once clamped, clear the pending
+  // flag so successive replacements can clamp again. keepAmountAfterReplacementRef
+  // stays true until a genuine pay-token change or manual edit clears it.
   useEffect(() => {
     if (
       pendingClampRef.current &&
@@ -546,9 +548,7 @@ export function useTransactionCustomAmount({
       if (clampedAmount !== amountFiat) {
         setAmountFiat(clampedAmount);
       }
-      // Clear both flags so prefill works again and next replacement can clamp
       pendingClampRef.current = false;
-      keepAmountAfterReplacementRef.current = false;
     }
   }, [amountFiat, balanceUsd, transactionMeta]);
 

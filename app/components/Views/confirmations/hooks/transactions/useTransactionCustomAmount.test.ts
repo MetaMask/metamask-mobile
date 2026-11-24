@@ -2834,7 +2834,7 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe(prefilledAmount);
     });
 
-    it('resets keepAmountAfterReplacementRef so a later pay-token change re-applies the prefill', async () => {
+    it('clears keepAmountAfterReplacementRef on pay-token change so prefill applies again', async () => {
       mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
       const { result, rerender } = runHook({
@@ -2855,8 +2855,9 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('42');
 
-      // Switch to a different token — prefill should apply now that the ref is cleared.
-      // Perps deposits prefill to 50% regardless of stablecoin status.
+      // Switch to a different token — keepAmountAfterReplacementRef is cleared
+      // on genuine pay-token change, so prefill applies. Perps deposits prefill
+      // to 50% regardless of stablecoin status.
       mockPayToken(ETHEREUM_USDC_ADDRESS, '800');
 
       await act(async () => {
@@ -2954,10 +2955,7 @@ describe('useTransactionCustomAmount', () => {
           ...current,
           id: 'replacement-lighter-deposit',
           type: TransactionType.perpsLighterDeposit,
-          nestedTransactions: [
-            { data: '0x095ea7b3' },
-            { data: '0x8a857083' },
-          ],
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
         } as TransactionMeta;
       });
       mockPayToken(undefined);
@@ -3010,10 +3008,7 @@ describe('useTransactionCustomAmount', () => {
           ...current,
           id: 'first-lighter-deposit',
           type: TransactionType.perpsLighterDeposit,
-          nestedTransactions: [
-            { data: '0x095ea7b3' },
-            { data: '0x8a857083' },
-          ],
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
         } as TransactionMeta;
       });
       mockPayToken(undefined);
@@ -3070,10 +3065,7 @@ describe('useTransactionCustomAmount', () => {
           ...current,
           id: 'second-lighter-deposit',
           type: TransactionType.perpsLighterDeposit,
-          nestedTransactions: [
-            { data: '0x095ea7b3' },
-            { data: '0x8a857083' },
-          ],
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
         } as TransactionMeta;
       });
       mockPayToken(undefined);
@@ -3092,6 +3084,64 @@ describe('useTransactionCustomAmount', () => {
 
       // Second clamp: 100% of 1200 -> 90% = 1080
       expect(result.current.amountFiat).toBe('1080');
+    });
+
+    it('keeps the replaced amount when depositPrefill status toggles', async () => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+        prefilledAmount: {
+          default: { enabled: false },
+          overrides: {
+            perpsDeposit: { enabled: true },
+          },
+        },
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      // Initial prefill to 50%
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+
+      // User edits to a different amount
+      await act(async () => {
+        result.current.updatePendingAmount('350');
+      });
+
+      expect(result.current.amountFiat).toBe('350');
+
+      // Replace transaction - amount is kept
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('350');
+
+      // Toggle prefill status: Prefilled -> not prefilled (zero balance)
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '0');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Amount should stay 350, not cleared to 0 by prefill logic
+      expect(result.current.amountFiat).toBe('350');
+
+      // Toggle back: not prefilled -> Prefilled with higher balance
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '2000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Amount should still be 350, not changed to the new prefill (1000)
+      expect(result.current.amountFiat).toBe('350');
     });
   });
 });
