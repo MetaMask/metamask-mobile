@@ -128,6 +128,7 @@ import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
 import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import { deriveMoneyCardSetupPollIntervalMs } from '../../../Money/utils/moneyMetaMaskCardMode';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
@@ -290,10 +291,14 @@ const CardHome = () => {
     recheck: recheckProvisioning,
   } = useCardEnableCard(data, {
     recheckOnFocus: true,
-    // The waiting view re-checks a manual review on its own. Offline stops
-    // that timer and the provisioning poll; an unknown network keeps both.
+    // The waiting view re-checks a manual review on its own. The provisioning
+    // poll follows the same network cadence as Money home: off when offline,
+    // 15s on slow cellular, and 5s otherwise.
     kycReviewSelfCheck: true,
-    ...(networkTier === 'NONE' ? { pollIntervalMs: null } : {}),
+    pollIntervalMs: deriveMoneyCardSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+    ),
   });
   const isSetupReconciling = provisioningView === 'reconciling';
 

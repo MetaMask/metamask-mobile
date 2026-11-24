@@ -1312,7 +1312,7 @@ describe('useImmersveCardProvisioning', () => {
     it('quietly retries after a failed reconcile instead of stalling the waiting view', async () => {
       let rejectPrerequisites!: (error: Error) => void;
       controller.getSpendingPrerequisites.mockImplementationOnce(
-        () =>
+        async () =>
           new Promise((_, reject) => {
             rejectPrerequisites = reject;
           }),
@@ -1354,7 +1354,7 @@ describe('useImmersveCardProvisioning', () => {
     it('quietly retries after a failed createCard instead of stalling the waiting view', async () => {
       let rejectCreateCard!: (error: Error) => void;
       controller.createCard.mockImplementationOnce(
-        () =>
+        async () =>
           new Promise((_, reject) => {
             rejectCreateCard = reject;
           }),
@@ -1390,7 +1390,9 @@ describe('useImmersveCardProvisioning', () => {
         await Promise.resolve();
       });
       expect(controller.createCard).toHaveBeenCalledTimes(2);
-      const startedCalls = mockCreateEventBuilder.mock.calls.filter(
+      const startedCalls = (
+        mockCreateEventBuilder.mock.calls as unknown[][]
+      ).filter(
         (call) => call[0] === MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED,
       );
       expect(startedCalls).toHaveLength(1);
@@ -1400,7 +1402,7 @@ describe('useImmersveCardProvisioning', () => {
     it('backs off quiet createCard retries and then stops', async () => {
       let rejectCreateCard!: (error: Error) => void;
       controller.createCard.mockImplementation(
-        () =>
+        async () =>
           new Promise((_, reject) => {
             rejectCreateCard = reject;
           }),
@@ -1413,15 +1415,15 @@ describe('useImmersveCardProvisioning', () => {
       );
 
       jest.useFakeTimers();
-      // 5s, 10s, 20s, 40s, 60s, 60s — six retries, then no more.
-      const delays = [5_000, 10_000, 20_000, 40_000, 60_000, 60_000];
-      for (const delay of delays) {
+      const rejectAndFlush = async () => {
         await act(async () => {
           rejectCreateCard(new Error('provider 500'));
         });
         await act(async () => {
           await Promise.resolve();
         });
+      };
+      const advanceQuietRetry = async (delay: number) => {
         act(() => {
           jest.advanceTimersByTime(delay);
         });
@@ -1431,6 +1433,12 @@ describe('useImmersveCardProvisioning', () => {
         await act(async () => {
           await Promise.resolve();
         });
+      };
+      // 5s, 10s, 20s, 40s, 60s, 60s — six retries, then no more.
+      const delays = [5_000, 10_000, 20_000, 40_000, 60_000, 60_000];
+      for (const delay of delays) {
+        await rejectAndFlush();
+        await advanceQuietRetry(delay);
       }
       expect(controller.createCard).toHaveBeenCalledTimes(1 + delays.length);
 
@@ -1444,6 +1452,42 @@ describe('useImmersveCardProvisioning', () => {
         await Promise.resolve();
       });
       expect(controller.createCard).toHaveBeenCalledTimes(1 + delays.length);
+      jest.useRealTimers();
+    });
+
+    it('keeps retrying a settling funding check after the error retry cap', async () => {
+      jest.useFakeTimers();
+      mockFundingSettling = true;
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: fundingPrerequisites,
+      });
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      const settleFor = async (delay: number) => {
+        await act(async () => {
+          jest.advanceTimersByTime(delay);
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+      };
+      // 5s, 10s, 20s, 40s, 60s, 60s, then another 60s past the error cap.
+      const delays = [5_000, 10_000, 20_000, 40_000, 60_000, 60_000, 60_000];
+      for (const delay of delays) {
+        await settleFor(delay);
+      }
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(
+        1 + delays.length,
+      );
       jest.useRealTimers();
     });
 
@@ -1500,7 +1544,7 @@ describe('useImmersveCardProvisioning', () => {
     it('stops self-checking and retrying after unmount', async () => {
       let rejectPrerequisites!: (error: Error) => void;
       controller.getSpendingPrerequisites.mockImplementationOnce(
-        () =>
+        async () =>
           new Promise((_, reject) => {
             rejectPrerequisites = reject;
           }),
@@ -1536,7 +1580,7 @@ describe('useImmersveCardProvisioning', () => {
         .mockResolvedValueOnce({
           prerequisites: [{ stage: 'kyc', status: 'pending' }],
         })
-        .mockImplementation(() => new Promise(() => undefined));
+        .mockImplementation(async () => new Promise(() => undefined));
 
       const { result } = renderHook(() =>
         useImmersveCardProvisioning(provisioningData),

@@ -41,7 +41,10 @@ import { useImmersveKycOutcome } from '../../../hooks/useImmersveKycOutcome';
 import { CARD_SETUP_PENDING_POLL_MS } from './useCardSetupPendingRefresh';
 
 const POLL_INTERVAL_MS = 5000;
-/** Automatic quiet retries stop after this many, instead of polling forever. */
+/**
+ * Failed quiet retries stop after this many. A funding allowance that is
+ * still settling keeps retrying at the delay cap.
+ */
 const QUIET_RECHECK_MAX_ATTEMPTS = 6;
 /** Cap for the exponential quiet-retry delay. */
 const QUIET_RECHECK_MAX_DELAY_MS = 60_000;
@@ -339,14 +342,21 @@ export function useImmersveCardProvisioning(
     // Shared by the funding-still-pending path, a failed createCard and a
     // failed reconcile: a throw must never leave the waiting view stuck with
     // nothing scheduled to try again.
-    const scheduleQuietRecheck = () => {
+    const scheduleQuietRecheck = ({
+      limitAttempts = true,
+    }: {
+      limitAttempts?: boolean;
+    } = {}) => {
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
       }
       // Offline callers pass null and must not keep asking.
       const intervalMs = pollIntervalMsRef.current;
+      if (intervalMs === null) {
+        return;
+      }
       if (
-        intervalMs === null ||
+        limitAttempts &&
         quietRecheckAttemptRef.current >= QUIET_RECHECK_MAX_ATTEMPTS
       ) {
         return;
@@ -486,9 +496,10 @@ export function useImmersveCardProvisioning(
           }
         } else if (isFundingSettlingRef.current && action.type === 'funding') {
           // The allowance is submitted. Stay on "Card being created" and ask
-          // again once Immersve has had time to observe it. One reconcile at
+          // again once Immersve has had time to observe it. This wait is not
+          // an error, so it keeps going at the delay cap. One reconcile at
           // a time: the next run starts only after this one has finished.
-          scheduleQuietRecheck();
+          scheduleQuietRecheck({ limitAttempts: false });
         } else {
           clearFundingSettling();
           resetQuietRecheck();

@@ -1546,7 +1546,11 @@ describe('CardHome Component', () => {
 
     expect(jest.mocked(useCardEnableCard)).toHaveBeenCalledWith(
       expect.anything(),
-      { recheckOnFocus: true, kycReviewSelfCheck: true },
+      {
+        recheckOnFocus: true,
+        kycReviewSelfCheck: true,
+        pollIntervalMs: 5_000,
+      },
     );
   });
 
