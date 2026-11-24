@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
-import type { CommissionEntryView } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type {
+  CommissionEntryView,
+  SummaryTotalsDto,
+} from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
@@ -175,7 +178,7 @@ describe('RewardsCopyTradingView', () => {
   });
 
   it('shows the held banner for this family only, below the history title', () => {
-    const family = {
+    const family: SummaryTotalsDto = {
       lifetime: '56000000',
       pending: '0',
       claimed: '0',
@@ -198,8 +201,9 @@ describe('RewardsCopyTradingView', () => {
                 by_claim_family: {
                   REFERRAL_TRADE_FEE_CASHBACK: {
                     ...family,
+                    by_address: [],
                     held: '9000000',
-                    blocking_reason: 'SUSPENDED',
+                    blocking_reason: 'SUSPENDED' as const,
                   },
                 },
               },
