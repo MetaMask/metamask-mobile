@@ -219,8 +219,7 @@ const markOnboardingSeen = () =>
   });
 
 /**
- * Social Leaderboard onboarding shown once on app start (Rive + RN hybrid,
- * modeled on `MoneyOnboardingView`).
+ * Social Leaderboard onboarding shown once on app start (Rive + RN hybrid).
  *
  * The rive animation renders the visuals — background, trader
  * cards, buttons — and owns step navigation through its state machine. React

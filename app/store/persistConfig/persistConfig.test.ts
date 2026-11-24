@@ -264,6 +264,33 @@ describe('persistConfig', () => {
       });
     });
 
+    it('also loads the additional controllers it is given', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return JSON.stringify({ vault: 'encrypted_data' });
+        }
+        if (key === 'persist:TokensController') {
+          return JSON.stringify({ allTokens: {} });
+        }
+        return null;
+      });
+
+      const withoutAdditional = await ControllerStorage.getAllPersistedState();
+      const withAdditional = await ControllerStorage.getAllPersistedState([
+        'TokensController',
+      ]);
+
+      expect(withoutAdditional).toEqual({
+        backgroundState: { KeyringController: { vault: 'encrypted_data' } },
+      });
+      expect(withAdditional).toEqual({
+        backgroundState: {
+          KeyringController: { vault: 'encrypted_data' },
+          TokensController: { allTokens: {} },
+        },
+      });
+    });
+
     it('includes controllers with empty state objects for performance', async () => {
       (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
         if (key === 'persist:KeyringController') {
@@ -446,7 +473,7 @@ describe('persistConfig', () => {
       });
     });
 
-    it('backfills moneySplashSeen from moneyOnboardingSeen when absent', () => {
+    it('does not backfill moneySplashSeen from moneyOnboardingSeen', () => {
       const userTransform = persistConfig.transforms[0] as Transform<
         unknown,
         unknown
@@ -463,7 +490,7 @@ describe('persistConfig', () => {
       ).toEqual(
         expect.objectContaining({
           moneyOnboardingSeen: true,
-          moneySplashSeen: true,
+          moneySplashSeen: false,
         }),
       );
     });

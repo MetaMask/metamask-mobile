@@ -864,12 +864,6 @@ const BASE_MONEY_ACCOUNT_FLAGS = [
     },
   },
   {
-    moneyEnableOnboardingStepperAnimation: {
-      minimumVersion: '8.0.0',
-      enabled: true,
-    },
-  },
-  {
     moneyHomeScreenEnabled: {
       enabled: true,
       minimumVersion: '7.82.0',
@@ -1279,18 +1273,6 @@ const BASE_STX_FLAGS = [
 ];
 
 const BASE_TMCU_FLAGS = [
-  {
-    tmcuActivityRedesignEnabled: {
-      enabled: true,
-      minimumVersion: '8.5.0',
-    },
-  },
-  {
-    tmcuTransactionsRedesignEnabled: {
-      enabled: true,
-      minimumVersion: '8.5.0',
-    },
-  },
   {
     walletHomeOnboardingSteps: {
       enabled: true,

@@ -456,7 +456,6 @@ const RewardsDashboard: React.FC = () => {
               <CampaignsPreview />
             ) : (
               <RewardsOptInSection
-                showDivider={false}
                 localizedText={{
                   invitedOptInDescription:
                     referralMe?.localized_text.invitedOptInDescription ||

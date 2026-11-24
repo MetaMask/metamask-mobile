@@ -543,14 +543,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  ASSETS4098ShowRobinhoodRwa: {
-    name: 'ASSETS4098ShowRobinhoodRwa',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   networkAssetsSnapsMigrationSolana: {
     name: 'networkAssetsSnapsMigrationSolana',
     type: FeatureFlagType.Remote,
@@ -5043,28 +5035,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyEnableOnboardingStepperAnimation: {
-    name: 'moneyEnableOnboardingStepperAnimation',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyEnableSplash: {
-    name: 'moneyEnableSplash',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.21.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   nativeTabBarEnabled: {
     name: 'nativeTabBarEnabled',
     type: FeatureFlagType.Remote,
@@ -6045,6 +6015,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
         },
       },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsFromMoney: {
+    name: 'swapsFromMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsToMoney: {
+    name: 'swapsToMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -8491,7 +8483,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   tmcuTransactionsRedesignEnabled: {
@@ -8502,7 +8494,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   assetsASSETS3380AbtestExploreQuickBuy: {
     name: 'assetsASSETS3380AbtestExploreQuickBuy',
