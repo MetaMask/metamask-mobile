@@ -91,9 +91,7 @@ appiumTest.describe(
                 shouldCooldown: true,
                 timeToCooldown: 3000,
               });
-              await TestDApp.verifyCurrentNetworkText(
-                'Chain id ' + ADDED_CHAIN_ID,
-              );
+              await TestDApp.verifyConnectedChainId(ADDED_CHAIN_ID);
 
               // Fails here (no confirmation appears) while the bug is present.
               await tapTestDappButtonAndWaitForConfirm(buttonId, name);
