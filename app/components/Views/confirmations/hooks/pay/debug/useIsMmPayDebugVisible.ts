@@ -1,5 +1,8 @@
 import { useSelector } from 'react-redux';
-import { hasTransactionType } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import { selectMmPayDebugEnabled } from '../../../../../../reducers/experimentalSettings/selectors';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
@@ -16,5 +19,8 @@ export function useIsMmPayDebugVisible(): boolean {
     return false;
   }
 
-  return hasTransactionType(transactionMeta, MM_PAY_TRANSACTION_TYPES);
+  return hasTransactionType(
+    transactionMeta,
+    MM_PAY_TRANSACTION_TYPES as readonly TransactionType[],
+  );
 }

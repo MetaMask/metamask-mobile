@@ -1,5 +1,4 @@
 import {
-  TransactionType,
   TransactionStatus,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
