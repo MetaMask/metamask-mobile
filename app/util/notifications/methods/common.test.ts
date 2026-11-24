@@ -60,6 +60,27 @@ describe('formatMenuItemDate', () => {
     });
   });
 
+  it.each([
+    [
+      'late yesterday, a few hours ago',
+      new Date(2024, 5, 7, 8, 0),
+      new Date(2024, 5, 6, 23, 30),
+    ],
+    [
+      'early yesterday, more than 36 hours ago',
+      new Date(2024, 5, 7, 22, 0),
+      new Date(2024, 5, 6, 0, 30),
+    ],
+  ])('formats date as "yesterday" when it was %s', (_, now, testDate) => {
+    jest.setSystemTime(now);
+
+    expect(formatMenuItemDate(testDate)).toBe(
+      strings('notifications.yesterday'),
+    );
+
+    jest.setSystemTime(new Date(Date.UTC(2024, 5, 7, 9, 40, 0)));
+  });
+
   it('should format date as "Month DD" if the date is this year but not today or yesterday', () => {
     const assertMonthsAgo = (modifyDate: (d: Date) => Date | void) => {
       let testDate = new Date();
