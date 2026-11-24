@@ -1300,7 +1300,7 @@ describe('useImmersveCardProvisioning', () => {
       jest.useRealTimers();
     });
 
-    it('reads as reconciling while a self-check runs', async () => {
+    it('keeps the review state on screen while a self-check runs', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [{ stage: 'kyc', status: 'pending' }],
       });
@@ -1324,7 +1324,45 @@ describe('useImmersveCardProvisioning', () => {
         jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
       });
 
-      expect(result.current.isReconciling).toBe(true);
+      expect(result.current.isReconciling).toBe(false);
+      expect(result.current.pendingAction).toEqual({ type: 'pending' });
+      jest.useRealTimers();
+    });
+
+    it('does not start another self-check while one is still running', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValueOnce({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+      controller.getSpendingPrerequisites.mockImplementation(
+        async () => new Promise(() => undefined),
+      );
+
+      jest.useFakeTimers();
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+      for (let tick = 0; tick < 3; tick++) {
+        act(() => {
+          jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
+        });
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+      }
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
       jest.useRealTimers();
     });
 
