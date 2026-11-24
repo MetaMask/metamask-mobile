@@ -44,10 +44,12 @@ const MONEY_TOKEN: BridgeToken = {
 
 const submitTx = Engine.context.BridgeStatusController.submitTx as jest.Mock;
 
-const pressEnabledConfirm = async (
-  findByTestId: (id: string) => Promise<unknown>,
-  getByTestId: (id: string) => { props: { isDisabled?: boolean } },
-) => {
+type MoneySwapRender = ReturnType<typeof renderBridgeViewForMoneySwap>;
+
+const pressEnabledConfirm = async ({
+  findByTestId,
+  getByTestId,
+}: Pick<MoneySwapRender, 'findByTestId' | 'getByTestId'>) => {
   expect(
     await findByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
   ).toBeOnTheScreen();
@@ -59,18 +61,28 @@ const pressEnabledConfirm = async (
   });
 
   fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+
+  await waitFor(() => {
+    expect(submitTx).toHaveBeenCalled();
+  });
 };
 
-const expectMoneyHomeInsteadOfPostTrade = async (
-  findByTestId: (id: string) => Promise<{ props: { children?: unknown } }>,
-  queryByTestId: (id: string) => unknown,
-) => {
-  const homeParams = await findByTestId(
-    getRouteParamsProbeTestId(Routes.HOME_TABS),
-  );
-  expect(JSON.parse(String(homeParams.props.children))).toEqual({
-    screen: Routes.MONEY.ROOT,
-    params: { screen: Routes.MONEY.HOME },
+const expectMoneyHomeInsteadOfPostTrade = async ({
+  getByTestId,
+  queryByTestId,
+}: Pick<MoneySwapRender, 'getByTestId' | 'queryByTestId'>) => {
+  await waitFor(() => {
+    expect(
+      JSON.parse(
+        String(
+          getByTestId(getRouteParamsProbeTestId(Routes.HOME_TABS)).props
+            .children,
+        ),
+      ),
+    ).toEqual({
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
   expect(
     queryByTestId(getRouteParamsProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
@@ -98,52 +110,50 @@ describeForPlatforms('BridgeView money swap flows', () => {
   });
 
   it('sends the user to money home after confirming a deposit swap', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderBridgeViewForMoneySwap({
-        deterministicFiat: true,
-        destTokenAddress: MONEY_TOKEN.address,
-        overrides: {
-          bridge: {
-            ...DEFAULT_BRIDGE,
-            destToken: MONEY_TOKEN,
-            selectedDestChainId: '0x1',
-            isDestTokenManuallySet: true,
-          },
+    const screen = renderBridgeViewForMoneySwap({
+      deterministicFiat: true,
+      destTokenAddress: MONEY_TOKEN.address,
+      overrides: {
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          destToken: MONEY_TOKEN,
+          selectedDestChainId: '0x1',
+          isDestTokenManuallySet: true,
         },
-      });
+      },
+    });
 
-    await pressEnabledConfirm(findByTestId, getByTestId);
+    await pressEnabledConfirm(screen);
 
-    await expectMoneyHomeInsteadOfPostTrade(findByTestId, queryByTestId);
+    await expectMoneyHomeInsteadOfPostTrade(screen);
     expect(submitTx).toHaveBeenCalledWith(
       expect.objectContaining({ operation: MoneyAccountAction.Deposit }),
     );
   });
 
   it('sends the user to money home after confirming a withdraw swap', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderBridgeViewForMoneySwap({
-        deterministicFiat: true,
-        srcTokenAddress: MONEY_TOKEN.address,
-        destTokenAddress: USDC_DEST.address,
-        srcAmount: '1000000',
-        overrides: {
-          bridge: {
-            ...DEFAULT_BRIDGE,
-            sourceAmount: '1',
-            sourceToken: MONEY_TOKEN,
-            destToken: {
-              ...USDC_DEST,
-            },
-            selectedDestChainId: '0x1',
-            isDestTokenManuallySet: true,
+    const screen = renderBridgeViewForMoneySwap({
+      deterministicFiat: true,
+      srcTokenAddress: MONEY_TOKEN.address,
+      destTokenAddress: USDC_DEST.address,
+      srcAmount: '1000000',
+      overrides: {
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          sourceAmount: '1',
+          sourceToken: MONEY_TOKEN,
+          destToken: {
+            ...USDC_DEST,
           },
+          selectedDestChainId: '0x1',
+          isDestTokenManuallySet: true,
         },
-      });
+      },
+    });
 
-    await pressEnabledConfirm(findByTestId, getByTestId);
+    await pressEnabledConfirm(screen);
 
-    await expectMoneyHomeInsteadOfPostTrade(findByTestId, queryByTestId);
+    await expectMoneyHomeInsteadOfPostTrade(screen);
     expect(submitTx).toHaveBeenCalledWith(
       expect.objectContaining({ operation: MoneyAccountAction.Withdraw }),
     );

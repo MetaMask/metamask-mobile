@@ -153,6 +153,23 @@ export function renderBridgeView(
   );
 }
 
+const HomeTabsParamsProbe = createRouteParamsProbe(Routes.HOME_TABS);
+
+/**
+ * Home sits under Bridge, matching production. Confirm uses
+ * `navigate(HOME_TABS, ..., { pop: true })`. Starting on Bridge alone lets iOS
+ * native-stack pop the only screen and never mount Home.
+ */
+const MoneySwapHomeHost = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+
+  React.useEffect(() => {
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+  }, [navigation]);
+
+  return <HomeTabsParamsProbe />;
+};
+
 /**
  * BridgeView plus probes for Money home and the post-trade sheet so a confirm
  * press can assert which destination the swap actually took.
@@ -180,12 +197,12 @@ export const renderBridgeViewForMoneySwap = (
   }
 
   return renderScreenWithRoutes(
-    BridgeViewWithSession,
-    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    MoneySwapHomeHost,
+    { name: Routes.HOME_TABS },
     [
       {
-        name: Routes.HOME_TABS,
-        Component: createRouteParamsProbe(Routes.HOME_TABS),
+        name: Routes.BRIDGE.BRIDGE_VIEW,
+        Component: BridgeViewWithSession,
       },
       {
         name: Routes.BRIDGE.MODALS.ROOT,
