@@ -27,6 +27,8 @@ import {
   clearSuppressedNetworkAddedToast,
   suppressNextNetworkAddedToast,
 } from '../../../../util/networks/networkToastSuppression';
+import { upgradeMoneyAccount } from '../../../../actions/money';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -34,7 +36,7 @@ import {
  * @param type - Whether this is a source or dest token selector
  */
 export const useTokenSelection = (type: TokenSelectorType) => {
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -44,6 +46,15 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const { autoUpdateDestToken } = useAutoUpdateDestToken();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  /**
+   * Attempt to setup CHOMP for the money account
+   */
+  const handleMoneySelection = useCallback(() => {
+    const abortController = new AbortController();
+    dispatch(upgradeMoneyAccount(abortController.signal));
+    return () => abortController.abort();
+  }, [dispatch]);
 
   const handleTokenPress = useCallback(
     async (token: BridgeToken) => {
@@ -104,6 +115,10 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         }
       }
 
+      if (token.isMoneyToken) {
+        handleMoneySelection();
+      }
+
       if (isSelectingOtherToken && sourceToken && destToken) {
         // Only allow swap if the destination network (which would become source) is enabled
         if (!isDestNetworkEnabled) {
@@ -151,6 +166,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
       isDestNetworkEnabled,
       autoUpdateDestToken,
       networkConfigurations,
+      handleMoneySelection,
     ],
   );
 

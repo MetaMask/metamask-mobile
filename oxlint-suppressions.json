@@ -24159,11 +24159,6 @@
       "count": 9
     }
   },
-  "app/util/bridge/hooks/useSubmitBridgeTx.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/util/browser/downloadFile.ts": {
     "typescript/no-base-to-string": {
       "count": 1
