@@ -25,7 +25,6 @@ import {
 } from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -81,7 +80,6 @@ const getTokenIdentity = (token?: {
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
  * @param token.address - The token address.
- * @param token.isMoneyToken - Whether the token represents the money account. Live withdrawable mUSD is used instead of the cached BridgeToken balance
  * @param token.decimals - The token decimals.
  * @param token.chainId - The chain ID to be used for fetching the balance.
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
@@ -91,7 +89,6 @@ const getTokenIdentity = (token?: {
 export const useLatestBalance = (
   token: {
     address?: string;
-    isMoneyToken?: boolean;
     decimals?: number;
     chainId?: Hex | CaipChainId;
     balance?: string;
@@ -101,10 +98,6 @@ export const useLatestBalance = (
 ) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const chainId = token.chainId;
-  const isMoneyToken = Boolean(token.isMoneyToken);
-  const { withdrawableMusd, refetchBalance } = useMoneyAccountBalance({
-    enabled: isMoneyToken,
-  });
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -115,7 +108,6 @@ export const useLatestBalance = (
     ? getFormattedAddressFromInternalAccount(selectedAccount)
     : undefined;
   const previousToken = usePrevious(token);
-  const previousRefreshKey = usePrevious(token.refreshKey);
 
   // Returns native non-EVM asset and non-EVM tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
@@ -244,10 +236,6 @@ export const useLatestBalance = (
   }, [previousTokenIdentity, tokenIdentity, tokenIdentityChanged]);
 
   useEffect(() => {
-    // Money tokens are vault balances, not the selected EOA's on-chain token.
-    if (isMoneyToken) {
-      return;
-    }
     // In case chainId is undefined, exit early to avoid
     // calling handleFetchEvmAtomicBalance which will trigger an invalid address error
     // when selectedAddress is a non-EVM chain.
@@ -256,44 +244,15 @@ export const useLatestBalance = (
     }
 
     handleFetchEvmAtomicBalance();
-  }, [
-    chainId,
-    handleFetchEvmAtomicBalance,
-    token.refreshKey,
-    featureId,
-    isMoneyToken,
-  ]);
+  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey, featureId]);
 
   useEffect(() => {
-    if (isMoneyToken) {
-      return;
-    }
     if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
       return;
     }
 
     handleNonEvmAtomicBalance();
-  }, [
-    chainId,
-    handleNonEvmAtomicBalance,
-    token.refreshKey,
-    featureId,
-    isMoneyToken,
-  ]);
-
-  useEffect(() => {
-    if (!isMoneyToken) {
-      return;
-    }
-    if (
-      previousRefreshKey === undefined ||
-      previousRefreshKey === token.refreshKey
-    ) {
-      return;
-    }
-
-    refetchBalance();
-  }, [isMoneyToken, previousRefreshKey, token.refreshKey, refetchBalance]);
+  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey, featureId]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;
@@ -311,19 +270,6 @@ export const useLatestBalance = (
   }, [token.balance, token.decimals]);
 
   const latestBalance = useMemo(() => {
-    if (isMoneyToken) {
-      const displayBalance =
-        withdrawableMusd?.toFixed() ?? token.balance ?? '0';
-      let atomicBalance = BigNumber.from(0);
-      if (token.decimals !== undefined) {
-        try {
-          atomicBalance = parseUnits(displayBalance, token.decimals);
-        } catch {
-          atomicBalance = BigNumber.from(0);
-        }
-      }
-      return { displayBalance, atomicBalance };
-    }
     if (!token.address || token.decimals === undefined) {
       return undefined;
     }
@@ -339,12 +285,9 @@ export const useLatestBalance = (
   }, [
     balance,
     cachedBalance,
-    isMoneyToken,
     token.address,
-    token.balance,
     token.decimals,
     tokenIdentityChanged,
-    withdrawableMusd,
   ]);
 
   return latestBalance;

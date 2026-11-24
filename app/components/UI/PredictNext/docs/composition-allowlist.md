@@ -84,9 +84,9 @@ PRED-1356: these move to canonical funding and operation contracts (the PRED-138
 
 ### `toastRegistration`: legacy toast registration
 
-| File                             | Imports                                                                                                                                                | PRED-1356                                                                                                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `app/components/Nav/App/App.tsx` | `Predict/hooks/usePredictToastRegistrations`, `PredictNext/notifications` (`usePredictOrderToastRegistrations`, `usePredictDepositToastRegistrations`) | Remove `usePredictToastRegistrations` and its spread. Keep `usePredictOrderToastRegistrations` and `usePredictDepositToastRegistrations` for both Venues. |
+| File                             | Imports                                                                                                         | PRED-1356                                                                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `app/components/Nav/App/App.tsx` | `Predict/hooks/usePredictToastRegistrations`, `PredictNext/notifications` (`usePredictOrderToastRegistrations`) | Remove `usePredictToastRegistrations` and its spread. Keep `usePredictOrderToastRegistrations`, which then serves both Venues. |
 
 Both registrations are mounted outside the Predict navigator, whatever the Active Venue (PRED-1383). The PredictNext one comes from the `notifications` module boundary, not the entry point, because App.tsx is loaded with the Engine.
 

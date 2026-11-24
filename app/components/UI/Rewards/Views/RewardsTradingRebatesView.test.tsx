@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import type { LedgerEarningEntryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type {
+  LedgerEarningEntryDto,
+  ReferralLocalizedText,
+} from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../tests/component-view/presets/rewardsMoney';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import { useCashbackLedger } from '../hooks/useCashbackLedger';
@@ -36,6 +38,17 @@ jest.mock('../hooks/useCashbackLedger');
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
+const LOCALIZED_TEXT = {
+  tradingRebates: 'Trading rebates',
+  rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
+  rebateSwaps: 'Swaps',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  tradingActivityEmptyAction: 'Start trading',
+} as unknown as ReferralLocalizedText;
+
 const REBATE: LedgerEarningEntryDto = {
   type: 'earning',
   id: 'e1',
@@ -117,7 +130,7 @@ describe('RewardsTradingRebatesView', () => {
       getByTestId(REWARDS_TRADING_REBATES_VIEW_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('Trading rebates')).toBeOnTheScreen();
-    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(getByText('Perps volume')).toBeOnTheScreen();
     expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(
       getByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${REBATE.id}`),

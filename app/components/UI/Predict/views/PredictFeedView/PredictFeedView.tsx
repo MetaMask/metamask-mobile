@@ -20,7 +20,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { TraceName } from '../../../../../util/trace';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
@@ -35,7 +34,6 @@ import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
 import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
-import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictFeedViewSelectorsIDs,
@@ -273,20 +271,6 @@ const PredictFeedView: React.FC = () => {
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  // End on list, empty, or error, not on first paint. Config can be unresolved
-  // while `isLoading` is already false (the query is disabled), and search
-  // starts hidden, so either flag alone would close the span at ~0ms.
-  const isFeedInteractive = isReady && !isLoading;
-  usePredictMeasurement({
-    traceName: TraceName.PredictFeedView,
-    conditions: [!isSearchVisible, isFeedInteractive],
-    debugContext: {
-      feedId: feedId ?? '',
-      isSearchVisible,
-      isFeedInteractive,
-    },
-  });
 
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (

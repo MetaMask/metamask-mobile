@@ -17,7 +17,7 @@ import {
 } from '@metamask/perps-controller';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { handlePerpsError } from '../utils/translatePerpsError';
+import { translatePerpsError } from '../utils/translatePerpsError';
 import {
   getOrderFormFieldIssues,
   isAdvisoryOrderFormFieldIssue,
@@ -332,17 +332,16 @@ const getProtocolValidationErrors = ({
     !isFieldOwnedError &&
     !suppressedProtocolErrors.has(error)
   ) {
-    const translatedError = handlePerpsError({
+    const translatedError = translatePerpsError(
       error,
-      context: getProtocolErrorContext({
+      getProtocolErrorContext({
         error,
         orderForm,
         existingPositionLeverage,
         minimumOrderSize,
         maxLeverage,
       }),
-      fallbackMessage: strings('perps.order.validation.failed'),
-    });
+    );
     const isDuplicate = localErrors.some((existingError) =>
       existingError.includes(translatedError),
     );
@@ -749,34 +748,20 @@ export function usePerpsOrderValidation(
     if (!hasValidatedOnceRef.current || becameLocallyValid) {
       hasValidatedOnceRef.current = true;
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors).catch(
-          (error: unknown) => {
-            DevLogger.log(
-              'usePerpsOrderValidation: Unexpected validation failure',
-              error,
-            );
-          },
-        );
+        performValidation(requestId, fieldIssues, localErrors);
       }
       return;
     }
 
     validationTimerRef.current = setTimeout(() => {
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors).catch(
-          (error: unknown) => {
-            DevLogger.log(
-              'usePerpsOrderValidation: Unexpected validation failure',
-              error,
-            );
-          },
-        );
+        performValidation(requestId, fieldIssues, localErrors);
       }
       validationTimerRef.current = null;
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
     // Cleanup
-    return (): void => {
+    return () => {
       clearValidationTimer();
     };
   }, [

@@ -1,18 +1,13 @@
 import type { Messenger } from '@metamask/messenger';
 import type { DataServiceInvalidateQueriesAction } from '@metamask/base-data-service';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
-import type { NetworkTier } from '../../../../util/deviceCapability/types';
 import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
 import { isUnsentCommitFailure } from '../errors/commitOutcome';
 import type { VenueFundingAdapter } from '../adapters/types';
-import {
-  clearAllSessionDepositTransfers,
-  matchDepositTransferForResume,
-} from '../funding';
+import { clearAllSessionDepositTransfers } from '../funding';
 import {
   portfolioQueries,
   portfolioQueryFamilies,
@@ -30,8 +25,6 @@ import type {
   PredictWithdrawReceipt,
   PredictWithdrawReceiptStatus,
 } from '../types';
-import { depositNextPollDelayMs } from './internal/depositPolling';
-import type { DepositStatusJournal } from './internal/depositStatusJournal';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
@@ -93,49 +86,6 @@ const RESOLVED_DEPOSIT_STATUSES: readonly PredictDepositStatus[] = [
 const isResolved = (status: PredictDepositStatus): boolean =>
   RESOLVED_DEPOSIT_STATUSES.includes(status);
 
-const isOpenDepositStatus = (status: PredictDepositStatus): boolean =>
-  status === 'awaiting_transfer' ||
-  status === 'processing' ||
-  status === 'under_review';
-
-const isSignalAborted = (signal?: AbortSignal): boolean =>
-  signal?.aborted === true;
-
-const DEPOSIT_FOCUS_REFRESH_MIN_INTERVAL_MS = 5_000;
-
-const selectPrimaryDepositStatus = (
-  openDeposits: ReadonlyMap<string, PredictDepositOperation>,
-  pendingTerminalNotices: ReadonlyMap<string, PredictDepositOperation>,
-): PredictDepositOperation | null => {
-  let latestActive: PredictDepositOperation | null = null;
-  let latestUnderReview: PredictDepositOperation | null = null;
-  for (const deposit of openDeposits.values()) {
-    if (
-      deposit.status === 'awaiting_transfer' ||
-      deposit.status === 'processing'
-    ) {
-      latestActive = deposit;
-    } else if (deposit.status === 'under_review') {
-      latestUnderReview = deposit;
-    }
-  }
-  const firstNotice = pendingTerminalNotices.values().next().value ?? null;
-  return latestActive ?? latestUnderReview ?? firstNotice;
-};
-
-const depositStatusSignature = (
-  deposit: PredictDepositOperation | null,
-): string =>
-  deposit
-    ? [
-        deposit.operationId,
-        deposit.status,
-        deposit.txHash ?? '',
-        deposit.depositAddress ?? '',
-        deposit.next?.kind ?? '',
-      ].join('|')
-    : 'none';
-
 /**
  * Where a deposit is in its lifecycle. It flattens the backend's transition
  * table (va-mmcx-predict-api `docs/FUNDING.md`, "Stored statuses and
@@ -167,14 +117,6 @@ const stageOf = (deposit: PredictDepositOperation): number => {
       return 5;
   }
 };
-
-/**
- * Stage for a deposit known only from the journal. The journal keeps the last
- * status but not the address, so it cannot place `processing` before or after
- * `awaiting_transfer`. The backend never moves a deposit back past what an
- * earlier process saw, so any live answer replaces a journal entry.
- */
-const JOURNAL_STAGE = -1;
 
 /** What this process knows about one deposit. Never persisted. */
 interface KnownDeposit {
@@ -259,30 +201,12 @@ export interface PredictFundingServiceCancelDepositAction {
   ) => Promise<PredictDepositOperation>;
 }
 
-export interface PredictFundingServiceGetDepositStatusAction {
-  type: 'PredictFundingService:getDepositStatus';
-  handler: (venueId: PredictVenueId) => PredictDepositOperation | null;
-}
-
-export interface PredictFundingServiceAcknowledgeDepositNoticeAction {
-  type: 'PredictFundingService:acknowledgeDepositNotice';
-  handler: (venueId: PredictVenueId, operationId: string) => void;
-}
-
-export interface PredictFundingServiceRefreshDepositStatusAction {
-  type: 'PredictFundingService:refreshDepositStatus';
-  handler: (venueId: PredictVenueId) => Promise<void>;
-}
-
 export type PredictFundingServiceActions =
   | PredictFundingServicePrepareDepositAction
   | PredictFundingServiceGetDepositAction
   | PredictFundingServiceListOpenDepositsAction
   | PredictFundingServiceReportDepositTransferAction
   | PredictFundingServiceCancelDepositAction
-  | PredictFundingServiceGetDepositStatusAction
-  | PredictFundingServiceAcknowledgeDepositNoticeAction
-  | PredictFundingServiceRefreshDepositStatusAction
   // Consumed action: a Deposit that completes, or a Withdrawal that leaves
   // or returns money, changed the Balance. The cache itself stays owned by
   // the portfolio service.
@@ -302,17 +226,8 @@ export interface PredictFundingServiceDepositResolvedEvent {
   payload: [{ venueId: PredictVenueId; deposit: PredictDepositOperation }];
 }
 
-/** Published whenever the active deposit status line changes for a Venue. */
-export interface PredictFundingServiceDepositStatusChangedEvent {
-  type: 'PredictFundingService:depositStatusChanged';
-  payload: [
-    { venueId: PredictVenueId; deposit: PredictDepositOperation | null },
-  ];
-}
-
 export type PredictFundingServiceEvents =
-  | PredictFundingServiceDepositResolvedEvent
-  | PredictFundingServiceDepositStatusChangedEvent;
+  PredictFundingServiceDepositResolvedEvent;
 
 export type PredictFundingServiceMessenger = Messenger<
   typeof PREDICT_FUNDING_SERVICE_NAME,
@@ -324,14 +239,6 @@ export interface PredictFundingServiceOptions {
   messenger: PredictFundingServiceMessenger;
   funding: VenueFundingAdapter;
   venueId: PredictVenueId;
-  /** Reads wallet transactions from `TransactionController` for deposit resume. */
-  getTransactions?: () => readonly TransactionMeta[];
-  /** Injectable clock in ms for polling-window checks. */
-  now?: () => number;
-  /** Persists unresolved deposit IDs and unacknowledged terminal notices by identity. */
-  journal?: DepositStatusJournal;
-  /** Resolves the canonical Predict profile ID scoping persisted deposit notices. */
-  getIdentityScope?: () => Promise<string | undefined>;
 }
 
 /**
@@ -374,51 +281,13 @@ export class PredictFundingService {
   readonly #messenger: PredictFundingServiceMessenger;
   readonly #funding: VenueFundingAdapter;
   readonly #venueId: PredictVenueId;
-  readonly #getTransactions: () => readonly TransactionMeta[];
-  readonly #now: () => number;
-  readonly #journal?: DepositStatusJournal;
-  readonly #getIdentityScope?: () => Promise<string | undefined>;
   /** What this process knows per deposit, by operation ID. */
   readonly #known = new Map<string, KnownDeposit>();
-  /** Currently open deposits (`awaiting_transfer`, `processing`, `under_review`). */
-  readonly #openDeposits = new Map<string, PredictDepositOperation>();
-  /** Unresolved operation IDs retained for cold-launch outcome reconciliation. */
-  readonly #unresolved = new Map<string, PredictDepositStatus>();
-  /** Unacknowledged `failed` or `cancelled` notices keyed by operation ID. */
-  readonly #pendingTerminalNotices = new Map<string, PredictDepositOperation>();
-  #lastPublishedStatusSignature = 'none';
   /** Counts the answers that arrived. A call sent after an answer arrived
    * holds a count at least as high as that answer's. */
   #clock = 0;
   /** `prepareDeposit` calls in flight, by `clientOperationId`. */
   readonly #preparing = new Map<string, Promise<PredictDepositOperation>>();
-  /** `reportDepositTransfer` calls in flight, by `${operationId}:${txHash}`. */
-  readonly #reporting = new Map<string, Promise<PredictDepositOperation>>();
-  /** `cancelDeposit` calls in flight, by `operationId`. */
-  readonly #cancelling = new Map<string, Promise<PredictDepositOperation>>();
-  /** Transfer reports permanently refused by the backend (`DEPOSIT_TRANSFER_MISMATCH`). */
-  readonly #refusedTransferReports = new Set<string>();
-  /** Deposit adapter calls whose bearer token or fetch may still be pending. */
-  readonly #depositTransports = new Set<AbortController>();
-  /** Deposit polling & resume state. */
-  #depositLifecycleEnabled = false;
-  #pollingActive = false;
-  #pendingResumeWhenOnline = false;
-  #networkTier: NetworkTier | null = null;
-  #pollTimer: ReturnType<typeof setTimeout> | undefined;
-  #pollAttempt = 0;
-  #pollStartedAt: number | null = null;
-  #lastDepositReadAt = 0;
-  #depositPollEpoch = 0;
-  #resumeTransport: AbortController | null = null;
-  #resumeInFlight: Promise<void> | null = null;
-  #refreshInFlight: Promise<void> | null = null;
-  #identityScope?: string;
-  #journalLoadedGeneration: number | null = null;
-  #journalLoadInFlight: Promise<void> | null = null;
-  /** A journal write waits for the stored snapshot to merge, so it cannot
-   * replace stored notices with a partial in-memory view. */
-  #journalWritePending = false;
   /** Approved Withdrawal intents and their shared Commits, by Preview ID. */
   readonly #previews = new Map<string, PinnedWithdrawPreview>();
   readonly #committing = new Map<string, Promise<PredictWithdrawReceipt>>();
@@ -437,22 +306,10 @@ export class PredictFundingService {
   #generation = 0;
   #cleanupLifecycle?: () => void;
 
-  constructor({
-    messenger,
-    funding,
-    venueId,
-    getTransactions = () => [],
-    now = Date.now,
-    journal,
-    getIdentityScope,
-  }: PredictFundingServiceOptions) {
+  constructor({ messenger, funding, venueId }: PredictFundingServiceOptions) {
     this.#messenger = messenger;
     this.#funding = funding;
     this.#venueId = venueId;
-    this.#getTransactions = getTransactions;
-    this.#now = now;
-    this.#journal = journal;
-    this.#getIdentityScope = getIdentityScope;
 
     messenger.registerActionHandler(
       'PredictFundingService:prepareDeposit',
@@ -474,18 +331,6 @@ export class PredictFundingService {
       'PredictFundingService:cancelDeposit',
       this.cancelDeposit.bind(this),
     );
-    messenger.registerActionHandler(
-      'PredictFundingService:getDepositStatus',
-      this.getDepositStatus.bind(this),
-    );
-    messenger.registerActionHandler(
-      'PredictFundingService:acknowledgeDepositNotice',
-      this.acknowledgeDepositNotice.bind(this),
-    );
-    messenger.registerActionHandler(
-      'PredictFundingService:refreshDepositStatus',
-      this.refreshDepositStatus.bind(this),
-    );
   }
 
   /**
@@ -493,36 +338,37 @@ export class PredictFundingService {
    * key. Signing needs the explicit user approval; without it nothing is
    * sent. Answers the deposit, usually with its Funding Plan.
    */
-  async prepareDeposit(
+  prepareDeposit(
     venueId: PredictVenueId,
     params: PredictDepositParams,
     approval?: PredictDepositApproval,
-    options?: PredictReadOptions,
   ): Promise<PredictDepositOperation> {
-    this.#assertVenue(venueId);
+    try {
+      this.#assertVenue(venueId);
+    } catch (error) {
+      return Promise.reject(error);
+    }
     if (approval?.kind !== 'user-approved') {
-      throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
-        metadata: {
-          phase: 'commit',
-          requestSent: false,
-        },
-      });
+      return Promise.reject(
+        PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
+          metadata: {
+            phase: 'commit',
+            requestSent: false,
+          },
+        }),
+      );
     }
     const key = params.clientOperationId;
     const inFlight = this.#preparing.get(key);
     if (inFlight) {
-      return await inFlight;
+      return inFlight;
     }
     const ticket = this.#send();
-    const prepared = this.#withDepositTransport(
-      options?.signal,
-      async (signal) =>
-        this.#funding.prepareDeposit(
-          { amount: params.amount, clientOperationId: key },
-          approval,
-          { signal },
-        ),
-    )
+    const prepared = this.#funding
+      .prepareDeposit(
+        { amount: params.amount, clientOperationId: key },
+        approval,
+      )
       .then((deposit) => this.#track(deposit, ticket))
       .finally(() => {
         if (this.#preparing.get(key) === prepared) {
@@ -530,34 +376,25 @@ export class PredictFundingService {
         }
       });
     this.#preparing.set(key, prepared);
-    return await prepared;
+    return prepared;
   }
 
   async getDeposit(
     venueId: PredictVenueId,
     operationId: string,
-    options?: PredictReadOptions,
   ): Promise<PredictDepositOperation> {
     this.#assertVenue(venueId);
     const ticket = this.#send();
-    const deposit = await this.#withDepositTransport(
-      options?.signal,
-      async (signal) => this.#funding.getDeposit(operationId, { signal }),
-    );
-    return this.#track(deposit, ticket);
+    return this.#track(await this.#funding.getDeposit(operationId), ticket);
   }
 
   /** Deposits that are not final yet, oldest first. */
   async listOpenDeposits(
     venueId: PredictVenueId,
-    options?: PredictReadOptions,
   ): Promise<PredictDepositOperation[]> {
     this.#assertVenue(venueId);
     const ticket = this.#send();
-    const deposits = await this.#withDepositTransport(
-      options?.signal,
-      async (signal) => this.#funding.listOpenDeposits({ signal }),
-    );
+    const deposits = await this.#funding.listOpenDeposits();
     return deposits.map((deposit) => this.#track(deposit, ticket));
   }
 
@@ -565,213 +402,25 @@ export class PredictFundingService {
     venueId: PredictVenueId,
     operationId: string,
     params: PredictDepositTransferParams,
-    options?: PredictReadOptions,
   ): Promise<PredictDepositOperation> {
     this.#assertVenue(venueId);
-    const key = `${operationId}:${params.txHash.toLowerCase()}`;
-    const inFlight = this.#reporting.get(key);
-    if (inFlight) {
-      return await inFlight;
-    }
     const ticket = this.#send();
-    const reported = this.#withDepositTransport(
-      options?.signal,
-      async (signal) =>
-        this.#funding.reportDepositTransfer(
-          operationId,
-          {
-            txHash: params.txHash,
-            chainId: params.chainId,
-          },
-          { signal },
-        ),
-    )
-      .then((deposit) => this.#track(deposit, ticket))
-      .finally(() => {
-        if (this.#reporting.get(key) === reported) {
-          this.#reporting.delete(key);
-        }
-      });
-    this.#reporting.set(key, reported);
-    return await reported;
+    return this.#track(
+      await this.#funding.reportDepositTransfer(operationId, {
+        txHash: params.txHash,
+        chainId: params.chainId,
+      }),
+      ticket,
+    );
   }
 
   async cancelDeposit(
     venueId: PredictVenueId,
     operationId: string,
-    options?: PredictReadOptions,
   ): Promise<PredictDepositOperation> {
     this.#assertVenue(venueId);
-    const inFlight = this.#cancelling.get(operationId);
-    if (inFlight) {
-      return await inFlight;
-    }
     const ticket = this.#send();
-    const cancelled = this.#withDepositTransport(
-      options?.signal,
-      async (signal) => this.#funding.cancelDeposit(operationId, { signal }),
-    )
-      .then((deposit) => this.#track(deposit, ticket))
-      .finally(() => {
-        if (this.#cancelling.get(operationId) === cancelled) {
-          this.#cancelling.delete(operationId);
-        }
-      });
-    this.#cancelling.set(operationId, cancelled);
-    return await cancelled;
-  }
-
-  /** Current deposit to render in the status line for `venueId`, or `null`. */
-  getDepositStatus(venueId: PredictVenueId): PredictDepositOperation | null {
-    this.#assertVenue(venueId);
-    return selectPrimaryDepositStatus(
-      this.#openDeposits,
-      this.#pendingTerminalNotices,
-    );
-  }
-
-  /** Marks a one-time `failed` or `cancelled` status notice as shown so it is
-   * not displayed again on another surface or visit. */
-  acknowledgeDepositNotice(venueId: PredictVenueId, operationId: string): void {
-    this.#assertVenue(venueId);
-    if (this.#pendingTerminalNotices.delete(operationId)) {
-      this.#persistJournal();
-      this.#publishDepositStatusIfChanged();
-    }
-  }
-
-  /**
-   * Cheap focus refresh for open deposits, catching outcomes after the
-   * fast-poll cap without waiting for the next slow follow-up tick.
-   */
-  async refreshDepositStatus(venueId: PredictVenueId): Promise<void> {
-    this.#assertVenue(venueId);
-    if (
-      !this.#depositLifecycleEnabled ||
-      this.#isOffline() ||
-      this.#openDeposits.size === 0 ||
-      this.#resumeInFlight
-    ) {
-      return;
-    }
-    if (
-      this.#pollingActive &&
-      this.#now() - this.#lastDepositReadAt <
-        DEPOSIT_FOCUS_REFRESH_MIN_INTERVAL_MS
-    ) {
-      return;
-    }
-    if (this.#refreshInFlight) {
-      return await this.#refreshInFlight;
-    }
-    const generation = this.#generation;
-    const epoch = this.#depositPollEpoch;
-    const signal = this.#resumeTransport?.signal;
-    const refresh = this.#refreshOpenDeposits(
-      generation,
-      epoch,
-      signal,
-    ).finally(() => {
-      if (this.#refreshInFlight === refresh) {
-        this.#refreshInFlight = null;
-      }
-    });
-    this.#refreshInFlight = refresh;
-    await refresh;
-  }
-
-  /**
-   * Resumes open Kalshi deposits on start, unlock, or foreground.
-   *
-   * Fetches `listOpenDeposits` and reconciles any retained unresolved IDs.
-   * For each `awaiting_transfer` deposit, matches tagged `TransactionController`
-   * transactions: reports `submitted`/`confirmed` hashes, cancels
-   * `rejected`/`failed` transfers, and leaves pending or absent transfers alone
-   * for the user to continue or cancel. Polls open deposits with exponential
-   * backoff (2s to 30s) up to 10 min, then slower 5-min follow-up up to 60 min,
-   * respecting network capability.
-   */
-  async resumeDeposits(): Promise<void> {
-    this.#depositLifecycleEnabled = true;
-    if (this.#networkTier === 'NONE') {
-      this.#pendingResumeWhenOnline = true;
-      this.#clearPollTimer();
-      return;
-    }
-    this.#pendingResumeWhenOnline = false;
-    if (this.#resumeInFlight) {
-      return await this.#resumeInFlight;
-    }
-    const generation = this.#generation;
-    this.#depositPollEpoch += 1;
-    const epoch = this.#depositPollEpoch;
-    this.#resumeTransport?.abort();
-    const resumeTransport = new AbortController();
-    this.#resumeTransport = resumeTransport;
-    this.#clearPollTimer();
-    this.#pollAttempt = 0;
-    this.#pollStartedAt = this.#now();
-    this.#pollingActive = true;
-    const pass = this.#runResumePass(
-      generation,
-      epoch,
-      resumeTransport.signal,
-    ).finally(() => {
-      if (this.#resumeInFlight === pass) {
-        this.#resumeInFlight = null;
-      }
-    });
-    this.#resumeInFlight = pass;
-    await pass;
-  }
-
-  /** Stops deposit polling timers and aborts in-flight resume transports on
-   * lock, background, or Venue deactivation without erasing session state. */
-  stopDepositPolling(): void {
-    this.#depositLifecycleEnabled = false;
-    this.#pollingActive = false;
-    this.#pendingResumeWhenOnline = false;
-    this.#depositPollEpoch += 1;
-    this.#clearPollTimer();
-    this.#resumeTransport?.abort();
-    this.#resumeTransport = null;
-    this.#resumeInFlight = null;
-    this.#refreshInFlight = null;
-  }
-
-  /** Updates the device's network capability tier for deposit polling. Stops
-   * polling while offline (`NONE`) and backs off on `SLOW_CELLULAR`. */
-  setDepositNetworkTier(tier: NetworkTier | null): void {
-    const previous = this.#networkTier;
-    this.#networkTier = tier;
-    if (tier === 'NONE') {
-      this.#clearPollTimer();
-      return;
-    }
-    if (previous === 'NONE') {
-      if (this.#depositLifecycleEnabled && this.#pendingResumeWhenOnline) {
-        this.resumeDeposits().catch(() => undefined);
-      } else if (
-        this.#depositLifecycleEnabled &&
-        this.#pollingActive &&
-        this.#openDeposits.size > 0
-      ) {
-        this.#pollAttempt = 0;
-        this.#scheduleNextPoll(
-          this.#generation,
-          this.#depositPollEpoch,
-          this.#resumeTransport?.signal,
-        );
-      }
-      return;
-    }
-    if (tier !== previous && this.#pollTimer !== undefined) {
-      this.#scheduleNextPoll(
-        this.#generation,
-        this.#depositPollEpoch,
-        this.#resumeTransport?.signal,
-      );
-    }
+    return this.#track(await this.#funding.cancelDeposit(operationId), ticket);
   }
 
   /** Quotes one Withdrawal and pins the returned intent for approval. Each
@@ -1032,12 +681,10 @@ export class PredictFundingService {
   /** Engine reset replaces the wallet and therefore the Predict User. */
   clearState(): void {
     this.changeIdentity();
-    void this.#journal?.clear().catch(() => undefined);
   }
 
   /** Stops observation on lock or background without forgetting this user. */
   stopObserving(): void {
-    this.stopDepositPolling();
     for (const transport of this.#observationTransports) {
       transport.abort();
     }
@@ -1060,32 +707,12 @@ export class PredictFundingService {
   changeIdentity(): void {
     this.#generation += 1;
     this.stopObserving();
-    for (const transport of this.#depositTransports) {
-      transport.abort();
-    }
-    this.#depositTransports.clear();
     this.#previews.clear();
     this.#committing.clear();
     this.#statusByPreview.clear();
     this.#known.clear();
-    this.#openDeposits.clear();
-    this.#unresolved.clear();
-    this.#pendingTerminalNotices.clear();
     this.#preparing.clear();
-    this.#reporting.clear();
-    this.#cancelling.clear();
-    this.#refusedTransferReports.clear();
-    this.#pollAttempt = 0;
-    this.#pollStartedAt = null;
-    this.#lastDepositReadAt = 0;
-    this.#resumeInFlight = null;
-    this.#refreshInFlight = null;
-    this.#identityScope = undefined;
-    this.#journalLoadedGeneration = null;
-    this.#journalLoadInFlight = null;
-    this.#journalWritePending = false;
     clearAllSessionDepositTransfers(this.#venueId);
-    this.#publishDepositStatusIfChanged();
   }
 
   /** Runtime composition registers the subscriptions it owns around this
@@ -1097,7 +724,7 @@ export class PredictFundingService {
   destroy(): void {
     // Nothing may read a deposit or a Withdrawal once the service is gone: a
     // destroyed Engine must not read the previous person's receipt.
-    this.changeIdentity();
+    this.clearState();
     this.#cleanupLifecycle?.();
     this.#cleanupLifecycle = undefined;
     this.#messenger.unregisterActionHandler(
@@ -1113,136 +740,10 @@ export class PredictFundingService {
     this.#messenger.unregisterActionHandler(
       'PredictFundingService:cancelDeposit',
     );
-    this.#messenger.unregisterActionHandler(
-      'PredictFundingService:getDepositStatus',
-    );
-    this.#messenger.unregisterActionHandler(
-      'PredictFundingService:acknowledgeDepositNotice',
-    );
-    this.#messenger.unregisterActionHandler(
-      'PredictFundingService:refreshDepositStatus',
-    );
   }
 
   #send(): CallTicket {
     return { generation: this.#generation, sentAt: this.#clock };
-  }
-
-  async #withDepositTransport<Result>(
-    signal: AbortSignal | undefined,
-    run: (transportSignal: AbortSignal) => Promise<Result>,
-  ): Promise<Result> {
-    const transport = new AbortController();
-    const abortFromCaller = (): void => transport.abort();
-    if (signal?.aborted) {
-      transport.abort();
-    }
-    signal?.addEventListener('abort', abortFromCaller);
-    this.#depositTransports.add(transport);
-    try {
-      return await run(transport.signal);
-    } finally {
-      this.#depositTransports.delete(transport);
-      signal?.removeEventListener('abort', abortFromCaller);
-    }
-  }
-
-  async #ensureJournalLoaded(generation: number): Promise<void> {
-    if (
-      !this.#journal ||
-      !this.#getIdentityScope ||
-      this.#journalLoadedGeneration === generation
-    ) {
-      return;
-    }
-    if (this.#journalLoadInFlight) {
-      await this.#journalLoadInFlight;
-      return;
-    }
-    const load = (async () => {
-      const scope = await this.#getIdentityScope?.().catch(() => undefined);
-      if (generation !== this.#generation) {
-        return;
-      }
-      if (!scope) {
-        this.#journalLoadedGeneration = generation;
-        this.#journalWritePending = false;
-        return;
-      }
-      const snapshot = await this.#journal
-        ?.load(scope, this.#venueId)
-        .catch(() => ({ unresolved: [], notices: [] }));
-      if (generation !== this.#generation || !snapshot) {
-        return;
-      }
-      let statusChanged = false;
-      for (const entry of snapshot.unresolved) {
-        // A live answer that arrived during the load is newer than the journal.
-        if (!this.#known.has(entry.operationId)) {
-          this.#unresolved.set(entry.operationId, entry.lastStatus);
-          this.#known.set(entry.operationId, {
-            status: entry.lastStatus,
-            stage: JOURNAL_STAGE,
-            receivedAt: 0,
-          });
-        }
-      }
-      for (const notice of snapshot.notices) {
-        if (
-          !this.#pendingTerminalNotices.has(notice.operationId) &&
-          !this.#openDeposits.has(notice.operationId)
-        ) {
-          this.#pendingTerminalNotices.set(notice.operationId, notice);
-          statusChanged = true;
-        }
-      }
-      this.#identityScope = scope;
-      this.#journalLoadedGeneration = generation;
-      if (this.#journalWritePending) {
-        this.#journalWritePending = false;
-        this.#writeJournal(scope);
-      }
-      if (statusChanged) {
-        this.#publishDepositStatusIfChanged();
-      }
-    })().finally(() => {
-      if (this.#journalLoadInFlight === load) {
-        this.#journalLoadInFlight = null;
-      }
-    });
-    this.#journalLoadInFlight = load;
-    await load;
-  }
-
-  /** Saves this identity's deposit state. Until the stored snapshot has been
-   * merged, the write waits for the load, which then saves the merged state. */
-  #persistJournal(): void {
-    if (!this.#journal || !this.#getIdentityScope) {
-      return;
-    }
-    const generation = this.#generation;
-    if (this.#identityScope && this.#journalLoadedGeneration === generation) {
-      this.#writeJournal(this.#identityScope);
-      return;
-    }
-    this.#journalWritePending = true;
-    if (this.#journalLoadedGeneration === generation) {
-      // Loaded while no identity was available: look it up again.
-      this.#journalLoadedGeneration = null;
-    }
-    void this.#ensureJournalLoaded(generation);
-  }
-
-  #writeJournal(scope: string): void {
-    void this.#journal
-      ?.save(scope, this.#venueId, {
-        unresolved: Array.from(
-          this.#unresolved,
-          ([operationId, lastStatus]) => ({ operationId, lastStatus }),
-        ),
-        notices: Array.from(this.#pendingTerminalNotices.values()),
-      })
-      .catch(() => undefined);
   }
 
   /** Records what an answer says about its deposit and announces a
@@ -1267,36 +768,6 @@ export class PredictFundingService {
       return deposit;
     }
     this.#known.set(deposit.operationId, answer);
-
-    let journalDirty = false;
-    if (isOpenDepositStatus(deposit.status)) {
-      this.#openDeposits.set(deposit.operationId, deposit);
-      if (this.#unresolved.get(deposit.operationId) !== deposit.status) {
-        this.#unresolved.set(deposit.operationId, deposit.status);
-        journalDirty = true;
-      }
-      if (this.#pendingTerminalNotices.delete(deposit.operationId)) {
-        journalDirty = true;
-      }
-    } else {
-      this.#openDeposits.delete(deposit.operationId);
-      if (this.#unresolved.delete(deposit.operationId)) {
-        journalDirty = true;
-      }
-      if (
-        known !== undefined &&
-        known.status !== deposit.status &&
-        (deposit.status === 'failed' || deposit.status === 'cancelled')
-      ) {
-        this.#pendingTerminalNotices.set(deposit.operationId, deposit);
-        journalDirty = true;
-      }
-    }
-
-    if (journalDirty) {
-      this.#persistJournal();
-    }
-
     if (
       known !== undefined &&
       known.status !== deposit.status &&
@@ -1311,355 +782,7 @@ export class PredictFundingService {
         this.#invalidateBalanceReads();
       }
     }
-
-    this.#publishDepositStatusIfChanged();
-
-    if (
-      this.#depositLifecycleEnabled &&
-      isOpenDepositStatus(deposit.status) &&
-      !this.#pollingActive &&
-      this.#networkTier !== 'NONE'
-    ) {
-      this.#startDepositPolling();
-    }
-
     return deposit;
-  }
-
-  #publishDepositStatusIfChanged(): void {
-    const deposit = selectPrimaryDepositStatus(
-      this.#openDeposits,
-      this.#pendingTerminalNotices,
-    );
-    const signature = depositStatusSignature(deposit);
-    if (signature === this.#lastPublishedStatusSignature) {
-      return;
-    }
-    this.#lastPublishedStatusSignature = signature;
-    this.#messenger.publish('PredictFundingService:depositStatusChanged', {
-      venueId: this.#venueId,
-      deposit,
-    });
-  }
-
-  #clearPollTimer(): void {
-    if (this.#pollTimer !== undefined) {
-      clearTimeout(this.#pollTimer);
-      this.#pollTimer = undefined;
-    }
-  }
-
-  #startDepositPolling(): void {
-    this.#clearPollTimer();
-    this.#pollAttempt = 0;
-    this.#pollStartedAt = this.#now();
-    this.#pollingActive = true;
-    this.#scheduleNextPoll(
-      this.#generation,
-      this.#depositPollEpoch,
-      this.#resumeTransport?.signal,
-    );
-  }
-
-  #isResumePassStale(
-    generation: number,
-    epoch: number,
-    signal: AbortSignal | undefined,
-  ): boolean {
-    return (
-      generation !== this.#generation ||
-      epoch !== this.#depositPollEpoch ||
-      !this.#pollingActive ||
-      signal?.aborted === true
-    );
-  }
-
-  async #runResumePass(
-    generation: number,
-    epoch: number,
-    signal: AbortSignal,
-  ): Promise<void> {
-    await this.#ensureJournalLoaded(generation);
-    if (this.#isResumePassStale(generation, epoch, signal)) {
-      return;
-    }
-    const idsToReconcile = new Set<string>([
-      ...this.#openDeposits.keys(),
-      ...this.#unresolved.keys(),
-    ]);
-    let open: PredictDepositOperation[];
-    try {
-      open = await this.listOpenDeposits(this.#venueId, { signal });
-      this.#lastDepositReadAt = this.#now();
-    } catch (error) {
-      if (!this.#isResumePassStale(generation, epoch, signal)) {
-        this.#pollingActive = false;
-        Logger.error(
-          ensureError(error, 'PredictFundingService.resumeDeposits'),
-          'PredictNext: failed to list open deposits on resume',
-        );
-      }
-      return;
-    }
-    if (this.#isResumePassStale(generation, epoch, signal)) {
-      return;
-    }
-    const openIds = new Set<string>(open.map((deposit) => deposit.operationId));
-    for (const previousId of idsToReconcile) {
-      if (!openIds.has(previousId)) {
-        if (this.#isResumePassStale(generation, epoch, signal)) {
-          return;
-        }
-        try {
-          await this.getDeposit(this.#venueId, previousId, { signal });
-          this.#lastDepositReadAt = this.#now();
-        } catch (error) {
-          if (
-            error instanceof PredictError &&
-            error.code === PredictErrorCode.DEPOSIT_NOT_FOUND
-          ) {
-            if (this.#unresolved.delete(previousId)) {
-              this.#persistJournal();
-            }
-          } else if (!this.#isResumePassStale(generation, epoch, signal)) {
-            Logger.error(
-              ensureError(
-                error,
-                'PredictFundingService.reconcileClosedDeposit',
-              ),
-              'PredictNext: failed to read resolved deposit on resume',
-            );
-          }
-        }
-      }
-    }
-    for (const deposit of open) {
-      if (this.#isResumePassStale(generation, epoch, signal)) {
-        return;
-      }
-      if (deposit.status === 'awaiting_transfer') {
-        await this.#reconcileAwaitingTransfer(deposit, generation, signal);
-      }
-    }
-    if (this.#isResumePassStale(generation, epoch, signal)) {
-      return;
-    }
-    if (this.#openDeposits.size > 0) {
-      this.#scheduleNextPoll(generation, epoch, signal);
-    } else {
-      this.#pollingActive = false;
-    }
-  }
-
-  async #refreshOpenDeposits(
-    generation: number,
-    epoch: number,
-    signal: AbortSignal | undefined,
-  ): Promise<void> {
-    const openIds = [...this.#openDeposits.keys()];
-    for (const operationId of openIds) {
-      if (
-        generation !== this.#generation ||
-        epoch !== this.#depositPollEpoch ||
-        !this.#depositLifecycleEnabled ||
-        this.#isOffline() ||
-        signal?.aborted === true
-      ) {
-        return;
-      }
-      try {
-        const latest = await this.getDeposit(this.#venueId, operationId, {
-          signal,
-        });
-        this.#lastDepositReadAt = this.#now();
-        if (
-          generation === this.#generation &&
-          epoch === this.#depositPollEpoch &&
-          latest.status === 'awaiting_transfer'
-        ) {
-          await this.#reconcileAwaitingTransfer(latest, generation, signal);
-        }
-      } catch (error) {
-        if (
-          generation === this.#generation &&
-          epoch === this.#depositPollEpoch &&
-          !isSignalAborted(signal)
-        ) {
-          Logger.error(
-            ensureError(error, 'PredictFundingService.refreshDepositStatus'),
-            'PredictNext: failed to refresh open deposit status',
-          );
-        }
-      }
-    }
-    if (
-      generation === this.#generation &&
-      epoch === this.#depositPollEpoch &&
-      this.#openDeposits.size === 0
-    ) {
-      this.#pollingActive = false;
-      this.#clearPollTimer();
-    }
-  }
-
-  async #reconcileAwaitingTransfer(
-    deposit: PredictDepositOperation,
-    generation: number,
-    signal?: AbortSignal,
-  ): Promise<void> {
-    const match = matchDepositTransferForResume({
-      transactions: this.#getTransactions(),
-      deposit,
-    });
-    if (generation !== this.#generation || isSignalAborted(signal)) {
-      return;
-    }
-    if (match.kind === 'report') {
-      const reportKey = `${deposit.operationId}:${match.txHash.toLowerCase()}`;
-      if (this.#refusedTransferReports.has(reportKey)) {
-        return;
-      }
-      try {
-        await this.reportDepositTransfer(
-          this.#venueId,
-          deposit.operationId,
-          {
-            txHash: match.txHash,
-            chainId: match.chainId,
-          },
-          { signal },
-        );
-      } catch (error) {
-        if (
-          error instanceof PredictError &&
-          error.code === PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH
-        ) {
-          this.#refusedTransferReports.add(reportKey);
-        }
-        if (!isSignalAborted(signal) && generation === this.#generation) {
-          Logger.error(
-            ensureError(error, 'PredictFundingService.reportResumedTransfer'),
-            'PredictNext: failed to report matched deposit transfer on resume',
-          );
-        }
-      }
-      return;
-    }
-    if (match.kind === 'cancel') {
-      try {
-        await this.cancelDeposit(this.#venueId, deposit.operationId, {
-          signal,
-        });
-      } catch (error) {
-        if (!isSignalAborted(signal) && generation === this.#generation) {
-          Logger.error(
-            ensureError(error, 'PredictFundingService.cancelFailedTransfer'),
-            'PredictNext: failed to cancel deposit after failed/rejected transfer',
-          );
-        }
-      }
-    }
-  }
-
-  #isOffline(): boolean {
-    return this.#networkTier === 'NONE';
-  }
-
-  async #pollOpenDeposits(
-    generation: number,
-    epoch: number,
-    signal: AbortSignal | undefined,
-  ): Promise<void> {
-    if (
-      this.#isResumePassStale(generation, epoch, signal) ||
-      this.#isOffline()
-    ) {
-      return;
-    }
-    const elapsed =
-      this.#pollStartedAt === null ? 0 : this.#now() - this.#pollStartedAt;
-    if (
-      depositNextPollDelayMs(this.#pollAttempt, elapsed, this.#networkTier) ===
-      null
-    ) {
-      this.#pollingActive = false;
-      this.#clearPollTimer();
-      return;
-    }
-    const openIds = [...this.#openDeposits.keys()];
-    if (openIds.length === 0) {
-      this.#pollingActive = false;
-      return;
-    }
-    for (const operationId of openIds) {
-      if (
-        this.#isResumePassStale(generation, epoch, signal) ||
-        this.#isOffline()
-      ) {
-        return;
-      }
-      try {
-        const latest = await this.getDeposit(this.#venueId, operationId, {
-          signal,
-        });
-        this.#lastDepositReadAt = this.#now();
-        if (
-          !this.#isResumePassStale(generation, epoch, signal) &&
-          latest.status === 'awaiting_transfer'
-        ) {
-          await this.#reconcileAwaitingTransfer(latest, generation, signal);
-        }
-      } catch (error) {
-        if (
-          !this.#isResumePassStale(generation, epoch, signal) &&
-          signal?.aborted !== true
-        ) {
-          Logger.error(
-            ensureError(error, 'PredictFundingService.pollOpenDeposits'),
-            'PredictNext: failed to poll open deposit',
-          );
-        }
-      }
-    }
-    if (this.#isResumePassStale(generation, epoch, signal)) {
-      return;
-    }
-    this.#pollAttempt += 1;
-    if (this.#openDeposits.size > 0) {
-      this.#scheduleNextPoll(generation, epoch, signal);
-    } else {
-      this.#pollingActive = false;
-    }
-  }
-
-  #scheduleNextPoll(
-    generation: number,
-    epoch: number,
-    signal: AbortSignal | undefined,
-  ): void {
-    this.#clearPollTimer();
-    if (
-      this.#isResumePassStale(generation, epoch, signal) ||
-      this.#openDeposits.size === 0 ||
-      this.#networkTier === 'NONE'
-    ) {
-      return;
-    }
-    const elapsed =
-      this.#pollStartedAt === null ? 0 : this.#now() - this.#pollStartedAt;
-    const delay = depositNextPollDelayMs(
-      this.#pollAttempt,
-      elapsed,
-      this.#networkTier,
-    );
-    if (delay === null) {
-      this.#pollingActive = false;
-      return;
-    }
-    this.#pollTimer = setTimeout(() => {
-      this.#pollTimer = undefined;
-      this.#pollOpenDeposits(generation, epoch, signal).catch(() => undefined);
-    }, delay);
   }
 
   /** Fire-and-forget: a credited deposit changed the Balance and the

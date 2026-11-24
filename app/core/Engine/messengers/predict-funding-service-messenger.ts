@@ -46,11 +46,7 @@ export type PredictFundingServiceInitMessenger = Messenger<
   | Extract<
       GlobalActions,
       {
-        type:
-          | 'AuthenticationController:getSessionProfile'
-          | 'AuthenticationController:getState'
-          | 'KeyringController:getState'
-          | 'TransactionController:getState';
+        type: 'AuthenticationController:getState';
       }
     >
   | Extract<
@@ -67,7 +63,6 @@ export type PredictFundingServiceInitMessenger = Messenger<
     {
       type:
         | 'KeyringController:lock'
-        | 'KeyringController:unlock'
         | 'AuthenticationController:stateChange'
         | 'AuthenticationController:profileSignIn';
     }
@@ -76,9 +71,8 @@ export type PredictFundingServiceInitMessenger = Messenger<
 
 /**
  * Get the init messenger for the Predict Funding service: the bearer token,
- * the device signer the deposit routes need, wallet transactions for deposit
- * resume matching, and the identity/keyring events that fence a previous
- * Predict User's funding operations and resume deposits on unlock.
+ * the device signer the deposit routes need, and the identity events that
+ * fence a previous Predict User's Withdrawals.
  *
  * @param rootMessenger - The root messenger.
  * @returns The PredictFundingServiceInitMessenger.
@@ -96,17 +90,13 @@ export const getPredictFundingServiceInitMessenger = (
   rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
-      'AuthenticationController:getSessionProfile',
       'AuthenticationController:getState',
-      'KeyringController:getState',
-      'TransactionController:getState',
       'PredictDeviceAuthService:signOperation',
       'PredictDeviceAuthService:getApprovalGeneration',
       'PredictDeviceAuthService:invalidateA2t',
     ],
     events: [
       'KeyringController:lock',
-      'KeyringController:unlock',
       'AuthenticationController:stateChange',
       'AuthenticationController:profileSignIn',
     ],

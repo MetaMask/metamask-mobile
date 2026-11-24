@@ -666,9 +666,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
       {
         failure: 'unrelated SDK error',
         error: new HyperliquidError('SDK failure'),
-        // v25 normalized contract: unclassified venue text is replaced by
-        // UNKNOWN_ERROR; the raw text stays in the attached error cause.
-        message: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        message: 'SDK failure',
         expectedCancels: undefined,
         expectedCloidIndexes: [] as number[],
       },
@@ -690,7 +688,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'Unknown bulk status',
         ),
-        message: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        message: 'Unknown bulk status',
         expectedCancels: [{ a: 0, o: 101 }],
         expectedCloidIndexes: [1],
       },
@@ -712,7 +710,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'Malformed bulk status',
         ),
-        message: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        message: 'Malformed bulk status',
         expectedCancels: [{ a: 0, o: 101 }],
         expectedCloidIndexes: [1],
       },
@@ -737,7 +735,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'Hybrid bulk response',
         ),
-        message: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        message: 'Hybrid bulk response',
         expectedCancels: [{ a: 0, o: 101 }],
         expectedCloidIndexes: [2],
       },

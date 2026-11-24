@@ -4,7 +4,6 @@ import { computeHardwareTier } from './computeHardwareTier';
 import type { HardwareTier } from './types';
 
 export type { HardwareTier } from './types';
-export { getNetworkTierSnapshot } from './networkTierSnapshot';
 
 /**
  * Reads total device memory and returns the current process hardware tier.

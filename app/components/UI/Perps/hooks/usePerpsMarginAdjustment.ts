@@ -166,11 +166,8 @@ export function usePerpsMarginAdjustment(
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
-          const errorMessage = translatePerpsError(result);
-          trackAdjustment(
-            PERPS_EVENT_VALUE.STATUS.FAILED,
-            result.errorCode ?? result.error,
-          );
+          const errorMessage = translatePerpsError(result.error);
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -209,10 +206,7 @@ export function usePerpsMarginAdjustment(
         });
 
         const errorMessage = translatePerpsError(error);
-        trackAdjustment(
-          PERPS_EVENT_VALUE.STATUS.FAILED,
-          ensureError(error).message,
-        );
+        trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(

@@ -59,7 +59,7 @@ describe('RewardsMoneyDashboard', () => {
       `${EARNINGS_HISTORY_TEST_IDS.ROW}-${EARNINGS_HISTORY_ROW.id}`,
     );
     expect(
-      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.rebateSwaps),
+      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.historyRebate),
     ).toBeOnTheScreen();
     expect(within(historyRow).getByText('+$1.00')).toBeOnTheScreen();
 

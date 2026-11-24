@@ -168,11 +168,6 @@ const RecurringScheduleFields = forwardRef<
       scheduleErrors.includes(RecurringScheduleErrorCode.RepeatInvalid) ||
       hasDurationMax;
     const every = parsePositiveInteger(everyValue);
-    const everyUnitLabel = strings(
-      every !== undefined && every > 1
-        ? `bridge.recurring.unit_plural.${everyUnit}`
-        : `bridge.recurring.unit.${everyUnit}`,
-    );
     const everyErrorMessage = hasEveryUnitMax
       ? strings('bridge.recurring.max_is', {
           max: RECURRING_EVERY_MAX_BY_UNIT[everyUnit],
@@ -220,7 +215,7 @@ const RecurringScheduleFields = forwardRef<
                   `bridge.recurring.unit_option.${everyUnit}`,
                 )}
               >
-                {everyUnitLabel}
+                {strings(`bridge.recurring.unit.${everyUnit}`)}
               </ButtonBase>
             }
           />

@@ -62,8 +62,6 @@ import {
 } from '../../hooks/useSwapBridgeNavigation';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import { RAMPS_BUY_CUF_SURFACE } from '../../../Ramp/constants/rampsBuyCufTags';
 
 interface RecurringSwapStatusDisplay {
   status: Status;
@@ -239,11 +237,16 @@ export function RecurringSwapAgainButton({
   );
 }
 
+function handleAddFunds() {
+  // TODO: Replace this log with Add funds navigation once the destination is defined.
+  // eslint-disable-next-line no-console
+  console.log('[RecurringSwapDetails:AddFunds] Add funds pressed');
+}
+
 function RecurringSwapDetailsView() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { goToBuy } = useRampNavigation();
   const {
     order,
     swap,
@@ -288,15 +291,6 @@ function RecurringSwapDetailsView() {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-
-  const handleAddFunds = useCallback(() => {
-    goToBuy(
-      { assetId: sourceAssetId },
-      { surface: RAMPS_BUY_CUF_SURFACE.RECURRING_SWAPS },
-    ).catch(() => {
-      showGenericErrorToast();
-    });
-  }, [goToBuy, sourceAssetId]);
 
   return (
     <SafeAreaView

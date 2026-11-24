@@ -1,6 +1,7 @@
 import { debounce } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface LiquidationPriceParams {
@@ -18,19 +19,14 @@ interface LiquidationPriceOptions {
  * Hook to calculate liquidation price based on trading parameters
  * @param params - Parameters for liquidation price calculation
  * @param options - Optional configuration including debounce delay
- * @returns The liquidation price, `undefined` while the estimate is unavailable
- * (invalid inputs, not yet calculated, or rejected). Format it for display.
+ * @returns Liquidation price as a formatted string
  */
 export const usePerpsLiquidationPrice = (
   params: LiquidationPriceParams,
   options?: LiquidationPriceOptions,
-): {
-  liquidationPrice: string | undefined;
-  isCalculating: boolean;
-  error: string | null;
-} => {
+) => {
   const { calculateLiquidationPrice } = usePerpsTrading();
-  const [liquidationPrice, setLiquidationPrice] = useState<string>();
+  const [liquidationPrice, setLiquidationPrice] = useState<string>('0.00');
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +38,7 @@ export const usePerpsLiquidationPrice = (
       debounce(async () => {
         // Skip calculation if invalid parameters
         if (entryPrice <= 0 || leverage <= 0 || !asset) {
-          setLiquidationPrice(undefined);
+          setLiquidationPrice('0.00');
           return;
         }
 
@@ -68,8 +64,12 @@ export const usePerpsLiquidationPrice = (
 
           setError(errorMessage);
 
-          // A rejected estimate is unavailable, not a zero liquidation price.
-          setLiquidationPrice(undefined);
+          // For invalid leverage errors, show a clear message instead of 0.00
+          if (errorMessage.includes('Invalid leverage')) {
+            setLiquidationPrice(PERPS_CONSTANTS.FallbackPriceDisplay);
+          } else {
+            setLiquidationPrice('0.00');
+          }
         } finally {
           setIsCalculating(false);
         }
@@ -90,10 +90,10 @@ export const usePerpsLiquidationPrice = (
       setIsCalculating(true);
     }
 
-    calculatePrice()?.catch(() => undefined);
+    calculatePrice();
 
     // Cleanup debounced function on unmount
-    return (): void => {
+    return () => {
       calculatePrice.cancel();
     };
   }, [calculatePrice, entryPrice, leverage, asset]);

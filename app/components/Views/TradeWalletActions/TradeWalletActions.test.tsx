@@ -40,7 +40,6 @@ import TradeWalletActions, {
 import { springboardEnter } from './TradeWalletActions.animations';
 import { selectCollectiblesEnabled } from '#app/components/UI/Collectibles/selectors/featureFlags';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
-import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
 import {
   TRADE_TRAY_GLASS_FILL_OPACITY,
   TRADE_TRAY_GLASS_RADIUS,
@@ -1672,21 +1671,6 @@ describe('TradeWalletActions', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
         },
       });
-    });
-
-    it('opens Collectibles after dismissing RootModalFlow', async () => {
-      jest.mocked(selectCollectiblesEnabled).mockReturnValue(true);
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(getByTestId, collectiblesTestIds.tradeMenuItem);
-
-      expect(mockParentGoBack).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(collectiblesRoutes.root);
     });
 
     it('calls navigation goBack when parent navigator cannot go back', async () => {

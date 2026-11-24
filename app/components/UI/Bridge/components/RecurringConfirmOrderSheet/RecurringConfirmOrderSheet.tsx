@@ -49,7 +49,10 @@ import {
   formatPriceRangeLabel,
   USD_PRICE_RANGE_CURRENCY,
 } from '../../utils/priceRange';
-import { parsePositiveInteger } from '../../utils/recurringSchedule';
+import {
+  parsePositiveInteger,
+  RECURRING_MAX_DURATION_DAYS,
+} from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import MembershipVipBadge from '../../../shared/MembershipVipBadge';
@@ -108,7 +111,6 @@ function TokenAvatar({
         name={token.symbol}
         src={tokenImageSource}
         size={size}
-        twClassName={tokenImageSource ? 'bg-elevated1' : undefined}
         testID={testID}
       />
     </BadgeWrapper>
@@ -228,10 +230,6 @@ const RecurringConfirmOrderSheet = ({
   const hasInsufficientGas = !hasSufficientGas;
   const isDelegationFeeReady =
     delegationFee.status === 'ready' || delegationFee.status === 'not-required';
-  const showDelegationFee =
-    delegationFee.status === 'loading' ||
-    delegationFee.status === 'ready' ||
-    delegationFee.status === 'error';
   const isConfirmDisabled =
     hasInsufficientBalance ||
     hasInsufficientGas ||
@@ -292,6 +290,8 @@ const RecurringConfirmOrderSheet = ({
         }).format(1 / fiatToUsdRate)
       : '--';
 
+  const expiresAfter = `${RECURRING_MAX_DURATION_DAYS} ${strings('bridge.recurring.unit_plural.day')}`;
+
   const nativeToken = useMemo(
     () =>
       sourceToken?.chainId
@@ -299,6 +299,14 @@ const RecurringConfirmOrderSheet = ({
         : undefined,
     [sourceToken?.chainId],
   );
+  const nativeTokenImageSource = nativeToken
+    ? getTokenImageSource(
+        nativeToken.symbol,
+        nativeToken.image,
+        nativeToken.address,
+        nativeToken.chainId,
+      )
+    : undefined;
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -344,7 +352,7 @@ const RecurringConfirmOrderSheet = ({
           testID={RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS}
           trailing={
             sourceToken ? (
-              <TokenAvatar token={sourceToken} size={AvatarTokenSize.Xs} />
+              <TokenAvatar token={sourceToken} size={AvatarTokenSize.Sm} />
             ) : undefined
           }
         />
@@ -354,7 +362,7 @@ const RecurringConfirmOrderSheet = ({
           testID={RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER}
           trailing={
             sourceToken ? (
-              <TokenAvatar token={sourceToken} size={AvatarTokenSize.Xs} />
+              <TokenAvatar token={sourceToken} size={AvatarTokenSize.Sm} />
             ) : undefined
           }
         />
@@ -364,11 +372,7 @@ const RecurringConfirmOrderSheet = ({
           testID={RecurringConfirmOrderSheetSelectorsIDs.RECEIVING}
           trailing={
             destToken ? (
-              <TokenAvatar
-                token={destToken}
-                size={AvatarTokenSize.Xs}
-                testID={RecurringConfirmOrderSheetSelectorsIDs.RECEIVING_TOKEN}
-              />
+              <TokenAvatar token={destToken} size={AvatarTokenSize.Sm} />
             ) : undefined
           }
         />
@@ -380,7 +384,7 @@ const RecurringConfirmOrderSheet = ({
             priceRangeToken ? (
               <TokenAvatar
                 token={priceRangeToken}
-                size={AvatarTokenSize.Xs}
+                size={AvatarTokenSize.Sm}
                 testID={
                   RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN
                 }
@@ -391,11 +395,7 @@ const RecurringConfirmOrderSheet = ({
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_receiving_per_order')}
-          value={
-            destToken?.symbol
-              ? `${estReceivingPerOrder} ${destToken.symbol}`
-              : estReceivingPerOrder
-          }
+          value={estReceivingPerOrder}
           testID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER
           }
@@ -403,25 +403,10 @@ const RecurringConfirmOrderSheet = ({
           skeletonTestID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON
           }
-          trailing={
-            destToken ? (
-              <TokenAvatar
-                token={destToken}
-                size={AvatarTokenSize.Xs}
-                testID={
-                  RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_TOKEN
-                }
-              />
-            ) : undefined
-          }
         />
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_receiving_all_orders')}
-          value={
-            destToken?.symbol
-              ? `${estReceivingAllOrders} ${destToken.symbol}`
-              : estReceivingAllOrders
-          }
+          value={estReceivingAllOrders}
           testID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS
           }
@@ -429,17 +414,11 @@ const RecurringConfirmOrderSheet = ({
           skeletonTestID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_SKELETON
           }
-          trailing={
-            destToken ? (
-              <TokenAvatar
-                token={destToken}
-                size={AvatarTokenSize.Xs}
-                testID={
-                  RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_TOKEN
-                }
-              />
-            ) : undefined
-          }
+        />
+        <ConfirmOrderRow
+          label={strings('bridge.recurring.expires_after')}
+          value={expiresAfter}
+          testID={RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER}
         />
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
@@ -465,11 +444,15 @@ const RecurringConfirmOrderSheet = ({
           }
           trailing={
             nativeToken ? (
-              <TokenAvatar token={nativeToken} size={AvatarTokenSize.Xs} />
+              <AvatarToken
+                name={nativeToken.symbol}
+                src={nativeTokenImageSource}
+                size={AvatarTokenSize.Xs}
+              />
             ) : undefined
           }
         />
-        {showDelegationFee ? (
+        {delegationFee.status !== 'not-required' ? (
           <>
             <Box twClassName="mx-4 my-2 h-px bg-muted" />
             <ConfirmOrderRow
@@ -500,8 +483,9 @@ const RecurringConfirmOrderSheet = ({
               }
               trailing={
                 delegationFee.status === 'ready' && nativeToken ? (
-                  <TokenAvatar
-                    token={nativeToken}
+                  <AvatarToken
+                    name={nativeToken.symbol}
+                    src={nativeTokenImageSource}
                     size={AvatarTokenSize.Xs}
                     testID={
                       RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN

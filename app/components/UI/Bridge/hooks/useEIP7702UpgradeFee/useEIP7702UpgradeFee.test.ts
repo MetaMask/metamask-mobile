@@ -20,7 +20,7 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { getEIP7702AccountUpgradeStatus } from '../../utils/eip7702AccountUpgrade';
-import { useEIP7702UpgradeFee, type EIP7702UpgradeFee } from '.';
+import { useEIP7702UpgradeFee } from '.';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -294,57 +294,6 @@ describe('useEIP7702UpgradeFee', () => {
     expect(mockEstimateGasFee).not.toHaveBeenCalled();
   });
 
-  it('never reports loading for an upgraded account', async () => {
-    mockGetUpgradeStatus.mockResolvedValue({ isUpgradeRequired: false });
-    const reportedStatuses: EIP7702UpgradeFee['status'][] = [];
-
-    renderHookWithProvider(() => {
-      const fee = useEIP7702UpgradeFee();
-      reportedStatuses.push(fee.status);
-      return fee;
-    }, {});
-
-    await waitFor(() => {
-      expect(reportedStatuses[reportedStatuses.length - 1]).toBe(
-        'not-required',
-      );
-    });
-    expect(reportedStatuses).not.toContain('loading');
-  });
-
-  it('reports checking until an upgrade is known to be required, then loading while the fee is estimated', async () => {
-    let resolveUpgradeStatus:
-      | ((
-          value: Awaited<ReturnType<typeof getEIP7702AccountUpgradeStatus>>,
-        ) => void)
-      | undefined;
-    mockGetUpgradeStatus.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveUpgradeStatus = resolve;
-      }),
-    );
-    mockEstimateGas.mockReturnValueOnce(new Promise(() => undefined));
-    const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
-
-    expect(result.current).toEqual({
-      status: 'checking',
-      retry: expect.any(Function),
-    });
-
-    await act(async () => {
-      resolveUpgradeStatus?.({
-        isUpgradeRequired: true,
-        address: ADDRESS,
-        upgradeContractAddress: UPGRADE_ADDRESS,
-      });
-    });
-
-    expect(result.current).toEqual({
-      status: 'loading',
-      retry: expect.any(Function),
-    });
-  });
-
   it('returns error when estimation fails', async () => {
     mockEstimateGas.mockRejectedValue(new Error('Estimation failed'));
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
@@ -413,7 +362,7 @@ describe('useEIP7702UpgradeFee', () => {
     });
   });
 
-  it('reports the retry as checking while the upgrade status is re-read', async () => {
+  it('reports the retry as loading while it is in flight', async () => {
     mockGetUpgradeStatus.mockRejectedValueOnce(new Error('Estimation failed'));
     let resolveRetriedStatus:
       | ((
@@ -436,7 +385,7 @@ describe('useEIP7702UpgradeFee', () => {
     });
 
     expect(result.current).toEqual({
-      status: 'checking',
+      status: 'loading',
       retry: expect.any(Function),
     });
 

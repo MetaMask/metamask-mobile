@@ -9,17 +9,23 @@ import {
   type MockAnyNamespace,
 } from '@metamask/messenger';
 
+import { renderComponentViewScreen } from '../../../../../tests/component-view/render';
+import { initialStatePredict } from '../../../../../tests/component-view/presets/predict';
 import {
   composePredictNextOrderService,
   mockPredictNextMessenger,
   resetPredictNextCatalog,
-  routeControllerMessengerEventsTo,
 } from '../../../../../tests/component-view/fixtures/predictNext';
-import { renderPredictToastShell } from '../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
+import { ControllerEventToastBridge } from '../../../Nav/App/ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../Predict/hooks/usePredictToastRegistrations';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+import type { PredictConfig } from '../config/predictConfig';
 import { PredictImplementationSwitch } from '../implementation';
+import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import type { PredictConfiguredVenue } from '../implementation/types';
 import type { PredictOrderService } from '../services/PredictOrderService';
 import type { PredictDecimal, PredictEntityId } from '../types';
@@ -38,17 +44,25 @@ import { usePredictOrderToastRegistrations } from '.';
  * switch, so a Venue change unmounts it the way it does in production.
  */
 
+const BOTH_VENUES: PredictConfig = {
+  enabled: true,
+  venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+  venueSelection: { enabled: true },
+};
+
 const PROBE_BUTTON = 'order-notification-probe-open';
 const LEGACY_HOME = 'order-notification-legacy-home';
 const PREVIEW_ID = 'b3c2a1d0-1111-4222-8333-444455556666';
 
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+const showToast = jest.fn();
+const toastRef = {
+  current: { showToast, closeToast: jest.fn() },
+} as unknown as React.RefObject<ToastRef>;
 
 /** One root for the Order service and the toast bridge, standing in for
  * Engine.controllerMessenger. */
 let rootMessenger: Messenger<MockAnyNamespace, never, never>;
-let restoreControllerEvents: (() => void) | undefined;
-let latestShell: ReturnType<typeof renderPredictToastShell> | undefined;
 
 /** A $20 buy the device can actually sign: 41 contracts at 0.4651 plus the
  * 2¢/contract fee ceiling is $19.89, inside the approved $20. */
@@ -136,31 +150,74 @@ const OrderProbe = () => {
   );
 };
 
-const useRegistrations = () => {
+/** App.tsx's toast composition, reduced to the two Predict lanes. */
+const PredictToasts = () => {
   const legacy = usePredictToastRegistrations();
   const next = usePredictOrderToastRegistrations();
-  return useMemo(() => [...legacy, ...next], [legacy, next]);
+  const registrations = useMemo(() => [...legacy, ...next], [legacy, next]);
+  return <ControllerEventToastBridge registrations={registrations} />;
 };
 
-const renderApp = (venue: PredictConfiguredVenue) => {
-  latestShell = renderPredictToastShell({
-    useRegistrations,
-    screen: (
-      <PredictImplementationSwitch
-        legacy={<Text testID={LEGACY_HOME}>Polymarket</Text>}
-        next={
-          <PredictOrderFlowProvider>
-            <OrderProbe />
-          </PredictOrderFlowProvider>
-        }
-        resolving={null}
-      />
-    ),
-    venue,
-    name: 'PredictOrderNotificationsProbe',
+const AppShell = () => (
+  <ToastContext.Provider value={{ toastRef }}>
+    <PredictToasts />
+    <PredictImplementationSwitch
+      legacy={<Text testID={LEGACY_HOME}>Polymarket</Text>}
+      next={
+        <PredictOrderFlowProvider>
+          <OrderProbe />
+        </PredictOrderFlowProvider>
+      }
+      resolving={null}
+    />
+  </ToastContext.Provider>
+);
+
+const venueState = (
+  venue: PredictConfiguredVenue,
+): PredictVenueControllerState => ({
+  venueSelectionPreference: venue,
+  lastActiveVenue: venue,
+  sessionDefault: null,
+});
+
+const renderApp = (venue: PredictConfiguredVenue) =>
+  renderComponentViewScreen(
+    AppShell,
+    { name: 'PredictOrderNotificationsProbe' },
+    {
+      state: initialStatePredict()
+        .withRemoteFeatureFlags({ predictConfig: BOTH_VENUES })
+        .withOverrides({
+          engine: {
+            backgroundState: { PredictVenueController: venueState(venue) },
+          },
+        })
+        .build(),
+    },
+  );
+
+const engine = Engine as unknown as { state: Record<string, unknown> };
+const originalEngineState = engine.state;
+
+/** Writes the Venue Selection Preference the way the picker does. */
+const selectVenue = (
+  view: ReturnType<typeof renderApp>,
+  venue: PredictConfiguredVenue,
+) =>
+  act(() => {
+    engine.state = {
+      ...engine.state,
+      PredictVenueController: venueState(venue),
+    };
+    view.store.dispatch(updateBgState({ key: 'PredictVenueController' }));
   });
-  return latestShell;
-};
+
+const toastTitles = (): string[] =>
+  showToast.mock.calls.map(
+    ([options]: [{ labelOptions: { label: string }[] }]) =>
+      options.labelOptions[0].label,
+  );
 
 /** Opens the sheet, quotes $20 and approves it: the Commit is on the wire. */
 const approveOrder = async () => {
@@ -186,13 +243,33 @@ describe('Predict order notifications across Active Venue changes', () => {
 
   beforeEach(() => {
     fetchMock.mockReset();
+    showToast.mockReset();
     resetPredictNextCatalog();
     mockPredictNextMessenger(() => Promise.resolve(undefined));
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     rootMessenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
     // The bridge subscribes on Engine.controllerMessenger; route it to the
     // root the services publish on.
-    restoreControllerEvents = routeControllerMessengerEventsTo(rootMessenger);
+    const controllerMessenger = Engine.controllerMessenger as unknown as {
+      subscribe: jest.Mock;
+      unsubscribe: jest.Mock;
+    };
+    controllerMessenger.subscribe.mockImplementation(
+      (event: string, handler: () => void) =>
+        (
+          rootMessenger as unknown as {
+            subscribe: (e: string, h: () => void) => void;
+          }
+        ).subscribe(event, handler),
+    );
+    controllerMessenger.unsubscribe.mockImplementation(
+      (event: string, handler: () => void) =>
+        (
+          rootMessenger as unknown as {
+            unsubscribe: (e: string, h: () => void) => void;
+          }
+        ).unsubscribe(event, handler),
+    );
     orderService = composePredictNextOrderService(rootMessenger);
     (Engine.context as Record<string, unknown>).PredictOrderService =
       orderService;
@@ -200,10 +277,7 @@ describe('Predict order notifications across Active Venue changes', () => {
 
   afterEach(() => {
     orderService.destroy();
-    restoreControllerEvents?.();
-    restoreControllerEvents = undefined;
-    latestShell?.restoreEngineState();
-    latestShell = undefined;
+    engine.state = originalEngineState;
     jest.restoreAllMocks();
   });
 
@@ -212,7 +286,7 @@ describe('Predict order notifications across Active Venue changes', () => {
     const view = renderApp('kalshi');
     await approveOrder();
 
-    view.selectVenue('polymarket');
+    selectVenue(view, 'polymarket');
     // The Kalshi branch, and the sheet with it, is gone.
     expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
     expect(
@@ -223,12 +297,12 @@ describe('Predict order notifications across Active Venue changes', () => {
       routes.answerCommit(filledReceipt);
     });
 
-    await waitFor(() => expect(view.showToast).toHaveBeenCalledTimes(1));
-    expect(view.toastTitles()).toEqual(['Order filled']);
+    await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
+    expect(toastTitles()).toEqual(['Order filled']);
 
     // Nothing is observed or notified again.
     await act(() => new Promise((resolve) => setTimeout(resolve, 700)));
-    expect(view.showToast).toHaveBeenCalledTimes(1);
+    expect(showToast).toHaveBeenCalledTimes(1);
     expect(routes.commitCount()).toBe(1);
   });
 
@@ -241,7 +315,7 @@ describe('Predict order notifications across Active Venue changes', () => {
       const routes = stubOrderRoutes();
       const view = renderApp('kalshi');
       await approveOrder();
-      view.selectVenue('polymarket');
+      selectVenue(view, 'polymarket');
       expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
 
       await act(async () => {
@@ -257,10 +331,10 @@ describe('Predict order notifications across Active Venue changes', () => {
         });
       });
 
-      await waitFor(() => expect(view.showToast).toHaveBeenCalledTimes(1));
-      expect(view.toastTitles()).toEqual([title]);
+      await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
+      expect(toastTitles()).toEqual([title]);
       if (status === 'needs_manual_review') {
-        expect(view.showToast.mock.calls[0][0].labelOptions).toEqual(
+        expect(showToast.mock.calls[0][0].labelOptions).toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               label:
@@ -268,14 +342,14 @@ describe('Predict order notifications across Active Venue changes', () => {
             }),
           ]),
         );
-        expect(view.toastTitles()).not.toContain('Order not filled');
+        expect(toastTitles()).not.toContain('Order not filled');
       }
       expect(routes.commitCount()).toBe(1);
     },
   );
   it('does not repeat a completion the open Order sheet already shows', async () => {
     const routes = stubOrderRoutes();
-    const view = renderApp('kalshi');
+    renderApp('kalshi');
     await approveOrder();
 
     await act(async () => {
@@ -285,7 +359,7 @@ describe('Predict order notifications across Active Venue changes', () => {
     expect(
       await screen.findByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
     ).toBeOnTheScreen();
-    expect(view.showToast).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   it('still toasts a pending Polymarket completion after switching to Kalshi', async () => {
@@ -293,7 +367,7 @@ describe('Predict order notifications across Active Venue changes', () => {
     const view = renderApp('polymarket');
     expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
 
-    view.selectVenue('kalshi');
+    selectVenue(view, 'kalshi');
     expect(await screen.findByTestId(PROBE_BUTTON)).toBeOnTheScreen();
 
     // The legacy controller reports the Order it was already working on.
@@ -310,7 +384,7 @@ describe('Predict order notifications across Active Venue changes', () => {
       });
     });
 
-    expect(view.showToast).toHaveBeenCalledTimes(1);
-    expect(view.toastTitles()).toEqual(['Prediction placed']);
+    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(toastTitles()).toEqual(['Prediction placed']);
   });
 });

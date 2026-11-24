@@ -693,20 +693,6 @@ describe('LimitOrderConfirmationModalScreen', () => {
     ).toBeNull();
   });
 
-  it('keeps the primary button loading while checking whether an upgrade is required', () => {
-    mockUseEIP7702UpgradeFee.mockReturnValue({
-      status: 'checking',
-      retry: jest.fn(),
-    });
-
-    const { getByTestId } = renderScreen(createBridgeTestState({}));
-
-    expect(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
-        .accessibilityState?.busy,
-    ).toBe(true);
-  });
-
   it('fetches the delegations to sign when the primary button is pressed while the fee estimate is ready', async () => {
     const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
 

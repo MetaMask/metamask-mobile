@@ -62,28 +62,7 @@ The most common "opening a screen is slow" cause: pagers/tabs/carousels mounting
 
 - ✅ Gate offscreen fetches (`enabled: isActive || hasEverBeenActive`); lazy-mount pager pages; `Promise.all` independent fetches.
 - ⚠️ A per-row hook backed by a **shared subscription** is fine — don't gate it (see streaming).
-- ✅ A heavy below-the-fold subtree (long list, feed, chart panel) that renders with the screen slows the **push transition**. Native-stack animates on the UI thread, but the push only starts once JS has rendered the new screen, and mounting a large subtree mid-push adds UI-thread work that drops frames. Hold it back with the existing `useScreenTransitionComplete()` (`app/components/hooks/useScreenTransitionComplete.ts`), which turns `true` once the opening transition ends (or after a 450 ms fallback), and render an empty constant or a same-height placeholder until then. See [Deferring a heavy section](#deferring-a-heavy-section-until-the-push-transition-ends).
 - **Find:** look for fetch hooks rendered per-tab/item and an `enabled` prop that exists but isn't wired.
-
-### Deferring a heavy section until the push transition ends
-
-```tsx
-import { useScreenTransitionComplete } from '../../hooks/useScreenTransitionComplete';
-
-const isTransitionComplete = useScreenTransitionComplete(); // above any early return
-// ...
-{
-  isTransitionComplete ? <HeavySection /> : <SectionPlaceholder />;
-}
-```
-
-Do it when a trace shows the JS thread busy during the push **because of that subtree**, and its data is already ready. Do not do it when:
-
-- the wait is network-bound, or the gap between data-ready and content-ready is idle (it only adds latency);
-- the node is cheap, part of the first paint (header, chart, tab bar), or a primary action;
-- the screen is a tab, modal or `animation: 'none'` screen. No entering `transitionEnd` is expected there, so the content would wait for the 450 ms fallback. Gate on `!isPushedScreen || isTransitionComplete`, or do not gate.
-
-Call it once per screen and gate every heavy section on the same value. Gate data (rows, list items), not a child's `loading` prop: flipping `loading` makes the child tear down the subtree it was meant to keep. In unit tests that mock navigation, mock the hook (`jest.mock('.../useScreenTransitionComplete')`) and add one test for the held-back state. The hook is also what opens the keyboard after a push (Explore search, OTP screens), so one hook covers both uses.
 
 ## Real-time / streaming data
 

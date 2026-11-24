@@ -50,11 +50,7 @@ function earningTitle(
       return localizedText.historyCommission;
     case 'PREDICT_FEE_CASHBACK':
       return localizedText.rebatePredictions;
-    case 'SWAPS_FEE_CASHBACK':
-      return localizedText.rebateSwaps;
-    case 'PERPS_FEE_CASHBACK':
-      return localizedText.rebatePerps;
-    // Any type a newer server sends: never leave the row untitled.
+    // Cashback, and any type a newer server sends: never leave the row untitled.
     default:
       return localizedText.historyRebate;
   }
@@ -65,16 +61,12 @@ function earningIcon(origin: EarningOriginType): IconName {
     case 'REFERRAL_REV_SHARE':
       return IconName.UserCircleAdd;
     case 'SOCIAL_FOLLOW_TRADE':
-      return IconName.People;
+      return IconName.Copy;
     case 'PREDICT_FEE_CASHBACK':
       return IconName.Chart;
-    case 'PERPS_FEE_CASHBACK':
-      return IconName.Candlestick;
-    case 'SWAPS_FEE_CASHBACK':
-      return IconName.SwapVertical;
     // An undefined icon name crashes the design-system Icon.
     default:
-      return IconName.SwapVertical;
+      return IconName.Coin;
   }
 }
 

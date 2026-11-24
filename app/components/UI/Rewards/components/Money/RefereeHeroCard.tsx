@@ -148,7 +148,7 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         {showSocialRewards ? (
           <MoneyMetricCard
-            iconName={IconName.People}
+            iconName={IconName.Copy}
             label={localizedText.tradingCommissionsSection}
             amount={
               unavailableAmount ??
@@ -166,7 +166,7 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
         ) : null}
         {sections.tradingRebates ? (
           <MoneyMetricCard
-            iconName={IconName.SwapVertical}
+            iconName={IconName.Coin}
             label={localizedText.tradingRebates}
             amount={
               unavailableAmount ??

@@ -80,14 +80,9 @@ export const usePerpsTopMovers = ({
         return market;
       }
 
-      // sortMarkets ranks on numericValues, so the live change must land there too.
       return {
         ...market,
         change24hPercent: formatPercentage(changePercent),
-        numericValues: {
-          ...market.numericValues,
-          change24hPercent: changePercent,
-        },
       };
     });
 

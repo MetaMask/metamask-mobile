@@ -73,9 +73,7 @@ export const BridgeRecurringBuyFooterView = ({
                 )}`,
           repetition: strings('bridge.recurring.repeat_summary', {
             count: parsedRepeatCount,
-            // Keeps the "Repeats X times." sentence on one line, so a summary that
-            // wraps breaks before it instead of splitting it.
-          }).replace(/ /g, '\u00A0'),
+          }),
         }
       : undefined;
 
@@ -128,7 +126,7 @@ export const BridgeRecurringBuyFooterView = ({
           <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
             {spendSummaryValues.interval}
           </Text>
-          {`. ${strings('bridge.recurring.spend_summary.repeats')}\u00A0`}
+          {`. ${strings('bridge.recurring.spend_summary.repeats')} `}
           <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
             {spendSummaryValues.repetition}
           </Text>

@@ -507,7 +507,7 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('uses the venue mark price over the mid for unrealized PnL', async () => {
+    it('uses price over mark price when available', async () => {
       let positionsCallback: (positions: Position[]) => void = jest.fn();
       let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
         jest.fn();
@@ -553,9 +553,7 @@ describe('usePerpsLivePositions', () => {
 
       await waitFor(() => {
         const updatedPosition = result.current.positions[0];
-        // (51500 mark - 50000 entry) x 1, not the 51000 mid.
-        expect(updatedPosition.unrealizedPnl).toBe('1500');
-        expect(updatedPosition.positionValue).toBe('51500');
+        expect(updatedPosition.unrealizedPnl).toBe('1000');
       });
     });
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
@@ -13,7 +12,6 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
-import { avatarIconNameIn } from './testUtils';
 
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => true),
@@ -150,17 +148,13 @@ describe('RefereeHeroCard', () => {
 
     expect(getByText('INVITER')).toBeOnTheScreen();
     expect(
-      avatarIconNameIn(
-        getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
-      ),
-    ).toBe(IconName.People);
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$4.80')).toBeOnTheScreen();
     expect(
-      avatarIconNameIn(
-        getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
-      ),
-    ).toBe(IconName.SwapVertical);
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
+    ).toBeOnTheScreen();
     expect(getByText('$7.65')).toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });

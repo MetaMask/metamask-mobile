@@ -3,7 +3,6 @@ import { CaipChainId, Json } from '@metamask/utils';
 import { selectRemoteFeatureFlags } from '../../featureFlagController';
 import { parseLimitOrderCostTolerance } from '../../../components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/constants';
 import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../../components/UI/Bridge/constants/limitOrders';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
@@ -53,29 +52,6 @@ export const selectBridgeLimitOrderFeatureFlags =
   createBridgeSwapFeatureFlagsSelector<RawBridgeLimitOrderFeatureFlagValue>(
     'swapsLimitOrder',
   );
-
-/**
- * Selector for the Swap to Money (deposit) feature.
- *
- * @returns whether the deposit feature is enabled for the current version.
- */
-export const selectSwapToMoneyEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean =>
-    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsToMoney) ?? false,
-);
-
-/**
- * Selector for the Swap from Money (withdraw) feature.
- *
- * @returns whether the withdraw feature is enabled for the current version.
- */
-export const selectSwapFromMoneyEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean =>
-    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsFromMoney) ??
-    false,
-);
 
 /**
  * Selector for the Bridge Recurring Buy (DCA) feature flag.

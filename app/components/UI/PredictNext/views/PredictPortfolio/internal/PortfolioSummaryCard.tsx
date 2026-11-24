@@ -38,7 +38,6 @@ interface PortfolioSummaryCardProps {
   /** Omitted when the Active Venue offers no Withdraw flow, which hides the
    * action rather than disabling it. */
   onWithdrawPress?: () => void;
-  depositStatus?: React.ReactNode;
 }
 
 interface SummaryRowProps {
@@ -102,7 +101,6 @@ export const PortfolioSummaryCard = ({
   isPrivacyMode,
   onRetry,
   onWithdrawPress,
-  depositStatus,
 }: PortfolioSummaryCardProps) => {
   let content: React.ReactNode;
   if (isLoading) {
@@ -202,7 +200,6 @@ export const PortfolioSummaryCard = ({
         {strings('predict_next.portfolio.total_value')}
       </Text>
       {content}
-      {depositStatus}
       {onWithdrawPress ? (
         <Button
           variant={ButtonVariant.Secondary}

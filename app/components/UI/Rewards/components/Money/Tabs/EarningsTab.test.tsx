@@ -1,6 +1,6 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   LedgerEntryDto,
@@ -19,7 +19,6 @@ import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListS
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows.testIds';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner.testIds';
-import { avatarIconNameIn } from '../testUtils';
 import EarningsTab from './EarningsTab';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
@@ -268,15 +267,6 @@ const renderTab = (
     />,
     {
       state: {
-        // The tab subscribes to accounts, which reads KeyringController.
-        // The engine slice starts empty unless a test supplies it.
-        engine: {
-          backgroundState: {
-            KeyringController: {
-              keyrings: [],
-            },
-          },
-        },
         rewardsMoney: {
           referralMe: {
             [PROFILE_ID]: {
@@ -322,11 +312,6 @@ describe('EarningsTab', () => {
     ).toBeNull();
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
-    expect(
-      avatarIconNameIn(
-        getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
-      ),
-    ).toBe(IconName.People);
     expect(getByText('$41.75')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
@@ -356,11 +341,6 @@ describe('EarningsTab', () => {
       getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
     ).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
-    expect(
-      avatarIconNameIn(
-        getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
-      ),
-    ).toBe(IconName.SwapVertical);
     expect(queryByText('Trading rebates')).toBeNull();
     expect(queryByText('Referrals')).toBeNull();
     expect(
@@ -759,7 +739,9 @@ describe('EarningsTab', () => {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
     expect(
-      avatarIconNameIn(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)),
+      within(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
     ).toBe(IconName.Activity);
   });
 
@@ -786,7 +768,9 @@ describe('EarningsTab', () => {
       expect.anything(),
     );
     expect(
-      avatarIconNameIn(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)),
+      within(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
     ).toBe(IconName.People);
   });
 

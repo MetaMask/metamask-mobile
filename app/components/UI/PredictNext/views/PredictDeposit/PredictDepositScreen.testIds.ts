@@ -17,5 +17,4 @@ export const PredictDepositScreenTestIds = {
   IN_PROGRESS_CONTINUE: 'predict-deposit-in-progress-continue',
   IN_PROGRESS_CANCEL: 'predict-deposit-in-progress-cancel',
   IN_PROGRESS_CLOSE: 'predict-deposit-in-progress-close',
-  IN_PROGRESS_COPY_REFERENCE: 'predict-deposit-in-progress-copy-reference',
 } as const;

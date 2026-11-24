@@ -41,13 +41,8 @@ interface FeeCalculationInputs {
   shouldUseEIP1559FeeLogic: boolean;
 }
 
-/**
- * `checking` means it is not yet known whether the account needs an upgrade at
- * all, so there is no fee to show yet. `loading` means an upgrade is needed and
- * its fee is still being estimated.
- */
 type FeeState<ReadyState extends object> =
-  | { status: 'checking' | 'loading' | 'not-required' | 'error' }
+  | { status: 'loading' | 'not-required' | 'error' }
   | ({ status: 'ready' } & ReadyState);
 
 type FeeEstimateState = FeeState<{ inputs: FeeCalculationInputs }>;
@@ -136,11 +131,11 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
   );
   const fiatFormatter = useFiatFormatter();
   const [feeEstimateState, setFeeEstimateState] = useState<FeeEstimateState>({
-    status: 'checking',
+    status: 'loading',
   });
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(async () => {
-    setFeeEstimateState({ status: 'checking' });
+    setFeeEstimateState({ status: 'loading' });
     // Add small delay to prevent UI flash. Fee calculation happen
     // almost instantly and we want to keep the loading state for a bit.
     await new Promise((resolve) => setTimeout(resolve, 125));
@@ -150,7 +145,7 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
   useEffect(() => {
     let isActive = true;
 
-    setFeeEstimateState({ status: 'checking' });
+    setFeeEstimateState({ status: 'loading' });
 
     async function estimateUpgradeFee() {
       try {
@@ -170,8 +165,6 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
             'Network configuration is required for fee estimation',
           );
         }
-
-        setFeeEstimateState({ status: 'loading' });
 
         const transactionParams = createEIP7702UpgradeTransactionParams(
           upgradeStatus.address,

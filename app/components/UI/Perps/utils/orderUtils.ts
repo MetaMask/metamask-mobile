@@ -55,20 +55,18 @@ export const getValidOrderPrice = (order: Order): number | null =>
   getValidPerpsPrice(order.price);
 
 /**
- * The oracle price is HyperLiquid's reference for the oracle price band. Falls
- * back to the mid price when the oracle price is missing or does not parse to a
- * finite positive number, so a NaN reference cannot silently skip the band
- * check in {@link isPriceOutsideDeviationBand}.
+ * Mark price is HyperLiquid's reference for the oracle price band. Falls back
+ * to the mid price when the mark price is missing or does not parse to a finite
+ * positive number, so a NaN reference cannot silently skip the band check in
+ * {@link isPriceOutsideDeviationBand}.
  */
 export const resolveOracleReferencePrice = (
-  oraclePrice: string | undefined,
+  markPrice: string | undefined,
   currentPrice: number,
 ): number => {
-  const parsedOraclePrice = oraclePrice
-    ? Number.parseFloat(oraclePrice)
-    : Number.NaN;
-  return Number.isFinite(parsedOraclePrice) && parsedOraclePrice > 0
-    ? parsedOraclePrice
+  const parsedMarkPrice = markPrice ? Number.parseFloat(markPrice) : Number.NaN;
+  return Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+    ? parsedMarkPrice
     : currentPrice;
 };
 

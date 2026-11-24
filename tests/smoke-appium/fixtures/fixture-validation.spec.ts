@@ -83,8 +83,8 @@ appiumTest.describe(
                 `Type mismatches: ${diff.typeMismatches.length}`,
                 `Value mismatches: ${diff.valueMismatches.length} (informational)`,
                 '',
-                'The weekly "Update E2E Fixtures" workflow opens a PR with the updated fixture.',
-                'To update it manually, run the "Update E2E Fixtures" workflow from the Actions tab.',
+                'To update the committed fixture, comment on the PR:',
+                '  @metamaskbot update-mobile-fixture',
               ].join('\n');
 
               fs.writeFileSync(diffPath, summary, 'utf-8');

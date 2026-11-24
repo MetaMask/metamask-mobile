@@ -44,17 +44,6 @@ import {
   type TaxRefusalAction,
 } from '../utils/taxDocumentation';
 import type { ClaimEarningsOptions } from './useClaimEarnings';
-import { useEarningsSummary } from './useEarningsSummary';
-import useRewardsToast from './useRewardsToast';
-
-/**
- * Device facts the Earnings tab resolves with the Claim button. Cashback
- * that this phone cannot sign is not a cashback press: the tax sheet still
- * opens when income is waiting.
- */
-export interface ClaimPressDevice {
-  cashbackSignableOnDevice: boolean;
-}
 
 /**
  * What Claim's press passes back. `summary` is for the earnings tab, which
@@ -64,6 +53,8 @@ export interface ClaimPressDevice {
 export type ClaimAfterTaxOptions = ClaimEarningsOptions & {
   summary?: EarningsSummaryDto;
 };
+import { useEarningsSummary } from './useEarningsSummary';
+import useRewardsToast from './useRewardsToast';
 
 const TAX_ROUTES = new Set<string>([
   Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
@@ -693,7 +684,6 @@ export function useTaxDocumentation(profileId: string) {
     async (
       summary: EarningsSummaryDto,
       claim: (options?: ClaimAfterTaxOptions) => Promise<void>,
-      pressDevice?: ClaimPressDevice,
     ) => {
       if (pressBusy.current) {
         return;
@@ -725,13 +715,9 @@ export function useTaxDocumentation(profileId: string) {
           return;
         }
         // Not cleared, or the tax read failed. Cashback still pays on its
-        // own when this phone can sign it. Income waits for a determination,
-        // and a failed read is not treated as cleared. Cashback this phone
-        // cannot sign follows the under-minimum path.
-        if (
-          cashbackMeetsClaimMinimum(summary) &&
-          pressDevice?.cashbackSignableOnDevice !== false
-        ) {
+        // own. Income waits for a determination, and a failed read is not
+        // treated as cleared.
+        if (cashbackMeetsClaimMinimum(summary)) {
           await claim({ cashbackOnly: true });
           return;
         }

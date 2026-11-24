@@ -1,4 +1,3 @@
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +16,7 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
+import { mockTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -80,7 +80,7 @@ jest.mock('../utils/translatePerpsError', () => ({
   }: {
     error?: string;
     fallbackMessage: string;
-  }): string => error || fallbackMessage,
+  }) => error || fallbackMessage,
 }));
 
 describe('getPerpsToastLabels', () => {
@@ -633,7 +633,8 @@ describe('usePerpsToasts', () => {
       describe('post-only edit failures', () => {
         it('says the order was cancelled when the rejection reports a cancelled original', () => {
           // Arrange
-          const error = PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS;
+          const error =
+            'Error placing new order during modify: Post only order would have immediately matched, bbo was 2347@2347.1.';
           const { result } = renderHook(() => usePerpsToasts());
 
           // Act

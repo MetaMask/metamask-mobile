@@ -1,8 +1,5 @@
 import React from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
-import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
-import { brandColor, darkTheme } from '@metamask/design-tokens';
 import { BigNumber } from 'ethers';
 import renderWithProvider, {
   DeepPartial,
@@ -115,20 +112,17 @@ function renderSheet({
   },
   fiatToUsdRate = 1,
   goBack = jest.fn(),
-  isPriceRangeConversionReady = true,
   isSubmitting = false,
   onConfirm = jest.fn(),
   onEditSlippagePress = jest.fn(),
   onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
-  theme = Theme.Light,
 }: {
   currentCurrency?: string;
   delegationFee?: EIP7702UpgradeFee;
   fiatToUsdRate?: number;
   goBack?: () => void;
-  isPriceRangeConversionReady?: boolean;
   isSubmitting?: boolean;
   onConfirm?: () => void;
   onEditSlippagePress?: () => void;
@@ -137,7 +131,6 @@ function renderSheet({
   latestSourceBalance?:
     | { displayBalance: string; atomicBalance: BigNumber }
     | undefined;
-  theme?: Theme;
 } = {}) {
   jest.mocked(useBridgeSession).mockReturnValue({
     selectedTab: BridgeTabKey.Recurring,
@@ -149,25 +142,20 @@ function renderSheet({
     setQuoteParams: jest.fn(),
   });
   return renderWithProvider(
-    <ThemeProvider theme={theme}>
-      <RecurringConfirmOrderSheet
-        currentCurrency={currentCurrency}
-        delegationFee={delegationFee}
-        fiatToUsdRate={fiatToUsdRate}
-        isPriceRangeConversionReady={isPriceRangeConversionReady}
-        isSubmitting={isSubmitting}
-        onConfirm={onConfirm}
-        onEditSlippagePress={onEditSlippagePress}
-        onDelegationFeeInfoPress={onDelegationFeeInfoPress}
-        goBack={goBack}
-      />
-    </ThemeProvider>,
+    <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency}
+      delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
+      isPriceRangeConversionReady
+      isSubmitting={isSubmitting}
+      onConfirm={onConfirm}
+      onEditSlippagePress={onEditSlippagePress}
+      onDelegationFeeInfoPress={onDelegationFeeInfoPress}
+      goBack={goBack}
+    />,
     { state },
   );
 }
-
-const flattenStyle = (node: { props: Record<string, unknown> }) =>
-  StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
 
 describe('RecurringConfirmOrderSheet', () => {
   beforeEach(() => {
@@ -200,44 +188,12 @@ describe('RecurringConfirmOrderSheet', () => {
     );
   });
 
-  it('shows source placeholders when the source amount is unavailable', () => {
-    const { getByTestId } = renderSheet({
-      state: buildState({ sourceAmount: undefined }),
-    });
-
-    expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER),
-    ).toHaveTextContent(`${strings('bridge.recurring.paying_per_order')}--`);
-    expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS),
-    ).toHaveTextContent(`${strings('bridge.recurring.paying_all_orders')}--`);
-  });
-
   it('shows dest token as receiving without an amount', () => {
     const { getByTestId } = renderSheet();
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
-  });
-
-  it('paints token avatars with the sheet surface instead of white in dark mode', () => {
-    const { getByTestId } = renderSheet({ theme: Theme.Dark });
-
-    const receivingTokenStyle = flattenStyle(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING_TOKEN),
-    );
-    const delegationFeeTokenStyle = flattenStyle(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
-    );
-
-    expect(receivingTokenStyle.backgroundColor).toBe(
-      darkTheme.colors.background.elevated1,
-    );
-    expect(receivingTokenStyle.backgroundColor).not.toBe(brandColor.white);
-    expect(delegationFeeTokenStyle.backgroundColor).toBe(
-      darkTheme.colors.background.elevated1,
-    );
   });
 
   it('shows the stored currency range with its selected token', () => {
@@ -282,29 +238,6 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('uses the destination token for a destination-side price range', () => {
-    const { getByTestId } = renderSheet({
-      state: buildState({
-        sourceToken: undefined,
-        recurring: {
-          everyValue: '1',
-          everyUnit: 'day',
-          repeatCount: '10',
-          priceRange: {
-            tokenSide: 'dest',
-            currency: 'USD',
-            min: '20',
-            max: '30',
-          },
-        },
-      }),
-    });
-
-    expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
-    ).toBeOnTheScreen();
-  });
-
   it('shows the local currency notice when EUR is selected for a configured range', () => {
     const state = buildState({
       recurring: {
@@ -331,37 +264,6 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toHaveTextContent(
       strings('bridge.recurring.local_currency_notice', {
         rate: '2.00',
-        currency: 'EUR',
-      }),
-    );
-  });
-
-  it('shows an unavailable rate when the fiat conversion rate is invalid', () => {
-    const state = buildState({
-      recurring: {
-        everyValue: '1',
-        everyUnit: 'day',
-        repeatCount: '10',
-        priceRange: {
-          tokenSide: 'source',
-          currency: 'EUR',
-          min: '900',
-          max: '1100',
-        },
-      },
-    });
-
-    const { getByTestId } = renderSheet({
-      currentCurrency: 'EUR',
-      fiatToUsdRate: 0,
-      state,
-    });
-
-    expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE),
-    ).toHaveTextContent(
-      strings('bridge.recurring.local_currency_notice', {
-        rate: '--',
         currency: 'EUR',
       }),
     );
@@ -406,7 +308,7 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows destination token metadata for estimated amounts', () => {
+  it('shows estimated dest amounts per order and across all orders', () => {
     const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
@@ -414,33 +316,18 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}24.44 USDC`,
+      `${strings('bridge.recurring.est_receiving_per_order')}24.44`,
     );
     expect(
       getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}244.4 USDC`,
+      `${strings('bridge.recurring.est_receiving_all_orders')}244.4`,
     );
-    expect(
-      getByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_TOKEN,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_TOKEN,
-      ),
-    ).toBeOnTheScreen();
     expect(
       queryByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON,
-      ),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_SKELETON,
       ),
     ).not.toBeOnTheScreen();
   });
@@ -483,23 +370,25 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}${formatMinimumReceived(destTokenAmount)} USDC`,
+      `${strings('bridge.recurring.est_receiving_per_order')}${formatMinimumReceived(destTokenAmount)}`,
     );
     expect(
       getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}${formatMinimumReceived(receivingAll ?? destTokenAmount)} USDC`,
+      `${strings('bridge.recurring.est_receiving_all_orders')}${formatMinimumReceived(receivingAll ?? destTokenAmount)}`,
     );
   });
 
-  it('omits the global expiry limit from confirmation', () => {
-    const { queryByText } = renderSheet();
+  it('shows a fixed 180 day expiry', () => {
+    const { getByTestId } = renderSheet();
 
     expect(
-      queryByText(strings('bridge.recurring.expires_after')),
-    ).not.toBeOnTheScreen();
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.expires_after')}180 ${strings('bridge.recurring.unit_plural.day')}`,
+    );
   });
 
   it('shows slippage as Auto when unset', () => {
@@ -585,7 +474,7 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps paying, receiving, and slippage populated while a quote is loading', () => {
+  it('keeps paying, receiving, expiry, and slippage populated while a quote is loading', () => {
     jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
       ...mockUseBridgeQuoteData,
       isLoading: true,
@@ -611,21 +500,13 @@ describe('RecurringConfirmOrderSheet', () => {
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
     expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.expires_after')}180 ${strings('bridge.recurring.unit_plural.day')}`,
+    );
+    expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
     ).toHaveTextContent(`${strings('bridge.recurring.slippage_all_orders')}2%`);
-  });
-
-  it('omits the global expiry limit while a quote is loading', () => {
-    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
-      ...mockUseBridgeQuoteData,
-      isLoading: true,
-    }));
-
-    const { queryByText } = renderSheet();
-
-    expect(
-      queryByText(strings('bridge.recurring.expires_after')),
-    ).not.toBeOnTheScreen();
   });
 
   it('shows placeholders for est receiving and network fee when there is no quote', () => {
@@ -643,14 +524,14 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}-- USDC`,
+      `${strings('bridge.recurring.est_receiving_per_order')}--`,
     );
     expect(
       getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}-- USDC`,
+      `${strings('bridge.recurring.est_receiving_all_orders')}--`,
     );
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE),
@@ -665,37 +546,6 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(
       queryByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON,
-      ),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('omits destination metadata when the destination token is unavailable', () => {
-    const { getByTestId, queryByTestId } = renderSheet({
-      state: buildState({ destToken: undefined }),
-    });
-
-    expect(
-      getByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
-      ),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}24.44`,
-    );
-    expect(
-      getByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
-      ),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}244.4`,
-    );
-    expect(
-      queryByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_TOKEN,
-      ),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_TOKEN,
       ),
     ).not.toBeOnTheScreen();
   });
@@ -867,25 +717,6 @@ describe('RecurringConfirmOrderSheet', () => {
     });
   });
 
-  it('hides the delegation fee row and disables Confirm while checking whether an upgrade is required', () => {
-    const onConfirm = jest.fn();
-    const { getByTestId, queryByTestId } = renderSheet({
-      delegationFee: { status: 'checking', retry: jest.fn() },
-      onConfirm,
-    });
-
-    expect(
-      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
-    ).not.toBeOnTheScreen();
-    const confirmButton = getByTestId(
-      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
-    );
-
-    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
-    fireEvent.press(confirmButton);
-    expect(onConfirm).not.toHaveBeenCalled();
-  });
-
   it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
@@ -978,22 +809,6 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
     fireEvent.press(confirmButton);
-    expect(onConfirm).not.toHaveBeenCalled();
-  });
-
-  it('disables Confirm while the price range conversion is pending', () => {
-    const onConfirm = jest.fn();
-    const { getByTestId } = renderSheet({
-      isPriceRangeConversionReady: false,
-      onConfirm,
-    });
-
-    const confirmButton = getByTestId(
-      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
-    );
-    fireEvent.press(confirmButton);
-
-    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
     expect(onConfirm).not.toHaveBeenCalled();
   });
 

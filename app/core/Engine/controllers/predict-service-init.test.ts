@@ -1,4 +1,3 @@
-import { AppState } from 'react-native';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -19,11 +18,10 @@ import type {
   PredictMarketDataServiceEvents,
   PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
-import {
-  PredictFundingService,
-  type PredictFundingServiceActions,
-  type PredictFundingServiceEvents,
-  type PredictFundingServiceMessenger,
+import type {
+  PredictFundingServiceActions,
+  PredictFundingServiceEvents,
+  PredictFundingServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictFundingService';
 import type {
   PredictPortfolioServiceActions,
@@ -324,17 +322,8 @@ describe('Predict service initialization', () => {
   });
 
   describe('Predict Funding service', () => {
-    const buildFundingInit = (
-      options: {
-        venue?: 'kalshi' | 'polymarket';
-        isUnlocked?: boolean;
-        isSignedIn?: boolean;
-      } = {},
-    ) => {
-      const session = {
-        isSignedIn: options.isSignedIn ?? true,
-        isUnlocked: options.isUnlocked ?? false,
-      };
+    const buildFundingInit = () => {
+      const session = { isSignedIn: true };
       const rootMessenger = new Messenger<
         MockAnyNamespace,
         PredictFundingServiceActions,
@@ -350,15 +339,6 @@ describe('Predict service initialization', () => {
       const call = jest.fn((action: string) => {
         if (action === 'AuthenticationController:getState') {
           return { isSignedIn: session.isSignedIn };
-        }
-        if (action === 'AuthenticationController:getSessionProfile') {
-          return Promise.resolve({ canonicalProfileId: 'profile-1' });
-        }
-        if (action === 'KeyringController:getState') {
-          return { isUnlocked: session.isUnlocked };
-        }
-        if (action === 'TransactionController:getState') {
-          return { transactions: [] };
         }
         return Promise.resolve('test-bearer-token');
       });
@@ -376,11 +356,9 @@ describe('Predict service initialization', () => {
             handlers.delete(event);
           },
         } as never,
-        getState: jest.fn(() =>
-          activeVenueState(options.venue ?? 'kalshi'),
-        ) as never,
+        getState: jest.fn(() => activeVenueState('kalshi')) as never,
       });
-      return { rootMessenger, controller, handlers, session, call };
+      return { rootMessenger, controller, handlers, session };
     };
 
     it('stops observation on lock and detaches state only on profile change', () => {
@@ -395,32 +373,6 @@ describe('Predict service initialization', () => {
 
       expect(changeIdentity).toHaveBeenCalledTimes(1);
       controller.destroy();
-    });
-
-    it('forces a fresh deposit resume on profileSignIn while isSignedIn stays true', () => {
-      const originalAppState = AppState.currentState;
-      AppState.currentState = 'active';
-      const resumeDeposits = jest
-        .spyOn(PredictFundingService.prototype, 'resumeDeposits')
-        .mockResolvedValue(undefined);
-      try {
-        const { controller, handlers } = buildFundingInit({
-          venue: 'kalshi',
-          isUnlocked: true,
-          isSignedIn: true,
-        });
-        const changeIdentity = jest.spyOn(controller, 'changeIdentity');
-        expect(resumeDeposits).toHaveBeenCalledTimes(1);
-
-        handlers.get('AuthenticationController:profileSignIn')?.();
-
-        expect(changeIdentity).toHaveBeenCalledTimes(1);
-        expect(resumeDeposits).toHaveBeenCalledTimes(2);
-        controller.destroy();
-      } finally {
-        resumeDeposits.mockRestore();
-        AppState.currentState = originalAppState;
-      }
     });
 
     it('changes identity when the session signs out, not when it refreshes', () => {
@@ -475,49 +427,10 @@ describe('Predict service initialization', () => {
       controller.destroy();
     });
 
-    it('resumes deposits on unlock when Kalshi is active, and skips when Polymarket is active', () => {
-      const originalAppState = AppState.currentState;
-      AppState.currentState = 'active';
-      try {
-        const { controller, handlers, session } = buildFundingInit({
-          venue: 'kalshi',
-          isUnlocked: false,
-          isSignedIn: true,
-        });
-        const resumeDeposits = jest
-          .spyOn(controller, 'resumeDeposits')
-          .mockResolvedValue(undefined);
-        const stopDepositPolling = jest.spyOn(controller, 'stopDepositPolling');
-
-        session.isUnlocked = true;
-        handlers.get('KeyringController:unlock')?.();
-        expect(resumeDeposits).toHaveBeenCalledTimes(1);
-
-        session.isUnlocked = false;
-        handlers.get('KeyringController:lock')?.();
-        expect(stopDepositPolling).toHaveBeenCalled();
-        controller.destroy();
-
-        const poly = buildFundingInit({
-          venue: 'polymarket',
-          isUnlocked: true,
-          isSignedIn: true,
-        });
-        const polyResume = jest
-          .spyOn(poly.controller, 'resumeDeposits')
-          .mockResolvedValue(undefined);
-        poly.handlers.get('KeyringController:unlock')?.();
-        expect(polyResume).not.toHaveBeenCalled();
-        poly.controller.destroy();
-      } finally {
-        AppState.currentState = originalAppState;
-      }
-    });
-
     it('releases every subscription on destroy', () => {
       jest.mocked(store.subscribe).mockClear();
       const { controller, handlers } = buildFundingInit();
-      expect(handlers.size).toBe(4);
+      expect(handlers.size).toBe(3);
       expect(jest.mocked(store.subscribe)).toHaveBeenCalledTimes(1);
 
       controller.destroy();

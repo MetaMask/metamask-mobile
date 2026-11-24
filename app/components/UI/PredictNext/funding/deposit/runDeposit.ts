@@ -102,7 +102,6 @@ export interface DepositWorkflowDeps {
 export type DepositOutcome =
   | { kind: 'submitted'; deposit: PredictDepositOperation; reported: boolean }
   | { kind: 'in_progress'; deposit: PredictDepositOperation | null }
-  | { kind: 'already_resolved'; deposit: PredictDepositOperation }
   | { kind: 'plan_mismatch'; reason: DepositPlanMismatchReason }
   | { kind: 'rejected' }
   | {
@@ -464,46 +463,4 @@ export const startDeposit = async (
     return { kind: 'in_progress', deposit };
   }
   return payDeposit(deps, deposit, params.amount);
-};
-
-/**
- * Re-reads an open deposit before continuing so a deposit already completed
- * or cancelled (for example on another device) never creates a new transfer.
- */
-export const continueDeposit = async (
-  deps: DepositWorkflowDeps,
-  deposit: PredictDepositOperation,
-): Promise<DepositOutcome> => {
-  let latest: PredictDepositOperation;
-  try {
-    latest = await deps.funding.getDeposit(deposit.operationId);
-  } catch (error) {
-    deps.logError(
-      error,
-      'PredictNext: failed to verify deposit before continue',
-    );
-    return {
-      kind: 'failed',
-      stage: 'prepare',
-      error: toPredictError(error),
-    };
-  }
-  if (latest.status !== 'awaiting_transfer') {
-    if (latest.status === 'processing' || latest.status === 'under_review') {
-      return { kind: 'in_progress', deposit: latest };
-    }
-    return { kind: 'already_resolved', deposit: latest };
-  }
-  latest = await awaitFundingPlan(deps, latest);
-  if (!hasPlan(latest)) {
-    if (latest.next === null) {
-      return {
-        kind: 'failed',
-        stage: 'prepare',
-        error: PredictError.from(PredictErrorCode.DEPOSIT_FAILED),
-      };
-    }
-    return { kind: 'in_progress', deposit: latest };
-  }
-  return payDeposit(deps, latest, latest.amount);
 };

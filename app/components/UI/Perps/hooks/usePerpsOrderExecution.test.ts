@@ -1159,10 +1159,6 @@ describe('usePerpsOrderExecution', () => {
         success: false,
         error: PERPS_ERROR_CODES.IOC_CANCEL,
         errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.IOC_CANCEL,
-          provider: 'hyperliquid',
-        },
       });
       const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
 
@@ -1176,10 +1172,7 @@ describe('usePerpsOrderExecution', () => {
       expect(onError).toHaveBeenCalledWith({
         error: PERPS_ERROR_CODES.IOC_CANCEL,
         errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.IOC_CANCEL,
-          provider: 'hyperliquid',
-        },
+        errorDetails: undefined,
         maxSlippageBps: 800,
       });
     });

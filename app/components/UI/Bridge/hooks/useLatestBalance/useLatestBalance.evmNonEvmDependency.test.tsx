@@ -20,14 +20,6 @@ jest.mock('../useNonEvmTokensWithBalance', () => ({
   useNonEvmTokensWithBalance: () => mockUseNonEvmTokensWithBalance(),
 }));
 
-jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: () => ({
-    withdrawableMusd: undefined,
-    refetchBalance: jest.fn(),
-  }),
-}));
-
 describe('useLatestBalance EVM/non-EVM dependencies', () => {
   const mockProvider = {
     getBalance: jest

@@ -17,7 +17,6 @@ import {
 } from '@testing-library/react-native';
 import {
   CandlePeriod,
-  PERPS_ERROR_CODES,
   type CandleData,
   type Position,
 } from '@metamask/perps-controller';
@@ -102,7 +101,7 @@ const MORE_CANDLE_SHEET_BASE =
 
 function renderEligibleNoPositionPerpsDetails(
   params?: Partial<Parameters<typeof renderPerpsMarketDetailsView>[0]>,
-): ReturnType<typeof renderPerpsMarketDetailsView> {
+) {
   return renderPerpsMarketDetailsView({
     streamOverrides: { positions: [] },
     overrides: {
@@ -798,7 +797,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         });
         persistPromise = new Promise<void>((resolve) => {
-          resolvePersist = (): void => {
+          resolvePersist = () => {
             watchlist = ['ETH'];
             stateHarness.stage({
               isTestnet: false,
@@ -1277,7 +1276,8 @@ describe('PerpsMarketDetailsView', () => {
       );
       updatePositionTPSL.mockResolvedValueOnce({
         success: false,
-        error: PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW,
+        error:
+          'order 0: Only post-only orders allowed immediately after network upgrade',
       });
       const position = createLongPositionForViews();
       const { stream } = renderPerpsMarketDetailsView({
@@ -1381,7 +1381,7 @@ describe('PerpsMarketDetailsView', () => {
       hasPosition: boolean;
       insightsFlagEnabled?: boolean;
       report?: typeof MOCK_PERPS_MARKET_INSIGHTS_REPORT | null;
-    }): void => {
+    }) => {
       setupPerpsMarketInsightsEngineMock(report);
       renderPerpsMarketDetailsView({
         streamOverrides: {
@@ -1418,14 +1418,14 @@ describe('PerpsMarketDetailsView', () => {
     // The entry card replaces a skeleton only after the AiDigestController fetch
     // resolves, so it needs the same explicit timeout AssetOverviewContent's CV
     // test uses for this card. The 1s default is not enough on a loaded CV shard.
-    const findInsightsEntryCard = (): ReturnType<typeof screen.findByTestId> =>
+    const findInsightsEntryCard = () =>
       screen.findByTestId(
         MarketInsightsSelectorsIDs.ENTRY_CARD,
         {},
         { timeout: 15000 },
       );
 
-    const openInsightsFromEntryCard = async (): Promise<void> => {
+    const openInsightsFromEntryCard = async () => {
       fireEvent.press(await findInsightsEntryCard());
     };
 
@@ -1672,7 +1672,7 @@ describe('PerpsMarketDetailsView', () => {
     const ethPost = mockPerpFeedItem({ positionId: 'eth-perp-post' });
     const ethPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${ethPost.positionId}-${ethPost.timestamp}`;
     const statsSectionTestId = 'perps-home-section-stats';
-    const postTestId = (post: typeof ethPost): string =>
+    const postTestId = (post: typeof ethPost) =>
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.positionId}-${post.timestamp}`;
 
     const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
@@ -1722,7 +1722,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('fetches the feed only once Feed is opened', async () => {
       const messengerSpy = setupLeaderboardApiMock({ feedItems: [ethPost] });
-      const feedFetches = (): typeof messengerSpy.mock.calls =>
+      const feedFetches = () =>
         messengerSpy.mock.calls.filter(
           ([action]) => action === 'SocialService:fetchFeed',
         );
@@ -1972,7 +1972,7 @@ describe('PerpsMarketDetailsView', () => {
       const disclaimerId = PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER;
       // Host and composite nodes can both carry a testID. Every copy of
       // `before` still has to precede every copy of `after`.
-      const expectBefore = (before: string, after: string): void => {
+      const expectBefore = (before: string, after: string) => {
         const ordered = screen.UNSAFE_root.findAll(
           (node) => node.props.testID === before || node.props.testID === after,
         ).map((node) => node.props.testID as string);

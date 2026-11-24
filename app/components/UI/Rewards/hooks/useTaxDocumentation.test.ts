@@ -440,40 +440,6 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledTimes(1);
     });
 
-    it('opens the tax sheet and omits income when unsignable cashback is pressed and tax is uncleared', async () => {
-      const claim = jest.fn().mockResolvedValue(undefined);
-      const { result } = renderTaxHook();
-
-      await act(async () => {
-        await result.current.onClaimPress(cashbackAndIncomeSummary, claim, {
-          cashbackSignableOnDevice: false,
-        });
-      });
-
-      expect(claim).not.toHaveBeenCalledWith({ cashbackOnly: true });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
-        expect.objectContaining({ question: 'attestation' }),
-      );
-      expect(claim).toHaveBeenCalledWith({ omitIncome: true });
-    });
-
-    it('does not submit cashback when the tax read fails and this phone cannot sign it', async () => {
-      mockCall.mockRejectedValue(new Error('offline'));
-      const claim = jest.fn().mockResolvedValue(undefined);
-      const { result } = renderTaxHook();
-
-      await act(async () => {
-        await result.current.onClaimPress(cashbackAndIncomeSummary, claim, {
-          cashbackSignableOnDevice: false,
-        });
-      });
-
-      expect(mockErrorToast).toHaveBeenCalledWith(localizedText.taxErrorToast);
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(claim).not.toHaveBeenCalled();
-    });
-
     it('submits cashback only and skips the tax sheet when cashback meets the minimum', async () => {
       const claim = jest.fn().mockResolvedValue(undefined);
       const { result } = renderTaxHook();

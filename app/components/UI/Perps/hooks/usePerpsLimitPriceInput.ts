@@ -104,7 +104,7 @@ export function usePerpsLimitPriceInput({
     : passedCurrentPrice;
 
   const referencePrice = resolveOracleReferencePrice(
-    currentPriceData?.oraclePrice,
+    currentPriceData?.markPrice,
     currentPrice,
   );
 

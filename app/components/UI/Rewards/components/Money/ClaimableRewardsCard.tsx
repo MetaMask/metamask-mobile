@@ -4,6 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonIcon,
   ButtonIconSize,
@@ -143,23 +144,6 @@ export interface ClaimableRewardsCardProps {
   isClaiming?: boolean;
   /** A Retry-After window. The button stays disabled without a spinner. */
   isClaimWaiting?: boolean;
-  /**
-   * The filled wait sentence, shown under the disabled Claim button while
-   * `isClaimWaiting` is set.
-   */
-  claimWaitCaption?: string;
-  /**
-   * Shown under Claim when at least one claimable address is not signable
-   * on this phone. It does not disable the button. A wait window keeps its
-   * own caption.
-   */
-  earnedElsewhereCaption?: string;
-  /**
-   * Disables Claim when every open route's claimable addresses are
-   * unsignable on this phone. A tax hold stays pressable: that press opens
-   * the tax sheet. The button stays the one `claimButtonState` picks.
-   */
-  claimBlockedOnDevice?: boolean;
   onClaim?: () => void;
   onPaused?: () => void;
   /** Opens the balance breakdown. Shown beside the amount when set. */
@@ -178,8 +162,13 @@ const ClaimableRewardsCardSkeleton: React.FC<{
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON}
     >
       {showClaimableAmount ? (
-        <Box twClassName="p-4">
-          <Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="p-4"
+        >
+          <Box twClassName="flex-1 pr-4">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -191,7 +180,7 @@ const ClaimableRewardsCardSkeleton: React.FC<{
             </Text>
             <Skeleton style={tw.style('mt-1 h-8 w-28 rounded-md')} />
           </Box>
-          <Skeleton style={tw.style('mt-3 h-12 w-full rounded-full')} />
+          <Skeleton style={tw.style('h-10 w-24 rounded-full')} />
         </Box>
       ) : null}
       <Box
@@ -240,9 +229,6 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   taxHeld = false,
   isClaiming = false,
   isClaimWaiting = false,
-  claimWaitCaption,
-  earnedElsewhereCaption,
-  claimBlockedOnDevice = false,
   onClaim,
   onPaused,
   onBalanceBreakdown,
@@ -290,27 +276,9 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     pending: pendingAmount ?? claimableAmount,
     balance: recordedAmount,
   }[headline];
-  // A tax hold keeps Claim pressable. That press opens the tax sheet, and
-  // cashback this phone cannot sign is not submitted.
-  const claimBlocked = button === 'claim' && claimBlockedOnDevice && !taxHeld;
-  const claimInProgress = button === 'claim' && isClaiming && !claimBlocked;
+  const claimInProgress = button === 'claim' && isClaiming;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
-  // A wait window keeps its own caption. The earned-elsewhere sentence does
-  // not change the button. Claim is disabled only when every address is
-  // unsignable and nothing is held for tax documentation.
-  const caption =
-    claimCoolingDown && claimWaitCaption
-      ? {
-          text: claimWaitCaption,
-          testID: CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_WAIT,
-        }
-      : button === 'claim' && earnedElsewhereCaption
-        ? {
-            text: earnedElsewhereCaption,
-            testID: CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION,
-          }
-        : null;
   const buttonLabel =
     button === 'claim'
       ? localizedText.claim
@@ -330,8 +298,13 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER}
     >
       {showClaimableAmount ? (
-        <Box twClassName="p-4">
-          <Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="p-4"
+        >
+          <Box twClassName="flex-1 pr-4">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -365,17 +338,14 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
             </Box>
           </Box>
           {button === 'hidden' ? null : (
-            <Box twClassName="mt-3">
+            <Box>
               <Button
                 variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                twClassName="w-full"
-                isDisabled={
-                  button === 'claimed' || claimCoolingDown || claimBlocked
-                }
+                size={ButtonSize.Md}
+                isDisabled={button === 'claimed' || claimCoolingDown}
                 isLoading={claimInProgress}
                 onPress={
-                  button === 'claim' && !claimBlocked
+                  button === 'claim'
                     ? onClaim
                     : button === 'paused'
                       ? onPaused
@@ -385,16 +355,6 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
               >
                 {buttonLabel}
               </Button>
-              {caption ? (
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-2 text-center"
-                  testID={caption.testID}
-                >
-                  {caption.text}
-                </Text>
-              ) : null}
             </Box>
           )}
         </Box>

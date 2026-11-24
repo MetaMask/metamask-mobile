@@ -31,7 +31,7 @@ export interface DeriveOrderSizingInput {
   triggerPrice?: string;
   /** Mid/market price used for market orders and display. */
   marketPrice: number;
-  /** Venue mark price (`PriceUpdate.markPrice`), the standard margin basis. */
+  /** Oracle mark price used as the standard margin basis. */
   markPrice: number;
   leverage: number;
   /** Asset size decimals from market data; falls back when unknown. */
@@ -179,8 +179,7 @@ export const getProspectiveExecutionPrice = ({
  *
  * Priced placements (limit, trigger-limit with a limit, trigger-market with a
  * trigger) size and margin off that price; otherwise the mid is used for
- * sizing and the venue mark price, which HyperLiquid margins on, is used for
- * margin.
+ * sizing and the oracle mark price is used for margin.
  *
  * @param input - Order sizing inputs.
  * @returns The effective price, position size, and margin required.

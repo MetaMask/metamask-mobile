@@ -381,9 +381,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
-      // BigNumber turns 'invalid' into NaN; a missing 1d-ago value is unavailable.
+      // BigNumber handles invalid values by creating NaN, which .toNumber() converts to NaN for 'invalid'
+      // and undefined values are handled with || '0' fallback
       expect(result.current.perpsBalance).toBeNaN();
-      expect(result.current.perpsBalance1dAgo).toBeUndefined();
+      expect(result.current.perpsBalance1dAgo).toBe(0); // undefined falls back to '0'
       expect(result.current.unrealizedPnl).toBeNaN();
     });
 
@@ -466,38 +467,8 @@ describe('usePerpsPortfolioBalance', () => {
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
       expect(result.current.perpsBalance).toBe(1000);
-      expect(result.current.perpsBalance1dAgo).toBeUndefined();
+      expect(result.current.perpsBalance1dAgo).toBe(0);
       expect(result.current.unrealizedPnl).toBe(0);
-    });
-
-    it('reports the 1d-ago total as unavailable when one provider lacks the observation', () => {
-      const mockBalances = {
-        hyperliquid: {
-          totalBalance: '1000.00',
-          unrealizedPnl: '0',
-          accountValue1dAgo: '950.00',
-          lastUpdated: Date.now(),
-        },
-        lighter: {
-          totalBalance: '500.00',
-          unrealizedPnl: '0',
-          lastUpdated: Date.now(),
-        } as Partial<MockBalance>,
-      };
-
-      setupMocks(mockBalances as Record<string, MockBalance>, {
-        spendableBalance: '1500.00',
-        withdrawableBalance: '1500.00',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalBalance: '1500.00',
-      });
-
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
-
-      expect(result.current.perpsBalance).toBe(1500);
-      expect(result.current.perpsBalance1dAgo).toBeUndefined();
     });
 
     it('should handle null provider balance objects', () => {

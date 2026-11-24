@@ -20,7 +20,7 @@ export interface UseIsPriceDeviatedAboveThresholdReturn {
  * Hook to check if the perps price has deviated above the threshold from the spot price
  *
  * Uses existing price subscription (no additional network overhead).
- * Compares the current perps price with the spot price (oraclePrice) and
+ * Compares the current perps price with the spot price (markPrice) and
  * determines if the deviation exceeds the configured threshold.
  *
  * **Performance:**
@@ -50,14 +50,14 @@ export const useIsPriceDeviatedAboveThreshold = (
 
   const priceUpdate = symbol ? prices[symbol] : undefined;
 
-  // Calculate price deviation if we have both perps price and spot price (oraclePrice)
+  // Calculate price deviation if we have both perps price and spot price (markPrice)
   const isDeviatedAboveThreshold = useMemo(() => {
-    if (!symbol || !priceUpdate?.price || !priceUpdate?.oraclePrice) {
+    if (!symbol || !priceUpdate?.price || !priceUpdate?.markPrice) {
       return false;
     }
 
     const perpsPrice = Number.parseFloat(priceUpdate.price);
-    const spotPrice = Number.parseFloat(priceUpdate.oraclePrice);
+    const spotPrice = Number.parseFloat(priceUpdate.markPrice);
 
     if (Number.isNaN(perpsPrice) || Number.isNaN(spotPrice)) {
       return false;
@@ -72,7 +72,7 @@ export const useIsPriceDeviatedAboveThreshold = (
     const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     return deviation > threshold;
-  }, [symbol, priceUpdate?.price, priceUpdate?.oraclePrice]);
+  }, [symbol, priceUpdate?.price, priceUpdate?.markPrice]);
 
   const isLoading = !symbol || !priceUpdate;
 

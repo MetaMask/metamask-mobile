@@ -30,14 +30,11 @@ import type { PredictMarketDataServiceInitMessenger } from '../messengers/predic
 import type { PredictFundingServiceInitMessenger } from '../messengers/predict-funding-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
-import { selectActiveVenue } from '../../../components/UI/PredictNext/implementation/activeVenue';
 import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNext/implementation/subscribeToActiveVenueChanges';
 import { store } from '../../../store';
 import type { MessengerClientInitFunction } from '../types';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { createDepositStatusJournal } from '../../../components/UI/PredictNext/services/internal/depositStatusJournal';
 import { createOrderDispatchJournal } from '../../../components/UI/PredictNext/services/internal/orderDispatchJournal';
-import { bindDepositResumeLifecycle } from '../../../components/UI/PredictNext/services/internal/depositResumeLifecycle';
 import { bindOrderRecoveryLifecycle } from '../../../components/UI/PredictNext/services/internal/orderRecoveryLifecycle';
 import { getPredictApiUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import {
@@ -289,92 +286,44 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     funding: adapter.funding,
     venueId: adapter.venueId,
-    getTransactions: () => {
-      const state = initMessenger.call('TransactionController:getState');
-      return Array.isArray(state?.transactions) ? state.transactions : [];
-    },
-    journal: createDepositStatusJournal(StorageWrapper),
-    getIdentityScope: async () => {
-      const profile = await initMessenger.call(
-        'AuthenticationController:getSessionProfile',
-      );
-      return profile?.canonicalProfileId || undefined;
-    },
   });
 
   // Lock stops observation; replacing the identity also detaches funding state.
-  // Deposit resume/polling also follows unlock, sign-in, and Active Venue.
-  let notifyDepositLifecycle: (forceResume?: boolean) => void = () => undefined;
-  const onLock = () => {
-    controller.stopObserving();
-    notifyDepositLifecycle();
-  };
-  const onUnlock = () => {
-    notifyDepositLifecycle();
-  };
-  const onProfileSignIn = () => {
-    controller.changeIdentity();
-    notifyDepositLifecycle(true);
-  };
-  let signedIn = Boolean(
-    initMessenger.call('AuthenticationController:getState')?.isSignedIn,
-  );
-  const authenticationChanged = () => {
-    const next = Boolean(
-      initMessenger.call('AuthenticationController:getState')?.isSignedIn,
-    );
-    if (next !== signedIn) {
-      signedIn = next;
-      controller.changeIdentity();
-      notifyDepositLifecycle();
-    }
-  };
-  initMessenger.subscribe('KeyringController:lock', onLock);
-  initMessenger.subscribe('KeyringController:unlock', onUnlock);
+  const stopObserving = () => controller.stopObserving();
+  const changeIdentity = () => controller.changeIdentity();
+  initMessenger.subscribe('KeyringController:lock', stopObserving);
   initMessenger.subscribe(
     'AuthenticationController:profileSignIn',
-    onProfileSignIn,
+    changeIdentity,
   );
+  let signedIn = initMessenger.call(
+    'AuthenticationController:getState',
+  ).isSignedIn;
+  const authenticationChanged = () => {
+    const next = initMessenger.call(
+      'AuthenticationController:getState',
+    ).isSignedIn;
+    if (next !== signedIn) {
+      signedIn = next;
+      changeIdentity();
+    }
+  };
   initMessenger.subscribe(
     'AuthenticationController:stateChange',
     authenticationChanged,
   );
-  // An Active Venue change means the observed funding operations belong to a
-  // Venue this session no longer serves.
+  // An Active Venue change means the observed Withdrawals belong to a Venue
+  // this session no longer serves.
   const unsubscribeVenue = subscribeToActiveVenueChanges(
     { getState, subscribe: (listener) => store.subscribe(listener) },
-    () => {
-      controller.changeIdentity();
-      notifyDepositLifecycle();
-    },
+    changeIdentity,
   );
-  const cleanupDepositResume = bindDepositResumeLifecycle({
-    service: controller,
-    isKalshiActive: () => {
-      const active = selectActiveVenue(getState());
-      return active.status === 'ready' && active.venue === KALSHI_VENUE_ID;
-    },
-    isUnlocked: () =>
-      Boolean(initMessenger.call('KeyringController:getState')?.isUnlocked),
-    isSignedIn: () =>
-      Boolean(
-        initMessenger.call('AuthenticationController:getState')?.isSignedIn,
-      ),
-    subscribeSession: (listener) => {
-      notifyDepositLifecycle = listener;
-      return () => {
-        notifyDepositLifecycle = () => undefined;
-      };
-    },
-  });
 
   controller.setLifecycleCleanup(() => {
-    cleanupDepositResume();
-    initMessenger.unsubscribe('KeyringController:lock', onLock);
-    initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
+    initMessenger.unsubscribe('KeyringController:lock', stopObserving);
     initMessenger.unsubscribe(
       'AuthenticationController:profileSignIn',
-      onProfileSignIn,
+      changeIdentity,
     );
     initMessenger.unsubscribe(
       'AuthenticationController:stateChange',

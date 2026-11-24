@@ -57,6 +57,15 @@ The branch a user hits depends on whether a position exists and whether the orde
 
 Code: `app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView.tsx`; `app/components/UI/Perps/hooks/usePerpsOrderForm.ts`; `app/components/UI/Perps/hooks/usePerpsClosePosition.ts`; `app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView.tsx`
 
+## Known bug
+
+`translatePerpsError.ts` defines `NO_POSITION_FOUND_PATTERN = /No position found/i`. Controller 22.3.0, the version Mobile pins, throws the bare code `POSITION_NOT_FOUND`, which never matches.
+
+- The "position already closed" branch of `isNoPositionFoundError` is dead in `usePerpsTPSLUpdate` and `usePerpsClosePosition`. Users get the generic `position_not_found` toast instead.
+- `usePerpsTPSLUpdate.test.ts` still asserts the old "No position found for ETH" prose, so CI stays green.
+
+Code: `app/components/UI/Perps/utils/translatePerpsError.ts` `NO_POSITION_FOUND_PATTERN`, `isNoPositionFoundError`; `app/components/UI/Perps/hooks/usePerpsTPSLUpdate.ts`; `app/components/UI/Perps/hooks/usePerpsClosePosition.ts`
+
 ## Rules for Mobile code
 
 1. Do not call `updatePositionTPSL` in the same tick as `placeOrder`. If you must defer, wait for the position on the `PerpsStreamManager` positions channel, which `PerpsController.subscribeToPositions` feeds. The 1 s wait in `usePerpsOrderExecution` is not enough.
@@ -65,11 +74,3 @@ Code: `app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModi
 4. A change to the decision flag needs a live test. The failure depends on timing and unit tests mock a populated cache. `PerpsOrderView.view.test.tsx` covers one market order with TP/SL that asserts `updatePositionTPSL`.
 
 Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx`; `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.view.test.tsx`
-
-## Normalized failures
-
-Mobile consumes stable `PERPS_ERROR_CODES` from `@metamask/perps-controller` 25.0.0 and later. Venue-prose classification belongs in the provider, not in Mobile. Error translation and reconciliation receive the whole failed result so `errorCode` takes precedence over diagnostic text. Unclassified text gets retryable copy rather than being shown to the user.
-
-`POSITION_NOT_FOUND` is an already-closed race for both close and TP/SL updates. Mobile invalidates the positions and account-state caches, ends the CUF trace as `ALREADY_CLOSED`, and shows the already-closed toast. It recognizes the code in a failed result, a code string or an `Error` message; it does not match venue wording.
-
-`ORDER_POST_ONLY_WINDOW` and `ORDER_POST_ONLY_WOULD_CROSS` select the existing post-only messages. A rejected post-only edit with `ORDER_POST_ONLY_WOULD_CROSS` retains the warning that the original order was cancelled. `PROVIDER_ROUTE_REQUIRED` uses the route-selection message, which does not interpolate a provider name.

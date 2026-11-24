@@ -51,7 +51,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   });
 
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
-  const liveOraclePrice = symbol ? livePrices[symbol]?.oraclePrice : undefined;
+  const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
   const { fundingRate } = marketStats;
 

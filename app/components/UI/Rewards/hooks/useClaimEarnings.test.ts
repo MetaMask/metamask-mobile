@@ -1493,28 +1493,6 @@ describe('useClaimEarnings', () => {
     );
   });
 
-  it('does not start a claim when no claimable address is on this phone', async () => {
-    const blocked = summary(ONE_DOLLAR);
-    blocked.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [
-        {
-          address: 'eip155:0x3333333333333333333333333333333333333333',
-          lifetime: ONE_DOLLAR,
-          claimable: ONE_DOLLAR,
-          pending: '0',
-          claimed: '0',
-          voided: '0',
-        },
-      ];
-    const { result } = renderClaim();
-
-    await act(async () => {
-      await result.current.claim(blocked);
-    });
-
-    expect(mockEngineCall).not.toHaveBeenCalled();
-  });
-
   it('holds Claim until Retry-After elapses', async () => {
     jest.useFakeTimers();
     try {
@@ -1531,9 +1509,6 @@ describe('useClaimEarnings', () => {
         "You can't claim just yet. Try again in 1 minutes.",
       );
       expect(result.current.isClaimWaiting).toBe(true);
-      expect(result.current.claimWaitCaption).toBe(
-        "You can't claim just yet. Try again in 1 minutes.",
-      );
 
       mockEngineCall.mockClear();
       const trackedBeforeSecondPress = mockTrackEvent.mock.calls.length;
@@ -1547,39 +1522,6 @@ describe('useClaimEarnings', () => {
         jest.advanceTimersByTime(30_000);
       });
       expect(result.current.isClaimWaiting).toBe(false);
-      expect(result.current.claimWaitCaption).toBeNull();
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  it('steps the wait caption down a minute at each minute boundary without a new refusal', async () => {
-    jest.useFakeTimers();
-    try {
-      mockEngineCall.mockRejectedValue(
-        new RewardsMoneyClaimRefusalError(429, 'CLAIM_COOLDOWN', 90),
-      );
-      const { result } = renderClaim();
-
-      await act(async () => {
-        await result.current.claim(summary(ONE_DOLLAR));
-      });
-      expect(result.current.claimWaitCaption).toBe(
-        "You can't claim just yet. Try again in 2 minutes.",
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(30_000);
-      });
-      expect(result.current.claimWaitCaption).toBe(
-        "You can't claim just yet. Try again in 1 minutes.",
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(60_000);
-      });
-      expect(result.current.isClaimWaiting).toBe(false);
-      expect(result.current.claimWaitCaption).toBeNull();
     } finally {
       jest.useRealTimers();
     }

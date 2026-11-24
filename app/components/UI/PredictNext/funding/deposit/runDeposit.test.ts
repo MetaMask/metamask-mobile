@@ -11,7 +11,6 @@ import type {
 import type { DepositTransferExecutor } from './depositTransferExecutor';
 import {
   canReuseClientOperationId,
-  continueDeposit,
   payDeposit,
   startDeposit,
   type DepositFunding,
@@ -632,72 +631,5 @@ describe('canReuseClientOperationId', () => {
     },
   ])('makes a new ID after a $kind outcome', (outcome) => {
     expect(canReuseClientOperationId(outcome)).toBe(false);
-  });
-});
-
-describe('continueDeposit', () => {
-  it.each([
-    ['completed', { status: 'completed' as const, next: null }],
-    ['cancelled', { status: 'cancelled' as const, next: null }],
-    ['failed', { status: 'failed' as const, next: null }],
-  ])(
-    're-reads the deposit and creates no wallet transfer when already %s',
-    async (_label, overrides) => {
-      const stale = awaitingTransfer();
-      const latest: PredictDepositOperation = {
-        ...awaitingTransfer(),
-        ...overrides,
-      };
-      const { deps, funding, executor } = setup({
-        funding: {
-          getDeposit: jest.fn(async () => latest),
-        },
-      });
-
-      const outcome = await continueDeposit(deps, stale);
-
-      expect(funding.getDeposit).toHaveBeenCalledWith(OPERATION_ID);
-      expect(outcome).toStrictEqual({
-        kind: 'already_resolved',
-        deposit: latest,
-      });
-      expect(executor.send).not.toHaveBeenCalled();
-      expect(funding.cancelDeposit).not.toHaveBeenCalled();
-    },
-  );
-
-  it('returns in_progress without sending when the deposit already moved to processing', async () => {
-    const stale = awaitingTransfer();
-    const latest: PredictDepositOperation = {
-      ...awaitingTransfer(),
-      status: 'processing',
-      next: { kind: 'wait' },
-    };
-    const { deps, funding, executor } = setup({
-      funding: {
-        getDeposit: jest.fn(async () => latest),
-      },
-    });
-
-    const outcome = await continueDeposit(deps, stale);
-
-    expect(outcome).toStrictEqual({ kind: 'in_progress', deposit: latest });
-    expect(executor.send).not.toHaveBeenCalled();
-  });
-
-  it('fails cleanly without sending when the live re-read fails', async () => {
-    const stale = awaitingTransfer();
-    const { deps, executor } = setup({
-      funding: {
-        getDeposit: jest.fn(async () => {
-          throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
-        }),
-      },
-    });
-
-    const outcome = await continueDeposit(deps, stale);
-
-    expect(outcome).toMatchObject({ kind: 'failed', stage: 'prepare' });
-    expect(executor.send).not.toHaveBeenCalled();
   });
 });

@@ -58,7 +58,6 @@ import type {
   PredictVenueId,
 } from '../../types';
 import { TraceName } from '../../../../../util/trace';
-import { DepositStatusLine } from '../../components/DepositStatusLine';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
@@ -430,12 +429,6 @@ const PredictHomeView = ({
             isLoading={balanceQuery.isPending}
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
-            depositStatus={
-              <DepositStatusLine
-                venueId={venueId}
-                testID={PredictHomeTestIds.DEPOSIT_STATUS}
-              />
-            }
           />
           <PortfolioActions
             onPositionsPress={openPortfolio}

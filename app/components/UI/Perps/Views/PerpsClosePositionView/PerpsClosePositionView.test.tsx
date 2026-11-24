@@ -1065,28 +1065,6 @@ describe('PerpsClosePositionView', () => {
       );
     });
 
-    it('validates the limit price band against the oracle price, not the mark price', () => {
-      usePerpsLivePricesMock.mockReturnValue({
-        [defaultPerpsPositionMock.symbol]: {
-          price: '50000',
-          markPrice: '50100',
-          oraclePrice: '49900',
-        },
-      });
-
-      renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      expect(usePerpsClosePositionValidationMock).toHaveBeenLastCalledWith(
-        expect.objectContaining({ currentPrice: 50000, referencePrice: 49900 }),
-      );
-    });
-
     it('falls back to entry price when live price unavailable', () => {
       // Arrange
       usePerpsLivePricesMock.mockReturnValue({});

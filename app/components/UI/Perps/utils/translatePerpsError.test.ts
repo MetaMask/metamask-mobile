@@ -10,13 +10,10 @@ jest.mock('@metamask/perps-controller', () => {
       CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
       CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
       PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
-      PROVIDER_NOT_FOUND: 'PROVIDER_NOT_FOUND',
-      PROVIDER_ROUTE_REQUIRED: 'PROVIDER_ROUTE_REQUIRED',
       TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
       BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
       WITHDRAW_FAILED: 'WITHDRAW_FAILED',
       POSITIONS_FAILED: 'POSITIONS_FAILED',
-      POSITION_NOT_FOUND: 'POSITION_NOT_FOUND',
       ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
       MARKETS_FAILED: 'MARKETS_FAILED',
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
@@ -38,12 +35,9 @@ jest.mock('@metamask/perps-controller', () => {
       POSITION_WOULD_FLIP: 'POSITION_WOULD_FLIP',
       MARGIN_ADJUSTMENT_FAILED: 'MARGIN_ADJUSTMENT_FAILED',
       TPSL_UPDATE_FAILED: 'TPSL_UPDATE_FAILED',
-      TPSL_LEG_REPLACE_UNSUPPORTED: 'TPSL_LEG_REPLACE_UNSUPPORTED',
       ORDER_REJECTED: 'ORDER_REJECTED',
       SLIPPAGE_EXCEEDED: 'SLIPPAGE_EXCEEDED',
       PRICE_MOVED: 'PRICE_MOVED',
-      ORDER_POST_ONLY_WOULD_CROSS: 'ORDER_POST_ONLY_WOULD_CROSS',
-      ORDER_POST_ONLY_WINDOW: 'ORDER_POST_ONLY_WINDOW',
       RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
       SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
       NETWORK_ERROR: 'NETWORK_ERROR',
@@ -52,11 +46,7 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 import { strings } from '../../../../../locales/i18n';
-import {
-  PERPS_ERROR_CODES,
-  PROVIDER_CONFIG,
-  type OrderResult,
-} from '@metamask/perps-controller';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import {
   translatePerpsError,
   isPerpsErrorCode,
@@ -113,28 +103,9 @@ describe('translatePerpsError', () => {
         PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE,
       );
 
-      expect(result).toBe(
-        'perps.errors.providerNotAvailable [providerId:Unknown]',
-      );
+      expect(result).toBe('perps.errors.providerNotAvailable');
       expect(strings).toHaveBeenCalledWith(
         'perps.errors.providerNotAvailable',
-        { providerId: 'Unknown' },
-      );
-    });
-
-    it('translates a route-required result without provider interpolation', () => {
-      const error = {
-        success: false,
-        error: 'no route',
-        errorCode: PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
-        providerId: 'lighter',
-      };
-
-      const result = translatePerpsError(error);
-
-      expect(result).toBe('perps.errors.providerRouteRequired');
-      expect(strings).toHaveBeenCalledWith(
-        'perps.errors.providerRouteRequired',
         {},
       );
     });
@@ -203,26 +174,6 @@ describe('translatePerpsError', () => {
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
     });
 
-    it('translates a provider-tagged UNKNOWN_ERROR result to the retryable fallback', () => {
-      const rawDiagnostic =
-        'Hyperliquid signer 0xabc returned an internal stack trace';
-
-      const failure = {
-        error: rawDiagnostic,
-        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          provider: PROVIDER_CONFIG.DefaultProvider,
-        },
-      } satisfies OrderResult;
-
-      const result = translatePerpsError(failure);
-
-      expect(result).toBe('perps.errors.unknownError');
-      expect(result).not.toContain(rawDiagnostic);
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
-    });
-
     it('formats structured PRICE_MOVED details for localized copy', () => {
       const result = translatePerpsError({
         error: 'Price moved too much',
@@ -256,58 +207,6 @@ describe('translatePerpsError', () => {
 
       expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
-
-    it.each([
-      [
-        PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-        'perps.errors.insufficientMargin',
-      ],
-      [PERPS_ERROR_CODES.IOC_CANCEL, 'perps.errors.iocCancelUnknownTolerance'],
-    ])(
-      'translates a normalized Hyperliquid %s result with provider details',
-      (errorCode, expectedMessage) => {
-        const failure = {
-          error: errorCode,
-          errorCode,
-          errorDetails: {
-            code: errorCode,
-            provider: PROVIDER_CONFIG.DefaultProvider,
-          },
-        } satisfies OrderResult;
-
-        const result = translatePerpsError(failure);
-
-        expect(result).toBe(expectedMessage);
-      },
-    );
-
-    it.each([
-      null,
-      42,
-      { code: 'FUTURE_DETAILS', reason: 'new controller variant' },
-      {
-        code: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-        provider: 'unrecognized-provider',
-      },
-      { code: PERPS_ERROR_CODES.PRICE_MOVED, priceDeltaBps: 'not numeric' },
-    ])(
-      'translates a valid code despite unrecognized details: %p',
-      (errorDetails) => {
-        // Deliberately outside the published contract to exercise the unknown boundary.
-        const failure = {
-          error: 'Unclassified venue diagnostic',
-          errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-          errorDetails,
-        };
-
-        const result = translatePerpsError(failure);
-
-        expect(result).toBe('perps.errors.insufficientMargin');
-        expect(
-          isPerpsErrorCode(failure, PERPS_ERROR_CODES.INSUFFICIENT_MARGIN),
-        ).toBe(true);
-      },
-    );
   });
 
   describe('with Error objects', () => {
@@ -322,42 +221,39 @@ describe('translatePerpsError', () => {
       );
     });
 
-    it('replaces an unrecognized Error message with the retryable fallback', () => {
+    it('returns Error message if not an error code', () => {
       const error = new Error('Custom error message');
-
       const result = translatePerpsError(error);
 
-      expect(result).toBe('perps.errors.unknownError');
-      expect(result).not.toContain('Custom error message');
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
+      expect(result).toBe('Custom error message');
+      expect(strings).not.toHaveBeenCalled();
+    });
+
+    it('translates Error with API pattern matching message', () => {
+      const error = new Error('Not enough margin available');
+      const result = translatePerpsError(error);
+
+      expect(result).toBe('perps.errors.insufficientMargin');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.insufficientMargin',
+        {},
+      );
+    });
+
+    it('translates Error with transfer failed pattern', () => {
+      const error = new Error('Transfer failed: network issue');
+      const result = translatePerpsError(error);
+
+      expect(result).toBe('perps.errors.transferFailed');
+      expect(strings).toHaveBeenCalledWith('perps.errors.transferFailed', {});
     });
   });
 
-  it.each([
-    'Not enough margin available',
-    'Transfer failed: network error',
-    'Post only order would have immediately matched',
-    'No position found for ETH',
-  ])('leaves classification of venue prose to Core: %s', (error) => {
-    const translated = translatePerpsError(error);
-    const handled = handlePerpsError({ error, fallbackMessage: 'Retry' });
-
-    expect(translated).toBe('perps.errors.unknownError');
-    expect(handled).toBe('Retry');
-    expect(isNoPositionFoundError(error)).toBe(false);
-    expect(isPostOnlyWindowError(error)).toBe(false);
-    expect(isPostOnlyWouldCrossError(error)).toBe(false);
-  });
-
   describe('with string errors', () => {
-    it('replaces an unrecognized string with the retryable fallback', () => {
-      const error = 'Some random error string';
+    it('returns string as-is if not an error code', () => {
+      const result = translatePerpsError('Some random error string');
 
-      const result = translatePerpsError(error);
-
-      expect(result).toBe('perps.errors.unknownError');
-      expect(result).not.toContain(error);
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
+      expect(result).toBe('Some random error string');
     });
 
     it('translates string error codes', () => {
@@ -368,6 +264,23 @@ describe('translatePerpsError', () => {
         'perps.errors.clientNotInitialized',
         {},
       );
+    });
+
+    it('translates string with API pattern matching', () => {
+      const result = translatePerpsError('insufficient margin for this order');
+
+      expect(result).toBe('perps.errors.insufficientMargin');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.insufficientMargin',
+        {},
+      );
+    });
+
+    it('translates string with swap failed pattern', () => {
+      const result = translatePerpsError('Swap failed due to price impact');
+
+      expect(result).toBe('perps.errors.swapFailed');
+      expect(strings).toHaveBeenCalledWith('perps.errors.swapFailed', {});
     });
   });
 
@@ -458,40 +371,26 @@ describe('isPerpsErrorCode', () => {
 });
 
 describe('isNoPositionFoundError', () => {
-  it.each([
-    PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-    new Error(PERPS_ERROR_CODES.POSITION_NOT_FOUND),
-    { error: PERPS_ERROR_CODES.POSITION_NOT_FOUND },
-  ])('recognizes POSITION_NOT_FOUND in %p', (error) => {
+  it('returns true for a No position found string', () => {
+    // Arrange
+    const error = 'No position found for BTC';
+
+    // Act
     const result = isNoPositionFoundError(error);
 
+    // Assert
     expect(result).toBe(true);
   });
 
-  it('returns true for a normalized POSITION_NOT_FOUND result', () => {
-    const error = {
-      error: 'Position is no longer available',
-      errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-      errorDetails: {
-        code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-        provider: PROVIDER_CONFIG.DefaultProvider,
-      },
-    } satisfies OrderResult;
+  it('returns true for an Error wrapping No position found', () => {
+    // Arrange
+    const error = new Error('No position found for ETH');
 
+    // Act
     const result = isNoPositionFoundError(error);
 
+    // Assert
     expect(result).toBe(true);
-  });
-
-  it('prioritizes errorCode over a conflicting error string', () => {
-    const error = {
-      error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-      errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-    } satisfies OrderResult;
-
-    const result = isNoPositionFoundError(error);
-
-    expect(result).toBe(false);
   });
 
   it('returns false for unrelated close errors', () => {
@@ -517,111 +416,139 @@ describe('isNoPositionFoundError', () => {
   });
 });
 
-describe('normalized post-only rejections from Core', () => {
-  const WOULD_CROSS_CODE = 'ORDER_POST_ONLY_WOULD_CROSS';
-  const WINDOW_CODE = 'ORDER_POST_ONLY_WINDOW';
-  const normalizedResult = (
-    code: typeof WOULD_CROSS_CODE | typeof WINDOW_CODE,
-  ): OrderResult => ({
-    success: false,
-    error: code,
-    errorCode: code,
-    errorDetails: { code, provider: PROVIDER_CONFIG.DefaultProvider },
-  });
+describe('post-only rejections', () => {
+  const POST_ONLY_WINDOW_ERROR =
+    'order 0: Only post-only orders allowed immediately after network upgrade';
+  // bbo digits include "503" to guard against the generic service-unavailable pattern
+  const POST_ONLY_WOULD_CROSS_MODIFY_ERROR =
+    'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.';
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it.each<[string, typeof WOULD_CROSS_CODE | typeof WINDOW_CODE, string]>([
-    ['would-cross', WOULD_CROSS_CODE, 'perps.errors.postOnlyWouldCross'],
-    ['window', WINDOW_CODE, 'perps.errors.postOnlyWindow'],
+  it('translatePerpsError maps the post-only window rejection to restriction copy', () => {
+    // Act
+    const result = translatePerpsError(POST_ONLY_WINDOW_ERROR);
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWindow');
+  });
+
+  it('translatePerpsError maps the post-only would-cross rejection without bbo details', () => {
+    // Act
+    const result = translatePerpsError(
+      new Error(POST_ONLY_WOULD_CROSS_MODIFY_ERROR),
+    );
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWouldCross');
+  });
+
+  it('handlePerpsError maps the post-only window rejection instead of the fallback', () => {
+    // Act
+    const result = handlePerpsError({
+      error: { error: POST_ONLY_WINDOW_ERROR },
+      fallbackMessage: 'Your funds have been returned to you',
+    });
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWindow');
+  });
+
+  it('handlePerpsError maps the post-only would-cross rejection before generic patterns', () => {
+    // Act
+    const result = handlePerpsError({
+      error: POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+      fallbackMessage: 'Fallback message',
+    });
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWouldCross');
+  });
+
+  it.each([
+    ['a string', POST_ONLY_WINDOW_ERROR],
+    ['an Error', new Error(POST_ONLY_WINDOW_ERROR)],
+    ['a structured failure', { error: POST_ONLY_WINDOW_ERROR }],
   ])(
-    'translates the %s code from a provider result without venue text',
-    (_label, code, expectedKey) => {
-      expect(translatePerpsError(normalizedResult(code))).toBe(expectedKey);
-      expect(translatePerpsError(code)).toBe(expectedKey);
-      expect(
-        handlePerpsError({
-          error: normalizedResult(code),
-          fallbackMessage: 'Fallback message',
-        }),
-      ).toBe(expectedKey);
+    'isPostOnlyWindowError detects the post-only window in %s',
+    (_label, error) => {
+      // Act
+      const result = isPostOnlyWindowError(error);
+
+      // Assert
+      expect(result).toBe(true);
     },
   );
 
-  it('classifies the window code and not the would-cross code as the post-only window', () => {
-    expect(isPostOnlyWindowError(normalizedResult(WINDOW_CODE))).toBe(true);
-    expect(isPostOnlyWindowError(WINDOW_CODE)).toBe(true);
-    expect(isPostOnlyWindowError(normalizedResult(WOULD_CROSS_CODE))).toBe(
-      false,
-    );
+  it('isPostOnlyWindowError ignores the post-only would-cross rejection', () => {
+    // Act
+    const result = isPostOnlyWindowError(POST_ONLY_WOULD_CROSS_MODIFY_ERROR);
+
+    // Assert
+    expect(result).toBe(false);
   });
 
-  it('classifies the would-cross code and not the window code as a would-cross rejection', () => {
-    expect(isPostOnlyWouldCrossError(normalizedResult(WOULD_CROSS_CODE))).toBe(
-      true,
+  it('isPostOnlyWouldCrossError detects the post-only would-cross modify rejection', () => {
+    // Act
+    const result = isPostOnlyWouldCrossError(
+      POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
     );
-    expect(isPostOnlyWouldCrossError(WOULD_CROSS_CODE)).toBe(true);
-    expect(isPostOnlyWouldCrossError(normalizedResult(WINDOW_CODE))).toBe(
-      false,
-    );
+
+    // Assert
+    expect(result).toBe(true);
   });
 
-  it('reports a cancelled original for a normalized would-cross edit result', () => {
+  it.each([
+    ['the post-only window rejection', POST_ONLY_WINDOW_ERROR],
+    ['an unrelated error', 'Insufficient margin'],
+    ['undefined', undefined],
+  ])('isPostOnlyWouldCrossError ignores %s', (_label, error) => {
+    // Act
+    const result = isPostOnlyWouldCrossError(error);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('normalizeOrderEditRejection reports a cancelled original for a post-only would-cross modify', () => {
+    // Act
     const result = normalizeOrderEditRejection(
-      normalizedResult(WOULD_CROSS_CODE),
+      POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
     );
 
+    // Assert
     expect(result).toEqual({
       reason: 'post_only_would_cross',
       originalOrder: 'cancelled',
-      error: WOULD_CROSS_CODE,
+      error: POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
     });
   });
 
-  it('reports a retained original for a normalized window edit result', () => {
-    const result = normalizeOrderEditRejection(normalizedResult(WINDOW_CODE));
+  it.each([
+    ['the post-only window rejection', POST_ONLY_WINDOW_ERROR],
+    ['an unrelated error', 'Insufficient margin'],
+    ['no error', undefined],
+  ])(
+    'normalizeOrderEditRejection reports a retained original for %s',
+    (_label, error) => {
+      // Act
+      const result = normalizeOrderEditRejection(error);
 
-    expect(result).toEqual({
-      reason: 'other',
-      originalOrder: 'retained',
-      error: WINDOW_CODE,
-    });
-  });
-
-  it('reports a retained original for a normalized unknown edit result', () => {
-    const result = normalizeOrderEditRejection({
-      error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-      errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-    });
-
-    expect(result).toEqual({
-      reason: 'other',
-      originalOrder: 'retained',
-      error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-    });
-  });
+      // Assert
+      expect(result).toEqual({
+        reason: 'other',
+        originalOrder: 'retained',
+        error,
+      });
+    },
+  );
 });
 
 describe('handlePerpsError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('translates a valid code despite unrecognized details instead of using fallback copy', () => {
-    const error = {
-      error: 'Unclassified venue diagnostic',
-      errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-      errorDetails: { code: 'FUTURE_DETAILS' },
-    };
-
-    const result = handlePerpsError({
-      error,
-      fallbackMessage: 'Order validation failed',
-    });
-
-    expect(result).toBe('perps.errors.insufficientMargin');
   });
 
   describe('with TOKEN_NOT_SUPPORTED error', () => {
@@ -677,18 +604,6 @@ describe('handlePerpsError', () => {
         {
           providerId: 'hyperliquid',
         },
-      );
-    });
-
-    it('translates a route-required failure without provider interpolation', () => {
-      const result = handlePerpsError({
-        error: PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
-      });
-
-      expect(result).toBe('perps.errors.providerRouteRequired');
-      expect(strings).toHaveBeenCalledWith(
-        'perps.errors.providerRouteRequired',
-        {},
       );
     });
 
@@ -909,6 +824,239 @@ describe('handlePerpsError', () => {
           providerId: 'dydx',
         },
       );
+    });
+  });
+
+  describe('with API error pattern matching', () => {
+    it('translates insufficient margin error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Not enough margin available for this order',
+      });
+
+      expect(result).toBe('perps.errors.insufficientMargin');
+    });
+
+    it('translates reduce only violation error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Reduce only order rejected',
+      });
+
+      expect(result).toBe('perps.errors.reduceOnlyViolation');
+    });
+
+    it('translates insufficient liquidity error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Insufficient liquidity for this trade',
+      });
+
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
+    });
+
+    it('translates transfer failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Transfer failed with status: error',
+      });
+
+      expect(result).toBe('perps.errors.transferFailed');
+    });
+
+    it('matches specific network error before generic transfer failed', () => {
+      // "Transfer failed: network error" should match NETWORK_ERROR, not TRANSFER_FAILED
+      const result = handlePerpsError({
+        error: 'Transfer failed: network error',
+      });
+
+      expect(result).toBe('perps.errors.networkErrorSimple');
+    });
+
+    it('matches specific timeout before generic swap failed', () => {
+      // "Swap failed: connection timed out" should match CONNECTION_TIMEOUT, not SWAP_FAILED
+      const result = handlePerpsError({
+        error: 'Swap failed: connection timed out',
+      });
+
+      expect(result).toBe('perps.errors.connectionTimeout');
+    });
+
+    it('matches specific service unavailable before generic transfer failed', () => {
+      const result = handlePerpsError({
+        error: 'Transfer failed: service unavailable',
+      });
+
+      expect(result).toBe('perps.errors.serviceUnavailable');
+    });
+
+    it('translates slippage exceeded error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Price moved too much during execution',
+      });
+
+      expect(result).toBe('perps.errors.slippageExceeded');
+    });
+
+    it('translates rate limit error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Rate limit exceeded, please try again later',
+      });
+
+      expect(result).toBe('perps.errors.rateLimitExceeded');
+    });
+
+    it('translates timeout error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Connection timed out',
+      });
+
+      expect(result).toBe('perps.errors.connectionTimeout');
+    });
+
+    it('translates insufficient balance error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Insufficient balance for withdrawal',
+      });
+
+      expect(result).toBe('perps.errors.insufficientBalance');
+    });
+
+    it('translates position would flip error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Order rejected: position would flip',
+      });
+
+      expect(result).toBe('perps.errors.positionWouldFlip');
+    });
+
+    it('translates order rejected error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Order rejected by exchange',
+      });
+
+      expect(result).toBe('perps.errors.orderRejected');
+    });
+
+    it('translates swap failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Swap failed: insufficient output',
+      });
+
+      expect(result).toBe('perps.errors.swapFailed');
+    });
+
+    it('translates spot pair not found error pattern', () => {
+      const result = handlePerpsError({
+        error: 'USDH to USDC pair not found',
+      });
+
+      expect(result).toBe('perps.errors.spotPairNotFound');
+    });
+
+    it('translates price unavailable error pattern', () => {
+      const result = handlePerpsError({
+        error: 'No price available for this asset',
+      });
+
+      expect(result).toBe('perps.errors.priceUnavailable');
+    });
+
+    it('translates batch cancel failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Batch cancel failed: partial execution',
+      });
+
+      expect(result).toBe('perps.errors.batchCancelFailed');
+    });
+
+    it('translates cancel all error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Failed to cancel all orders',
+      });
+
+      expect(result).toBe('perps.errors.batchCancelFailed');
+    });
+
+    it('does not match single order cancellation as batch cancel', () => {
+      const result = handlePerpsError({
+        error: 'Order cancellation failed',
+        fallbackMessage: 'Order operation failed',
+      });
+
+      // Should NOT match batch cancel pattern - should use fallback
+      expect(result).toBe('Order operation failed');
+    });
+
+    it('translates batch close failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Batch close failed: some positions still open',
+      });
+
+      expect(result).toBe('perps.errors.batchCloseFailed');
+    });
+
+    it('translates close all error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Failed to close all positions',
+      });
+
+      expect(result).toBe('perps.errors.batchCloseFailed');
+    });
+
+    it('does not match single position close as batch close', () => {
+      const result = handlePerpsError({
+        error: 'Position close failed',
+        fallbackMessage: 'Position operation failed',
+      });
+
+      // Should NOT match batch close pattern - should use fallback
+      expect(result).toBe('Position operation failed');
+    });
+
+    it('translates service unavailable error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Service temporarily unavailable',
+      });
+
+      expect(result).toBe('perps.errors.serviceUnavailable');
+    });
+
+    it('translates 503 service unavailable error pattern', () => {
+      const result = handlePerpsError({
+        error: 'HTTP Error 503: Service Unavailable',
+      });
+
+      expect(result).toBe('perps.errors.serviceUnavailable');
+    });
+
+    it('translates network error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Network error: connection failed',
+      });
+
+      expect(result).toBe('perps.errors.networkErrorSimple');
+    });
+
+    it('translates fetch failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Fetch failed: unable to reach server',
+      });
+
+      expect(result).toBe('perps.errors.networkErrorSimple');
+    });
+
+    it('translates leverage reduction error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Cannot reduce position leverage below current level',
+      });
+
+      expect(result).toBe('perps.errors.orderLeverageReductionFailed');
+    });
+
+    it('uses fallback for unrecognized patterns', () => {
+      const result = handlePerpsError({
+        error: 'Completely random error xyz123',
+        fallbackMessage: 'Something went wrong',
+      });
+
+      expect(result).toBe('Something went wrong');
     });
   });
 });

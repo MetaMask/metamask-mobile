@@ -29,7 +29,6 @@ const sourceToken = {
   chainId: '0x1' as Hex,
   symbol: 'ETH',
   balance: '2.5',
-  isMoneyToken: undefined,
 };
 
 const destToken = {
@@ -169,7 +168,6 @@ describe('BridgeSessionProvider', () => {
     expect(mockUseLatestBalance).toHaveBeenLastCalledWith(
       {
         address: sourceToken.address,
-        isMoneyToken: sourceToken.isMoneyToken,
         decimals: sourceToken.decimals,
         chainId: sourceToken.chainId,
         balance: sourceToken.balance,
@@ -190,7 +188,6 @@ describe('BridgeSessionProvider', () => {
     expect(mockUseLatestBalance).toHaveBeenLastCalledWith(
       {
         address: sourceToken.address,
-        isMoneyToken: sourceToken.isMoneyToken,
         decimals: sourceToken.decimals,
         chainId: sourceToken.chainId,
         balance: sourceToken.balance,

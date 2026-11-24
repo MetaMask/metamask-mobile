@@ -1,5 +1,4 @@
 import type { CaipChainId, Json } from '@metamask/utils';
-import { getVersion } from 'react-native-device-info';
 import {
   DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS,
   selectBridgeLimitOrderBaseUrl,
@@ -7,8 +6,6 @@ import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyBaseUrl,
-  selectSwapFromMoneyEnabled,
-  selectSwapToMoneyEnabled,
   selectBridgeRecurringBuyFeatureFlags,
   selectBridgeRecurringBuyTabEnabledFlag,
   selectSentinelFeeTokensCacheTtlMs,
@@ -18,17 +15,6 @@ import {
   mockedEmptyFlagsState,
   mockedUndefinedFlagsState,
 } from '../../featureFlagController/mocks';
-
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('99.0.0'),
-}));
-
-jest.mock(
-  '../../../core/Engine/controllers/remote-feature-flag-controller',
-  () => ({
-    isRemoteFeatureFlagOverrideActivated: false,
-  }),
-);
 
 const LIMIT_ORDER_CHAIN_IDS: CaipChainId[] = ['eip155:1', 'eip155:8453'];
 const RECURRING_BUY_CHAIN_IDS: CaipChainId[] = ['eip155:1', 'eip155:56'];
@@ -417,74 +403,5 @@ describe('selectSentinelFeeTokensCacheTtlMs', () => {
     const result = selectSentinelFeeTokensCacheTtlMs(state);
 
     expect(result).toBe(DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS);
-  });
-});
-
-describe.each([
-  ['selectSwapToMoneyEnabled', selectSwapToMoneyEnabled, 'swapsToMoney'],
-  ['selectSwapFromMoneyEnabled', selectSwapFromMoneyEnabled, 'swapsFromMoney'],
-] as const)('%s', (_name, selector, flagKey) => {
-  beforeEach(() => {
-    jest.mocked(getVersion).mockReturnValue('99.0.0');
-  });
-
-  it('returns true when enabled and the minimum version is met', () => {
-    const state = buildStateWithRemoteFlags({
-      [flagKey]: { enabled: true, minimumVersion: '1.0.0' },
-    });
-
-    const result = selector(state);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns true for a progressive-rollout wrapper when enabled and the minimum version is met', () => {
-    const state = buildStateWithRemoteFlags({
-      [flagKey]: {
-        name: flagKey,
-        value: { enabled: true, minimumVersion: '1.0.0' },
-      },
-    });
-
-    const result = selector(state);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when enabled is false', () => {
-    const state = buildStateWithRemoteFlags({
-      [flagKey]: { enabled: false, minimumVersion: '1.0.0' },
-    });
-
-    const result = selector(state);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the minimum version is not met', () => {
-    jest.mocked(getVersion).mockReturnValue('1.0.0');
-    const state = buildStateWithRemoteFlags({
-      [flagKey]: { enabled: true, minimumVersion: '99.0.0' },
-    });
-
-    const result = selector(state);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the remote flag is missing', () => {
-    const result = selector(mockedEmptyFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the flag shape is not version-gated', () => {
-    const state = buildStateWithRemoteFlags({
-      [flagKey]: true,
-    });
-
-    const result = selector(state);
-
-    expect(result).toBe(false);
   });
 });

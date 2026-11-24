@@ -15,8 +15,11 @@ import {
 } from '../fixtures/perpsViewFixtures';
 
 // These are synthetic two-exchange fixtures, not snapshots of what the
-// installed controller emits. Each scenario still carries per-exchange account
-// states (Lighter down = Lighter 'unavailable').
+// installed controller emits, and they carry no per-exchange availability yet.
+// Once perps-controller exposes `AccountState.providerStates`, tsc fails on the
+// next line. Then give each scenario per-exchange account states (Lighter down
+// = Lighter 'unavailable') and delete the alias.
+// @ts-expect-error Remove once AccountState exposes providerStates.
 export type PerpsAccountProviderStates = AccountState['providerStates'];
 
 interface ExchangeAccount {

@@ -175,7 +175,6 @@ export type ReferralLocalizedTextKey =
   | 'claimFailureNoEligibleBalanceToast'
   | 'claimFailureUnavailableToast'
   | 'claimFailureContactSupportToast'
-  | 'earnedOnOtherAccounts'
   | 'historyClaimPending'
   | 'last7Days'
   | 'totalEarningsLabel'
@@ -215,7 +214,6 @@ export type ReferralLocalizedTextKey =
   | 'copiedOnce'
   | 'copiedTimes'
   | 'rebatePerpsVolume'
-  | 'rebatePerps'
   | 'rebateSwapsVolume'
   | 'rebatePredictions'
   | 'rebateSwaps'
@@ -527,14 +525,7 @@ export type SelfEarnedFamilyTotalsDto = SummaryTotalsDto & {
   by_address: AddressTotalsDto[];
 };
 
-export type EarnedByOthersFamilyTotalsDto = SummaryTotalsDto & {
-  /**
-   * Present for follow trading. Those accruals carry the caller's own social
-   * address, the key a claim is signed with. Revenue share has no address
-   * list: naming one would identify a referee.
-   */
-  by_address?: AddressTotalsDto[];
-};
+export type EarnedByOthersFamilyTotalsDto = SummaryTotalsDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {

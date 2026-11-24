@@ -44,9 +44,7 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'UNKNOWN_ERROR',
-        errorCode: 'UNKNOWN_ERROR',
-        errorDetails: { code: 'UNKNOWN_ERROR', provider: 'hyperliquid' },
+        error: 'Test error',
       });
     });
 
@@ -58,9 +56,7 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'UNKNOWN_ERROR',
-        errorCode: 'UNKNOWN_ERROR',
-        errorDetails: { code: 'UNKNOWN_ERROR', provider: 'hyperliquid' },
+        error: 'string error',
         data: null,
       });
     });
@@ -73,9 +69,7 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'UNKNOWN_ERROR',
-        errorCode: 'UNKNOWN_ERROR',
-        errorDetails: { code: 'UNKNOWN_ERROR', provider: 'hyperliquid' },
+        error: 'Test error',
         txHash: '0x123',
         amount: '100',
       });

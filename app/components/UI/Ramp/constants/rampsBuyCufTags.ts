@@ -43,7 +43,6 @@ export const RAMPS_BUY_CUF_SURFACE = {
   ORDERS_LIST: 'orders_list',
   CASH: 'cash',
   EARN: 'earn',
-  RECURRING_SWAPS: 'recurring_swaps',
   UNKNOWN: 'unknown',
 } as const;
 

@@ -50,6 +50,7 @@ const BenefitsPreview = () => {
   };
 
   const hasBenefits = benefits.length > 0;
+  const topBenefits = benefits.slice(0, 3);
   const { width: screenWidth } = useWindowDimensions();
 
   // Snapping on the card pitch alone would need a viewport of 242px or less
@@ -58,7 +59,7 @@ const BenefitsPreview = () => {
   // the last flush-left, and the last one flush-right with its neighbour
   // peeking in, matching EarnRewardsPreview.
   const snapOffsets = useMemo(() => {
-    const count = benefits.length;
+    const count = topBenefits.length;
     const contentWidth =
       CAROUSEL_EDGE_PADDING * 2 +
       count * BENEFIT_PREVIEW_CARD_WIDTH +
@@ -71,7 +72,7 @@ const BenefitsPreview = () => {
         ? maxScroll
         : Math.min(index * BENEFIT_CARD_PITCH, maxScroll),
     );
-  }, [benefits.length, screenWidth]);
+  }, [topBenefits.length, screenWidth]);
 
   // Disable presses only while the user is actively dragging the carousel.
   // Momentum is left out on purpose: a tap during deceleration still
@@ -134,7 +135,7 @@ const BenefitsPreview = () => {
       contentContainerStyle={tw.style('gap-3 px-4')}
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
     >
-      {benefits.map((benefit) => (
+      {topBenefits.map((benefit) => (
         <BenefitCard
           key={benefit.id}
           benefit={benefit}

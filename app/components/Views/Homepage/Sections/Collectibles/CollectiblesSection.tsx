@@ -4,7 +4,6 @@ import React, {
   useRef,
   type Ref,
 } from 'react';
-import { useLinkProps } from '@react-navigation/native';
 import {
   SectionDivider,
   SectionHeader,
@@ -18,10 +17,6 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { useHomePacks } from '../../../../UI/Collectibles/hooks/useHomePacks';
-import {
-  collectiblesRoutes,
-  type CollectiblesParamList,
-} from '../../../../UI/Collectibles/routeNames';
 import {
   CollectiblesCarousel,
   CollectiblesCarouselSkeleton,
@@ -45,9 +40,6 @@ export function CollectiblesSection({
 }: Props) {
   const sectionViewRef = useRef<ComponentRef<typeof View>>(null);
   const { data: packs, isPending, refetch } = useHomePacks();
-  const collectiblesLink = useLinkProps<CollectiblesParamList>({
-    screen: collectiblesRoutes.root,
-  });
   // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
   const isHidden = !isPending && isEmpty;
@@ -92,7 +84,6 @@ export function CollectiblesSection({
       <SectionHeader
         title={strings('collectibles.title')}
         isInteractive
-        {...collectiblesLink}
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
       {packs ? (

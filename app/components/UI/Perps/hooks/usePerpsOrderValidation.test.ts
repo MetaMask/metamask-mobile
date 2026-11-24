@@ -214,7 +214,7 @@ describe('usePerpsOrderValidation', () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({
         isValid: false,
-        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+        error: 'Minimum order size is $10.00',
       });
       const { result, rerender } = renderHook(
         (params) => usePerpsOrderValidation(params),
@@ -224,7 +224,7 @@ describe('usePerpsOrderValidation', () => {
         await Promise.resolve();
       });
       await fastWaitFor(() => {
-        expect(result.current.errors).toContain('Minimum order size is $10');
+        expect(result.current.errors).toContain('Minimum order size is $10.00');
       });
 
       // Act
@@ -266,31 +266,10 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toEqual([]);
     });
 
-    it.each([
-      'Limit order requires a price',
-      'Order size must be positive',
-      'Unknown Lighter market: BTC',
-    ])('uses validation fallback for unclassified text: %s', async (error) => {
-      mockValidateOrder.mockResolvedValue({ isValid: false, error });
-
-      const { result } = renderHook(() =>
-        usePerpsOrderValidation(defaultParams),
-      );
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      await fastWaitFor(() => {
-        expect(result.current.isValidating).toBe(false);
-      });
-      expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toEqual(['Order validation failed']);
-    });
-
     it('returns false when protocol validation fails', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
-        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+        error: 'Minimum order size is $10.00',
       });
 
       const { result } = renderHook(() =>
@@ -312,7 +291,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain('Minimum order size is $10');
+      expect(result.current.errors).toContain('Minimum order size is $10.00');
     });
   });
 
@@ -1203,11 +1182,10 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('multiple errors', () => {
-    it('combines a local balance error with the validation fallback for unclassified protocol text', async () => {
-      const unclassifiedProtocolError = 'Order too small';
+    it('combines multiple validation errors', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
-        error: unclassifiedProtocolError,
+        error: 'Order too small',
       });
 
       const { result } = renderHook(() =>
@@ -1229,8 +1207,7 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toHaveLength(2);
-      expect(result.current.errors).toContain('Order validation failed');
-      expect(result.current.errors).not.toContain(unclassifiedProtocolError);
+      expect(result.current.errors).toContain('Order too small');
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );

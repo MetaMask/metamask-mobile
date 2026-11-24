@@ -296,37 +296,6 @@ describe('usePerpsTopMovers', () => {
       expect(result.current.data[1].symbol).toBe('BTC');
     });
 
-    it('sorts using the live change when rows carry stale numericValues', () => {
-      mockUsePerpsMarkets.mockReturnValue({
-        markets: [
-          buildMarket('BTC', '10.0', {
-            numericValues: { change24hPercent: 10 },
-          }),
-          buildMarket('ETH', '1.0', {
-            numericValues: { change24hPercent: 1 },
-          }),
-        ],
-        isLoading: false,
-        error: null,
-        refresh: jest.fn(),
-        isRefreshing: false,
-      });
-      mockUsePerpsLivePrices.mockReturnValue({
-        ...buildPrice('BTC', '0.5'),
-        ...buildPrice('ETH', '20.0'),
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsTopMovers({ direction: 'desc' }),
-      );
-
-      expect(result.current.data.map((market) => market.symbol)).toStrictEqual([
-        'ETH',
-        'BTC',
-      ]);
-      expect(result.current.data[0].numericValues?.change24hPercent).toBe(20);
-    });
-
     it('ignores a live percentChange24h value that is not a valid number', () => {
       mockUsePerpsMarkets.mockReturnValue({
         markets: [buildMarket('ETH', '3.0')],

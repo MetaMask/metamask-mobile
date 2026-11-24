@@ -18,13 +18,13 @@ import {
   checkDepositPlan,
   clearSessionDepositTransfer,
   clearSessionDepositTransfersForOperation,
-  continueDeposit,
   createSimulatedTransferExecutor,
   createWalletTransferExecutor,
   findMatchingDepositTransaction,
   findMatchingUnapprovedDepositTransactions,
   getSessionDepositTransfer,
   isKnownFailedDepositHash,
+  payDeposit,
   recordSessionDepositTransfer,
   startDeposit,
   waitForPendingDepositTransaction,
@@ -353,10 +353,10 @@ export const useDepositFlow = ({
     [run],
   );
 
-  /** Pays an open deposit the user chose to continue, after re-reading its live state. */
+  /** Pays an open deposit the user chose to continue, for its own amount. */
   const payOpenDeposit = useCallback(
     (deposit: PredictDepositOperation) =>
-      run((deps) => continueDeposit(deps, deposit)),
+      run((deps) => payDeposit(deps, deposit, deposit.amount)),
     [run],
   );
 

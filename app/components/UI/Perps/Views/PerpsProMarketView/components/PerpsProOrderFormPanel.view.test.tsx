@@ -236,9 +236,21 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
         liquidationPrice: { available: true, value: 2100 },
       },
     };
+    let resolveCrossPreview: (
+      result: PositionModifyPreviewResult,
+    ) => void = () => undefined;
+    const pendingCrossPreview = new Promise<PositionModifyPreviewResult>(
+      (resolve) => {
+        resolveCrossPreview = resolve;
+      },
+    );
     jest
       .mocked(Engine.context.PerpsController.previewPositionModify)
-      .mockResolvedValue(isolatedPreview);
+      .mockImplementation(({ position }) =>
+        position.leverage.type === 'cross'
+          ? pendingCrossPreview
+          : Promise.resolve(isolatedPreview),
+      );
     jest
       .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
       .mockResolvedValue('1800');
@@ -306,12 +318,12 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
         strings('perps.margin_mode.cross_title'),
       ),
     );
-    // The Pro form keeps the before→after preview off for held Cross
-    // positions, so none is requested and the isolated one is not retained.
-    expect(
-      Engine.context.PerpsController.previewPositionModify,
-    ).not.toHaveBeenCalledWith(
-      expect.objectContaining({ position: crossPosition }),
+    await waitFor(() =>
+      expect(
+        Engine.context.PerpsController.previewPositionModify,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ position: crossPosition }),
+      ),
     );
 
     expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
@@ -335,6 +347,9 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
         expect.objectContaining({ marginMode: 'cross', stopLossPrice: '2000' }),
       ),
+    );
+    await act(async () =>
+      resolveCrossPreview({ status: 'unsupported', reason: 'cross_margin' }),
     );
   });
 

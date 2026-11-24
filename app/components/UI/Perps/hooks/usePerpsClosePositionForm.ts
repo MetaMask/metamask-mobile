@@ -346,7 +346,7 @@ export function usePerpsClosePositionForm(
     : Number.parseFloat(position.entryPrice);
 
   const referencePrice = resolveOracleReferencePrice(
-    priceData[position.symbol]?.oraclePrice,
+    priceData[position.symbol]?.markPrice,
     currentPrice,
   );
 

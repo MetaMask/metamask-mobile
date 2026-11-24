@@ -2,7 +2,6 @@ import '../mocks';
 import React from 'react';
 import type { QueryClient } from '@tanstack/react-query';
 import { Text } from 'react-native';
-import { act } from '@testing-library/react-native';
 import {
   getRouteParamsProbeTestId,
   getRouteProbeTestId,
@@ -11,20 +10,8 @@ import {
 } from '../render';
 import { initialStatePredictNext } from '../presets/predictNext';
 import { initialStatePredict } from '../presets/predict';
-import {
-  BOTH_VENUES_PREDICT_CONFIG,
-  predictVenueState,
-} from '../fixtures/predictNext';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
-import Engine from '../../../app/core/Engine';
-import { updateBgState } from '../../../app/core/redux/slices/engine';
-import { ToastContext } from '../../../app/component-library/components/Toast';
-import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
-import {
-  ControllerEventToastBridge,
-  type ToastRegistration,
-} from '../../../app/components/Nav/App/ControllerEventToastBridge';
 import Routes from '../../../app/constants/navigation/Routes';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -32,7 +19,6 @@ import type { AppNavigationProp } from '../../../app/core/NavigationService/type
 import { PredictRoot } from '../../../app/components/UI/PredictNext';
 import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
 import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
-import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
 import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome';
 import { PredictEventScreen } from '../../../app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen';
 import {
@@ -376,92 +362,4 @@ export const renderPredictRoot = ({
     [{ name: Routes.PREDICT.ROOT, Component: PredictRoot }],
     providerValues,
   );
-};
-
-export interface RenderPredictToastShellOptions {
-  /** Hook returning the `ControllerEventToastBridge` registrations to mount. */
-  useRegistrations: () => ToastRegistration[];
-  /** Screen or probe element mounted under `ToastContext.Provider`. */
-  screen: React.ReactNode;
-  venue?: PredictConfiguredVenue;
-  name?: string;
-}
-
-/**
- * Mounts `ControllerEventToastBridge` alongside a screen inside a mocked
- * `ToastContext.Provider` with both Predict venues enabled, returning helpers
- * to switch Active Venue and inspect emitted toast labels.
- */
-export const renderPredictToastShell = ({
-  useRegistrations,
-  screen: screenContent,
-  venue = 'kalshi',
-  name = 'PredictNotificationsProbe',
-}: RenderPredictToastShellOptions) => {
-  const showToast = jest.fn();
-  const toastRef = {
-    current: { showToast, closeToast: jest.fn() },
-  } as unknown as React.RefObject<ToastRef>;
-
-  const PredictToasts = () => {
-    const registrations = useRegistrations();
-    return <ControllerEventToastBridge registrations={registrations} />;
-  };
-
-  const AppShell = () => (
-    <ToastContext.Provider value={{ toastRef }}>
-      <PredictToasts />
-      {screenContent}
-    </ToastContext.Provider>
-  );
-
-  const engine = Engine as unknown as { state: Record<string, unknown> };
-  const originalEngineState = engine.state;
-  const view = renderComponentViewScreen(
-    AppShell,
-    { name },
-    {
-      state: initialStatePredict()
-        .withRemoteFeatureFlags({
-          predictConfig: BOTH_VENUES_PREDICT_CONFIG,
-        })
-        .withOverrides({
-          engine: {
-            backgroundState: {
-              PredictVenueController: predictVenueState(venue),
-            },
-          },
-        })
-        .build(),
-    },
-  );
-
-  const selectVenue = (nextVenue: PredictConfiguredVenue) => {
-    act(() => {
-      engine.state = {
-        ...engine.state,
-        PredictVenueController: predictVenueState(nextVenue),
-      };
-      view.store.dispatch(updateBgState({ key: 'PredictVenueController' }));
-    });
-  };
-
-  const toastLabels = (): string[][] =>
-    showToast.mock.calls.map(
-      ([options]: [{ labelOptions: { label: string }[] }]) =>
-        options.labelOptions.map((item) => item.label),
-    );
-
-  const toastTitles = (): string[] => toastLabels().map((labels) => labels[0]);
-
-  return {
-    ...view,
-    showToast,
-    selectVenue,
-    toastLabels,
-    toastTitles,
-    restoreEngineState: () => {
-      engine.state = originalEngineState;
-    },
-  };
 };

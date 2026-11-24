@@ -117,10 +117,10 @@ function rebateTitle(
     return localizedText.rebatePredictions;
   }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
-    return localizedText.rebatePerps;
+    return localizedText.rebatePerpsVolume;
   }
   if (item.earning_origin_type === 'SWAPS_FEE_CASHBACK') {
-    return localizedText.rebateSwaps;
+    return localizedText.rebateSwapsVolume;
   }
   return localizedText.rebateSwaps;
 }

@@ -190,20 +190,6 @@ describe('LimitOrderConfirmationModal', () => {
     expect(within(networkFeeRow).getByText('ETH')).toBeOnTheScreen();
   });
 
-  it('omits the network fee row while checking whether an upgrade is required', () => {
-    const { queryByTestId } = render(
-      <LimitOrderConfirmationModal
-        {...buildProps({
-          delegationFee: { status: 'checking', retry: jest.fn() },
-        })}
-      />,
-    );
-
-    expect(
-      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE),
-    ).toBeNull();
-  });
-
   it('omits the network fee row while the upgrade fee is being estimated', () => {
     const { queryByTestId } = render(
       <LimitOrderConfirmationModal

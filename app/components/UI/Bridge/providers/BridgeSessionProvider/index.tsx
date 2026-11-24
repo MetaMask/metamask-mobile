@@ -56,7 +56,6 @@ export const BridgeSessionProvider = ({
   const latestSourceBalance = useLatestBalance(
     {
       address: quoteParams.srcToken?.address,
-      isMoneyToken: quoteParams.srcToken?.isMoneyToken,
       decimals: quoteParams.srcToken?.decimals,
       chainId: quoteParams.srcToken?.chainId,
       balance: quoteParams.srcToken?.balance,

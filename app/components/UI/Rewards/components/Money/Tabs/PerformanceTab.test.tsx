@@ -5,12 +5,12 @@ import type {
   CommissionEntryView,
   EarningsSummaryDto,
   LedgerEarningEntryDto,
+  ReferralLocalizedText,
   ReferralMeDto,
   ReferralRole,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../../../tests/component-view/presets/rewardsMoney';
 import { navigateToRewardsRoute } from '../../../utils';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
@@ -52,6 +52,34 @@ jest.mock('../../../hooks/useCommissions');
 jest.mock('../../../hooks/useCashbackLedger');
 
 const PROFILE_ID = 'profile-a';
+
+const LOCALIZED_TEXT = {
+  referrals: 'Referrals',
+  updatedDaily: 'Updated daily',
+  funnelConfirmed: 'Confirmed referrals',
+  funnelConfirmedDescription: 'Friends who completed a first eligible action',
+  funnelFeeGenerating: 'Fee-generating referrals',
+  funnelFeeGeneratingDescription:
+    'Referred friends whose activity generated eligible fees',
+  funnelCodeUses: 'Code uses',
+  funnelActive: 'Active referrals',
+  eligibleFees: 'Eligible fees',
+  tradeCommissions: 'Trade commissions',
+  tradingCommissionsSection: 'Trading commissions',
+  tradingRebates: 'Trading rebates',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  copyTradingEmptyDescription:
+    'You can earn rewards from sharing a trade. Start sharing to earn today!',
+  copyTradingEmptyAction: 'Start sharing',
+  tradingActivityEmptyAction: 'Start trading',
+  copiedOnce: 'Copied 1 time',
+  copiedTimes: 'Copied {count} times',
+  rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
+  rebateSwaps: 'Swaps',
+} as unknown as ReferralLocalizedText;
 
 const commission: CommissionEntryView = {
   id: 'SOCIAL_FOLLOW_TRADE:2026-09-01:perps:BTC',
@@ -223,7 +251,7 @@ describe('PerformanceTab', () => {
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: false,
     });
@@ -423,7 +451,7 @@ describe('PerformanceTab', () => {
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR)).toBeNull();
     expect(queryByText('Error loading your transactions')).toBeNull();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
   });
 
   it('retries rebates from the transactions error when nothing is cached', () => {

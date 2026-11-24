@@ -1924,6 +1924,95 @@ jobs:
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
+  # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # Runs on Android only, so on PRs into main it runs when path filters select
+  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
+  # release/* that build Android.
+  validate-e2e-fixtures:
+    name: 'Validate E2E Fixtures'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure')
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
+      actions: read
+      pull-requests: read
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: validate-e2e-fixtures
+      platform: android
+      test_suite_tag: FixtureValidation
+      split_number: 1
+      total_splits: 1
+      test-timeout-minutes: 25
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      # Skip golden AVD cache restore; boot-mode cold keeps intent explicit.
+      cache-android-golden-snapshot: false
+      android-emulator-boot-mode: cold
+      # Mirrors build-android-apps' resolution chain so this consumer always matches
+      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
+    secrets: inherit
+
+  report-fixture-validation:
+    name: 'Report Fixture Validation'
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    needs: [validate-e2e-fixtures]
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+
+      # run-appium-e2e-workflow uploads fixture validation results unconditionally via
+      # actions/upload-artifact (no Namespace-store arm), so results always land in the
+      # GitHub Actions artifact store — download via actions/* regardless of provider.
+      - name: Download fixture validation results
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: fixture-validation-results-validate-e2e-fixtures
+          path: fixture-results/
+
+      - name: Report results
+        env:
+          RESULTS_PATH: fixture-results
+          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs
+
   sonar-cloud:
     name: SonarCloud analysis
     permissions:

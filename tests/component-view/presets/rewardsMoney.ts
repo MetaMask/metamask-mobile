@@ -1,5 +1,4 @@
 import type {
-  AddressTotalsDto,
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
@@ -65,8 +64,6 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
-  earnedOnOtherAccounts:
-    'Some earnings belong to accounts not on this device. Import the wallet to claim.',
   historyClaimPending: 'Claim pending',
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
@@ -109,7 +106,6 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
-  rebatePerps: 'Perps',
   rebateSwapsVolume: 'Swaps volume',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
@@ -224,24 +220,6 @@ function totals(
     pending: '0',
     claimed: '0',
     ...overrides,
-  };
-}
-
-/**
- * One `by_address` row of a claim family. `address` is the full
- * `namespace:address` form the backend returns, such as `eip155:0x…`.
- */
-export function byAddressRowFixture(
-  address: string,
-  claimable = '1000000',
-): AddressTotalsDto {
-  return {
-    address,
-    lifetime: claimable,
-    claimable,
-    pending: '0',
-    claimed: '0',
-    voided: '0',
   };
 }
 
@@ -606,11 +584,6 @@ export interface RewardsMoneyViewStateOptions {
    * follow `claimReady`.
    */
   claimGates?: ClaimSubmissionGates;
-  /**
-   * Epoch ms until Claim is enabled again. Set when a refusal's Retry-After
-   * is still running.
-   */
-  claimWaitUntil?: number;
 }
 
 /**
@@ -622,7 +595,6 @@ export function rewardsMoneyViewState({
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
   claimGates,
-  claimWaitUntil,
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
@@ -710,13 +682,6 @@ export function rewardsMoneyViewState({
         pendingReferralCode,
         answeredReferralCode,
         isReferralLinkPending,
-        ...(claimWaitUntil === undefined
-          ? {}
-          : {
-              claimWaitingUntil: {
-                [profileId]: claimWaitUntil,
-              },
-            }),
       },
       engine: {
         backgroundState: {

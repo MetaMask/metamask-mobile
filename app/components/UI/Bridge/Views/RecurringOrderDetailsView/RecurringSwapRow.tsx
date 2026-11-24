@@ -89,7 +89,6 @@ export function RecurringSwapRow({
             name={IconName.Warning}
             color={IconColor.WarningDefault}
             size={IconSize.Sm}
-            accessibilityLabel={strings('bridge.recurring.skipped')}
           />
         ) : undefined
       }

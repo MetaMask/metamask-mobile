@@ -8,11 +8,7 @@ import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { endPerpsCufTrace } from '../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
-import {
-  PERPS_ERROR_CODES,
-  type OrderResult,
-  type Position,
-} from '@metamask/perps-controller';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 jest.mock('./usePerpsTrading');
 jest.mock('../services/PerpsCacheInvalidator', () => ({
   PerpsCacheInvalidator: { invalidate: jest.fn() },
@@ -54,7 +50,7 @@ interface MockToast {
   labelOptions?: { label: string }[];
 }
 
-const getToastLabel = (toast: MockToast): string =>
+const getToastLabel = (toast: MockToast) =>
   toast.labelOptions?.[0]?.label ?? 'unknown';
 
 describe('usePerpsTPSLUpdate', () => {
@@ -143,7 +139,7 @@ describe('usePerpsTPSLUpdate', () => {
     },
   };
 
-  const createMockPosition = (overrides = {}): Position => ({
+  const createMockPosition = (overrides = {}) => ({
     symbol: 'ETH',
     size: '1.5',
     entryPrice: '3000',
@@ -181,19 +177,8 @@ describe('usePerpsTPSLUpdate', () => {
     (usePerpsStream as jest.Mock).mockReturnValue(mockStream);
   });
 
-  const renderHookWithToast = (
-    options = {},
-  ): ReturnType<
-    typeof renderHook<
-      { children: React.ReactNode },
-      ReturnType<typeof usePerpsTPSLUpdate>
-    >
-  > => {
-    const wrapper = ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }): React.ReactElement =>
+  const renderHookWithToast = (options = {}) => {
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(
         ToastContext.Provider,
         { value: mockToastContext },
@@ -320,7 +305,8 @@ describe('usePerpsTPSLUpdate', () => {
     const { result } = renderHookWithToast({ onError });
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
-      error: PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW,
+      error:
+        'order 0: Only post-only orders allowed immediately after network upgrade',
     });
 
     // Act
@@ -344,7 +330,6 @@ describe('usePerpsTPSLUpdate', () => {
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
       error: 'Network error',
-      errorCode: PERPS_ERROR_CODES.NETWORK_ERROR,
     });
 
     await act(async () => {
@@ -362,7 +347,7 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
-  it('shows already-closed toast when the TP/SL result has a POSITION_NOT_FOUND errorCode', async () => {
+  it('shows already-closed toast when TP/SL update returns No position found', async () => {
     const onSuccess = jest.fn();
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onSuccess, onError });
@@ -370,48 +355,7 @@ describe('usePerpsTPSLUpdate', () => {
 
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
-      error: 'Position is no longer available',
-      errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-    } satisfies OrderResult);
-
-    let updateResult: { success: boolean } | undefined;
-    await act(async () => {
-      updateResult = await result.current.handleUpdateTPSL(
-        position,
-        '3300',
-        '2700',
-      );
-    });
-
-    expect(updateResult).toEqual({ success: false });
-    expect(mockShowToast).toHaveBeenCalledWith(
-      mockPerpsToastOptions.positionManagement.closePosition
-        .positionAlreadyClosed,
-    );
-    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
-    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
-      'accountState',
-    );
-    expect(endPerpsCufTrace).toHaveBeenCalledWith({
-      id: 'tpsl-cuf-op',
-      data: {
-        [PERPS_CUF_TAG.SUCCESS]: false,
-        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
-      },
-    });
-    expect(onSuccess).not.toHaveBeenCalled();
-    expect(onError).not.toHaveBeenCalled();
-  });
-
-  it('shows already-closed toast when TP/SL update returns POSITION_NOT_FOUND', async () => {
-    const onSuccess = jest.fn();
-    const onError = jest.fn();
-    const { result } = renderHookWithToast({ onSuccess, onError });
-    const position = createMockPosition();
-
-    mockUpdatePositionTPSL.mockResolvedValue({
-      success: false,
-      error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      error: 'No position found for ETH',
     });
 
     let updateResult: { success: boolean } | undefined;
@@ -444,14 +388,14 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('shows already-closed toast when TP/SL update throws POSITION_NOT_FOUND', async () => {
+  it('shows already-closed toast when TP/SL update throws No position found', async () => {
     const onSuccess = jest.fn();
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onSuccess, onError });
     const position = createMockPosition();
 
     mockUpdatePositionTPSL.mockRejectedValue(
-      new Error(PERPS_ERROR_CODES.POSITION_NOT_FOUND),
+      new Error('No position found for ETH'),
     );
 
     let updateResult: { success: boolean } | undefined;
@@ -484,7 +428,7 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('uses retryable copy for an unclassified exception', async () => {
+  it('should show error toast and call onError callback on exception', async () => {
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onError });
     const position = createMockPosition();
@@ -498,44 +442,13 @@ describe('usePerpsTPSLUpdate', () => {
 
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('perps.errors.unknownError');
+    ).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'perps.errors.unknownError',
+        'perps.errors.networkErrorSimple',
       ),
     );
-    expect(onError).toHaveBeenCalledWith('perps.errors.unknownError');
-  });
-
-  it('translates a provider-tagged TP/SL failure from its error code', async () => {
-    const diagnostic =
-      'Hyperliquid signer 0xabc returned an internal stack trace';
-    const onError = jest.fn();
-    const { result } = renderHookWithToast({ onError });
-
-    mockUpdatePositionTPSL.mockResolvedValue({
-      success: false,
-      error: diagnostic,
-      errorCode: PERPS_ERROR_CODES.TPSL_UPDATE_FAILED,
-      errorDetails: {
-        code: PERPS_ERROR_CODES.TPSL_UPDATE_FAILED,
-        provider: 'hyperliquid',
-      },
-    });
-
-    await act(async () => {
-      await result.current.handleUpdateTPSL(
-        createMockPosition(),
-        '3300',
-        '2700',
-      );
-    });
-
-    expect(
-      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('perps.errors.tpslUpdateFailed');
-    expect(onError).toHaveBeenCalledWith('perps.errors.tpslUpdateFailed');
-    expect(onError).not.toHaveBeenCalledWith(diagnostic);
+    expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
   it('should handle undefined TP/SL prices', async () => {

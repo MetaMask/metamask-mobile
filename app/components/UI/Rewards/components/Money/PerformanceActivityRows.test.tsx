@@ -8,9 +8,9 @@ import {
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
+  ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import {
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
@@ -19,6 +19,16 @@ import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from './PerformanceActivityRows';
+
+const LOCALIZED_TEXT = {
+  copiedOnce: 'Copied 1 time',
+  copiedTimes: 'Copied {count} times',
+  rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
+  rebateSwaps: 'Swaps',
+  voided: 'Voided',
+} as unknown as ReferralLocalizedText;
 
 const amountColor = (
   getAllByType: (
@@ -102,7 +112,7 @@ describe('PerformanceActivityRows', () => {
     expect(amountColor(UNSAFE_getAllByType, '+$1.00')).toBe(
       TextColor.SuccessDefault,
     );
-    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(getByText('Perps volume')).toBeOnTheScreen();
     expect(
       getByText(
         formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
@@ -111,7 +121,7 @@ describe('PerformanceActivityRows', () => {
     expect(queryByText('Predictions')).toBeNull();
   });
 
-  it('labels a swaps cashback row as swaps', () => {
+  it('labels a swaps cashback row as swaps volume', () => {
     const { getByText } = renderWithProvider(
       <PerformanceRebateRow
         item={rebate({ earning_origin_type: 'SWAPS_FEE_CASHBACK' })}
@@ -119,7 +129,7 @@ describe('PerformanceActivityRows', () => {
       />,
     );
 
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
   });
 
   it('labels a predict cashback row from localized_text', () => {

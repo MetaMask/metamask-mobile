@@ -261,7 +261,7 @@ export function usePerpsTrading() {
           : {
               ...result,
               success: false,
-              rejection: normalizeOrderEditRejection(result),
+              rejection: normalizeOrderEditRejection(result?.error),
             };
       } catch (error) {
         endPerpsCufTrace({

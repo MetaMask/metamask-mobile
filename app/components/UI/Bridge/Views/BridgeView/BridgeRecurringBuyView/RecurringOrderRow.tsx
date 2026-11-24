@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { parseCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -37,8 +31,6 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
   const filledPercent = getRecurringOrderFilledPercent(order);
   const isOpen = order.state === RecurringOrderState.Open;
   const isClosedUnfilled = order.state === RecurringOrderState.Cancelled;
-  const hasSwapIssue =
-    order.fillData.skippedCount > 0 || order.fillData.failedCount > 0;
 
   return (
     <OpenOrderRow
@@ -57,16 +49,6 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
       })}
       titleColor={
         isClosedUnfilled ? TextColor.TextAlternative : TextColor.TextDefault
-      }
-      titleEndAccessory={
-        hasSwapIssue ? (
-          <Icon
-            name={IconName.Warning}
-            color={IconColor.WarningDefault}
-            size={IconSize.Sm}
-            accessibilityLabel={strings('bridge.recurring.swap_issue_warning')}
-          />
-        ) : undefined
       }
       primaryColor={
         isClosedUnfilled ? TextColor.TextAlternative : TextColor.SuccessDefault
