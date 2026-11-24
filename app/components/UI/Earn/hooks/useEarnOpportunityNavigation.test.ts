@@ -9,8 +9,8 @@ import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnAsset, EarnExperience } from '../types/earnAssets';
-import { useMoneyCtaDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
-import { selectMoneyCtaEntryContext } from '../../Money/selectors/entry';
+import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
+import { selectMoneyEntryContext } from '../../Money/selectors/entry';
 import type { MoneyEntryContext } from '../../Money/navigation/moneyEntryDecision';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
 import Logger from '../../../../util/Logger';
@@ -47,7 +47,7 @@ const mockNavigateToEarnAssetAcquisitionRoute = jest.fn<
 >();
 const allowedMoneyEntryContext: MoneyEntryContext = {
   accessBlockReason: undefined,
-  isOnboardingRedirectNeeded: false,
+  isSplashRedirectNeeded: false,
 };
 let mockMoneyEntryContext = allowedMoneyEntryContext;
 
@@ -58,7 +58,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../Money/selectors/entry', () => ({
-  selectMoneyCtaEntryContext: jest.fn(),
+  selectMoneyEntryContext: jest.fn(),
 }));
 
 jest.mock('../../Money/utils/moneyFormatFiat', () => ({
@@ -79,7 +79,7 @@ jest.mock('../../Stake/hooks/useStakingChain', () => ({
 }));
 jest.mock('../../Money/hooks/useMoneyDepositNavigation', () => ({
   __esModule: true,
-  useMoneyCtaDepositNavigation: jest.fn(),
+  useMoneyDepositNavigation: jest.fn(),
 }));
 jest.mock('./useEarnAssetAcquisitionNavigation', () => ({
   __esModule: true,
@@ -171,7 +171,7 @@ jest.mock('./useEarnToasts', () => ({
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseStakingChain = jest.mocked(useStakingChain);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockLoggerError = jest.mocked(Logger.error);
 const mockEarnAssetToToken = jest.mocked(earnAssetToToken);
 const mockEngineFindNetworkClientIdByChainId = Engine.context.NetworkController
@@ -284,9 +284,7 @@ describe('useEarnOpportunityNavigation', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
     mockUseSelector.mockImplementation((selector) =>
-      selector === selectMoneyCtaEntryContext
-        ? mockMoneyEntryContext
-        : undefined,
+      selector === selectMoneyEntryContext ? mockMoneyEntryContext : undefined,
     );
     mockUseStakingChain.mockReturnValue({
       isStakingSupportedChain: true,
@@ -294,12 +292,12 @@ describe('useEarnOpportunityNavigation', () => {
     mockNavigateToMoneyDeposit.mockImplementation(
       async ({ track, ...options } = {}) => {
         track?.({
-          redirect_target: mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? 'money_onboarding'
+          redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
+            ? 'money_splash'
             : 'money_deposit',
           button_intent: 'add_money',
         });
-        if (mockMoneyEntryContext.isOnboardingRedirectNeeded) {
+        if (mockMoneyEntryContext.isSplashRedirectNeeded) {
           return;
         }
         await mockInitiateDeposit(options);
@@ -351,12 +349,6 @@ describe('useEarnOpportunityNavigation', () => {
     expect(getEarnOpportunityDestination(earnAsset)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
-    expect(
-      getEarnAssetSelectionRedirectTarget(earnAsset, {
-        ...allowedMoneyEntryContext,
-        isOnboardingRedirectNeeded: true,
-      }),
-    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING);
     expect(
       getEarnAssetSelectionRedirectTarget(earnAsset, {
         ...allowedMoneyEntryContext,
@@ -709,13 +701,13 @@ describe('useEarnOpportunityNavigation', () => {
     });
   });
 
-  it('redirects a tracked Money deposit to onboarding', async () => {
+  it('redirects a tracked Money deposit to the splash', async () => {
     const earnAsset = createEarnAsset(1, [
       createExperience('MONEY_ACCOUNT_DEPOSIT'),
     ]);
     mockMoneyEntryContext = {
       ...allowedMoneyEntryContext,
-      isOnboardingRedirectNeeded: true,
+      isSplashRedirectNeeded: true,
     };
     const { result } = renderHook(() => useEarnOpportunityNavigation());
 
@@ -762,10 +754,10 @@ describe('useEarnOpportunityNavigation', () => {
     });
   });
 
-  it('redirects an untracked Money experience to onboarding before fiat deposit', async () => {
+  it('redirects an untracked Money experience to the splash before fiat deposit', async () => {
     mockMoneyEntryContext = {
       ...allowedMoneyEntryContext,
-      isOnboardingRedirectNeeded: true,
+      isSplashRedirectNeeded: true,
     };
     const earnAsset = createUntrackedEarnAsset();
     const experience = {
@@ -794,13 +786,13 @@ describe('useEarnOpportunityNavigation', () => {
 
   it.each([
     [false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
-    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
+    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH],
   ])(
     'tracks the %s redirect target for an untracked Money experience',
-    (isOnboardingNeeded, expectedRedirectTarget) => {
+    (isSplashNeeded, expectedRedirectTarget) => {
       mockMoneyEntryContext = {
         ...allowedMoneyEntryContext,
-        isOnboardingRedirectNeeded: isOnboardingNeeded,
+        isSplashRedirectNeeded: isSplashNeeded,
       };
       const earnAsset = createUntrackedEarnAsset();
       const experience = {
