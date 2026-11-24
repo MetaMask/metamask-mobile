@@ -99,7 +99,10 @@ import {
   withCreateSwapCommentTimeout,
 } from './createSwapCommentTimeout';
 import { resolvePostFailureReason } from './resolvePostFailureReason';
-import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
+import {
+  COMPOSER_COMMENT_MAX_LENGTH,
+  countComposerCharacters,
+} from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
@@ -306,7 +309,7 @@ const TABULAR_NUMS_STYLE: TextStyle = { fontVariant: ['tabular-nums'] };
 // HeaderBase re-renders when its end accessory's width changes, so use
 // equal-width digits to keep the count's width stable while typing.
 const ComposerCharacterCount = ({ store }: { store: ComposerTextStore }) => {
-  const count = useComposerText(store, (value) => value.length);
+  const count = useComposerText(store, countComposerCharacters);
 
   return (
     <Text
@@ -341,7 +344,7 @@ const ComposerPostButton = ({
   onBlocked: (reason: SocialBlockedSubmitReason) => void;
 }) => {
   const textBlock = useComposerText(store, (value) =>
-    value.length > COMPOSER_COMMENT_MAX_LENGTH
+    countComposerCharacters(value) > COMPOSER_COMMENT_MAX_LENGTH
       ? 'too_long'
       : value.trim().length === 0
         ? 'empty_caption'
@@ -625,7 +628,7 @@ const SocialPostComposerEditor: React.FC = () => {
     const caption = rawText.trim();
     if (
       (!selectedPosition && !tradeInFlightParams) ||
-      rawText.length > COMPOSER_COMMENT_MAX_LENGTH ||
+      countComposerCharacters(rawText) > COMPOSER_COMMENT_MAX_LENGTH ||
       caption.length === 0 ||
       isSubmitting
     ) {

@@ -1404,11 +1404,6 @@
       "count": 9
     }
   },
-  "app/components/UI/Bridge/components/AvatarGroup.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/UI/Bridge/components/BatchSellDestinationTokenSelectorModal/BatchSellDestinationTokenSelectorModal.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -6205,7 +6200,7 @@
   },
   "app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx": {
     "typescript/no-misused-promises": {
-      "count": 12
+      "count": 11
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 3
@@ -24700,11 +24695,6 @@
   },
   "app/util/notifications/settings/storage/index.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
-  "app/util/notifications/types/index.ts": {
-    "typescript/consistent-type-exports": {
       "count": 1
     }
   },
