@@ -12,19 +12,27 @@ const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
-  usePerpsTrading: () => ({
+  usePerpsTrading: (): {
+    updateMargin: typeof mockUpdateMargin;
+    getPositions: typeof mockGetPositions;
+  } => ({
     updateMargin: mockUpdateMargin,
     getPositions: mockGetPositions,
   }),
 }));
 
 jest.mock('./usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: mockTrack }),
+  usePerpsEventTracking: (): { track: typeof mockTrack } => ({
+    track: mockTrack,
+  }),
 }));
 
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
-  default: () => ({
+  default: (): { showToast: typeof mockShowToast } & Record<
+    'PerpsToastOptions',
+    { positionManagement: { margin: Record<string, jest.Mock> } }
+  > => ({
     showToast: mockShowToast,
     PerpsToastOptions: {
       positionManagement: {
@@ -459,7 +467,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
-    it('logs exceptions and reports the translated network message', async () => {
+    it('logs unclassified exceptions and reports retryable copy', async () => {
       const testError = new Error('Network error');
       mockUpdateMargin.mockRejectedValue(testError);
       const mockOnError = jest.fn();
@@ -492,9 +500,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith(
-        'perps.errors.networkErrorSimple',
-      );
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({
           category: 'Perp Margin Adjustment Transaction',

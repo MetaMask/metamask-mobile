@@ -40,7 +40,7 @@ const mockPositionsSubscribe = jest.fn();
 const mockStream = { positions: { subscribe: mockPositionsSubscribe } };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
-  usePerpsStream: () => mockStream,
+  usePerpsStream: (): typeof mockStream => mockStream,
 }));
 
 jest.mock('react-redux', () => ({
@@ -58,7 +58,7 @@ jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useNavigation: () => ({
+    useNavigation: (): { navigate: typeof mockNavigate } => ({
       navigate: mockNavigate,
     }),
   };
@@ -139,7 +139,10 @@ const mockPerpsToastOptions = {
 
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
-  default: () => ({
+  default: (): { showToast: typeof mockShowToast } & Record<
+    'PerpsToastOptions',
+    typeof mockPerpsToastOptions
+  > => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
@@ -788,10 +791,10 @@ describe('usePerpsClosePosition', () => {
       });
 
       describe('failure toasts', () => {
-        it('shows already-closed toast when close returns No position found', async () => {
+        it('shows already-closed toast when close returns POSITION_NOT_FOUND', async () => {
           mockClosePosition.mockResolvedValue({
             success: false,
-            error: 'No position found for BTC',
+            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
           });
           const onSuccess = jest.fn();
           const { result } = renderHook(() =>
@@ -808,7 +811,7 @@ describe('usePerpsClosePosition', () => {
 
           expect(closeResult).toEqual({
             success: false,
-            error: 'No position found for BTC',
+            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
           });
           expect(mockShowToast).toHaveBeenCalledWith(
             mockPerpsToastOptions.positionManagement.closePosition
@@ -877,9 +880,9 @@ describe('usePerpsClosePosition', () => {
           expect(Logger.error).not.toHaveBeenCalled();
         });
 
-        it('shows already-closed toast when close throws No position found', async () => {
+        it('shows already-closed toast when close throws POSITION_NOT_FOUND', async () => {
           mockClosePosition.mockRejectedValue(
-            new Error('No position found for BTC'),
+            new Error(PERPS_ERROR_CODES.POSITION_NOT_FOUND),
           );
           const onSuccess = jest.fn();
           const { result } = renderHook(() =>
@@ -896,7 +899,7 @@ describe('usePerpsClosePosition', () => {
 
           expect(closeResult).toEqual({
             success: false,
-            error: 'No position found for BTC',
+            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
           });
           expect(mockShowToast).toHaveBeenCalledWith(
             mockPerpsToastOptions.positionManagement.closePosition
@@ -1836,7 +1839,7 @@ describe('usePerpsClosePosition', () => {
         orderId: '42',
         averagePrice: '51000',
       },
-    ) => {
+    ): Promise<void> => {
       if (closeResult instanceof Error) {
         mockClosePosition.mockRejectedValue(closeResult);
       } else {

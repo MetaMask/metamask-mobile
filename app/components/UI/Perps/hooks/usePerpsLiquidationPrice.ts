@@ -24,9 +24,13 @@ interface LiquidationPriceOptions {
 export const usePerpsLiquidationPrice = (
   params: LiquidationPriceParams,
   options?: LiquidationPriceOptions,
-) => {
+): {
+  liquidationPrice: string;
+  isCalculating: boolean;
+  error: string | null;
+} => {
   const { calculateLiquidationPrice } = usePerpsTrading();
-  const [liquidationPrice, setLiquidationPrice] = useState<string>('0.00');
+  const [liquidationPrice, setLiquidationPrice] = useState<string>();
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +42,7 @@ export const usePerpsLiquidationPrice = (
       debounce(async () => {
         // Skip calculation if invalid parameters
         if (entryPrice <= 0 || leverage <= 0 || !asset) {
-          setLiquidationPrice('0.00');
+          setLiquidationPrice(undefined);
           return;
         }
 
@@ -64,12 +68,8 @@ export const usePerpsLiquidationPrice = (
 
           setError(errorMessage);
 
-          // For invalid leverage errors, show a clear message instead of 0.00
-          if (errorMessage.includes('Invalid leverage')) {
-            setLiquidationPrice(PERPS_CONSTANTS.FallbackPriceDisplay);
-          } else {
-            setLiquidationPrice('0.00');
-          }
+          // A rejected estimate is unavailable, not a zero liquidation price.
+          setLiquidationPrice(undefined);
         } finally {
           setIsCalculating(false);
         }
@@ -93,13 +93,13 @@ export const usePerpsLiquidationPrice = (
     calculatePrice();
 
     // Cleanup debounced function on unmount
-    return () => {
+    return (): void => {
       calculatePrice.cancel();
     };
   }, [calculatePrice, entryPrice, leverage, asset]);
 
   return {
-    liquidationPrice,
+    liquidationPrice: liquidationPrice ?? PERPS_CONSTANTS.FallbackPriceDisplay,
     isCalculating,
     error,
   };

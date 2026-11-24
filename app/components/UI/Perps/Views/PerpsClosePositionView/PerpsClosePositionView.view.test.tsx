@@ -5,7 +5,11 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { Position, PriceUpdate } from '@metamask/perps-controller';
+import {
+  PERPS_ERROR_CODES,
+  type Position,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -29,7 +33,7 @@ import type { RootState } from '../../../../../reducers';
 const TIMEOUT_MS = 5000;
 
 /** A 0.145% close fee quote (protocol 0.045% + MetaMask 0.1%). */
-const quoteCloseFee = () =>
+const quoteCloseFee = (): jest.Mock =>
   (Engine.context.PerpsController.calculateFees as jest.Mock).mockResolvedValue(
     {
       feeRate: 0.00145,
@@ -44,15 +48,14 @@ const quoteCloseFee = () =>
 const emitEthPrice = (
   stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
   price: string,
-) =>
+): void =>
   act(() => {
     stream.emitPrices({
       ETH: { symbol: 'ETH', price, timestamp: Date.now(), isTradable: true },
     });
   });
 
-const POST_ONLY_WINDOW_ERROR =
-  'order 0: Only post-only orders allowed immediately after network upgrade';
+const POST_ONLY_WINDOW_ERROR = PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW;
 
 const limitCloseEnabledOverrides = {
   engine: {
@@ -69,7 +72,7 @@ const limitCloseEnabledOverrides = {
   },
 } as unknown as DeepPartial<RootState>;
 
-const selectMidLimitClosePrice = async () => {
+const selectMidLimitClosePrice = async (): Promise<void> => {
   fireEvent.press(
     await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
   );

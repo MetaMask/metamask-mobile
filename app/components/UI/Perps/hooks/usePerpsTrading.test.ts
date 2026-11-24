@@ -4,6 +4,7 @@ import type { Hex } from 'viem';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
+  PERPS_ERROR_CODES,
   type AccountState,
   type CancelOrderParams,
   type CancelOrderResult,
@@ -50,7 +51,12 @@ const mockAcceptPerpsCufRequest = acceptPerpsCufRequest as jest.Mock;
 
 const mockEnsureArbitrumNetworkExists = jest.fn().mockResolvedValue(undefined);
 jest.mock('./usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: () => ({
+  usePerpsNetworkManagement: (): {
+    ensureArbitrumNetworkExists: typeof mockEnsureArbitrumNetworkExists;
+    enableArbitrumNetwork: jest.Mock;
+    getArbitrumChainId: jest.Mock;
+    currentNetwork: string;
+  } => ({
     ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
     enableArbitrumNetwork: jest.fn(),
     getArbitrumChainId: jest.fn(),
@@ -288,7 +294,7 @@ describe('usePerpsTrading', () => {
     it.each([
       [
         'a cancelled original for a post-only would-cross modify',
-        'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.',
+        PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS,
         { reason: 'post_only_would_cross', originalOrder: 'cancelled' },
       ],
       [

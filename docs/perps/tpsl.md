@@ -65,3 +65,11 @@ Code: `app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModi
 4. A change to the decision flag needs a live test. The failure depends on timing and unit tests mock a populated cache. `PerpsOrderView.view.test.tsx` covers one market order with TP/SL that asserts `updatePositionTPSL`.
 
 Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx`; `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.view.test.tsx`
+
+## Normalized failures
+
+Mobile consumes stable `PERPS_ERROR_CODES` from `@metamask/perps-controller` 25.0.0 and later. Venue-prose classification belongs in the provider, not in Mobile. Error translation and reconciliation receive the whole failed result so `errorCode` takes precedence over diagnostic text. Unclassified text gets retryable copy rather than being shown to the user.
+
+`POSITION_NOT_FOUND` is an already-closed race for both close and TP/SL updates. Mobile invalidates the positions and account-state caches, ends the CUF trace as `ALREADY_CLOSED`, and shows the already-closed toast. It recognizes the code in a failed result, a code string or an `Error` message; it does not match venue wording.
+
+`ORDER_POST_ONLY_WINDOW` and `ORDER_POST_ONLY_WOULD_CROSS` select the existing post-only messages. A rejected post-only edit with `ORDER_POST_ONLY_WOULD_CROSS` retains the warning that the original order was cancelled. `PROVIDER_ROUTE_REQUIRED` uses the route-selection message, which does not interpolate a provider name.

@@ -749,20 +749,34 @@ export function usePerpsOrderValidation(
     if (!hasValidatedOnceRef.current || becameLocallyValid) {
       hasValidatedOnceRef.current = true;
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors);
+        performValidation(requestId, fieldIssues, localErrors).catch(
+          (error: unknown) => {
+            DevLogger.log(
+              'usePerpsOrderValidation: Unexpected validation failure',
+              error,
+            );
+          },
+        );
       }
       return;
     }
 
     validationTimerRef.current = setTimeout(() => {
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors);
+        performValidation(requestId, fieldIssues, localErrors).catch(
+          (error: unknown) => {
+            DevLogger.log(
+              'usePerpsOrderValidation: Unexpected validation failure',
+              error,
+            );
+          },
+        );
       }
       validationTimerRef.current = null;
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
     // Cleanup
-    return () => {
+    return (): void => {
       clearValidationTimer();
     };
   }, [

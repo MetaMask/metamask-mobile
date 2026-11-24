@@ -7769,9 +7769,6 @@
     }
   },
   "app/components/UI/Perps/hooks/usePerpsOrderValidation.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -8284,7 +8281,7 @@
   },
   "app/components/UI/Perps/utils/translatePerpsError.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 4
     }
   },
   "app/components/UI/Perps/utils/unclaimedPrewarmTransactionMetrics.test.ts": {
