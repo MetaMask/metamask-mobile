@@ -85,7 +85,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking, Platform, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -356,6 +356,7 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
 }));
 
 const mockEnableCard = jest.fn();
+const mockRecheckProvisioning = jest.fn();
 let mockCanEnableCard = false;
 let mockIsEnableCardPending = false;
 let mockProvisioningView:
@@ -375,6 +376,8 @@ jest.mock('./hooks/useCardEnableCard', () => ({
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
     isEnableCardPending: mockIsEnableCardPending,
+    isProvisioningPollActive: false,
+    recheck: mockRecheckProvisioning,
   })),
 }));
 
@@ -382,7 +385,6 @@ jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => false,
 }));
 
-const mockRecheckProvisioning = jest.fn();
 const mockUseCardRecentTransactions = jest.fn(
   (_options?: { enabled?: boolean }) => ({
     transactions: [],
@@ -2875,6 +2877,23 @@ describe('CardHome Component', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Setting up your card')).toBeOnTheScreen();
     expect(screen.queryByText('Creating your card')).toBeNull();
+  });
+
+  it('rechecks an Immersve review when the waiting view is pulled to refresh', async () => {
+    mockProvisioningView = 'kyc_under_review';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+
+    expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
   });
 
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {

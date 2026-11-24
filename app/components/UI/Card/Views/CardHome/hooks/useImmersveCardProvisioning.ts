@@ -115,6 +115,12 @@ export function useImmersveCardProvisioning(
     options?.pollIntervalMs === undefined
       ? POLL_INTERVAL_MS
       : options.pollIntervalMs;
+  const isProvisioningPollActive =
+    isProvisioning &&
+    isFocused &&
+    !pendingAction &&
+    !isReconciling &&
+    pollIntervalMs !== null;
   // Latest interval for the settling retry. The reconcile effect must not
   // depend on it, or a network change cancels the request in flight.
   const pollIntervalMsRef = useRef(pollIntervalMs);
@@ -547,11 +553,24 @@ export function useImmersveCardProvisioning(
     navigateFromOutsideCard,
   ]);
 
+  // Re-runs the reconcile check. The waiting view uses it so a pull to
+  // refresh re-checks the review it is waiting on. A recheck while one is
+  // already running is a no-op.
+  const recheck = useCallback(() => {
+    if (isReconciling) {
+      return;
+    }
+    setHasResolvedStatus(false);
+    setRecheckCount((count) => count + 1);
+  }, [isReconciling]);
+
   return {
     isProvisioning,
     isReconciling,
     pendingAction,
     resumePendingAction,
+    recheck,
     markCardFlowOpened,
+    isProvisioningPollActive,
   };
 }

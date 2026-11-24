@@ -73,8 +73,10 @@ export function useImmersveEnableCard(
     isReconciling,
     pendingAction,
     resumePendingAction,
+    recheck,
     isProvisioning,
     markCardFlowOpened,
+    isProvisioningPollActive,
   } = useImmersveCardProvisioning(data, options);
 
   const isAllowanceRevoked =
@@ -193,5 +195,7 @@ export function useImmersveEnableCard(
           (isFundingSettling && pendingAction?.type === 'funding')),
     ),
     markCardFlowOpened,
+    recheck,
+    isProvisioningPollActive,
   };
 }
