@@ -462,6 +462,7 @@ const DecisionStep = () => {
   return (
     <KycPending
       description={strings('kyc.kyc_taking_longer.description_few_minutes')}
+      buttonLabel={strings('kyc.kyc_taking_longer.button')}
       onLeave={onLeave}
       onClose={onLeave}
     />
