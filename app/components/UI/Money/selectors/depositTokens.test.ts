@@ -3,7 +3,10 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { RootState } from '../../../../reducers';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  getPreferredTokenOverride,
+  selectMetaMaskPayTokensFlags,
+} from '../../../../selectors/featureFlagController/confirmations';
 import {
   filterMoneyDepositSupportedAssets,
   type MoneyDepositAsset,
@@ -26,6 +29,14 @@ const mockSelectMetaMaskPayTokensFlags = jest.mocked(
 const mockSelectMoneyDepositMinBalance = jest.mocked(
   selectMoneyDepositMinBalance,
 );
+
+jest
+  .mocked(getPreferredTokenOverride)
+  .mockImplementation(
+    jest.requireActual(
+      '../../../../selectors/featureFlagController/confirmations',
+    ).getPreferredTokenOverride,
+  );
 
 const createAsset = (
   overrides: Partial<MoneyDepositAsset> = {},

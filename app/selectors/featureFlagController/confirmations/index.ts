@@ -336,6 +336,14 @@ export function getPreferredTokensForTransactionType(
   return preferredTokens.default;
 }
 
+/** Resolves only the transaction-type override, without the default fallback. */
+export function getPreferredTokenOverride(
+  preferredTokens: PreferredTokensConfig,
+  transactionType: string,
+): PreferredToken[] {
+  return preferredTokens.overrides[transactionType] ?? [];
+}
+
 /**
  * Selector to get the allow list for non-zero unused approvals from remote feature flags.
  *

@@ -6,7 +6,10 @@ import {
   isTokenBlocked,
 } from '../../../Views/confirmations/utils/transaction-pay';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  getPreferredTokenOverride,
+  selectMetaMaskPayTokensFlags,
+} from '../../../../selectors/featureFlagController/confirmations';
 import { createDeepEqualSelector } from '../../../../selectors/util';
 import { selectMoneyDepositMinBalance } from './featureFlags';
 
@@ -82,9 +85,10 @@ export const selectMoneyDepositBlockedTokens = createDeepEqualSelector(
 export const selectMoneyDepositPayTokens = createDeepEqualSelector(
   [selectMetaMaskPayTokensFlags],
   (payTokenFlags) =>
-    payTokenFlags.preferredTokens.overrides[
-      TransactionType.moneyAccountDeposit
-    ] ?? [],
+    getPreferredTokenOverride(
+      payTokenFlags.preferredTokens,
+      TransactionType.moneyAccountDeposit,
+    ),
 );
 
 export const selectMoneyDepositAssetsMeetingMinimumBalance =
