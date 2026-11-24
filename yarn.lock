@@ -39760,23 +39760,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^11.0.5":
+"minimatch@npm:^11.0.5, minimatch@npm:^9.0.3 || ^10.1.2 || ^11.0.1":
   version: 11.0.9
   resolution: "minimatch@npm:11.0.9"
   dependencies:
     "@isaacs/nonrecursive-glob-match": "npm:^1.1.0"
     brace-expansion: "npm:^5.0.12"
   checksum: 10/5a17bd87033371c50dbabead4b461d3a40ffedb496939a2da14f67f1381813db959ec0d32716cfe4eaa83f3ae945cdee2343398be20f7d195799d8b12981565d
-  languageName: node
-  linkType: hard
-
-"minimatch@npm:^9.0.3 || ^10.1.2 || ^11.0.1":
-  version: 11.0.5
-  resolution: "minimatch@npm:11.0.5"
-  dependencies:
-    "@isaacs/nonrecursive-glob-match": "npm:^1.1.0"
-    brace-expansion: "npm:^5.0.12"
-  checksum: 10/40df2064d0bc512a6e06eba4b11aa62d411e3259aea41854cd48800416e4d81158dc27ff143a8e7359eeb12797b010969a1dd935e1fed3da1bb8f967634aea71
   languageName: node
   linkType: hard
 
