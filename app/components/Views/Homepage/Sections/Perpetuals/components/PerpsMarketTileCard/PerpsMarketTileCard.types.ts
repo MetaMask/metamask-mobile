@@ -1,4 +1,5 @@
 import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsTileDeviceTiers } from './PerpsMarketTileCard.utils';
 
 export interface PerpsMarketTileCardProps {
   /** Market data to display */
@@ -15,4 +16,5 @@ export interface PerpsMarketTileCardProps {
   showFavoriteTag?: boolean;
   /** Test ID for E2E testing */
   testID?: string;
+  deviceCapability?: PerpsTileDeviceTiers;
 }

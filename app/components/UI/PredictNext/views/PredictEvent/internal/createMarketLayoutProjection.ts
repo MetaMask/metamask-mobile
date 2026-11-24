@@ -163,17 +163,20 @@ function toCards({ groups, ungrouped }: PeriodMarkets): MarketLayoutCard[] {
     .map(({ card }) => card);
 }
 
-function sumVolume(periods: readonly PeriodLevel[]): string | undefined {
+const marketsOfCard = (card: MarketLayoutCard): readonly PredictMarket[] =>
+  card.type === 'standard' ? [card.market] : card.markets;
+
+function sumSectionVolume(
+  periods: readonly { cards: readonly MarketLayoutCard[] }[],
+): string | undefined {
   let total: BigNumber | undefined;
-  for (const { children } of periods) {
-    const members = [
-      ...children.ungrouped,
-      ...[...children.groups.values()].flat(),
-    ];
-    for (const { market } of members) {
-      const volume = parsePredictDecimal(market.volume);
-      if (volume !== undefined) {
-        total = (total ?? new BigNumber(0)).plus(volume);
+  for (const period of periods) {
+    for (const card of period.cards) {
+      for (const market of marketsOfCard(card)) {
+        const volume = parsePredictDecimal(market.volume);
+        if (volume !== undefined) {
+          total = (total ?? new BigNumber(0)).plus(volume);
+        }
       }
     }
   }
@@ -181,17 +184,19 @@ function sumVolume(periods: readonly PeriodLevel[]): string | undefined {
 }
 
 function toSection(section: SectionLevel): MarketLayoutSection {
-  const periods = [...section.children.values()].sort(compareLevels);
-  const volume = sumVolume(periods);
+  const periods = [...section.children.values()]
+    .sort(compareLevels)
+    .map((period) => ({
+      ...(period.key === undefined ? {} : { key: period.key }),
+      order: period.order,
+      cards: toCards(period.children),
+    }));
+  const volume = sumSectionVolume(periods);
   return {
     key: section.key,
     order: section.order,
     ...(volume === undefined ? {} : { volume }),
-    periods: periods.map((period) => ({
-      ...(period.key === undefined ? {} : { key: period.key }),
-      order: period.order,
-      cards: toCards(period.children),
-    })),
+    periods,
   };
 }
 
@@ -285,5 +290,183 @@ export function createMarketLayoutProjection(
       sections: [...tab.children.values()].sort(compareLevels).map(toSection),
     })),
     remainingMarkets,
+  };
+}
+
+/**
+ * True when both lists describe the same tabs, groups, and order.
+ * A live quote keeps `layout` and `group` by reference, so a price or volume
+ * tick stays true. A new group or layout object does not, and the caller
+ * rebuilds.
+ */
+export function marketsShareProjectionStructure(
+  previous: readonly PredictMarket[],
+  next: readonly PredictMarket[],
+): boolean {
+  if (previous === next) {
+    return true;
+  }
+  if (previous.length !== next.length) {
+    return false;
+  }
+  for (let index = 0; index < next.length; index += 1) {
+    const before = previous[index];
+    const after = next[index];
+    if (before === after) {
+      continue;
+    }
+    if (
+      before.id !== after.id ||
+      before.layout !== after.layout ||
+      before.group !== after.group
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const replaceMarketInCard = (
+  card: MarketLayoutCard,
+  replace: (market: PredictMarket) => PredictMarket,
+): MarketLayoutCard => {
+  if (card.type === 'standard') {
+    const market = replace(card.market);
+    return market === card.market ? card : { ...card, market };
+  }
+
+  let changed = false;
+  const markets = card.markets.map((market) => {
+    const next = replace(market);
+    if (next !== market) {
+      changed = true;
+    }
+    return next;
+  });
+  return changed ? { ...card, markets } : card;
+};
+
+const sectionWithVolume = (
+  section: MarketLayoutSection,
+  periods: MarketLayoutSection['periods'],
+  volume: string | undefined,
+): MarketLayoutSection => {
+  if (periods === section.periods && volume === section.volume) {
+    return section;
+  }
+  if (volume === undefined) {
+    const { volume: _volume, ...withoutVolume } = section;
+    return periods === section.periods
+      ? withoutVolume
+      : { ...withoutVolume, periods };
+  }
+  return { ...section, periods, volume };
+};
+
+/**
+ * Swaps in the latest Market objects when a quote changed prices or volume
+ * and the layout did not. Cards, sections, and tabs the quote did not touch
+ * keep their identity so a list row can skip rendering. Anything that could
+ * move a Market between cards rebuilds from scratch.
+ */
+export function refreshMarketLayoutProjection(
+  previousMarkets: readonly PredictMarket[],
+  previousProjection: MarketLayoutProjection,
+  nextMarkets: readonly PredictMarket[],
+): MarketLayoutProjection {
+  if (
+    previousMarkets === nextMarkets ||
+    !marketsShareProjectionStructure(previousMarkets, nextMarkets)
+  ) {
+    return previousMarkets === nextMarkets
+      ? previousProjection
+      : createMarketLayoutProjection(nextMarkets);
+  }
+
+  const replacements = new Map<PredictMarket, PredictMarket>();
+  const volumeChangedIds = new Set<PredictMarket['id']>();
+  for (let index = 0; index < nextMarkets.length; index += 1) {
+    const before = previousMarkets[index];
+    const after = nextMarkets[index];
+    if (before === after) {
+      continue;
+    }
+    replacements.set(before, after);
+    if (before.volume !== after.volume) {
+      volumeChangedIds.add(after.id);
+    }
+  }
+  if (replacements.size === 0) {
+    return previousProjection;
+  }
+
+  const replace = (market: PredictMarket): PredictMarket =>
+    replacements.get(market) ?? market;
+  const touchesVolume = (periods: MarketLayoutSection['periods']): boolean =>
+    volumeChangedIds.size > 0 &&
+    periods.some((period) =>
+      period.cards.some((card) =>
+        marketsOfCard(card).some((market) => volumeChangedIds.has(market.id)),
+      ),
+    );
+
+  let tabsChanged = false;
+  const tabs = previousProjection.tabs.map((tab) => {
+    let sectionsChanged = false;
+    const sections = tab.sections.map((section) => {
+      let periodsChanged = false;
+      const periods = section.periods.map((period) => {
+        let cardsChanged = false;
+        const cards = period.cards.map((card) => {
+          const next = replaceMarketInCard(card, replace);
+          if (next !== card) {
+            cardsChanged = true;
+          }
+          return next;
+        });
+        if (!cardsChanged) {
+          return period;
+        }
+        periodsChanged = true;
+        return { ...period, cards };
+      });
+      const nextPeriods = periodsChanged ? periods : section.periods;
+      const volumeDirty = touchesVolume(nextPeriods);
+      if (!periodsChanged && !volumeDirty) {
+        return section;
+      }
+      const volume = volumeDirty
+        ? sumSectionVolume(nextPeriods)
+        : section.volume;
+      const nextSection = sectionWithVolume(section, nextPeriods, volume);
+      if (nextSection !== section) {
+        sectionsChanged = true;
+      }
+      return nextSection;
+    });
+    if (!sectionsChanged) {
+      return tab;
+    }
+    tabsChanged = true;
+    return { ...tab, sections };
+  });
+
+  let remainingChanged = false;
+  const remainingMarkets = previousProjection.remainingMarkets.map((market) => {
+    const next = replace(market);
+    if (next !== market) {
+      remainingChanged = true;
+    }
+    return next;
+  });
+
+  if (!tabsChanged && !remainingChanged) {
+    return previousProjection;
+  }
+  return {
+    tabs: tabsChanged ? tabs : previousProjection.tabs,
+    remainingMarkets: remainingChanged
+      ? remainingMarkets
+      : previousProjection.remainingMarkets,
   };
 }

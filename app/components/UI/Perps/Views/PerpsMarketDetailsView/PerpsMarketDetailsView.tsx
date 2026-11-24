@@ -61,6 +61,7 @@ import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -360,6 +361,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<AppNavigationProp>();
+
+  // Hold the heavy sections out of the opening transition.
+  const isDeferredReady = useScreenTransitionComplete();
   const { sharePosition, findSocialPosition } = usePerpsSharePosition();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
@@ -1860,7 +1864,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     () => [
       {
         key: 'stats',
-        visible: true,
+        visible: isDeferredReady,
         content: (
           <PerpsMarketStatisticsCard
             symbol={market?.symbol || ''}
@@ -1898,14 +1902,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       },
       {
         key: 'recent-trades',
-        visible: Boolean(market?.symbol),
+        visible: Boolean(market?.symbol) && isDeferredReady,
         content: market?.symbol ? (
           <PerpsMarketTradesList symbol={market.symbol} />
         ) : null,
       },
       {
         key: 'more',
-        visible: moreItems.length > 0,
+        visible: moreItems.length > 0 && isDeferredReady,
         content: (
           <PerpsMoreSection
             items={moreItems}
@@ -1924,6 +1928,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       moreItems,
       hasAboutDescription,
       handleAboutLayout,
+      isDeferredReady,
     ],
   );
 
@@ -2241,38 +2246,40 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         <Box twClassName="mb-4">{marketInsightsCard}</Box>
       ) : null}
 
-      {isPerpsSocialEnabled ? (
-        <>
-          <PerpsHomeSectionList sections={positionSections} />
-          <PerpsMarketSocialTabs
-            symbol={market.symbol}
-            onOverviewLayout={handleAboutContainerLayout}
-            onOverviewVisibilityChange={setAboutTrackingEnabled}
-            onTabChange={setActiveSocialTab}
-            footer={isFeedScroller ? riskDisclaimer : undefined}
-            overview={
-              <PerpsHomeSectionList
-                sections={[
-                  {
-                    key: 'market-insights',
-                    visible: shouldShowPerpsMarketInsightsSection,
-                    content: (
-                      <Box twClassName="pt-3 pb-6">{marketInsightsCard}</Box>
-                    ),
-                  },
-                  ...overviewSections,
-                ]}
-                hideLeadingDivider
-              />
-            }
-          />
-        </>
-      ) : (
-        <>
-          <PerpsHomeSectionList sections={preMarketInsightsSections} />
-          <PerpsHomeSectionList sections={postMarketInsightsSections} />
-        </>
-      )}
+      {isDeferredReady ? (
+        isPerpsSocialEnabled ? (
+          <>
+            <PerpsHomeSectionList sections={positionSections} />
+            <PerpsMarketSocialTabs
+              symbol={market.symbol}
+              onOverviewLayout={handleAboutContainerLayout}
+              onOverviewVisibilityChange={setAboutTrackingEnabled}
+              onTabChange={setActiveSocialTab}
+              footer={isFeedScroller ? riskDisclaimer : undefined}
+              overview={
+                <PerpsHomeSectionList
+                  sections={[
+                    {
+                      key: 'market-insights',
+                      visible: shouldShowPerpsMarketInsightsSection,
+                      content: (
+                        <Box twClassName="pt-3 pb-6">{marketInsightsCard}</Box>
+                      ),
+                    },
+                    ...overviewSections,
+                  ]}
+                  hideLeadingDivider
+                />
+              }
+            />
+          </>
+        ) : (
+          <>
+            <PerpsHomeSectionList sections={preMarketInsightsSections} />
+            <PerpsHomeSectionList sections={postMarketInsightsSections} />
+          </>
+        )
+      ) : null}
 
       {isFeedScroller ? null : riskDisclaimer}
     </>

@@ -17,7 +17,11 @@
 import { p256 } from '@noble/curves/nist';
 import { sha256 } from '@noble/hashes/sha2';
 
-import profileDocument from './venue-profiles/kalshi-trading-1.json';
+// Version 3: version 2 plus the `funding.deposit` intent. Copied byte for
+// byte from predict-api's `kalshi-trading-1.v3.json`. The version 2 document
+// stays bundled beside it: predict-api still accepts it, and its tests pin
+// that version 3 left trading unchanged.
+import profileDocument from './venue-profiles/kalshi-trading-1.v3.json';
 import type { SigningProfile } from './signing/profileSchema';
 
 export type {
@@ -34,8 +38,11 @@ export type {
 /** The payload kinds the DSL renders. Only `http-rfc9421` renders today. */
 export type RenderedPayloadKind = 'http-rfc9421';
 
-/** The one trading intent set this build's profiles can declare. */
-export type VenueIntentName = 'order.place' | 'account.activate';
+/** The intents this build signs. `funding.deposit` needs profile version 3. */
+export type VenueIntentName =
+  | 'order.place'
+  | 'account.activate'
+  | 'funding.deposit';
 
 /** Public keys that verify profile documents, PEM SPKI, as shipped. */
 export interface ProfileKeys {

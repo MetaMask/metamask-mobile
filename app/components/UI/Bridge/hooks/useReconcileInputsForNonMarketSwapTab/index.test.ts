@@ -42,7 +42,7 @@ const USDC_TOKEN = createMockToken({
 const BSC_TOKEN = createMockToken({
   address: '0x55d398326f99059ff775485246999027b3197955',
   chainId: '0x38',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
 });
 const BASE_TOKEN = createMockToken({
   address: '0x88fb150bdc53a65fe94dea0c9ba0a6d4af4a9d7d',

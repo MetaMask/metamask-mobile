@@ -15,6 +15,7 @@ import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
 import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
+import MoneyEstimatedBalanceSheet from '../components/MoneyEstimatedBalanceSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
@@ -58,7 +59,9 @@ const MoneyTabScreenStack = () => {
         component={MoneyHomeView}
         listeners={{
           focus: () => {
-            Engine.context.CardController.fetchCardHomeData();
+            if (Engine.context.CardController.state.isAuthenticated) {
+              Engine.context.CardController.fetchCardHomeData();
+            }
           },
         }}
       />
@@ -132,6 +135,11 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.APY_INFO_SHEET}
         component={MoneyApyInfoSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.ESTIMATED_BALANCE_SHEET}
+        component={MoneyEstimatedBalanceSheet}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

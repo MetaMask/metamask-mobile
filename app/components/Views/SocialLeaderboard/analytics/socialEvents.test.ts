@@ -11,6 +11,14 @@ describe('Social V1 analytics contracts', () => {
       EVENT_NAME[key],
     );
   });
+  it('joins Quick Buy and Perp trades to the Social V1 experiment', () => {
+    expect(SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING.eventNames).toEqual(
+      expect.arrayContaining([
+        EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
+        EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      ]),
+    );
+  });
   it('normalizes bounded route origins', () => {
     expect(getSocialEventSource('perp_asset_screen')).toBe('perp_asset_screen');
     expect(getSocialEventSource('social_trending')).toBe('social_trending');

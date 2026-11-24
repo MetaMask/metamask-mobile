@@ -25,8 +25,10 @@ import AppConstants from '../../../app/core/AppConstants';
 import {
   clearAllNockMocks,
   disableNetConnect,
+  nockRequestUri,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 export const TOKEN_DETAILS_V1_ADDRESS =
   '0x6982508145454ce325ddbe47a25d4ec3d2311933';
@@ -222,8 +224,12 @@ export function setupTokenDetailsV1ApiMocks(
   tokenApi.get('/assets').query(true).reply(200, []);
 
   const priceApi = nock(PRICE_API_BASE_URL).persist();
-  priceApi.get(/.*/).reply(200, priceReply);
-  priceApi.post(/.*/).reply(200, priceReply);
+  priceApi
+    .get(/.*/)
+    .reply(200, (request: Request) => priceReply(nockRequestUri(request)));
+  priceApi
+    .post(/.*/)
+    .reply(200, (request: Request) => priceReply(nockRequestUri(request)));
 
   nock(AppConstants.SOCIAL_API_URL)
     .persist()
@@ -235,6 +241,26 @@ export function setupTokenDetailsV1ApiMocks(
           : [],
       pagination: { hasMore: false },
     });
+
+  // No open position: the share/PnL composer card is skipped.
+  nock(AppConstants.SOCIAL_API_URL)
+    .persist()
+    .get(/\/api\/v2\/traders\/[^/]+\/[^/]+\/open/)
+    .query(true)
+    .reply(200, {
+      isOpen: false,
+      positionAmount: 0,
+      boughtUsd: 0,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 0,
+      currentValueUSD: null,
+      pnlValueUsd: null,
+      pnlPercent: null,
+      pnlStatus: 'ready',
+    });
+
+  installDefaultApiMocks();
 }
 
 export function clearTokenDetailsV1ApiMocks(): void {

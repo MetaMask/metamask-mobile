@@ -423,7 +423,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       });
       if (hasWarningIcon) {
         expect(
-          row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          within(
+            row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          ).getByLabelText(strings('bridge.recurring.skipped')),
         ).toBeOnTheScreen();
         expect(row.getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveStyle({
           color: lightTheme.colors.warning.default,
@@ -459,6 +461,38 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         strings('bridge.recurring.history_progress', {
           filledOrderCount: 2,
           totalOrderCount: 5,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('replaces stale route progress with the fresh order response', async () => {
+    const staleOrder = {
+      ...MOCK_RECURRING_OPEN_ORDER,
+      fillData: {
+        ...MOCK_RECURRING_OPEN_ORDER.fillData,
+        src: {
+          ...MOCK_RECURRING_OPEN_ORDER.fillData.src,
+          amount: '0',
+        },
+        dest: {
+          ...MOCK_RECURRING_OPEN_ORDER.fillData.dest,
+          amount: '0',
+        },
+        count: 0,
+      },
+    };
+    const renderResult = renderRecurringOrderDetailsView({
+      order: staleOrder,
+    });
+
+    await openOrderDetails(renderResult);
+
+    expect(
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: MOCK_RECURRING_OPEN_ORDER.fillData.count,
+          totalOrderCount: MOCK_RECURRING_OPEN_ORDER.schedule.repeatCount,
         }),
       ),
     ).toBeOnTheScreen();
@@ -755,11 +789,17 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   });
 
   it('hides cancellation when the API marks an open order non-cancellable', async () => {
+    const nonCancellableOrder = {
+      ...MOCK_RECURRING_OPEN_ORDER,
+      isCancellable: false,
+    };
+    const recurringOrder = jest.fn().mockResolvedValue({
+      order: nonCancellableOrder,
+    });
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ recurringOrder });
     const renderResult = renderRecurringOrderDetailsView({
-      order: {
-        ...MOCK_RECURRING_OPEN_ORDER,
-        isCancellable: false,
-      },
+      order: MOCK_RECURRING_OPEN_ORDER,
     });
 
     await userEvent.press(
@@ -773,14 +813,29 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         RecurringOrderDetailsViewSelectorsIDs.SUMMARY,
       ),
     ).toBeOnTheScreen();
+    // The summary renders from the cancellable route order before the
+    // order response lands, so wait for that response to remove Cancel.
+    await waitFor(() => {
+      expect(recurringOrder).toHaveBeenCalledWith(
+        MOCK_RECURRING_OPEN_ORDER.id,
+        expect.objectContaining({
+          accountAddress: MOCK_RECURRING_OPEN_ORDER.account,
+        }),
+      );
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
     expect(
       renderResult.queryByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows no footer action for a cancelled API order', async () => {
+  it('shows duplicate action for a cancelled API order', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_CANCELLED_ORDER,
     });
@@ -802,9 +857,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      renderResult.queryByTestId(
+      await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
   });
 });

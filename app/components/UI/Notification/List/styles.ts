@@ -2,8 +2,6 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 
-export type NotificationListStyles = ReturnType<typeof createStyles>;
-
 export const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
     container: {

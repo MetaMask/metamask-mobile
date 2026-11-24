@@ -15,7 +15,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { TokenI } from '../../../Tokens/types';
 
 jest.mock('react-redux', () => ({
@@ -48,7 +48,7 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUseDispatch = jest.mocked(useDispatch);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 const MOCK_USDC = {
   name: 'USD Coin',
@@ -225,7 +225,7 @@ describe('MoneyEarnBanner', () => {
   });
 
   describe('card press', () => {
-    it('initiates a deposit with the asset as preferred payment token when onboarding is not needed', () => {
+    it('initiates a deposit with the asset as preferred payment token when splash is not needed', () => {
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
@@ -244,11 +244,11 @@ describe('MoneyEarnBanner', () => {
       });
     });
 
-    it('redirects first-time users to Money onboarding instead of the deposit flow', () => {
+    it('redirects first-time users to Money splash instead of the deposit flow', () => {
       mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
         track?.({
-          button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-          redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+          button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+          redirect_target: SCREEN_NAMES.MONEY_SPLASH,
         });
       });
 
@@ -258,7 +258,7 @@ describe('MoneyEarnBanner', () => {
 
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
       expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
         token_symbol: MOCK_USDC.symbol,
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
@@ -284,7 +284,7 @@ describe('MoneyEarnBanner', () => {
   });
 
   describe('CTA press', () => {
-    it('initiates a deposit and tracks an add-money button click when onboarding is not needed', () => {
+    it('initiates a deposit and tracks an add-money button click when splash is not needed', () => {
       const ctaLabel = strings('money.earn_banner.cta', { symbol: 'USDC' });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
@@ -320,11 +320,11 @@ describe('MoneyEarnBanner', () => {
       );
     });
 
-    it('tracks an onboarding button click without depositing when onboarding is needed', () => {
+    it('tracks an splash button click without depositing when splash is needed', () => {
       mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
         track?.({
-          button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-          redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+          button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+          redirect_target: SCREEN_NAMES.MONEY_SPLASH,
         });
       });
       const ctaLabel = strings('money.earn_banner.cta', { symbol: 'USDC' });
@@ -336,10 +336,10 @@ describe('MoneyEarnBanner', () => {
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
       expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
         label_en: ctaLabel,
         label_localized: ctaLabel,
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
         token_symbol: MOCK_USDC.symbol,
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
