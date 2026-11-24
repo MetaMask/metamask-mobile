@@ -78,6 +78,9 @@ describe('CollectiblesSection', () => {
     expect(
       screen.getByText(strings('collectibles.home.empty')),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('collectibles.home.empty_description')),
+    ).toBeOnTheScreen();
   });
 
   it('keeps cached packs when a refetch fails', () => {

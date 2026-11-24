@@ -5464,7 +5464,8 @@
       "description": "Explore packs and cards"
     },
     "home": {
-      "empty": "No packs available right now",
+      "empty": "No packs available",
+      "empty_description": "Check back soon or browse other packs.",
       "opens": "{{count}} opens",
       "opens_trending": "{{count}} opens, trending"
     }

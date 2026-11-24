@@ -14,6 +14,7 @@ import {
   IconSize,
   SectionDivider,
   SectionHeader,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Text } from '../../../../UI/primitives/Text';
@@ -130,6 +131,13 @@ export function CollectiblesSection({
             className="text-center"
           >
             {strings('collectibles.home.empty')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            className="text-center"
+          >
+            {strings('collectibles.home.empty_description')}
           </Text>
         </View>
       ) : (
