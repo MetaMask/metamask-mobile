@@ -713,10 +713,7 @@ export async function setupSentry(
       Sentry.extraErrorDataIntegration(),
       Sentry.reactNativeTracingIntegration({ traceFetch: true }),
       getNavIntegration(),
-      // Local sidecar only. Opt in with SENTRY_SPOTLIGHT=true and __DEV__ is true.
-      // Added as an integration instead of the `spotlight` init option: that
-      // option is also forwarded to the native iOS/Android SDK, which then
-      // sends a second copy of every envelope to the sidecar.
+      // Sentry Spotlight integration for observing Sentry span and perforance metrics locally.
       ...(isDev && process.env.SENTRY_SPOTLIGHT === 'true'
         ? [Sentry.spotlightIntegration()]
         : []),
