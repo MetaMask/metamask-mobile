@@ -713,8 +713,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       await continueAfterVerified();
     } catch (mfaError) {
       const code = getMfaErrorCode(mfaError);
-      // OS passkey cancel (kit ends verifyOnly) or back from kit retry →
-      // full-page methods list.
+      // OS passkey cancel before any kit screen (`!presented`) or back from
+      // kit retry → full-page methods list.
       if (code === 'flow_cancelled') {
         Logger.log('OAuthRehydration: locked social MFA', {
           status: 'fallback_verify',

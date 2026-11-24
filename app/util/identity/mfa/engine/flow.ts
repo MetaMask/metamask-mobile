@@ -565,9 +565,10 @@ export const createMfaFlow = ({
 
   /**
    * Opens the system passkey sheet straight away. On failure, the passkey
-   * screen shows with retry. For `verifyOnly` (locked social unlock), a user
-   * cancel ends the flow immediately so the host can open its methods list
-   * before any kit screen appears; other failures still show retry.
+   * screen shows with retry. When the sheet is cancelled and nothing from
+   * the kit has been shown yet (`!presented`), the flow ends with
+   * `flow_cancelled` so a host can open its own list; other failures still
+   * show retry.
    *
    * A function declaration, as it and `advance` call each other.
    *
@@ -580,8 +581,7 @@ export const createMfaFlow = ({
     } catch (error) {
       if (
         getFlowErrorCode(error) === 'passkey_ceremony_cancelled' &&
-        request.kind === 'verifyOrEnroll' &&
-        request.verifyOnly
+        !presented
       ) {
         rejectWith('flow_cancelled');
         return;

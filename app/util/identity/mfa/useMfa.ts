@@ -83,10 +83,10 @@ const listActiveSocialLoginMethods = async (): Promise<MfaMethod[]> => {
 /**
  * Proves it's the user during social-login wallet recovery, while the wallet
  * is still locked. Never enrolls. When `method` is set, verifies only that
- * factor (host picker / arrival highest factor). Otherwise uses the default
- * cost order (passkey → totp → email). Rejects with
- * `credential_not_enrolled` when none is active, or with the code of an
- * error the kit has already shown.
+ * factor (and auto-starts it). Without `method`, every platform method may
+ * verify: a single active one starts directly; several open the kit's
+ * picker. Rejects with `credential_not_enrolled` when none is active, or
+ * with the code of an error the kit has already shown.
  *
  * Callers that need the social identifier paired first should run
  * `exchangeSocialAccessToken` themselves before this (non-fatal on failure).
@@ -102,7 +102,7 @@ const verifyForSocialLogin = ({
   const methods = method ? [method] : [...METHOD_COST_RANKING];
   return startMfaFlow({
     // A single-method verifyOnly plan auto-starts that method. Passing
-    // every method keeps today's default cost-order verify.
+    // every method lets the kit pick among active ones (picker when several).
     request: {
       kind: 'verifyOrEnroll',
       methods,
@@ -131,7 +131,8 @@ const verifyForSocialLogin = ({
  * - `listActiveSocialLoginMethods`: locked recovery — which factors can
  * verify (`refreshSocialLoginCredentials` + `getVerifiableMethods`).
  * - `verifyForSocialLogin`: locked recovery verify. Optional `method` for a
- * single factor; otherwise cost-order default. Never enrolls.
+ * single factor; without it, the kit picks among active methods. Never
+ * enrolls.
  * - `credentials`: the profile's methods, as last fetched from the server.
  *
  * @returns The kit's entry points and the credential list.
