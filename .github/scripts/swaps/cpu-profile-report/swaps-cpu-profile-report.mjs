@@ -169,8 +169,8 @@ const escapeSlack = (text) =>
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-/** GitHub markdown also renders HTML, and `|` splits table cells. */
-const escapeMd = (text) => escapeSlack(text).replace(/\|/g, '\\|');
+/** GitHub markdown also renders HTML, `|` splits table cells, and a backslash escapes the next character. */
+const escapeMd = (text) => escapeSlack(text).replace(/[\\|]/g, '\\$&');
 const formatMs = (value) => `${Math.round(value).toLocaleString('en-US')}ms`;
 /**
  * Clearer names for two parser areas: frames without a source path (in

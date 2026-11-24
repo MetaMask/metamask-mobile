@@ -224,7 +224,7 @@ describe('buildFullReport', () => {
           widestFunction: fn,
           nonSwapsConcurrentAreas: [
             { area: 'Unknown (unsymbolicated)', selfMs: 600 },
-            { area: 'a|b <x>', selfMs: 5 },
+            { area: 'a\\|b <x>', selfMs: 5 },
           ],
         },
       },
@@ -246,7 +246,7 @@ describe('buildFullReport', () => {
     );
     expect(markdown).toContain('| fast-equals (dependency) | 900ms |');
     expect(markdown).toContain('| Native or no source path | 600ms |');
-    expect(markdown).toContain('| a\\|b &lt;x&gt; | 5ms |');
+    expect(markdown).toContain('| a\\\\\\|b &lt;x&gt; | 5ms |');
     expect(markdown).toContain(
       `| [42](https://github.com/MetaMask/metamask-mobile/actions/runs/42) | 1,000ms | 40ms | ${link} |`,
     );
