@@ -1318,7 +1318,7 @@ describe('PredictEventScreen', () => {
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
-  it('lists winner, total, and spread cards in one Game Event', async () => {
+  it('lists ungrouped team Markets as standard cards beside totals and spreads', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 

@@ -383,7 +383,11 @@ export const makePredictNextGameEvent = (
   };
 };
 
-/** A flat Game fixture to exercise Event screen rendering without layout metadata. */
+/**
+ * Flat Game fixture for rendering without layout. Keep the team Markets
+ * ungrouped: makePredictNextLaidOutGameEvent uses that to distinguish
+ * full-game moneylines from totals and spreads when it assigns layouts.
+ */
 export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   const game = makePredictNextGameEvent(
     'nfl-composite',

@@ -19,6 +19,17 @@ describe('getGameMoneylineMarkets', () => {
     ]);
   });
 
+  it('returns no moneyline Markets for ungrouped team selections without layout', () => {
+    const markets = composedGame.markets
+      .slice(0, 2)
+      .map(({ group, layout, ...market }) => market);
+    const event = withMarkets(markets);
+
+    const result = getGameMoneylineMarkets(event);
+
+    expect(result).toEqual([]);
+  });
+
   it('does not treat a choice group without layout as the full-game moneyline', () => {
     const withoutLayout = composedGame.markets.map(
       ({ layout, ...market }) => market,
