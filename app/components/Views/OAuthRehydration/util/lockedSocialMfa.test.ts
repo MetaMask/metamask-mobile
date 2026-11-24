@@ -36,7 +36,10 @@ jest.mock('../../../../util/identity/mfa/passkeyAdapter', () => ({
   mobilePasskeyAdapter: {},
 }));
 
-jest.mock('../../../../util/Logger', () => ({ error: jest.fn(), log: jest.fn() }));
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -55,7 +58,12 @@ const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const socialLoginController = {} as MfaControllerAdapter;
 
 const enrolledCredentials = [
-  { id: 'email_otp', type: 'email_otp' as const, status: 'active' as const, verified: true },
+  {
+    id: 'email_otp',
+    type: 'email_otp' as const,
+    status: 'active' as const,
+    verified: true,
+  },
 ];
 
 describe('lockedSocialMfa', () => {

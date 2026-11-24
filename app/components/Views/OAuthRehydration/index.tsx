@@ -676,15 +676,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
       lastVerifiedMfaMethodRef.current = verification?.verifiedMethod ?? null;
       await continueAfterVerified();
-    } catch (error) {
-      const code = getMfaErrorCode(error);
+    } catch (mfaError) {
+      const code = getMfaErrorCode(mfaError);
       // OS passkey cancel (host watcher → kit cancel) or back from kit
       // passkey retry → full-page methods list.
       if (code === 'flow_cancelled') {
         Logger.log('OAuthRehydration: locked social MFA', {
           status: 'fallback_verify',
           code,
-          message: error instanceof Error ? error.message : String(error),
+          message:
+            mfaError instanceof Error ? mfaError.message : String(mfaError),
         });
         try {
           const methods = await listActiveSocialLoginMethods();
@@ -705,7 +706,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       Logger.log('OAuthRehydration: locked social MFA', {
         status: 'failed',
         code,
-        message: error instanceof Error ? error.message : String(error),
+        message:
+          mfaError instanceof Error ? mfaError.message : String(mfaError),
       });
     } finally {
       lockedVerifyInFlightRef.current = false;
@@ -749,8 +751,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         });
         lastVerifiedMfaMethodRef.current = mfaMethod;
         await continueAfterVerified();
-      } catch (error) {
-        const code = getMfaErrorCode(error);
+      } catch (mfaError) {
+        const code = getMfaErrorCode(mfaError);
         Logger.log('OAuthRehydration: locked social MFA factor', {
           status: 'failed',
           method: mfaMethod,
