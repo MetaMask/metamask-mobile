@@ -189,7 +189,9 @@ describe('E2EControllerOverrides.subscribeToOrderBook', () => {
 });
 
 describe('applyE2EPerpsControllerMocks account state protection', () => {
-  interface FakeState { accountState: unknown }
+  interface FakeState {
+    accountState: unknown;
+  }
   type StateListener = (state: FakeState) => void;
 
   const createFakeController = () => {
