@@ -2,12 +2,15 @@
 import {
   activateKalshiPrototype,
   activateKalshiPrototypeScenario,
+  deriveKalshiPrototypeCardState,
+  dismissKalshiPrototypeCard,
   getKalshiPrototypeKycService,
   getKalshiPrototypeRuntime,
   getKalshiPrototypeVendorOnboarding,
   isKalshiPrototypeActive,
   prototypeCompleteSumsub,
   resetKalshiPrototype,
+  resolveKalshiPrototypeDecision,
 } from './prototypeRuntime';
 import { PROTOTYPE_CODE } from './prototypeConstants';
 
@@ -153,5 +156,95 @@ describe('prototypeRuntime', () => {
     await expect(vendor.refreshStep({ vendor: 'kalshi' })).rejects.toThrow(
       'Kalshi prototype is not active.',
     );
+  });
+
+  describe('card state', () => {
+    /** Walks the new-user path as far as the identity provider. */
+    const walkToSumsub = async () => {
+      activateKalshiPrototypeScenario('newUserHasMfa');
+      const vendor = getKalshiPrototypeVendorOnboarding();
+      await vendor.submitTerms({ vendor: 'kalshi' });
+      await vendor.startSession({ vendor: 'kalshi' });
+      await vendor.verifyEmailOtp({ vendor: 'kalshi', code: PROTOTYPE_CODE });
+      await vendor.sendPhoneOtp({ vendor: 'kalshi' });
+      return vendor;
+    };
+
+    it('is getStarted while no scenario is armed', () => {
+      activateKalshiPrototype();
+      expect(deriveKalshiPrototypeCardState(null)).toBe('getStarted');
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('getStarted');
+    });
+
+    it('is needMoreInfo from the first step until KYC is submitted', async () => {
+      const vendor = await walkToSumsub();
+
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('needMoreInfo');
+      await vendor.verifyPhoneOtp({ vendor: 'kalshi', code: PROTOTYPE_CODE });
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('needMoreInfo');
+    });
+
+    it('is verifying while the review is pending, and terminal states after it', async () => {
+      const vendor = await walkToSumsub();
+      await vendor.verifyPhoneOtp({ vendor: 'kalshi', code: PROTOTYPE_CODE });
+      const launch = vendor.launchProviderFlow({ vendor: 'kalshi' });
+      prototypeCompleteSumsub('submitted');
+      await expect(launch).resolves.toBe('submitted');
+
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('verifying');
+
+      resolveKalshiPrototypeDecision('approved');
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('verified');
+
+      // A terminal review is not pending, so the control cannot move it.
+      resolveKalshiPrototypeDecision('rejected');
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('verified');
+    });
+
+    it('settles a pending review on a rejection', async () => {
+      const vendor = await walkToSumsub();
+      await vendor.verifyPhoneOtp({ vendor: 'kalshi', code: PROTOTYPE_CODE });
+      const launch = vendor.launchProviderFlow({ vendor: 'kalshi' });
+      prototypeCompleteSumsub('submitted');
+      await expect(launch).resolves.toBe('submitted');
+
+      resolveKalshiPrototypeDecision('rejected');
+      expect(
+        deriveKalshiPrototypeCardState(getKalshiPrototypeRuntime().script),
+      ).toBe('cantVerify');
+    });
+
+    it('keeps a dismissed terminal card hidden until the scenario resets', async () => {
+      const vendor = await walkToSumsub();
+      await vendor.verifyPhoneOtp({ vendor: 'kalshi', code: PROTOTYPE_CODE });
+      const launch = vendor.launchProviderFlow({ vendor: 'kalshi' });
+      prototypeCompleteSumsub('submitted');
+      await expect(launch).resolves.toBe('submitted');
+      resolveKalshiPrototypeDecision('approved');
+
+      dismissKalshiPrototypeCard();
+      expect(getKalshiPrototypeRuntime().cardDismissed).toBe(true);
+
+      activateKalshiPrototypeScenario('newUserHasMfa');
+      expect(getKalshiPrototypeRuntime().cardDismissed).toBe(false);
+    });
+
+    it('does not resolve when no review is pending', () => {
+      activateKalshiPrototypeScenario('newUserHasMfa');
+      resolveKalshiPrototypeDecision('approved');
+      expect(getKalshiPrototypeRuntime().script?.vendor.status).toBe('none');
+    });
   });
 });
