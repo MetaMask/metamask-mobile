@@ -22,6 +22,7 @@ import {
   activateKalshiPrototypeScenario,
   resetKalshiPrototype,
   resolveKalshiPrototypeDecision,
+  setKalshiPrototypeCodeSendsFail,
 } from './prototypeRuntime';
 import { useKalshiPrototypeRuntime } from './useKalshiPrototype';
 import { KalshiPrototypeDevSectionSelectorsIDs } from './KalshiPrototypeDevSection.testIds';
@@ -104,6 +105,15 @@ const KalshiPrototypeDeveloperOptionsSection = () => {
           </Button>
         </Box>
       ) : null}
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={() => setKalshiPrototypeCodeSendsFail(!runtime.failCodeSends)}
+        testID={KalshiPrototypeDevSectionSelectorsIDs.FAIL_CODE_SENDS}
+      >
+        {runtime.failCodeSends ? copy.failCodeSendsOn : copy.failCodeSends}
+      </Button>
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}

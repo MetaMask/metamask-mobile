@@ -120,12 +120,24 @@ export const GEORGE_COPY = {
 
 /** Copy the prototype owns. Anything without agreed design copy sits here. */
 export const PROTOTYPE_COPY = {
+  /** The native dialog when Kalshi can't send a code (draft copy). */
+  codeNotSent: {
+    title: "Couldn't send your code",
+    email:
+      "Kalshi couldn't send a code to your email right now. Try again in a few minutes.",
+    phone:
+      "Kalshi couldn't send a code to your phone right now. Try again in a few minutes.",
+    cancel: 'Cancel',
+    tryAgain: 'Try again',
+  },
   devOptions: {
     title: 'Kalshi prototype',
     description:
       '[PROTO] Fake the Kalshi onboarding backend and open the prototype Predictions screen.',
     enter: 'Enter prototype',
     reset: 'Reset prototype',
+    failCodeSends: '[PROTO] Fail Kalshi code sends',
+    failCodeSendsOn: '[PROTO] Code sends fail: on (tap to turn off)',
     resolveReview: {
       title: '[PROTO] Resolve the pending review',
       verified: 'Resolve review: verified',

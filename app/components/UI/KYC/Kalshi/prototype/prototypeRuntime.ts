@@ -40,6 +40,11 @@ export interface PrototypeRuntimeState {
    * next scenario (or the reset) replaces the script.
    */
   cardDismissed: boolean;
+  /**
+   * Every Kalshi code send fails, so the screens show their native
+   * "Couldn't send your code" dialog. Survives a scenario switch.
+   */
+  failCodeSends: boolean;
 }
 
 const IDLE: PrototypeRuntimeState = {
@@ -48,6 +53,7 @@ const IDLE: PrototypeRuntimeState = {
   script: null,
   sumsubOpen: false,
   cardDismissed: false,
+  failCodeSends: false,
 };
 
 let runtime: PrototypeRuntimeState = IDLE;
@@ -175,6 +181,7 @@ export const activateKalshiPrototypeScenario = (
     script: enterScenario(scenario),
     sumsubOpen: false,
     cardDismissed: false,
+    failCodeSends: runtime.failCodeSends,
   });
 };
 
@@ -190,6 +197,22 @@ export const resetKalshiPrototype = () => {
   settlePending();
   setRuntime(IDLE);
   removePrototypeBackend();
+};
+
+/**
+ * The Developer Options switch that makes every Kalshi code send fail.
+ *
+ * @param fail - Whether sends fail.
+ */
+export const setKalshiPrototypeCodeSendsFail = (fail: boolean) => {
+  setRuntime({ ...runtime, failCodeSends: fail });
+};
+
+/** Kalshi refusing to send a code, as a network or vendor failure would. */
+const failCodeSendIfArmed = () => {
+  if (runtime.failCodeSends) {
+    throw new Error('Kalshi prototype: code send failed.');
+  }
 };
 
 /**
@@ -289,6 +312,7 @@ export const getKalshiPrototypeVendorOnboarding = () => ({
     vendor: string;
     email?: string;
   }): Promise<KycStep> => {
+    failCodeSendIfArmed();
     const script = resendEmailCode(requireScript());
     setRuntime({ ...runtime, script });
     return currentStep(script);
@@ -310,6 +334,7 @@ export const getKalshiPrototypeVendorOnboarding = () => ({
     vendor: string;
     phoneNumber?: string;
   }): Promise<KycStep> => {
+    failCodeSendIfArmed();
     const script = sendPhone(requireScript());
     setRuntime({ ...runtime, script });
     return currentStep(script);

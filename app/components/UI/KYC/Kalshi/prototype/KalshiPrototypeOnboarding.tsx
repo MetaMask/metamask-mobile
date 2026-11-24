@@ -62,6 +62,7 @@ import KalshiPrototypeSumsubScreen from './KalshiPrototypeSumsubScreen';
 import { strings } from '../../../../../../locales/i18n';
 import KalshiPrototypeLoading from './KalshiPrototypeLoading';
 import KalshiPrototypeStepUp from './KalshiPrototypeStepUp';
+import { sendCodeWithRetryDialog } from './codeNotSentAlert';
 
 const vendor = getKalshiPrototypeVendorOnboarding();
 
@@ -251,9 +252,13 @@ const EmailCodeStep = () => {
     },
     [navigation],
   );
-  const handleResend = useCallback(async () => {
-    await vendor.sendEmailOtp({ vendor: 'kalshi', email });
-  }, [email]);
+  const handleResend = useCallback(
+    () =>
+      sendCodeWithRetryDialog('email', async () => {
+        await vendor.sendEmailOtp({ vendor: 'kalshi', email });
+      }),
+    [email],
+  );
   const handleUseDifferentEmail = useCallback(
     () => navigation.navigate(KalshiPrototypeRoutes.EMAIL_ENTRY),
     [navigation],
@@ -279,11 +284,12 @@ const EmailCodeStep = () => {
 const EmailEntryStep = () => {
   const navigation = useFlowNavigation();
   const handleSend = useCallback(
-    async (email: string) => {
-      await vendor.sendEmailOtp({ vendor: 'kalshi', email });
-      // Back to the code screen, now showing the new address.
-      navigation.navigate(KalshiPrototypeRoutes.EMAIL_CODE, { email });
-    },
+    (email: string) =>
+      sendCodeWithRetryDialog('email', async () => {
+        await vendor.sendEmailOtp({ vendor: 'kalshi', email });
+        // Back to the code screen, now showing the new address.
+        navigation.navigate(KalshiPrototypeRoutes.EMAIL_CODE, { email });
+      }),
     [navigation],
   );
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -295,14 +301,15 @@ const EmailEntryStep = () => {
 const PhoneEntryStep = () => {
   const navigation = useFlowNavigation();
   const handleSend = useCallback(
-    async (phoneNumber: string, displayNumber: string) => {
-      await vendor.sendPhoneOtp({ vendor: 'kalshi', phoneNumber });
-      if (getKalshiPrototypeRuntime().script?.phoneCodeSent) {
-        navigation.navigate(KalshiPrototypeRoutes.PHONE_CODE, {
-          phoneNumber: displayNumber,
-        });
-      }
-    },
+    (phoneNumber: string, displayNumber: string) =>
+      sendCodeWithRetryDialog('phone', async () => {
+        await vendor.sendPhoneOtp({ vendor: 'kalshi', phoneNumber });
+        if (getKalshiPrototypeRuntime().script?.phoneCodeSent) {
+          navigation.navigate(KalshiPrototypeRoutes.PHONE_CODE, {
+            phoneNumber: displayNumber,
+          });
+        }
+      }),
     [navigation],
   );
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -345,9 +352,13 @@ const PhoneCodeStep = () => {
     },
     [navigation],
   );
-  const handleResend = useCallback(async () => {
-    await vendor.sendPhoneOtp({ vendor: 'kalshi' });
-  }, []);
+  const handleResend = useCallback(
+    () =>
+      sendCodeWithRetryDialog('phone', async () => {
+        await vendor.sendPhoneOtp({ vendor: 'kalshi' });
+      }),
+    [],
+  );
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   return (

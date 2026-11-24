@@ -27,7 +27,7 @@ interface KalshiPrototypeCodeScreenProps {
   /** Checks the code; rejects with kyc-api's error when it is wrong. */
   onSubmit: (code: string) => Promise<void>;
   /** Sends a new code; the phone code has no resend of its own. */
-  onResend?: () => Promise<void>;
+  onResend?: () => Promise<boolean | void>;
   /** Leaves the screen. */
   onBack: () => void;
   /** The address the email code went to; the fake account's by default. */
@@ -139,9 +139,14 @@ const KalshiPrototypeCodeScreen = ({
       }
       if (action.type === 'resend' && onResend) {
         setError(undefined);
+        // A failed send shows its own dialog and leaves the boxes as they are.
         onResend()
-          .catch(() => setError('invalid_code'))
-          .finally(() => setResentCount((count) => count + 1));
+          .then((sent) => {
+            if (sent !== false) {
+              setResentCount((count) => count + 1);
+            }
+          })
+          .catch(() => setError('invalid_code'));
       }
     },
     [onResend, onSubmit],
