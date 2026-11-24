@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { useIsFocused } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
-import type { FlashListProps } from '@shopify/flash-list';
+import type { FlashListProps, ViewToken } from '@shopify/flash-list';
 import React from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text } from 'react-native';
 import { FloatingTabBarInsetContext } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
@@ -36,6 +36,7 @@ import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
   getSocialFeedListItemType,
   shouldSlideFeedCell,
+  viewablePostIds,
 } from './SocialFeedVirtualized';
 import type { SocialFeedListItem } from '../utils/buildSocialFeedListItems';
 
@@ -1246,5 +1247,27 @@ describe('SocialFeedVirtualized', () => {
         performance: context,
       });
     });
+  });
+});
+
+describe('viewablePostIds', () => {
+  const token = (
+    id: string,
+    isViewable: boolean,
+  ): ViewToken<SocialFeedListItem> => ({
+    item: { kind: 'post', post: { id } as SocialV1FeedPost },
+    key: id,
+    index: 0,
+    isViewable,
+    timestamp: 0,
+  });
+
+  it('keeps posts that are on screen', () => {
+    const ids = viewablePostIds([
+      token('on-screen', true),
+      token('buffered', false),
+    ]);
+
+    expect([...ids]).toEqual(['on-screen']);
   });
 });
