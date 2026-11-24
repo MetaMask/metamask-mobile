@@ -98,9 +98,16 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
     parseArgs(['--scheduled-exception', '--skip-ai', '--run', '100']).skipAi,
     true,
   );
+  assert.equal(parseArgs(['--jira-issues']).jiraIssues, true);
+  assert.equal(parseArgs([]).jiraIssues, false);
+  assert.equal(parseArgs([]).jiraIssueType, null);
+  assert.equal(
+    parseArgs(['--jira-issues', '--jira-issue-type', 'Task']).jiraIssueType,
+    'Task',
+  );
 });
 
-test('weekly --github-issues lists issues and does not open or comment', () => {
+test('weekly --jira-issues lists tickets and does not open or comment', () => {
   const source = fs.readFileSync(
     new URL('./analyze-app-profiling.mjs', import.meta.url),
     'utf8',
