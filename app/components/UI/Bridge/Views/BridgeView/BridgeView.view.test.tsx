@@ -708,7 +708,7 @@ describeForPlatforms('BridgeView', () => {
         address: '0x55d398326f99059ff775485246999027b3197955',
         chainId: '0x38',
         decimals: 18,
-        symbol: 'USDT',
+        symbol: 'BSC-USD',
         name: 'Tether USD',
       };
       const bscNative: BridgeToken = {
