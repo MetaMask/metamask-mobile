@@ -11906,12 +11906,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-92804aa53":
-  version: 12.1.0-preview-92804aa53
-  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.1.0-preview-92804aa53"
+"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-3f9d60a48":
+  version: 12.1.0-preview-3f9d60a48
+  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.1.0-preview-3f9d60a48"
   dependencies:
     "@metamask/analytics-controller": "npm:^4.4.0"
-    "@metamask/auth-network-utils": "npm:^0.4.0"
+    "@metamask/auth-network-utils": "npm:^0.5.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/cryptography": "npm:^1.1.2"
@@ -11923,7 +11923,7 @@ __metadata:
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/379c08a9448d789326ed46e811d0b41d7b3c39c4588157a4d357f18a639ab3e823b05bf744bc649c377487e8fd2c083f3e5b148733d5b56b925aab5a047db992
+  checksum: 10/c55a7dc50eb603c8510e6150464e25cadefa0d1632de8e55fe6dc8cf11aac41f4f805e28d91171882da440ec9aabbab5f03419b0ef511a8beadd1d1538075c07
   languageName: node
   linkType: hard
 
@@ -38550,7 +38550,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^6.1.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-92804aa53"
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-3f9d60a48"
     "@metamask/selected-network-controller": "npm:^27.1.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/shield-controller": "npm:^7.1.2"
