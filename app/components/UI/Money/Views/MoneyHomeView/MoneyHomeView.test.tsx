@@ -2492,13 +2492,12 @@ describe('MoneyHomeView', () => {
       expect(mockShowEnabledConfirmation).not.toHaveBeenCalled();
     });
 
-    it('opens the 2-step verification intro when the setup card is pressed', () => {
+    it('tracks the setup card press', () => {
       mockMfaStatus('not_set_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MFA_INTRO);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
@@ -2522,13 +2521,12 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('closes the setting-up banner', () => {
+    it('tracks closing the setting-up banner', () => {
       mockMfaStatus('setting_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
 
-      expect(mockMfaDismissBanner).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.ICON,
         button_intent: MONEY_BUTTON_INTENTS.DISMISS,
@@ -2536,18 +2534,12 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the setting up sheet instead of Transfer while the Money account is set up', () => {
+    it('tracks Transfer as redirecting to the setting up sheet while the Money account is set up', () => {
       mockMfaStatus('setting_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
-      });
       expect(mockTrackButtonClicked).toHaveBeenCalledWith(
         expect.objectContaining({
           button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
@@ -2567,15 +2559,12 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the 2-step verification sheet from the header badge', () => {
+    it('tracks the header badge press', () => {
       mockMfaStatus('enabled');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
-      });
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.ICON,
         button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,

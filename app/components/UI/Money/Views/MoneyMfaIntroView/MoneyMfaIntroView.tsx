@@ -87,6 +87,7 @@ const MoneyMfaIntroView = () => {
       } else if (!flow && flowStarted) close();
     });
     stopWaiting.current = () => {
+      closed = true;
       clearTimeout(coverTimer);
       stopStep?.();
       stopFlow();

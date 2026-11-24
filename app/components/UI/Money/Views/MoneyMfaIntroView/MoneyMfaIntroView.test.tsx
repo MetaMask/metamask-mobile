@@ -181,6 +181,21 @@ describe('MoneyMfaIntroView', () => {
     jest.useRealTimers();
   });
 
+  it('does not go back when setup finishes after the intro was left', async () => {
+    let finishSetup: () => void = () => undefined;
+    mockTurnOn.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishSetup = resolve;
+      }),
+    );
+    const { unmount } = pressContinue();
+
+    unmount();
+    await act(async () => finishSetup());
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('closes when setup returns without a flow', async () => {
     mockTurnOn.mockResolvedValue(undefined);
 

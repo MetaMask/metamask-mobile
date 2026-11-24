@@ -904,6 +904,11 @@ describeForPlatforms('Wallet Money 2-step verification prompt', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
     ).toBeOnTheScreen();
+    await act(async () => {
+      await Promise.allSettled(
+        refreshEnrolledCredentials.mock.results.map(({ value }) => value),
+      );
+    });
     expect(moneyMfaHomePromptSession.hasPrompted()).toBe(false);
     expect(queryByTestId(MoneyMfaTestIds.PROMPT_SHEET)).toBeNull();
   });
