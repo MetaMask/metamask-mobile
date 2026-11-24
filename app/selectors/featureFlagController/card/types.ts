@@ -17,34 +17,6 @@ export type ProvisioningWallet =
   | 'samsung_pay';
 export type ProvisioningDevice = 'phone' | 'watch';
 
-export interface ProvisioningEligibilityRules {
-  cardProcessors?: string[];
-}
-
-export interface ProvisioningWalletRule {
-  enabled: boolean;
-  minimumVersion: string;
-  devices?: ProvisioningDevice[];
-  eligibility?: ProvisioningEligibilityRules;
-}
-
-export interface ProvisioningCountryRule {
-  enabled: boolean;
-  eligibility?: ProvisioningEligibilityRules;
-  ios?: { apple_wallet?: ProvisioningWalletRule };
-  android?: {
-    google_wallet?: ProvisioningWalletRule;
-    samsung_pay?: ProvisioningWalletRule;
-  };
-}
-
-/** One provider's provisioning flag: a gate, then countries, then wallets. */
-export interface CardProvisioningFlag {
-  enabled: boolean;
-  minimumVersion: string;
-  countries: Record<string, ProvisioningCountryRule>;
-}
-
 export interface CardProvisioningFacts {
   platform: ProvisioningPlatform;
   countryCode?: string;
@@ -203,21 +175,6 @@ export interface CardProviderChain {
 
 /** CAIP-2 chain ID -> chain config. */
 export type CardProviderChains = Record<string, CardProviderChain>;
-
-/**
- * One country in the object form of `cardImmersveCountries`. Released builds
- * only accept that flag as a string array, so they ignore this shape and fall
- * back to GB on the top-level USDC channel.
- */
-export interface ImmersveCountryConfig {
-  /** Name of an entry in `cardImmersveConfig.fundingChannels`. */
-  fundingChannel: string;
-  /**
-   * Builds older than this are not offered the country. Omitted means no
-   * floor.
-   */
-  minimumVersion?: string;
-}
 
 /** The remote-flag keys that make up one provider's contract. */
 export interface CardProviderFlagKeys {

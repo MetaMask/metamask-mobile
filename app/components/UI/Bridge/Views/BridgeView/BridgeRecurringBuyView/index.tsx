@@ -49,6 +49,7 @@ import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
+import { isPairSupportedForNonMarketSwapTab } from '../../../utils/tokenUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import {
@@ -127,9 +128,19 @@ const BridgeRecurringBuyViewContent = ({
     sourceAmount,
   } = useRecurringBuySwapInputs();
 
-  const orderChainId = sourceToken
-    ? formatChainIdToCaip(sourceToken.chainId)
-    : undefined;
+  // The pressed tab page renders the previous tab's pair until the tab
+  // replaces it, and that pair must not be validated against this tab's fees.
+  const isPairPendingReplacement =
+    enabledChainIds !== undefined &&
+    !isPairSupportedForNonMarketSwapTab(
+      sourceToken,
+      destToken,
+      enabledChainIds,
+    );
+  const orderChainId =
+    sourceToken && !isPairPendingReplacement
+      ? formatChainIdToCaip(sourceToken.chainId)
+      : undefined;
   const sourceAssetId = sourceToken
     ? (formatAddressToAssetId(sourceToken.address, sourceToken.chainId) ??
       undefined)

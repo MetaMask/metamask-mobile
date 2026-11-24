@@ -724,9 +724,6 @@ export type RootStackParamList = {
   RewardsMoneyInviteSheet:
     | RewardsNavigationParamList['RewardsMoneyInviteSheet']
     | undefined;
-  RewardsMoneyTermsSheet:
-    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
-    | undefined;
   RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
   RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
   RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];
@@ -919,6 +916,7 @@ export type RootStackParamList = {
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
   MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
+  MoneyEarnings: MoneyNavigationParamList['MoneyEarnings'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];

@@ -848,6 +848,21 @@ describe('exchange-rates', () => {
       expect(result).toBe('$20,000.00');
     });
 
+    it('should use the provided token fiat rate instead of market data', () => {
+      const result = getDisplayCurrencyValue({
+        token: mockToken,
+        amount: '10',
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        currentCurrency: 'USD',
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        tokenFiatRate: 0.9994,
+      });
+
+      expect(result).toBe('$9.99');
+    });
+
     it('should return "< $0.01" for very small fiat values', () => {
       const result = getDisplayCurrencyValue({
         token: mockToken,

@@ -92,6 +92,7 @@ import {
   type CardFundingTokenWithBalance,
 } from '../../../Card/types';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -388,6 +389,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   ...jest.createMockFromModule<typeof import('../../selectors/featureFlags')>(
     '../../selectors/featureFlags',
   ),
+  selectIsMoneyEarningsHistoryEnabledFlag: jest.fn(() => true),
   selectMoneyEarningSectionEnabledFlag: jest.fn(() => true),
 }));
 
@@ -475,6 +477,7 @@ jest.mock('../../../Card/Views/CardHome/hooks/useCardEnableCard', () => ({
     provisioningView: 'provisioning',
     setupStep: null,
     isEnableCardPending: false,
+    isProvisioningPollActive: false,
     markCardFlowOpened: jest.fn(),
   })),
 }));
@@ -598,6 +601,9 @@ const mockSelectIsMoneyAccountVisible = jest.mocked(
 );
 const mockSelectMoneyEarningSectionEnabledFlag = jest.mocked(
   selectMoneyEarningSectionEnabledFlag,
+);
+const mockSelectIsMoneyEarningsHistoryEnabledFlag = jest.mocked(
+  selectIsMoneyEarningsHistoryEnabledFlag,
 );
 const mockSelectHistoricalValuationsEnabled = jest.mocked(
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
@@ -881,6 +887,7 @@ describe('MoneyHomeView', () => {
       provisioningView: 'provisioning',
       setupStep: null,
       isEnableCardPending: false,
+      isProvisioningPollActive: false,
       markCardFlowOpened: jest.fn(),
     });
     mockUseCardHomeData.mockReturnValue({
@@ -939,6 +946,7 @@ describe('MoneyHomeView', () => {
     mockSelectIsCardHomeDataResolved.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(true);
     mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
 
     mockOpenLinkCardSheet.mockReset();
@@ -2243,6 +2251,37 @@ describe('MoneyHomeView', () => {
     expect(
       queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('navigates to Money Earnings when its section header is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.HEADER));
+
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledTimes(1);
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  });
+
+  it('does not navigate to Money Earnings when history is disabled', () => {
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(false);
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(queryByTestId(MoneyEarningsTestIds.HEADER)).not.toBeOnTheScreen();
+    expect(mockTrackSurfaceClicked).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
   });
 
   it('navigates to Money Activity when its section header is pressed', () => {
@@ -4036,6 +4075,7 @@ describe('MoneyHomeView', () => {
         provisioningView: 'provisioning',
         setupStep: null,
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
         markCardFlowOpened,
       });
       mockSelectHasCard.mockReturnValue(true);
@@ -4254,6 +4294,7 @@ describe('MoneyHomeView', () => {
         provisioningView: 'hidden',
         setupStep: 'kyc',
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
         markCardFlowOpened: jest.fn(),
       });
 
@@ -4320,6 +4361,7 @@ describe('MoneyHomeView', () => {
         provisioningView: 'hidden',
         setupStep: 'kyc',
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
         markCardFlowOpened,
       });
 

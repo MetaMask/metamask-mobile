@@ -15,6 +15,10 @@ import {
   PREDICT_POLYMARKET_GAMES_TAG_ID,
   resolvePredictHomeCategoryCopy,
 } from './flags';
+import {
+  GOLD_UP_DOWN_15M_SERIES_ID,
+  SILVER_UP_DOWN_15M_SERIES_ID,
+} from './liveNowCryptoSeries';
 
 /** Feeds bundled with the client and always resolvable. */
 export const PREDICT_FEED_IDS = [
@@ -264,11 +268,13 @@ export const createPredictCategoryFeedConfig = ({
   titleKey,
   label,
   tagSlug,
+  extraStaticFilters = [],
 }: {
   id: PredictFeedId;
   titleKey?: string;
   label?: string;
   tagSlug: string;
+  extraStaticFilters?: PredictFeedFilterConfig[];
 }): PredictFeedConfig => ({
   id,
   titleKey,
@@ -290,6 +296,7 @@ export const createPredictCategoryFeedConfig = ({
             status: 'open',
             order: 'volume24hr',
           }),
+          ...extraStaticFilters,
         ],
         dynamic: {
           source: 'related-tags',
@@ -486,6 +493,18 @@ export const findPredictHomeCategory = (
     DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.categories
   ).find((category) => category.id === feedId);
 
+const FINANCE_CATEGORY_EXTRA_STATIC_FILTERS: PredictFeedFilterConfig[] = [
+  {
+    id: '15m',
+    label: '15 Min',
+    params: {
+      series: [GOLD_UP_DOWN_15M_SERIES_ID, SILVER_UP_DOWN_15M_SERIES_ID],
+      status: 'open',
+      order: 'ending_soon',
+    },
+  },
+];
+
 const createFeedFromHomeCategory = (
   category: PredictHomeCategoryConfig,
 ): PredictFeedConfig => {
@@ -495,6 +514,10 @@ const createFeedFromHomeCategory = (
     tagSlug: category.tagSlug,
     titleKey,
     label,
+    extraStaticFilters:
+      category.id === 'finance'
+        ? FINANCE_CATEGORY_EXTRA_STATIC_FILTERS
+        : undefined,
   });
 };
 
