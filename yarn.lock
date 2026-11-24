@@ -11692,29 +11692,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:14.8.0":
-  version: 14.8.0
-  resolution: "@metamask/react-native-webview@npm:14.8.0"
+"@metamask/react-native-webview@npm:14.8.1":
+  version: 14.8.1
+  resolution: "@metamask/react-native-webview@npm:14.8.1"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/469fa2ac5b0722b6e7b9acd426ac03f0ffd2577bc30fddcbe1372747bdd0135f36f82e6f2dd820a05c492581db9afb7a6681e9c3bf96165fb7d30106ebff9b1c
+  checksum: 10/0d15c22d97dd68aaeaba8d7d1a7cd296a9fa1870714467e5ca90ad95da17ae7a98b5a132810450073d2a35afa346d655c9a159f8a75f888814553ef29ead1a7e
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch":
-  version: 14.8.0
-  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch::version=14.8.0&hash=ed9191"
+"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.1#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.1-8d28ad9eba.patch":
+  version: 14.8.1
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.1#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.1-8d28ad9eba.patch::version=14.8.1&hash=23b807"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/0d4ac959d7390d2de0bbde15201799b94680de343c47f8f7c35495ccc793031f380d8021c0ccc68f67cef64f754ab1f06d07e1568fd1bcffc06ce8e1713c6763
+  checksum: 10/ab0918de50c050bb20feabdd62815079289fce1e52107e2e61141487329997daf42084c0f979ede1da31b6276b8e71f8d84b3a449396c20938117f840ea46a92
   languageName: node
   linkType: hard
 
@@ -38438,7 +38438,7 @@ __metadata:
     "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch"
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch"
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.8.1#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.1-8d28ad9eba.patch"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^6.1.0"
