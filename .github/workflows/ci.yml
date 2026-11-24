@@ -1507,6 +1507,87 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
+  # CV counterpart of the Appium changed-spec copies (run-appium-e2e-workflow.yml):
+  # on PRs targeting main, added or modified *.view.test.tsx files are re-run N
+  # times so a flake surfaces before merge. Detection comes from get-requirements
+  # (changed_cv_test_files); deleted paths are dropped, the file list is capped,
+  # and the script reports per-iteration results and names every failing test.
+  component-view-flakiness-detection:
+    name: Component view flakiness detection
+    permissions:
+      contents: read
+      # PR label check for skip-cv-flakiness-detection.
+      pull-requests: read
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        needs.prepare-ci-js-deps.result == 'success' &&
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.base.ref == 'main' &&
+        needs.get_requirements.outputs.changed_cv_test_files != ''
+      }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
+    # Budget default is 60 minutes; the job ceiling adds checkout/setup slack.
+    timeout-minutes: 75
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        id: download-ci-js-deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Repeat changed component view tests
+        run: node .github/scripts/qa-automation/cv-flakiness/cv-flakiness-detection.mjs
+        env:
+          CHANGED_CV_TEST_FILES: ${{ needs.get_requirements.outputs.changed_cv_test_files }}
+          REPEAT_COUNT: '5'
+          MAX_FILES: '10'
+          TIME_BUDGET_MINUTES: '60'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Matches the component view gate job's heap.
+          NODE_OPTIONS: --max-old-space-size=12288
+      - name: Upload flakiness detection results (artifact stores)
+        if: ${{ always() }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: cv-flakiness-results
+          path: tests/results/cv-flakiness/
+          if-no-files-found: ignore
+          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
@@ -2144,6 +2225,7 @@ jobs:
       - lint
       - unit-tests
       - component-view-tests
+      - component-view-flakiness-detection
       - merge-unit-and-component-view-tests
       - check-workflows
       - prepare-ci-js-deps
@@ -2174,6 +2256,7 @@ jobs:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
           e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          flakiness-job-regex: '^(component-view-flakiness-detection)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

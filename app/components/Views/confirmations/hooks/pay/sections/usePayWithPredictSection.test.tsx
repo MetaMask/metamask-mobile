@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
@@ -8,6 +8,9 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
+import { usePredictTrading } from '../../../../../UI/Predict/hooks/usePredictTrading';
+import { showDepositErrorToast } from '../../../../../UI/Predict/utils/predictErrorHandler';
+import { ConfirmationLoader } from '../../../components/confirm/confirm-component';
 import useApprovalRequest from '../../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { usePayWithPredictSection } from './usePayWithPredictSection';
@@ -65,6 +68,12 @@ jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
 jest.mock('../../../../../UI/Predict/contexts', () => ({
   dismissActivePreviewSheet: jest.fn(),
 }));
+jest.mock('../../../../../UI/Predict/hooks/usePredictTrading');
+jest.mock('../../../../../UI/Predict/utils/predictErrorHandler', () => ({
+  ensureError: (error: unknown) => error,
+  showDepositErrorToast: jest.fn(),
+}));
+jest.mock('../../../../../../util/Logger');
 jest.mock('../../useApprovalRequest');
 jest.mock('../../transactions/useTransactionMetadataRequest');
 jest.mock('./useClearPaymentOverride');
@@ -81,8 +90,11 @@ describe('usePayWithPredictSection', () => {
   );
   const useClearPaymentOverrideMock = jest.mocked(useClearPaymentOverride);
   const dismissActivePreviewSheetMock = jest.mocked(dismissActivePreviewSheet);
+  const usePredictTradingMock = jest.mocked(usePredictTrading);
+  const showDepositErrorToastMock = jest.mocked(showDepositErrorToast);
 
-  const navigateMock = jest.fn();
+  const dispatchMock = jest.fn();
+  const depositMock = jest.fn();
   const goBackMock = jest.fn();
   const onRejectMock = jest.fn();
   const resetSelectedPaymentTokenMock = jest.fn();
@@ -101,9 +113,12 @@ describe('usePayWithPredictSection', () => {
     );
 
     useNavigationMock.mockReturnValue({
-      navigate: navigateMock,
       goBack: goBackMock,
+      dispatch: dispatchMock,
     } as never);
+
+    depositMock.mockResolvedValue({ success: true });
+    usePredictTradingMock.mockReturnValue({ deposit: depositMock } as never);
 
     useFiatFormatterMock.mockReturnValue(formatFiatMock as never);
 
@@ -217,7 +232,7 @@ describe('usePayWithPredictSection', () => {
     expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to the Predict add-funds sheet with autoDeposit when Add is pressed', () => {
+  it('closes the sheet and opens the Predict deposit confirmation when Add is pressed', () => {
     const { result } = renderHook(() => usePayWithPredictSection());
 
     const trailing = result.current?.rows[0].trailingElement as
@@ -230,10 +245,35 @@ describe('usePayWithPredictSection', () => {
 
     expect(onRejectMock).toHaveBeenCalledTimes(1);
     expect(dismissActivePreviewSheetMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      params: { autoDeposit: true },
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+    expect(goBackMock.mock.invocationCallOrder[0]).toBeLessThan(
+      dispatchMock.mock.invocationCallOrder[0],
+    );
+    expect(dispatchMock).toHaveBeenCalledWith(
+      CommonActions.navigate({
+        name: Routes.PREDICT.ROOT,
+        params: {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: { loader: ConfirmationLoader.CustomAmount },
+        },
+      }),
+    );
+    expect(depositMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the confirmation and shows the deposit error toast when the deposit fails', async () => {
+    depositMock.mockRejectedValue(new Error('deposit failed'));
+    const { result } = renderHook(() => usePayWithPredictSection());
+    const trailing = result.current?.rows[0].trailingElement as
+      | { props: { onPress: () => void } }
+      | undefined;
+
+    await act(async () => {
+      trailing?.props.onPress();
     });
+
+    expect(goBackMock).toHaveBeenCalledTimes(2);
+    expect(showDepositErrorToastMock).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the result reference stable across renders when nothing changes', () => {
@@ -283,6 +323,8 @@ describe('usePayWithPredictSection', () => {
 
     expect(onRejectMock).not.toHaveBeenCalled();
     expect(dismissActivePreviewSheetMock).not.toHaveBeenCalled();
-    expect(navigateMock).not.toHaveBeenCalled();
+    expect(goBackMock).not.toHaveBeenCalled();
+    expect(dispatchMock).not.toHaveBeenCalled();
+    expect(depositMock).not.toHaveBeenCalled();
   });
 });

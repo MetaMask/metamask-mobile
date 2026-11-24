@@ -25,14 +25,6 @@ export enum SignatureStatus {
 }
 
 /**
- * App installation status
- */
-export enum AppInstallationStatus {
-  INSTALLED = 'installed',
-  NOT_INSTALLED = 'not_installed',
-}
-
-/**
  * Route types for deep links
  */
 export enum DeepLinkRoute {

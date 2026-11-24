@@ -912,6 +912,7 @@ export type RootStackParamList = {
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
   MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
+  MoneyEarnings: MoneyNavigationParamList['MoneyEarnings'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
@@ -978,6 +979,9 @@ export type RootStackParamList = {
   BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
   BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
   SwapsLimitOrderExpirationModal: BridgeModalsNavigationParamList['SwapsLimitOrderExpirationModal'];
+  RecurringDefaultPriceToleranceModal: BridgeModalsNavigationParamList['RecurringDefaultPriceToleranceModal'];
+  RecurringCustomPriceToleranceModal: BridgeModalsNavigationParamList['RecurringCustomPriceToleranceModal'];
+  RecurringConfirmOrderModal: BridgeModalsNavigationParamList['RecurringConfirmOrderModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
     | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
