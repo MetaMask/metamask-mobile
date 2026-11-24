@@ -26,6 +26,18 @@ interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
 
 export const DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS = 15 * 60 * 1000;
 
+function resolveDefaultPriceTolerance(
+  defaultPriceTolerance: number | undefined,
+  fallback: string,
+): string {
+  const remoteValue =
+    typeof defaultPriceTolerance === 'number'
+      ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
+      : undefined;
+
+  return remoteValue ?? fallback;
+}
+
 /**
  * Builds a selector for a Bridge swap feature flag (Limit Order, Recurring
  * Buy/DCA, etc). Remote flag wins when present and valid; otherwise falls
@@ -128,15 +140,11 @@ export const selectBridgeLimitOrderBaseUrl = createSelector(
  */
 export const selectBridgeLimitOrderDefaultCostTolerance = createSelector(
   selectBridgeLimitOrderFeatureFlags,
-  (flags): string => {
-    const defaultPriceTolerance = flags?.defaultPriceTolerance;
-    const remoteValue =
-      typeof defaultPriceTolerance === 'number'
-        ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
-        : undefined;
-
-    return remoteValue ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE;
-  },
+  (flags): string =>
+    resolveDefaultPriceTolerance(
+      flags?.defaultPriceTolerance,
+      LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+    ),
 );
 
 /**
@@ -152,15 +160,11 @@ export const selectBridgeRecurringBuyBaseUrl = createSelector(
 
 export const selectBridgeRecurringBuyDefaultPriceTolerance = createSelector(
   selectBridgeRecurringBuyFeatureFlags,
-  (flags): string => {
-    const defaultPriceTolerance = flags?.defaultPriceTolerance;
-    const remoteValue =
-      typeof defaultPriceTolerance === 'number'
-        ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
-        : undefined;
-
-    return remoteValue ?? RECURRING_ORDER_DEFAULT_PRICE_TOLERANCE;
-  },
+  (flags): string =>
+    resolveDefaultPriceTolerance(
+      flags?.defaultPriceTolerance,
+      RECURRING_ORDER_DEFAULT_PRICE_TOLERANCE,
+    ),
 );
 
 /**
