@@ -27,7 +27,6 @@ import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import {
-  findBlockExplorerForNonEvmChainId,
   findBlockExplorerUrlForChain,
   getBlockExplorerName,
   getHexEvmChainId,
@@ -98,14 +97,10 @@ const Transactions = (props) => {
 
   const isExplorerContextNonEvm = isNonEvmChainId(tokenChainId);
 
-  const blockExplorer = useMemo(() => {
-    if (!tokenChainId) {
-      return undefined;
-    }
-    return isExplorerContextNonEvm
-      ? findBlockExplorerForNonEvmChainId(tokenChainId)
-      : findBlockExplorerUrlForChain(tokenChainId, networkConfigurations);
-  }, [isExplorerContextNonEvm, networkConfigurations, tokenChainId]);
+  const blockExplorer = useMemo(
+    () => findBlockExplorerUrlForChain(tokenChainId, networkConfigurations),
+    [networkConfigurations, tokenChainId],
+  );
 
   const renderLoader = () => {
     const styles = createStyles(colors);
@@ -130,17 +125,14 @@ const Transactions = (props) => {
 
   const viewOnBlockExplore = () => {
     try {
-      const base =
-        blockExplorer ||
-        findBlockExplorerUrlForChain(tokenChainId, networkConfigurations);
-      if (!base) {
+      if (!blockExplorer) {
         Logger.error(new Error('Missing block explorer for asset chain'), {
           message: `can't get a block explorer link for network `,
         });
         return;
       }
-      const url = `${base}/address/${selectedAddress}`;
-      const title = getBlockExplorerName(base);
+      const url = `${blockExplorer}/address/${selectedAddress}`;
+      const title = getBlockExplorerName(blockExplorer);
       trackBlockExplorerLinkClicked(
         analytics.trackEvent,
         AnalyticsEventBuilder.createEventBuilder,
