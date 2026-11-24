@@ -65,8 +65,11 @@ const FIRST_FRAME_TRANSACTION_TYPES = [TransactionType.moneyAccountDeposit];
 
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,

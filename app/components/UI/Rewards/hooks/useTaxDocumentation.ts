@@ -24,6 +24,7 @@ import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
+import { cashbackMeetsClaimMinimum } from '../utils/claimEarnings';
 import {
   holdMintRateLimit,
   incomeHeldForTax,
@@ -43,6 +44,17 @@ import {
   type TaxRefusalAction,
 } from '../utils/taxDocumentation';
 import type { ClaimEarningsOptions } from './useClaimEarnings';
+import { useEarningsSummary } from './useEarningsSummary';
+import useRewardsToast from './useRewardsToast';
+
+/**
+ * Device facts the Earnings tab resolves with the Claim button. Cashback
+ * that this phone cannot sign is not a cashback press: the tax sheet still
+ * opens when income is waiting.
+ */
+export interface ClaimPressDevice {
+  cashbackSignableOnDevice: boolean;
+}
 
 /**
  * What Claim's press passes back. `summary` is for the earnings tab, which
@@ -52,8 +64,6 @@ import type { ClaimEarningsOptions } from './useClaimEarnings';
 export type ClaimAfterTaxOptions = ClaimEarningsOptions & {
   summary?: EarningsSummaryDto;
 };
-import { useEarningsSummary } from './useEarningsSummary';
-import useRewardsToast from './useRewardsToast';
 
 const TAX_ROUTES = new Set<string>([
   Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
@@ -73,9 +83,9 @@ function copy(
 }
 
 /**
- * Whether the Claim press opens `sheet`, and whether it keeps follow-trade
- * out of the claim. An uncleared determination blocks income. A cleared
- * renewal only nudges.
+ * Whether the Claim press opens `sheet`, and whether it keeps income out of
+ * the claim. An uncleared determination blocks income. A cleared renewal
+ * only nudges.
  */
 function claimSheetDecision(
   taxMe: TaxMeDto,
@@ -89,14 +99,14 @@ function claimSheetDecision(
 }
 
 function buildClaimOptions(
-  omitFollowTrade: boolean,
+  omitIncome: boolean,
   summary: EarningsSummaryDto | undefined,
 ): ClaimAfterTaxOptions | undefined {
-  if (!omitFollowTrade && !summary) {
+  if (!omitIncome && !summary) {
     return undefined;
   }
   return {
-    ...(omitFollowTrade ? { omitFollowTrade: true } : {}),
+    ...(omitIncome ? { omitIncome: true } : {}),
     ...(summary ? { summary } : {}),
   };
 }
@@ -637,9 +647,9 @@ export function useTaxDocumentation(profileId: string) {
 
   /**
    * Opens the sheet this press owes, and returns true when it blocks income.
-   * Income cannot clear while that sheet is up. Submitting follow-trade on
-   * its own comes back tax-required and navigates here again from Earnings,
-   * stacking a second sheet.
+   * Income cannot clear while that sheet is up. Submitting revenue share or
+   * follow-trade on its own comes back tax-required and navigates here again
+   * from Earnings, stacking a second sheet.
    */
   const openClaimSheet = useCallback(
     (taxMe: TaxMeDto, submitted: TaxFormSubmittedSnapshot | null): boolean => {
@@ -683,6 +693,7 @@ export function useTaxDocumentation(profileId: string) {
     async (
       summary: EarningsSummaryDto,
       claim: (options?: ClaimAfterTaxOptions) => Promise<void>,
+      pressDevice?: ClaimPressDevice,
     ) => {
       if (pressBusy.current) {
         return;
@@ -703,15 +714,32 @@ export function useTaxDocumentation(profileId: string) {
           ? await dropStaleSubmitted(readBack, taxMe)
           : readBack;
         const freshSummary = await readSummaryAfterTax(taxMe, heldForTax);
-        const omitFollowTrade = taxMe
-          ? openClaimSheet(taxMe, submitted)
-          : false;
-        const claimOptions = buildClaimOptions(omitFollowTrade, freshSummary);
-        if (claimOptions) {
-          await claim(claimOptions);
-        } else {
-          await claim();
+        if (taxMe?.cleared === true) {
+          const omitIncome = openClaimSheet(taxMe, submitted);
+          const claimOptions = buildClaimOptions(omitIncome, freshSummary);
+          if (claimOptions) {
+            await claim(claimOptions);
+          } else {
+            await claim();
+          }
+          return;
         }
+        // Not cleared, or the tax read failed. Cashback still pays on its
+        // own when this phone can sign it. Income waits for a determination,
+        // and a failed read is not treated as cleared. Cashback this phone
+        // cannot sign follows the under-minimum path.
+        if (
+          cashbackMeetsClaimMinimum(summary) &&
+          pressDevice?.cashbackSignableOnDevice !== false
+        ) {
+          await claim({ cashbackOnly: true });
+          return;
+        }
+        if (!taxMe) {
+          return;
+        }
+        openClaimSheet(taxMe, submitted);
+        await claim({ omitIncome: true });
       } finally {
         blockingSheetOpen.current = false;
         pressBusy.current = false;

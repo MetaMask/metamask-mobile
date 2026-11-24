@@ -17,8 +17,10 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { isProduction } from '../../../../util/environment';
 import { StartProSubscriptionOutcome } from '../utils/proSubscriptionPaymentStatus';
 import {
   buildConfirmMembershipRequestData,
@@ -29,12 +31,38 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// The middleware imports an ESM-only package Jest does not transpile.
+jest.mock('../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
+  ApprovalTypes: {
+    CONFIRM_MEMBERSHIP: 'confirm_membership',
+  },
+}));
+
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+const mockRemoveQueries = jest.fn();
+const mockResetQueries = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+      removeQueries: (...args: unknown[]) => mockRemoveQueries(...args),
+      resetQueries: (...args: unknown[]) => mockResetQueries(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       ApprovalController: {
         add: jest.fn(),
+      },
+      SubscriptionController: {
+        getSubscriptions: jest.fn(),
+        isUserEligibleForTrial: jest.fn(),
       },
       SubscriptionDelegationService: {
         checkMoneyAccountBalance: jest.fn(),
@@ -57,6 +85,10 @@ jest.mock('../../../UI/Money/hooks/useMoneyAccount', () => ({
 
 jest.mock('../utils/waitForMembershipTopUp', () => ({
   waitForMembershipTopUp: jest.fn(),
+}));
+
+jest.mock('../../../../util/environment', () => ({
+  isProduction: jest.fn(() => false),
 }));
 
 jest.mock('uuid', () => ({
@@ -138,8 +170,13 @@ const mockedCheckBalance = Engine.context.SubscriptionDelegationService
 const mockedStartSubscription = Engine.context.SubscriptionDelegationService
   .startSubscriptionWithDelegation as jest.Mock;
 const mockedApprovalAdd = Engine.context.ApprovalController.add as jest.Mock;
+const mockedGetSubscriptions = Engine.context.SubscriptionController
+  .getSubscriptions as jest.Mock;
+const mockedIsUserEligibleForTrial = Engine.context.SubscriptionController
+  .isUserEligibleForTrial as jest.Mock;
 const mockedUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockedWaitForMembershipTopUp = jest.mocked(waitForMembershipTopUp);
+const mockIsProduction = jest.mocked(isProduction);
 const mockInitiateDeposit = jest.fn();
 const mockCancelTopUp = jest.fn();
 
@@ -167,6 +204,12 @@ describe('useStartProSubscription', () => {
       status: 'trialing',
     });
     mockedApprovalAdd.mockResolvedValue(undefined);
+    mockedGetSubscriptions.mockResolvedValue([]);
+    mockedIsUserEligibleForTrial.mockResolvedValue(true);
+    (
+      Engine.context as { TransactionPayController?: unknown }
+    ).TransactionPayController = undefined;
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockedUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -175,6 +218,7 @@ describe('useStartProSubscription', () => {
       cancel: mockCancelTopUp,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockIsProduction.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -203,6 +247,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.17',
         totalAmount: '49.99',
+        isAnnual: true,
         renewDate: formatExpectedMembershipDate(addYears(FIXED_NOW, 1)),
       },
     });
@@ -221,6 +266,45 @@ describe('useStartProSubscription', () => {
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
     expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
+    expect(mockedGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards useTestClock when test clocks are enabled outside production', async () => {
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN, {
+        enableTestClocks: true,
+      });
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledWith({
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      recurringInterval: RECURRING_INTERVALS.year,
+      chainId: CHAIN_ID,
+      payerAddress: PAYER_ADDRESS,
+      useTestClock: true,
+    });
+  });
+
+  it('omits useTestClock in production even when test clocks are requested', async () => {
+    mockIsProduction.mockReturnValue(true);
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN, {
+        enableTestClocks: true,
+      });
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledWith({
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      recurringInterval: RECURRING_INTERVALS.year,
+      chainId: CHAIN_ID,
+      payerAddress: PAYER_ADDRESS,
+    });
   });
 
   it('does not start delegation, log, or set an error when membership consent is rejected', async () => {
@@ -235,6 +319,9 @@ describe('useStartProSubscription', () => {
     });
 
     expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockedGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
     expect(result.current.errorMessage).toBeUndefined();
   });
@@ -247,6 +334,13 @@ describe('useStartProSubscription', () => {
     });
 
     const billedOn = formatExpectedMembershipDate(addDays(FIXED_NOW, 14));
+    expect(mockedGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(mockedGetSubscriptions.mock.invocationCallOrder[0]).toBeLessThan(
+      mockedApprovalAdd.mock.invocationCallOrder[0],
+    );
     expect(mockedApprovalAdd).toHaveBeenCalledWith({
       id: expect.any(String),
       origin: ORIGIN_METAMASK,
@@ -254,11 +348,80 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.17',
         totalAmount: '49.99',
+        isAnnual: true,
         renewDate: billedOn,
         isTrial: true,
         billedOn,
       },
     });
+  });
+
+  it('stops checkout without a join error when the trial is no longer available', async () => {
+    mockedIsUserEligibleForTrial.mockResolvedValue(false);
+    const { result } = renderHook(() => useStartProSubscription());
+    let thrownError: Error | undefined;
+
+    await act(async () => {
+      try {
+        await result.current.startSubscription(PLAN, { isTrial: true });
+      } catch (error) {
+        thrownError = error as Error;
+      }
+    });
+
+    expect(thrownError?.message).toBe('Plus trial is no longer available');
+    expect(mockedGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockResetQueries).toHaveBeenCalledTimes(1);
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBeUndefined();
+  });
+
+  it('rechecks trial eligibility before topping up and skips the top-up when ineligible', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '10000000',
+      requiredBalance: '49990000',
+    });
+    mockedIsUserEligibleForTrial.mockResolvedValue(false);
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current
+        .startSubscription(PLAN, { isTrial: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockResetQueries).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBeUndefined();
+  });
+
+  it('leaves the cached trial answer alone and does not start when the recheck fails', async () => {
+    mockedGetSubscriptions.mockRejectedValue(new Error('network'));
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current
+        .startSubscription(PLAN, { isTrial: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockResetQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error'),
+    );
   });
 
   it('uses the plan amount for both monthly and total on a monthly plan', async () => {
@@ -275,6 +438,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.99',
         totalAmount: '4.99',
+        isAnnual: false,
         renewDate: formatExpectedMembershipDate(addMonths(FIXED_NOW, 1)),
       },
     });
@@ -287,14 +451,18 @@ describe('useStartProSubscription', () => {
       balance: '10000000',
       requiredBalance: '49990000',
     });
-    mockedWaitForMembershipTopUp.mockReturnValue({
-      promise: new Promise((resolve) => {
-        resolveTopUp = () => resolve({ id: 'tx-1' } as never);
-      }),
-      cancel: mockCancelTopUp,
-    });
     mockedStartSubscription.mockResolvedValue({
       status: SUBSCRIPTION_STATUSES.provisional,
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise((resolve) => {
+        resolveTopUp = () =>
+          resolve({
+            id: 'tx-1',
+            metamaskPay: { fiat: { orderId: 'order-1' } },
+          } as never);
+      }),
+      cancel: mockCancelTopUp,
     });
 
     const { result } = renderHook(() => useStartProSubscription());
@@ -309,7 +477,7 @@ describe('useStartProSubscription', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       batchId: GENERATED_BATCH_ID,
-      amount: '39.99041',
+      amount: '40.00',
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
@@ -335,7 +503,66 @@ describe('useStartProSubscription', () => {
     });
   });
 
-  it('tops up a padded 6-decimal amount for a fresh account', async () => {
+  it('returns ready when a crypto top-up is still provisional', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '10000000',
+      requiredBalance: '49990000',
+    });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Ready,
+      });
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+  });
+
+  it('returns processing when a selected card funds a provisional plan', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockedStartSubscription.mockResolvedValue({
+      status: SUBSCRIPTION_STATUSES.provisional,
+    });
+    (
+      Engine.context as {
+        TransactionPayController?: {
+          state: {
+            transactionData: Record<
+              string,
+              { fiatPayment?: { selectedPaymentMethodId?: string } }
+            >;
+          };
+        };
+      }
+    ).TransactionPayController = {
+      state: {
+        transactionData: {
+          'tx-1': { fiatPayment: { selectedPaymentMethodId: 'card' } },
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).resolves.toEqual({
+        outcome: StartProSubscriptionOutcome.Processing,
+      });
+    });
+  });
+
+  it('rounds a padded top-up up to the next cent for a fresh account', async () => {
     mockedCheckBalance.mockResolvedValue({
       hasSufficientBalance: false,
       balance: '0',
@@ -354,7 +581,53 @@ describe('useStartProSubscription', () => {
     });
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: '4.99006' }),
+      expect.objectContaining({ amount: '5.00' }),
+    );
+  });
+
+  it('rounds a fractional shortfall up to the next cent', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '1234567',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '3.76' }),
+    );
+  });
+
+  it('rounds a sub-cent shortfall up to one cent', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '4989989',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '0.01' }),
     );
   });
 
@@ -412,6 +685,50 @@ describe('useStartProSubscription', () => {
     );
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
+    );
+  });
+
+  it('exposes a location message when the deposit is geo-blocked', async () => {
+    const blockedError = new MoneyAccountAccessBlockedError('geo_blocked');
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockInitiateDeposit.mockRejectedValue(blockedError);
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).rejects.toBe(
+        blockedError,
+      );
+    });
+
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error_geo_blocked'),
+    );
+  });
+
+  it('exposes an unavailable message when Money Account is turned off', async () => {
+    const blockedError = new MoneyAccountAccessBlockedError('feature_disabled');
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    mockInitiateDeposit.mockRejectedValue(blockedError);
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).rejects.toBe(
+        blockedError,
+      );
+    });
+
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error_feature_disabled'),
     );
   });
 

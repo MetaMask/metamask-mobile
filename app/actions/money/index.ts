@@ -2,6 +2,7 @@ import type { AnyAction } from 'redux';
 import type { ThunkAction } from 'redux-thunk';
 import { type Hex, isStrictHexString } from '@metamask/utils';
 import { isMoneyAccountUpgradeStepError } from '@metamask/money-account-upgrade-controller';
+import type { MoneyAccountLifecycle } from '@metamask/money-account-lifecycle-controller';
 import type { RootState } from '../../reducers';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import Engine from '../../core/Engine';
@@ -53,6 +54,54 @@ function reportUpgradeError(
   });
 }
 
+/**
+ * Reads what the upgrade recorded for `address`. `upgradeMoneyAccount()`
+ * resolves without upgrading when the account is not ready or its lifecycle
+ * does not call for an upgrade (e.g. it was migrated), and `upgraded` is the
+ * recorded state rather than a delta, so a call only upgraded the account when
+ * `upgraded` went from false at the start to true once settled.
+ *
+ * @param address - The Money Account address.
+ * @returns The account's lifecycle type and whether its upgrade is recorded.
+ */
+function readUpgradeOutcome(address: Hex): {
+  lifecycle: MoneyAccountLifecycle['type'] | undefined;
+  upgraded: boolean;
+} {
+  const { MoneyAccountLifecycleController, MoneyAccountUpgradeController } =
+    Engine.context;
+  const accountKey = address.toLowerCase() as Hex;
+  return {
+    lifecycle:
+      MoneyAccountLifecycleController.state.moneyAccounts[accountKey]?.type,
+    upgraded: Boolean(
+      MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+    ),
+  };
+}
+
+/**
+ * Reads the live primary Money Account address, or `undefined` when there is
+ * no primary account with a valid address.
+ */
+type GetPrimaryAddress = () => Hex | undefined;
+
+/**
+ * Ends a run whose address is no longer the primary Money Account.
+ * `MoneyAccountLifecycleController.upgradeMoneyAccount()` upgrades the current
+ * primary rather than a given address, so attempting on a stale run would
+ * upgrade a different account while logging it under the run's address.
+ */
+class StalePrimaryMoneyAccountError extends Error {
+  readonly primaryAddress: Hex | undefined;
+
+  constructor(primaryAddress: Hex | undefined) {
+    super('The primary Money Account changed during the upgrade run');
+    this.name = 'StalePrimaryMoneyAccountError';
+    this.primaryAddress = primaryAddress;
+  }
+}
+
 interface InFlightUpgrade {
   /**
    * Signal of the most recent caller whose dispatch was shadowed by this run.
@@ -85,8 +134,15 @@ export const __resetUpgradesInFlightForTesting = () => {
  * and its outcome is still recorded. Required: retries continue for as long
  * as the signal stays live, so a run without one could never end — nor hand
  * over to a later caller.
+ * @param getPrimaryAddress - Reads the live primary address. Checked before
+ * every attempt: if the primary is no longer `address`, the run stops and, when
+ * there is a new primary, restarts for it under the same signal.
  */
-function startUpgradeRun(address: Hex, signal: AbortSignal): void {
+function startUpgradeRun(
+  address: Hex,
+  signal: AbortSignal,
+  getPrimaryAddress: GetPrimaryAddress,
+): void {
   const inFlight = upgradesInFlight.get(address);
   if (inFlight) {
     inFlight.takeoverSignal = signal;
@@ -104,6 +160,9 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   // aborted. Only a run that actually ended because of its abort hands
   // over to a queued takeover signal.
   let endedByAbort = false;
+  // Set when the run stopped because the primary Money Account changed to
+  // another valid account: the new primary's address to restart for.
+  let restartForPrimary: Hex | undefined;
   // Defer the body so another caller in this turn can still queue a takeover
   // before an already-aborted run settles and clears the in-flight entry.
   // Expected failures are reported inside the task; this catch covers anything
@@ -111,20 +170,20 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   Promise.resolve()
     .then(async () => {
       try {
-        const { MoneyAccountUpgradeController } = Engine.context;
-        const accountKey = address.toLowerCase() as Hex;
-        const recordedBefore = Boolean(
-          MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        );
+        const { MoneyAccountLifecycleController } = Engine.context;
         Logger.log(LOG_PREFIX, 'starting upgrade', {
           address,
-          recordedBefore,
+          ...readUpgradeOutcome(address),
         });
 
         await upgradeAccountWithRetry(
-          (upgradeAddress) =>
-            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
-          address,
+          () => {
+            const primaryAddress = getPrimaryAddress();
+            if (primaryAddress?.toLowerCase() !== address.toLowerCase()) {
+              throw new StalePrimaryMoneyAccountError(primaryAddress);
+            }
+            return MoneyAccountLifecycleController.upgradeMoneyAccount();
+          },
           {
             signal,
             // Failures that end the run are reported by the catch below.
@@ -150,12 +209,10 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
           },
         );
 
-        Logger.log(LOG_PREFIX, 'upgrade succeeded', {
+        Logger.log(LOG_PREFIX, 'upgrade settled', {
           address,
-          recordedBefore,
           durationMs: Date.now() - startedAt,
-          recorded:
-            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+          ...readUpgradeOutcome(address),
         });
       } catch (error: unknown) {
         // Reached only for errors thrown by upgradeAccountWithRetry itself.
@@ -168,15 +225,36 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
           Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
           return;
         }
+        // The primary changing is expected (e.g. a migration to a successor
+        // account), not a failure worth reporting.
+        if (error instanceof StalePrimaryMoneyAccountError) {
+          restartForPrimary = error.primaryAddress;
+          Logger.log(
+            LOG_PREFIX,
+            'primary money account changed; stopping run',
+            {
+              address,
+              primaryAddress: error.primaryAddress,
+            },
+          );
+          return;
+        }
         reportUpgradeError(error);
       } finally {
         upgradesInFlight.delete(address);
         const { takeoverSignal } = entry;
-        if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
+        if (restartForPrimary) {
+          // Restart under this run's own signal. If it has aborted in the
+          // meantime, the new run ends at once without attempting.
+          Logger.log(LOG_PREFIX, 'restarting upgrade for new primary', {
+            address: restartForPrimary,
+          });
+          startUpgradeRun(restartForPrimary, signal, getPrimaryAddress);
+        } else if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
           Logger.log(LOG_PREFIX, 'restarting upgrade for takeover signal', {
             address,
           });
-          startUpgradeRun(address, takeoverSignal);
+          startUpgradeRun(address, takeoverSignal, getPrimaryAddress);
         }
       }
     })
@@ -196,5 +274,11 @@ export const upgradeMoneyAccount =
       return;
     }
 
-    startUpgradeRun(address, signal);
+    const getPrimaryAddress: GetPrimaryAddress = () => {
+      const primaryAddress = selectPrimaryMoneyAccount(getState())?.address;
+      return primaryAddress && isStrictHexString(primaryAddress)
+        ? primaryAddress
+        : undefined;
+    };
+    startUpgradeRun(address, signal, getPrimaryAddress);
   };

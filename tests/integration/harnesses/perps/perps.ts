@@ -14,6 +14,8 @@
  *     real fee resolver and provider pricing path
  *   - `buildPerpsDepositHarness` additionally runs PerpsController's real
  *     deposit preparation up to the TransactionController messenger call
+ *   - `buildPerpsPersistedStateHarness` additionally runs PerpsController's
+ *     real startup migration for a caller-supplied persisted state
  *
  * MOCKED (the I/O boundary — never makes real network/SDK calls):
  *   - HyperLiquidClientService     — SDK clients, network mode
@@ -129,6 +131,7 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
 import {
   HyperLiquidProvider,
   PerpsController,
+  type PerpsControllerState,
   type PerpsTradingFeeGrant,
   type PerpsPlatformDependencies,
 } from '@metamask/perps-controller';
@@ -548,6 +551,56 @@ function buildHarnessController(
     infrastructure,
     deferEligibilityCheck: true,
   });
+}
+
+/**
+ * Builds a real PerpsController from persisted state so startup migrations
+ * run against the installed Core package. I/O stays on the Shape A mocks.
+ *
+ * @param state - Persisted controller state, including pre-upgrade shapes
+ * the current TypeScript state no longer describes.
+ * @param options - Optionally supply a loaded multi-provider flag; by default it is unknown.
+ * @returns The migrated controller.
+ */
+export function buildPerpsPersistedStateHarness(
+  state: Partial<PerpsControllerState>,
+  { multiProviderModeEnabled }: { multiProviderModeEnabled?: boolean } = {},
+): { controller: PerpsController } {
+  const { mocks } = buildPerpsIntegrationHarness({
+    isTestnet: state.isTestnet,
+  });
+  const messenger = createMockMessenger();
+  if (multiProviderModeEnabled !== undefined) {
+    const defaultCall = messenger.call.getMockImplementation();
+    messenger.call.mockImplementation(
+      (...args): ReturnType<typeof messenger.call> => {
+        if (args[0] === 'RemoteFeatureFlagController:getState') {
+          return {
+            cacheTimestamp: 0,
+            remoteFeatureFlags: {
+              perpsMultiProviderModeEnabled: {
+                enabled: multiProviderModeEnabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          };
+        }
+        return defaultCall?.(...args);
+      },
+    );
+    jest
+      .spyOn(mocks.infrastructure.featureFlags, 'validateVersionGated')
+      .mockImplementation((flag) => flag.enabled);
+  }
+
+  return {
+    controller: new PerpsController({
+      messenger,
+      state,
+      infrastructure: mocks.infrastructure,
+      deferEligibilityCheck: true,
+    }),
+  };
 }
 
 /**

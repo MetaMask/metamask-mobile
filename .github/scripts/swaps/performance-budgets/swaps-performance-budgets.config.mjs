@@ -30,7 +30,8 @@ export const BUDGET_RULES = [
   {
     label: 'Mobile Swap View Loaded (mid-tier Android)',
     projectId: MOBILE,
-    query: `environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance result:success ${MOBILE_MID_TIER}`,
+    // Only warm deeplinks measure the same interval as in-app opens; releases before #40312 don't tag them.
+    query: `environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance result:success (!entry_point:deeplink OR app_start_type:warm) ${MOBILE_MID_TIER}`,
     guardrailMs: 1411,
   },
   {

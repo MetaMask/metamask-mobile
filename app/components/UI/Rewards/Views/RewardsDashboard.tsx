@@ -66,7 +66,6 @@ import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
 } from '../utils/rewardsDashboardViewedTracking';
-import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
 import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
@@ -124,7 +123,6 @@ const RewardsDashboard: React.FC = () => {
   // The version guard and candidate-subscription fetch live one level up in
   // RewardsHome (MainNavigator) so they also cover the onboarding entry path for
   // non-enrolled users; only dashboard-specific hooks remain here.
-  useGeoRewardsMetadata({});
   useReferralDetails();
 
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
@@ -458,14 +456,13 @@ const RewardsDashboard: React.FC = () => {
               <CampaignsPreview />
             ) : (
               <RewardsOptInSection
-                showDivider={false}
                 localizedText={{
                   invitedOptInDescription:
                     referralMe?.localized_text.invitedOptInDescription ||
                     strings('rewards.onboarding.description'),
                   invitedOptInAction:
                     referralMe?.localized_text.invitedOptInAction ||
-                    strings('rewards.campaign.opt_in'),
+                    strings('rewards.campaign.opt_in_cta'),
                   invitedOptInLegal:
                     referralMe?.localized_text.invitedOptInLegal,
                 }}

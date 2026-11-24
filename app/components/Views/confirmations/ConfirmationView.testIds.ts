@@ -32,10 +32,12 @@ export const ConfirmationRowComponentIDs = {
   ADVANCED_DETAILS: 'advanced-details',
   APPROVE_ROW: 'approve-row',
   BRIDGE_TIME: 'bridge-time',
+  DEPOSIT_TO: 'deposit-to',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
   GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
   MESSAGE: 'message',
+  MONEY_DEPOSIT_TO: 'money-deposit-to',
   NETWORK: 'network',
   ORIGIN_INFO: 'origin-info',
   PAID_BY_METAMASK: 'paid-by-metamask',
@@ -46,7 +48,9 @@ export const ConfirmationRowComponentIDs = {
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
   RECEIVE: 'receive',
+  RECEIVE_PRESSABLE: 'receive-pressable',
   TRANSACTION_FEE: 'transaction-fee',
+  TRANSACTION_FEE_PRESSABLE: 'transaction-fee-pressable',
   AMOUNT: 'amount',
 } as const;
 
@@ -110,6 +114,18 @@ export const PerpsAccountPickerSelectorsIDs = {
   SHEET: 'perps-account-picker-sheet',
   SEARCH_INPUT: 'perps-account-picker-search',
   ACCOUNT_ITEM: 'perps-account-picker-item',
+} as const;
+
+export const PerpsReceiveToSelectorsIDs = {
+  ROW: 'perps-receive-to-row',
+  SHEET: 'perps-receive-to-sheet',
+  OPTION: 'perps-receive-to-option',
+} as const;
+
+export const PerpsWithdrawFromSelectorsIDs = {
+  ROW: 'perps-withdraw-from-row',
+  SHEET: 'perps-withdraw-from-sheet',
+  OPTION: 'perps-withdraw-from-option',
 } as const;
 
 export const PredictAccountPickerSelectorsIDs = {

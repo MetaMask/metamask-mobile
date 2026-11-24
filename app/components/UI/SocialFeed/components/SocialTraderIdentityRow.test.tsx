@@ -160,6 +160,38 @@ describe('SocialTraderIdentityRow', () => {
     expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
   });
 
+  it('renders the verified badge when the author is verified', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={{ ...dolphinAuthor(), verified: true }}
+        handle="cented"
+        timestampMs={Date.now()}
+        recyclingKey="row-verified"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the verified badge when the author is not verified', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={dolphinAuthor()}
+        handle="cented"
+        timestampMs={Date.now()}
+        recyclingKey="row-unverified"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
+  });
+
   it('omits the stat line when the trader has no stats', () => {
     renderWithProvider(
       <SocialTraderIdentityRow

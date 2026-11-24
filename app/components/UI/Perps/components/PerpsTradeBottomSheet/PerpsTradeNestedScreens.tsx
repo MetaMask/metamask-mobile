@@ -1,17 +1,5 @@
-import {
-  Box,
-  BottomSheetFooter,
-  ButtonSize,
-  HeaderStandard,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-  type OrderType,
-} from '@metamask/perps-controller';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { type OrderType } from '@metamask/perps-controller';
 import {
   CommonActions,
   NavigationContext,
@@ -21,18 +9,21 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import PayWithSection from '../../../../Views/confirmations/components/UI/pay-with-section';
 import { useDismissOnPaymentChange } from '../../../../Views/confirmations/hooks/pay/useDismissOnPaymentChange';
 import { usePayWithSections } from '../../../../Views/confirmations/hooks/pay/usePayWithSections';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import { hasPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
+import {
+  PerpsInlineInfoScreen,
+  type PerpsInlineInfoContentKey,
+} from '../PerpsInlineInfoScreen/PerpsInlineInfoScreen';
 import PerpsLeverageBottomSheet from '../PerpsLeverageBottomSheet';
 import { usePerpsTradeSheet } from './PerpsTradeBottomSheet';
 export { default as PerpsTradeTPSLScreen } from './PerpsTradeTPSLScreen';
+export { PerpsInlineInfoScreen, type PerpsInlineInfoContentKey };
 
 interface PerpsTradeLeverageScreenProps {
   onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
@@ -70,71 +61,6 @@ export const PerpsTradeLeverageScreen: React.FC<
       onClose={close}
       onConfirmComplete={goBack}
     />
-  );
-};
-
-/** Explainers that the Trade sheet shows inline instead of in a new sheet. */
-export type PerpsInlineInfoContentKey =
-  | 'margin'
-  | 'liquidation_price'
-  | 'liquidation_distance';
-
-interface PerpsInlineInfoScreenProps {
-  contentKey: PerpsInlineInfoContentKey;
-  onBack: () => void;
-}
-
-/**
- * Short read-only explainer shared by bottom-sheet flows so tapping an info
- * icon replaces the current sheet content instead of stacking another modal.
- */
-export const PerpsInlineInfoScreen: React.FC<PerpsInlineInfoScreenProps> = ({
-  contentKey,
-  onBack,
-}) => {
-  const { track } = usePerpsEventTracking();
-
-  // Same interaction event the standalone tooltip sheet reports, so the A/B
-  // variants stay comparable in analytics.
-  const handleGotItPress = useCallback(() => {
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.TOOLTIP,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
-    });
-    onBack();
-  }, [onBack, track]);
-
-  const gotItButtonProps = useMemo(
-    () => ({
-      children: strings('perps.tooltips.got_it_button'),
-      onPress: handleGotItPress,
-      size: ButtonSize.Lg,
-      testID: PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON,
-    }),
-    [handleGotItPress],
-  );
-
-  return (
-    <Box accessible={false} testID={PerpsTradeSheetSelectorsIDs.INFO_SCREEN}>
-      <HeaderStandard
-        title={strings(`perps.tooltips.${contentKey}.title`)}
-        onBack={onBack}
-        backButtonProps={{
-          testID: PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON,
-          accessibilityLabel: strings('navigation.back'),
-        }}
-      />
-      <Box accessible={false} paddingHorizontal={4} paddingVertical={3}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings(`perps.tooltips.${contentKey}.content`)}
-        </Text>
-      </Box>
-      <BottomSheetFooter primaryButtonProps={gotItButtonProps} />
-    </Box>
   );
 };
 

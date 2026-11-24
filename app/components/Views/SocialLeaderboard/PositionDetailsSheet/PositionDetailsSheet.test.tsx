@@ -56,12 +56,22 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
+const mockIsCopyTradeAllowed = jest.fn(() => true);
+
+// The sheet test renders without a Redux provider. Copy-trade visibility for a
+// real geolocation is covered by SocialV1View.view.test.tsx.
+jest.mock('../../../UI/SocialFeed/hooks/useIsCopyTradeAllowed', () => ({
+  useIsCopyTradeAllowed: () => mockIsCopyTradeAllowed(),
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOpenPerpsOrder = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
-const mockEnsureSocialTermsAccepted = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
+  () => true,
+);
 let mockParams: PositionDetailsSheetParams;
 let mockSheetData: PositionSheetData;
 let mockProfile: { profileId: string; linkedAccountAddress?: string } | null;
@@ -328,6 +338,7 @@ describe('PositionDetailsSheet', () => {
     mockProfile = { profileId: 'viewer-1', linkedAccountAddress: '0xViewer' };
     mockIsFollowing = false;
     mockHeldBalance = undefined;
+    mockIsCopyTradeAllowed.mockReturnValue(true);
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
     mockIsMemeToken = { isMeme: false, isLoading: false };
@@ -804,7 +815,7 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toContain('40x');
+    ).not.toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
@@ -1062,6 +1073,18 @@ describe('PositionDetailsSheet', () => {
           { translationY },
         ]);
       });
+
+    it('hides Copy trade when geolocation disallows it', () => {
+      mockIsCopyTradeAllowed.mockReturnValue(false);
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
 
     it('opens collapsed so the footer stays in view', () => {
       render(<PositionDetailsSheet />);
@@ -1487,6 +1510,7 @@ describe('PositionDetailsSheet', () => {
         direction: 'short',
         asset: 'BTC',
         leverage: 40,
+        isCopyTrade: true,
       });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');
@@ -1533,6 +1557,21 @@ describe('PositionDetailsSheet', () => {
       expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_blocked', {
         blocked_reason: 'terms',
       });
+    });
+
+    it('copies the trade once social terms are accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+      expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
+
+      expect(mockOpenPerpsOrder).toHaveBeenCalledTimes(1);
     });
 
     it('skips copy trade when there is no linked social wallet', () => {

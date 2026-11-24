@@ -10,7 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import OpenOrderRow from '../../components/OpenOrderRow';
 import {
   type RecurringSwap,
-  RecurringSwapState,
+  RecurringSwapStatus,
 } from '../../api/recurringOrders.types';
 import type { BridgeToken } from '../../types';
 import { formatRecurringTokenAmount } from '../../utils/recurringOrders';
@@ -24,11 +24,11 @@ interface RecurringSwapRowProps {
 }
 
 function getSwapTitleColor(swap: RecurringSwap) {
-  if (swap.state === RecurringSwapState.Skipped) {
+  if (swap.status === RecurringSwapStatus.Skipped) {
     return TextColor.TextAlternative;
   }
 
-  if (swap.state === RecurringSwapState.Failed) {
+  if (swap.status === RecurringSwapStatus.Failed) {
     return TextColor.ErrorDefault;
   }
 
@@ -44,11 +44,11 @@ function getSkippedSwapLabel(swap: RecurringSwap) {
 }
 
 function getSwapSubtitle(swap: RecurringSwap) {
-  if (swap.state === RecurringSwapState.Skipped) {
+  if (swap.status === RecurringSwapStatus.Skipped) {
     return getSkippedSwapLabel(swap);
   }
 
-  if (swap.state === RecurringSwapState.Submitted) {
+  if (swap.status === RecurringSwapStatus.Submitted) {
     return strings('bridge.limit.submitted');
   }
 
@@ -61,8 +61,8 @@ export function RecurringSwapRow({
   destinationToken,
   onPress,
 }: RecurringSwapRowProps) {
-  const isSkipped = swap.state === RecurringSwapState.Skipped;
-  const hasZeroAmounts = swap.state !== RecurringSwapState.Filled;
+  const isSkipped = swap.status === RecurringSwapStatus.Skipped;
+  const hasZeroAmounts = swap.status !== RecurringSwapStatus.Filled;
   const sourceAmount = formatRecurringTokenAmount(
     hasZeroAmounts ? '0' : swap.src.amount,
     sourceToken.decimals,
@@ -89,6 +89,7 @@ export function RecurringSwapRow({
             name={IconName.Warning}
             color={IconColor.WarningDefault}
             size={IconSize.Sm}
+            accessibilityLabel={strings('bridge.recurring.skipped')}
           />
         ) : undefined
       }

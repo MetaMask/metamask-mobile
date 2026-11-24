@@ -8,11 +8,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Hex } from '@metamask/utils';
 import {
   TransactionType,
   hasTransactionType,
@@ -39,6 +39,7 @@ import { POLYGON_PUSD } from '../../../../../../Views/confirmations/constants/pr
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
+import { decodePaymentTokenAssetId } from '../../../../../../../util/transactions/payment-token';
 
 type PredictPayWithRowVariant = 'pill' | 'row';
 
@@ -108,12 +109,13 @@ export function PredictPayWithRow({
   };
 
   const displaySymbol = getDisplaySymbol();
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const tokenIconAddress = showPredictBalance
     ? POLYGON_PUSD.address
-    : (payToken?.address as Hex | undefined);
+    : payTokenAsset?.address;
   const tokenIconChainId = showPredictBalance
     ? PREDICT_BALANCE_CHAIN_ID
-    : (payToken?.chainId as Hex | undefined);
+    : payTokenAsset?.chainId;
 
   if (variant === 'row') {
     return (
@@ -122,12 +124,12 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="pt-4 pb-2"
+          twClassName="pt-4"
         >
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="font-medium"
+            fontWeight={FontWeight.Medium}
           >
             {label}
           </Text>
@@ -148,13 +150,18 @@ export function PredictPayWithRow({
                 />
               )
             )}
-            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
+            >
               {displaySymbol}
             </Text>
             {availableBalance && (
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 ({availableBalance})
               </Text>

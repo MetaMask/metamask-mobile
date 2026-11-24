@@ -185,16 +185,14 @@ describe('useRevealCardDetails', () => {
     );
   });
 
-  it('navigates to authentication when the user is not authenticated', async () => {
+  it('does nothing when the user is not authenticated', async () => {
     const { result } = setup({ isAuthenticated: false });
 
     await act(async () => {
       await result.current.revealCardDetails();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-      showAuthPrompt: true,
-    });
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockWithBiometricAuth).not.toHaveBeenCalled();
   });
 
