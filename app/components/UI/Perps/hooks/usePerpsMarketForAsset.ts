@@ -210,9 +210,7 @@ export const usePerpsMarketForAsset = (
         marketData = {
           symbol: matchedMarket.name,
           name: matchedMarket.name,
-          maxLeverage: isRwaAsset
-            ? String(matchedMarket.maxLeverage)
-            : `${matchedMarket.maxLeverage}x`,
+          maxLeverage: `${matchedMarket.maxLeverage}x`,
           marketSource: getPerpsDexFromSymbol(matchedMarket.name),
           price: '',
           change24h: '',

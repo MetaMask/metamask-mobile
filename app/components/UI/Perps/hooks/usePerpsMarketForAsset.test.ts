@@ -123,7 +123,7 @@ describe('usePerpsMarketForAsset', () => {
     expect(result.current.marketData).toEqual({
       symbol: 'xyz:MSFT',
       name: 'xyz:MSFT',
-      maxLeverage: '10',
+      maxLeverage: '10x',
       marketSource: 'xyz',
       price: '',
       change24h: '',
