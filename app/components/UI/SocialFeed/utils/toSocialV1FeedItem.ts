@@ -23,6 +23,7 @@ import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
 import { readXHandle } from './xHandle';
+import { isProfileVerified } from './profileVerified';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -278,6 +279,7 @@ export function toSocialV1FeedItem(
     tradeCount30d: card.actor.tradeCount30d ?? null,
     followerCount: card.actor.followerCount ?? null,
     xHandle: readXHandle(card.actor.socialHandles),
+    verified: isProfileVerified(card.actor),
   };
 
   const authorComment = readAuthorComment(core);

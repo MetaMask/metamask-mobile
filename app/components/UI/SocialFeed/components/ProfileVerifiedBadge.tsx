@@ -7,12 +7,22 @@ import {
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 
+export const PROFILE_VERIFIED_BADGE_TEST_ID = 'social-profile-verified-badge';
+
+export interface ProfileVerifiedBadgeProps {
+  testID?: string;
+  size?: IconSize;
+}
+
 /** Non-interactive indicator of server-confirmed profile verification. */
-const ProfileVerifiedBadge: React.FC<{ testID: string }> = ({ testID }) => (
+const ProfileVerifiedBadge: React.FC<ProfileVerifiedBadgeProps> = ({
+  testID = PROFILE_VERIFIED_BADGE_TEST_ID,
+  size = IconSize.Sm,
+}) => (
   <Icon
     name={IconName.VerifiedFilled}
     color={IconColor.PrimaryDefault}
-    size={IconSize.Sm}
+    size={size}
     accessible
     accessibilityRole="image"
     accessibilityLabel={strings(
