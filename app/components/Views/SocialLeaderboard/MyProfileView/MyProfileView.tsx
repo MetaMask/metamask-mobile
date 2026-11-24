@@ -582,7 +582,10 @@ const MyProfileView: React.FC = () => {
   }, [addressOrId, isOwner, navigation]);
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer({ composerEntry: SocialEvent.ComposerEntry.MY_PROFILE });
+    openComposer({
+      composerEntry: SocialEvent.ComposerEntry.MY_PROFILE,
+      analyticsSource: SocialEvent.Source.MY_PROFILE,
+    });
   }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
