@@ -8028,7 +8028,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 4
     },
     "typescript/promise-function-async": {
       "count": 1

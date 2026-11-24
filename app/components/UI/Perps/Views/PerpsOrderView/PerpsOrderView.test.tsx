@@ -1330,6 +1330,7 @@ const createMockStreamManager = () => {
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      subscribeToSymbol: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
     },
   };

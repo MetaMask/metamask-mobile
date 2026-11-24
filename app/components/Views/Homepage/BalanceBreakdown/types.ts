@@ -1,6 +1,17 @@
 export type SliceKey = 'tokens' | 'money' | 'perps' | 'predict' | 'defi';
 
-export type SliceStatus = 'loading' | 'ready' | 'error' | 'ineligible';
+export type SliceStatus =
+  | 'loading'
+  | 'ready'
+  /**
+   * The slice reports a value, but an underlying source is missing (TAT-4407:
+   * an aggregated Perps total where at least one venue failed to report), so
+   * the figure is a subtotal rather than the complete balance. Renders like
+   * `ready` — the money is real — but consumers can flag the incompleteness.
+   */
+  | 'partial'
+  | 'error'
+  | 'ineligible';
 
 export type FiatConverter = (usdAmount: number) => number | undefined;
 

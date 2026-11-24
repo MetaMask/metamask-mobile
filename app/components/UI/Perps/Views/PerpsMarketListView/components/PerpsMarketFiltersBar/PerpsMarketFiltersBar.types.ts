@@ -67,6 +67,18 @@ export interface PerpsMarketFiltersBarProps {
   showSortRow?: boolean;
 
   /**
+   * Callback when the exchange (venue) filter button is pressed.
+   * When omitted the button is not rendered (single-provider mode).
+   */
+  onExchangeFilterPress?: () => void;
+
+  /**
+   * Label for the exchange filter button (e.g. "All exchanges" or the
+   * selected venue names). Rendered only with `onExchangeFilterPress`.
+   */
+  exchangeFilterLabel?: string;
+
+  /**
    * Optional test ID for testing
    */
   testID?: string;

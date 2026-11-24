@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
 import Engine from '../../../../../core/Engine';
 import { type OrderBookData } from '@metamask/perps-controller';
@@ -1043,5 +1043,105 @@ describe('usePerpsLiveOrderBook', () => {
 
       expect(mockAggregatedSubscribe).toHaveBeenCalledTimes(2);
     });
+  });
+});
+
+describe('usePerpsLiveOrderBook › venue routing (TAT-4407)', () => {
+  // Local call capture: the outer describe's resetAllMocks tears down shared
+  // mock state between tests, so these tests wire their own implementations.
+  const subscribeCalls: Record<string, unknown>[] = [];
+  const deliverers: ((data: OrderBookData) => void)[] = [];
+
+  beforeEach(() => {
+    subscribeCalls.length = 0;
+    deliverers.length = 0;
+    (Engine.context.PerpsController.subscribeToOrderBook as jest.Mock)
+      .mockReset()
+      .mockImplementation((params: Record<string, unknown>) => {
+        subscribeCalls.push(params);
+        deliverers.push(params.callback as (data: OrderBookData) => void);
+        return jest.fn();
+      });
+  });
+
+  it('passes the requested providerId to subscribeToOrderBook', () => {
+    const { result } = renderHook(() =>
+      usePerpsLiveOrderBook({ symbol: 'BTC', providerId: 'lighter' }),
+    );
+
+    expect(subscribeCalls[0]).toMatchObject({
+      symbol: 'BTC',
+      providerId: 'lighter',
+    });
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('omits the route for untagged callers so the stream follows the default venue', () => {
+    renderHook(() => usePerpsLiveOrderBook({ symbol: 'BTC' }));
+
+    expect(subscribeCalls[0]).toMatchObject({ symbol: 'BTC' });
+    expect(subscribeCalls[0].providerId).toBeUndefined();
+  });
+
+  it('resubscribes when the requested venue changes', () => {
+    const { rerender } = renderHook(
+      ({ providerId }) => usePerpsLiveOrderBook({ symbol: 'BTC', providerId }),
+      {
+        initialProps: {
+          providerId: 'lighter' as 'lighter' | 'hyperliquid' | undefined,
+        },
+      },
+    );
+
+    rerender({ providerId: 'hyperliquid' });
+
+    expect(subscribeCalls).toHaveLength(2);
+    expect(subscribeCalls[1]).toMatchObject({ providerId: 'hyperliquid' });
+  });
+
+  it('delivers only the routed venue book to the subscriber', async () => {
+    const { result } = renderHook(() =>
+      usePerpsLiveOrderBook({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        throttleMs: 100,
+      }),
+    );
+    void subscribeCalls;
+
+    const venueBook: OrderBookData = {
+      bids: [
+        {
+          price: '50040',
+          size: '1.0',
+          total: '1.0',
+          notional: '50040',
+          totalNotional: '50040',
+        },
+      ],
+      asks: [
+        {
+          price: '50060',
+          size: '1.0',
+          total: '1.0',
+          notional: '50060',
+          totalNotional: '50060',
+        },
+      ],
+      spread: '20',
+      spreadPercentage: '0.04',
+      midPrice: '50050',
+      lastUpdated: Date.now(),
+      maxTotal: '1.0',
+    };
+
+    act(() => {
+      deliverers[deliverers.length - 1]?.(venueBook);
+    });
+
+    await waitFor(() => {
+      expect(result.current.orderBook).toEqual(venueBook);
+    });
+    expect(result.current.isLoading).toBe(false);
   });
 });

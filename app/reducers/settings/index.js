@@ -26,6 +26,11 @@ const initialState = {
   perpsMarketListPreferences: {
     marketTypeFilter: 'all',
     showFavoritesOnly: false,
+    // TAT-4407: persisted venue filter for the markets list. Undefined means
+    // all available venues; the selector intersects with available venues and
+    // falls back to all of them, so a stale saved choice can never hide every
+    // market. Positions and orders always show every provider.
+    selectedProviderIds: undefined,
   },
   // Lowercase EVM addresses of accounts that already acknowledged the
   // first-time cross margin risks (acknowledged once per account, not market).
@@ -144,6 +149,22 @@ const settingsReducer = (state = initialState, action) => {
       };
     case 'SET_PERPS_MARKET_LIST_PREFERENCES': {
       const next = action.preferences ?? {};
+      // TAT-4407: the venue filter must always keep at least one venue — an
+      // empty saved list is refused, and the selector's available-venue
+      // intersection is the second line of defense.
+      const requestedSelectedProviderIds = Array.isArray(
+        next.selectedProviderIds,
+      )
+        ? next.selectedProviderIds.filter(
+            (id) =>
+              typeof id === 'string' &&
+              (id === 'hyperliquid' || id === 'lighter'),
+          )
+        : undefined;
+      const selectedProviderIds =
+        requestedSelectedProviderIds && requestedSelectedProviderIds.length > 0
+          ? requestedSelectedProviderIds
+          : state.perpsMarketListPreferences?.selectedProviderIds;
       return {
         ...state,
         perpsMarketListPreferences: {
@@ -155,6 +176,7 @@ const settingsReducer = (state = initialState, action) => {
             typeof next.showFavoritesOnly === 'boolean'
               ? next.showFavoritesOnly
               : (state.perpsMarketListPreferences?.showFavoritesOnly ?? false),
+          selectedProviderIds,
         },
       };
     }

@@ -4,6 +4,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   type OrderBookData,
   type OrderBookConnectionStatus,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
 
@@ -17,6 +18,11 @@ export type { OrderBookConnectionStatus } from '@metamask/perps-controller';
 export interface UsePerpsLiveOrderBookOptions {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
   symbol: string;
+  /**
+   * Venue to route the order book to (TAT-4407): the book the user will trade
+   * against. Without one the stream follows the default provider.
+   */
+  providerId?: PerpsProviderType;
   /** Number of levels to display (default: 10) */
   levels?: number;
   /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
@@ -89,6 +95,7 @@ export function usePerpsLiveOrderBook(
 ): UsePerpsLiveOrderBookReturn {
   const {
     symbol,
+    providerId,
     levels = 10,
     nSigFigs = 5,
     mantissa,
@@ -218,6 +225,7 @@ export function usePerpsLiveOrderBook(
         unsubscribe = controller.subscribeToOrderBook({
           symbol,
           levels,
+          ...(providerId ? { providerId } : {}),
           nSigFigs,
           mantissa,
           fast,
@@ -267,6 +275,7 @@ export function usePerpsLiveOrderBook(
     };
   }, [
     symbol,
+    providerId,
     levels,
     nSigFigs,
     mantissa,

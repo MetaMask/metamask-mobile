@@ -30,20 +30,23 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
 
   const totalBalanceUsd = parseFloat(account?.totalBalance ?? '0') || 0;
   const convertedValue = toUserCurrency(totalBalanceUsd);
+  const isPartial = account?.aggregate?.status === 'partial';
   const totalBalance1dAgoFiat = useMemo(() => {
-    const rows =
-      activeProvider === 'aggregated' || activeProvider === undefined
-        ? Object.values(perpsBalances)
-        : [perpsBalances[activeProvider]];
-    // A provider without a 1d-ago observation makes the baseline unavailable:
-    // a partial sum or a zero would misstate the 24h change.
+    // Match the baseline to every venue represented in the live total. A
+    // missing or non-finite observation makes the change figure unavailable.
+    const venueIds: string[] = account?.providerStates
+      ? Object.keys(account.providerStates)
+      : account
+        ? [account.providerId ?? activeProvider ?? 'hyperliquid']
+        : [];
+    if (venueIds.length === 0) {
+      return undefined;
+    }
     let totalUsd = 0;
-    for (const row of rows) {
-      if (!row || typeof row !== 'object') {
-        continue;
-      }
+    for (const providerId of venueIds) {
+      const row = perpsBalances[providerId];
       const value1dAgo =
-        row.accountValue1dAgo === undefined
+        row?.accountValue1dAgo === undefined
           ? undefined
           : new BigNumber(row.accountValue1dAgo);
       if (!value1dAgo?.isFinite()) {
@@ -52,7 +55,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
       totalUsd += value1dAgo.toNumber();
     }
     return toUserCurrency(totalUsd);
-  }, [activeProvider, perpsBalances, toUserCurrency]);
+  }, [account, perpsBalances, activeProvider, toUserCurrency]);
 
   const status = useMemo(() => {
     if (isIneligible) return 'ineligible' as const;
@@ -60,6 +63,10 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     if (isInitialLoading) return 'loading' as const;
     if (!account) return 'loading' as const;
     if (convertedValue === undefined) return 'error' as const;
+    // TAT-4407: a partial total (a venue failed to report) is degraded, not
+    // the complete portfolio value — surface it through the slice's status so
+    // the homepage does not present a subtotal as the full balance.
+    if (isPartial) return 'partial' as const;
     return 'ready' as const;
   }, [
     account,
@@ -67,6 +74,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     convertedValue,
     isIneligible,
     isInitialLoading,
+    isPartial,
   ]);
 
   return useMemo<BalanceSlice>(

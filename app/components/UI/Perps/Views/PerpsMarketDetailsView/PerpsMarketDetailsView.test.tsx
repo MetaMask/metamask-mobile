@@ -176,6 +176,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      subscribeToSymbol: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
       getError: jest.fn(() => null),
     },

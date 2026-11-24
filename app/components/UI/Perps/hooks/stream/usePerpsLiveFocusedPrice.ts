@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import { type PriceUpdate } from '@metamask/perps-controller';
+import {
+  type PriceUpdate,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { usePerpsMarketContext } from '../usePerpsMarketContext';
 
 export interface UsePerpsLiveFocusedPriceOptions {
@@ -10,6 +13,12 @@ export interface UsePerpsLiveFocusedPriceOptions {
    * detail or ticket screen.
    */
   symbol: string;
+  /**
+   * Venue the focused price must come from (TAT-4407). Updates from other
+   * venues are never delivered; without one the stream follows the
+   * active/default venue.
+   */
+  providerId?: PerpsProviderType;
   /**
    * Whether to activate the subscription (default: true).
    * Set to false when the screen is inactive to avoid unnecessary connections.
@@ -51,7 +60,7 @@ export interface UsePerpsLiveFocusedPriceOptions {
 export function usePerpsLiveFocusedPrice(
   options: UsePerpsLiveFocusedPriceOptions,
 ): PriceUpdate | undefined {
-  const { symbol, enabled = true } = options;
+  const { symbol, enabled = true, providerId } = options;
   const stream = usePerpsStream();
   const { key: marketContextKey, isReady: isMarketContextReady } =
     usePerpsMarketContext();
@@ -83,6 +92,7 @@ export function usePerpsLiveFocusedPrice(
 
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
+      providerId,
       callback: (update) => {
         setPriceState(
           update ? { contextKey: marketContextKey, symbol, update } : undefined,
@@ -93,7 +103,14 @@ export function usePerpsLiveFocusedPrice(
     return () => {
       unsubscribe();
     };
-  }, [stream, symbol, enabled, isMarketContextReady, marketContextKey]);
+  }, [
+    stream,
+    symbol,
+    enabled,
+    isMarketContextReady,
+    marketContextKey,
+    providerId,
+  ]);
 
   return priceState?.symbol === symbol &&
     priceState.contextKey === marketContextKey

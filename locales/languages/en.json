@@ -3653,7 +3653,9 @@
     "exchange_filter": {
       "title": "Filter by exchange",
       "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage"
+      "tagline_hyperliquid": "High volume, low slippage",
+      "trigger": "{{count}} exchange",
+      "trigger_plural": "{{count}} exchanges"
     },
     "market_type": {
       "filter_by": "Filter by"

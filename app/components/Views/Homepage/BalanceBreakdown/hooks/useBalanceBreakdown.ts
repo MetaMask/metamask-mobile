@@ -19,7 +19,11 @@ function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
   slices: Record<SliceKey, SliceData>;
   totalFiat: number;
 } {
-  const ready = SLICE_ORDER.filter((k) => slices[k].status === 'ready');
+  // A `partial` slice still contributes real money to the total; only its
+  // completeness claim is degraded (TAT-4407).
+  const ready = SLICE_ORDER.filter((k) =>
+    ['ready', 'partial'].includes(slices[k].status),
+  );
   // Money vault accounts are not part of AccountsController/account groups, so
   // the Money and Tokens slice sources are disjoint and can be summed directly.
   const totalFiat = ready.reduce((s, k) => s + slices[k].valueFiat, 0);
@@ -36,7 +40,7 @@ function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
       ...slices[key],
       percentOfTotal:
         allocationTotalFiat > 0 &&
-        slices[key].status === 'ready' &&
+        ['ready', 'partial'].includes(slices[key].status) &&
         slices[key].valueFiat > 0
           ? slices[key].valueFiat / allocationTotalFiat
           : 0,
@@ -52,8 +56,8 @@ function aggregateStatus(
   const eligibleSlices = SLICE_ORDER.filter(
     (k) => slices[k].status !== 'ineligible',
   );
-  const hasReadySlice = eligibleSlices.some(
-    (k) => slices[k].status === 'ready',
+  const hasReadySlice = eligibleSlices.some((k) =>
+    ['ready', 'partial'].includes(slices[k].status),
   );
   const hasLoadingSlice = eligibleSlices.some(
     (k) => slices[k].status === 'loading',

@@ -37,7 +37,8 @@ const HomepageBalanceBreakdown = ({
   );
   const visibleSliceKeys = SLICE_ORDER.filter((key) => {
     const slice = slices[key];
-    const hasBalance = slice.status === 'ready' && slice.valueFiat !== 0;
+    const hasBalance =
+      ['ready', 'partial'].includes(slice.status) && slice.valueFiat !== 0;
 
     return (
       slice.isVisible &&

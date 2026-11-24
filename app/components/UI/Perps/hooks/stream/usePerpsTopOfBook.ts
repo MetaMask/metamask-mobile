@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 
 /**
  * Top of book data (best bid/ask only)
@@ -13,6 +14,11 @@ export interface TopOfBookData {
 export interface UsePerpsTopOfBookOptions {
   /** Symbol to subscribe to top of book data */
   symbol: string;
+  /**
+   * Venue the top of book must come from (TAT-4407). Without one the stream
+   * follows the active/default venue.
+   */
+  providerId?: PerpsProviderType;
 }
 
 /**
@@ -47,7 +53,7 @@ export interface UsePerpsTopOfBookOptions {
 export function usePerpsTopOfBook(
   options: UsePerpsTopOfBookOptions,
 ): TopOfBookData | undefined {
-  const { symbol } = options;
+  const { symbol, providerId } = options;
   const stream = usePerpsStream();
   const [topOfBook, setTopOfBook] = useState<TopOfBookData | undefined>(
     undefined,
@@ -58,6 +64,7 @@ export function usePerpsTopOfBook(
 
     const unsubscribe = stream.topOfBook.subscribeToSymbol({
       symbol,
+      providerId,
       callback: (newTopOfBook) => {
         setTopOfBook(newTopOfBook);
       },
@@ -66,7 +73,7 @@ export function usePerpsTopOfBook(
     return () => {
       unsubscribe();
     };
-  }, [stream, symbol]);
+  }, [stream, symbol, providerId]);
 
   return topOfBook;
 }

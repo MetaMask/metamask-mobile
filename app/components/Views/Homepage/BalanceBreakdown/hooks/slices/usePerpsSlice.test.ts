@@ -67,6 +67,17 @@ describe('usePerpsSlice', () => {
       return undefined;
     });
 
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        totalBalance: '100',
+        providerStates: {
+          hyperliquid: { providerId: 'hyperliquid', status: 'available' },
+          lighter: { providerId: 'lighter', status: 'available' },
+        },
+      },
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveAccount>);
+
     const { result } = renderHook(() => usePerpsSlice((amount) => amount));
 
     expect(result.current.status).toBe('ready');
