@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MoneyAccountAction } from '@metamask/bridge-controller';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -43,10 +44,16 @@ const MONEY_TOKEN: BridgeToken = {
   balance: '100',
 };
 
-const submitTx = Engine.context.BridgeStatusController.submitTx as jest.Mock;
+const getSubmitTx = () =>
+  jest.mocked(Engine.context.BridgeStatusController.submitTx);
 
 type MoneySwapRender = ReturnType<typeof renderBridgeViewForMoneySwap>;
 
+/**
+ * Design-system Button does not forward `isDisabled` onto the testID host.
+ * `props.isDisabled` is always undefined, so wait-then-press can hit a still
+ * disabled / "Get new quote" control and never call submitTx (CI iOS flake).
+ */
 const pressEnabledConfirm = async ({
   findByTestId,
   getByTestId,
@@ -56,15 +63,16 @@ const pressEnabledConfirm = async ({
   ).toBeOnTheScreen();
 
   await waitFor(() => {
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props.isDisabled,
-    ).not.toBe(true);
+    const confirm = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(confirm.props.accessibilityState?.disabled).toBe(false);
+    expect(confirm.props.accessibilityState?.busy).not.toBe(true);
+    expect(confirm).toHaveTextContent(strings('bridge.confirm_swap'));
   });
 
   fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
 
   await waitFor(() => {
-    expect(submitTx).toHaveBeenCalled();
+    expect(getSubmitTx()).toHaveBeenCalled();
   });
 };
 
@@ -150,8 +158,8 @@ describeForPlatforms('BridgeView money swap flows', () => {
     setupLimitOrdersDataServiceMock();
     setupSentinelFeeTokensDataServiceMock();
     Date.now = () => new Date().getTime();
-    submitTx.mockReset();
-    submitTx.mockResolvedValue({
+    getSubmitTx().mockReset();
+    getSubmitTx().mockResolvedValue({
       success: true,
       id: 'tx-1',
       hash: '0xabc',
@@ -170,7 +178,7 @@ describeForPlatforms('BridgeView money swap flows', () => {
     await pressEnabledConfirm(screen);
 
     await expectMoneyHomeInsteadOfPostTrade(screen);
-    expect(submitTx).toHaveBeenCalledWith(
+    expect(getSubmitTx()).toHaveBeenCalledWith(
       expect.objectContaining({ operation: MoneyAccountAction.Deposit }),
     );
   });
@@ -181,14 +189,14 @@ describeForPlatforms('BridgeView money swap flows', () => {
     await pressEnabledConfirm(screen);
 
     await expectMoneyHomeInsteadOfPostTrade(screen);
-    expect(submitTx).toHaveBeenCalledWith(
+    expect(getSubmitTx()).toHaveBeenCalledWith(
       expect.objectContaining({ operation: MoneyAccountAction.Withdraw }),
     );
   });
 
   it('shows the failed post-trade sheet after a pre-deposit swap submit fails', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-    submitTx.mockRejectedValue(new Error('Network error'));
+    getSubmitTx().mockRejectedValue(new Error('Network error'));
     const screen = renderDepositSwap();
 
     await pressEnabledConfirm(screen);
@@ -199,7 +207,7 @@ describeForPlatforms('BridgeView money swap flows', () => {
 
   it('sends the user to money home after a withdraw submit fails', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-    submitTx.mockRejectedValue(new Error('Network error'));
+    getSubmitTx().mockRejectedValue(new Error('Network error'));
     const screen = renderWithdrawSwap();
 
     await pressEnabledConfirm(screen);
