@@ -124,6 +124,10 @@ describe('useMoneyActivityValuations query lifecycle', () => {
       ...premiumActivity,
       hash: OTHER_TX_HASH,
     };
+    const newStandardActivity = {
+      ...activity,
+      hash: OTHER_TX_HASH,
+    };
     const valuationResponse = vaultShareValuationResponse(
       [
         cardValuation(),
@@ -132,6 +136,10 @@ describe('useMoneyActivityValuations query lifecycle', () => {
           hash: OTHER_TX_HASH,
         },
         cardValuation('968399998', PREMIUM_VAULT),
+        {
+          ...cardValuation('968399996'),
+          hash: OTHER_TX_HASH,
+        },
       ],
       ACCOUNT,
     );
@@ -182,7 +190,10 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     const initialQueryKey = JSON.stringify(getValuationQueries()[0].queryKey);
 
     rerender({
-      pages: [[activity, existingPremiumActivity], [premiumActivity]],
+      pages: [
+        [activity, existingPremiumActivity],
+        [premiumActivity, newStandardActivity],
+      ],
     });
 
     await waitFor(() =>
@@ -210,7 +221,7 @@ describe('useMoneyActivityValuations query lifecycle', () => {
       initialQueryKey,
     );
     expect(valuationQueries[0].queryKey[3]).toHaveLength(2);
-    expect(valuationQueries[1].queryKey[3]).toHaveLength(3);
+    expect(valuationQueries[1].queryKey[3]).toHaveLength(4);
 
     unmount();
     client.clear();
@@ -227,6 +238,10 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     };
     const existingPremiumActivity = {
       ...premiumActivity,
+      hash: OTHER_TX_HASH,
+    };
+    const newStandardActivity = {
+      ...activity,
       hash: OTHER_TX_HASH,
     };
     const initialResponse = vaultShareValuationResponse(
@@ -247,6 +262,10 @@ describe('useMoneyActivityValuations query lifecycle', () => {
           hash: OTHER_TX_HASH,
         },
         cardValuation('968399998', PREMIUM_VAULT),
+        {
+          ...cardValuation('968399996'),
+          hash: OTHER_TX_HASH,
+        },
       ],
       ACCOUNT,
     );
@@ -259,7 +278,7 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     });
     mockReadCache.mockImplementation(() => persistedEntries);
     mockWriteCache.mockImplementation(async (entries) => {
-      persistedEntries = entries;
+      persistedEntries = [...entries];
     });
     mockEngineCall.mockImplementation(async (action: string) => {
       if (action !== 'MoneyAccountApiDataService:fetchVaultShareValuations') {
@@ -296,7 +315,10 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     );
 
     rerender({
-      pages: [[activity, existingPremiumActivity], [premiumActivity]],
+      pages: [
+        [activity, existingPremiumActivity],
+        [premiumActivity, newStandardActivity],
+      ],
     });
     await waitFor(() => expect(valuationCallCount).toBe(2));
 

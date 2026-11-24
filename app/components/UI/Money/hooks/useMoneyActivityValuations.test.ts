@@ -266,7 +266,7 @@ describe('useMoneyActivityValuations', () => {
     );
   });
 
-  it('merges partially overlapping pages and resolves each unique target once', async () => {
+  it('keeps partially overlapping pages in separate query groups', async () => {
     const first = activity(txHash(0), '1');
     const second = activity(txHash(1), '2');
     const third = activity(txHash(2), '3');
@@ -281,43 +281,25 @@ describe('useMoneyActivityValuations', () => {
 
     const queries = getQueryOptions(0);
     const entries = await queries[0].queryFn?.();
+    await queries[1].queryFn?.();
     const requestedHashes = mockEngineCall.mock.calls.flatMap(
       ([, , params]) => (params as { txHashes: string[] }).txHashes,
     );
 
-    expect(queries).toHaveLength(1);
-    expect(
-      new Set(queries.map((query) => JSON.stringify(query.queryKey))).size,
-    ).toBe(1);
-    expect(requestedHashes).toEqual([first.hash, second.hash, third.hash]);
+    expect(queries).toHaveLength(2);
+    expect(requestedHashes).toEqual([
+      first.hash,
+      second.hash,
+      second.hash,
+      third.hash,
+    ]);
     expect(
       entries?.map((entry) => getVaultShareValuationCacheIdentity(entry)),
     ).toEqual(
-      [first, second, third].map((row) =>
+      [first, second].map((row) =>
         getVaultShareValuationCacheIdentity(cacheEntry(row)),
       ),
     );
-  });
-
-  it('deduplicates overlap across the 50-hash chunk boundary', async () => {
-    const rows = Array.from({ length: 51 }, (_, index) =>
-      activity(txHash(index), `${index + 1}`),
-    );
-    mockEngineCall.mockResolvedValue(valuationResponse(rows));
-
-    renderValuations({
-      pages: [rows.slice(0, 50), [rows[49], rows[50]]],
-    });
-
-    const [query] = getQueryOptions(0);
-    await query.queryFn?.();
-    const requestedHashes = mockEngineCall.mock.calls.flatMap(
-      ([, , params]) => (params as { txHashes: string[] }).txHashes,
-    );
-
-    expect(mockEngineCall).toHaveBeenCalledTimes(2);
-    expect(requestedHashes).toHaveLength(51);
-    expect(new Set(requestedHashes).size).toBe(51);
   });
 
   it('merges identical request groups without dropping vault targets', async () => {

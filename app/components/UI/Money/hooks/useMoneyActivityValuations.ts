@@ -274,22 +274,6 @@ function mergeRequestParams(
     .sort((a, b) => a.chainId - b.chainId);
 }
 
-function groupsOverlap(
-  existingGroup: ValuationQueryGroup,
-  newGroup: ValuationQueryGroup,
-): boolean {
-  const hashesByChain = new Map(
-    existingGroup.params.map(({ chainId, txHashes }) => [
-      chainId,
-      new Set(txHashes),
-    ]),
-  );
-  return newGroup.params.some(({ chainId, txHashes }) => {
-    const existingHashes = hashesByChain.get(chainId);
-    return txHashes.some((hash) => existingHashes?.has(hash));
-  });
-}
-
 function mergeValuationQueryGroups(
   existingGroup: ValuationQueryGroup,
   newGroup: ValuationQueryGroup,
@@ -319,6 +303,7 @@ function buildValuationQueryGroups(
   }[],
 ): ValuationQueryGroup[] {
   const groups: ValuationQueryGroup[] = [];
+  const groupIndexByRequestHashes = new Map<string, number>();
 
   pages.forEach((page, pageIndex) => {
     const missing = missingHashesByChain(page.targets, page.cachedByIdentity);
@@ -333,24 +318,21 @@ function buildValuationQueryGroups(
       cachedByIdentity: page.cachedByIdentity,
       pageIndices: [pageIndex],
     };
-    const overlappingGroups = groups.filter((group) =>
-      groupsOverlap(group, pageGroup),
+    const groupKey = JSON.stringify(
+      pageGroup.params.map(({ chainId, txHashes }) => ({
+        chainId,
+        txHashes,
+      })),
     );
-    if (overlappingGroups.length === 0) {
+    const existingGroupIndex = groupIndexByRequestHashes.get(groupKey);
+    if (existingGroupIndex === undefined) {
+      groupIndexByRequestHashes.set(groupKey, groups.length);
       groups.push(pageGroup);
       return;
     }
-
-    const overlappingGroupSet = new Set(overlappingGroups);
-    const mergedGroup = overlappingGroups.reduce(
-      (merged, group) => mergeValuationQueryGroups(merged, group),
+    groups[existingGroupIndex] = mergeValuationQueryGroups(
+      groups[existingGroupIndex],
       pageGroup,
-    );
-    groups.splice(
-      0,
-      groups.length,
-      ...groups.filter((group) => !overlappingGroupSet.has(group)),
-      mergedGroup,
     );
   });
 
