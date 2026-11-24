@@ -2,9 +2,15 @@ import { SLIP10Node } from '@metamask/key-tree';
 import { personalSign } from '@metamask/eth-sig-util';
 import {
   selectPrimaryHdKeyringEntropySourceId,
+  type KeyringControllerGetStateAction,
   type KeyringControllerState,
   type KeyringControllerWithKeyringV2UnsafeAction,
 } from '@metamask/keyring-controller';
+import type {
+  ActionConstraint,
+  EventConstraint,
+  Messenger,
+} from '@metamask/messenger';
 import {
   assert,
   bytesToHex,
@@ -166,27 +172,34 @@ export async function getPrimarySrpSeed(
   return seed;
 }
 
-interface SrpKeyringMessenger {
-  call(actionType: 'KeyringController:getState'): KeyringControllerState;
-  call(
-    actionType: 'KeyringController:withKeyringV2Unsafe',
-    ...args: Parameters<KeyringControllerWithKeyringV2UnsafeAction['handler']>
-  ): ReturnType<KeyringControllerWithKeyringV2UnsafeAction['handler']>;
-}
+type SrpKeyringAction =
+  | KeyringControllerGetStateAction
+  | KeyringControllerWithKeyringV2UnsafeAction;
+
+type SrpKeyringCall = Pick<
+  Messenger<string, SrpKeyringAction, never>,
+  'call'
+>['call'];
 
 /**
  * Creates a {@link SiweSigner} backed by a messenger that can call
  * `KeyringController:getState` and `KeyringController:withKeyringV2Unsafe`.
  */
-export function createSrpSiweSignerFromMessenger(
-  messenger: SrpKeyringMessenger,
+export function createSrpSiweSignerFromMessenger<
+  Namespace extends string,
+  Actions extends ActionConstraint,
+  Events extends EventConstraint,
+>(
+  messenger: Messenger<Namespace, Actions, Events> &
+    (SrpKeyringAction extends Actions ? unknown : never),
 ): SiweSigner {
+  const call = messenger.call.bind(messenger) as unknown as SrpKeyringCall;
   return createSrpSiweSigner({
     getSeed: async () =>
       await getPrimarySrpSeed({
-        getState: () => messenger.call('KeyringController:getState'),
+        getState: () => call('KeyringController:getState'),
         withKeyringV2Unsafe: async (selector, operation) =>
-          await messenger.call(
+          await call(
             'KeyringController:withKeyringV2Unsafe',
             selector,
             operation,

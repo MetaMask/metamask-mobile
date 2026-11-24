@@ -366,10 +366,8 @@ export class MfaRecoveryService {
       throw new IdentifierNotApprovedError('passkey');
     }
 
-    const { epoch, trustedAuth } = await this.#ensureSocialIdentifier(
-      initial.epoch,
-      initialTrusted,
-    );
+    const { epoch, identifiers, authIdentifiers, trustedAuth } =
+      await this.#ensureSocialIdentifier(initial, initialTrusted);
 
     // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
     // signature, so fall back to the SRP signing key's identifier.
@@ -390,8 +388,16 @@ export class MfaRecoveryService {
     try {
       if (epoch > 0) {
         // A previous attempt already stored the secret. Registering again asks
-        // for version 1, which Cubist rejects.
+        // for version 1, which Cubist rejects. Reconcile any newly trusted
+        // identifiers (such as a passkey enrolled since that attempt) before
+        // sealing the vault.
         Logger.log('MfaRecovery setUp: reading existing secret', { epoch });
+        await this.#syncMissingIdentifiers(
+          identifiers,
+          authIdentifiers,
+          registrationIdentifiers,
+          epoch,
+        );
         ({ recoverySecret } = await this.readRecoverySecret(siweIdentifier));
       } else {
         recoverySecret = this.createRecoverySecret();
@@ -451,11 +457,7 @@ export class MfaRecoveryService {
   ): Promise<CubistIdentifierChangeResult> {
     const { identifiers, epoch, authIdentifiers } =
       await this.#loadForMutation();
-    const isEnrolled = (enrolled: Identifier): boolean =>
-      identifier.type === 'passkey'
-        ? isSameIdentifier(enrolled, identifier)
-        : enrolled.type === identifier.type;
-    if (identifiers.some(isEnrolled)) {
+    if (isIdentifierEnrolled(identifiers, identifier)) {
       throw new MfaRecoveryControllerError(
         `The ${identifier.type} identifier is already enrolled in Cubist`,
         'identifier_already_enrolled',
@@ -507,11 +509,11 @@ export class MfaRecoveryService {
   }
 
   async #ensureSocialIdentifier(
-    epoch: number,
+    initial: RecoveryIdentifiers,
     trustedAuth: Identifier[],
-  ): Promise<{ epoch: number; trustedAuth: Identifier[] }> {
+  ): Promise<RecoveryIdentifiers & { trustedAuth: Identifier[] }> {
     if (findSocialIdentifier(trustedAuth, this.#seedlessState())) {
-      return { epoch, trustedAuth };
+      return { ...initial, trustedAuth };
     }
     const socialLinkEmail = (
       await this.#options.getSocialLinkEmail?.()
@@ -525,9 +527,30 @@ export class MfaRecoveryService {
       'MfaRecoveryController:getIdentifiers',
     );
     return {
-      epoch: refreshed.epoch,
+      ...refreshed,
       trustedAuth: await this.#filterTrusted(refreshed.authIdentifiers),
     };
+  }
+
+  async #syncMissingIdentifiers(
+    enrolledIdentifiers: readonly Identifier[],
+    authIdentifiers: readonly Identifier[],
+    desiredIdentifiers: readonly Identifier[],
+    epoch: number,
+  ): Promise<void> {
+    const missing = desiredIdentifiers.filter(
+      (candidate) => !isIdentifierEnrolled(enrolledIdentifiers, candidate),
+    );
+    if (missing.length === 0) {
+      return;
+    }
+    const current = withAuthCopies(enrolledIdentifiers, authIdentifiers);
+    await this.#messenger.call(
+      'MfaRecoveryController:updateIdentifiers',
+      pickAuthorizingIdentifier(current),
+      [...current, ...missing],
+      epoch,
+    );
   }
 
   async #filterTrusted(
@@ -596,6 +619,17 @@ export class MfaRecoveryService {
 
 function randomBytes(length: number): Uint8Array {
   return globalThis.crypto.getRandomValues(new Uint8Array(length));
+}
+
+function isIdentifierEnrolled(
+  enrolledIdentifiers: readonly Identifier[],
+  candidate: Identifier,
+): boolean {
+  return enrolledIdentifiers.some((enrolled) =>
+    candidate.type === 'passkey'
+      ? isSameIdentifier(enrolled, candidate)
+      : enrolled.type === candidate.type,
+  );
 }
 
 /** Reuses Auth's copy of an enrolled identifier, which keeps its verifier. */

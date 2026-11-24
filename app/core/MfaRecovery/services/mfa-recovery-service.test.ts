@@ -901,7 +901,10 @@ describe('MfaRecoveryService', () => {
     });
 
     it('reads the existing secret with SIWE and does not register when the escrow already has one', async () => {
-      const controller = createController({ epoch: 2 });
+      const controller = createController({
+        epoch: 2,
+        identifiers: [SIWE, AUTH_SOCIAL, AUTH_PASSKEY],
+      });
       const seedless = createSeedless();
       const captured = captureSecrets(controller, seedless);
       const { service } = createService({ controller, seedless });
@@ -909,6 +912,7 @@ describe('MfaRecoveryService', () => {
       await expect(service.setUp()).resolves.toBe('enabled');
 
       expect(controller.register).not.toHaveBeenCalled();
+      expect(controller.updateIdentifiers).not.toHaveBeenCalled();
       expect(controller.authenticateIdentifier).toHaveBeenCalledWith(SIWE);
       expect(controller.authenticateIdentifier).not.toHaveBeenCalledWith(
         PROVABLE_PASSKEY,
@@ -917,6 +921,29 @@ describe('MfaRecoveryService', () => {
         'MfaRecovery setUp: reading existing secret',
         { epoch: 2 },
       );
+      expect(captured.migrated).toStrictEqual(REGISTERED_SECRET);
+      expect(controller.readSecrets[0]).toStrictEqual(new Uint8Array(32));
+    });
+
+    it('adds missing trusted passkeys to Cubist when retrying setup at epoch > 0', async () => {
+      const controller = createController({
+        epoch: 2,
+        identifiers: [SIWE, SOCIAL],
+        authIdentifiers: [AUTH_PASSKEY, AUTH_SOCIAL],
+      });
+      const seedless = createSeedless();
+      const captured = captureSecrets(controller, seedless);
+      const { service } = createService({ controller, seedless });
+
+      await expect(service.setUp()).resolves.toBe('enabled');
+
+      expect(controller.register).not.toHaveBeenCalled();
+      expect(controller.updateIdentifiers).toHaveBeenCalledWith(
+        SIWE,
+        [SIWE, SOCIAL, AUTH_PASSKEY],
+        2,
+      );
+      expect(controller.authenticateIdentifier).toHaveBeenCalledWith(SIWE);
       expect(captured.migrated).toStrictEqual(REGISTERED_SECRET);
       expect(controller.readSecrets[0]).toStrictEqual(new Uint8Array(32));
     });
