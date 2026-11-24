@@ -1,3 +1,5 @@
+import type { RecurringConfirmOrderModalParams } from '../RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.types';
+
 export interface CostToleranceOption {
   id: string;
   label: string;
@@ -17,4 +19,11 @@ export interface PriceToleranceCustomModalProps {
   initialValue: string;
   onConfirm: (value: string) => void;
   goBack: () => void;
+}
+
+export interface RecurringPriceToleranceModalParams {
+  sourceModal?: {
+    screen: 'RecurringConfirmOrderModal';
+    params: RecurringConfirmOrderModalParams;
+  };
 }

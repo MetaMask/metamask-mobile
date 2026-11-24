@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -7,6 +8,7 @@ import {
   setRecurringPriceTolerance,
 } from '../../../../../core/redux/slices/bridge';
 import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { CUSTOM_COST_TOLERANCE_OPTION_ID } from './constants';
 import { RecurringCustomPriceToleranceModal } from './RecurringCustomPriceToleranceModal';
 import { RecurringDefaultPriceToleranceModal } from './RecurringDefaultPriceToleranceModal';
@@ -16,6 +18,13 @@ const mockDispatch = jest.fn();
 const mockSelector = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const sourceModal = {
+  screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+  params: {
+    location: MetaMetricsSwapsEventSource.TokenView,
+  },
+} as const;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -26,9 +35,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     __esModule: true,
     BottomSheet: ReactModule.forwardRef(
-      (props: { children: unknown; testID?: string }, _ref: unknown) => (
-        <View testID={props.testID}>{props.children as React.ReactNode}</View>
-      ),
+      (
+        props: {
+          children: unknown;
+          testID?: string;
+          goBack?: () => void;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactModule.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: () => props.goBack?.(),
+        }));
+
+        return (
+          <View testID={props.testID}>{props.children as React.ReactNode}</View>
+        );
+      },
     ),
   };
 });
@@ -43,7 +65,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
+    replace: mockReplace,
   }),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
 }));
 
 // The keypad is native-heavy and its behavior is covered by the shared modal
@@ -75,6 +102,7 @@ describe('Recurring price tolerance modals', () => {
 
   beforeEach(() => {
     mockPriceTolerance(undefined);
+    jest.mocked(useParams).mockReturnValue({});
   });
 
   afterEach(() => {
@@ -115,10 +143,28 @@ describe('Recurring price tolerance modals', () => {
       ),
     );
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL,
-    });
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL,
+      undefined,
+    );
+  });
+
+  it('forwards the confirmation modal when opening custom tolerance', () => {
+    jest.mocked(useParams).mockReturnValue({ sourceModal });
+    const { getByTestId } = render(<RecurringDefaultPriceToleranceModal />);
+
+    fireEvent.press(
+      getByTestId(
+        SwapsLimitOrderCostToleranceModalSelectorsIDs.OPTION(
+          CUSTOM_COST_TOLERANCE_OPTION_ID,
+        ),
+      ),
+    );
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL,
+      { sourceModal },
+    );
   });
 
   it('submits the stored recurring custom tolerance', () => {
@@ -129,6 +175,42 @@ describe('Recurring price tolerance modals', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setRecurringPriceTolerance('1.25'),
+    );
+  });
+
+  it('restores the confirmation modal after submitting a preset', () => {
+    jest.mocked(useParams).mockReturnValue({ sourceModal });
+    const { getByText } = render(<RecurringDefaultPriceToleranceModal />);
+
+    fireEvent.press(getByText(strings('bridge.submit')));
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      sourceModal.screen,
+      sourceModal.params,
+    );
+  });
+
+  it('restores the confirmation modal after confirming a custom tolerance', () => {
+    jest.mocked(useParams).mockReturnValue({ sourceModal });
+    const { getByText } = render(<RecurringCustomPriceToleranceModal />);
+
+    fireEvent.press(getByText(strings('bridge.confirm')));
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      sourceModal.screen,
+      sourceModal.params,
+    );
+  });
+
+  it('restores the confirmation modal after cancelling a custom tolerance', () => {
+    jest.mocked(useParams).mockReturnValue({ sourceModal });
+    const { getByText } = render(<RecurringCustomPriceToleranceModal />);
+
+    fireEvent.press(getByText(strings('bridge.cancel')));
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      sourceModal.screen,
+      sourceModal.params,
     );
   });
 });
