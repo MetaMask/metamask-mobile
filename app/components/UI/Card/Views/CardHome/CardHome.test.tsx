@@ -357,8 +357,12 @@ let mockProvisioningView:
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
 let mockIsProvisioningPollActive = false;
-let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null =
-  null;
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = null;
 jest.mock('../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
 }));
