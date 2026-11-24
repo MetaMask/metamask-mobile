@@ -3108,7 +3108,7 @@
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
       "marginAdjustmentFailed": "Unable to adjust margin. Try again.",
       "tpslUpdateFailed": "Unable to update take profit/stop loss. Try again.",
-      "tpslLegReplaceUnsupported": "Updating only take profit or only stop loss isn’t available for this exchange. Update take profit and stop loss together instead.",
+      "tpslLegReplaceUnsupported": "Updating only take profit or only stop loss isn’t available for this provider. Update take profit and stop loss together instead.",
       "orderRejected": "Order was rejected. Check your parameters and try again.",
       "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
       "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
@@ -3657,7 +3657,7 @@
       "reset": "Reset"
     },
     "provider_selector": {
-      "title": "Select exchange"
+      "title": "Select Provider"
     },
     "selection_sheet": {
       "save": "Save"
