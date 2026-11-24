@@ -1,4 +1,4 @@
-// eslint-disable-next-line import-x/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules -- Node webcrypto generates P-256 test keys in Jest.
 import { webcrypto } from 'crypto';
 import {
   getEscrowPasskeyChallenge,

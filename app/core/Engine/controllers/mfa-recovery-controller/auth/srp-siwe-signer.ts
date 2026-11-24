@@ -39,7 +39,7 @@ function getDerivationPathArray(hash: Uint8Array): `bip32:${number}'`[] {
   const view = createDataView(hash);
   const path: `bip32:${number}'`[] = [];
   for (let index = 0; index < 8; index++) {
-    // eslint-disable-next-line no-bitwise
+    // eslint-disable-next-line no-bitwise -- SIP-6 BIP-32 hardened path derivation requires unsigned 32-bit bitwise ops.
     const pathIndex = (view.getUint32(index * 4) | HARDENED_VALUE) >>> 0;
     path.push(`bip32:${pathIndex - HARDENED_VALUE}'`);
   }
