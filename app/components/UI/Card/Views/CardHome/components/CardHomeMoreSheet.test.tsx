@@ -1,6 +1,6 @@
 import React from 'react';
-import { Alert, Linking } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import CardHomeMoreSheet from './CardHomeMoreSheet';
 import { CardHomeSelectors } from '../CardHome.testIds';
@@ -8,19 +8,6 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
-}));
-
-const mockLogout = jest.fn().mockResolvedValue(undefined);
-
-jest.mock('../../../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      CardController: {
-        logout: (...args: unknown[]) => mockLogout(...args),
-      },
-    },
-  },
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -187,72 +174,12 @@ describe('CardHomeMoreSheet', () => {
     expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
-  it('does not show log out when the user is signed out', () => {
+  it('never shows log out; that action stays in Experimental settings', () => {
     const { queryByTestId, getByTestId } = renderSheet();
 
     expect(
       getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
     ).toBeOnTheScreen();
     expect(queryByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeNull();
-  });
-
-  it('shows log out after contact support when the user is signed in', () => {
-    const { getByTestId } = renderSheet({ isAuthenticated: true });
-
-    expect(
-      getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
-    ).toBeOnTheScreen();
-    expect(getByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeOnTheScreen();
-  });
-
-  it('closes the sheet and shows the confirmation alert when log out is pressed', () => {
-    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-    const { getByTestId } = renderSheet({ isAuthenticated: true });
-
-    fireEvent.press(getByTestId(CardHomeSelectors.LOGOUT_ITEM));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'card.card_home.logout_confirmation_title',
-      'card.card_home.logout_confirmation_message',
-      expect.any(Array),
-    );
-    expect(mockLogout).not.toHaveBeenCalled();
-  });
-
-  it('calls CardController.logout when log out is confirmed', async () => {
-    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-    const { getByTestId } = renderSheet({ isAuthenticated: true });
-
-    fireEvent.press(getByTestId(CardHomeSelectors.LOGOUT_ITEM));
-
-    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
-      style?: string;
-      onPress?: () => void;
-    }[];
-    const confirm = buttons.find((button) => button.style === 'destructive');
-
-    await act(async () => {
-      confirm?.onPress?.();
-    });
-
-    expect(mockLogout).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call CardController.logout when log out is cancelled', () => {
-    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-    const { getByTestId } = renderSheet({ isAuthenticated: true });
-
-    fireEvent.press(getByTestId(CardHomeSelectors.LOGOUT_ITEM));
-
-    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
-      style?: string;
-      onPress?: () => void;
-    }[];
-    const cancel = buttons.find((button) => button.style === 'cancel');
-    cancel?.onPress?.();
-
-    expect(mockLogout).not.toHaveBeenCalled();
   });
 });

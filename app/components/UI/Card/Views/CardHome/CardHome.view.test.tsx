@@ -547,11 +547,11 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show contact support or logout on the main screen; they live in the More sheet', async () => {
+    it('does not show contact support or logout on the main screen', async () => {
       const { queryByTestId } = renderCardHomeView();
 
-      // Both items moved behind the header's More button; neither appears
-      // on the main screen without opening the sheet.
+      // Contact support lives in the More sheet. Log out is not on Card home;
+      // it stays in Settings > Experimental.
       expect(
         queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).not.toBeOnTheScreen();

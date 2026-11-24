@@ -803,7 +803,6 @@ const CardHome = () => {
   const moreSheet = isMoreSheetOpen ? (
     <CardHomeMoreSheet
       onClose={() => setIsMoreSheetOpen(false)}
-      isAuthenticated={isAuthenticated}
       supportEmail={supportEmail}
       onContactSupport={handleContactIntercomSupport}
       legalDocuments={

@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
@@ -12,7 +12,6 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import Engine from '../../../../../../core/Engine';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../../../../Money/components/MoneySheetOptionsList';
@@ -29,8 +28,6 @@ export interface CardHomeLegalDocumentLink {
 interface CardHomeMoreSheetProps {
   /** Called once the sheet has finished closing. */
   onClose: () => void;
-  /** When true, show Log out after Contact support. */
-  isAuthenticated?: boolean;
   supportEmail: string;
   onContactSupport?: () => void;
   /** When set (Immersve), render one row per region legal document. */
@@ -53,12 +50,12 @@ interface CardHomeMoreSheetProps {
  * Card home "More" sheet, opened from the header's vertical-ellipsis button.
  * Mirrors Money home's `MoneyMoreSheet` (MMDS BottomSheet, HeadingSm title,
  * icon + label rows) and reuses Money's `MoneySheetOptionsList` for the rows.
- * Holds the legal links, Contact support, and (when signed in) Log out
- * that used to sit at the bottom of Card home, wired to the same actions.
+ * Holds the legal links and Contact support that used to sit at the bottom
+ * of Card home, wired to the same actions. Card log out stays in
+ * Settings > Experimental.
  */
 const CardHomeMoreSheet = ({
   onClose,
-  isAuthenticated = false,
   supportEmail,
   onContactSupport,
   legalDocuments,
@@ -86,30 +83,6 @@ const CardHomeMoreSheet = ({
     }
     Linking.openURL(`mailto:${supportEmail}`).catch(() => undefined);
   }, [onContactSupport, supportEmail]);
-
-  // Same confirmation and CardController.logout() path as Experimental
-  // settings (PR #39351). Close the sheet first, then show the alert.
-  const handleLogout = useCallback(() => {
-    Alert.alert(
-      strings('card.card_home.logout_confirmation_title'),
-      strings('card.card_home.logout_confirmation_message'),
-      [
-        {
-          text: strings('card.card_home.logout_confirmation_cancel'),
-          style: 'cancel',
-        },
-        {
-          text: strings('card.card_home.logout_confirmation_confirm'),
-          style: 'destructive',
-          onPress: () => {
-            Engine.context.CardController.logout().catch(() => {
-              // CardController logs provider logout failures itself.
-            });
-          },
-        },
-      ],
-    );
-  }, []);
 
   const legalOptions: MoneySheetOption[] = (() => {
     if (hideLegalDocuments || showLegalDocumentsError) {
@@ -146,16 +119,6 @@ const CardHomeMoreSheet = ({
       testID: CardHomeSelectors.CONTACT_SUPPORT_ITEM,
       onPress: () => closeThen(handleContactSupport),
     },
-    ...(isAuthenticated
-      ? [
-          {
-            label: strings('card.card_home.logout'),
-            icon: IconName.Logout,
-            testID: CardHomeSelectors.LOGOUT_ITEM,
-            onPress: () => closeThen(handleLogout),
-          },
-        ]
-      : []),
   ];
 
   return (
