@@ -52,10 +52,7 @@ const clientOptions: Pick<
     ),
 };
 
-/**
- * Non-hook entry for features that must prove or enroll MFA outside the `useMfa` hook.
- */
-export const verifyOrEnroll = ({
+const verifyOrEnroll = ({
   reason,
   ...request
 }: VerifyOrEnrollOptions): Promise<MfaFlowResult> =>

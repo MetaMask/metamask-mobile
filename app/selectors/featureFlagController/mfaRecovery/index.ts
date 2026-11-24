@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
-import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { isMfaDevRecoveryBuild } from '../../../core/MfaRecovery/isMfaDevRecoveryBuild';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 /**
@@ -14,5 +14,5 @@ export const selectMfaRecoveryEnabled = createSelector(
   (remoteFeatureFlags): boolean =>
     validatedVersionGatedFeatureFlag(
       remoteFeatureFlags?.[FeatureFlagNames.mfaRecovery],
-    ) ?? isMfaDevBuild(),
+    ) ?? isMfaDevRecoveryBuild(),
 );

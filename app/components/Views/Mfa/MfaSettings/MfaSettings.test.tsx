@@ -40,6 +40,11 @@ jest.mock('../../../../util/identity/mfa/isMfaDevBuild', () => ({
   isMfaDevBuild: () => mockIsMfaDevBuild(),
 }));
 
+const mockIsMfaDevRecoveryBuild = jest.fn(() => true);
+jest.mock('../../../../core/MfaRecovery/isMfaDevRecoveryBuild', () => ({
+  isMfaDevRecoveryBuild: (): boolean => mockIsMfaDevRecoveryBuild(),
+}));
+
 const mockSyncRecovery = jest.mocked(syncRecoveryAfterEnroll);
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
@@ -93,6 +98,7 @@ describe('MfaSettings', () => {
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
     mockSyncRecovery.mockResolvedValue(undefined);
     mockIsMfaDevBuild.mockReturnValue(true);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -173,7 +179,7 @@ describe('MfaSettings', () => {
   });
 
   it('does not offer the social link email outside dev builds', async () => {
-    mockIsMfaDevBuild.mockReturnValue(false);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(false);
     const { getByTestId } = renderSettings();
 
     await act(async () => {

@@ -8,7 +8,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 /**
  * Whether the MFA screens are reachable: the `mfaUiKit` remote flag
  * (`{ enabled, minimumVersion }`) when valid, otherwise the build check, which
- * enables them only in explicit dev builds (`dev`, `local`, `test`).
+ * hides them in production and beta builds.
  */
 export const selectMfaUiKitEnabled = createSelector(
   selectRemoteFeatureFlags,

@@ -1,6 +1,6 @@
 import { selectMfaRecoveryEnabled } from './index';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
-import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { isMfaDevRecoveryBuild } from '../../../core/MfaRecovery/isMfaDevRecoveryBuild';
 import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
@@ -12,15 +12,15 @@ jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(),
 }));
 
-jest.mock('../../../util/identity/mfa/isMfaDevBuild', () => ({
-  isMfaDevBuild: jest.fn(),
+jest.mock('../../../core/MfaRecovery/isMfaDevRecoveryBuild', () => ({
+  isMfaDevRecoveryBuild: jest.fn(),
 }));
 
 describe('selectMfaRecoveryEnabled', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
-    jest.mocked(isMfaDevBuild).mockReturnValue(false);
+    jest.mocked(isMfaDevRecoveryBuild).mockReturnValue(false);
   });
 
   it.each([true, false])(
@@ -54,13 +54,13 @@ describe('selectMfaRecoveryEnabled', () => {
     ['missing', {}],
     ['invalid', { [FeatureFlagNames.mfaRecovery]: { enabled: true } }],
   ])('falls back to the build check when the flag is %s', (_case, flags) => {
-    jest.mocked(isMfaDevBuild).mockReturnValue(true);
+    jest.mocked(isMfaDevRecoveryBuild).mockReturnValue(true);
 
     expect(selectMfaRecoveryEnabled.resultFunc(flags)).toBe(true);
   });
 
   it('hides recovery on non-dev builds when the flag is missing', () => {
-    jest.mocked(isMfaDevBuild).mockReturnValue(false);
+    jest.mocked(isMfaDevRecoveryBuild).mockReturnValue(false);
 
     expect(selectMfaRecoveryEnabled.resultFunc({})).toBe(false);
   });

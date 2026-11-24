@@ -18,7 +18,7 @@ import type {
   RecoveryRegistrationLockProviderMessenger,
   UserStorageTrustedIdentifierStoreMessenger,
 } from '@metamask/mfa-recovery-controller';
-import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { isMfaDevRecoveryBuild } from '../../MfaRecovery/isMfaDevRecoveryBuild';
 import { applyDevSocialLinkEmail } from '../../MfaRecovery/social-login/devSocialLinkEmail';
 import type { MfaRecoveryServiceMessenger } from '../../MfaRecovery/services/mfa-recovery-service';
 import type { RootMessenger } from '../types';
@@ -42,7 +42,7 @@ export function getMfaRecoveryControllerMessenger(
     ],
     messenger,
   });
-  if (isMfaDevBuild()) {
+  if (isMfaDevRecoveryBuild()) {
     const originalCall = messenger.call.bind(messenger);
     messenger.call = ((actionType, ...args) => {
       const result = originalCall(actionType, ...args);

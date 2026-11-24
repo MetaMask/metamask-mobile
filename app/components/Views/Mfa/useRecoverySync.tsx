@@ -8,13 +8,13 @@ import React, {
 import { Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectMfaRecoveryEnabled } from '../../../selectors/featureFlagController/mfaRecovery';
-import { isMfaDevBuild } from '../../../util/identity/mfa';
+import { useMfa } from '../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../util/identity/mfa/bindings';
-import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
 import type {
   MfaMethod,
   MfaReason,
 } from '../../../util/identity/mfa/engine/types';
+import { isMfaDevRecoveryBuild } from '../../../core/MfaRecovery/isMfaDevRecoveryBuild';
 import {
   removePasskeyFromRecovery,
   syncRecoveryAfterEnroll,
@@ -57,6 +57,7 @@ interface RecoverySync {
  */
 const useRecoverySync = (): RecoverySync => {
   const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
+  const { verifyOrEnroll } = useMfa();
   const [phase, setPhase] = useState<RecoverySyncPhase>('idle');
   const [progressCopy, setProgressCopy] =
     useState<RecoveryProgressCopy>('setup');
@@ -178,7 +179,7 @@ const useRecoverySync = (): RecoverySync => {
               reason,
             });
           }),
-          getSocialLinkEmail: isMfaDevBuild()
+          getSocialLinkEmail: isMfaDevRecoveryBuild()
             ? stepAsideWhile(askSocialLinkEmail)
             : undefined,
         });
@@ -198,6 +199,7 @@ const useRecoverySync = (): RecoverySync => {
       startProgress,
       stepAsideWhile,
       verifyIfNeeded,
+      verifyOrEnroll,
     ],
   );
 

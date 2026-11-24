@@ -1,15 +1,11 @@
-const DEV_ENVIRONMENTS = new Set(['dev', 'local', 'test']);
-
 /**
- * Whether this build runs the MFA dev tools (the QA presets, dev social-link
- * email override, and dev fallbacks for the MFA remote flags).
- *
- * Uses an explicit allowlist so non-dev environments (`production`, `beta`,
- * `pre-release`, `rc`, `e2e`, `exp`, or unknown values) fail closed.
+ * Whether this build runs the MFA dev tools (the QA presets). Also the
+ * fallback for the `mfaUiKit` remote flag, which decides whether the MFA
+ * screens can be reached.
  *
  * @param environment - The build's `METAMASK_ENVIRONMENT`, inlined at build time.
- * @returns `true` only in explicit dev builds (`dev`, `local`, `test`).
+ * @returns `false` in production and beta builds.
  */
 export const isMfaDevBuild = (
   environment = process.env.METAMASK_ENVIRONMENT,
-): boolean => environment !== undefined && DEV_ENVIRONMENTS.has(environment);
+): boolean => environment !== 'production' && environment !== 'beta';

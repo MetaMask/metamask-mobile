@@ -44,6 +44,7 @@ import type {
   MfaReason,
 } from '../../../../util/identity/mfa/engine/types';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
+import { untrustPasskeyBestEffort } from '../../../../core/MfaRecovery/passkeyTrust';
 import Logger from '../../../../util/Logger';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import {
@@ -205,6 +206,9 @@ const MfaMethodDetails = () => {
         await removeRecoveryPasskey(credential.id, verify);
       }
       await removeMfaCredential(credential, reason);
+      if (credential.type === 'passkey') {
+        await untrustPasskeyBestEffort(credential.id, reason.operation);
+      }
       showToast(strings(copy.removed), true);
       navigation.dispatch(StackActions.popTo(Routes.MFA.SETTINGS));
     } catch (error) {

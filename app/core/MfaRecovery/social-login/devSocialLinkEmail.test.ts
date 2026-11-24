@@ -1,5 +1,5 @@
 import StorageWrapper from '../../../store/storage-wrapper';
-import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { isMfaDevRecoveryBuild } from '../isMfaDevRecoveryBuild';
 import {
   applyDevSocialLinkEmail,
   clearDevSocialLinkEmail,
@@ -16,17 +16,17 @@ jest.mock('../../../store/storage-wrapper', () => ({
   },
 }));
 
-jest.mock('../../../util/identity/mfa/isMfaDevBuild', () => ({
-  isMfaDevBuild: jest.fn(),
+jest.mock('../isMfaDevRecoveryBuild', () => ({
+  isMfaDevRecoveryBuild: jest.fn(),
 }));
 
 const mockStorage = jest.mocked(StorageWrapper);
-const mockIsMfaDevBuild = jest.mocked(isMfaDevBuild);
+const mockIsMfaDevRecoveryBuild = jest.mocked(isMfaDevRecoveryBuild);
 
 describe('devSocialLinkEmail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMfaDevBuild.mockReturnValue(true);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(true);
     mockStorage.getItem.mockResolvedValue(null);
     clearDevSocialLinkEmail();
   });
@@ -81,7 +81,7 @@ describe('devSocialLinkEmail', () => {
   });
 
   it('is a no-op in non-dev builds', async () => {
-    mockIsMfaDevBuild.mockReturnValue(false);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(false);
 
     setDevSocialLinkEmail('dev-alias@example.com', 'real@example.com');
     await hydrateDevSocialLinkEmail();

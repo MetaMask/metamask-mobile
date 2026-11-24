@@ -6,7 +6,6 @@ import {
   syncRecoveryAfterEnroll,
 } from '../../../core/MfaRecovery/syncRecoveryIdentifiers';
 import { mobileMfaControllerAdapter } from '../../../util/identity/mfa/bindings';
-import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
 import type {
   MfaFlowResult,
   MfaReason,
@@ -27,13 +26,16 @@ jest.mock('../../../util/identity/mfa/bindings', () => ({
   },
 }));
 
-jest.mock('../../../util/identity/mfa/useMfa', () => ({
-  verifyOrEnroll: jest.fn(),
+const mockVerifyOrEnroll = jest.fn();
+jest.mock('../../../util/identity/mfa', () => ({
+  useMfa: (): { verifyOrEnroll: typeof mockVerifyOrEnroll } => ({
+    verifyOrEnroll: mockVerifyOrEnroll,
+  }),
 }));
 
-const mockIsMfaDevBuild = jest.fn(() => false);
-jest.mock('../../../util/identity/mfa/isMfaDevBuild', () => ({
-  isMfaDevBuild: (): boolean => mockIsMfaDevBuild(),
+const mockIsMfaDevRecoveryBuild = jest.fn(() => false);
+jest.mock('../../../core/MfaRecovery/isMfaDevRecoveryBuild', () => ({
+  isMfaDevRecoveryBuild: (): boolean => mockIsMfaDevRecoveryBuild(),
 }));
 
 const mockUseSelector = jest.fn();
@@ -55,7 +57,6 @@ const mockRemoveFromRecovery = jest.mocked(removePasskeyFromRecovery);
 const mockGetVerificationToken = jest.mocked(
   mobileMfaControllerAdapter.getVerificationToken,
 );
-const mockVerifyOrEnroll = jest.mocked(verifyOrEnroll);
 const REASON: MfaReason = { operation: 'settings.addPasskey' };
 const FLOW_RESULT: MfaFlowResult = { credentials: [] };
 const ACTIVE_SESSION = {
@@ -145,7 +146,7 @@ describe('useRecoverySync', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockIsMfaDevBuild.mockReturnValue(false);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(false);
     mockUseSelector.mockReturnValue(true);
     mockGetVerificationToken.mockResolvedValue(null);
   });
@@ -258,7 +259,7 @@ describe('useRecoverySync', () => {
   });
 
   it('asks for the social link email in dev builds and hands it to the sync', async () => {
-    mockIsMfaDevBuild.mockReturnValue(true);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(true);
     const email = deferred<string | undefined>();
     const finish = deferred();
     mockSync.mockImplementation(async (_method, options: SyncOptions) => {
@@ -419,7 +420,7 @@ describe('useRecoverySync', () => {
   });
 
   it('resolves the pending social link email with undefined on unmount', async () => {
-    mockIsMfaDevBuild.mockReturnValue(true);
+    mockIsMfaDevRecoveryBuild.mockReturnValue(true);
     const email = deferred<string | undefined>();
     mockSync.mockImplementation(async (_method, options: SyncOptions) => {
       email.resolve(await options.getSocialLinkEmail?.());

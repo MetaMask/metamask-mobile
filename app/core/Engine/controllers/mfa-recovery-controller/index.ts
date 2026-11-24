@@ -7,8 +7,8 @@ import {
   UserStorageTrustedIdentifierStore,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
-import { isMfaDevBuild } from '../../../../util/identity/mfa/isMfaDevBuild';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
+import { isMfaDevRecoveryBuild } from '../../../MfaRecovery/isMfaDevRecoveryBuild';
 import {
   clearDevSocialLinkEmail,
   hydrateDevSocialLinkEmail,
@@ -52,7 +52,7 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   MfaRecoveryControllerMessenger,
   MfaRecoveryControllerInitMessenger
 > = ({ controllerMessenger, initMessenger, persistedState }) => {
-  if (isMfaDevBuild()) {
+  if (isMfaDevRecoveryBuild()) {
     void hydrateDevSocialLinkEmail();
   }
   const isEnabled = () => {

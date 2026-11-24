@@ -1,5 +1,5 @@
 import StorageWrapper from '../../../store/storage-wrapper';
-import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
+import { isMfaDevRecoveryBuild } from '../isMfaDevRecoveryBuild';
 
 const DEV_SOCIAL_LINK_EMAIL_STORAGE_KEY = '@MetaMask:mfaDevSocialLinkEmail';
 
@@ -38,7 +38,7 @@ export function setDevSocialLinkEmail(
 ): void {
   const trimmedOverride = overrideEmail?.trim();
   const trimmedOriginal = originalEmail?.trim();
-  if (!isMfaDevBuild() || !trimmedOverride || !trimmedOriginal) {
+  if (!isMfaDevRecoveryBuild() || !trimmedOverride || !trimmedOriginal) {
     return;
   }
   cachedOverride = {
@@ -59,7 +59,7 @@ export function setDevSocialLinkEmail(
  * builds. No-op in non-dev builds.
  */
 export async function hydrateDevSocialLinkEmail(): Promise<void> {
-  if (!isMfaDevBuild()) {
+  if (!isMfaDevRecoveryBuild()) {
     return;
   }
   try {
@@ -89,7 +89,7 @@ export function applyDevSocialLinkEmail<
   TState extends { socialLoginEmail?: string },
 >(state: TState): TState {
   if (
-    !isMfaDevBuild() ||
+    !isMfaDevRecoveryBuild() ||
     !cachedOverride ||
     !state.socialLoginEmail ||
     state.socialLoginEmail !== cachedOverride.originalEmail

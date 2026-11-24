@@ -1,5 +1,5 @@
 import Engine from '../../../core/Engine';
-import Logger from '../../Logger';
+import { withPasskeyRecoveryTrust } from '../../../core/MfaRecovery/passkeyTrust';
 import {
   createSocialLoginControllerAdapter,
   mobileMfaControllerAdapter,
@@ -20,26 +20,19 @@ jest.mock('../../../core/Engine', () => ({
       beginSocialLoginVerification: jest.fn(),
       completeSocialLoginVerification: jest.fn(),
     },
-    MfaRecoveryController: {
-      trustIdentifier: jest.fn(),
-      untrustPasskey: jest.fn(),
-    },
   },
 }));
 
-jest.mock('../../Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn() },
+jest.mock('../../../core/MfaRecovery/passkeyTrust', () => ({
+  withPasskeyRecoveryTrust: jest.fn(
+    async (_request, complete: () => Promise<unknown>) => await complete(),
+  ),
 }));
 
 const controller = jest.mocked(Engine.context.AuthenticationController);
-const mfaRecoveryController = jest.mocked(Engine.context.MfaRecoveryController);
 const reason = { operation: 'qa.test' };
 
 describe('mobileMfaControllerAdapter', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('forwards refreshEnrolledCredentials', async () => {
     controller.refreshEnrolledCredentials.mockResolvedValue([]);
 
@@ -63,137 +56,13 @@ describe('mobileMfaControllerAdapter', () => {
     };
     await mobileMfaControllerAdapter.completeCredentialEnrollment(request);
 
+    expect(withPasskeyRecoveryTrust).toHaveBeenCalledWith(
+      request,
+      expect.any(Function),
+    );
     expect(controller.completeCredentialEnrollment).toHaveBeenCalledWith(
       request,
     );
-    expect(mfaRecoveryController.trustIdentifier).not.toHaveBeenCalled();
-  });
-
-  it('trusts a newly enrolled passkey attestation before Auth accepts it', async () => {
-    const order: string[] = [];
-    const enrolled = [
-      { id: 'cred-1', type: 'passkey' as const, status: 'active' as const },
-    ];
-    mfaRecoveryController.trustIdentifier.mockImplementationOnce(async () => {
-      order.push('trust');
-    });
-    controller.completeCredentialEnrollment.mockImplementationOnce(async () => {
-      order.push('enroll');
-      return enrolled;
-    });
-    const request = {
-      flowId: 'flow',
-      proof: {
-        type: 'passkey' as const,
-        attestation: {
-          id: 'cred-1',
-          rawId: 'cred-1',
-          type: 'public-key' as const,
-          response: {
-            attestationObject: 'YXR0ZXN0YXRpb24',
-            clientDataJSON: 'Y2xpZW50',
-          },
-        },
-      },
-      reason,
-    };
-
-    const result =
-      await mobileMfaControllerAdapter.completeCredentialEnrollment(request);
-
-    expect(result).toBe(enrolled);
-    expect(order).toStrictEqual(['trust', 'enroll']);
-    expect(mfaRecoveryController.trustIdentifier).toHaveBeenCalledWith({
-      type: 'passkey',
-      attestationObject: 'YXR0ZXN0YXRpb24',
-    });
-    expect(mfaRecoveryController.untrustPasskey).not.toHaveBeenCalled();
-  });
-
-  it('rolls back trusted passkey when Auth enrollment fails', async () => {
-    const error = new Error('auth rejected');
-    mfaRecoveryController.trustIdentifier.mockResolvedValueOnce(undefined);
-    mfaRecoveryController.untrustPasskey.mockResolvedValueOnce(undefined);
-    controller.completeCredentialEnrollment.mockRejectedValueOnce(error);
-    const request = {
-      flowId: 'flow',
-      proof: {
-        type: 'passkey' as const,
-        attestation: {
-          id: 'cred-1',
-          rawId: 'cred-1',
-          type: 'public-key' as const,
-          response: {
-            attestationObject: 'YXR0ZXN0YXRpb24',
-            clientDataJSON: 'Y2xpZW50',
-          },
-        },
-      },
-      reason,
-    };
-
-    await expect(
-      mobileMfaControllerAdapter.completeCredentialEnrollment(request),
-    ).rejects.toBe(error);
-    expect(mfaRecoveryController.untrustPasskey).toHaveBeenCalledWith('cred-1');
-  });
-
-  it('logs rollback failure and preserves the original Auth error', async () => {
-    const authError = new Error('auth rejected');
-    const untrustError = new Error('cleanup failed');
-    mfaRecoveryController.trustIdentifier.mockResolvedValueOnce(undefined);
-    mfaRecoveryController.untrustPasskey.mockRejectedValueOnce(untrustError);
-    controller.completeCredentialEnrollment.mockRejectedValueOnce(authError);
-    const request = {
-      flowId: 'flow',
-      proof: {
-        type: 'passkey' as const,
-        attestation: {
-          id: 'cred-1',
-          rawId: 'cred-1',
-          type: 'public-key' as const,
-          response: {
-            attestationObject: 'YXR0ZXN0YXRpb24',
-            clientDataJSON: 'Y2xpZW50',
-          },
-        },
-      },
-      reason,
-    };
-
-    await expect(
-      mobileMfaControllerAdapter.completeCredentialEnrollment(request),
-    ).rejects.toBe(authError);
-    expect(Logger.error).toHaveBeenCalledWith(untrustError, {
-      tags: { feature: 'mfa', operation: reason.operation },
-    });
-  });
-
-  it('fails enrollment without calling Auth if trusting the passkey fails', async () => {
-    const trustError = new Error('storage unavailable');
-    mfaRecoveryController.trustIdentifier.mockRejectedValueOnce(trustError);
-    const request = {
-      flowId: 'flow',
-      proof: {
-        type: 'passkey' as const,
-        attestation: {
-          id: 'cred-1',
-          rawId: 'cred-1',
-          type: 'public-key' as const,
-          response: {
-            attestationObject: 'YXR0ZXN0YXRpb24',
-            clientDataJSON: 'Y2xpZW50',
-          },
-        },
-      },
-      reason,
-    };
-
-    await expect(
-      mobileMfaControllerAdapter.completeCredentialEnrollment(request),
-    ).rejects.toBe(trustError);
-    expect(controller.completeCredentialEnrollment).not.toHaveBeenCalled();
-    expect(mfaRecoveryController.untrustPasskey).not.toHaveBeenCalled();
   });
 
   it('forwards beginCredentialVerification with its request', async () => {

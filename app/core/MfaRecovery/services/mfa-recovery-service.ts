@@ -357,7 +357,7 @@ export class MfaRecoveryService {
     const address = await this.getSiweAddress();
     await this.verifyMfa();
 
-    return await this.#withRecoveryLock(async () => {
+    return await this.#withRecoveryLock<MfaRecoverySetupResult>(async () => {
       await this.#resumePendingOperation();
 
       const initial = await this.#messenger.call(

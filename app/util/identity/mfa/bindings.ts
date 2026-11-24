@@ -3,58 +3,23 @@ import type {
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../core/Engine';
-import Logger from '../../Logger';
+import { withPasskeyRecoveryTrust } from '../../../core/MfaRecovery/passkeyTrust';
 import { MfaFlowError } from './engine/errors';
 import type { MfaControllerAdapter } from './engine/types';
-
-const untrustPasskeyBestEffort = async (
-  credentialId: string,
-  operation: string,
-): Promise<void> => {
-  try {
-    await Engine.context.MfaRecoveryController.untrustPasskey(credentialId);
-  } catch (error) {
-    Logger.error(
-      error instanceof Error
-        ? error
-        : new Error('Failed to untrust passkey after enrollment error'),
-      { tags: { feature: 'mfa', operation } },
-    );
-  }
-};
 
 export const mobileMfaControllerAdapter: MfaControllerAdapter = {
   refreshEnrolledCredentials: () =>
     Engine.context.AuthenticationController.refreshEnrolledCredentials(),
   beginCredentialEnrollment: (request) =>
     Engine.context.AuthenticationController.beginCredentialEnrollment(request),
-  completeCredentialEnrollment: async (request) => {
-    if (request.proof.type !== 'passkey') {
-      return await Engine.context.AuthenticationController.completeCredentialEnrollment(
-        request,
-      );
-    }
-
-    // Trust the passkey attestation before enrolling it with Auth. Because
-    // WebAuthn attestation is only emitted at creation, failing loudly here
-    // lets the MFA flow offer a retry instead of enrolling an unrecoverable
-    // passkey. If Auth subsequently rejects the enrollment, roll back trust.
-    await Engine.context.MfaRecoveryController.trustIdentifier({
-      type: 'passkey',
-      attestationObject: request.proof.attestation.response.attestationObject,
-    });
-    try {
-      return await Engine.context.AuthenticationController.completeCredentialEnrollment(
-        request,
-      );
-    } catch (error) {
-      await untrustPasskeyBestEffort(
-        request.proof.attestation.id,
-        request.reason.operation,
-      );
-      throw error;
-    }
-  },
+  completeCredentialEnrollment: async (request) =>
+    await withPasskeyRecoveryTrust(
+      request,
+      async () =>
+        await Engine.context.AuthenticationController.completeCredentialEnrollment(
+          request,
+        ),
+    ),
   beginCredentialVerification: (request) =>
     Engine.context.AuthenticationController.beginCredentialVerification(
       request,
