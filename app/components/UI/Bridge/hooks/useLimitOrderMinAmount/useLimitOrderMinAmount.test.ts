@@ -50,7 +50,17 @@ describe('useLimitOrderMinAmount', () => {
 
     expect(getLimitOrderMinAmountUsd).toHaveBeenCalledWith('0x1');
     expect(minAmountUsd).toBe(50);
-    expect(formattedMinAmountInSelectedCurrency).toBe('$50.00');
+    expect(formattedMinAmountInSelectedCurrency).toBe('$50');
+  });
+
+  it('keeps two decimals for a fractional minimum in the selected currency', () => {
+    jest.mocked(getLimitOrderMinAmountUsd).mockReturnValue(50.625);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
+    jest.mocked(useSelector).mockReturnValue('eur');
+
+    const { formattedMinAmountInSelectedCurrency } = renderMinAmount('1');
+
+    expect(formattedMinAmountInSelectedCurrency).toBe('€40.50');
   });
 
   it('values the amount at the live rate of the source token', () => {
