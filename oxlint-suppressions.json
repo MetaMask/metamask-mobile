@@ -12679,11 +12679,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/hooks/useGetVipTransactions.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 10
-    }
-  },
   "app/components/UI/Rewards/hooks/useInFlightClaims.test.ts": {
     "typescript/promise-function-async": {
       "count": 5
@@ -12771,9 +12766,6 @@
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.test.ts": {
     "typescript/await-thenable": {
       "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
     }
   },
   "app/components/UI/Rewards/hooks/useMoneyAccountSweepstakesParticipation.ts": {
@@ -20213,6 +20205,11 @@
       "count": 1
     }
   },
+  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "app/components/Views/confirmations/utils/transaction.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -23905,11 +23902,6 @@
       "count": 2
     }
   },
-  "app/store/sagas/rewardsBulkLinkAccountGroups.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/store/sagas/rewardsBulkLinkAccountGroups.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -27023,11 +27015,6 @@
   "tests/websocket/server.test.ts": {
     "typescript/no-base-to-string": {
       "count": 2
-    }
-  },
-  "app/components/Views/confirmations/utils/transaction-pay.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   }
 }
