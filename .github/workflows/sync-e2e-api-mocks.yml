@@ -123,9 +123,14 @@ jobs:
           git checkout -B "$SYNC_BRANCH"
           git add -A -- tests/api-mocking
           git commit -m 'test: sync E2E API mock shapes with the live APIs'
-          git push --force \
-            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
-            "$SYNC_BRANCH"
+          # Pass the token as an http.extraheader through the environment, so it
+          # is neither in the remote URL nor in the process arguments.
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::${AUTH}"
+          GIT_CONFIG_COUNT=1 \
+            GIT_CONFIG_KEY_0="http.https://github.com/.extraheader" \
+            GIT_CONFIG_VALUE_0="AUTHORIZATION: basic ${AUTH}" \
+            git push --force "https://github.com/${GITHUB_REPOSITORY}.git" "$SYNC_BRANCH"
 
       - name: Open or update the sync pull request
         if: steps.changes.outputs.HAS_CHANGES == 'true' && inputs.dry_run != true
@@ -143,7 +148,7 @@ jobs:
 
           `yarn lint:tsc` runs on this pull request. If it fails, a synced mock no longer satisfies the type the wallet reads in `tests/api-mocking/api-response-types.ts`. Update that type, or the consumer, before merging.
 
-          Drift in `report-only` mocks is listed below and is not written. Review it by hand.
+          Check the removed fields first: a field missing from one live response is removed from the mock, and `lint:tsc` only catches the removal of a field the type requires. Drift in `report-only` mocks is listed below and is not written. Review it by hand.
 
           EOF
             echo "**Sync report**"
@@ -212,6 +217,25 @@ jobs:
               --label no-changelog)
             echo "Opened pull request ${PR_URL}." >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # Drift is gone, so an open sync PR is stale. Skip this when a row failed:
+      # that row may still have drift that was not checked.
+      - name: Close a stale sync pull request
+        if: >-
+          steps.changes.outputs.HAS_CHANGES == 'false' &&
+          steps.sync.outputs.EXIT_CODE != '3' &&
+          inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$SYNC_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -z "$PR_NUMBER" ]]; then
+            exit 0
+          fi
+          gh pr close "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --delete-branch \
+            --comment "Closing: the E2E API mocks match the live APIs again, so there is nothing left to sync."
+          echo "Closed stale pull request #${PR_NUMBER}." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail when a row could not be synced
         if: steps.sync.outputs.EXIT_CODE == '3'
