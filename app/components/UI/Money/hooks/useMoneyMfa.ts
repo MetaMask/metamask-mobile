@@ -183,11 +183,21 @@ export const useMoneyMfa = () => {
   }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
+    // Any active method counts, so removing passkey and TOTP in settings can't lock 2FA on.
+    const verifyWith = [
+      ...new Set([
+        ...MONEY_MFA_METHODS,
+        ...credentials
+          .filter(
+            ({ status: credentialStatus }) => credentialStatus === 'active',
+          )
+          .map(({ type }) => type),
+      ]),
+    ];
     try {
-      // The full list, so an empty or stale credential list can't skip the check.
       await verifyOrEnroll({
-        methods: MONEY_MFA_METHODS,
-        verifyWith: MONEY_MFA_METHODS,
+        methods: verifyWith,
+        verifyWith,
         maxSessionAgeMs: 0,
         verifyOnly: true,
         reason: getTurnOffReason(),
@@ -200,7 +210,7 @@ export const useMoneyMfa = () => {
       hasUnseenEnabledConfirmation: false,
     });
     showToast('money.mfa.toast_off');
-  }, [verifyOrEnroll, showToast]);
+  }, [credentials, verifyOrEnroll, showToast]);
 
   const retry = useCallback(async () => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });

@@ -568,6 +568,28 @@ describe('useMoneyMfa', () => {
       );
     });
 
+    it('verifies with email when it is the only active method left', async () => {
+      const activeEmail: EnrolledCredential = {
+        id: 'email',
+        type: 'email_otp',
+        status: 'active',
+      };
+      const { result } = arrange({ credentials: [activeEmail] });
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          methods: ['passkey', 'totp', 'email_otp'],
+          verifyWith: ['passkey', 'totp', 'email_otp'],
+          verifyOnly: true,
+        }),
+      );
+      expect(result.current.status).toBe('off');
+    });
+
     it('keeps 2FA on when verification is cancelled', async () => {
       mockVerifyOrEnroll.mockRejectedValue(new Error('flow_cancelled'));
       const { result } = arrange({ credentials: [activePasskey] });
