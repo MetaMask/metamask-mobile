@@ -6479,6 +6479,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  chartsServerMigration: {
+    name: 'chartsServerMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.22.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsV2: {
     name: 'tokenDetailsV2',
     type: FeatureFlagType.Remote,
