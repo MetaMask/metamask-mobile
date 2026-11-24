@@ -1258,11 +1258,8 @@
     "typescript/no-floating-promises": {
       "count": 2
     },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/prefer-nullish-coalescing": {
-      "count": 4
+      "count": 3
     }
   },
   "app/components/UI/Bridge/Views/BridgeView/BridgeRecurringBuyView/BridgeRecurringBuyView.test.tsx": {
@@ -1313,14 +1310,6 @@
     },
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/UI/Bridge/Views/BridgeView/BridgeView.view.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 27
-    },
-    "typescript/promise-function-async": {
-      "count": 4
     }
   },
   "app/components/UI/Bridge/Views/BridgeView/index.tsx": {
@@ -1751,11 +1740,6 @@
   "app/components/UI/Bridge/components/SwapsRecurringBuyConfirmButton/index.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
-    }
-  },
-  "app/components/UI/Bridge/components/TokenInputArea/TokenInputArea.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 18
     }
   },
   "app/components/UI/Bridge/components/TokenInputArea/index.tsx": {
@@ -2189,11 +2173,6 @@
   "app/components/UI/Bridge/hooks/useSourceAmountInput/index.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
-    }
-  },
-  "app/components/UI/Bridge/hooks/useSourceAmountInput/index.ts": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 2
     }
   },
   "app/components/UI/Bridge/hooks/useStablecoinsDefaultSlippage/index.test.tsx": {
