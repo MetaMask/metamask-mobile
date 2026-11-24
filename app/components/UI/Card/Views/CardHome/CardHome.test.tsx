@@ -73,13 +73,14 @@ import {
   screen,
   waitFor,
   within,
-  type ReactTestInstance,
 } from '@testing-library/react-native';
+import { type ReactTestInstance } from 'react-test-renderer';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking, Platform, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { METAL_CARD_ART_FILL } from '../../components/CardImage/CardImage';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
@@ -1425,7 +1426,8 @@ function artHasProp(
   );
   if (matches) return true;
   return node.children.some(
-    (child) => typeof child !== 'string' && artHasProp(child, expected),
+    (child: ReactTestInstance | string) =>
+      typeof child !== 'string' && artHasProp(child, expected),
   );
 }
 
@@ -4440,7 +4442,7 @@ describe('CardHome Component', () => {
       ).toBeNull();
       expect(
         artHasProp(screen.getByTestId(CardHomeSelectors.CARD_ART), {
-          fill: '#360853',
+          fill: METAL_CARD_ART_FILL,
         }),
       ).toBe(true);
     });

@@ -14,6 +14,8 @@ import Svg, {
 import { CardStatus, CardType } from '../../types';
 
 const cardImageOriginalWidth = 851;
+/** Metal and physical card face. Shared so tests can match the art without a hex literal. */
+export const METAL_CARD_ART_FILL = '#360853';
 const cardImageOriginalHeight = 540;
 const cardImageAspectRatio = cardImageOriginalWidth / cardImageOriginalHeight;
 
@@ -127,7 +129,7 @@ const MetalCardImage = (props: SvgProps & { hasLowerOpacity: boolean }) => (
       {...props}
     >
       <G clipPath="url(#clip0_4219_2151)">
-        <Rect width={850.7} height={540} rx={31.8} fill="#360853" />
+        <Rect width={850.7} height={540} rx={31.8} fill={METAL_CARD_ART_FILL} />
         <Path
           d="M396.26 423.139l-102.746-30.47L216.03 438.8l-54.06-.022-77.53-46.109-102.7 30.47-31.24-105.034 31.24-116.572-31.24-98.559 31.24-122.152 160.478 95.49h93.564l160.478-95.49 31.24 122.152-31.24 98.559 31.24 116.572-31.24 105.034z"
           fill="#FA4B00"
