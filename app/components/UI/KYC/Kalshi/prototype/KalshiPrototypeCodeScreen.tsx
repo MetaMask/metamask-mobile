@@ -32,6 +32,8 @@ interface KalshiPrototypeCodeScreenProps {
   onBack: () => void;
   /** The address the email code went to; the fake account's by default. */
   email?: string;
+  /** The number the phone code went to, as the user entered it. */
+  phoneNumber?: string;
   /** Opens the screen for entering a different email. */
   onUseDifferentEmail?: () => void;
   /** Hides "Use my Kalshi email", once the user has already entered it. */
@@ -54,6 +56,7 @@ const KalshiPrototypeCodeScreen = ({
   onResend,
   onBack,
   email: enteredEmail = PROTOTYPE_EMAIL,
+  phoneNumber = PROTOTYPE_COPY.phoneCodeFallbackNumber,
   onUseDifferentEmail,
   hideUseDifferentEmail = false,
 }: KalshiPrototypeCodeScreenProps) => {
@@ -81,7 +84,7 @@ const KalshiPrototypeCodeScreen = ({
         '{maskedEmail}',
         maskEmail(enteredEmail),
       )
-    : PROTOTYPE_COPY.phoneCode.body;
+    : PROTOTYPE_COPY.phoneCode.body.replace('{phoneNumber}', phoneNumber);
 
   const partner: CodeStepPartnerProps = {
     // Kalshi's copy on both screens, under its wordmark in the header.

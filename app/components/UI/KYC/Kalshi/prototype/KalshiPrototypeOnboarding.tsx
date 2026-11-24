@@ -293,10 +293,12 @@ const EmailEntryStep = () => {
 const PhoneEntryStep = () => {
   const navigation = useFlowNavigation();
   const handleSend = useCallback(
-    async (phoneNumber: string) => {
+    async (phoneNumber: string, displayNumber: string) => {
       await vendor.sendPhoneOtp({ vendor: 'kalshi', phoneNumber });
       if (getKalshiPrototypeRuntime().script?.phoneCodeSent) {
-        navigation.navigate(KalshiPrototypeRoutes.PHONE_CODE);
+        navigation.navigate(KalshiPrototypeRoutes.PHONE_CODE, {
+          phoneNumber: displayNumber,
+        });
       }
     },
     [navigation],
@@ -314,6 +316,14 @@ const PhoneEntryStep = () => {
 const PhoneCodeStep = () => {
   const navigation = useFlowNavigation();
   const remountKey = useRemountKeyWhenCovered();
+  const route =
+    useRoute<
+      RouteProp<
+        KalshiPrototypeParamList,
+        typeof KalshiPrototypeRoutes.PHONE_CODE
+      >
+    >();
+  const phoneNumber = route.params?.phoneNumber;
   const handleSubmit = useCallback(
     async (code: string) => {
       const step = await vendor.verifyPhoneOtp({ vendor: 'kalshi', code });
@@ -342,6 +352,7 @@ const PhoneCodeStep = () => {
     <KalshiPrototypeCodeScreen
       key={remountKey}
       channel="phone"
+      phoneNumber={phoneNumber}
       onSubmit={handleSubmit}
       onResend={handleResend}
       onBack={handleBack}
