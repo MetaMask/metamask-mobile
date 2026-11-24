@@ -4186,9 +4186,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         await validateOrder.mock.results[validationCallIndex]?.value;
       });
 
+      const unclassifiedValidationError = 'Final validation failed';
       validateOrder.mockResolvedValueOnce({
         isValid: false,
-        error: 'Final validation failed',
+        error: unclassifiedValidationError,
       });
       fireEvent.press(placeOrderButton);
 
@@ -4196,7 +4197,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         () => {
           expect(
             screen.getByTestId(`${ids.NOTICE}-validation-0`),
-          ).toHaveTextContent('Final validation failed');
+          ).toHaveTextContent(strings('perps.order.validation.failed'));
+          expect(screen.queryByText(unclassifiedValidationError)).toBeNull();
           expect(placeOrder).not.toHaveBeenCalled();
           expect(placeOrderButton).toBeDisabled();
         },

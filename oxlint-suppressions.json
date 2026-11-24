@@ -7503,11 +7503,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Perps/hooks/usePerpsLiquidationPrice.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Perps/hooks/usePerpsLiveTradesAbTest.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -7712,9 +7707,6 @@
     }
   },
   "app/components/UI/Perps/hooks/usePerpsOrderValidation.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -8222,7 +8214,7 @@
   },
   "app/components/UI/Perps/utils/translatePerpsError.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 6
+      "count": 4
     }
   },
   "app/components/UI/Perps/utils/unclaimedPrewarmTransactionMetrics.test.ts": {
@@ -14572,9 +14564,6 @@
   "app/components/UI/WhatsHappening/components/WhatsHappeningCard.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
-    },
-    "typescript/unbound-method": {
-      "count": 2
     }
   },
   "app/components/UI/WhatsHappening/components/WhatsHappeningCardSkeleton.test.tsx": {
@@ -14596,6 +14585,11 @@
     },
     "typescript/promise-function-async": {
       "count": 4
+    }
+  },
+  "app/components/UI/WhatsHappening/hooks/useWhatsHappeningCardViewTracking.ts": {
+    "typescript/unbound-method": {
+      "count": 2
     }
   },
   "app/components/UI/WhatsNewModal/WhatsNewModal.tsx": {
