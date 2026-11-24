@@ -95,7 +95,7 @@ describe('prototypeRuntime', () => {
     await vendor.startSession({ vendor: 'kalshi' });
 
     await expect(
-      vendor.verifyEmailOtp({ vendor: 'kalshi', code: '000000' }),
+      vendor.verifyEmailOtp({ vendor: 'kalshi', code: '111111' }),
     ).rejects.toMatchObject({ code: 'invalid_or_expired_code' });
     // The refused check leaves the step where it was.
     expect(getKalshiPrototypeRuntime().script?.vendor.step).toBe(

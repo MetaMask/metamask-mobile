@@ -6,7 +6,7 @@
  */
 
 /** The code every fake accepts; anything else is wrong. */
-export const PROTOTYPE_CODE = '123456';
+export const PROTOTYPE_CODE = '000000';
 
 /** The verified MetaMask email the fakes hand back. */
 export const PROTOTYPE_EMAIL = 'designer@example.com';
@@ -96,7 +96,7 @@ export const PROTOTYPE_COPY = {
   picker: {
     title: 'Kalshi prototype',
     description:
-      '[PROTO] Pick a scenario, then use the get-started card on the prototype Predictions screen. Codes are 123456.',
+      '[PROTO] Pick a scenario, then use the get-started card on the prototype Predictions screen. Codes are 000000.',
   },
   ukycCheck: {
     title: '[PROTO] Already completed UKYC?',
