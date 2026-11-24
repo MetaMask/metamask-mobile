@@ -101,7 +101,7 @@ export const applySeedlessUnlockRecovery = async (
     default: {
       const exhaustive: never = keyringInstruction;
       throw new Error(
-        `SeedlessOnboardingController - unrecognized password sync instruction: ${exhaustive}`,
+        `SeedlessOnboardingController - unrecognized password sync instruction: ${String(exhaustive)}`,
       );
     }
   }

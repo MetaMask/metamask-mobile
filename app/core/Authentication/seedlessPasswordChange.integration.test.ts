@@ -83,7 +83,7 @@ const createWallet = async () => {
   return { harness, controller: install.controller, keyring };
 };
 
-const changePassword = () =>
+const changePassword = async () =>
   recreateVaultsWithNewPassword(OLD_PASSWORD, NEW_PASSWORD, '0x1');
 
 const restart = (

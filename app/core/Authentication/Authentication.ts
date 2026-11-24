@@ -1293,7 +1293,7 @@ class AuthenticationService {
         EngineClass.disableAutomaticVaultBackup = false;
       }
 
-      SeedlessOnboardingController.clearState();
+      void SeedlessOnboardingController.clearState();
       throw error;
     }
   };
@@ -1913,7 +1913,7 @@ class AuthenticationService {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
 
-        Engine.context.SeedlessOnboardingController.clearState();
+        void Engine.context.SeedlessOnboardingController.clearState();
 
         Engine.context.KycController.clearState();
 
