@@ -16,10 +16,12 @@ import {
 } from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
+import BigNumberJs from 'bignumber.js';
 import { act, waitFor } from '@testing-library/react-native';
 import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import {
   endTrace,
   trace,
@@ -51,6 +53,41 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockRefetchMoneyBalance = jest.fn().mockResolvedValue(undefined);
+
+const createMoneyBalance = (
+  overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
+) =>
+  ({
+    withdrawableMusd: undefined,
+    refetchBalance: mockRefetchMoneyBalance,
+    ...overrides,
+  }) as ReturnType<typeof useMoneyAccountBalance>;
+
+const createMoneyToken = (
+  overrides: {
+    address?: string;
+    isMoneyToken?: boolean;
+    decimals?: number;
+    chainId?: Hex | CaipChainId;
+    balance?: string;
+    refreshKey?: string | number;
+  } = {},
+) => ({
+  address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  isMoneyToken: true,
+  decimals: 6,
+  chainId: 'eip155:143' as CaipChainId,
+  balance: '4.5',
+  ...overrides,
+});
+
 const mockTrace = trace as jest.MockedFunction<
   (request: TraceRequest) => TraceContext
 >;
@@ -67,6 +104,8 @@ describe('useLatestBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getProviderByChainId as jest.Mock).mockReturnValue(mockProvider);
+    mockRefetchMoneyBalance.mockResolvedValue(undefined);
+    mockUseMoneyAccountBalance.mockReturnValue(createMoneyBalance());
   });
 
   it('should fetch native token balance when token address is zero address', async () => {
@@ -1228,6 +1267,201 @@ describe('useLatestBalance', () => {
           displayBalance: '0',
           atomicBalance: BigNumber.from('0'),
         });
+      });
+    });
+  });
+
+  /**
+   * Unit fallback: this hook maps live withdrawable mUSD onto the selected
+   * source token. CV cannot cover it without mocking useLatestBalance or
+   * standing up react-query + MoneyAccountBalanceService. Integration is the
+   * money-balance service seam, not this mapping.
+   */
+  describe('money token balance', () => {
+    it('returns live withdrawable mUSD instead of the selection snapshot', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('10.25') }),
+      );
+
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '10.25',
+        atomicBalance: BigNumber.from('10250000'),
+      });
+    });
+
+    it('returns the new live balance when withdrawable mUSD updates without reselecting', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('4.5') }),
+      );
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('10.25') }),
+      );
+      rerender({ state: initialState });
+
+      expect(result.current).toEqual({
+        displayBalance: '10.25',
+        atomicBalance: BigNumber.from('10250000'),
+      });
+    });
+
+    it('falls back to the snapshot when live withdrawable mUSD is missing', () => {
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('4500000'),
+      });
+    });
+
+    it('uses 0 when live and snapshot money balances are missing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            createMoneyToken({
+              address: undefined,
+              balance: undefined,
+            }),
+          ),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses live 0 instead of the snapshot when withdrawable mUSD is 0', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('0') }),
+      );
+
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken()),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses atomic 0 when the money balance cannot be parsed', () => {
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken({ balance: 'not-a-number' })),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: 'not-a-number',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses atomic 0 when money decimals are missing', () => {
+      const { result } = renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken({ decimals: undefined })),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('does not fetch EVM balance for money tokens', () => {
+      renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            createMoneyToken({
+              address: constants.AddressZero,
+              chainId: '0x1' as Hex,
+            }),
+          ),
+        { state: initialState },
+      );
+
+      expect(mockProvider.getBalance).not.toHaveBeenCalled();
+    });
+
+    it('does not refetch money balance on first render', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('4.5') }),
+      );
+
+      renderHookWithProvider(
+        () => useLatestBalance(createMoneyToken({ refreshKey: 0 })),
+        { state: initialState },
+      );
+
+      expect(mockRefetchMoneyBalance).not.toHaveBeenCalled();
+    });
+
+    it('refetches money balance when refreshKey changes', async () => {
+      let refreshKey = 0;
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createMoneyBalance({ withdrawableMusd: new BigNumberJs('4.5') }),
+      );
+
+      const { rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            createMoneyToken({ chainId: '0x8f' as Hex, refreshKey }),
+          ),
+        { state: initialState },
+      );
+
+      await act(async () => {
+        refreshKey = 1;
+        rerender({ state: initialState });
+      });
+
+      expect(mockRefetchMoneyBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables the money account query for non-money tokens', async () => {
+      renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId: '0x1' as Hex,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockProvider.getBalance).toHaveBeenCalled();
+      });
+
+      expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+        enabled: false,
+      });
+    });
+
+    it('enables the money account query for money tokens', () => {
+      renderHookWithProvider(() => useLatestBalance(createMoneyToken()), {
+        state: initialState,
+      });
+
+      expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({
+        enabled: true,
       });
     });
   });

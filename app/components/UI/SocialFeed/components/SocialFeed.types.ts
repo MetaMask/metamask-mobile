@@ -122,7 +122,7 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
    */
   prepareRefresh?: () => void | Promise<void>;
   /** Called when the user pulls to refresh, for host analytics. */
-  onRefresh?: () => void;
+  onRefresh?: () => void | Promise<void>;
   /** Lets the host hide chrome that only belongs above posts. */
   onListStateChange?: (state: SocialFeedListState) => void;
   /** Social V1 tab traces: the initial fetch and the first content. */

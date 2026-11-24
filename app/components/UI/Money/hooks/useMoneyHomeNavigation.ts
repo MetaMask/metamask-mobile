@@ -21,10 +21,9 @@ interface NavigateToMoneyHomeOptions {
    */
   pop?: boolean;
   /**
-   * Skips the Rive onboarding redirect for callers that already showed another
-   * Money intro, such as the splash.
+   * Skips the splash redirect for callers that already showed it.
    */
-  skipOnboardingRedirect?: boolean;
+  skipFtueRedirect?: boolean;
   track?: TrackMoneyEntry;
 }
 
@@ -72,17 +71,6 @@ export const useMoneyHomeNavigation = () => {
         return;
       }
 
-      if (decision.destination === 'onboarding') {
-        if (analyticsContext) {
-          NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING, {
-            analyticsContext,
-          });
-        } else {
-          NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
-        }
-        return;
-      }
-
       navigateToMoneyHomeRoute({ analyticsContext, pop });
     },
     [],
@@ -90,15 +78,15 @@ export const useMoneyHomeNavigation = () => {
 
   const navigateToMoneyHome = useCallback(
     ({
-      skipOnboardingRedirect = false,
+      skipFtueRedirect = false,
       ...options
     }: NavigateToMoneyHomeOptions = {}) =>
       navigateHome(
         options,
         getMoneyEntryDecision('home', {
           ...entryContext,
-          isOnboardingRedirectNeeded:
-            !skipOnboardingRedirect && entryContext.isOnboardingRedirectNeeded,
+          isSplashRedirectNeeded:
+            !skipFtueRedirect && entryContext.isSplashRedirectNeeded,
         }),
       ),
     [entryContext, navigateHome],

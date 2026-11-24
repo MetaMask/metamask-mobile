@@ -182,4 +182,67 @@ describe('useVisibleSections', () => {
 
     expect(hook.result.current.visibleKeys).toBe(before);
   });
+
+  describe('when the keys change', () => {
+    const renderWithKeys = (initialKeys: readonly string[]) => {
+      const scrollY = makeMutable(0);
+      return renderHook(
+        ({ keys }: { keys: readonly string[] }) =>
+          useVisibleSections({ keys, scrollY }),
+        { initialProps: { keys: initialKeys } },
+      );
+    };
+
+    it('shows an added key as visible until it is measured', () => {
+      const hook = renderWithKeys(['nfl', 'ncaa']);
+      act(() => {
+        hook.result.current.onViewportLayout(layoutEvent({ height: 800 }));
+        hook.result.current.onSectionLayout('nfl')(
+          layoutEvent({ y: 200, height: 300 }),
+        );
+        hook.result.current.onSectionLayout('ncaa')(
+          layoutEvent({ y: 900, height: 300 }),
+        );
+      });
+
+      hook.rerender({ keys: ['nfl', 'college', 'ncaa'] });
+
+      expect(hook.result.current.visibleKeys).toEqual(['nfl', 'college']);
+
+      act(() => {
+        hook.result.current.onSectionLayout('college')(
+          layoutEvent({ y: 1300, height: 300 }),
+        );
+      });
+
+      expect(hook.result.current.visibleKeys).toEqual(['nfl']);
+    });
+
+    it('drops a removed key, even one measured as hidden', () => {
+      const hook = renderWithKeys(['nfl', 'ncaa']);
+      act(() => {
+        hook.result.current.onViewportLayout(layoutEvent({ height: 800 }));
+        hook.result.current.onSectionLayout('nfl')(
+          layoutEvent({ y: 200, height: 300 }),
+        );
+        hook.result.current.onSectionLayout('ncaa')(
+          layoutEvent({ y: 900, height: 300 }),
+        );
+      });
+
+      hook.rerender({ keys: ['nfl'] });
+      expect(hook.result.current.visibleKeys).toEqual(['nfl']);
+
+      hook.rerender({ keys: [] });
+      expect(hook.result.current.visibleKeys).toEqual([]);
+    });
+
+    it('follows reordered keys', () => {
+      const hook = renderWithKeys(['nfl', 'ncaa']);
+
+      hook.rerender({ keys: ['ncaa', 'nfl'] });
+
+      expect(hook.result.current.visibleKeys).toEqual(['ncaa', 'nfl']);
+    });
+  });
 });

@@ -33,6 +33,8 @@ import { BigNumber } from 'bignumber.js';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '@metamask/transaction-controller';
+import { CONVERT_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { isHardwareAccount } from '../../../../../../util/address';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -159,9 +161,14 @@ function PayWithRowInteractive() {
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
 
+  const transactionMeta = useTransactionMetadataRequest();
   const {
     txParams: { from },
-  } = useTransactionMetadataRequest() ?? { txParams: {} };
+  } = transactionMeta ?? { txParams: {} };
+  const isConvertDeposit = hasTransactionType(
+    transactionMeta,
+    CONVERT_DEPOSIT_TYPES,
+  );
 
   const { balanceUsd: accountBalanceUsd } = usePayTokenAccountBalance();
   const { isHeadlessBuyInProgress } = useConfirmationContext();
@@ -181,9 +188,12 @@ function PayWithRowInteractive() {
     });
   }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
-  const label = isWithdraw
-    ? strings('confirm.label.receive_as')
-    : strings('confirm.label.pay_with');
+  let label = strings('confirm.label.pay_with');
+  if (isWithdraw) {
+    label = strings('confirm.label.receive_as');
+  } else if (isConvertDeposit) {
+    label = strings('confirm.label.convert');
+  }
 
   // For withdrawals, default to the primary required token (where funds are going)
   // if no payment token has been explicitly selected.
@@ -219,7 +229,11 @@ function PayWithRowInteractive() {
     return (
       <PayWithFiatPaymentMethodRow
         paymentMethod={selectedFiatPaymentMethod}
-        label={label}
+        label={
+          isWithdraw
+            ? strings('confirm.label.receive_as')
+            : strings('confirm.label.pay_with')
+        }
         disabled={isDisabled}
         hasFrom={Boolean(from)}
         onPress={handleClick}

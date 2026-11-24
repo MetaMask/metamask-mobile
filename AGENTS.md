@@ -121,8 +121,9 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
 - **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
-- **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers (measured latency is the separate `useNetworkLatency()` signal), and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see [`.cursor/rules/device-capability.mdc`](.cursor/rules/device-capability.mdc)
+- **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers (measured latency is the separate `useNetworkLatency()` signal), and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see the `mms-device-capability` skill
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
+- **Slow screen open**: Heavy below-the-fold section janking a push transition? Gate it on the existing `useScreenTransitionComplete()` instead of writing a new deferral hook — see [`docs/performance/anti-patterns.md`](docs/performance/anti-patterns.md#deferring-a-heavy-section-until-the-push-transition-ends)
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup

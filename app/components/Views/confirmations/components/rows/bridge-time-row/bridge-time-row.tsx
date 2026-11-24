@@ -1,4 +1,8 @@
 import React from 'react';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
 import {
@@ -29,6 +33,9 @@ export function BridgeTimeRow() {
   const { chainId } = transactionMetadata ?? {};
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
+  const isMoneyAccountDeposit = hasTransactionType(transactionMetadata, [
+    TransactionType.moneyAccountDeposit,
+  ]);
 
   const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
   const isSameChain = payTokenChainId != null && payTokenChainId === chainId;
@@ -44,7 +51,11 @@ export function BridgeTimeRow() {
   if (isLoading) {
     return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
-  const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
+  const formattedSeconds = formatSeconds(
+    estimatedDuration ?? 0,
+    isSameChain,
+    isMoneyAccountDeposit,
+  );
 
   return (
     <InfoRow
@@ -62,7 +73,17 @@ export function BridgeTimeRow() {
   );
 }
 
-function formatSeconds(seconds: number, isSameChainPayment: boolean) {
+function formatSeconds(
+  seconds: number,
+  isSameChainPayment: boolean,
+  isMoneyAccountDeposit: boolean,
+) {
+  if (isMoneyAccountDeposit) {
+    if (isSameChainPayment || seconds <= 30) {
+      return strings('confirm.money_deposit.less_than_one_min');
+    }
+  }
+
   if (isSameChainPayment) {
     return `${SAME_CHAIN_DURATION_SECONDS} ${strings('unit.second')}`;
   }
