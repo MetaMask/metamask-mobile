@@ -19,6 +19,7 @@ import {
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
+import { SOCIAL_LIVE_FEED_MAX_PAGES } from '../data/socialFeedQueries';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
@@ -409,7 +410,46 @@ describe('SocialFeedVirtualized', () => {
       nearTop: true,
       holdNewPosts: false,
       filterPost,
+      maxPages: SOCIAL_LIVE_FEED_MAX_PAGES,
     });
+  });
+
+  it('keeps every page of a profile or filtered feed', () => {
+    renderFeed({ profileId: 'profile-1' });
+    expect(lastFeedOptions()?.maxPages).toBeUndefined();
+
+    renderFeed({ scope: 'following_v1' });
+    expect(lastFeedOptions()?.maxPages).toBeUndefined();
+  });
+
+  it('keeps the scroll position and pages back up while newer pages are dropped', () => {
+    const loadPrevious = jest.fn();
+    mockUseSocialFeed.mockReturnValue(
+      feedState({
+        posts: [post('one')],
+        hasPreviousPage: true,
+        loadPrevious,
+      }),
+    );
+
+    renderFeed();
+
+    expect(getList().props.maintainVisibleContentPosition).toEqual({});
+    act(() => {
+      getList().props.onStartReached();
+    });
+    expect(loadPrevious).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the slide-in animation at the top of the newest page', () => {
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+    renderFeed();
+
+    expect(getList().props.maintainVisibleContentPosition).toEqual({
+      disabled: true,
+    });
+    expect(getList().props.onStartReached).toBeUndefined();
   });
 
   it('stops fetching while unfocused', () => {

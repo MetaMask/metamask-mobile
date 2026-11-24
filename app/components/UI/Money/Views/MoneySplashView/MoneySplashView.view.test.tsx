@@ -130,7 +130,6 @@ describeForPlatforms('MoneySplashView', () => {
   it('falls back to Money home when deposit setup fails', async () => {
     const { getByTestId, findByTestId } = renderMoneySplashView({
       hasVaultConfig: false,
-      onboardingSeen: true,
       params: {
         postOnboardingRedirect: {
           type: 'deposit',
@@ -146,13 +145,22 @@ describeForPlatforms('MoneySplashView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not chain into Rive onboarding when deposit setup fails', async () => {
+  it('returns to Money home when the splash has no deposit redirect', async () => {
+    const { getByTestId, findByTestId } = renderMoneySplashView();
+
+    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toBeOnTheScreen();
+  });
+
+  it('returns to the Card screen when the splash has a card redirect', async () => {
     const { getByTestId, findByTestId } = renderMoneySplashView({
-      hasVaultConfig: false,
       params: {
         postOnboardingRedirect: {
-          type: 'deposit',
-          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
+          type: 'card',
+          cardScreen: 'authentication',
         },
       },
     });
@@ -160,24 +168,8 @@ describeForPlatforms('MoneySplashView', () => {
     fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
 
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).toBeOnTheScreen();
-  });
-
-  it('returns to Money home without Rive onboarding when the splash has no deposit redirect', async () => {
-    const { getByTestId, queryByTestId, findByTestId } = renderMoneySplashView({
-      onboardingSeen: false,
-      onboardingEnabled: true,
-    });
-
-    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
-
-    expect(
-      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(getRouteProbeTestId(Routes.MONEY.ONBOARDING)),
-    ).not.toBeOnTheScreen();
+      await findByTestId(getRouteParamsProbeTestId(Routes.CARD.ROOT)),
+    ).toHaveTextContent(new RegExp(Routes.CARD.AUTHENTICATION));
   });
 
   it('starts only one deposit when the CTA is pressed twice', async () => {

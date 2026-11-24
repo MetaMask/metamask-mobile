@@ -49,7 +49,7 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
@@ -188,7 +188,7 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
@@ -281,7 +281,8 @@ const EarnStrategySelectionModal = () => {
 
   const handleGetStartedPress = useCallback(() => {
     if (!selectedStrategy || !earnAsset) {
-      handleGetStartedAfterClose();
+      // eslint-disable-next-line no-void -- The handler catches its own navigation errors.
+      void handleGetStartedAfterClose();
       return;
     }
 

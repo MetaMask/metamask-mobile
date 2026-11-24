@@ -969,7 +969,6 @@ describe('MainNavigator', () => {
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
         Routes.MONEY.ACCOUNT_STATUS,
       ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(
         Routes.MONEY.FIRST_TIME_DEPOSIT,
       );
