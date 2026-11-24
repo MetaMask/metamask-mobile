@@ -40,6 +40,8 @@ export interface ChartPlot {
   strokeInset: number;
   height: number;
   fontScale: number;
+  /** Percent-only end labels, sized for three or more series. */
+  compactLabels: boolean;
 }
 
 export interface ChartModel {
@@ -58,6 +60,7 @@ interface CreateChartModelOptions {
   continuationWidth: number;
   lineWidth: number;
   fontScale: number;
+  compactLabels?: boolean;
   scrub?: { time: number; x: number };
 }
 
@@ -345,13 +348,22 @@ const addLabelPositions = (
   endpoints: readonly Omit<ChartEndpoint, 'labelY'>[],
   height: number,
   fontScale: number,
+  compactLabels = false,
 ): ChartEndpoint[] => {
+  const blockHeight = compactLabels
+    ? LABEL_NAME_LINE_HEIGHT
+    : LABEL_BLOCK_HEIGHT;
+  const bottomInset = compactLabels
+    ? LABEL_NAME_LINE_HEIGHT
+    : LABEL_VALUE_BASELINE_OFFSET + LABEL_VALUE_BOTTOM_INSET;
+  const spacing = compactLabels
+    ? LABEL_NAME_LINE_HEIGHT + 4
+    : MIN_LABEL_SPACING;
   const labelPositions = separateLabelPositions(
     endpoints.map((endpoint) => endpoint.y),
-    (LABEL_BLOCK_HEIGHT * fontScale) / 2,
-    height -
-      (LABEL_VALUE_BASELINE_OFFSET + LABEL_VALUE_BOTTOM_INSET) * fontScale,
-    MIN_LABEL_SPACING * fontScale,
+    (blockHeight * fontScale) / 2,
+    height - bottomInset * fontScale,
+    spacing * fontScale,
   );
 
   return endpoints.map((endpoint, index) => ({
@@ -389,6 +401,7 @@ export const applyChartScrub = (
     scrubbed,
     model.plot.height,
     model.plot.fontScale,
+    model.plot.compactLabels,
   );
 
   return {
@@ -409,6 +422,7 @@ export const createChartModel = ({
   continuationWidth,
   lineWidth,
   fontScale,
+  compactLabels = false,
   scrub,
 }: CreateChartModelOptions): ChartModel | undefined => {
   if (width <= labelGutter) return undefined;
@@ -447,6 +461,7 @@ export const createChartModel = ({
     }),
     height,
     fontScale,
+    compactLabels,
   );
   const preparedSeries = drawableSeries.map((entry, index) => {
     const clipped = clipToTimeDomain(entry.data, minTime, maxTime);
@@ -471,6 +486,7 @@ export const createChartModel = ({
         strokeInset,
         height,
         fontScale,
+        compactLabels,
       },
     },
     scrub,

@@ -211,7 +211,7 @@ const config = {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv|ttf|otf)$':
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv|ttf|otf|wav)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: [],

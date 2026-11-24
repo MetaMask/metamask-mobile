@@ -88,6 +88,38 @@ describe('createChartModel', () => {
     expect(result?.series[0].linePath).not.toContain('L');
   });
 
+  it('packs percent labels closer than the name and value stack', () => {
+    const series = [0.55, 0.5, 0.45].map((value, index) => ({
+      id: `series-${index}`,
+      label: `${Math.round(value * 100)}%`,
+      color: 'blue',
+      data: [
+        { time: 100, value },
+        { time: 200, value },
+      ],
+    }));
+    const options = {
+      series,
+      width: 300,
+      height: 150,
+      labelGutter: 48,
+      continuationWidth: 0,
+      lineWidth: 2,
+      fontScale: 1,
+    };
+    const spread = (model: ReturnType<typeof createChartModel>): number => {
+      const positions =
+        model?.series.map((entry) => entry.endpoint.labelY) ?? [];
+      return Math.max(...positions) - Math.min(...positions);
+    };
+
+    const standard = createChartModel(options);
+    const compact = createChartModel({ ...options, compactLabels: true });
+
+    expect(compact?.plot.compactLabels).toBe(true);
+    expect(spread(compact)).toBeLessThan(spread(standard));
+  });
+
   it('extends a late-starting series left while omitting its pre-start scrub', () => {
     const result = createChartModel({
       series: [
