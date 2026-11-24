@@ -437,6 +437,47 @@ export const MOCK = {"a":1,"b":[2]} satisfies T;
     expect(() => rewriteExport(source, 'OTHER', {})).toThrow('not found');
   });
 
+  it('throws when the module has a second satisfies', () => {
+    const twice = `${source}\nexport const OTHER = {} satisfies T;\n`;
+
+    expect(() => rewriteExport(twice, 'MOCK', {})).toThrow('single');
+  });
+
+  it('throws when the second satisfies comes before the export', () => {
+    const before = `const HELPER = {} satisfies T;\n${source}`;
+
+    expect(() => rewriteExport(before, 'MOCK', {})).toThrow('single');
+  });
+
+  it('throws when anything but a semicolon follows the satisfies clause', () => {
+    expect(() =>
+      rewriteExport(
+        `${source.trimEnd()}\nexport const OTHER = 1;\n`,
+        'MOCK',
+        {},
+      ),
+    ).toThrow('nothing after');
+    expect(() =>
+      rewriteExport(
+        'export const MOCK = {} satisfies T as unknown;\n',
+        'MOCK',
+        {},
+      ),
+    ).toThrow('nothing after');
+  });
+
+  it('throws when the export is declared twice', () => {
+    expect(() =>
+      rewriteExport(`${source}\n${source}`, 'MOCK', {}),
+    ).toThrow('more than once');
+  });
+
+  it('accepts trailing whitespace after the semicolon', () => {
+    expect(() =>
+      rewriteExport(`${source}\n\n  `, 'MOCK', { a: 2 }),
+    ).not.toThrow();
+  });
+
   it('throws when the export is not typed with satisfies', () => {
     expect(() => rewriteExport('export const MOCK = {};\n', 'MOCK', {})).toThrow(
       'satisfies',
@@ -659,6 +700,47 @@ describe('formatReport', () => {
     expect(report).toContain('### Drift in report-only mocks');
     expect(report).toContain('- `r` (`r.ts`)');
     expect(report).toContain('### Rows that failed\n\n- `e`: HTTP 500');
+  });
+
+  it('lists every removed field of a write row prominently, first', () => {
+    const report = formatReport(
+      [
+        {
+          id: 'w',
+          mode: 'write',
+          file: 'w.ts',
+          status: 'drift',
+          written: true,
+          changes: [
+            { path: '/keep', kind: 'added' },
+            { path: '/gone', kind: 'removed' },
+            { path: '/[]/also/gone', kind: 'removed' },
+          ],
+        },
+      ],
+      false,
+    );
+
+    expect(report.startsWith('### Fields removed')).toBe(true);
+    expect(report).toContain('- `w`\n  - `/gone`\n  - `/[]/also/gone`');
+  });
+
+  it('does not list removals of report-only rows in the removed section', () => {
+    const report = formatReport(
+      [
+        {
+          id: 'r',
+          mode: 'report-only',
+          file: 'r.ts',
+          status: 'drift',
+          written: false,
+          changes: [{ path: '/gone', kind: 'removed' }],
+        },
+      ],
+      false,
+    );
+
+    expect(report).not.toContain('### Fields removed');
   });
 
   it('labels write rows as pending on a dry run', () => {

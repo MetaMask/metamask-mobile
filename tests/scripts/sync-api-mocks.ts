@@ -386,6 +386,10 @@ export function parseCatalog(markdown: string): SyncRow[] {
 /**
  * Replaces the value of `export const NAME = <value> satisfies <Type>;`.
  *
+ * The module must hold exactly one `satisfies` and nothing after its `;`, so
+ * the replaced span can only be the value. Anything else is refused rather
+ * than rewritten.
+ *
  * @param source - The mock module.
  * @param exportName - The exported constant to rewrite.
  * @param value - The new value.
@@ -401,10 +405,19 @@ export function rewriteExport(
   if (start === -1) {
     throw new Error(`"${marker.trim()}" not found.`);
   }
-  const satisfiesAt = source.lastIndexOf(' satisfies ');
-  if (satisfiesAt < start) {
+  if (source.slice(start + 1).includes(marker)) {
+    throw new Error(`"${marker.trim()}" appears more than once.`);
+  }
+  const satisfiesMatches = [...source.matchAll(/\ssatisfies\s/gu)];
+  if (satisfiesMatches.length !== 1 || satisfiesMatches[0].index < start) {
     throw new Error(
-      `"${exportName}" must end with "satisfies <Type>;" so the sync keeps it typed.`,
+      `"${exportName}" must end with a single "satisfies <Type>;" and the module must have no other "satisfies".`,
+    );
+  }
+  const satisfiesAt = satisfiesMatches[0].index;
+  if (!/^\ssatisfies\s+[A-Za-z_$][\w$]*;\s*$/u.test(source.slice(satisfiesAt))) {
+    throw new Error(
+      `"${exportName}" must end with "satisfies <Type>;" and nothing after the semicolon.`,
     );
   }
   return `${source.slice(0, start + marker.length)}${JSON.stringify(
@@ -559,7 +572,31 @@ export function formatReport(results: RowResult[], dryRun: boolean): string {
     ...describeChanges(row.changes).map((line) => `  - ${line}`),
   ];
 
+  // A field missing from one live response is removed from the mock, and the
+  // type only catches removals of required fields, so list every removal.
+  const removed = writeDrift
+    .map((row) => ({
+      row,
+      paths: row.changes
+        .filter((change) => change.kind === 'removed')
+        .map((change) => change.path),
+    }))
+    .filter(({ paths }) => paths.length > 0);
+
   const lines = [
+    ...(removed.length === 0
+      ? []
+      : [
+          dryRun
+            ? '### Fields that would be removed (check that no spec asserts on them)'
+            : '### Fields removed (check that no spec asserts on them)',
+          '',
+          ...removed.flatMap(({ row, paths }) => [
+            `- \`${row.id}\``,
+            ...paths.map((fieldPath) => `  - \`${fieldPath}\``),
+          ]),
+          '',
+        ]),
     ...section(
       dryRun ? 'Mocks that would be updated' : 'Mocks updated',
       writeDrift,
