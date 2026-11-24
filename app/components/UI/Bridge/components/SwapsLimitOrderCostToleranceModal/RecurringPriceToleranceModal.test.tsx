@@ -178,39 +178,34 @@ describe('Recurring price tolerance modals', () => {
     );
   });
 
-  it('restores the confirmation modal after submitting a preset', () => {
-    jest.mocked(useParams).mockReturnValue({ sourceModal });
-    const { getByText } = render(<RecurringDefaultPriceToleranceModal />);
+  it.each([
+    {
+      action: 'submitting a preset',
+      Modal: RecurringDefaultPriceToleranceModal,
+      buttonLabel: strings('bridge.submit'),
+    },
+    {
+      action: 'confirming a custom tolerance',
+      Modal: RecurringCustomPriceToleranceModal,
+      buttonLabel: strings('bridge.confirm'),
+    },
+    {
+      action: 'cancelling a custom tolerance',
+      Modal: RecurringCustomPriceToleranceModal,
+      buttonLabel: strings('bridge.cancel'),
+    },
+  ])(
+    'restores the confirmation modal after $action',
+    ({ Modal, buttonLabel }) => {
+      jest.mocked(useParams).mockReturnValue({ sourceModal });
+      const { getByText } = render(<Modal />);
 
-    fireEvent.press(getByText(strings('bridge.submit')));
+      fireEvent.press(getByText(buttonLabel));
 
-    expect(mockReplace).toHaveBeenCalledWith(
-      sourceModal.screen,
-      sourceModal.params,
-    );
-  });
-
-  it('restores the confirmation modal after confirming a custom tolerance', () => {
-    jest.mocked(useParams).mockReturnValue({ sourceModal });
-    const { getByText } = render(<RecurringCustomPriceToleranceModal />);
-
-    fireEvent.press(getByText(strings('bridge.confirm')));
-
-    expect(mockReplace).toHaveBeenCalledWith(
-      sourceModal.screen,
-      sourceModal.params,
-    );
-  });
-
-  it('restores the confirmation modal after cancelling a custom tolerance', () => {
-    jest.mocked(useParams).mockReturnValue({ sourceModal });
-    const { getByText } = render(<RecurringCustomPriceToleranceModal />);
-
-    fireEvent.press(getByText(strings('bridge.cancel')));
-
-    expect(mockReplace).toHaveBeenCalledWith(
-      sourceModal.screen,
-      sourceModal.params,
-    );
-  });
+      expect(mockReplace).toHaveBeenCalledWith(
+        sourceModal.screen,
+        sourceModal.params,
+      );
+    },
+  );
 });
