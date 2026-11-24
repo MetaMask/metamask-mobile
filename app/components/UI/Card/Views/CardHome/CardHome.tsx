@@ -964,10 +964,11 @@ const CardHome = () => {
   ]);
 
   // Activity / Manage segments only in the active and frozen states of a
-  // fully set-up card that has a history destination. Every other state
-  // keeps the management list as before, with no segments.
+  // fully set-up card whose history is the provider feed. Money-history users
+  // keep the management list with its history row, since the Activity panel
+  // previews provider transactions only.
   const showHomeSegments =
-    transactionHistoryDestination !== null &&
+    transactionHistoryDestination === 'card' &&
     !isLoading &&
     isAuthenticated &&
     (data?.card?.status === CardStatus.ACTIVE ||
@@ -1631,6 +1632,9 @@ const CardHome = () => {
                   }
                   showTransactionHistoryDuringSetup={
                     isImmersve && hasSetupActions
+                  }
+                  showTransactionHistoryRow={
+                    transactionHistoryDestination === 'money'
                   }
                 />
               )}
