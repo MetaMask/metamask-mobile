@@ -47,9 +47,16 @@ export async function syncRecoveryAfterEnroll(
     return;
   }
 
-  for (const passkey of await service.getUnenrolledPasskeyIdentifiers()) {
-    await service.addIdentifier(passkey);
-  }
+  const unenrolledPasskeys = await service.getUnenrolledPasskeyIdentifiers();
+  // Each addIdentifier acquires the recovery lock and advances the Cubist
+  // epoch, so passkeys must be added sequentially rather than with Promise.all.
+  await unenrolledPasskeys.reduce<Promise<void>>(
+    async (previous, passkey): Promise<void> => {
+      await previous;
+      await service.addIdentifier(passkey);
+    },
+    Promise.resolve(),
+  );
 }
 
 /**
