@@ -4,6 +4,7 @@ import { selectRemoteFeatureFlags } from '../../featureFlagController';
 import { parseLimitOrderCostTolerance } from '../../../components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/constants';
 import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../../components/UI/Bridge/constants/limitOrders';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
@@ -60,8 +61,8 @@ export const selectBridgeLimitOrderFeatureFlags =
  */
 export const selectSwapToMoneyEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => true,
-  //validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsToMoney) ?? false,
+  (remoteFeatureFlags): boolean =>
+    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsToMoney) ?? false,
 );
 
 /**
@@ -71,9 +72,9 @@ export const selectSwapToMoneyEnabled = createSelector(
  */
 export const selectSwapFromMoneyEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => true,
-  //validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsFromMoney) ??
-  // false,
+  (remoteFeatureFlags): boolean =>
+    validatedVersionGatedFeatureFlag(remoteFeatureFlags?.swapsFromMoney) ??
+    false,
 );
 
 /**

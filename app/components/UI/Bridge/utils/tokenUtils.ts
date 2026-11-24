@@ -231,9 +231,6 @@ export const tokenMatchesQuery = (
 export const tokenToIncludeAsset = (
   token: BridgeToken,
 ): IncludeAsset | null => {
-  if (token.isMoneyToken) {
-    return null;
-  }
   const assetId = formatAddressToAssetId(token.address, token.chainId);
   if (!assetId) return null;
 
