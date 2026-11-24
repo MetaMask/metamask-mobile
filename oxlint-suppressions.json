@@ -8792,9 +8792,6 @@
     }
   },
   "app/components/UI/Predict/hooks/usePredictMarketData.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/prefer-optional-chain": {
       "count": 1
     }
