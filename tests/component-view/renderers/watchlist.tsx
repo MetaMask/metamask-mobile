@@ -83,8 +83,7 @@ export function renderWatchlistSectionWithRoutes(
     [
       {
         name: Routes.WALLET.WATCHLIST_FULL_VIEW,
-        Component:
-          WatchlistFullViewWithPerps as unknown as React.ComponentType<object>,
+        Component: WatchlistFullViewWithPerps,
       },
       ASSET_ROUTE,
     ],
@@ -105,7 +104,7 @@ export function renderWatchlistFullScreenViewWithRoutes(
   );
 
   return renderScreenWithRoutes(
-    WatchlistFullViewWithPerps as unknown as React.ComponentType,
+    WatchlistFullViewWithPerps,
     { name: Routes.WALLET.WATCHLIST_FULL_VIEW },
     [ASSET_ROUTE],
     { state: buildWatchlistState(options) },

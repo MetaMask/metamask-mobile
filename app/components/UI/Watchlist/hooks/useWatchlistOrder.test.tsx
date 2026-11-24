@@ -117,7 +117,7 @@ describe('useWatchlistOrder', () => {
     const tokenB = createToken('token:b');
     let resolveRead: ((order: string[]) => void) | undefined;
     mockedReadWatchlistOrder.mockImplementation(
-      () =>
+      async () =>
         new Promise<string[]>((resolve) => {
           resolveRead = resolve;
         }),
@@ -153,7 +153,7 @@ describe('useWatchlistOrder', () => {
     const secondOrder = [tokenA.key, tokenB.key];
     let resolveFirstWrite: (() => void) | undefined;
     let resolveSecondWrite: (() => void) | undefined;
-    mockedWriteWatchlistOrder.mockImplementation(() => {
+    mockedWriteWatchlistOrder.mockImplementation(async () => {
       if (!resolveFirstWrite) {
         return new Promise<void>((resolve) => {
           resolveFirstWrite = resolve;

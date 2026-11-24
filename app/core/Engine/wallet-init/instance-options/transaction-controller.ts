@@ -90,7 +90,7 @@ export function getTransactionControllerInstanceOptions({
       isSimulationEnabled(transactionMeta, initMessenger),
     getSavedGasFees: (chainIdOrTransactionMeta) =>
       getSavedGasFees(chainIdOrTransactionMeta, initMessenger),
-    publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
+    publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY,
     // Expected type mismatch with TransactionControllerOptions['trace']
     trace: trace as unknown as TransactionControllerOptions['trace'],
   };
@@ -364,11 +364,11 @@ function getSavedGasFees(
   if (userFeeLevel !== UserFeeLevel.CUSTOM) {
     return {
       level: userFeeLevel as UserFeeLevel | GasFeeEstimateLevel,
-    } as unknown as SavedGasFees;
+    };
   }
 
   if (gasPrice) {
-    return { gasPrice, level: UserFeeLevel.CUSTOM } as unknown as SavedGasFees;
+    return { gasPrice, level: UserFeeLevel.CUSTOM };
   }
 
   if (!maxBaseFee || !priorityFee) {
@@ -379,7 +379,7 @@ function getSavedGasFees(
     maxBaseFee,
     priorityFee,
     level: UserFeeLevel.CUSTOM,
-  } as unknown as SavedGasFees;
+  };
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {

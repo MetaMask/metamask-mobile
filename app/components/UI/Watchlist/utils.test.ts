@@ -32,15 +32,14 @@ const PERP = {
   openInterest: '$500M',
 } as PerpsMarketData;
 
-const createSuggestedToken = (symbol: string): WatchlistTokenWithBalance =>
-  ({
-    assetId: `eip155:1/erc20:${symbol}`,
-    symbol,
-    name: symbol,
-    decimals: 18,
-    balance: '0',
-    isInWallet: false,
-  }) as WatchlistTokenWithBalance;
+const createSuggestedToken = (symbol: string): WatchlistTokenWithBalance => ({
+  assetId: `eip155:1/erc20:${symbol}`,
+  symbol,
+  name: symbol,
+  decimals: 18,
+  balance: '0',
+  isInWallet: false,
+});
 
 const createSuggestedPerp = (symbol: string): PerpsMarketData => ({
   ...PERP,

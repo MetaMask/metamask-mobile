@@ -17,7 +17,7 @@ const lastPersistedOrders = new Map<string, string[]>();
 const getOrderQueueKey = (accountGroupId: string | null): string =>
   accountGroupId ?? 'default';
 
-const enqueueOrderWrite = (
+const enqueueOrderWrite = async (
   accountGroupId: string | null,
   write: () => Promise<void>,
 ): Promise<void> => {
@@ -78,7 +78,7 @@ export const useWatchlistOrder = (
   );
   const orderQuery = useQuery({
     queryKey,
-    queryFn: () => readWatchlistOrder(accountGroupId),
+    queryFn: async () => readWatchlistOrder(accountGroupId),
     enabled,
     staleTime: Infinity,
     retry: WATCHLIST_ORDER_READ_RETRY_COUNT,
@@ -113,7 +113,7 @@ export const useWatchlistOrder = (
       const orderToPersist = [...nextOrder, ...preservedHydrationKeys];
       queryClient.setQueryData(queryKey, orderToPersist);
       try {
-        await enqueueOrderWrite(accountGroupId, () =>
+        await enqueueOrderWrite(accountGroupId, async () =>
           writeWatchlistOrder(accountGroupId, orderToPersist),
         );
         lastPersistedOrders.set(queueKey, orderToPersist);

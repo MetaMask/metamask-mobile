@@ -1052,11 +1052,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Assets/watchlist/Views/WatchlistFullScreenView/WatchlistFullScreenView.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/components/UI/Assets/watchlist/Views/WatchlistFullScreenView/useWatchlistEditDraft.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -15510,11 +15505,6 @@
       "count": 1
     }
   },
-  "app/components/Views/Homepage/Sections/Watchlist/WatchlistSection.tsx": {
-    "typescript/unbound-method": {
-      "count": 2
-    }
-  },
   "app/components/Views/Homepage/Sections/Watchlist/utils/__tests__/mapWatchlistTokenToTrendingAsset.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -19502,11 +19492,6 @@
       "count": 1
     }
   },
-  "app/components/Views/confirmations/hooks/pay/debug/useIsMmPayDebugVisible.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/Views/confirmations/hooks/pay/debug/useMmPayQuoteDebug.ts": {
     "typescript/no-base-to-string": {
       "count": 1
@@ -21859,9 +21844,6 @@
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
     },
     "typescript/promise-function-async": {
       "count": 4
@@ -25521,11 +25503,6 @@
     }
   },
   "tests/component-view/renderers/walletActions.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "tests/component-view/renderers/watchlist.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }

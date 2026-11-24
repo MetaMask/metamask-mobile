@@ -110,7 +110,7 @@ const LegacyWatchlistSection = forwardRef<
   const addMutation = useTokenWatchlistAddItemMutation();
   const watchlistAssetIds = useTokenWatchlistAssetIds();
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const analytics = useAnalytics();
 
   const title = strings('homepage.sections.watchlist');
 
@@ -141,8 +141,9 @@ const LegacyWatchlistSection = forwardRef<
       const assetId = String(token.assetId);
       addMutation.mutate(token, {
         onSuccess: () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+          analytics.trackEvent(
+            analytics
+              .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
               .addProperties({
                 source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
                 asset_id: assetId,
@@ -154,7 +155,7 @@ const LegacyWatchlistSection = forwardRef<
         },
       });
     },
-    [addMutation, createEventBuilder, trackEvent],
+    [addMutation, analytics],
   );
 
   const refresh = useCallback(async () => {
@@ -278,7 +279,7 @@ const MixedWatchlistSection = forwardRef<
   const { data: suggestedPool, isLoading: isSuggestedLoading } =
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
   const addMutation = useTokenWatchlistAddItemMutation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const analytics = useAnalytics();
   const { navigateToMarketDetails } = usePerpsNavigation();
   const { addToWatchlist: addPerpToWatchlist, removeFromWatchlist } =
     usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
@@ -308,7 +309,7 @@ const MixedWatchlistSection = forwardRef<
       tokens.items,
     ],
   );
-  const hasError = Boolean(tokens.error || perps.error);
+  const hasError = Boolean(tokens.error ?? perps.error);
   const isEmpty = !isInitialLoading && displayItems.length === 0 && !hasError;
   const showSuggestedSkeletons =
     isEmpty && isSuggestedLoading && suggestedRows.length === 0;
@@ -325,8 +326,9 @@ const MixedWatchlistSection = forwardRef<
       const assetId = String(token.assetId);
       addMutation.mutate(token, {
         onSuccess: () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+          analytics.trackEvent(
+            analytics
+              .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
               .addProperties({
                 source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
                 asset_id: assetId,
@@ -342,7 +344,7 @@ const MixedWatchlistSection = forwardRef<
         },
       });
     },
-    [addMutation, appendOrderKey, createEventBuilder, isOrderReady, trackEvent],
+    [addMutation, analytics, appendOrderKey, isOrderReady],
   );
 
   const handleAddPerpPress = useCallback(
@@ -385,7 +387,17 @@ const MixedWatchlistSection = forwardRef<
     }
 
     if (hasError && displayItems.length === 0) {
-      return <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />;
+      return (
+        <WatchlistErrorRow
+          onRetry={
+            canRefresh
+              ? (): void => {
+                  refresh().catch(() => undefined);
+                }
+              : undefined
+          }
+        />
+      );
     }
 
     if (showFallback) {
@@ -463,7 +475,9 @@ const MixedWatchlistSection = forwardRef<
                 PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
               )
             }
-            onAddPerpPress={handleAddPerpPress}
+            onAddPerpPress={(market) => {
+              handleAddPerpPress(market).catch(() => undefined);
+            }}
             canUseLivePerpsPrices={canUseLivePerpsPrices}
             enableMotion={canUseMotion}
           />

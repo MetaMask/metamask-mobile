@@ -112,8 +112,12 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     tokenMembershipAssetIds.length > 0 &&
     tokenData === undefined &&
     !tokenError;
-  const isPerpsMetadataTerminal =
-    !isPerpsEnabled || isOffline || hasResolvedPerpsData || Boolean(perpsError);
+  const isPerpsMetadataTerminal = [
+    !isPerpsEnabled,
+    isOffline,
+    hasResolvedPerpsData,
+    perpsError !== null,
+  ].includes(true);
 
   const perps = useMemo<UnifiedWatchlistPerp[]>(() => {
     if (!isPerpsEnabled || !isPerpsMetadataTerminal) {
