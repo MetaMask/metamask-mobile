@@ -18,7 +18,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const activeProvider = useSelector(selectPerpsProvider) as
     | PerpsActiveProviderMode
     | undefined;
-  const { account, isInitialLoading } = usePerpsLiveAccount({
+  const { account, aggregate, isInitialLoading } = usePerpsLiveAccount({
     enabled: isEnabled,
     throttleMs: PERPS_HOMEPAGE_THROTTLE_MS,
   });
@@ -30,7 +30,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
 
   const totalBalanceUsd = parseFloat(account?.totalBalance ?? '0') || 0;
   const convertedValue = toUserCurrency(totalBalanceUsd);
-  const isPartial = account?.aggregate?.status === 'partial';
+  const isPartial = aggregate?.status === 'partial';
   const totalBalance1dAgoFiat = useMemo(() => {
     // Match the baseline to every venue represented in the live total. A
     // missing or non-finite observation makes the change figure unavailable.

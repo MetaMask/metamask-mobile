@@ -141,6 +141,47 @@ describe('usePerpsPortfolioBalance', () => {
     });
   });
 
+  it('updates the partial flag when stream completeness changes without a new account', () => {
+    const liveAccount = {
+      account: {
+        spendableBalance: '100',
+        withdrawableBalance: '100',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '100',
+      },
+      isInitialLoading: false,
+      aggregate: {
+        status: 'partial',
+        availableProviders: ['hyperliquid'],
+        unavailableProviders: ['lighter'],
+        pendingProviders: [],
+      },
+    } satisfies ReturnType<typeof usePerpsLiveAccount>;
+    mockUsePerpsLiveAccount.mockReturnValue(liveAccount);
+
+    const { result, rerender } = renderHook(() => usePerpsPortfolioBalance());
+
+    expect(result.current.isPartial).toBe(true);
+    expect(result.current.perpsBalance).toBe(100);
+
+    mockUsePerpsLiveAccount.mockReturnValue({
+      ...liveAccount,
+      aggregate: {
+        status: 'complete',
+        availableProviders: ['hyperliquid', 'lighter'],
+        unavailableProviders: [],
+        pendingProviders: [],
+      },
+    });
+
+    rerender({});
+
+    expect(result.current.isPartial).toBe(false);
+    expect(result.current.perpsBalance).toBe(100);
+  });
+
   describe('Balance aggregation', () => {
     it('should aggregate balances from multiple providers', () => {
       const mockBalances = {

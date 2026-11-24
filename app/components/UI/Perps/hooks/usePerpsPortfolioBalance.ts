@@ -18,7 +18,7 @@ export function usePerpsPortfolioBalance() {
   );
 
   // Get live account data via WebSocket (for current balances)
-  const { account } = usePerpsLiveAccount();
+  const { account, aggregate } = usePerpsLiveAccount();
 
   // Get Redux balances (for historical data)
   const perpsBalances = useSelector(selectPerpsBalances);
@@ -76,9 +76,9 @@ export function usePerpsPortfolioBalance() {
         totalUnrealizedPnl: currentUnrealizedPnl,
         totalBalance1dAgo: historical1dAgoBalance,
         /** True when the combined total is a subtotal over available venues. */
-        isPartial: account?.aggregate?.status === 'partial',
+        isPartial: aggregate?.status === 'partial',
       };
-    }, [account, perpsBalances, usdConversionRate]);
+    }, [account, aggregate, perpsBalances, usdConversionRate]);
 
   return {
     // Current total account value in display currency (cash + positions)
