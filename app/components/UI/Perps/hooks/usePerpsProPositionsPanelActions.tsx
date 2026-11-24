@@ -1,5 +1,6 @@
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type Order,
@@ -14,7 +15,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { ensureError } from '../../../../util/errorUtils';
 import { ImpactMoment, useHaptics } from '../../../../util/haptics';
+import Logger from '../../../../util/Logger';
 import { useComplianceGate } from '../../Compliance';
 import PerpsBottomSheetTooltip from '../components/PerpsBottomSheetTooltip';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet';
@@ -144,6 +147,20 @@ export const usePerpsProPositionsPanelActions =
           }
 
           await action();
+        }).catch((error) => {
+          Logger.error(
+            ensureError(
+              error,
+              'usePerpsProPositionsPanelActions.runGatedEligibleAction',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'usePerpsProPositionsPanelActions.runGatedEligibleAction',
+                data: { source },
+              },
+            },
+          );
         });
       },
       [gate, isEligible, showGeoBlockForSource],

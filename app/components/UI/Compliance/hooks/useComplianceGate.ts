@@ -120,11 +120,13 @@ export function useComplianceGate(address?: AddressInput) {
   // gate() call for the same address.
   useEffect(() => {
     if (!isComplianceEnabled || !addressKey) return;
-    queryClient.prefetchQuery({
-      queryKey: complianceQueryKey(addressKey),
-      queryFn: checkCompliance,
-      ...COMPLIANCE_QUERY_OPTIONS,
-    });
+    queryClient
+      .prefetchQuery({
+        queryKey: complianceQueryKey(addressKey),
+        queryFn: checkCompliance,
+        ...COMPLIANCE_QUERY_OPTIONS,
+      })
+      .catch(() => undefined);
   }, [addressKey, checkCompliance, isComplianceEnabled, queryClient]);
 
   const gate = useCallback(

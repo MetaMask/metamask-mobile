@@ -26,6 +26,8 @@ import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
+import Logger from '../../../util/Logger';
+import { ensureError } from '../../../util/errorUtils';
 import {
   scanCompleted,
   scanRequested,
@@ -81,7 +83,9 @@ export function getKeyringBuilders(
     const keyring = new QrKeyring({ bridge: qrKeyringBridge });
     // To fix the bug in #9560, forgetDevice will reset all keyring properties
     // to default.
-    keyring.forgetDevice();
+    keyring.forgetDevice().catch((error) => {
+      Logger.error(ensureError(error, 'getKeyringBuilders.forgetDevice'));
+    });
     return keyring;
   };
 
