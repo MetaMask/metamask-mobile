@@ -243,7 +243,7 @@ describe('API_MOCKS', () => {
         'eip155:1/slip44:60': spotPrice('eip155:1/slip44:60', 1926.42),
       }))(server);
       await accountsSupportedNetworksV2.mock({ partialSupport: [] })(server);
-      const proxied = async (url: string) =>
+      const proxied = async (url: string): Promise<unknown> =>
         await (
           await fetch(`${server.url}/proxy?url=${encodeURIComponent(url)}`)
         ).json();

@@ -1,4 +1,4 @@
-import type { Mockttp } from 'mockttp';
+import type { Mockttp, RequestRuleBuilder } from 'mockttp';
 import { cloneDeep, mergeWith } from 'lodash';
 import type { TestSpecificMock } from '../framework/types.ts';
 import { getDecodedProxiedURL } from '../smoke-appium/notifications/utils/helpers.ts';
@@ -82,8 +82,10 @@ const isUpdater = <TBody>(
   overrides: ApiMockOverrides<TBody>,
 ): overrides is (body: TBody) => TBody => typeof overrides === 'function';
 
-const mergeArraysByReplacing = (_target: unknown, source: unknown) =>
-  Array.isArray(source) ? source : undefined;
+const mergeArraysByReplacing = (
+  _target: unknown,
+  source: unknown,
+): unknown[] | undefined => (Array.isArray(source) ? source : undefined);
 
 export function defineApiMock<TBody, TParams = undefined>(
   definition: ApiMockDefinition<TBody, TParams>,
@@ -120,13 +122,14 @@ export function defineApiMock<TBody, TParams = undefined>(
   ): Promise<void> => {
     const { priority = SPEC_MOCK_PRIORITY, status = 200 } = options;
     const target = matcher(params);
-    const forProxy = {
+    const proxyRules: Record<ApiMockMethod, () => RequestRuleBuilder> = {
       GET: () => server.forGet('/proxy'),
       POST: () => server.forPost('/proxy'),
       PUT: () => server.forPut('/proxy'),
       DELETE: () => server.forDelete('/proxy'),
       HEAD: () => server.forHead('/proxy'),
-    }[method];
+    };
+    const forProxy = proxyRules[method];
 
     // thenJson (SimpleHandler) never reads the request body, which avoids the
     // mockttp "Aborted" rejection described in `setupMockRequest`.
