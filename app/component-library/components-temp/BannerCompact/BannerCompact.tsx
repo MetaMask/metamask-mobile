@@ -107,7 +107,6 @@ const RowContent = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          numberOfLines={2}
         >
           {description}
         </Text>

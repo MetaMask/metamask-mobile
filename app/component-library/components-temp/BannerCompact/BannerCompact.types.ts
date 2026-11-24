@@ -23,7 +23,7 @@ export interface BannerCompactProps extends Omit<PressableProps, 'onPress'> {
    */
   title: string;
   /**
-   * The banner's description, capped at two lines.
+   * The banner's description. It wraps to as many lines as it needs.
    */
   description: string;
   /**

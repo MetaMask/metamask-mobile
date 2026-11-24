@@ -239,7 +239,7 @@ export const PROTOTYPE_COPY = {
     cantVerify: {
       title: 'We can’t verify your identity',
       description:
-        'We’re unable to offer prediction markets at this time. Contact support for assistance.',
+        'Prediction markets aren’t available to you right now.',
     },
     verified: {
       title: GEORGE_COPY.done.title,

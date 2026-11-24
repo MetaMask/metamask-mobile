@@ -16,12 +16,12 @@ describe('BannerCompact', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the title and the two-line description', () => {
+  it('renders the title and the description, without a line cap', () => {
     const { getByText, getByTestId } = renderBanner({});
 
     expect(getByText(TITLE)).toBeOnTheScreen();
     expect(getByText(DESCRIPTION)).toBeOnTheScreen();
-    expect(getByText(DESCRIPTION).props.numberOfLines).toBe(2);
+    expect(getByText(DESCRIPTION).props.numberOfLines).toBeUndefined();
     expect(getByTestId(BannerCompactSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
