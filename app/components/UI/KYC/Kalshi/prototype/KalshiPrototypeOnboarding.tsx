@@ -27,6 +27,7 @@ import PartnerTerms from '../../Views/SumSub/PartnerTerms';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { nextWaitingPollDelayMs } from '../waitingPoll';
 import {
+  PROTOTYPE_ENTRY_CHECK_DELAY_MS,
   PROTOTYPE_SUMSUB_LAUNCH_DELAY_MS,
   GEORGE_COPY,
 } from './prototypeConstants';
@@ -397,6 +398,20 @@ const KalshiPrototypeFlowStack = () => {
   const [initialRouteName] = useState(() =>
     getKalshiPrototypeRouteForScript(getKalshiPrototypeRuntime().script),
   );
+  // The entry status check (UKYC and Kalshi link): the fox loader with no
+  // copy, as in Paper 95O, before the stack opens on its first step.
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setIsCheckingStatus(false),
+      PROTOTYPE_ENTRY_CHECK_DELAY_MS,
+    );
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isCheckingStatus) {
+    return <KalshiPrototypeLoading />;
+  }
 
   if (!initialRouteName) {
     return (

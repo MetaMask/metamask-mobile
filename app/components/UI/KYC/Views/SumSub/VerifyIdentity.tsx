@@ -263,19 +263,22 @@ const KycVerifyIdentity = ({
             ))}
           </Box>
 
-          {/* 12px margin each side plus the last row's 12px bottom padding
-              and the heading's 12px top padding: 24px above and below. */}
-          <SectionDivider
-            marginVertical={3}
-            testID={KycVerifyIdentitySelectorsIDs.PARTNER_DIVIDER}
-          />
+          {/* Inset to the content margin. 8px margin each side plus the last
+              row's 12px bottom padding and the heading's 12px top padding:
+              20px above and below. */}
+          <Box twClassName="px-4">
+            <SectionDivider
+              marginVertical={2}
+              testID={KycVerifyIdentitySelectorsIDs.PARTNER_DIVIDER}
+            />
+          </Box>
 
-          {/* 20px below plus the first row's 8px top padding matches the 28px
-              between the subtitle and the first step above. */}
+          {/* 6px below plus the first row's 8px top padding: a 14px gap, tighter
+              than the 20px above so the heading reads with its rows. */}
           <Text
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Bold}
-            twClassName="px-4 pb-5 pt-3"
+            twClassName="px-4 pb-1.5 pt-3"
           >
             {strings('kyc.verify_identity.partner_title')}
           </Text>

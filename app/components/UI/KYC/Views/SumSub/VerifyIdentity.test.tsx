@@ -80,7 +80,7 @@ describe('KycVerifyIdentity', () => {
     expect(getByText('Confirm your details')).toBeOnTheScreen();
     expect(getByText('Answer a few questions')).toBeOnTheScreen();
     expect(
-      getByText('We partner with idOS to verify your identity'),
+      getByText('We partner with idOS for verification'),
     ).toBeOnTheScreen();
     expect(getByText('Verify once, reuse later')).toBeOnTheScreen();
     expect(
