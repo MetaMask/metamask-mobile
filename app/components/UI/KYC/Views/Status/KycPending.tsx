@@ -1,15 +1,19 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -17,6 +21,9 @@ import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
+import MarketingMomentTitle from '../../../MarketingMomentTitle';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 // VBA's verifying-identity scanner Rive (the Money home card's), scaled up to
 // this screen's 104px illustration height. The fallback art keeps its ratio.
@@ -56,6 +63,7 @@ const KycPending = ({
   description,
   buttonLabel,
 }: KycPendingProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   useTrackKycResultViewed('pending');
   const tw = useTailwind();
 
@@ -64,48 +72,68 @@ const KycPending = ({
     onLeave();
   }, [onLeave]);
 
+  // Laid out like Identity verified (same header space, title, body and
+  // footer), so the wait and the result read as one screen changing state.
+  // No back: Come back later is the way out.
   return (
     <SafeAreaView
-      edges={['top', 'right', 'bottom', 'left']}
+      edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+      />
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow justify-center px-4 py-4')}
+        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
         testID={KycPendingSelectorsIDs.CONTAINER}
       >
-        <Box alignItems={BoxAlignItems.Center}>
-          <Box
-            twClassName="mb-[24px]"
-            testID={KycPendingSelectorsIDs.ILLUSTRATION}
-          >
-            {VERIFYING_HERO.heroAnimation ? (
-              <Box
-                style={tw.style('overflow-hidden', {
-                  width: VERIFYING_HERO_ART.width,
-                  height: VERIFYING_HERO_ART.height,
-                })}
-              >
-                <MoneyVbaHomeCardHeroAnimation
-                  animation={VERIFYING_HERO.heroAnimation}
-                  fallback={VERIFYING_HERO_ART}
-                />
-              </Box>
-            ) : null}
-          </Box>
-          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-            {title ?? strings('kyc.kyc_taking_longer.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-[4px] text-center"
-          >
-            {description ??
-              strings('kyc.kyc_taking_longer.description_few_minutes')}
-          </Text>
-        </Box>
+        <TitleStandard
+          title={
+            <MarketingMomentTitle twClassName="w-full text-center">
+              {title ?? strings('kyc.kyc_taking_longer.title')}
+            </MarketingMomentTitle>
+          }
+          bottomLabel={
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {description ??
+                strings('kyc.kyc_taking_longer.description_few_minutes')}
+            </Text>
+          }
+          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
+          bottomLabelWrapperProps={{
+            justifyContent: BoxJustifyContent.Center,
+          }}
+          topAccessory={
+            <Box
+              alignItems={BoxAlignItems.Center}
+              twClassName="mb-5 w-full"
+              testID={KycPendingSelectorsIDs.ILLUSTRATION}
+            >
+              {VERIFYING_HERO.heroAnimation ? (
+                <Box
+                  style={tw.style('overflow-hidden', {
+                    width: VERIFYING_HERO_ART.width,
+                    height: VERIFYING_HERO_ART.height,
+                  })}
+                >
+                  <MoneyVbaHomeCardHeroAnimation
+                    animation={VERIFYING_HERO.heroAnimation}
+                    fallback={VERIFYING_HERO_ART}
+                  />
+                </Box>
+              ) : null}
+            </Box>
+          }
+        />
       </ScrollView>
-      <Box twClassName="p-4">
+      <Box twClassName="px-4 pb-2 pt-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
