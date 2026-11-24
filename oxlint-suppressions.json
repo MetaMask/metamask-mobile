@@ -6453,7 +6453,7 @@
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderFormPanel.view.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionsOptionSheet.tsx": {
