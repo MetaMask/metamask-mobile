@@ -2,7 +2,14 @@ import { ethers } from 'ethers';
 import { base58 } from 'ethers/lib/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
-import { BtcScope, SolScope, XlmScope } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  BtcScope,
+  SolAccountType,
+  SolScope,
+  XlmAccountType,
+  XlmScope,
+} from '@metamask/keyring-api';
 import {
   TransactionType,
   type TransactionMeta,
@@ -22,6 +29,11 @@ import type {
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { RewardsMoneyClaimRefusalError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import Engine from '../../../../core/Engine';
+import {
+  getKeyringByAddress,
+  isHardwareAccount,
+  isSnapAccount,
+} from '../../../../util/address';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -283,6 +295,122 @@ export function canClaimEarnings(
   return claimRoutesForSummary(summary, options).length > 0;
 }
 
+/**
+ * Minutes still left in a Retry-After wait. Zero once the wait has elapsed.
+ * A wait that is still running reports at least 1, so the caption does not
+ * say 0 while Claim stays disabled.
+ */
+export function claimWaitMinutesRemaining(
+  untilMs: number,
+  nowMs: number,
+): number {
+  const remainingMs = untilMs - nowMs;
+  if (remainingMs <= 0) {
+    return 0;
+  }
+  return Math.max(1, Math.ceil(remainingMs / 60_000));
+}
+
+/**
+ * The sentence under Claim during a wait. `{minutes}` is the time still
+ * left. A template without that placeholder keeps the later sentence, the
+ * same way a toast does.
+ */
+export function claimWaitCaption(
+  localizedText: Pick<
+    ReferralLocalizedText,
+    'claimFailureWaitMinutesToast' | 'claimFailureWaitToast'
+  >,
+  untilMs: number,
+  nowMs: number,
+): string | null {
+  const minutes = claimWaitMinutesRemaining(untilMs, nowMs);
+  if (minutes <= 0) {
+    return null;
+  }
+  const template = localizedText.claimFailureWaitMinutesToast;
+  if (!template?.includes('{minutes}')) {
+    return localizedText.claimFailureWaitToast;
+  }
+  return template.replaceAll('{minutes}', String(minutes));
+}
+
+/**
+ * Claimable earning-address keys for a route that lists them. Revenue share
+ * has no list. An empty list means this phone has nothing to compare.
+ */
+function claimableAddressesForRoute(
+  summary: EarningsSummaryDto | null | undefined,
+  route: ClaimRouteSlug,
+): string[] {
+  const entries =
+    route === 'referral-trade-fee-cashback'
+      ? summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+          ?.by_address
+      : route === 'social-follow-trade'
+        ? summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE
+            ?.by_address
+        : undefined;
+  if (!entries?.length) {
+    return [];
+  }
+  return entries
+    .filter((entry) => isPositiveBaseUnits(entry.claimable))
+    .map((entry) => entry.address);
+}
+
+/**
+ * Drops a route whose claimable addresses are all ones this phone cannot
+ * sign. A route with no address list, including revenue share, stays. One
+ * signable address keeps the route, and the claim runner narrows to it.
+ */
+export function routesSignableOnDevice(
+  summary: EarningsSummaryDto | null | undefined,
+  routes: ClaimRouteSlug[],
+  canSign: (earningAddress: string) => boolean,
+): ClaimRouteSlug[] {
+  return routes.filter((route) => {
+    const addresses = claimableAddressesForRoute(summary, route);
+    if (addresses.length === 0) {
+      return true;
+    }
+    return addresses.some(canSign);
+  });
+}
+
+/**
+ * True when an open route lists a claimable address this phone cannot sign.
+ * One such address is enough. A route with no list, including revenue share,
+ * does not count.
+ */
+export function claimHasUnsignableAddress(
+  summary: EarningsSummaryDto | null | undefined,
+  options: ClaimRouteOptions | undefined,
+  canSign: (earningAddress: string) => boolean,
+): boolean {
+  return claimRoutesForSummary(summary, options).some((route) =>
+    claimableAddressesForRoute(summary, route).some(
+      (address) => !canSign(address),
+    ),
+  );
+}
+
+/**
+ * True when every open claim route needs an address this phone cannot sign.
+ * No open route is false, so a tax-only Claim is left alone.
+ */
+export function claimBlockedOnThisDevice(
+  summary: EarningsSummaryDto | null | undefined,
+  options: ClaimRouteOptions | undefined,
+  canSign: (earningAddress: string) => boolean,
+): boolean {
+  const routes = claimRoutesForSummary(summary, options);
+  if (routes.length === 0) {
+    return false;
+  }
+  return routesSignableOnDevice(summary, routes, canSign).length === 0;
+}
+
 export interface DisplayClaimTotals {
   /** Claimable that meets the minimum, plus any amount with no family to place it. */
   claimable: string;
@@ -481,6 +609,79 @@ export function stellarAddressFromEarningAddress(
     return null;
   }
   return address;
+}
+
+/** A mainnet `bc1q` or `bc1p` account this phone can BIP-322 sign. */
+export function bitcoinAccountForEarningAddress(earningAddress: string) {
+  const bitcoin = bitcoinAddressFromEarningAddress(earningAddress);
+  if (!bitcoin) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(bitcoin);
+  if (!account || account.address.toLowerCase() !== bitcoin) {
+    return null;
+  }
+  const typeMatches =
+    (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
+    (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
+  return typeMatches ? { account, bitcoin } : null;
+}
+
+/** A Solana account on this phone. The address is compared with its case. */
+export function solanaAccountForEarningAddress(earningAddress: string) {
+  const address = solanaAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== SolAccountType.DataAccount
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/** A Stellar account on this phone. A lowercase `G` address is not a match. */
+export function stellarAccountForEarningAddress(earningAddress: string) {
+  const address = stellarAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== XlmAccountType.Account
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/**
+ * Whether this phone can sign a proof for the earning-address key. EVM
+ * software keys, mainnet Bitcoin, Solana, and Stellar accounts on this phone
+ * can. Tron, hardware accounts, and keys that live on another device cannot.
+ */
+export function canSignEarningAddress(earningAddress: string): boolean {
+  if (
+    bitcoinAccountForEarningAddress(earningAddress) ||
+    solanaAccountForEarningAddress(earningAddress) ||
+    stellarAccountForEarningAddress(earningAddress)
+  ) {
+    return true;
+  }
+  const from = evmAddressFromEarningAddress(earningAddress);
+  if (!from || !getKeyringByAddress(from)) {
+    return false;
+  }
+  return !isHardwareAccount(from) && !isSnapAccount(from);
 }
 
 /**

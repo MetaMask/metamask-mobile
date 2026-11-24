@@ -5,7 +5,7 @@ import React, {
   useRef,
   type Ref,
 } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useLinkProps } from '@react-navigation/native';
 import {
   FontWeight,
   Icon,
@@ -26,6 +26,10 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { useHomePacks } from '../../../../UI/Collectibles/hooks/useHomePacks';
+import {
+  collectiblesRoutes,
+  type CollectiblesParamList,
+} from '../../../../UI/Collectibles/routeNames';
 import {
   CollectiblesCarousel,
   CollectiblesCarouselSkeleton,
@@ -49,8 +53,10 @@ export function CollectiblesSection({
 }: Props) {
   const sectionViewRef = useRef<ComponentRef<typeof View>>(null);
   const { data: packs, isPending, refetch } = useHomePacks();
-  // A failed refetch keeps cached packs, so the placeholder only shows when
-  // there's nothing to show.
+  const collectiblesLink = useLinkProps<CollectiblesParamList>({
+    screen: collectiblesRoutes.root,
+  });
+  // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
   const isFirstFocus = useRef(true);
 
@@ -102,6 +108,7 @@ export function CollectiblesSection({
       <SectionHeader
         title={strings('collectibles.title')}
         isInteractive
+        {...collectiblesLink}
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
       {isPending ? (
