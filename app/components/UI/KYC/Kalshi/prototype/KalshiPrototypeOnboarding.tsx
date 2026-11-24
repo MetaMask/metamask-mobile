@@ -179,6 +179,7 @@ const ConsentStep = () => {
       onContinue={handleContinue}
       onExit={handleBack}
       totalSteps={KALSHI_PROTOTYPE_TOTAL_STEPS}
+      dataRecipient="kalshi"
     />
   );
 };

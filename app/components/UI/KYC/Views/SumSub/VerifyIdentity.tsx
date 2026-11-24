@@ -111,6 +111,12 @@ interface KycVerifyIdentityProps {
   onExit: () => void;
   /** The step indicator's total ("1 of 2"); defaults to the two terms pages. */
   totalSteps?: number;
+  /**
+   * Who else MetaMask passes the user's details to, besides idOS. Omitted:
+   * idOS only (VBA). 'kalshi' names Kalshi too, since each new recipient
+   * needs its own consent.
+   */
+  dataRecipient?: 'kalshi';
 }
 
 /**
@@ -126,6 +132,7 @@ const KycVerifyIdentity = ({
   onContinue,
   onExit,
   totalSteps = DEFAULT_TOTAL_PAGES,
+  dataRecipient,
 }: KycVerifyIdentityProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
@@ -332,7 +339,11 @@ const KycVerifyIdentity = ({
             </Box>
           ) : null}
           <SentenceWithLinks
-            i18nKey="kyc.verify_identity.agreement"
+            i18nKey={
+              dataRecipient === 'kalshi'
+                ? 'kyc.verify_identity.agreement_kalshi'
+                : 'kyc.verify_identity.agreement'
+            }
             twClassName="text-center"
             testID={KycVerifyIdentitySelectorsIDs.AGREEMENT}
             links={{
