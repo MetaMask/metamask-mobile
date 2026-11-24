@@ -202,15 +202,16 @@ const MicaConsent = (): React.JSX.Element => {
 
   // A failed details fetch is retried by reloading the details; otherwise the
   // banner retries a previously captured consent submission.
-  const bannerRetryHandler = userDetailsFailed
-    ? () => {
-        void loadUserDetails();
-      }
-    : capturedConsentedAt
-      ? () => {
-          void handleRetry();
-        }
-      : undefined;
+  let bannerRetryHandler: (() => void) | undefined;
+  if (userDetailsFailed) {
+    bannerRetryHandler = () => {
+      void loadUserDetails();
+    };
+  } else if (capturedConsentedAt) {
+    bannerRetryHandler = () => {
+      void handleRetry();
+    };
+  }
 
   // Consent is only valid once the user has seen the details being consented to.
   const isFormValid =
