@@ -113,6 +113,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -335,6 +336,9 @@ const MoneyHomeView = () => {
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
+  );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
@@ -972,6 +976,17 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackTooltipClicked]);
 
+  const handleEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  }, [navigation, trackSurfaceClicked]);
+
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
@@ -1220,6 +1235,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}

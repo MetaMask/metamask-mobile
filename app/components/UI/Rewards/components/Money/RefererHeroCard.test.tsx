@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
@@ -11,11 +12,11 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
+import { avatarIconNameIn } from './testUtils';
 
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => true),
 }));
-import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
 jest.mock('../../hooks/useReferralMe');
@@ -157,8 +158,10 @@ describe('RefererHeroCard', () => {
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-    ).toBeOnTheScreen();
+      avatarIconNameIn(
+        getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+      ),
+    ).toBe(IconName.People);
   });
 
   it('does not read the referrer totals off the self-earned branch', () => {
@@ -262,16 +265,6 @@ describe('RefererHeroCard', () => {
     expect(
       childTestIds.indexOf(REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR),
     ).toBeLessThan(childTestIds.indexOf(REFERER_HERO_CARD_TEST_IDS.IDENTITY));
-  });
-
-  it('opens the terms sheet from the info icon', () => {
-    const { getByTestId } = renderHero();
-
-    fireEvent.press(getByTestId(REFERER_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
-    );
   });
 
   it('hides the code when the code is not active', () => {

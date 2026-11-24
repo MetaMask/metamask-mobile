@@ -217,6 +217,7 @@ const renderShell = (
     onPositionPress?: (post: SocialV1FeedPost) => void;
     requireSocialProfile?: boolean;
     showCopyTrade?: boolean;
+    gifVisible?: boolean;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
     /** Feed surface. Sets the Perps order source for that tab. */
@@ -246,6 +247,7 @@ const renderShell = (
         onPositionPress={options?.onPositionPress}
         onCopyTrade={options?.onCopyTrade}
         showCopyTrade={options?.showCopyTrade}
+        gifVisible={options?.gifVisible}
       />
     );
     const shell =
@@ -596,6 +598,17 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
     ).toBeOnTheScreen();
+  });
+
+  it('drops the decoded gif while the row is off screen', () => {
+    renderShell(basePost({ gifUri: 'https://media.test/cat.gif' }), {
+      gifVisible: false,
+    });
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`).props
+        .source,
+    ).toBeUndefined();
   });
 
   it('shows the add-reaction button and no zero when the Call has no reactions', () => {
@@ -1131,7 +1144,11 @@ describe('SocialFeedPostShell', () => {
               source: 'trader_feed',
               useBottomSheet: true,
               stayOnCurrentScreen: true,
-              copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+              copyTradeOrigin: {
+                commentId: 'comment-1',
+                asset: 'BTC',
+                authorId: 'v1-trader-doji',
+              },
             }),
           }),
         );
@@ -1157,7 +1174,11 @@ describe('SocialFeedPostShell', () => {
             useBottomSheet: true,
             stayOnCurrentScreen: true,
             isCopyTrade: true,
-            copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+            copyTradeOrigin: {
+              commentId: 'comment-1',
+              asset: 'BTC',
+              authorId: 'v1-trader-doji',
+            },
           },
         });
       });

@@ -16,7 +16,27 @@ jest.mock('../framework/AppiumUtilities', () => ({
 }));
 
 jest.mock('../framework/Utilities', () => ({
-  sleep: jest.fn(() => Promise.resolve()),
+  __esModule: true,
+  default: {
+    executeWithRetry: jest.fn(async (operation: () => Promise<void>) => {
+      let lastError: unknown;
+      const originalDateNow = Date.now;
+      let now = 0;
+      Date.now = () => (now += 100);
+      try {
+        for (let attempt = 0; attempt < 10; attempt++) {
+          try {
+            return await operation();
+          } catch (error) {
+            lastError = error;
+          }
+        }
+      } finally {
+        Date.now = originalDateNow;
+      }
+      throw lastError;
+    }),
+  },
 }));
 
 jest.mock('../framework/services/appium/sessionRecovery', () => ({
@@ -32,7 +52,10 @@ jest.mock('../framework/PlatformLocator', () => ({
 
 import Matchers from '../framework/Matchers';
 import { isDeviceHealthError } from '../framework/services/appium/sessionRecovery';
-import { isWalletHomeReadyOnAndroid } from './wallet-home-readiness';
+import {
+  isWalletHomeReadyOnAndroid,
+  isWalletHomeReadyOnAndroidStable,
+} from './wallet-home-readiness';
 
 const visibleByTestId = new Map<string, boolean>();
 
@@ -89,5 +112,33 @@ describe('isWalletHomeReadyOnAndroid', () => {
     const ready = await isWalletHomeReadyOnAndroid();
 
     expect(ready).toBe(false);
+  });
+});
+
+describe('isWalletHomeReadyOnAndroidStable', () => {
+  beforeEach(() => {
+    visibleByTestId.clear();
+    jest
+      .mocked(Matchers.getElementByID)
+      .mockImplementation(async (elementId) => {
+        const testId = String(elementId);
+        return {
+          isVisible: async () => visibleByTestId.get(testId) ?? false,
+          unwrap: () => ({
+            isExisting: async () => false,
+          }),
+        } as unknown as AppiumElement;
+      });
+  });
+
+  it('returns true when wallet chrome remains ready through the stability window', async () => {
+    visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
+    visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
+
+    await expect(isWalletHomeReadyOnAndroidStable()).resolves.toBe(true);
+  });
+
+  it('returns false when wallet chrome is not ready', async () => {
+    await expect(isWalletHomeReadyOnAndroidStable()).resolves.toBe(false);
   });
 });

@@ -31,7 +31,6 @@ export const REFERER_HERO_CARD_TEST_IDS = {
   TRADE_COMMISSIONS_TOTAL: 'referer-hero-card-trade-commissions-total',
   IDENTITY: 'referer-hero-card-identity',
   OFFER_ENDS_IN: 'referer-hero-card-offer-ends-in',
-  TERMS_INFO_BUTTON: 'referer-hero-card-terms-info',
   REFERRAL_ERROR: 'referer-hero-card-referral-error',
   EARNINGS_ERROR: 'referer-hero-card-earnings-error',
 } as const;
@@ -116,8 +115,6 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           title={localizedText.earnEligibleFees}
           offerEndsIn={offerEndsIn}
           offerEndsTestID={REFERER_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
-          termsTitle={localizedText.termsTitle}
-          termsTestID={REFERER_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
           titleRowClassName="px-4 pb-4"
         />
         <Box twClassName="h-px bg-border-muted" />
@@ -149,7 +146,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
         />
         {showTradingCommissions ? (
           <MoneyMetricCard
-            iconName={IconName.Copy}
+            iconName={IconName.People}
             label={localizedText.tradingCommissionsSection}
             amount={
               unavailableAmount ??

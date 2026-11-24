@@ -40,6 +40,11 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
         backgroundState: {
           // useBridgeQuoteEvents -> selectTokensBalances
           TokenBalancesController: { tokenBalances: {} },
+          // BridgeTokenSelector -> useMoneyToken -> selectMoneyAccounts
+          MoneyAccountController: {
+            moneyAccounts: {},
+            defaultMoneyAccountId: null,
+          },
         },
       },
       bridge: {

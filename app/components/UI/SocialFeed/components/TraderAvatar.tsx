@@ -91,7 +91,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
           tw.style('bg-muted'),
         ]}
         contentFit="cover"
-        cachePolicy="memory-disk"
+        cachePolicy="disk"
         recyclingKey={recyclingKey}
         testID={testID}
       />

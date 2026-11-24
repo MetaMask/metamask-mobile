@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Copier {{field}}",
       "copied_label": "{{field}} copié",
-      "copy_all_button": "Copier tous les détails",
-      "copied_all_label": "Coordonnées bancaires copiées",
       "button": "Terminé",
       "waiting_for_details": "Les coordonnées de votre compte s'afficheront ici sous peu.",
       "loading_details": "Chargement des coordonnées du compte",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "à",
-        "market_cap_suffix": "Capitalisation boursière",
-        "size_at_price": "{{size}} à {{price}} ",
-        "size_at_market_cap": "{{size}} à {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Capitalisation boursière"
       },
       "trader_stats": {
         "pnl_30d": "Résultat net de {{pnl}} (30 jours)",
@@ -1995,22 +1991,6 @@
         "4": "Jeu",
         "5": "Ven",
         "6": "Sam"
-      },
-      "tooltip": {
-        "label": "{{action}} à {{price}}",
-        "bought": "Acheté",
-        "sold": "Vendu",
-        "perps_closed": "Fermé",
-        "perps_long_opened": "Position longue ouverte",
-        "perps_long_added": "A augmenté sa position longue",
-        "perps_long_reduced": "A réduit sa position longue",
-        "perps_short_opened": "Position courte ouverte",
-        "perps_short_added": "A augmenté sa position courte",
-        "perps_short_reduced": "A racheté",
-        "spot_opened": "Acheté",
-        "spot_added": "A acheté davantage",
-        "spot_reduced": "A vendu une partie",
-        "spot_closed": "A tout vendu"
       }
     },
     "trader_position": {
@@ -9914,7 +9894,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Générez des revenus, tradez et effectuez des paiements à partir d'un seul solde",
       "body_prefix": "MetaMask Money est un compte de stablecoins offrant jusqu’à ",
-      "body_suffix": "—et des fonctionnalités intégrées de trading, de transfert et de paiement.",
+      "body_suffix": "- et des fonctionnalités intégrées de trading, de transfert et de paiement.",
       "body_no_apy": "MetaMask Money est un compte de stablecoins offrant des fonctionnalités intégrées de trading, de transfert et de paiement.",
       "benefit_convert_title": "Convertit en MetaMask USD, à parité 1:1",
       "benefit_convert_body": "Les fonds que vous ajoutez sont convertis à parité 1:1 en MetaMask USD, sans frais.",

@@ -19,6 +19,11 @@ export interface CardEnableCardState {
   /** True while a Money account funding approval is running in the background. */
   isEnableCardPending: boolean;
   /**
+   * True while Immersve's own provisioning interval is already refetching
+   * card home data, so Card home must not start a second poll.
+   */
+  isProvisioningPollActive: boolean;
+  /**
    * Call before leaving for a Card screen so the next focus rechecks setup.
    * A no-op for providers that do not reconcile a left-off step.
    */
@@ -33,6 +38,7 @@ const DEFAULT_STATE: CardEnableCardState = {
   provisioningView: 'provisioning',
   setupStep: null,
   isEnableCardPending: false,
+  isProvisioningPollActive: false,
   markCardFlowOpened: noop,
 };
 
@@ -61,6 +67,7 @@ export function useCardEnableCard(
       provisioningView: immersve.provisioningView,
       setupStep: immersve.setupStep,
       isEnableCardPending: immersve.isEnableCardPending,
+      isProvisioningPollActive: immersve.isProvisioningPollActive,
       markCardFlowOpened: immersve.markCardFlowOpened,
     };
   }, [
@@ -70,6 +77,7 @@ export function useCardEnableCard(
     immersve.provisioningView,
     immersve.setupStep,
     immersve.isEnableCardPending,
+    immersve.isProvisioningPollActive,
     immersve.markCardFlowOpened,
   ]);
 }

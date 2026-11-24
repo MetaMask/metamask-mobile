@@ -1,4 +1,5 @@
 import { ChainId } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { cloneDeep, merge } from 'lodash';
@@ -52,16 +53,20 @@ const TRANSACTION_ID_MOCK =
 
 const NETWORK_CLIENT_ID_MOCK = 'network-client-id-mock';
 
-const PAY_TOKEN_MOCK = {
-  address: tokenAddress1Mock,
+const PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
+  assetId: `eip155:1/erc20:${tokenAddress1Mock}`,
   balanceHuman: '123.456',
   balanceFiat: '456.12',
   balanceUsd: '456.123',
   balanceRaw: '123456000000000000000',
-  chainId: ChainId.mainnet,
   decimals: 4,
   symbol: 'TST',
-} as TransactionPaymentToken;
+};
+
+const PAY_TOKEN_ASSET_MOCK = {
+  address: tokenAddress1Mock as Hex,
+  chainId: ChainId.mainnet as Hex,
+};
 
 const REQUIRED_TOKEN_MOCK = {
   address: tokenAddress1Mock,
@@ -133,55 +138,73 @@ describe('useTransactionPayToken', () => {
 
   it('returns token matching state', () => {
     const { result } = runHook({
-      payToken: PAY_TOKEN_MOCK,
+      payToken: PAYMENT_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toStrictEqual(PAY_TOKEN_MOCK);
+    expect(result.current.payToken).toStrictEqual(PAYMENT_TOKEN_MOCK);
     expect(result.current.isNative).toBe(false);
+  });
+
+  it('throws when setting a non-EVM token', () => {
+    const { result } = runHook();
+
+    expect(() =>
+      result.current.setPayToken({
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      }),
+    ).toThrow(
+      'Unsupported payment token: bip122:000000000019d6689c085ae165831e93/slip44:0',
+    );
+    expect(updatePaymentTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('fetches gas fee estimates on the chain of the new token', async () => {
+    const { result } = runHook();
+
+    result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
+
+    await flushPromises();
+
+    expect(findNetworkClientIdByChainIdMock).toHaveBeenCalledWith(
+      ChainId.mainnet,
+    );
+    expect(fetchGasFeeEstimatesMock).toHaveBeenCalledWith({
+      networkClientId: NETWORK_CLIENT_ID_MOCK,
+    });
   });
 
   it('sets token in state', async () => {
     const { result } = runHook();
 
-    result.current.setPayToken({
-      address: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-    });
+    result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
     await flushPromises();
 
     expect(updatePaymentTokenMock).toHaveBeenCalledWith({
       transactionId: TRANSACTION_ID_MOCK,
-      tokenAddress: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId,
+      assetId: PAYMENT_TOKEN_MOCK.assetId,
     });
   });
 
   it('syncs a money account withdrawal transfer with the new token', async () => {
     const { result } = runHook();
 
-    result.current.setPayToken({
-      address: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-    });
+    result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
     await flushPromises();
 
     expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
       expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
-      {
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId,
-      },
+      PAY_TOKEN_ASSET_MOCK,
     );
   });
 
   it('returns isNative true when pay token is native address', () => {
     const { result } = runHook({
       payToken: {
-        ...PAY_TOKEN_MOCK,
-        address: '0x0000000000000000000000000000000000000000',
-      } as TransactionPaymentToken,
+        ...PAYMENT_TOKEN_MOCK,
+        assetId: 'eip155:1/slip44:60',
+      },
     });
 
     expect(result.current.isNative).toBe(true);
@@ -196,21 +219,18 @@ describe('useTransactionPayToken', () => {
 
     it('updates transaction with selectedGasFeeToken for predictDeposit when pay token matches required token', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDeposit,
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          selectedGasFeeToken: PAY_TOKEN_MOCK.address,
+          selectedGasFeeToken: PAY_TOKEN_ASSET_MOCK.address,
           isGasFeeTokenIgnoredIfBalance: true,
         }),
         TRANSACTION_ID_MOCK,
@@ -219,21 +239,18 @@ describe('useTransactionPayToken', () => {
 
     it('updates transaction with selectedGasFeeToken for predictDepositAndOrder when pay token matches required token', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDepositAndOrder,
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          selectedGasFeeToken: PAY_TOKEN_MOCK.address,
+          selectedGasFeeToken: PAY_TOKEN_ASSET_MOCK.address,
           isGasFeeTokenIgnoredIfBalance: true,
         }),
         TRANSACTION_ID_MOCK,
@@ -248,15 +265,12 @@ describe('useTransactionPayToken', () => {
       } as unknown as TransactionPayRequiredToken;
 
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDepositAndOrder,
         requiredTokens: [differentToken],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
@@ -271,15 +285,12 @@ describe('useTransactionPayToken', () => {
 
     it('does not update transaction for non-predictDeposit transaction types', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.simpleSend,
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
@@ -294,15 +305,12 @@ describe('useTransactionPayToken', () => {
       } as unknown as TransactionPayRequiredToken;
 
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDeposit,
         requiredTokens: [differentToken],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
@@ -317,15 +325,12 @@ describe('useTransactionPayToken', () => {
 
     it('resets selectedGasFeeToken when no required tokens exist', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDeposit,
         requiredTokens: [],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 

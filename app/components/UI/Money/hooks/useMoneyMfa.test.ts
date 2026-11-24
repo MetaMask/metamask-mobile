@@ -573,6 +573,7 @@ describe('useMoneyMfa', () => {
         id: 'email',
         type: 'email_otp',
         status: 'active',
+        verified: true,
       };
       const { result } = arrange({ credentials: [activeEmail] });
 

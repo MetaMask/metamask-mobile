@@ -22,6 +22,10 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../useHasSufficientGasEvenIfGasIncludedOrSponsored', () => ({
+  useHasSufficientGasEvenIfGasIncludedOrSponsored: jest.fn(() => null),
+}));
+
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));

@@ -10,9 +10,6 @@ export const AddressListViewedSource = {
   ACCOUNT_ACTIONS: 'account_actions',
 } as const;
 
-export type AddressListViewedSourceValue =
-  (typeof AddressListViewedSource)[keyof typeof AddressListViewedSource];
-
 /**
  * Properties for Address List Viewed tracking.
  *

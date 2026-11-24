@@ -19,8 +19,10 @@ export enum MoneyPostOnboardingRedirectType {
   CARD = 'card',
 }
 
-/** Card screen to open after Money onboarding when the redirect type is CARD. */
+/** Card screen to open after the Money splash when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
+
+export type MoneyEarningsTab = 'earnings' | 'apy' | 'allocation';
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
@@ -47,11 +49,11 @@ export type MoneyPostOnboardingRedirect =
       cardScreen: MoneyCardReturnScreen;
     };
 
-export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
+export interface MoneySplashParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
+  /** Opens the splash as a read-only explainer: no CTA, no FAQ, and it does not mark the splash as seen. */
+  infoMode?: boolean;
 }
-
-export type MoneySplashParams = MoneyOnboardingParams;
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
@@ -109,15 +111,17 @@ export type MoneyModalsNavigationParamList = {
   MoneyTransferSheet: undefined;
   MoneyApyInfoSheet: {
     apy?: number;
-    variant?: 'default' | 'deposit';
     vaultStatus?: MoneyVaultStatus;
+  };
+  MoneyEstimatedBalanceSheet: {
+    depositAmountFiat: string;
+    projectedAmountFiat: string;
+    apy?: number;
   };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
-  MoneyEarnCryptoInfoSheet:
-    | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
-    | undefined;
+  MoneyEarnCryptoInfoSheet: { showMoneyHomeCta?: boolean } | undefined;
   MoneyGeoBlockSheet: undefined;
   MoneyMfaPromptSheet: undefined;
   MoneyMfaEnabledSheet: undefined;
@@ -127,6 +131,10 @@ export type MoneyModalsNavigationParamList = {
 
 interface MoneyPotentialEarningsParams {
   overrideToUsd?: boolean;
+}
+
+interface MoneyEarningsParams {
+  activeTab?: MoneyEarningsTab;
 }
 
 /**
@@ -147,10 +155,10 @@ export interface MoneyMusdRescueRecipientSelection {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
-    MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
+    MoneyEarnings: MoneyEarningsParams | undefined;
     MoneyMfaIntro: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;

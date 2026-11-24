@@ -882,8 +882,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   protected priceCache = new Map<string, PriceUpdate>();
 
   /**
-   * Maps a raw price update to the cached PriceUpdate shape, stamping the
-   * receive time and applying backward-compatible defaults.
+   * Stamps a raw price update with the receive time and applies
+   * backward-compatible defaults. Every controller field is forwarded, so a
+   * field the controller adds reaches subscribers without a change here.
    *
    * Backward-compatible default for `isTradable`: pre-8.3.0 streams don't
    * emit the field, so treat absence as tradable to avoid breaking existing
@@ -891,17 +892,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    */
   private toPriceUpdate(update: PriceUpdate): PriceUpdate {
     return {
-      symbol: update.symbol,
-      price: update.price,
+      ...update,
       timestamp: Date.now(),
-      percentChange24h: update.percentChange24h,
-      bestBid: update.bestBid,
-      bestAsk: update.bestAsk,
-      spread: update.spread,
-      markPrice: update.markPrice,
-      funding: update.funding,
-      openInterest: update.openInterest,
-      volume24h: update.volume24h,
       isTradable: update.isTradable ?? true,
     };
   }

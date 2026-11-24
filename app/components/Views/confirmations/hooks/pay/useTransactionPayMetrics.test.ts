@@ -44,6 +44,8 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { getAddressAccountType } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
+import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -78,11 +80,15 @@ const CHAIN_ID_MOCK = '0x1';
 const TOKEN_AMOUNT_MOCK = '1.23';
 const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
 
-const PAY_TOKEN_MOCK = {
+const PAY_TOKEN_ASSET_MOCK = {
   address: tokenAddress1Mock,
   chainId: CHAIN_ID_MOCK,
-  symbol: 'TST',
 };
+
+const PAY_TOKEN_MOCK = buildPaymentTokenMock({
+  ...PAY_TOKEN_ASSET_MOCK,
+  symbol: 'TST',
+});
 
 const QUOTE_MOCK = {
   dust: {
@@ -234,7 +240,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     runHook();
 
@@ -245,7 +251,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_token_presented: PAY_TOKEN_MOCK.symbol,
-          mm_pay_chain_presented: PAY_TOKEN_MOCK.chainId,
+          mm_pay_chain_presented: PAY_TOKEN_ASSET_MOCK.chainId,
           mm_pay_payment_token_list_size: 5,
           mm_pay_quote_requested: false,
           mm_pay_quote_loaded: false,
@@ -260,7 +266,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
 
@@ -292,7 +298,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     runHook();
 
@@ -313,7 +319,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     runHook({ type: TransactionType.predictDeposit });
 
@@ -334,7 +340,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     runHook({ type: TransactionType.predictDepositAndOrder });
 
@@ -355,7 +361,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     runHook({ type: TransactionType.moneyAccountDeposit });
 
@@ -376,7 +382,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
+    });
 
     runHook({ type: TransactionType.moneyAccountWithdraw });
 
@@ -398,7 +404,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       runHook();
 
@@ -419,7 +425,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       mockSelectConfirmationMetricsById.mockReturnValue({
         properties: { mm_pay_quote_requested: true },
       });
@@ -445,7 +451,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
 
       runHook();
@@ -467,7 +473,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useTransactionPayQuotesMock.mockReturnValue([]);
 
       runHook();
@@ -491,7 +497,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useFiatPaymentHighlightedActionsMock.mockReturnValue([
         { paymentType: 'debit-credit-card' },
@@ -529,7 +535,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useFiatPaymentHighlightedActionsMock.mockReturnValue([
         { paymentType },
@@ -554,7 +560,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -587,7 +593,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [] as AssetType[],
@@ -641,7 +647,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
 
@@ -664,7 +670,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
         paymentType: 'debit-credit-card',
@@ -736,7 +742,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useAccountTokensMock.mockReturnValue([]);
 
       runHook();
@@ -758,7 +764,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useAccountTokensMock.mockReturnValue([
         { chainId: '0x1', fiat: { balance: 100 } },
         { chainId: '0x1', fiat: { balance: 50 } },
@@ -785,7 +791,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useAccountTokensMock.mockReturnValue([
         {
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
@@ -816,7 +822,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
     });
 
     it('tracks Ledger when a Ledger account pays', async () => {
@@ -937,7 +943,7 @@ describe('useTransactionPayMetrics', () => {
     it('is bank-card when fiat payment is selected', async () => {
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: 'pm_123',
-      } as never);
+      });
 
       runHook();
 
@@ -1044,7 +1050,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
     });
 
     it('is perps for perpsDeposit', async () => {
@@ -1237,7 +1243,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
     });
 
     it('is perps for perpsDeposit', async () => {
@@ -1441,7 +1447,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       runHook({ type: TransactionType.perpsDeposit });
       await act(async () => noop());
@@ -1456,7 +1462,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
       const { rerender } = runHook({
@@ -1468,9 +1474,7 @@ describe('useTransactionPayMetrics', () => {
         timingDispatches('confirmation_time_to_load_info_ms'),
       ).toHaveLength(0);
 
-      useTransactionAccountOverrideMock.mockReturnValue(
-        '0xabc' as `0x${string}`,
-      );
+      useTransactionAccountOverrideMock.mockReturnValue('0xabc');
       rerender({});
       await act(async () => noop());
 
@@ -1494,7 +1498,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       const { rerender } = runHook({ type: TransactionType.perpsDeposit });
       await act(async () => noop());
@@ -1514,7 +1518,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       mockSelectConfirmationMetricsById.mockReturnValue({
         properties: { mm_pay_quote_requested: false },
       });
@@ -1553,7 +1557,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
       useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
 
       runHook({ type: TransactionType.perpsDeposit });
@@ -1583,7 +1587,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([]);
@@ -1602,8 +1606,8 @@ describe('useTransactionPayMetrics', () => {
         {
           pay_token: {
             symbol: PAY_TOKEN_MOCK.symbol,
-            chainId: PAY_TOKEN_MOCK.chainId,
-            address: PAY_TOKEN_MOCK.address,
+            chainId: PAY_TOKEN_ASSET_MOCK.chainId,
+            address: toChecksumHexAddress(PAY_TOKEN_ASSET_MOCK.address),
           },
           amount: Number(TOKEN_AMOUNT_MOCK),
           amount_input_type: null,
@@ -1618,7 +1622,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([]);
@@ -1642,7 +1646,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([]);
@@ -1670,7 +1674,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       mockSelectConfirmationMetricsById.mockReturnValue({
         properties: { mm_pay_amount_input_type: '50%' },
@@ -1702,7 +1706,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       mockSelectConfirmationMetricsById.mockReturnValue({});
 
@@ -1732,7 +1736,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPayQuotesMock.mockReturnValue([]);
 
@@ -1768,7 +1772,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPayQuotesMock.mockReturnValue([]);
 
@@ -1867,7 +1871,7 @@ describe('useTransactionPayMetrics', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
+      });
 
       useTransactionPayRequiredTokensMock.mockReturnValue([
         {
