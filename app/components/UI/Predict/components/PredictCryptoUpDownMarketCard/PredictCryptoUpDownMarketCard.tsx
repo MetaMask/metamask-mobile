@@ -989,14 +989,14 @@ const OutcomeButtons = React.memo(
     }, [marketId, outcomeId, tokenIds]);
     const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
     // Pause the socket and REST polling while another screen covers this one
-    // (PRED-1535). Re-focusing re-enables both, which runs one REST refresh and
+    // (PRED-1535). The last live quote stays on the card meanwhile, since it is
+    // newer than the market snapshot. Re-focusing runs one REST refresh and
     // subscribes only the tokens that are current at that moment.
     const isScreenFocused = useIsFocused();
     const shouldFetchPrices =
       isScreenFocused && isMarketOpen && priceQueries.length > 0;
     const { getPrice, isConnected } = useLiveMarketPrices(tokenIds, {
       enabled: shouldFetchPrices,
-      retainPricesWhenDisabled: false,
     });
     // WebSocket prices win once the socket is up. REST still loads once for
     // the gap before that, and keeps polling only while the socket is down.

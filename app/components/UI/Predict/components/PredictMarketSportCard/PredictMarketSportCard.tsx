@@ -240,10 +240,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     [buttonItems],
   );
   // Pause the live quotes while another screen covers this one (PRED-1535).
+  // The last live quote stays on the card meanwhile, since it is newer than
+  // the market snapshot, and is replaced by the first update on return.
   const isScreenFocused = useIsFocused();
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled: isScreenFocused && showBuyButtons && livePricesEnabled,
-    retainPricesWhenDisabled: false,
   });
 
   const getDisplayPrice = useCallback(

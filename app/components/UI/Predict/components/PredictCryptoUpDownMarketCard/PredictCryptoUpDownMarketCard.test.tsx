@@ -826,7 +826,18 @@ describe('PredictCryptoUpDownMarketCard', () => {
   });
 
   describe('screen focus', () => {
-    it('pauses live quotes and REST polling while the screen is blurred', () => {
+    it('pauses live quotes while the screen is blurred', () => {
+      mockIsFocused = false;
+
+      renderCard();
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        ['up-token', 'down-token'],
+        { enabled: false },
+      );
+    });
+
+    it('pauses REST prices and polling while the screen is blurred', () => {
       mockUseLiveMarketPrices.mockReturnValue({
         getPrice: () => undefined,
         isConnected: false,
@@ -835,16 +846,12 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
       renderCard();
 
-      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
-        ['up-token', 'down-token'],
-        { enabled: false, retainPricesWhenDisabled: false },
-      );
       expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
         expect.objectContaining({ enabled: false, pollingInterval: undefined }),
       );
     });
 
-    it('resumes live quotes and REST prices when the screen regains focus', () => {
+    it('resumes live quotes when the screen regains focus', () => {
       mockIsFocused = false;
       const { rerender } = renderCard();
 
@@ -853,8 +860,17 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
       expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
         ['up-token', 'down-token'],
-        { enabled: true, retainPricesWhenDisabled: false },
+        { enabled: true },
       );
+    });
+
+    it('re-enables REST prices when the screen regains focus', () => {
+      mockIsFocused = false;
+      const { rerender } = renderCard();
+
+      mockIsFocused = true;
+      rerender(<PredictCryptoUpDownMarketCard market={createMarket()} />);
+
       expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
         expect.objectContaining({ enabled: true }),
       );

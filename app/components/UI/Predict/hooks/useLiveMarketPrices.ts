@@ -4,13 +4,6 @@ import { PriceUpdate } from '../types';
 
 export interface UseLiveMarketPricesOptions {
   enabled?: boolean;
-  /**
-   * Keep the last live prices while `enabled` is false, so a quick toggle does
-   * not flicker. Pass `false` when the pause can be long (e.g. the screen is
-   * blurred) and a price from before it must not show on return.
-   * @default true
-   */
-  retainPricesWhenDisabled?: boolean;
 }
 
 export interface UseLiveMarketPricesResult {
@@ -70,7 +63,7 @@ export const useLiveMarketPrices = (
   tokenIds: string[],
   options: UseLiveMarketPricesOptions = {},
 ): UseLiveMarketPricesResult => {
-  const { enabled = true, retainPricesWhenDisabled = true } = options;
+  const { enabled = true } = options;
   const [prices, setPrices] = useState<Map<string, PriceUpdate>>(
     () => getCachedPrices(tokenIds).prices,
   );
@@ -141,21 +134,6 @@ export const useLiveMarketPrices = (
 
     const currentTokenIds = tokenIdsRef.current;
     const currentTokenIdSet = new Set(currentTokenIds);
-
-    if (!enabled && !retainPricesWhenDisabled) {
-      // Another live subscriber to these tokens refills the cache on its next
-      // tick, so dropping them only stops a pre-pause price being reused.
-      currentTokenIds.forEach((tokenId) =>
-        liveMarketPriceCache.delete(tokenId),
-      );
-      const emptyPrices = new Map<string, PriceUpdate>();
-      pricesRef.current = emptyPrices;
-      setPrices(emptyPrices);
-      setLastUpdateTime(null);
-      setIsConnected(false);
-      return;
-    }
-
     const cachedPrices = getCachedPrices(currentTokenIds);
 
     // Keep the last known live price for still-selected tokens while a new
@@ -203,7 +181,7 @@ export const useLiveMarketPrices = (
       unsubscribe();
       unsubscribeStatus();
     };
-  }, [tokenIdsKey, enabled, retainPricesWhenDisabled, handlePriceUpdates]);
+  }, [tokenIdsKey, enabled, handlePriceUpdates]);
 
   const getPrice = useCallback(
     (tokenId: string): PriceUpdate | undefined => prices.get(tokenId),

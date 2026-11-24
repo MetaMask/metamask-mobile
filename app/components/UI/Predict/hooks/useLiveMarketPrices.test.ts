@@ -357,47 +357,25 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(false);
     });
 
-    it('drops prices and unsubscribes when disabled with retainPricesWhenDisabled false', () => {
-      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
-      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
-        capturedCallback = callback;
-        return mockUnsubscribe;
-      });
-      const { result, rerender } = renderHook(
-        ({ enabled }) =>
-          useLiveMarketPrices(['token1'], {
-            enabled,
-            retainPricesWhenDisabled: false,
-          }),
+    it('unsubscribes when disabled', () => {
+      const { rerender } = renderHook(
+        ({ enabled }) => useLiveMarketPrices(['token1'], { enabled }),
         { initialProps: { enabled: true } },
       );
-      act(() => {
-        capturedCallback([
-          { tokenId: 'token1', price: 0.75, bestBid: 0.74, bestAsk: 0.76 },
-        ]);
-      });
 
       rerender({ enabled: false });
 
       expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-      expect(result.current.prices.size).toBe(0);
-      expect(result.current.getPrice('token1')).toBeUndefined();
-      expect(result.current.lastUpdateTime).toBeNull();
-      expect(result.current.isConnected).toBe(false);
     });
 
-    it('does not seed a pre-pause price when re-enabled with retainPricesWhenDisabled false', () => {
+    it('replaces the retained price with the first update after re-enabling', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
         return mockUnsubscribe;
       });
       const { result, rerender } = renderHook(
-        ({ enabled }) =>
-          useLiveMarketPrices(['token1'], {
-            enabled,
-            retainPricesWhenDisabled: false,
-          }),
+        ({ enabled }) => useLiveMarketPrices(['token1'], { enabled }),
         { initialProps: { enabled: true } },
       );
       act(() => {
@@ -406,19 +384,20 @@ describe('useLiveMarketPrices', () => {
         ]);
       });
       rerender({ enabled: false });
-
       rerender({ enabled: true });
 
-      expect(result.current.getPrice('token1')).toBeUndefined();
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.5, bestBid: 0.49, bestAsk: 0.51 },
+        ]);
+      });
+
+      expect(result.current.getPrice('token1')?.bestAsk).toBe(0.51);
     });
 
     it('subscribes only the current tokens when re-enabled after they changed while paused', () => {
       const { rerender } = renderHook(
-        ({ tokenIds, enabled }) =>
-          useLiveMarketPrices(tokenIds, {
-            enabled,
-            retainPricesWhenDisabled: false,
-          }),
+        ({ tokenIds, enabled }) => useLiveMarketPrices(tokenIds, { enabled }),
         {
           initialProps: { tokenIds: ['old-up', 'old-down'], enabled: true },
         },

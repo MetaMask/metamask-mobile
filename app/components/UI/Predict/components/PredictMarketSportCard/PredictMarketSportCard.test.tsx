@@ -481,7 +481,7 @@ describe('PredictMarketSportCard', () => {
     expect(queryByText('SPA 99¢')).not.toBeOnTheScreen();
     expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
       ['token-home', 'token-draw', 'token-away'],
-      { enabled: false, retainPricesWhenDisabled: false },
+      { enabled: false },
     );
   });
 
@@ -494,7 +494,7 @@ describe('PredictMarketSportCard', () => {
 
     expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
       ['token-home', 'token-draw', 'token-away'],
-      { enabled: false, retainPricesWhenDisabled: false },
+      { enabled: false },
     );
   });
 
@@ -510,7 +510,7 @@ describe('PredictMarketSportCard', () => {
 
     expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
       ['token-home', 'token-draw', 'token-away'],
-      { enabled: true, retainPricesWhenDisabled: false },
+      { enabled: true },
     );
   });
 

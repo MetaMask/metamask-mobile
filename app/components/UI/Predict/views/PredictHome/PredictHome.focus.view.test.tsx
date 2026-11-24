@@ -11,12 +11,7 @@ import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
 import { renderPredictHomeWithPositionsRoute } from '../../../../../../tests/component-view/renderers/predictHome';
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  waitFor,
-} from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   PredictCryptoUpDownMarketCardSelectorsIDs,
   PredictHomeSelectorsIDs,
@@ -301,11 +296,10 @@ describe('PredictHome Live Now focus gate', () => {
     });
   });
 
-  it('resubscribes the carousel and refreshes REST prices once when home regains focus', async () => {
+  it('resubscribes the current carousel tokens when home regains focus', async () => {
     const view = await renderHomeWithLiveCarousel();
     await openPositions(view);
     await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(false));
-    const restCallsWhileBlurred = getPricesCallsForCrypto();
 
     await goBackHome(view);
 
@@ -313,8 +307,21 @@ describe('PredictHome Live Now focus gate', () => {
       [...SPORT_TOKEN_IDS, ...CRYPTO_TOKEN_IDS].forEach((id) =>
         expect(isSubscribed(id)).toBe(true),
       );
-      expect(getPricesCallsForCrypto()).toBe(restCallsWhileBlurred + 1);
     });
+  });
+
+  it('runs one REST refresh when home regains focus', async () => {
+    const view = await renderHomeWithLiveCarousel();
+    await openPositions(view);
+    await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(false));
+    const restCallsWhileBlurred = getPricesCallsForCrypto();
+
+    await goBackHome(view);
+    // The refresh and the resubscribe run in the same commit, so a duplicate
+    // refresh would already be counted once the tokens are subscribed again.
+    await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(true));
+
+    expect(getPricesCallsForCrypto()).toBe(restCallsWhileBlurred + 1);
   });
 
   it('runs one REST refresh per return across repeated blur and focus', async () => {
@@ -329,13 +336,22 @@ describe('PredictHome Live Now focus gate', () => {
       await goBackHome(view);
       await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(true));
     }
-    // Flush any trailing effect before counting.
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
 
     expect(getPricesCallsForCrypto()).toBe(initialRestCalls + 3);
-    // One subscription per crypto token, not one per round.
+  });
+
+  it('holds one subscription per carousel token after repeated blur and focus', async () => {
+    const view = await renderHomeWithLiveCarousel();
+
+    for (let round = 1; round <= 3; round++) {
+      await openPositions(view);
+      await waitFor(() =>
+        expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(false),
+      );
+      await goBackHome(view);
+      await waitFor(() => expect(isSubscribed(CRYPTO_TOKEN_IDS[0])).toBe(true));
+    }
+
     expect(activeSubscriptions.get(CRYPTO_TOKEN_IDS[0])).toBe(1);
   });
 });
