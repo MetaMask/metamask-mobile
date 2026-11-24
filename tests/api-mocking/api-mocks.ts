@@ -6,8 +6,11 @@
  * starts from the same synced body. See `api-mock-catalog.md`.
  *
  * The default body is the one `DEFAULT_MOCKS` serves (or its empty equivalent
- * when the default is request-specific). Defining an endpoint here never
- * changes what the default mocks serve.
+ * when the default is request-specific), so defining an endpoint here does not
+ * change what the default mocks serve. The default bodies themselves changed
+ * only where the consumer type required it: gas `baseFeeTrend` and `version`,
+ * spot price `usd`/`eth`, ramps countries `flag` and `currencies`, balances
+ * v4/v6, and the `getTxStatus` default (see `api-mock-catalog.md`).
  */
 import { defineApiMock } from './define-api-mock.ts';
 import type {

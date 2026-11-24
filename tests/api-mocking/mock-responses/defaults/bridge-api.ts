@@ -582,6 +582,12 @@ const BRIDGE_QUOTE_STATUS_GET_RESPONSE = {
   },
 };
 
+// Default `getTxStatus` body. The old default, `{ status: 'complete' }`, failed
+// the controller's status validation (the enum is uppercase and `srcChain` is
+// required), so BridgeStatusController threw and left the history item pending.
+// A valid PENDING body keeps that outcome. Specs that need a transaction to
+// complete override it with a COMPLETE body (`helpers/swap/bridge-mocks.ts`,
+// `helpers/swap/smart-transactions-mocks.ts`).
 export const BRIDGE_TX_STATUS_PENDING = {
   status: 'PENDING' as StatusTypes.PENDING,
   srcChain: { chainId: 1 },
