@@ -244,11 +244,18 @@ export class MockSeedlessOnboardingController extends BaseController<
   }
 
   /**
+   * Mock restoreVaultWithPassword - returns the stored seed phrase
+   */
+  async restoreVaultWithPassword(_params: {
+    password: string;
+  }): Promise<{ data: Uint8Array; type: string }[]> {
+    return this.fetchAllSecretData();
+  }
+
+  /**
    * Mock fetchAllSecretData - returns the stored seed phrase
    */
-  async fetchAllSecretData(
-    _password?: string,
-  ): Promise<{ data: Uint8Array; type: string }[]> {
+  async fetchAllSecretData(): Promise<{ data: Uint8Array; type: string }[]> {
     console.log('[E2E Mock] fetchAllSecretData called');
 
     if (mockState.seedPhrase) {
@@ -364,6 +371,46 @@ export class MockSeedlessOnboardingController extends BaseController<
    */
   async refreshAuthTokens(): Promise<void> {
     console.log('[E2E Mock] refreshAuthTokens called');
+  }
+
+  /**
+   * Mock authenticateForRecovery
+   */
+  async authenticateForRecovery(_params: {
+    aal2Token: string;
+    authConnectionId: string;
+    groupedAuthConnectionId: string;
+  }): Promise<void> {
+    console.log('[E2E Mock] authenticateForRecovery called');
+  }
+
+  /**
+   * Mock migrateToEnvelope
+   */
+  async migrateToEnvelope(_params: {
+    recoverySecret: Uint8Array;
+  }): Promise<void> {
+    console.log('[E2E Mock] migrateToEnvelope called');
+  }
+
+  /**
+   * Mock recoverWithRecoverySecret
+   */
+  async recoverWithRecoverySecret(_params: {
+    recoverySecret: Uint8Array;
+    password: string;
+  }): Promise<{ data: Uint8Array; type: string }[]> {
+    console.log('[E2E Mock] recoverWithRecoverySecret called');
+    return this.fetchAllSecretData();
+  }
+
+  /**
+   * Mock resetPasswordWithVaultKeys
+   */
+  async resetPasswordWithVaultKeys(_params: {
+    newPassword: string;
+  }): Promise<void> {
+    console.log('[E2E Mock] resetPasswordWithVaultKeys called');
   }
 }
 
