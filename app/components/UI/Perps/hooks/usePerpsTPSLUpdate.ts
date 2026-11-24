@@ -140,7 +140,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         }
         DevLogger.log('Failed to update position TP/SL:', result.error);
 
-        if (isNoPositionFoundError(result.error)) {
+        if (isNoPositionFoundError(result)) {
           reconcileAlreadyClosed();
           return { success: false };
         }
@@ -153,7 +153,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           },
         });
 
-        const errorMessage = translatePerpsError(result.error);
+        const errorMessage = translatePerpsError(result);
 
         showToast(
           PerpsToastOptions.positionManagement.tpsl.updateTPSLError(

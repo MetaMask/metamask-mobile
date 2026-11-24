@@ -1477,9 +1477,7 @@
       },
       "sub_header": {
         "at_connector": "at",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} at {{price}}",
-        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30d)",
@@ -1994,22 +1992,6 @@
         "4": "Thu",
         "5": "Fri",
         "6": "Sat"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Bought",
-        "sold": "Sold",
-        "perps_closed": "Closed",
-        "perps_long_opened": "Opened long",
-        "perps_long_added": "Added to long",
-        "perps_long_reduced": "Reduced long",
-        "perps_short_opened": "Opened short",
-        "perps_short_added": "Added to short",
-        "perps_short_reduced": "Bought back",
-        "spot_opened": "Bought",
-        "spot_added": "Bought more",
-        "spot_reduced": "Sold some",
-        "spot_closed": "Sold all"
       }
     },
     "trader_position": {
@@ -2999,7 +2981,7 @@
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
       "unsupportedCollateral": "This market's collateral is not supported",
-      "unknownError": "Unknown error occurred",
+      "unknownError": "Something went wrong. Please try again.",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
@@ -3066,6 +3048,8 @@
         "scaleCountInvalid": "Scale order count is invalid",
         "scaleSizeTooSmall": "Each scale order is below the minimum size",
         "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
+        "scaleSizeConservationFailed": "We couldn't place your scale order. Try again.",
+        "scaleExposureExceedsIntent": "We couldn't place your scale order. Try again.",
         "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
         "chaseIntervalInvalid": "Chase interval is invalid",
         "chaseDurationInvalid": "Chase duration is invalid",
@@ -3102,6 +3086,10 @@
       "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
       "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
       "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
+      "batchIncomplete": "Some orders or positions couldn't be updated. Try again.",
+      "ordersFailed": "We couldn't load your orders. Try again.",
+      "orderNoLongerOpen": "This order is no longer open. It may have already been filled or cancelled.",
+      "liquidationPriceUnavailable": "Liquidation price is unavailable. Try again.",
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
@@ -5467,6 +5455,18 @@
     "title": "Collectibles",
     "trade_menu": {
       "description": "Explore packs and cards"
+    },
+    "home": {
+      "empty": "No packs available",
+      "empty_description": "Check back soon or browse other packs.",
+      "opens": {
+        "one": "{{formattedCount}} open",
+        "other": "{{formattedCount}} opens"
+      },
+      "opens_trending": {
+        "one": "{{formattedCount}} open, trending",
+        "other": "{{formattedCount}} opens, trending"
+      }
     }
   },
   "collectible": {
@@ -10097,6 +10097,26 @@
     },
     "earnings": {
       "title": "Earnings",
+      "tab_earnings": "Earnings",
+      "tab_apy": "APY",
+      "tab_allocation": "Allocation",
+      "range_1w": "1W",
+      "range_1m": "1M",
+      "range_3m": "3M",
+      "range_6m": "6M",
+      "range_1y": "All",
+      "total_earned": "Total earned",
+      "last_30_days": "Last 30 days",
+      "lifetime": "Lifetime",
+      "projected_in_1_year": "Projected in 1 year",
+      "projection_disclaimer": "Based on current balance and APY",
+      "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
+      "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
+      "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
+      "earn_more": "Earn more",
+      "error": "We couldn't load earnings. Try again.",
+      "retry": "Retry",
+      "empty": "No earnings history yet.",
       "estimated_monthly": "Monthly",
       "estimated_lifetime": "Lifetime",
       "monthly_info_label": "Monthly earnings info",

@@ -22,9 +22,11 @@ import { formatSignedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
 import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import ProfileVerifiedBadge from '../../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import {
   getTraderRowMuteChipTestId,
   getTraderRowTestId,
+  getTraderRowVerifiedBadgeTestId,
 } from './TraderRow.testIds';
 
 const MUTE_CHIP_DIAMETER = 40;
@@ -102,14 +104,26 @@ const TraderRow: React.FC<TraderRowProps> = ({
           </View>
 
           <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {trader.username}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {trader.username}
+              </Text>
+              {trader.verified ? (
+                <ProfileVerifiedBadge
+                  testID={getTraderRowVerifiedBadgeTestId(trader.id)}
+                />
+              ) : null}
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}

@@ -85,6 +85,52 @@ describe('useOpenPositionForAsset', () => {
     expect(queryOptions().enabled).toBe(false);
   });
 
+  it('stays disabled for an asset on a chain the route does not serve', () => {
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('stays disabled for native Bitcoin', () => {
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'bc1qexample',
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      ),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
+  it('reports not loading for an asset the route does not serve', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+      refetch: jest.fn(),
+    } as unknown as ReturnType<typeof useQuery>);
+
+    const { result } = renderHook(() =>
+      useOpenPositionForAsset(
+        'bc1qexample',
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      ),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('stays enabled for a Hyperliquid perp on a served chain', () => {
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:999/perp:kPEPE'));
+
+    expect(queryOptions().enabled).toBe(true);
+  });
+
   it('returns null when the route answers 404', async () => {
     mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(404));
     renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));

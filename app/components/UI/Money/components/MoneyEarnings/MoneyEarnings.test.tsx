@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import MoneyEarnings from './MoneyEarnings';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
+import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const ZERO_VALUE = '$0.00';
@@ -18,6 +19,22 @@ describe('MoneyEarnings', () => {
     );
 
     expect(getByText(strings('money.earnings.title'))).toBeOnTheScreen();
+  });
+
+  it('renders a chevron and calls onHeaderPress when the header is pressed', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyEarnings
+        last30DaysEarnings={ZERO_VALUE}
+        onHeaderPress={onHeaderPress}
+      />,
+    );
+
+    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders the monthly and lifetime labels', () => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
+import { makeMutable, type SharedValue } from 'react-native-reanimated';
 import { earnRatesFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
@@ -99,6 +100,29 @@ jest.mock('../components/Money/Tabs/BenefitsTab', () => ({
   __esModule: true,
   default: () => null,
 }));
+
+let mockGlassHeadersEnabled = false;
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => mockGlassHeadersEnabled,
+}));
+
+// Scroll position comes from a worklet scroll handler that Jest cannot drive,
+// so a test pins the two shared values the title fade reads.
+let mockHeaderScroll:
+  | { scrollY: SharedValue<number>; titleSectionHeightSv: SharedValue<number> }
+  | undefined;
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    useHeaderStandardAnimated: () => {
+      const header = actual.useHeaderStandardAnimated();
+      return mockHeaderScroll ? { ...header, ...mockHeaderScroll } : header;
+    },
+  };
+});
 
 const mockPerformanceTab = jest.fn();
 
@@ -980,5 +1004,50 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER),
     ).toBeNull();
+  });
+
+  describe('large title fade', () => {
+    const TITLE_HEIGHT = 64;
+
+    afterEach(() => {
+      mockGlassHeadersEnabled = false;
+      mockHeaderScroll = undefined;
+    });
+
+    const renderScrolledTo = (scrollY: number) => {
+      mockHeaderScroll = {
+        scrollY: makeMutable(scrollY),
+        titleSectionHeightSv: makeMutable(TITLE_HEIGHT),
+      };
+      return renderDashboard();
+    };
+
+    it('keeps the large title visible before the content scrolls under the glass header', () => {
+      mockGlassHeadersEnabled = true;
+
+      const { getByTestId } = renderScrolledTo(0);
+
+      expect(
+        getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      ).toBeVisible();
+    });
+
+    it('hides the large title once the content has scrolled the title height under the glass header', () => {
+      mockGlassHeadersEnabled = true;
+
+      const { getByTestId } = renderScrolledTo(TITLE_HEIGHT);
+
+      expect(
+        getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      ).not.toBeVisible();
+    });
+
+    it('keeps the large title visible after scrolling when glass headers are off', () => {
+      const { getByTestId } = renderScrolledTo(TITLE_HEIGHT);
+
+      expect(
+        getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      ).toBeVisible();
+    });
   });
 });
