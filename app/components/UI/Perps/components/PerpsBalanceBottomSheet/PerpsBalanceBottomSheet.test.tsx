@@ -1,7 +1,13 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
-import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
+import {
+  getPerpsCrossMarginSummaryLabelSelector,
+  PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
@@ -274,6 +280,89 @@ describe('PerpsBalanceBottomSheet', () => {
         `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  // Unit rather than component-view: this sheet is not a route, and the
+  // cross-margin branch is already driven by the hook mock in this file.
+  it('replaces the account summary with the explanation and restores it on back', () => {
+    const previousExposure = mockCrossMarginSummary.hasCrossExposure;
+    Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
+
+    try {
+      const { getByTestId, queryByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      );
+
+      expect(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).toBeOnTheScreen();
+      // The explanation is the sheet's own content. The standalone tooltip
+      // sheet, which used to stack on top, is never asked to show it.
+      expect(
+        jest
+          .mocked(PerpsBottomSheetTooltip)
+          .mock.calls.some(([props]) => props.contentKey === 'account_ratio'),
+      ).toBe(false);
+      expect(
+        queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      );
+
+      expect(
+        queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      ).toBeOnTheScreen();
+    } finally {
+      Object.assign(mockCrossMarginSummary, {
+        hasCrossExposure: previousExposure,
+      });
+    }
+  });
+
+  it('shows the account summary again after the sheet is dismissed from the explanation', () => {
+    const previousExposure = mockCrossMarginSummary.hasCrossExposure;
+    Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
+
+    try {
+      const onClose = jest.fn();
+      const { getByTestId, queryByTestId, UNSAFE_getByType } = renderSheet({
+        onClose,
+      });
+
+      fireEvent.press(
+        getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      );
+      expect(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).toBeOnTheScreen();
+
+      // Swipe, backdrop and hardware back all reach the sheet's onClose.
+      act(() => {
+        UNSAFE_getByType(BottomSheet).props.onClose();
+      });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(
+        queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
+    } finally {
+      Object.assign(mockCrossMarginSummary, {
+        hasCrossExposure: previousExposure,
+      });
+    }
   });
 
   it('hides balance, available, and PnL values when privacy mode is enabled', () => {
