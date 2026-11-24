@@ -191,7 +191,7 @@ describe('usePerpsMarketForAsset', () => {
     const firstPromise = new Promise((resolve) => {
       resolveFirst = resolve;
     });
-    mockGetMarkets.mockImplementationOnce(() => firstPromise);
+    mockGetMarkets.mockImplementationOnce(async () => firstPromise);
 
     // Fast response for second symbol (BTC)
     mockGetMarkets.mockResolvedValueOnce([{ name: 'BTC', maxLeverage: 50 }]);
@@ -233,7 +233,7 @@ describe('usePerpsMarketForAsset', () => {
 
     let resolveExact: ((value: unknown) => void) | undefined;
     mockGetMarkets.mockImplementationOnce(
-      () =>
+      async () =>
         new Promise((resolve) => {
           resolveExact = resolve;
         }),

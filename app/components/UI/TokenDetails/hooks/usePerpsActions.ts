@@ -67,7 +67,7 @@ export const usePerpsActions = ({
   });
 
   const rwaTicker = token?.rwaData?.ticker;
-  const perpSymbol = rwaTicker || symbol || '';
+  const perpSymbol = rwaTicker?.length ? rwaTicker : (symbol ?? '');
 
   const { hasPerpsMarket, marketData, isLoading, error } =
     usePerpsMarketForAsset(perpSymbol, Boolean(rwaTicker));

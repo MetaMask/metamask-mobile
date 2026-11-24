@@ -2243,7 +2243,7 @@
   },
   "app/components/UI/Bridge/hooks/useTokensWithBalance/index.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 2
+      "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 2
@@ -7572,11 +7572,6 @@
       "count": 1
     },
     "typescript/restrict-template-expressions": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsMarketForAsset.test.ts": {
-    "typescript/promise-function-async": {
       "count": 1
     }
   },

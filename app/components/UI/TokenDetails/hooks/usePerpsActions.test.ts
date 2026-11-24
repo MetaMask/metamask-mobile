@@ -313,6 +313,20 @@ describe('usePerpsActions', () => {
       expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith('MSFT', true);
     });
 
+    it('falls back to the symbol when the rwaData ticker is empty', () => {
+      renderHook(() =>
+        usePerpsActions({
+          symbol: 'MSFT',
+          token: { rwaData: { ticker: '' } },
+        }),
+      );
+
+      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith(
+        'MSFT',
+        false,
+      );
+    });
+
     it('uses exact symbol matching when the token has no rwaData', () => {
       renderHook(() => usePerpsActions({ symbol: 'AAPL', token: {} }));
 
