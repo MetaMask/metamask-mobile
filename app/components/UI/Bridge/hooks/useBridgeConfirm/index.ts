@@ -36,7 +36,6 @@ import { prefetchQuoteTokens } from '../../../../Views/SocialLeaderboard/PostTra
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { selectProfileControllerLinkedEvmAddress } from '../../../../../selectors/profileController';
 import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-operations';
-import { isSameBridgeToken } from '../../utils/tokenUtils';
 
 interface Params {
   activeQuote?: QuoteResponse | null;

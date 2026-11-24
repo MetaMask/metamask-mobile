@@ -1,7 +1,6 @@
 import {
   getQuotesReceivedProperties,
   SwapFeatureTag,
-  MoneyAccountAction,
   type MetaMetricsSwapsEventSource,
   type QuoteResponse,
 } from '@metamask/bridge-controller';

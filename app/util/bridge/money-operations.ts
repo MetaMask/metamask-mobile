@@ -5,7 +5,7 @@ import { MoneyAccountAction } from '@metamask/bridge-controller';
 
 export const isBridgeDepositTx = (transaction: TransactionMeta): boolean =>
   Boolean(
-    Object.values(Engine.context.BridgeStatusController.state.txHistory).find(
+    Object.values(Engine.context.BridgeStatusController.state.txHistory).some(
       ({ depositTxMeta }) =>
         depositTxMeta?.batchId && depositTxMeta.batchId === transaction.batchId,
     ),
@@ -13,7 +13,7 @@ export const isBridgeDepositTx = (transaction: TransactionMeta): boolean =>
 
 export const isBridgeWithdrawTx = (transaction: TransactionMeta): boolean =>
   Boolean(
-    Object.values(Engine.context.BridgeStatusController.state.txHistory).find(
+    Object.values(Engine.context.BridgeStatusController.state.txHistory).some(
       ({ withdrawTxMeta }) =>
         withdrawTxMeta?.batchId &&
         withdrawTxMeta.batchId === transaction.batchId,
@@ -23,9 +23,11 @@ export const isBridgeWithdrawTx = (transaction: TransactionMeta): boolean =>
 export const resolveMoneyAccountOperation = (
   srcToken?: BridgeToken,
   destToken?: BridgeToken,
-): MoneyAccountAction | undefined =>
-  srcToken?.isMoneyToken
+): MoneyAccountAction | undefined => {
+  const depositOperation = destToken?.isMoneyToken
+    ? MoneyAccountAction.Deposit
+    : undefined;
+  return srcToken?.isMoneyToken
     ? MoneyAccountAction.Withdraw
-    : destToken?.isMoneyToken
-      ? MoneyAccountAction.Deposit
-      : undefined;
+    : depositOperation;
+};
