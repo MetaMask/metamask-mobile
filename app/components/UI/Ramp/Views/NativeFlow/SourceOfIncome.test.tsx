@@ -95,13 +95,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   ) => navigation.reset(_state),
 }));
 
-jest.mock('../../utils/micaMockMode', () => ({
-  isMicaMockModeEnabled: jest.fn(() => false),
-  mockSubmitSourceOfIncome: jest.fn().mockResolvedValue({
-    status: 'SUBMITTED',
-  }),
-}));
-
 describe('SourceOfIncome', () => {
   beforeEach(() => {
     jest.clearAllMocks();

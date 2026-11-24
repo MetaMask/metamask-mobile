@@ -94,11 +94,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   ) => navigation.reset(_state),
 }));
 
-jest.mock('../../utils/micaMockMode', () => ({
-  isMicaMockModeEnabled: jest.fn(() => false),
-  mockSubmitMicaConsent: jest.fn().mockResolvedValue({ status: 'SUBMITTED' }),
-}));
-
 describe('MicaConsent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -297,20 +292,6 @@ describe('MicaConsent', () => {
 
     await waitFor(() => {
       expect(getByText('deposit.mica.agreeAndContinue')).toBeOnTheScreen();
-    });
-  });
-
-  it('renders correctly in mock mode', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
-
-    await waitFor(() => {
-      expect(
-        getByText('deposit.mica_consent.data_processing_consent'),
-      ).toBeOnTheScreen();
     });
   });
 

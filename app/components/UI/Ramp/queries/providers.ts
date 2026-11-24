@@ -1,7 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import { injectMockNativeProviderIfNeeded } from '../utils/micaMockMode';
 
 interface ProvidersQueryParams {
   regionCode: string;
@@ -21,19 +20,9 @@ export const rampsProvidersKeys = {
 export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
   queryOptions({
     queryKey: rampsProvidersKeys.detail(params),
-    queryFn: async (): Promise<ProvidersResponse> => {
-      const response = await Engine.context.RampsController.getProviders(
+    queryFn: async (): Promise<ProvidersResponse> =>
+      Engine.context.RampsController.getProviders(
         params.regionCode,
-      );
-
-      if (__DEV__) {
-        response.providers = injectMockNativeProviderIfNeeded(
-          response.providers,
-          params.regionCode,
-        );
-      }
-
-      return response;
-    },
+      ) as Promise<ProvidersResponse>,
     staleTime: 15 * 60 * 1000, // 15 minutes
   });

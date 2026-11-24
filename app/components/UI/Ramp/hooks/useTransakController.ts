@@ -218,18 +218,15 @@ export function useTransakController(): UseTransakControllerResult {
       paymentMethod: string,
       fiatAmount: string,
       isFeeExcludedFromFiat = true,
-    ) => {
-      const quote = await getRampsController().transakGetBuyQuote(
+    ) =>
+      getRampsController().transakGetBuyQuote(
         fiatCurrency,
         cryptoCurrency,
         network,
         paymentMethod,
         fiatAmount,
         isFeeExcludedFromFiat,
-      );
-
-      return quote;
-    },
+      ),
     [],
   );
 

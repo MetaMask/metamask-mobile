@@ -2,7 +2,7 @@
  * ISO 3166-1 alpha-2 codes for EEA countries, which Transak routes through
  * its MiCA (Transak GmbH) KYC flow.
  */
-export const EEA_COUNTRIES = [
+const EEA_COUNTRIES = [
   'AT',
   'BE',
   'BG',
