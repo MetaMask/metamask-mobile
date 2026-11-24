@@ -800,6 +800,12 @@ export type RootStackParamList = {
   DeveloperOptions: undefined;
   ExperimentalSettings: undefined;
   AesCryptoTestForm: undefined;
+  /**
+   * Dev-only Kalshi onboarding prototype: the scaled-back Predictions start
+   * screen and the flow itself, both mounted by the prototype folder.
+   */
+  KalshiPrototypeHome: undefined;
+  KalshiPrototypeOnboarding: undefined;
   WalletRecovery: undefined;
   EnterPasswordSimple:
     | {

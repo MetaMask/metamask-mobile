@@ -31,6 +31,8 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import NewWalletDeveloperOptionsSection from './NewWalletDeveloperOptionsSection';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+// PROTOTYPE-DO-NOT-MERGE: dev-only Kalshi onboarding prototype launcher.
+import KalshiPrototypeDeveloperOptionsSection from '../../../UI/KYC/Kalshi/prototype/KalshiPrototypeDevSection';
 
 /**
  * Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local
@@ -112,6 +114,7 @@ const DeveloperOptions = () => {
         )}
         <HapticsDeveloperOptionsSection />
         <NewWalletDeveloperOptionsSection />
+        <KalshiPrototypeDeveloperOptionsSection />
       </ScrollView>
     </SafeAreaView>
   );

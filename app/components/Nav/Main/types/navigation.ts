@@ -105,6 +105,12 @@ export type SettingsStackParamList = {
   ExperimentalSettings: undefined;
   CompanySettings: undefined;
   DeveloperOptions: undefined;
+  /**
+   * Dev-only Kalshi onboarding prototype: the scaled-back Predictions start
+   * screen and the flow itself, both mounted by the prototype folder.
+   */
+  KalshiPrototypeHome: undefined;
+  KalshiPrototypeOnboarding: undefined;
   ContactsSettings: undefined;
   ContactForm: ContactFormParams | undefined;
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
