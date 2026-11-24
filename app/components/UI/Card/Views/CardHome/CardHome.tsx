@@ -1324,8 +1324,6 @@ const CardHome = () => {
                 />
               )}
 
-            {moreSheet}
-
             <CardScreenshotDeterrent
               enabled={
                 !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
@@ -1334,6 +1332,9 @@ const CardHome = () => {
           </>
         )}
       </ScrollView>
+      {/* Outside the ScrollView so the sheet covers the whole screen,
+          header included, and does not scroll with the list. */}
+      {moreSheet}
     </Box>
   );
 };
