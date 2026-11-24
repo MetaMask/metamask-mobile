@@ -146,6 +146,13 @@ export const PROTOTYPE_COPY = {
     title: "Enter Kalshi's verification code",
     body: 'Kalshi texted a 6-digit code to your phone.',
   },
+  /** The email screen behind "Use a different email". */
+  emailEntry: {
+    title: 'Enter your email',
+    body: 'Kalshi will send a 6-digit code to this address.',
+    placeholder: 'name@example.com',
+    invalid: 'Enter a valid email address.',
+  },
   /** The phone number screen, worded like the code screens. */
   phoneEntry: {
     title: 'Verify your phone number',
