@@ -1,3 +1,4 @@
+import { MFA_CREDENTIAL_TYPES } from '@metamask/profile-sync-controller/sdk';
 import {
   useCallback,
   useContext,
@@ -183,17 +184,8 @@ export const useMoneyMfa = () => {
   }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
-    // Any active method counts, so removing passkey and TOTP in settings can't lock 2FA on.
-    const verifyWith = [
-      ...new Set([
-        ...MONEY_MFA_METHODS,
-        ...credentials
-          .filter(
-            ({ status: credentialStatus }) => credentialStatus === 'active',
-          )
-          .map(({ type }) => type),
-      ]),
-    ];
+    // Every method type, so a stale credential list can't leave one out.
+    const verifyWith = [...MFA_CREDENTIAL_TYPES];
     try {
       await verifyOrEnroll({
         methods: verifyWith,
@@ -210,7 +202,7 @@ export const useMoneyMfa = () => {
       hasUnseenEnabledConfirmation: false,
     });
     showToast('money.mfa.toast_off');
-  }, [credentials, verifyOrEnroll, showToast]);
+  }, [verifyOrEnroll, showToast]);
 
   const retry = useCallback(async () => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });

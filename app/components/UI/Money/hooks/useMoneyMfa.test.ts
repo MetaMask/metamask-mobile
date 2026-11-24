@@ -1,7 +1,10 @@
 import React from 'react';
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
+import {
+  MFA_CREDENTIAL_TYPES,
+  type EnrolledCredential,
+} from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
@@ -541,8 +544,8 @@ describe('useMoneyMfa', () => {
       });
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: ['passkey', 'totp'],
-        verifyWith: ['passkey', 'totp'],
+        methods: [...MFA_CREDENTIAL_TYPES],
+        verifyWith: [...MFA_CREDENTIAL_TYPES],
         maxSessionAgeMs: 0,
         verifyOnly: true,
         reason: expect.objectContaining({ operation: 'money.mfa.turnOff' }),
@@ -560,8 +563,8 @@ describe('useMoneyMfa', () => {
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
         expect.objectContaining({
-          methods: ['passkey', 'totp'],
-          verifyWith: ['passkey', 'totp'],
+          methods: [...MFA_CREDENTIAL_TYPES],
+          verifyWith: [...MFA_CREDENTIAL_TYPES],
           maxSessionAgeMs: 0,
           verifyOnly: true,
         }),
@@ -583,8 +586,8 @@ describe('useMoneyMfa', () => {
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
         expect.objectContaining({
-          methods: ['passkey', 'totp', 'email_otp'],
-          verifyWith: ['passkey', 'totp', 'email_otp'],
+          methods: [...MFA_CREDENTIAL_TYPES],
+          verifyWith: [...MFA_CREDENTIAL_TYPES],
           verifyOnly: true,
         }),
       );
