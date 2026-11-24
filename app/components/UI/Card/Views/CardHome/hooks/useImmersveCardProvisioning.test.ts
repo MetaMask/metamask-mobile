@@ -423,6 +423,40 @@ describe('useImmersveCardProvisioning', () => {
       expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
     });
 
+    it('resumes a createCard retry that failed while offline', async () => {
+      let rejectCreateCard!: (error: Error) => void;
+      controller.createCard.mockImplementationOnce(
+        async () =>
+          new Promise((_, reject) => {
+            rejectCreateCard = reject;
+          }),
+      );
+
+      const { rerender } = renderHook(
+        ({ pollIntervalMs }: { pollIntervalMs: number | null }) =>
+          useImmersveCardProvisioning(provisioningData, { pollIntervalMs }),
+        { initialProps: { pollIntervalMs: null as number | null } },
+      );
+
+      await waitFor(() =>
+        expect(controller.createCard).toHaveBeenCalledTimes(1),
+      );
+
+      await act(async () => {
+        rejectCreateCard(new Error('offline'));
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.createCard).toHaveBeenCalledTimes(1);
+
+      rerender({ pollIntervalMs: 5_000 });
+
+      await waitFor(() =>
+        expect(controller.createCard).toHaveBeenCalledTimes(2),
+      );
+    });
+
     it('retries a settling recheck that was skipped while offline', async () => {
       mockFundingSettling = true;
       controller.getSpendingPrerequisites.mockResolvedValue({

@@ -101,6 +101,9 @@ export function useImmersveCardProvisioning(
   const wasProvisioningRef = useRef(isProvisioning);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const quietRecheckAttemptRef = useRef(0);
+  // An error retry that could not be scheduled because the device was offline,
+  // or whose timer was cleared on the way offline. Coming back online runs it.
+  const retryDroppedOfflineRef = useRef(false);
   const createCardStartedRef = useRef(false);
   const [recheckCount, setRecheckCount] = useState(0);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
@@ -155,6 +158,7 @@ export function useImmersveCardProvisioning(
       setPendingAction(null);
       handled.current = false;
       quietRecheckAttemptRef.current = 0;
+      retryDroppedOfflineRef.current = false;
       createCardStartedRef.current = false;
       // Only a real card (provisioning just ended) clears the wait. A home
       // screen that has not loaded its provisioning alert yet must not.
@@ -205,8 +209,9 @@ export function useImmersveCardProvisioning(
     !isReconciling &&
     pollIntervalMs !== null;
 
-  // Going offline drops a waiting retry. Coming back starts one, unless a
-  // reconcile is already running or a retry is already waiting.
+  // Going offline drops a waiting retry. Coming back restarts a funding
+  // settle, and an error retry that was dropped before its timer could run.
+  // A reconcile already running, or a retry already waiting, is left alone.
   const wasOfflineRef = useRef(pollIntervalMs === null);
   useEffect(() => {
     const wasOffline = wasOfflineRef.current;
@@ -215,18 +220,20 @@ export function useImmersveCardProvisioning(
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
         settleTimerRef.current = null;
+        retryDroppedOfflineRef.current = true;
       }
       return;
     }
     if (
       !wasOffline ||
       !isProvisioning ||
-      !isFundingSettling ||
+      (!isFundingSettling && !retryDroppedOfflineRef.current) ||
       isReconciling ||
       settleTimerRef.current
     ) {
       return;
     }
+    retryDroppedOfflineRef.current = false;
     setRecheckCount((count) => count + 1);
   }, [pollIntervalMs, isProvisioning, isFundingSettling, isReconciling]);
 
@@ -350,9 +357,11 @@ export function useImmersveCardProvisioning(
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
       }
-      // Offline callers pass null and must not keep asking.
+      // Offline callers pass null and must not keep asking. Remember the
+      // drop so coming back online runs this retry.
       const intervalMs = pollIntervalMsRef.current;
       if (intervalMs === null) {
+        retryDroppedOfflineRef.current = true;
         return;
       }
       if (
@@ -644,6 +653,7 @@ export function useImmersveCardProvisioning(
       return;
     }
     quietRecheckAttemptRef.current = 0;
+    retryDroppedOfflineRef.current = false;
     setHasResolvedStatus(false);
     setRecheckCount((count) => count + 1);
   }, [isReconciling]);
