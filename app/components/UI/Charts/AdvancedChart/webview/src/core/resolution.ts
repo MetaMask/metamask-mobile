@@ -67,3 +67,13 @@ export function resolutionToIntervalMs(resolution: string): number | undefined {
   }
   return undefined;
 }
+
+/**
+ * Compares TradingView resolution codes. TradingView may omit a unit's `1`
+ * multiplier ("D" for "1D"), so both spellings name the same resolution.
+ */
+export function isSameResolution(a: string, b: string): boolean {
+  const canonical = (resolution: string): string =>
+    /^[SDWM]$/.test(resolution) ? `1${resolution}` : resolution;
+  return canonical(a) === canonical(b);
+}
