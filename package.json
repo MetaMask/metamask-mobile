@@ -190,12 +190,6 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/perps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "25.0.0-preview-c785ff081"
-    }
-  },
   "resolutions": {
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
@@ -436,7 +430,7 @@
     "@metamask/network-enablement-controller": "^7.1.3",
     "@metamask/notification-services-controller": "^29.0.3",
     "@metamask/permission-controller": "^14.1.0",
-    "@metamask/perps-controller": "25.0.0",
+    "@metamask/perps-controller": "26.0.0",
     "@metamask/phishing-controller": "^18.3.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^24.0.0",
