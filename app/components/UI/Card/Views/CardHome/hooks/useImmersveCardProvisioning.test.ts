@@ -1525,6 +1525,43 @@ describe('useImmersveCardProvisioning', () => {
       jest.useRealTimers();
     });
 
+    it('still retries a failed reconcile after a long funding settle', async () => {
+      jest.useFakeTimers();
+      mockFundingSettling = true;
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: fundingPrerequisites,
+      });
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      const settleFor = async (delay: number) => {
+        await act(async () => {
+          jest.advanceTimersByTime(delay);
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+      };
+      await settleFor(0);
+      // Seven settling waits: past the six-retry error budget.
+      for (const delay of [5_000, 10_000, 20_000, 40_000, 60_000, 60_000]) {
+        await settleFor(delay);
+      }
+      controller.getSpendingPrerequisites.mockRejectedValue(
+        new Error('network blip'),
+      );
+      await settleFor(60_000);
+      const callsAfterFailure =
+        controller.getSpendingPrerequisites.mock.calls.length;
+
+      await settleFor(60_000);
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(
+        callsAfterFailure + 1,
+      );
+      jest.useRealTimers();
+    });
+
     it('rechecks the review when pull to refresh asks', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [{ stage: 'kyc', status: 'pending' }],
