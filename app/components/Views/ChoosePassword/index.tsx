@@ -26,7 +26,7 @@ import {
   TitleStandard,
   HelpText,
   HelpTextSeverity,
-  ListItemMultiSelect,
+  ListItem,
   ListItemVariant,
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
@@ -112,6 +112,7 @@ import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDef
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import OnboardingSquareCheckbox from '../../UI/OnboardingSquareCheckbox';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import PasswordResetWarningSheet from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet';
@@ -1095,14 +1096,19 @@ const ChoosePassword = () => {
             </Box>
 
             {getOauth2LoginSuccess() && (
-              <ListItemMultiSelect
+              <ListItem
                 variant={ListItemVariant.MultiLine}
-                isSelected={marketingOptInChecked}
+                isInteractive
                 onPress={setSelection}
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName="mt-2 border border-muted rounded-xl"
+                twClassName={`mt-2 border border-muted rounded-xl${
+                  marketingOptInChecked ? ' bg-background-muted' : ''
+                }`}
+                startAccessory={
+                  <OnboardingSquareCheckbox isChecked={marketingOptInChecked} />
+                }
                 titleProps={{
                   variant: TextVariant.BodySm,
                   testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,

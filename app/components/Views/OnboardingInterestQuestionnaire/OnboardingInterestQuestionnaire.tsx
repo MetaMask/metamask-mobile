@@ -9,7 +9,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
-  Checkbox,
   Icon,
   IconColor,
   IconName,
@@ -22,6 +21,7 @@ import {
   FontWeight,
   TitleStandard,
 } from '@metamask/design-system-react-native';
+import OnboardingSquareCheckbox from '../../UI/OnboardingSquareCheckbox';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
@@ -257,14 +257,7 @@ const OnboardingInterestQuestionnaire = () => {
               variant={ListItemVariant.OneLine}
               isSelected={isSelected}
               endAccessory={
-                isSelected ? (
-                  <Checkbox
-                    isSelected
-                    onChange={() => handleOptionPress(option.id)}
-                    pointerEvents="none"
-                    accessibilityLabel={strings(option.labelKey)}
-                  />
-                ) : (
+                isSelected ? undefined : (
                   <Icon
                     name={IconName.Add}
                     size={IconSize.Lg}
@@ -277,13 +270,16 @@ const OnboardingInterestQuestionnaire = () => {
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {option.emoji}
-                </Text>
+                <Box twClassName="flex-row items-center gap-2">
+                  {isSelected && <OnboardingSquareCheckbox isChecked />}
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {option.emoji}
+                  </Text>
+                </Box>
               }
               title={strings(option.labelKey)}
               titleEndAccessory={

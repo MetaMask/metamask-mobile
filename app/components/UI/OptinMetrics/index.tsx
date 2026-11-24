@@ -18,7 +18,7 @@ import {
   ButtonSize,
   ContentVariant,
   FontWeight,
-  ListItemMultiSelect,
+  ListItem,
   Text,
   TextButton,
   TextColor,
@@ -72,6 +72,7 @@ import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeO
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import OnboardingSquareCheckbox from '../OnboardingSquareCheckbox';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -415,11 +416,19 @@ const OptinMetrics = () => {
             />
           </Box>
           <Box twClassName="gap-4">
-            <ListItemMultiSelect
+            <ListItem
               variant={ContentVariant.MultiLine}
-              isSelected={isBasicUsageChecked}
+              isInteractive
               onPress={handleBasicUsageToggle}
-              twClassName="rounded-xl border border-muted"
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+              }
+              twClassName={`rounded-xl border border-muted${
+                isBasicUsageChecked ? ' bg-background-muted' : ''
+              }`}
+              startAccessory={
+                <OnboardingSquareCheckbox isChecked={isBasicUsageChecked} />
+              }
               title={strings('privacy_policy.gather_basic_usage_title')}
               description={
                 <Text
@@ -440,9 +449,6 @@ const OptinMetrics = () => {
                   </TextButton>
                 </Text>
               }
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
-              }
             />
             <Box twClassName="gap-2">
               <Text
@@ -452,16 +458,21 @@ const OptinMetrics = () => {
               >
                 {strings('privacy_policy.stay_informed')}
               </Text>
-              <ListItemMultiSelect
+              <ListItem
                 variant={ContentVariant.MultiLine}
-                isSelected={isMarketingChecked}
+                isInteractive
                 onPress={handleMarketingToggle}
-                twClassName="rounded-xl border border-muted"
-                title={strings('privacy_policy.checkbox_marketing')}
-                description={strings('privacy_policy.checkbox')}
                 testID={
                   MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
                 }
+                twClassName={`rounded-xl border border-muted${
+                  isMarketingChecked ? ' bg-background-muted' : ''
+                }`}
+                startAccessory={
+                  <OnboardingSquareCheckbox isChecked={isMarketingChecked} />
+                }
+                title={strings('privacy_policy.checkbox_marketing')}
+                description={strings('privacy_policy.checkbox')}
               />
             </Box>
             <Text
