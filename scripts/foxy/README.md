@@ -55,7 +55,7 @@ Keep Metro running on `:8081` (override with `FOXY_METRO`) so stacks are symboli
   - **Edit**: rename a marker in the panel, delete it with the bin (neighbouring phases merge).
   - **End a phase**: the stop icon on the last phase (in its header, or in the Markers panel) closes it where you are, so a flow you are done with stops collecting. Everything after that moment, until the next marker, is **Between phases**, so idle traffic does not count toward the flow. Reopen with the icon that replaces it. Ending is one-way until reopened (a second End keeps the first time), and only the latest marker can be ended or reopened: an older phase is already closed by the marker after it, and reopening it would swallow the phases in between and scramble their order (the UI hides the icon on older phases and the server answers 409). `POST /api/marker/<id>/end` and `DELETE` (reopen).
   - **Export a phase**: the download icon on a phase header (or on its row in the Markers panel) opens the export dialog for that phase. Its *JSON, full detail* option saves every request of the phase in full: headers, bodies, the call chain with owners and GitHub links, plus the phase's totals. The last marker's phase is still collecting, so it saves what has arrived so far (`phase.open` is `true` and the file is named `…-so-far.json`); download it again later for more. The file is cut on the server, so Pause and the filters do not change it. Scripts can use `GET /api/export/phase?marker=<id>` (`marker=pre` for before the first marker, `&format=md` for the markdown table).
-  - **Export**: see **Exports** below. Agents can add markers with the `marker_add` MCP tool (`label`, optional `agoSeconds`).
+  - **Export**: see **Exports** below. Agents can add, list and end markers and export phases with the MCP tools (see **Agent access**).
   - **One time axis**: the activity strip, the Waterfall column and the Endpoints call lanes all share it, so a bar means the same moment everywhere. It is drawn to scale, except that a long stretch with no request running (more than 15s, or 5% of the capture) is shortened to a hatched break labelled `⋯ 1h 12m`, so a launch followed by an hour of idling and then a burst of activity does not squash the burst into a sliver. It only does this when it frees up at least a quarter of the width, so ordinary captures stay exactly to scale. Time labels always show real capture time. Filtering to one phase (**Only This**) zooms the axis to that phase.
   - Marker labels on the strip never overlap and never run off the window: they stack in up to three rows, flip to the left of their line near the right edge, and a marker with no room left keeps its line and shows as a dot (hover for its name).
   - Identical dupes are counted against the whole capture, so a repeat in a later phase of something fetched earlier is flagged.
@@ -87,7 +87,19 @@ Keep Metro running on `:8081` (override with `FOXY_METRO`) so stacks are symboli
 claude mcp add foxy -- node scripts/foxy/mcp.mjs
 ```
 
-Tools: `network_list`, `network_get`, `network_summary`, `network_export_markdown`, `marker_add`, `network_clear`, `status`.
+Tools:
+
+| Tool | What it does |
+|---|---|
+| `network_list`, `network_get`, `network_summary`, `network_export_markdown` | Read the capture: requests, one request with its call stack, endpoints grouped, the markdown skeleton |
+| `marker_add` | Drop a marker (`label`, optional `agoSeconds`). It starts a phase and closes the previous one |
+| `marker_list` | The session's phases: id, label, start and end, `open`/`ended`, and totals (requests, new endpoints, identical dupes, failed, bytes) |
+| `marker_end` | End the newest marker's phase now (anything after it, until the next marker, is "Between phases"); `reopen: true` undoes it. Older markers answer with an error, as in the dashboard |
+| `network_export_phase` | Everything one phase holds. `phase` is a marker id or label (or `pre`; part of a label works when only one phase has it; omit for the newest). `format: "json"` (default) writes the full records to a file and returns its path with the phase totals; `format: "md"` returns the markdown table inline. The newest phase is still collecting, so it reports `open: true` |
+| `network_export_capture` | The whole session as a file (path, request/marker/phase counts, the phases) |
+| `network_clear`, `status` | Clear the capture; server status |
+
+Big exports go to a file, not into the agent's context: `$TMPDIR/foxy/` by default, or `FOXY_EXPORT_DIR`. The file is named like the dashboard's download (for example `foxy-onboarding-visible.json`). A scripted run looks like: `marker_add` "Onboarding visible", drive the app, `marker_add` "Done" (which closes the previous phase), then `network_export_phase` with `phase: "Onboarding visible"`. If a phase name does not match, the error lists the phases that exist. Verdicts live in the dashboard (in the browser), so they are not visible to the agent; the dashboard's *JSON for an agent* export is how a person hands them over.
 
 ## Limits
 

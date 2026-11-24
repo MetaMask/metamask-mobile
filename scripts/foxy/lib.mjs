@@ -328,6 +328,34 @@ function describePhase(found, requests) {
   };
 }
 
+/** The phases of one session in file form (an open end is `null`), with their totals. What an agent sees when it asks which phases exist. */
+export function listPhases(records, markers = []) {
+  return computePhases(records, markers).map((p) => describePhase(p, p.requests));
+}
+
+/**
+ * Finds the phase an agent means by `query`, among `listPhases` output: nothing (the newest marker's phase), a phase id, `pre` /
+ * "before first marker", a label (case-insensitive; when several markers share it, the latest), or part of a label that only one phase has.
+ * Returns `{ phase }` or `{ error }` with the choices, so the agent can correct itself.
+ */
+export function resolvePhase(phases, query) {
+  const q = String(query ?? '').trim().toLowerCase();
+  const named = phases.filter((p) => p.marker);
+  const choices = () => `Phases: ${phases.map((p) => `"${p.label}" (${p.id})`).join(', ') || 'none yet (add a marker first)'}.`;
+  if (!q) return named.length ? { phase: named.at(-1) } : { error: `There are no markers yet. ${choices()}` };
+  const byId = phases.find((p) => p.id.toLowerCase() === q);
+  if (byId) return { phase: byId };
+  if (q === 'pre' || q === 'before' || q === 'before first marker') {
+    const pre = phases.find((p) => p.id === 'pre');
+    return pre ? { phase: pre } : { error: `Nothing ran before the first marker. ${choices()}` };
+  }
+  const exact = phases.filter((p) => p.label.toLowerCase() === q);
+  if (exact.length) return { phase: exact.at(-1) };
+  const part = phases.filter((p) => p.label.toLowerCase().includes(q));
+  if (part.length === 1) return { phase: part[0] };
+  return { error: `${part.length ? `"${query}" matches more than one phase.` : `No phase matches "${query}".`} ${choices()}` };
+}
+
 /**
  * The whole capture of one session: every request in time order, and (when there are markers) the phases they fall into.
  * Unlike exportPhase it takes everything, so what is on screen (filters, Pause) never changes the file.
@@ -335,7 +363,7 @@ function describePhase(found, requests) {
 export function exportCapture(records, markers = []) {
   const sorted = [...records].sort((a, b) => a.relMs - b.relMs);
   return {
-    phases: computePhases(sorted, markers).map((p) => describePhase(p, p.requests)),
+    phases: listPhases(sorted, markers),
     records: sorted,
   };
 }

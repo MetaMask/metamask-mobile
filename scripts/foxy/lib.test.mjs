@@ -16,6 +16,8 @@ import {
   computePhases,
   exportCapture,
   exportPhase,
+  listPhases,
+  resolvePhase,
   fileSlug,
   toMarkdown,
 } from './lib.mjs';
@@ -314,6 +316,27 @@ test('exportCapture without markers is just the requests', () => {
   assert.deepEqual(all.phases, []);
   assert.deepEqual(all.records.map((x) => x.id), [1, 2]);
   assert.deepEqual(exportCapture([]), { phases: [], records: [] });
+});
+
+test('resolvePhase finds a phase by id, label, part of a label, or the newest by default', () => {
+  const r = (id, relMs) => ({ id, key: `k${id}`, method: 'GET', host: 'h', path: `/p${id}`, query: '', relMs, status: 200 });
+  const phases = listPhases([r(1, 100), r(2, 1500), r(3, 3300), r(4, 4000)], [
+    { id: 'a', relMs: 1000, label: 'Onboarding visible' }, { id: 'b', relMs: 3000, label: 'Wallet created' }, { id: 'c', relMs: 3500, label: 'wallet created' },
+  ]);
+  assert.deepEqual(phases.map((p) => p.id), ['pre', 'a', 'b', 'c']);
+  assert.equal(resolvePhase(phases, undefined).phase.id, 'c'); // newest marker
+  assert.equal(resolvePhase(phases, 'a').phase.id, 'a');
+  assert.equal(resolvePhase(phases, 'PRE').phase.id, 'pre');
+  assert.equal(resolvePhase(phases, 'Before first marker').phase.id, 'pre');
+  assert.equal(resolvePhase(phases, 'onboarding VISIBLE').phase.id, 'a');
+  assert.equal(resolvePhase(phases, 'wallet created').phase.id, 'c'); // the same label twice: the latest
+  assert.equal(resolvePhase(phases, 'onboard').phase.id, 'a'); // part of a label only one phase has
+  const none = resolvePhase(phases, 'nope');
+  assert.match(none.error, /No phase matches "nope"/);
+  assert.match(none.error, /"Onboarding visible" \(a\)/); // the choices come back so the agent can correct itself
+  assert.match(resolvePhase(phases, 'e').error, /more than one phase/);
+  assert.match(resolvePhase([], undefined).error, /no markers yet/i);
+  assert.match(resolvePhase(listPhases([r(1, 1)], []), 'pre').error, /Nothing ran before/);
 });
 
 test('fileSlug makes a safe file name', () => {

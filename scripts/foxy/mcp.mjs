@@ -3,8 +3,14 @@
 // audit server:  claude mcp add foxy -- node scripts/foxy/mcp.mjs
 // It is a thin wrapper over the REST API in server.mjs (default http://localhost:8098).
 import { createInterface } from 'node:readline';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { resolvePhase } from './lib.mjs';
 
 const BASE = process.env.FOXY_API || `http://localhost:${process.env.FOXY_PORT || 8098}`;
+// Big exports (a whole phase with headers, bodies and call chains) go to a file, so they never flood the agent's context.
+const EXPORT_DIR = process.env.FOXY_EXPORT_DIR || join(tmpdir(), 'foxy');
 
 const tools = [
   {
@@ -51,7 +57,7 @@ const tools = [
   {
     name: 'marker_add',
     description:
-      "Insert a labelled marker into the timeline, e.g. 'onboarding screen visible' or 'wallet created'. Each marker starts a phase that lasts until the next marker, so requests can be attributed to what the user was doing. Use agoSeconds to backdate it.",
+      "Insert a labelled marker into the timeline, e.g. 'onboarding screen visible' or 'wallet created'. Each marker starts a phase that lasts until the next marker (so adding one also closes the previous phase), so requests can be attributed to what the user was doing. Use agoSeconds to backdate it. See marker_list, marker_end and network_export_phase.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -60,6 +66,42 @@ const tools = [
       },
       required: ['label'],
     },
+  },
+  {
+    name: 'marker_list',
+    description:
+      'List the phases of the latest session, oldest first: id, label, start/end (ms from the start of the run), whether it is still open (the newest marker\'s phase is open until something closes it), and its totals (requests, new endpoints, identical dupes, failed, bytes). Use the id or the label with marker_end and network_export_phase. "pre" is what ran before the first marker; "Between phases" is idle time after an ended phase.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'marker_end',
+    description:
+      'End a marker\'s phase now, so anything after this moment (until the next marker) is "Between phases" instead of part of it. Defaults to the newest marker. Only the newest marker can be ended or reopened. Set reopen to true to undo.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        phase: { type: 'string', description: 'Marker id or label. Omit for the newest marker.' },
+        reopen: { type: 'boolean', description: 'Reopen a phase that was ended (default false).' },
+      },
+    },
+  },
+  {
+    name: 'network_export_phase',
+    description:
+      'Export everything one phase holds. format "json" (default) writes every request in full (headers, bodies, call chain with owners) to a file and returns its path with the phase totals, so read the file for detail. format "md" returns a markdown table inline. phase is a marker id or label (or "pre"); omit it for the newest marker\'s phase. A phase that nothing has closed yet is still collecting: the export holds what has arrived so far and says open: true. To get a finished phase, add the next marker (or call marker_end) first.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        phase: { type: 'string', description: 'Marker id or label, or "pre" for before the first marker. Omit for the newest marker.' },
+        format: { type: 'string', enum: ['json', 'md'] },
+      },
+    },
+  },
+  {
+    name: 'network_export_capture',
+    description:
+      'Export the whole latest session to a JSON file (every request in full, the markers and the phases) and return its path with a summary (request, marker and phase counts, and the phases with their totals).',
+    inputSchema: { type: 'object', properties: {} },
   },
   {
     name: 'network_clear',
@@ -73,7 +115,67 @@ const tools = [
   },
 ];
 
+const pretty = (value) => JSON.stringify(value, null, 2);
+/** An error that is the agent's to fix (a wrong phase name): the message is shown as is, without the "is the server running" hint. */
+class AgentError extends Error {}
+
+async function getJson(path) {
+  const res = await fetch(`${BASE}${path}`);
+  if (!res.ok) throw new Error(`${path} answered ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+/** Writes an export to EXPORT_DIR and returns where it went. The server names the file (Content-Disposition), so it matches what the dashboard downloads. */
+async function saveExport(path, fallbackName) {
+  const res = await fetch(`${BASE}${path}`);
+  if (!res.ok) throw new Error(`${path} answered ${res.status}: ${await res.text()}`);
+  const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || fallbackName;
+  const body = await res.text();
+  await mkdir(EXPORT_DIR, { recursive: true });
+  const file = join(EXPORT_DIR, name);
+  await writeFile(file, body);
+  return { file, bytes: Buffer.byteLength(body), body };
+}
+
+const phaseView = (p) => ({
+  id: p.id, label: p.label, startMs: Math.round(p.startMs), endMs: p.endMs == null ? null : Math.round(p.endMs), open: p.open, ended: p.ended,
+  requests: p.requests, newEndpoints: p.newEndpoints, identicalDupes: p.identicalDupes, failed: p.failed, bytes: p.bytes,
+});
+
+/** The tools that work on phases. They return text for the agent, or throw a message it can act on. */
+async function phaseTool(name, args) {
+  const { phases } = await getJson('/api/phases');
+  if (name === 'marker_list') {
+    return pretty({ phases: phases.map(phaseView), hint: phases.length ? undefined : 'No markers yet. Add one with marker_add.' });
+  }
+  const found = resolvePhase(phases, args.phase);
+  if (found.error) throw new AgentError(found.error);
+  const { phase } = found;
+  if (name === 'marker_end') {
+    if (!phase.marker) throw new AgentError(`"${phase.label}" is not a marker, so it cannot be ended or reopened. ${resolvePhase(phases, '').phase ? `The newest marker is "${resolvePhase(phases, '').phase.label}".` : ''}`);
+    const res = await fetch(`${BASE}/api/marker/${encodeURIComponent(phase.id)}/end`, { method: args.reopen ? 'DELETE' : 'POST' });
+    if (res.status === 409) throw new AgentError(`Only the newest marker can be ended or reopened, and "${phase.label}" has a later marker after it. The newest is "${resolvePhase(phases, '').phase.label}".`);
+    if (!res.ok) throw new Error(`marker_end answered ${res.status}: ${await res.text()}`);
+    const after = resolvePhase((await getJson('/api/phases')).phases, phase.id).phase;
+    return pretty({ phase: phaseView(after), note: args.reopen ? 'Reopened: it collects again until the next marker.' : 'Ended: anything after now, until the next marker, is "Between phases".' });
+  }
+  // network_export_phase
+  if (args.format === 'md') {
+    const res = await fetch(`${BASE}/api/export/phase?marker=${encodeURIComponent(phase.id)}&format=md`);
+    if (!res.ok) throw new Error(`export answered ${res.status}: ${await res.text()}`);
+    return res.text();
+  }
+  const out = await saveExport(`/api/export/phase?marker=${encodeURIComponent(phase.id)}`, 'foxy-phase.json');
+  return pretty({ file: out.file, bytes: out.bytes, phase: phaseView(JSON.parse(out.body).phase), note: phase.open ? 'This phase is still collecting: the file holds what has arrived so far. Add the next marker (or call marker_end) to close it, then export again.' : undefined });
+}
+
 async function call(name, args = {}) {
+  if (name === 'marker_list' || name === 'marker_end' || name === 'network_export_phase') return phaseTool(name, args);
+  if (name === 'network_export_capture') {
+    const out = await saveExport('/api/export/capture', 'foxy-capture.json');
+    const parsed = JSON.parse(out.body);
+    return pretty({ file: out.file, bytes: out.bytes, summary: parsed.summary, phases: parsed.phases.map(phaseView) });
+  }
   const qs = (a) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(a)) if (v !== undefined && v !== '') p.set(k, String(v));
@@ -145,7 +247,7 @@ createInterface({ input: process.stdin }).on('line', async (line) => {
           id,
           result: {
             isError: true,
-            content: [{ type: 'text', text: `${error}. Is server.mjs running at ${BASE}?` }],
+            content: [{ type: 'text', text: error instanceof AgentError ? error.message : `${error}. Is server.mjs running at ${BASE}?` }],
           },
         });
       }

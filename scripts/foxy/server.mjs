@@ -19,6 +19,7 @@ import {
   toMarkdown,
   exportCapture,
   exportPhase,
+  listPhases,
   fileSlug,
   describeFrames,
   bodyFingerprint,
@@ -436,6 +437,11 @@ const httpServer = createServer(async (req, res) => {
           requests: inPhase.map((r) => ({ ...r, frames: describeFrames(r.frames, ownersOfInfo).map((f) => ({ ...f, link: PACKAGE_LINK(f) })) })),
         }, null, 2));
       }
+    } else if (p === '/api/phases') {
+      // The session's phases with their totals (requests, new endpoints, identical dupes, failures, bytes) and whether each is still open.
+      const sid = url.searchParams.get('session') || latestSession;
+      const sessionRecords = [...records.values()].filter((r) => r.session === sid);
+      json(res, { session: sid, phases: listPhases(sessionRecords, sessionMarkers(sid)) });
     } else if (p === '/api/export/capture') {
       // The whole session as one file: every request in full, the markers and the phases they make. ?session=<id> picks another session.
       const sid = url.searchParams.get('session') || latestSession;
