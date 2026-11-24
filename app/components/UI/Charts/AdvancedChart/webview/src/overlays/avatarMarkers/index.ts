@@ -7,7 +7,7 @@
 // positioned element per *marker*, inside a container overlaid on
 // #tv_chart_container. X comes from the time scale's continuous barSpacing()/
 // rightOffset() geometry (smooth on zoom) and Y from the visible price range
-// (coordinates.ts). Positions are re-synced on pan/zoom/data and every
+// (core/chartCoordinates.ts). Positions are re-synced on pan/zoom/data and every
 // animation frame while the user is actively dragging the chart (TV exposes no
 // per-frame pan hook).
 //
@@ -40,7 +40,11 @@ import type {
   TVActiveChart,
   TVChartingLibraryWidget,
 } from '../../core/types';
-import { getPlotWidth, getVisibleTimeRangeSec, priceToY } from './coordinates';
+import {
+  getPlotWidth,
+  getVisibleTimeRangeSec,
+  priceToY,
+} from '../../core/chartCoordinates';
 import {
   clearAvatarElements,
   getAvatarElements,
