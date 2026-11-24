@@ -1231,7 +1231,9 @@ describe('useImmersveCardProvisioning', () => {
       });
 
       const { result, rerender } = renderHook(() =>
-        useImmersveCardProvisioning(provisioningData),
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+        }),
       );
 
       await waitFor(() =>
@@ -1261,6 +1263,49 @@ describe('useImmersveCardProvisioning', () => {
         await Promise.resolve();
       });
       expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
+
+    it('does not self-check a review unless the screen opts in', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1),
+      );
+
+      jest.useFakeTimers();
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS * 3);
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('does not self-check a review while polling is off', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+          pollIntervalMs: null,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1),
+      );
+
+      jest.useFakeTimers();
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS * 3);
+      });
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
       jest.useRealTimers();
     });
 
@@ -1345,6 +1390,60 @@ describe('useImmersveCardProvisioning', () => {
         await Promise.resolve();
       });
       expect(controller.createCard).toHaveBeenCalledTimes(2);
+      const startedCalls = mockCreateEventBuilder.mock.calls.filter(
+        (call) => call[0] === MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED,
+      );
+      expect(startedCalls).toHaveLength(1);
+      jest.useRealTimers();
+    });
+
+    it('backs off quiet createCard retries and then stops', async () => {
+      let rejectCreateCard!: (error: Error) => void;
+      controller.createCard.mockImplementation(
+        () =>
+          new Promise((_, reject) => {
+            rejectCreateCard = reject;
+          }),
+      );
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      await waitFor(() =>
+        expect(controller.createCard).toHaveBeenCalledTimes(1),
+      );
+
+      jest.useFakeTimers();
+      // 5s, 10s, 20s, 40s, 60s, 60s — six retries, then no more.
+      const delays = [5_000, 10_000, 20_000, 40_000, 60_000, 60_000];
+      for (const delay of delays) {
+        await act(async () => {
+          rejectCreateCard(new Error('provider 500'));
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+        act(() => {
+          jest.advanceTimersByTime(delay);
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+      }
+      expect(controller.createCard).toHaveBeenCalledTimes(1 + delays.length);
+
+      await act(async () => {
+        rejectCreateCard(new Error('provider 500'));
+      });
+      act(() => {
+        jest.advanceTimersByTime(60_000 * 3);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.createCard).toHaveBeenCalledTimes(1 + delays.length);
       jest.useRealTimers();
     });
 
@@ -1378,7 +1477,9 @@ describe('useImmersveCardProvisioning', () => {
       });
 
       const { result, rerender } = renderHook(() =>
-        useImmersveCardProvisioning(provisioningData),
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+        }),
       );
 
       await waitFor(() =>

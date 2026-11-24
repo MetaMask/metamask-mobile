@@ -41,12 +41,21 @@ import { useImmersveKycOutcome } from '../../../hooks/useImmersveKycOutcome';
 import { CARD_SETUP_PENDING_POLL_MS } from './useCardSetupPendingRefresh';
 
 const POLL_INTERVAL_MS = 5000;
+/** Automatic quiet retries stop after this many, instead of polling forever. */
+const QUIET_RECHECK_MAX_ATTEMPTS = 6;
+/** Cap for the exponential quiet-retry delay. */
+const QUIET_RECHECK_MAX_DELAY_MS = 60_000;
 
 export interface CardProvisioningOptions {
   /** `null` turns polling off. Omitted keeps the default interval. */
   pollIntervalMs?: number | null;
   navigateFromOutsideCard?: boolean;
   recheckOnFocus?: boolean;
+  /**
+   * Card home's waiting view re-checks a manual KYC review on its own.
+   * Money home leaves this off and keeps the tier-derived poll instead.
+   */
+  kycReviewSelfCheck?: boolean;
 }
 
 export function useImmersveCardProvisioning(
@@ -88,6 +97,8 @@ export function useImmersveCardProvisioning(
   const wasFundingSettlingRef = useRef(isFundingSettling);
   const wasProvisioningRef = useRef(isProvisioning);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const quietRecheckAttemptRef = useRef(0);
+  const createCardStartedRef = useRef(false);
   const [recheckCount, setRecheckCount] = useState(0);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
@@ -122,6 +133,7 @@ export function useImmersveCardProvisioning(
   pollIntervalMsRef.current = pollIntervalMs;
   const navigateFromOutsideCard = options?.navigateFromOutsideCard === true;
   const recheckOnFocus = options?.recheckOnFocus === true;
+  const kycReviewSelfCheck = options?.kycReviewSelfCheck === true;
   const [focusRecheckCount, setFocusRecheckCount] = useState(0);
   const wasFocusedRef = useRef(isFocused);
   // Set only when this screen opens a Card flow. Bottom sheets and other
@@ -139,6 +151,8 @@ export function useImmersveCardProvisioning(
       setHasResolvedStatus(false);
       setPendingAction(null);
       handled.current = false;
+      quietRecheckAttemptRef.current = 0;
+      createCardStartedRef.current = false;
       // Only a real card (provisioning just ended) clears the wait. A home
       // screen that has not loaded its provisioning alert yet must not.
       if (wasProvisioningRef.current && isFundingSettlingRef.current) {
@@ -283,12 +297,14 @@ export function useImmersveCardProvisioning(
     return () => subscription.remove();
   }, [recheckOnFocus, isProvisioning, hasResolvedStatus, pendingAction?.type]);
 
-  // The waiting view self-checks a manual KYC review on the same slow cadence
-  // the waiting view polls card home data, so an approval moves the screen on
-  // by itself without the user having to background the app. Refocus and
-  // app-foreground rechecks stay immediate; pull to refresh rechecks too.
+  // Card home opts in so a manual KYC review moves on by itself. Money home
+  // does not: it already polls on the tier-derived interval, and a fixed 15s
+  // timer would ignore that cadence (including "stop" when the interval is
+  // null). Refocus and app-foreground rechecks stay immediate.
   useEffect(() => {
     if (
+      !kycReviewSelfCheck ||
+      pollIntervalMs === null ||
       !isProvisioning ||
       !isFocused ||
       isReconciling ||
@@ -300,7 +316,14 @@ export function useImmersveCardProvisioning(
       setRecheckCount((count) => count + 1);
     }, CARD_SETUP_PENDING_POLL_MS);
     return () => clearInterval(interval);
-  }, [isProvisioning, isFocused, isReconciling, pendingAction?.type]);
+  }, [
+    kycReviewSelfCheck,
+    pollIntervalMs,
+    isProvisioning,
+    isFocused,
+    isReconciling,
+    pendingAction?.type,
+  ]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
@@ -322,15 +345,27 @@ export function useImmersveCardProvisioning(
       }
       // Offline callers pass null and must not keep asking.
       const intervalMs = pollIntervalMsRef.current;
-      if (intervalMs === null) {
+      if (
+        intervalMs === null ||
+        quietRecheckAttemptRef.current >= QUIET_RECHECK_MAX_ATTEMPTS
+      ) {
         return;
       }
+      const attempt = quietRecheckAttemptRef.current;
+      quietRecheckAttemptRef.current = attempt + 1;
+      const delayMs = Math.min(
+        intervalMs * 2 ** attempt,
+        QUIET_RECHECK_MAX_DELAY_MS,
+      );
       settleTimerRef.current = setTimeout(() => {
         settleTimerRef.current = null;
         if (!cancelled) {
           setRecheckCount((count) => count + 1);
         }
-      }, intervalMs);
+      }, delayMs);
+    };
+    const resetQuietRecheck = () => {
+      quietRecheckAttemptRef.current = 0;
     };
 
     (async () => {
@@ -378,20 +413,26 @@ export function useImmersveCardProvisioning(
         if (action.type === 'active') {
           setPendingAction(null);
           clearFundingSettling();
-          // Funding lifecycle only when we actually create the card.
-          trackEventRef.current(
-            createEventBuilderRef
-              .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED)
-              .addProperties(
-                withCardProvider(CardProviderIds.Immersve, {
-                  step: 'provisioning_create_card',
-                }),
-              )
-              .build(),
-          );
+          // Funding lifecycle only when we actually create the card. An
+          // automatic retry must not emit STARTED again; the first attempt
+          // already opened that lifecycle.
+          if (!createCardStartedRef.current) {
+            createCardStartedRef.current = true;
+            trackEventRef.current(
+              createEventBuilderRef
+                .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED)
+                .addProperties(
+                  withCardProvider(CardProviderIds.Immersve, {
+                    step: 'provisioning_create_card',
+                  }),
+                )
+                .build(),
+            );
+          }
           try {
             await controller.createCard(id);
             if (cancelled) return;
+            resetQuietRecheck();
             trackEventRef.current(
               createEventBuilderRef
                 .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED)
@@ -419,6 +460,7 @@ export function useImmersveCardProvisioning(
                   )
                   .build(),
               );
+              resetQuietRecheck();
               return;
             }
             trackEventRef.current(
@@ -449,6 +491,7 @@ export function useImmersveCardProvisioning(
           scheduleQuietRecheck();
         } else {
           clearFundingSettling();
+          resetQuietRecheck();
           // Mid-onboarding — no Funding Process STARTED (avoids orphan starts).
           setPendingAction(action);
           if (
@@ -487,6 +530,7 @@ export function useImmersveCardProvisioning(
           // Use BUTTON (not Funding COMPLETED) so we don't orphan a completion
           // without a matching CARD_FUNDING_PROCESS_STARTED.
           setPendingAction(null);
+          resetQuietRecheck();
           trackEventRef.current(
             createEventBuilderRef
               .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -588,6 +632,7 @@ export function useImmersveCardProvisioning(
     if (isReconciling) {
       return;
     }
+    quietRecheckAttemptRef.current = 0;
     setHasResolvedStatus(false);
     setRecheckCount((count) => count + 1);
   }, [isReconciling]);
