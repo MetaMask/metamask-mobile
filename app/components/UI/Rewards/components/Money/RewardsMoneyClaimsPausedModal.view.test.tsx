@@ -110,15 +110,11 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     const { findByTestId, getByTestId, getByText, queryByText } =
       renderRewardsMoneyClaimsPausedModal(PAUSED_PARAMS);
 
-    expect(await findByTestId(TEST_IDS.TITLE)).toHaveTextContent(
-      PAUSED_TITLE,
-    );
+    expect(await findByTestId(TEST_IDS.TITLE)).toHaveTextContent(PAUSED_TITLE);
     expect(getByTestId(TEST_IDS.DESCRIPTION)).toHaveTextContent(
       PAUSED_DESCRIPTION,
     );
-    expect(getByTestId(TEST_IDS.BREAKDOWN_HEADER)).toHaveTextContent(
-      BREAKDOWN,
-    );
+    expect(getByTestId(TEST_IDS.BREAKDOWN_HEADER)).toHaveTextContent(BREAKDOWN);
     expect(getByText(RECORDED_EARNINGS)).toBeOnTheScreen();
     expect(getByText('$132.00')).toBeOnTheScreen();
     expect(getByText(AVAILABLE_TO_CLAIM)).toBeOnTheScreen();

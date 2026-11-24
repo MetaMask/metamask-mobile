@@ -619,7 +619,9 @@ export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
  * while it is focused, so a journey can assert it is back on the screen below.
  */
 function createModalJourneyHost(
-  modalRoute: string,
+  modalRoute:
+    | typeof Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
+    | typeof Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
   hostTestId: string,
   label: string,
 ) {
