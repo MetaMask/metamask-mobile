@@ -163,7 +163,6 @@ describe('usePerpsPositionForAsset', () => {
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
       previewPositionModify: jest.fn(),
-      estimateCrossLiquidation: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),

@@ -3,7 +3,6 @@ import {
   BASIS_POINTS_DIVISOR,
   DECIMAL_PRECISION_CONFIG,
   CHASE_ORDER_CONFIG,
-  PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
@@ -87,14 +86,15 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveAccount,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
 import {
+  estimateCrossLiquidationPrice,
   liquidationPriceForOrderSide,
   presentCrossLiquidationEstimate,
 } from '../../../../utils/crossMarginSummary';
-import { usePerpsCrossLiquidationEstimate } from '../../../../hooks/usePerpsCrossLiquidationEstimate';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -2145,23 +2145,55 @@ export const usePerpsProOrderForm = ({
     liquidationPrice: isolatedLiquidationPrice,
     isCalculating: isLiquidationCalculating,
   } = usePerpsLiquidationPrice(liquidationPriceParams);
-  // A Cross order liquidates against the whole cross account. Core estimates
-  // it from the account, spot collateral and market tiers, including an order
-  // that changes an open position. A Scale ladder stays unknown.
-  const { estimate: crossLiquidationEstimate } =
-    usePerpsCrossLiquidationEstimate(
-      {
-        symbol: orderForm.asset,
-        direction: orderForm.direction,
-        size: positionSize,
-        entryPrice: effectivePrice,
-        leverage: orderForm.leverage,
-        providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
-        enabled:
-          marginMode === 'cross' && !isScaleOrder && !isPositionStreamLoading,
-      },
-      { debounceMs: PERFORMANCE_CONFIG.ValidationDebounceMs },
+  // A Cross order liquidates against the whole cross account, so it is
+  // estimated from the account's cross collateral and maintenance margin,
+  // including an order that changes an open position. A Scale ladder stays
+  // unknown.
+  const { account: liveAccount } = usePerpsLiveAccount({
+    // Subscribe before Cross is selected so the estimate is ready on the
+    // first frame of a cross order.
+    enabled: isCrossMarginAvailableForMarket || marginMode === 'cross',
+  });
+  const crossLiquidationEstimate = useMemo(() => {
+    // The default max leverage would estimate against the wrong maintenance
+    // margin, so wait for the market's own.
+    const marketMaxLeverage = marketData?.maxLeverage;
+    const existingSignedSize = Number.parseFloat(
+      currentMarketPosition?.size ?? '0',
     );
+    if (
+      marginMode !== 'cross' ||
+      isScaleOrder ||
+      isPositionStreamLoading ||
+      typeof marketMaxLeverage !== 'number'
+    ) {
+      return { status: 'unknown' as const };
+    }
+    return estimateCrossLiquidationPrice({
+      entryPrice: effectivePrice,
+      size: Number.parseFloat(positionSize),
+      isLong: orderForm.direction === 'long',
+      maxLeverage: marketMaxLeverage,
+      crossMarginSummary: liveAccount?.crossMarginSummary,
+      spotCollateral: liveAccount?.spotCollateral,
+      providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+      existingSignedSize,
+      marginTableId: marketData?.marginTableId,
+    });
+  }, [
+    marginMode,
+    isScaleOrder,
+    currentMarketPosition?.size,
+    effectivePrice,
+    positionSize,
+    orderForm.direction,
+    marketData?.maxLeverage,
+    marketData?.marginTableId,
+    liveAccount?.crossMarginSummary,
+    liveAccount?.spotCollateral,
+    market.providerId,
+    isPositionStreamLoading,
+  ]);
   const presentedCrossLiquidation = presentCrossLiquidationEstimate({
     estimate: crossLiquidationEstimate,
     hasValidAmount,
