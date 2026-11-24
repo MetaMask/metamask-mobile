@@ -64,6 +64,16 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
+import TokenDetailsFeedTab from '../components/tabs/FeedTab';
+import TokenSecurityHoldersTab from '../components/tabs/TokenSecurityHoldersTab';
+import { TokenStatKey } from '../constants/tokenStats';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from '../../SocialFeed/data/feed-constants';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
@@ -496,27 +506,67 @@ const TokenDetails: React.FC<{
   );
 
   const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
-  const tabs = useMemo<('overview' | 'security')[]>(() => {
-    const first = tabConfigOrder.find(
-      (tab) => tab === 'overview' || tab === 'security',
+  const socialEnabled = useSelector(selectIsSocialV1Enabled);
+  const feedEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const feedAsset = caip19AssetId && parseCaipAssetType(caip19AssetId);
+  const showFeedTab =
+    socialEnabled &&
+    feedEnabled &&
+    !token.isNative &&
+    !token.isETH &&
+    Boolean(
+      feedAsset &&
+        FEED_CAIP2_CHAINS.includes(feedAsset.chainId) &&
+        feedAsset.chainId !== HYPERLIQUID_CAIP2_CHAIN_ID &&
+        ((feedAsset.chain.namespace === 'eip155' &&
+          feedAsset.assetNamespace === 'erc20') ||
+          (feedAsset.chain.namespace === 'solana' &&
+            feedAsset.assetNamespace === 'token')),
     );
-    return first === 'security'
-      ? ['security', 'overview']
-      : ['overview', 'security'];
-  }, [tabConfigOrder]);
-  const { activeTab, activateTab, swipeGesture } = useTokenDetailsV1Tabs({
-    initialTab: tabs[0],
-    tabs,
-    onTabChange: clampScrollToTabBar,
-  });
-  const selectedTab = tabs.some((tab) => tab === activeTab)
-    ? activeTab
-    : tabs[0];
-  useEffect(() => {
-    if (selectedTab !== activeTab && selectedTab) {
-      activateTab(selectedTab);
+  const topHolders = securityData?.financialStats?.topHolders;
+  const showHoldersTab = socialEnabled && Boolean(topHolders?.length);
+  const tabs = useMemo<TokenDetailsV1TabKey[]>(() => {
+    const visibleTabs = tabConfigOrder.filter((tab) => {
+      if (tab === 'feed') return showFeedTab;
+      if (tab === 'holders') return showHoldersTab;
+      return true;
+    });
+    const coreTabs = ['overview', 'security'] as const;
+    return [
+      ...visibleTabs,
+      ...coreTabs.filter((tab) => !visibleTabs.includes(tab)),
+    ];
+  }, [showFeedTab, showHoldersTab, tabConfigOrder]);
+  const landingTab = tabs[0];
+  const userPickedTabRef = useRef(false);
+  const applyingLandingTabRef = useRef(false);
+  const handleTabChange = useCallback((): void => {
+    if (!applyingLandingTabRef.current) {
+      userPickedTabRef.current = true;
     }
-  }, [activeTab, activateTab, selectedTab]);
+    clampScrollToTabBar();
+  }, [clampScrollToTabBar]);
+  const { activeTab, activateTab, mountedTabs, swipeGesture } =
+    useTokenDetailsV1Tabs({
+      initialTab: landingTab,
+      tabs,
+      onTabChange: handleTabChange,
+    });
+  const selectedTab = tabs.includes(activeTab) ? activeTab : landingTab;
+  useEffect(() => {
+    if (
+      selectedTab !== activeTab ||
+      (!userPickedTabRef.current && activeTab !== landingTab)
+    ) {
+      applyingLandingTabRef.current = true;
+      activateTab(landingTab);
+      applyingLandingTabRef.current = false;
+    }
+  }, [activeTab, activateTab, landingTab, selectedTab]);
+  const isFeedActive = selectedTab === 'feed';
+  const isOffline = networkTier === 'NONE';
+  const allowFeedMotion =
+    !isOffline && hardwareTier !== 'LOW' && networkTier !== 'SLOW_CELLULAR';
   const handleTabPress = useCallback(
     (tab: TokenDetailsV1TabKey) => {
       trackEvent(
@@ -780,7 +830,7 @@ const TokenDetails: React.FC<{
         testID={TokenDetailsIds.tabBarSlot}
       >
         <TokenDetailsV1TabBar
-          activeTab={selectedTab ?? 'overview'}
+          activeTab={selectedTab}
           onTabPress={handleTabPress}
           tabs={tabs}
         />
@@ -805,6 +855,37 @@ const TokenDetails: React.FC<{
             {overview}
             <ActivitySection token={token} includeNonEvm showEvmFooter />
           </View>
+          {showFeedTab && caip19AssetId && mountedTabs.has('feed') && (
+            <View
+              style={isFeedActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
+              testID={TokenDetailsIds.tabPage('feed')}
+            >
+              {isOffline ? (
+                <Text variant={TextVariant.BodyMd} twClassName="p-4">
+                  {strings('offline_mode.title')}
+                </Text>
+              ) : (
+                <TokenDetailsFeedTab
+                  key={caip19AssetId}
+                  assetId={caip19AssetId}
+                  token={token}
+                  hasBalance={hasBalanceValue}
+                  isActive={isFeedActive}
+                  animateEmptyState={allowFeedMotion && isFeedActive}
+                />
+              )}
+            </View>
+          )}
+          {selectedTab === 'holders' && topHolders && (
+            <View testID={TokenDetailsIds.tabPage('holders')}>
+              <TokenSecurityHoldersTab
+                chainId={feedAsset?.chainId ?? token.chainId}
+                holders={topHolders}
+                holdersCount={tokenStats[TokenStatKey.Holders]?.value}
+                topTen={tokenStats[TokenStatKey.Top10]?.value}
+              />
+            </View>
+          )}
           {selectedTab === 'security' && (
             <View testID={TokenDetailsIds.tabPage('security')}>
               <SecurityTab
@@ -924,7 +1005,7 @@ const TokenDetails: React.FC<{
             testID={TokenDetailsIds.pinnedTabBarOverlay}
           >
             <TokenDetailsV1TabBar
-              activeTab={selectedTab ?? 'overview'}
+              activeTab={selectedTab}
               onTabPress={handleTabPress}
               tabs={tabs}
               topInset={headerInset}
@@ -1185,6 +1266,7 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
 
   return (
     <TokenDetails
+      key={tokenKey}
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
       onStickyButtonsResolved={setResolvedStickyButtons}

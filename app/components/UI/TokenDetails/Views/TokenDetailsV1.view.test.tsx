@@ -1,6 +1,10 @@
 import '../../../../../tests/component-view/mocks';
 import { Linking } from 'react-native';
 import {
+  __resetMockNetInfo,
+  __setMockNetInfo,
+} from '../../../../__mocks__/@react-native-community/netinfo';
+import {
   fireEvent,
   userEvent,
   waitFor,
@@ -15,6 +19,7 @@ import {
   tokenDetailsV1SecurityData,
   setupTokenDetailsV1ApiMocks,
   TOKEN_DETAILS_V1_ADDRESS,
+  TOKEN_DETAILS_V1_ASSET_ID,
   TOKEN_DETAILS_V1_AGE_LABEL,
   TOKEN_DETAILS_V1_DESCRIPTION,
   TOKEN_DETAILS_V1_HOLDER_NAMES,
@@ -22,6 +27,10 @@ import {
   tokenDetailsV1OpenHolders,
 } from '../../../../../tests/component-view/api-mocking/tokenDetailsV1';
 import { strings } from '../../../../../locales/i18n';
+import {
+  clearLeaderboardApiMock,
+  setupLeaderboardApiMock,
+} from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenDetailsIds } from '../testIds';
@@ -468,6 +477,121 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(
       await findByTestId(TokenDetailsIds.tab('overview')),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps the standard social tabs hidden when Social V1 is off', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false });
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        tabConfigOrder: ['feed', 'holders'],
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          securityData: tokenDetailsV1SecurityData,
+        },
+      });
+
+    const security = await findByTestId(TokenDetailsIds.tab('security'));
+    await userEvent.press(security);
+
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('holders'))).not.toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.tab('overview'))).toBeOnTheScreen();
+    expect(getByTestId(SecurityTabSelectors.TAB)).toBeOnTheScreen();
+  });
+
+  it('lands on configured Holders and shows the same Top 10 as Security', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false });
+    const { findByTestId, getByTestId, getAllByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['holders'],
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          securityData: tokenDetailsV1SecurityData,
+        },
+      });
+    const concentration = await findByTestId(
+      TokenDetailsIds.securityHolders.topTen,
+    );
+    const rows = getAllByTestId(TokenDetailsIds.securityHolders.row);
+
+    expect(concentration).toHaveTextContent('18.4%');
+    expect(
+      getByTestId(TokenDetailsIds.securityHolders.count),
+    ).toHaveTextContent('100');
+    expect(rows).toHaveLength(3);
+    expect(within(rows[0]).getByText('12.50%')).toBeOnTheScreen();
+    expect(within(rows[1]).getByText('5.90%')).toBeOnTheScreen();
+    expect(within(rows[2]).getByText('Pool')).toBeOnTheScreen();
+    expect(within(rows[2]).getByText('70.00%')).toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.tab('overview'))).toBeOnTheScreen();
+
+    await userEvent.press(getByTestId(TokenDetailsIds.tab('security')));
+
+    expect(
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Top10)),
+    ).toHaveTextContent('18.4%');
+  });
+
+  it('queries Feed on first activation and keeps its empty state without showing Holders', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    __setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    const messenger = setupLeaderboardApiMock();
+
+    try {
+      const { findByTestId, getByTestId, queryByTestId } =
+        renderTokenDetailsV1View({
+          socialEnabled: true,
+          tabConfigOrder: ['overview', 'feed', 'holders'],
+        });
+      const feed = await findByTestId(TokenDetailsIds.tab('feed'));
+      expect(messenger).not.toHaveBeenCalledWith(
+        'SocialService:fetchFeed',
+        expect.anything(),
+      );
+
+      await userEvent.press(feed);
+
+      expect(await findByTestId(TokenDetailsIds.feed.empty)).toBeOnTheScreen();
+      expect(messenger).toHaveBeenCalledWith(
+        'SocialService:fetchFeed',
+        expect.objectContaining({
+          scope: 'all',
+          chains: ['eip155:1'],
+          assetIds: [TOKEN_DETAILS_V1_ASSET_ID],
+        }),
+      );
+      expect(
+        queryByTestId(TokenDetailsIds.tab('holders')),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(TokenDetailsIds.tab('security'))).toBeOnTheScreen();
+    } finally {
+      clearLeaderboardApiMock();
+      __resetMockNetInfo();
+    }
+  });
+
+  it('omits Feed and Holders for native ETH without supported social data', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['feed', 'holders', 'security'],
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          address: '0x0000000000000000000000000000000000000000',
+          isNative: true,
+          caipAssetId: undefined,
+          name: 'Ethereum',
+          symbol: 'ETH',
+        },
+      });
+
+    expect(await findByTestId(SecurityTabSelectors.TAB)).toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('holders'))).not.toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.tab('overview'))).toBeOnTheScreen();
   });
 
   it('lists each open holder and hides a closed position', async () => {
