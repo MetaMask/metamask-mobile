@@ -48,6 +48,7 @@ import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import KalshiPrototypePredictionsHome from '../../UI/KYC/Kalshi/prototype/KalshiPrototypePredictionsHome';
+import KalshiPrototypeSettings from '../../UI/KYC/Kalshi/prototype/KalshiPrototypeSettings';
 import KalshiPrototypeOnboarding from '../../UI/KYC/Kalshi/prototype/KalshiPrototypeOnboarding';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
@@ -632,6 +633,10 @@ const SettingsFlow = () => {
          */
         isTestEnvironment && (
           <>
+            <NativeStack.Screen
+              name={Routes.SETTINGS.KALSHI_PROTOTYPE_SETTINGS}
+              component={KalshiPrototypeSettings}
+            />
             <NativeStack.Screen
               name={Routes.SETTINGS.KALSHI_PROTOTYPE_HOME}
               component={KalshiPrototypePredictionsHome}

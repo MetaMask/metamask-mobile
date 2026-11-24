@@ -261,6 +261,7 @@ const Routes = {
      * feature; these routes only mount them.
      */
     KALSHI_PROTOTYPE_HOME: 'KalshiPrototypeHome',
+    KALSHI_PROTOTYPE_SETTINGS: 'KalshiPrototypeSettings',
     KALSHI_PROTOTYPE_ONBOARDING: 'KalshiPrototypeOnboarding',
     REGION_SELECTOR: 'SettingsRegionSelector',
   },

@@ -5,6 +5,7 @@
  * routes are the only consumers.
  */
 export { default as KalshiPrototypePredictionsHome } from './KalshiPrototypePredictionsHome';
+export { default as KalshiPrototypeSettings } from './KalshiPrototypeSettings';
 export { default as KalshiPrototypeOnboarding } from './KalshiPrototypeOnboarding';
 export { default as KalshiPrototypeDeveloperOptionsSection } from './KalshiPrototypeDevSection';
 export {

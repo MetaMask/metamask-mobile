@@ -3,16 +3,11 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import KalshiPrototypeDeveloperOptionsSection from './KalshiPrototypeDevSection';
 import { KalshiPrototypeDevSectionSelectorsIDs } from './KalshiPrototypeDevSection.testIds';
-import {
-  activateKalshiPrototypeScenario,
-  getKalshiPrototypeRuntime,
-  resetKalshiPrototype,
-} from './prototypeRuntime';
+import Routes from '../../../../../constants/navigation/Routes';
 
-// The section only reads the navigation type for its navigate calls; the
-// navigation itself is not under test here.
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 // The runtime reaches the Engine only through the injection's boundary swap;
@@ -35,79 +30,31 @@ const originalDev = devGlobal.__DEV__;
 describe('KalshiPrototypeDeveloperOptionsSection', () => {
   beforeEach(() => {
     devGlobal.__DEV__ = true;
-    resetKalshiPrototype();
+    mockNavigate.mockClear();
   });
 
   afterAll(() => {
     devGlobal.__DEV__ = originalDev;
-    resetKalshiPrototype();
   });
 
-  it('offers every scenario, including the status-card ones', () => {
+  it('opens the prototype settings screen', () => {
     const { getByTestId } = render(<KalshiPrototypeDeveloperOptionsSection />);
 
-    expect(
-      getByTestId(
-        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-newUserHasMfa`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-leftPartWay`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-stepUpRequired`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-verifying`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-cantVerify`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-verified`,
-      ),
-    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(KalshiPrototypeDevSectionSelectorsIDs.OPEN));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.KALSHI_PROTOTYPE_SETTINGS,
+    );
   });
 
-  it('hides the resolve control while no review is pending', () => {
+  it('keeps the scenario list off Developer options', () => {
     const { queryByTestId } = render(
       <KalshiPrototypeDeveloperOptionsSection />,
     );
 
     expect(
-      queryByTestId(KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_VERIFIED),
+      queryByTestId(
+        `${KalshiPrototypeDevSectionSelectorsIDs.SCENARIO_OPTION}-newUserHasMfa`,
+      ),
     ).toBeNull();
-    expect(
-      queryByTestId(KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_CANT_VERIFY),
-    ).toBeNull();
-  });
-
-  it('resolves a pending review on the verified control', () => {
-    activateKalshiPrototypeScenario('verifying');
-    const { getByTestId } = render(<KalshiPrototypeDeveloperOptionsSection />);
-
-    fireEvent.press(
-      getByTestId(KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_VERIFIED),
-    );
-    expect(getKalshiPrototypeRuntime().script?.vendor.status).toBe('approved');
-  });
-
-  it('resolves a pending review on the can-not-verify control', () => {
-    activateKalshiPrototypeScenario('verifying');
-    const { getByTestId } = render(<KalshiPrototypeDeveloperOptionsSection />);
-
-    fireEvent.press(
-      getByTestId(KalshiPrototypeDevSectionSelectorsIDs.RESOLVE_CANT_VERIFY),
-    );
-    expect(getKalshiPrototypeRuntime().script?.vendor.status).toBe('rejected');
   });
 });

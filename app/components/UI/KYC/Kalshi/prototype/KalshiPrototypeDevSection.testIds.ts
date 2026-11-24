@@ -1,6 +1,8 @@
 // PROTOTYPE-DO-NOT-MERGE
 export const KalshiPrototypeDevSectionSelectorsIDs = {
   SECTION: 'kalshi-prototype-dev-section',
+  OPEN: 'kalshi-prototype-dev-open',
+  SCREEN: 'kalshi-prototype-dev-screen',
   RESET: 'kalshi-prototype-dev-reset',
   FAIL_CODE_SENDS: 'kalshi-prototype-dev-fail-code-sends',
   FAIL_SUMSUB_LAUNCH: 'kalshi-prototype-dev-fail-sumsub-launch',

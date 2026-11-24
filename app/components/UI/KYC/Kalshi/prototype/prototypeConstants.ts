@@ -140,6 +140,14 @@ export const PROTOTYPE_COPY = {
     failCodeSendsOn: '[PROTO] Code sends fail: on (tap to turn off)',
     failSumsubLaunch: '[PROTO] Fail the Sumsub launch',
     failSumsubLaunchOn: '[PROTO] Sumsub launch fails: on (tap to turn off)',
+    open: 'Open Kalshi prototype',
+    groups: {
+      scenarios: 'Start a scenario',
+      resolveReview: 'Resolve the review',
+      failures: 'Simulate failures',
+    },
+    failCodeSendsLabel: 'Fail Kalshi code sends',
+    failSumsubLaunchLabel: 'Fail the Sumsub launch',
     resolveReview: {
       title: '[PROTO] Resolve the pending review',
       verified: 'Resolve review: verified',
