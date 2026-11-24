@@ -1,7 +1,8 @@
 // PROTOTYPE-DO-NOT-MERGE
 import React from 'react';
-import BannerCompact from '../../../../../component-library/components-temp/BannerCompact';
-import type { BannerCompactProps } from '../../../../../component-library/components-temp/BannerCompact';
+import BannerCompact, {
+  type BannerCompactProps,
+} from '../../../../../component-library/components-temp/BannerCompact';
 import securityIllustration from '../../../../../images/secure_wallet_dark.png';
 import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
