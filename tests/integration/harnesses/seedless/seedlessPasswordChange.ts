@@ -139,12 +139,7 @@ export class FakeVaultEncryptor {
   encryptWithKey = jest.fn(
     async ({ keyString }: { keyString: string }, data: string) => {
       const id = this.#write(data, keyString);
-      return { id, data: id, iv: id } as {
-        id: string;
-        data: string;
-        iv: string;
-        salt?: string;
-      };
+      return { id, data: id, iv: id };
     },
   );
 
@@ -359,7 +354,7 @@ export const buildSeedlessPasswordChangeHarness = (): PasswordChangeHarness => {
     });
 
     const controller = new SeedlessOnboardingController({
-      messenger: messenger as never,
+      messenger,
       encryptor: encryptor as never,
       network: Web3AuthNetwork.Devnet,
       state,
