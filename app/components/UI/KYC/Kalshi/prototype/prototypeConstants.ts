@@ -227,7 +227,6 @@ export const PROTOTYPE_COPY = {
       title: 'We need more info',
       description:
         'Provide more details to finish verifying your identity. It only takes a minute.',
-      action: 'Continue',
     },
     verifying: {
       // The VBA home card's words (money.vba_home_card.kyc_pending).

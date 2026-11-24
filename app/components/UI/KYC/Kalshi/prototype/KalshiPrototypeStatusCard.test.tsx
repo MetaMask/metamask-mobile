@@ -53,7 +53,7 @@ describe('KalshiPrototypeStatusCard', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the step-up row pressable with its action, and no close', () => {
+  it('renders the step-up row pressable, with the Rive thumbnail and no close', () => {
     const onPress = jest.fn();
     const onClose = jest.fn();
     const copy = copyOf('stepUp');
@@ -66,13 +66,12 @@ describe('KalshiPrototypeStatusCard', () => {
     );
 
     expect(getByText(copy.title)).toBeOnTheScreen();
-    expect(getByText(copy.action)).toBeOnTheScreen();
     expect(
       queryByTestId(KalshiPrototypeStatusCardSelectorsIDs.CLOSE_BUTTON),
     ).toBeNull();
     expect(
-      queryByTestId(KalshiPrototypeStatusCardSelectorsIDs.THUMBNAIL),
-    ).toBeNull();
+      getByTestId(KalshiPrototypeStatusCardSelectorsIDs.THUMBNAIL),
+    ).toBeOnTheScreen();
 
     fireEvent.press(
       getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CONTAINER),

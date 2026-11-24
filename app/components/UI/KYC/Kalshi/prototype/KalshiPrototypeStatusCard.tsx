@@ -74,6 +74,7 @@ const CARD_STATE_CONFIG: Record<
     isDismissible: false,
   },
   stepUp: {
+    thumbnail: IDENTITY_ANIMATION_THUMBNAIL,
     isPressable: true,
     isDismissible: false,
   },
