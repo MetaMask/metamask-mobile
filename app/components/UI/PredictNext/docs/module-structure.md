@@ -89,7 +89,7 @@ PredictNext/
       internal/                # Screen-owned detail helpers
     PredictDeposit/
       PredictDepositScreen.tsx # Kalshi deposit: amount, review, processing (PRED-1495)
-      internal/                # Deposit flow hook, USDC balance, open-deposit sheet, build environment
+      internal/                # Deposit flow hook, USDC balance, open-deposit sheet, deposit environment from the Venue catalog
     PredictPortfolio/
       PredictPortfolioScreen.tsx
       internal/                # Summary, tabs, and empty-state composition
@@ -111,7 +111,7 @@ PredictNext/
     PredictDeviceAuthBootstrap.tsx
 
   capabilities/
-    index.ts                   # Venue descriptors, capability hooks and selectors
+    index.ts                   # Venue descriptors, capability hooks and selectors (requires explicit catalog environment for deposit)
     surfaceFeedKeys.ts         # The surface section/tab to Feed key table
 
   contracts/                   # Runtime API contracts

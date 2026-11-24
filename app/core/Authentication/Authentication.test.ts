@@ -37,7 +37,6 @@ import {
   setExistingUser,
   logIn,
   passwordSet,
-  setMoneyOnboardingSeen,
   setMoneySplashSeen,
 } from '../../actions/user';
 import { clearOnboarding } from '../../actions/onboarding';
@@ -4671,9 +4670,6 @@ describe('Authentication', () => {
       expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearOnboarding());
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
-        setMoneyOnboardingSeen(false),
-      );
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setMoneySplashSeen(false),
       );

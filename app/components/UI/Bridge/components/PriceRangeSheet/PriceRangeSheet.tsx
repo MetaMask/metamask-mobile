@@ -36,17 +36,16 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  getPriceRangeDecimals,
   isInvertedPriceRange,
   isValidPriceRange,
+  PRICE_RANGE_MAX_DECIMALS,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   tokenPairRateFromFiatRates,
   type PriceRangeTokenSide,
 } from '../../utils/priceRange';
-import {
-  FIAT_INPUT_DECIMALS,
-  FIAT_KEYPAD_CURRENCY,
-} from '../../utils/sourceAmountInputMode';
+import { FIAT_KEYPAD_CURRENCY } from '../../utils/sourceAmountInputMode';
 import { SwapsKeypad } from '../SwapsKeypad';
 import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
@@ -175,6 +174,7 @@ const PriceRangeSheet = ({
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
   const selectedFiatRate =
     pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
+  const priceDecimals = getPriceRangeDecimals(selectedFiatRate);
   const hasLivePrice =
     selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
@@ -239,9 +239,11 @@ const PriceRangeSheet = ({
       if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMin(applyPercentToPrice(selectedFiatRate, percent));
+      setPendingMin(
+        applyPercentToPrice(selectedFiatRate, percent, priceDecimals),
+      );
     },
-    [selectedFiatRate],
+    [priceDecimals, selectedFiatRate],
   );
 
   const handleMaxPercentPress = useCallback(
@@ -249,9 +251,11 @@ const PriceRangeSheet = ({
       if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMax(applyPercentToPrice(selectedFiatRate, percent));
+      setPendingMax(
+        applyPercentToPrice(selectedFiatRate, percent, priceDecimals),
+      );
     },
-    [selectedFiatRate],
+    [priceDecimals, selectedFiatRate],
   );
 
   const handleKeypadChange = useCallback(
@@ -523,7 +527,7 @@ const PriceRangeSheet = ({
         ref={keypadRef}
         value={focusedField === 'max' ? pendingMax : pendingMin}
         currency={FIAT_KEYPAD_CURRENCY}
-        decimals={FIAT_INPUT_DECIMALS}
+        decimals={PRICE_RANGE_MAX_DECIMALS}
         isInteractable
         onChange={handleKeypadChange}
         onClose={() => setFocusedField(null)}

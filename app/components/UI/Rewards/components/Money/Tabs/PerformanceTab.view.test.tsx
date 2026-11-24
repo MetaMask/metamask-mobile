@@ -126,7 +126,7 @@ describe('PerformanceTab', () => {
     });
     const rebates = within(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES));
     expect(
-      rebates.getAllByText(REFERRAL_LOCALIZED_TEXT.rebateSwapsVolume),
+      rebates.getAllByText(REFERRAL_LOCALIZED_TEXT.rebateSwaps),
     ).toHaveLength(5);
     expect(rebates.getAllByText('+$1.00')).toHaveLength(5);
     expect(

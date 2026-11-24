@@ -10,7 +10,11 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import type { ParamListBase, RouteProp } from '@react-navigation/native';
+import {
+  getFocusedRouteNameFromRoute,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import {
@@ -171,7 +175,6 @@ import {
   MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
-import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
@@ -192,6 +195,9 @@ import {
   PredictPreviewSheetProvider,
 } from '../../UI/Predict';
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
+import { CollectiblesLayout } from '../../UI/Collectibles/routes/CollectiblesLayout';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -1041,6 +1047,7 @@ const MainNavigator = () => {
   // Predict routes are registered while Predict is available for the
   // Active Venue, the same gate its entry points use.
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1147,7 +1154,7 @@ const MainNavigator = () => {
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
-       * invite sheet dismisses — same pattern as Money onboarding.
+       * invite sheet dismisses — same pattern as the Money splash.
        */}
       <NativeStack.Screen
         name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
@@ -1318,9 +1325,17 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={{
-          ...slideFromRightNativeOptions,
-          fullScreenGestureEnabled: true,
+        options={({ route }) => {
+          const focusedBridgeRouteName =
+            getFocusedRouteNameFromRoute(route) ?? Routes.BRIDGE.BRIDGE_VIEW;
+          return {
+            ...slideFromRightNativeOptions,
+            // On iOS a full screen gesture here also catches swipes on pushed
+            // Bridge screens and pops the whole Bridge stack instead of them.
+            ...(focusedBridgeRouteName === Routes.BRIDGE.BRIDGE_VIEW
+              ? { fullScreenGestureEnabled: true }
+              : null),
+          };
         }}
       />
       <NativeStack.Screen
@@ -1379,11 +1394,6 @@ const MainNavigator = () => {
               component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
-          <NativeStack.Screen
-            name={Routes.MONEY.ONBOARDING}
-            component={MoneyOnboardingView}
-            options={fadeNativeOptions}
-          />
           <NativeStack.Screen
             name={Routes.MONEY.SPLASH}
             component={MoneySplashView}
@@ -1483,6 +1493,13 @@ const MainNavigator = () => {
             options={transparentModalStackOptions}
           />
         </>
+      )}
+      {isCollectiblesEnabled && (
+        <NativeStack.Screen
+          name={collectiblesRoutes.root}
+          component={CollectiblesLayout}
+          options={slideFromRightNativeOptions}
+        />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <NativeStack.Screen

@@ -1918,11 +1918,11 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the unavailable slot whenever there is no fresh balance', () => {
+    it('renders the unavailable slot when the balance fetch fails', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
-        isBalanceLoading: true,
+        isBalanceLoading: false,
         isBalanceFetchError: true,
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
@@ -3731,6 +3731,46 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
       expect(
         queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+    it('renders the balance skeleton without the unavailable banner when there is no last known balance', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the last known balance without the unavailable banner when one is cached', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        isBalanceLoading: true,
+        isBalanceFetchError: false,
+        lastKnownTotalFiatFormatted: '$2,384.34',
+        refetchBalance: mockRefetchBalance,
+        apyPercent: 5,
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        moneyBalanceQuery: { data: undefined, isLoading: false },
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent('$2,384.34');
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
       ).not.toBeOnTheScreen();
     });
   });
