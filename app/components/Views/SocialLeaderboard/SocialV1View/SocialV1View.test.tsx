@@ -902,6 +902,29 @@ describe('SocialV1View', () => {
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the composer with the source the Social screen was opened from', () => {
+    mockRouteParams = { source: 'home_banner' };
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: 'home_banner',
+    });
+  });
+
+  it('opens the composer without a source when the screen has none', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: undefined,
+    });
+  });
+
   it('opens Rewards from the gift button', () => {
     renderWithProvider(<SocialV1View />);
 
