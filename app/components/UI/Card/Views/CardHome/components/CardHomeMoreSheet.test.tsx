@@ -70,22 +70,26 @@ describe('CardHomeMoreSheet', () => {
     expect(getByText('card.card_home.more_sheet.title')).toBeOnTheScreen();
   });
 
-  it('renders single TOS fallback when legalDocuments are absent and closes before navigating', () => {
+  it('renders a single TOS row when legalDocuments are absent', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(getByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-generalTermsOfUse`),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('closes the sheet before opening the TOS page', () => {
     const onNavigateToCardTos = jest.fn();
-    const { getByTestId, queryByTestId } = renderSheet({
-      onNavigateToCardTos,
-    });
+    const { getByTestId } = renderSheet({ onNavigateToCardTos });
 
     fireEvent.press(getByTestId(CardHomeSelectors.CARD_TOS_ITEM));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(onNavigateToCardTos).toHaveBeenCalledTimes(1);
-    expect(
-      queryByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-generalTermsOfUse`),
-    ).toBeNull();
   });
 
-  it('renders one row per legal document and opens urls', () => {
+  it('renders one row per legal document', () => {
     const { getByTestId, getByText, queryByTestId } = renderSheet({
       legalDocuments: [
         {
@@ -101,9 +105,23 @@ describe('CardHomeMoreSheet', () => {
       ],
     });
 
-    expect(queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
+    expect(
+      queryByTestId(CardHomeSelectors.CARD_TOS_ITEM),
+    ).not.toBeOnTheScreen();
     expect(getByText('Terms of Use')).toBeOnTheScreen();
     expect(getByText('Privacy Policy')).toBeOnTheScreen();
+  });
+
+  it('opens a legal document url when its row is pressed', () => {
+    const { getByTestId } = renderSheet({
+      legalDocuments: [
+        {
+          id: 'privacyPolicy',
+          title: 'Privacy Policy',
+          url: 'https://example.com/privacy',
+        },
+      ],
+    });
 
     fireEvent.press(
       getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-privacyPolicy`),

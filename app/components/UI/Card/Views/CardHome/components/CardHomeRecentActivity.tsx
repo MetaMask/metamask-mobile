@@ -131,7 +131,7 @@ const ActivityListItem = ({
       subvalue={subvalue}
       startAccessory={<ActivityRowIcon name={display.icon} />}
       onPress={onPress ? () => onPress(transaction) : undefined}
-      testID={`card-home-tx-${transaction.id}`}
+      testID={`${CardHomeSelectors.RECENT_ACTIVITY_ROW_PREFIX}${transaction.id}`}
     />
   );
 };

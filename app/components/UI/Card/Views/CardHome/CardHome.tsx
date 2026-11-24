@@ -985,7 +985,10 @@ const CardHome = () => {
       return true;
     }
     if (a.type === 'card_provisioning') {
-      return provisioningView !== 'hidden';
+      // Same rule as CardAlertSection, which renders nothing for these.
+      return (
+        provisioningView !== 'hidden' && provisioningView !== 'reconciling'
+      );
     }
     return false;
   });
@@ -1493,8 +1496,6 @@ const CardHome = () => {
                 />
               )}
 
-            {moreSheet}
-
             <CardScreenshotDeterrent
               enabled={
                 !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
@@ -1503,6 +1504,9 @@ const CardHome = () => {
           </>
         )}
       </ScrollView>
+      {/* Outside the ScrollView so the sheet covers the whole screen,
+          header included, and does not scroll with the list. */}
+      {moreSheet}
     </Box>
   );
 };
