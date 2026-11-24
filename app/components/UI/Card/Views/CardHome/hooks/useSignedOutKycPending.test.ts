@@ -66,6 +66,22 @@ describe('useSignedOutKycPending', () => {
     expect(result.current).toBe(false);
   });
 
+  it('is false when the onboarding session exists but the user is unknown', () => {
+    setup({ onboardingId: 'onboarding-1' });
+
+    const { result } = renderHook(() => useSignedOutKycPending());
+
+    expect(result.current).toBe(false);
+  });
+
+  it('is false when verification is neither pending nor verified', () => {
+    setup({ onboardingId: 'onboarding-1', verificationState: 'STARTED' });
+
+    const { result } = renderHook(() => useSignedOutKycPending());
+
+    expect(result.current).toBe(false);
+  });
+
   it('is false when signed out with no onboarding session', () => {
     setup({ verificationState: 'PENDING' });
 
