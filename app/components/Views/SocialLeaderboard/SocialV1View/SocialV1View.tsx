@@ -445,8 +445,11 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer({ composerEntry: SocialEvent.ComposerEntry.SOCIAL_FEED });
-  }, [openComposer]);
+    openComposer({
+      composerEntry: SocialEvent.ComposerEntry.SOCIAL_FEED,
+      analyticsSource,
+    });
+  }, [analyticsSource, openComposer]);
 
   const handleOpenRewards = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);
