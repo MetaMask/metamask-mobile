@@ -49,7 +49,7 @@ describe('useLighterDepositMinimumAlert', () => {
         key: AlertKeys.FiatBuyAmountLimit,
         field: RowAlertKey.Amount,
         title: strings('alert_system.fiat_buy_amount_limit.title'),
-        message: 'Minimum purchase is $1.00',
+        message: 'Minimum deposit is $1.00',
         severity: Severity.Danger,
         isBlocking: true,
       },

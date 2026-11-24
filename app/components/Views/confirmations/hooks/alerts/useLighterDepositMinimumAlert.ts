@@ -52,7 +52,7 @@ export function useLighterDepositMinimumAlert({
         key: AlertKeys.FiatBuyAmountLimit,
         field: RowAlertKey.Amount,
         title: strings('alert_system.fiat_buy_amount_limit.title'),
-        message: strings('fiat_on_ramp.min_purchase_limit', {
+        message: strings('fiat_on_ramp.min_deposit_limit', {
           amount: formatCurrency(LIGHTER_MINIMUM_DEPOSIT, 'USD', {
             currencyDisplay: 'narrowSymbol',
           }),
