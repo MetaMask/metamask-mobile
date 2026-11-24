@@ -73,7 +73,7 @@ Humans use the dashboard. Agents can read the same capture through the MCP serve
 claude mcp add foxy -- node scripts/foxy/mcp.mjs
 ```
 
-Tools: `network_list`, `network_get`, `network_summary`, `network_export_markdown`, `marker_add`, `network_clear`, `status`. Use `marker_add` to label what the app is doing, `network_summary` to find identical duplicates, failures and third-party chatter, and `network_export_markdown` for a table to paste into a ticket. An old capture can be replayed without an app: `node scripts/foxy/replay.mjs [logfile] [port]`.
+Tools: `network_list`, `network_get`, `network_summary`, `network_export_markdown`, `marker_add`, `network_clear`, `status`. Use `marker_add` to label what the app is doing, `network_summary` to find identical duplicates, failures and third-party chatter, and `network_export_markdown` for a markdown table to paste wherever you are writing it up. An old capture can be replayed without an app: `node scripts/foxy/replay.mjs [logfile] [port]`.
 
 ## Changing Foxy itself
 
