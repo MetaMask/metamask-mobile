@@ -210,13 +210,13 @@ describe('buildBlobIframeSrcdocScript', () => {
           return undefined;
         }
       },
-      fetch: (url: string) => {
+      fetch: async (url: string) => {
         fetched.push(url);
         return Promise.resolve({
-          blob: () =>
+          blob: async () =>
             Promise.resolve({
               type: 'text/html;charset=utf-8',
-              text: () => Promise.resolve(html),
+              text: async () => Promise.resolve(html),
             }),
         });
       },
@@ -277,7 +277,7 @@ describe('buildBlobIframeSrcdocScript', () => {
           return undefined;
         }
       },
-      fetch: () => Promise.reject(new Error('fetch should not run')),
+      fetch: async () => Promise.reject(new Error('fetch should not run')),
       URL: {
         createObjectURL: () => 'blob:https://www.tradingview.com/created',
         revokeObjectURL: () => undefined,
@@ -415,7 +415,7 @@ describe('buildBlobIframeSrcdocScript', () => {
     const installSrcFrame = (
       fetchImpl: (url: string) => Promise<{
         blob: () => Promise<BlobParts>;
-      }> = () => Promise.reject(new Error('fetch should not run')),
+      }> = async () => Promise.reject(new Error('fetch should not run')),
     ) => {
       // One ordered log, because the order of the two writes decides how many
       // loads the browser starts.
@@ -430,7 +430,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       Object.defineProperty(frameProto, 'src', {
         configurable: true,
         get(this: { _src?: string }) {
-          return this._src || '';
+          return this._src ?? '';
         },
         set(this: { _src?: string; srcdoc?: string }, value: string) {
           writes.push(`src=${value}`);
@@ -506,7 +506,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { writes, iframe, createObjectURL } = installSrcFrame();
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve('<html><body>chart</body></html>'),
+        text: async () => Promise.resolve('<html><body>chart</body></html>'),
       });
 
       iframe.src = chartUrl;
@@ -523,7 +523,7 @@ describe('buildBlobIframeSrcdocScript', () => {
         installSrcFrame();
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve(html),
+        text: async () => Promise.resolve(html),
       });
 
       iframe.src = chartUrl;
@@ -541,7 +541,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { writes, iframe, createObjectURL } = installSrcFrame();
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve(html),
+        text: async () => Promise.resolve(html),
       });
       iframe.src = chartUrl;
       await flush();
@@ -558,7 +558,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { iframe, createObjectURL } = installSrcFrame();
       iframe.src = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve('<html><body>chart</body></html>'),
+        text: async () => Promise.resolve('<html><body>chart</body></html>'),
       });
 
       iframe.src = 'https://example.com/embed';
@@ -575,7 +575,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { writes, iframe, createObjectURL } = installSrcFrame();
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve(html),
+        text: async () => Promise.resolve(html),
       });
       iframe.src = chartUrl;
       await flush();
@@ -595,13 +595,13 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { writes, iframe, createObjectURL } = installSrcFrame();
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve(html),
+        text: async () => Promise.resolve(html),
       });
       iframe.src = chartUrl;
       await flush();
       const pdfUrl = createObjectURL({
         type: 'application/pdf',
-        text: () => Promise.resolve('%PDF-1.7'),
+        text: async () => Promise.resolve('%PDF-1.7'),
       });
 
       iframe.src = pdfUrl;
@@ -630,7 +630,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       iframe.srcdoc = '<p>turnstile</p>';
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve('<html><body>chart</body></html>'),
+        text: async () => Promise.resolve('<html><body>chart</body></html>'),
       });
 
       iframe.src = chartUrl;
@@ -646,13 +646,13 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { writes, iframe, createObjectURL } = installSrcFrame();
       const firstUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve('<html><body>first</body></html>'),
+        text: async () => Promise.resolve('<html><body>first</body></html>'),
       });
       iframe.src = firstUrl;
       await flush();
       const secondUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve(secondHtml),
+        text: async () => Promise.resolve(secondHtml),
       });
 
       iframe.src = secondUrl;
@@ -668,7 +668,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       const { writes, iframe, createObjectURL } = installSrcFrame();
       const chartUrl = createObjectURL({
         type: 'text/html',
-        text: () => Promise.resolve(html),
+        text: async () => Promise.resolve(html),
       });
       iframe.src = chartUrl;
       await flush();
@@ -688,12 +688,12 @@ describe('buildBlobIframeSrcdocScript', () => {
       const htmlReady = new Promise<string>((resolve) => {
         resolveHtml = resolve;
       });
-      const { writes, iframe } = installSrcFrame(() =>
+      const { writes, iframe } = installSrcFrame(async () =>
         Promise.resolve({
-          blob: () =>
+          blob: async () =>
             Promise.resolve({
               type: 'text/html',
-              text: () => htmlReady,
+              text: async () => htmlReady,
             }),
         }),
       );
@@ -741,7 +741,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       Object.defineProperty(frameProto, 'src', {
         configurable: true,
         get(this: { _src?: string }) {
-          return this._src || '';
+          return this._src ?? '';
         },
         set(this: { _src?: string }, value: string) {
           assigned.push(value);
@@ -779,7 +779,7 @@ describe('buildBlobIframeSrcdocScript', () => {
             return undefined;
           }
         },
-        fetch: () => Promise.reject(new Error('fetch should not run')),
+        fetch: async () => Promise.reject(new Error('fetch should not run')),
         URL: {
           createObjectURL,
           revokeObjectURL: () => undefined,
@@ -894,12 +894,13 @@ describe('buildBlobIframeSrcdocScript', () => {
 
     it('keeps a fetched text/plain blob on the native src', async () => {
       const { assigned, sandbox } = installObservedFrame(() => 'blob:unused');
-      sandbox.fetch = () =>
+      sandbox.fetch = async () =>
         Promise.resolve({
-          blob: () =>
+          blob: async () =>
             Promise.resolve({
               type: 'text/plain',
-              text: () => Promise.resolve('<script>parent.ethereum</script>'),
+              text: async () =>
+                Promise.resolve('<script>parent.ethereum</script>'),
             }),
         });
       sandbox.window = sandbox;
@@ -934,12 +935,12 @@ describe('buildBlobIframeSrcdocScript', () => {
         const { observers, sandbox } = installObservedFrame(
           () => 'blob:unused',
         );
-        sandbox.fetch = () =>
+        sandbox.fetch = async () =>
           Promise.resolve({
-            blob: () =>
+            blob: async () =>
               Promise.resolve({
                 type: 'text/html',
-                text: () => Promise.resolve(html),
+                text: async () => Promise.resolve(html),
               }),
           });
         sandbox.window = sandbox;
@@ -979,12 +980,12 @@ describe('buildBlobIframeSrcdocScript', () => {
     it('renders an html blob iframe that was inserted before the observer started', async () => {
       const html = '<html><head></head><body>chart</body></html>';
       const { sandbox } = installObservedFrame(() => 'blob:unused');
-      sandbox.fetch = () =>
+      sandbox.fetch = async () =>
         Promise.resolve({
-          blob: () =>
+          blob: async () =>
             Promise.resolve({
               type: 'text/html',
-              text: () => Promise.resolve(html),
+              text: async () => Promise.resolve(html),
             }),
         });
       const listeners: Record<string, () => void> = {};
