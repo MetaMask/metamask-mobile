@@ -4,7 +4,8 @@ import BannerCompact, {
   type BannerCompactProps,
 } from '../../../../../component-library/components-temp/BannerCompact';
 import moneyVbaKycDecisionArt from '../../../../../images/money-vba-kyc-decision-art.png';
-import moneyVbaAccountReadyArt from '../../../../../images/money-vba-account-ready-art.png';
+import verifiedCheckAnimation from '../../../../../animations/card_verified_check.riv';
+import kycVerifiedCheckArt from '../../components/assets/kyc-identity-verified-art.png';
 import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
 import { PROTOTYPE_COPY } from './prototypeConstants';
@@ -32,6 +33,25 @@ const IDENTITY_ANIMATION_THUMBNAIL = VERIFYING_HERO.heroAnimation ? (
 ) : undefined;
 
 /**
+ * The green verified tick Rive (`card_verified_check.riv`): `Intro` plays
+ * once, then holds. Its static art is the fallback.
+ */
+const VERIFIED_THUMBNAIL = (
+  <MoneyVbaHomeCardHeroAnimation
+    animation={{
+      source: verifiedCheckAnimation,
+      artboardName: 'Check',
+      stateMachineName: 'State Machine 1',
+    }}
+    fallback={{
+      source: kycVerifiedCheckArt,
+      width: THUMBNAIL_WIDTH,
+      height: Math.round((107 / 140) * THUMBNAIL_WIDTH),
+    }}
+  />
+);
+
+/**
  * What each card state shows. Only the states the flow continues from are
  * pressable, and only the states that outlive a visit can be dismissed.
  */
@@ -49,6 +69,7 @@ const CARD_STATE_CONFIG: Record<
     isDismissible: true,
   },
   needMoreInfo: {
+    thumbnail: IDENTITY_ANIMATION_THUMBNAIL,
     isPressable: true,
     isDismissible: false,
   },
@@ -74,8 +95,7 @@ const CARD_STATE_CONFIG: Record<
     isDismissible: true,
   },
   verified: {
-    // The VBA identity-verified card's check.
-    thumbnail: moneyVbaAccountReadyArt,
+    thumbnail: VERIFIED_THUMBNAIL,
     isPressable: false,
     isDismissible: true,
   },

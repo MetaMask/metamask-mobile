@@ -53,13 +53,13 @@ describe('KalshiPrototypeStatusCard', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the need-more-info row pressable with its action, and no close', () => {
+  it('renders the step-up row pressable with its action, and no close', () => {
     const onPress = jest.fn();
     const onClose = jest.fn();
-    const copy = copyOf('needMoreInfo');
+    const copy = copyOf('stepUp');
     const { getByTestId, getByText, queryByTestId } = render(
       <KalshiPrototypeStatusCard
-        state="needMoreInfo"
+        state="stepUp"
         onPress={onPress}
         onClose={onClose}
       />,

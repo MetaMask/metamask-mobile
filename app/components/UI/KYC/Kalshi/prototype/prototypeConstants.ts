@@ -221,7 +221,6 @@ export const PROTOTYPE_COPY = {
       title: 'Finish verifying your identity',
       description:
         'Pick up where you left off. Kalshi still needs a few details from you.',
-      action: 'Continue',
     },
     // The VBA home card's step-up words (money.vba_home_card.finish_verification).
     stepUp: {
@@ -245,7 +244,7 @@ export const PROTOTYPE_COPY = {
     },
     verified: {
       title: GEORGE_COPY.done.title,
-      description: GEORGE_COPY.done.body,
+      description: 'You’re all set. Start predicting what happens next.',
     },
   },
 } as const;
