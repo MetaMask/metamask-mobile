@@ -17,7 +17,10 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import Logger from '../../../../../util/Logger';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
+import type {
+  TransakAdditionalRequirement,
+  TransakBuyQuote,
+} from '@metamask/ramps-controller';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useMicaFormRetry } from '../../hooks/useMicaFormRetry';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -26,14 +29,9 @@ import styleSheet from './SourceOfIncome.styles';
 import { KYC_STEP } from '../../utils/kycProgress';
 import MicaKycFormLayout from './MicaKycFormLayout';
 
-interface SourceOfIncomeMetadata {
-  options?: { name: string; value: string }[];
-  sourceOfFundsTypeOptions?: { name: string; value: string }[];
-  documentProofOptions?: string[];
-  expiresAt?: string;
-  kycUrl?: string;
-  workFlowRunId?: string;
-}
+type SourceOfIncomeMetadata = NonNullable<
+  TransakAdditionalRequirement['metadata']
+>;
 
 export interface SourceOfIncomeParams {
   quote: TransakBuyQuote;
