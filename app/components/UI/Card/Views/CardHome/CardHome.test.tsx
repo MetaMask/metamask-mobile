@@ -3022,8 +3022,8 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('shows restricted manage spending limit description when allowance state is limited', () => {
-    // Given: priority token has limited allowance
+  it('shows the remaining spending limit when the allowance is limited', () => {
+    // Given: priority token has a limited allowance with a cap
     const limitedAllowanceToken = {
       ...mockPriorityToken,
       fundingStatus: FundingStatus.Limited,
@@ -3036,11 +3036,9 @@ describe('CardHome Component', () => {
     // When: component renders
     render();
 
-    // Then: restricted spending limit description is shown
+    // Then: the Manage limit row shows the remaining and total amounts
     expect(
-      screen.getByText(
-        'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-      ),
+      screen.getByText('500000000 USDC of 500000000 USDC left'),
     ).toBeOnTheScreen();
   });
 

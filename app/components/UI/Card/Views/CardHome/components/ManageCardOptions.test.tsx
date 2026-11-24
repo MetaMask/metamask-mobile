@@ -76,6 +76,9 @@ const renderComponent = (
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
     hideQuickActionRows?: boolean;
+    spendingLimitReadOnly?: boolean;
+    spendingLimitOnly?: boolean;
+    onManageSpendingLimit?: () => void;
   } = {},
 ) =>
   render(
@@ -98,7 +101,9 @@ const renderComponent = (
       onViewPin={jest.fn()}
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
-      onManageSpendingLimit={jest.fn()}
+      onManageSpendingLimit={overrides.onManageSpendingLimit ?? jest.fn()}
+      spendingLimitReadOnly={overrides.spendingLimitReadOnly}
+      spendingLimitOnly={overrides.spendingLimitOnly}
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
@@ -164,6 +169,21 @@ describe('ManageCardOptions contact details gating', () => {
 });
 
 describe('ManageCardOptions funding-limit gating', () => {
+  it('shows a blocked card spending limit without opening the limit screen', () => {
+    const onManageSpendingLimit = jest.fn();
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      {
+        spendingLimitReadOnly: true,
+        spendingLimitOnly: true,
+        onManageSpendingLimit,
+      },
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM));
+    expect(onManageSpendingLimit).not.toHaveBeenCalled();
+  });
+
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {
     const { getByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: true }),

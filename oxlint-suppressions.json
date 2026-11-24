@@ -2483,17 +2483,7 @@
       "count": 2
     }
   },
-  "app/components/UI/Card/Views/CardHome/components/CardHomeFooter.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Card/Views/CardHome/components/ManageCardOptions.test.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Card/Views/CardHome/components/ManageCardOptions.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }

@@ -1241,6 +1241,7 @@ const CardHome = () => {
                 showSpendingLimitProgress) && (
                 <ManageCardOptions
                   spendingLimitOnly={!(showManageOptions && !isBlocked)}
+                  spendingLimitReadOnly={isBlocked}
                   card={data?.card}
                   account={data?.account}
                   capabilities={capabilities}

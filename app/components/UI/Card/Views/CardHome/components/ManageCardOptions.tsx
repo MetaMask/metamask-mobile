@@ -62,6 +62,8 @@ interface ManageCardOptionsProps {
    * total is greater than zero (including none left).
    */
   showLimitedSpendingAmounts?: boolean;
+  /** Blocked cards still show the amounts, without a way to change them. */
+  spendingLimitReadOnly?: boolean;
   spendingLimitRemaining?: string;
   spendingLimitTotal?: string;
   spendingLimitSymbol?: string;
@@ -119,6 +121,7 @@ const ManageCardOptions = ({
   onOrderMetalCard,
   isSpendingLimitActive,
   showLimitedSpendingAmounts = false,
+  spendingLimitReadOnly = false,
   spendingLimitRemaining,
   spendingLimitTotal,
   spendingLimitSymbol,
@@ -212,8 +215,8 @@ const ManageCardOptions = ({
             })
           : strings(showSpendingLimitDescription)
       }
-      rightIcon={IconName.ArrowRight}
-      onPress={onManageSpendingLimit}
+      rightIcon={spendingLimitReadOnly ? undefined : IconName.ArrowRight}
+      onPress={spendingLimitReadOnly ? undefined : onManageSpendingLimit}
       testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
     />
   ) : null;
