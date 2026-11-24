@@ -301,9 +301,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
     if (suspendRiveForCurtain) {
-      checklistRiveRef.current?.pause();
+      checklistRiveRef.current?.pause().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to pause checklist Rive for curtain',
+        );
+      });
     } else if (prevSuspendRiveForCurtainRef.current) {
-      checklistRiveRef.current?.play();
+      checklistRiveRef.current?.play().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to resume checklist Rive after curtain',
+        );
+      });
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
   }, [suspendRiveForCurtain, checklistRiveRef]);
@@ -380,7 +390,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         // fallback — so always fire the trigger and let the catch below absorb a miss.
         // TODO(#33825): Re-export v07 with Main on every artboard.
         rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
-        rive.play();
+        rive.play().catch((playError: unknown) => {
+          Logger.error(
+            playError as Error,
+            'WalletHomeOnboardingSteps: failed to play checklist Rive at main after deferred nav',
+          );
+        });
       } catch (error) {
         Logger.error(
           error as Error,

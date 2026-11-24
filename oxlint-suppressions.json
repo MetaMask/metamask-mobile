@@ -14562,9 +14562,6 @@
     }
   },
   "app/components/UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
