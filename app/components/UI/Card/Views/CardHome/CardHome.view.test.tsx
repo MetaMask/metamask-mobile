@@ -547,14 +547,11 @@ describe('CardHome', () => {
       });
     });
 
-    it('opens contact support from the More sheet and keeps logout off Card home', async () => {
+    it('shows contact support in the More sheet', async () => {
       const { findByTestId, queryByTestId } = renderCardHomeView();
 
       expect(
         queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
       ).not.toBeOnTheScreen();
 
       fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
@@ -563,6 +560,29 @@ describe('CardHome', () => {
       expect(
         within(sheet).getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).toBeOnTheScreen();
+    });
+
+    it('opens the More sheet outside the scrolling content', async () => {
+      const { findByTestId, getByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      expect(
+        await findByTestId(CardHomeSelectors.MORE_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(CardHomeSelectors.CARD_VIEW_TITLE)).queryByTestId(
+          CardHomeSelectors.MORE_SHEET,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('never shows log out on Card home', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+      await findByTestId(CardHomeSelectors.MORE_SHEET);
+
       expect(
         queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
       ).not.toBeOnTheScreen();
@@ -676,7 +696,11 @@ describe('CardHome', () => {
       });
 
       await openActivity(view);
-      fireEvent.press(await view.findByTestId('card-home-tx-view-tx-1'));
+      fireEvent.press(
+        await view.findByTestId(
+          `${CardHomeSelectors.RECENT_ACTIVITY_ROW_PREFIX}view-tx-1`,
+        ),
+      );
 
       expect(
         await view.findByTestId(
