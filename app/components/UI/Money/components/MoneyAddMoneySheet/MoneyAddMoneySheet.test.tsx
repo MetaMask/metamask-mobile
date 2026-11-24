@@ -166,7 +166,7 @@ describe('MoneyAddMoneySheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
     });
-    (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
+    (useQuickDepositStablecoins as jest.Mock).mockReturnValue(undefined);
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -543,9 +543,9 @@ describe('MoneyAddMoneySheet', () => {
       ['USDT', 'addUsdt'],
       ['mUSD', 'addMusd'],
     ] as const)('shows %s and deposits with %s', (symbol, intent) => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
         option(symbol, intent),
-      ]);
+      );
 
       const { getByTestId, getByText } = renderWithProvider(
         <MoneyAddMoneySheet />,
@@ -578,7 +578,7 @@ describe('MoneyAddMoneySheet', () => {
     });
 
     it('hides the stablecoin row, including Add mUSD, when the account holds none', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(undefined);
       const { queryByTestId, queryByText } = renderWithProvider(
         <MoneyAddMoneySheet />,
       );
@@ -586,6 +586,27 @@ describe('MoneyAddMoneySheet', () => {
         queryByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
       ).toBeNull();
       expect(queryByText('Add mUSD')).toBeNull();
+    });
+
+    it('renders after the other enabled options', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
+        option('USDC', 'addUsdc'),
+      );
+
+      const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+      const order = getOptionOrder(UNSAFE_root, [
+        MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+        MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
+      ]);
+
+      expect(order).toEqual([
+        MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+        MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
+      ]);
     });
   });
 

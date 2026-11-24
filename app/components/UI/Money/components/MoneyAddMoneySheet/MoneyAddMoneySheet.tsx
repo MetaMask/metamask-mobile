@@ -22,6 +22,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useQuickDepositStablecoins } from '../../hooks/useQuickDepositStablecoins';
+import type { QuickDepositStablecoinOption } from '../../utils/quickDepositStablecoins';
 import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
@@ -66,7 +67,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
-  const quickDepositStablecoins = useQuickDepositStablecoins();
+  const quickDepositStablecoin = useQuickDepositStablecoins();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
@@ -185,7 +186,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   }, [startDeposit, trackSurfaceClicked]);
 
   const depositHeldStablecoin = useCallback(
-    (option: (typeof quickDepositStablecoins)[number]) => {
+    (option: QuickDepositStablecoinOption) => {
       trackSurfaceClicked({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -253,17 +254,21 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       : []),
   ];
 
-  const stablecoinOptions: MoneySheetOption[] = quickDepositStablecoins.map(
-    (option) => ({
-      label: {
-        maskedText: moneyFormatUsd(new BigNumber(option.aggregatedBalance)),
-        suffix: option.symbol,
-      },
-      icon: IconName.Add,
-      onPress: () => depositHeldStablecoin(option),
-      testID: MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
-    }),
-  );
+  const stablecoinOptions: MoneySheetOption[] = quickDepositStablecoin
+    ? [
+        {
+          label: {
+            maskedText: moneyFormatUsd(
+              new BigNumber(quickDepositStablecoin.aggregatedBalance),
+            ),
+            suffix: quickDepositStablecoin.symbol,
+          },
+          icon: IconName.Add,
+          onPress: () => depositHeldStablecoin(quickDepositStablecoin),
+          testID: MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION,
+        },
+      ]
+    : [];
 
   const options: MoneySheetOption[] = [
     ...baseOptions,

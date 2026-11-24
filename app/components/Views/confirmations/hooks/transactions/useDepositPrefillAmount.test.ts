@@ -282,19 +282,22 @@ describe('useDepositPrefillAmount', () => {
       });
     });
 
-    it('does not enable amount prefill for addMusd when kill-switch/A/B are off', () => {
-      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
-      setupMocks({
-        depositIntent: 'addMusd',
-        prefilledAmountDefault: { enabled: false },
-        prefilledAmountOverrides: {},
-      });
+    it.each(['addMusd', 'addUsdc', 'addUsdt'] as const)(
+      'does not enable amount prefill for %s when kill-switch/A/B are off',
+      (depositIntent) => {
+        mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+        setupMocks({
+          depositIntent,
+          prefilledAmountDefault: { enabled: false },
+          prefilledAmountOverrides: {},
+        });
 
-      const { result } = runHook();
+        const { result } = runHook();
 
-      // addMusd amount autofill is owned by useTransactionCustomAmount at 100%.
-      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
-    });
+        // Full-balance amount autofill is owned by useTransactionCustomAmount.
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
 
     it('returns disabled for card intent even when treatment and flag enabled', () => {
       setupMocks({ depositIntent: 'card' });

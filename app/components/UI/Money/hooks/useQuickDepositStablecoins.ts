@@ -5,17 +5,18 @@ import {
   selectMoneyDepositPayTokens,
 } from '../selectors/depositTokens';
 import {
-  buildQuickDepositStablecoinOptions,
+  buildQuickDepositStablecoinOption,
   type QuickDepositStablecoinOption,
 } from '../utils/quickDepositStablecoins';
 
-export const useQuickDepositStablecoins =
-  (): QuickDepositStablecoinOption[] => {
-    const assets = useSelector(selectMoneyDepositAssetsMeetingMinimumBalance);
-    const supportedTokens = useSelector(selectMoneyDepositPayTokens);
+export const useQuickDepositStablecoins = ():
+  | QuickDepositStablecoinOption
+  | undefined => {
+  const assets = useSelector(selectMoneyDepositAssetsMeetingMinimumBalance);
+  const supportedTokens = useSelector(selectMoneyDepositPayTokens);
 
-    return useMemo(
-      () => buildQuickDepositStablecoinOptions({ assets, supportedTokens }),
-      [assets, supportedTokens],
-    );
-  };
+  return useMemo(
+    () => buildQuickDepositStablecoinOption({ assets, supportedTokens }),
+    [assets, supportedTokens],
+  );
+};

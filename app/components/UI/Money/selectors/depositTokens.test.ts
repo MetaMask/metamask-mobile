@@ -3,10 +3,7 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { RootState } from '../../../../reducers';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import {
-  getPreferredTokensForTransactionType,
-  selectMetaMaskPayTokensFlags,
-} from '../../../../selectors/featureFlagController/confirmations';
+import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
 import {
   filterMoneyDepositSupportedAssets,
   type MoneyDepositAsset,
@@ -29,14 +26,6 @@ const mockSelectMetaMaskPayTokensFlags = jest.mocked(
 const mockSelectMoneyDepositMinBalance = jest.mocked(
   selectMoneyDepositMinBalance,
 );
-
-jest
-  .mocked(getPreferredTokensForTransactionType)
-  .mockImplementation(
-    jest.requireActual(
-      '../../../../selectors/featureFlagController/confirmations',
-    ).getPreferredTokensForTransactionType,
-  );
 
 const createAsset = (
   overrides: Partial<MoneyDepositAsset> = {},
@@ -191,6 +180,55 @@ describe('selectMoneyDepositPayTokens', () => {
     const result = selectMoneyDepositPayTokens(state);
 
     expect(result).toEqual([]);
+  });
+
+  it('returns an empty list when the Money deposit override is missing', () => {
+    const state = {} as RootState;
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: {
+        default: [
+          {
+            address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            chainId: '0x1',
+            successRate: 1,
+          },
+        ],
+        overrides: {},
+      },
+      blockedTokens: { default: emptyBlockedTokens, overrides: {} },
+      minimumRequiredTokenBalance: 0,
+    });
+
+    const result = selectMoneyDepositPayTokens(state);
+
+    expect(result).toEqual([]);
+  });
+
+  it('does not filter blocked tokens', () => {
+    const token = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      successRate: 1,
+    };
+    const state = {} as RootState;
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: {
+        default: [],
+        overrides: { [TransactionType.moneyAccountDeposit]: [token] },
+      },
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [{ address: token.address, chainId: token.chainId }],
+        },
+        overrides: {},
+      },
+      minimumRequiredTokenBalance: 0,
+    });
+
+    const result = selectMoneyDepositPayTokens(state);
+
+    expect(result).toEqual([token]);
   });
 });
 

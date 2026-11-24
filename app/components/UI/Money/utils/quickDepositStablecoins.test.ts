@@ -3,7 +3,7 @@ import { Hex } from '@metamask/utils';
 import type { PreferredToken } from '../../../../selectors/featureFlagController/confirmations';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import {
-  buildQuickDepositStablecoinOptions,
+  buildQuickDepositStablecoinOption,
   type QuickDepositAsset,
 } from './quickDepositStablecoins';
 
@@ -51,9 +51,9 @@ const asset = (
 const build = (
   assets: QuickDepositAsset[],
   tokens: PreferredToken[] = supportedTokens,
-) => buildQuickDepositStablecoinOptions({ assets, supportedTokens: tokens })[0];
+) => buildQuickDepositStablecoinOption({ assets, supportedTokens: tokens });
 
-describe('buildQuickDepositStablecoinOptions', () => {
+describe('buildQuickDepositStablecoinOption', () => {
   it('sums the winner and prefills its largest chain', () => {
     expect(
       build([
@@ -256,24 +256,37 @@ describe('buildQuickDepositStablecoinOptions', () => {
         [],
       ),
     ).toBeUndefined();
+    expect(
+      build([
+        asset({
+          address: ETH_USDC,
+          chainId: CHAIN_IDS.SEPOLIA,
+          symbol: 'USDC',
+          rawBalance: raw('90', 6),
+        }),
+      ]),
+    ).toBeUndefined();
   });
 
   it('ignores aUSDC and USDC.e', () => {
     expect(
-      build([
-        asset({
-          address: ETH_AUSDC,
-          chainId: CHAIN_IDS.MAINNET,
-          symbol: 'aUSDC',
-          rawBalance: raw('50', 6),
-        }),
-        asset({
-          address: POLYGON_USDC,
-          chainId: CHAIN_IDS.POLYGON,
-          symbol: 'USDC.e',
-          rawBalance: raw('60', 6),
-        }),
-      ]),
+      build(
+        [
+          asset({
+            address: ETH_AUSDC,
+            chainId: CHAIN_IDS.MAINNET,
+            symbol: 'aUSDC',
+            rawBalance: raw('50', 6),
+          }),
+          asset({
+            address: POLYGON_USDC,
+            chainId: CHAIN_IDS.POLYGON,
+            symbol: 'USDC.e',
+            rawBalance: raw('60', 6),
+          }),
+        ],
+        [...supportedTokens, token(POLYGON_USDC, CHAIN_IDS.POLYGON)],
+      ),
     ).toBeUndefined();
   });
 });

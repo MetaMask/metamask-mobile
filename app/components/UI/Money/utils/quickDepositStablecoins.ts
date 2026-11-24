@@ -62,13 +62,13 @@ const getBalance = (asset: QuickDepositAsset): BigNumber | undefined => {
   }
 };
 
-export const buildQuickDepositStablecoinOptions = ({
+export const buildQuickDepositStablecoinOption = ({
   assets,
   supportedTokens,
 }: {
   assets: readonly QuickDepositAsset[];
   supportedTokens: readonly PreferredToken[];
-}): QuickDepositStablecoinOption[] => {
+}): QuickDepositStablecoinOption | undefined => {
   const supported = new Set(
     supportedTokens.map(
       ({ address, chainId }) =>
@@ -116,20 +116,18 @@ export const buildQuickDepositStablecoinOptions = ({
     undefined,
   );
 
-  if (!winner?.[1].total.isGreaterThan(0)) {
-    return [];
+  if (!winner) {
+    return undefined;
   }
 
   const [symbol, total] = winner;
-  return [
-    {
-      symbol,
-      intent: INTENT[symbol],
-      aggregatedBalance: total.total.toFixed(),
-      preferredPaymentToken: {
-        address: total.best.address,
-        chainId: total.best.chainId,
-      },
+  return {
+    symbol,
+    intent: INTENT[symbol],
+    aggregatedBalance: total.total.toFixed(),
+    preferredPaymentToken: {
+      address: total.best.address,
+      chainId: total.best.chainId,
     },
-  ];
+  };
 };

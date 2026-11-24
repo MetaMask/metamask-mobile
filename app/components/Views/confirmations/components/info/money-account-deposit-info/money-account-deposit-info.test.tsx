@@ -193,7 +193,6 @@ describe('MoneyAccountDepositInfo', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
         mm_pay_deposit_intent: depositIntent,
-        mm_pay_chain_presented: '0x2105',
       });
     },
   );

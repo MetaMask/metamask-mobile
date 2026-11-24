@@ -162,7 +162,7 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
 
 // Sheet UI dependencies (mirrors MoneyAddMoneySheet.test.tsx setup).
 jest.mock('../../hooks/useQuickDepositStablecoins', () => ({
-  useQuickDepositStablecoins: jest.fn(() => []),
+  useQuickDepositStablecoins: jest.fn(() => undefined),
 }));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
