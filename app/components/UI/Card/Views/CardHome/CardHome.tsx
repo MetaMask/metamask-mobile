@@ -128,9 +128,11 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
 import CardImage from '../../components/CardImage';
+import cardArtFallbackPng from '../../../../../images/mm_card_regular.png';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
+import CardFreezeUnfreezeAnimation from '../../components/CardFreezeUnfreezeAnimation';
 import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
 import { cardQueries } from '../../queries';
 import CardHomeActionButtonRow, {
@@ -138,6 +140,8 @@ import CardHomeActionButtonRow, {
 } from './components/CardHomeActionButtonRow';
 import CardHomeMoreSheet from './components/CardHomeMoreSheet';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
@@ -391,6 +395,31 @@ const CardHome = () => {
     rawTokenBalance: primaryToken?.rawTokenBalance,
     rawFiatNumber: primaryToken?.rawFiatNumber,
   });
+
+  const [showFreezeAnimation, setShowFreezeAnimation] = useState(false);
+  // While the card is frozen, the Rive view holds the Freeze pose (no
+  // timeout — the static art only returns after the unfreeze Melt plays
+  // out). A card that loads already frozen also activates the animation.
+  useEffect(() => {
+    if (actions.freeze.isSuccess || actions.unfreeze.isSuccess) {
+      setShowFreezeAnimation(true);
+      // Only the unfreeze success schedules a return to static — the Melt
+      // plays for ~3s before the card art swaps back.
+      // Both mutations keep isSuccess after they settle, so key the return
+      // to static off the card's current state, not off unfreeze.isSuccess.
+      if (!isFrozen) {
+        const timer = setTimeout(() => setShowFreezeAnimation(false), 4000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [actions.freeze.isSuccess, actions.unfreeze.isSuccess, isFrozen]);
+
+  // A card that loads already frozen activates the animation at mount.
+  useEffect(() => {
+    if (isFrozen && isAuthenticated && !isLoading) {
+      setShowFreezeAnimation(true);
+    }
+  }, [isFrozen, isAuthenticated, isLoading]);
 
   const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
     useState(false);
@@ -857,15 +886,73 @@ const CardHome = () => {
   const isFreezeLoading =
     actions.freeze.isPending || actions.unfreeze.isPending;
 
+  // The card-details reveal signal (also drives useCardArrivalAnimation):
+  // the details flow occupies the card art while it loads or shows details.
+  const isRevealingCardDetails =
+    actions.isCardDetailsLoading ||
+    actions.isSensitiveDetailsLoading ||
+    Boolean(actions.cardSensitiveDetails) ||
+    Boolean(actions.cardDetailsImageUrl);
+
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
     cardType: data?.card?.type,
-    isRevealingCardDetails:
-      actions.isCardDetailsLoading ||
-      actions.isSensitiveDetailsLoading ||
-      Boolean(actions.cardSensitiveDetails) ||
-      Boolean(actions.cardDetailsImageUrl),
+    isRevealingCardDetails,
   });
+  // Offline: no Rive, on every hardware tier. A low-end phone on a slow
+  // cell connection skips it too. An unknown network keeps the animation.
+  const allowCardRive =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
+
+  // The arrival reveal holds the card only until a Freeze or Unfreeze press
+  // this visit; then the freeze file takes over so the ice or melt plays.
+  const hasUsedFreezeThisVisit =
+    actions.freeze.isPending ||
+    actions.freeze.isSuccess ||
+    actions.freeze.isError ||
+    actions.unfreeze.isPending ||
+    actions.unfreeze.isSuccess ||
+    actions.unfreeze.isError;
+  const arrivalHoldsCard = arrival.usesRiveCard && !hasUsedFreezeThisVisit;
+
+  // The freeze file only contains the virtual face. Metal and physical cards,
+  // a blocked card (which dims), and the arrival reveal keep their own art.
+  // Setup reconciliation keeps the image skeleton.
+  const showFreezeCardArt =
+    allowCardRive &&
+    !arrivalHoldsCard &&
+    !isSetupReconciling &&
+    data?.card?.type === CardType.VIRTUAL &&
+    data?.card?.status !== CardStatus.BLOCKED &&
+    (showFreezeAnimation || (isAuthenticated && !isLoading));
+
+  // Freezing or unfreezing while the card details are open closes them, so
+  // the Freeze/Melt animation is what plays instead of the details. Both
+  // mutations keep isSuccess after they settle, so this clears on the
+  // success transition only — details opened afterwards stay open.
+  const wasFreezeSuccessRef = useRef(false);
+  const wasUnfreezeSuccessRef = useRef(false);
+  const { clearCardDetails } = actions;
+  useEffect(() => {
+    const freezeJustSucceeded =
+      actions.freeze.isSuccess && !wasFreezeSuccessRef.current;
+    const unfreezeJustSucceeded =
+      actions.unfreeze.isSuccess && !wasUnfreezeSuccessRef.current;
+    wasFreezeSuccessRef.current = actions.freeze.isSuccess;
+    wasUnfreezeSuccessRef.current = actions.unfreeze.isSuccess;
+    if (
+      (freezeJustSucceeded || unfreezeJustSucceeded) &&
+      isRevealingCardDetails
+    ) {
+      clearCardDetails();
+    }
+  }, [
+    actions.freeze.isSuccess,
+    actions.unfreeze.isSuccess,
+    isRevealingCardDetails,
+    clearCardDetails,
+  ]);
 
   // Activity / Manage segments only in the active and frozen states of a
   // fully set-up card that has a history destination. Every other state
@@ -1178,17 +1265,61 @@ const CardHome = () => {
               />
             )}
 
-            {/* Card art sits on the page at full content width (no panel). */}
-            <Box twClassName="mt-4 mx-4">
+            {/* Card art sits on the page at full content width (no panel).
+                Stacked above the content below so the freeze animation's
+                drips fall over the action buttons; the animation overlay
+                itself ignores touches (pointerEvents="none"). */}
+            <Box twClassName="mt-4 mx-4 z-20">
               <Animated.View
                 style={[tw.style('w-full relative'), arrival.cardStyle]}
               >
                 {/* Muted while identity is in review, so the card doesn't look ready. */}
                 <Box
-                  twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+                  twClassName={`overflow-visible ${isSignedOutKycPending ? 'opacity-50' : ''}`}
                   testID={CardHomeSelectors.CARD_ART}
                 >
-                  {arrival.usesRiveCard ? (
+                  {/* Freeze/unfreeze only fire triggers on the mounted virtual
+                      face. While the card details are revealed it is only
+                      hidden, and the details render on top at the card face's
+                      exact bounds. */}
+                  {showFreezeCardArt ? (
+                    <Box twClassName="relative">
+                      <Box
+                        twClassName={
+                          isRevealingCardDetails ? 'opacity-0' : undefined
+                        }
+                        testID={CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER}
+                      >
+                        <CardFreezeUnfreezeAnimation
+                          isFrozen={isFrozen && isAuthenticated}
+                          fallbackSource={cardArtFallbackPng}
+                          width={windowWidth - 32}
+                          testID={CardHomeSelectors.CARD_FREEZE_RIVE}
+                        />
+                      </Box>
+                      {isRevealingCardDetails && (
+                        <Box twClassName="absolute inset-0">
+                          <CardImageSection
+                            isLoading={isLoading || isSetupReconciling}
+                            isCardDetailsLoading={
+                              actions.isCardDetailsLoading ||
+                              actions.isSensitiveDetailsLoading
+                            }
+                            cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                            isCardDetailsImageLoading={
+                              actions.isCardDetailsImageLoading
+                            }
+                            onImageLoad={actions.onCardDetailsImageLoad}
+                            onImageError={actions.onCardDetailsImageError}
+                            cardSensitiveDetails={actions.cardSensitiveDetails}
+                            onCopyDetail={actions.copyCardDetail}
+                            cardType={data?.card?.type}
+                            cardStatus={data?.card?.status}
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  ) : arrival.usesRiveCard && allowCardRive ? (
                     <MoneyCardTiltAnimation
                       key={arrival.revealKey}
                       isMetalCard={hasMetalCard}
@@ -1311,7 +1442,6 @@ const CardHome = () => {
                 }
               />
             )}
-
             {showHomeSegments && (
               <Box twClassName="px-4 mt-4 mb-4">
                 <SegmentedControl

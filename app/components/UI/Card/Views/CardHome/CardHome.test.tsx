@@ -84,12 +84,14 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { type ReactTestInstance } from 'react-test-renderer';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform, RefreshControl } from 'react-native';
+import { Alert, Linking, Platform, RefreshControl, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
 import { CardHomeStatusViewSelectors } from './components/CardHomeStatusView';
+import { METAL_CARD_ART_FILL } from '../../components/CardImage/CardImage';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
@@ -155,6 +157,10 @@ let mockCardNavigationParent:
       getParent: () => undefined;
     }
   | undefined;
+let mockArrivalOverride: {
+  usesRiveCard: boolean;
+  playReveal: boolean;
+} | null = null;
 
 import {
   useFocusEffect,
@@ -366,6 +372,19 @@ let mockProvisioningView:
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
 let mockIsSignedOutKycPending = false;
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = null;
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = null;
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
 jest.mock('./hooks/useSignedOutKycPending', () => ({
   __esModule: true,
   default: () => mockIsSignedOutKycPending,
@@ -394,6 +413,33 @@ const mockUseCardRecentTransactions = jest.fn(
     refetch: jest.fn(),
   }),
 );
+
+jest.mock('./hooks/useCardArrivalAnimation', () => {
+  const actual = jest.requireActual('./hooks/useCardArrivalAnimation');
+  return {
+    ...actual,
+    useCardArrivalAnimation: (params: unknown) => {
+      if (mockArrivalOverride) {
+        return {
+          usesRiveCard: mockArrivalOverride.usesRiveCard,
+          playReveal: mockArrivalOverride.playReveal,
+          revealKey: 1,
+          revealDelayMs: 0,
+          cardStyle: {},
+        };
+      }
+      return actual.useCardArrivalAnimation(params);
+    },
+  };
+});
+
+jest.mock('../../../Money/components/MoneyCardTiltAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockTilt = ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+  return { __esModule: true, default: MockTilt };
+});
 
 jest.mock('../../hooks/useCardRecentTransactions', () => ({
   useCardRecentTransactions: (options?: { enabled?: boolean }) =>
@@ -1404,6 +1450,21 @@ const CardHomeWithToast = () => (
 
 // Helper: Render component with proper wrapper
 // Terms and Contact support live in the header's More sheet.
+function artHasProp(
+  node: ReactTestInstance,
+  expected: Record<string, unknown>,
+): boolean {
+  const props = node.props as Record<string, unknown>;
+  const matches = Object.entries(expected).every(
+    ([key, value]) => props[key] === value,
+  );
+  if (matches) return true;
+  return node.children.some(
+    (child: ReactTestInstance | string) =>
+      typeof child !== 'string' && artHasProp(child, expected),
+  );
+}
+
 function openMoreSheet() {
   fireEvent.press(screen.getByTestId(CardHomeSelectors.MORE_BUTTON));
 }
@@ -1490,9 +1551,12 @@ describe('CardHome Component', () => {
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCardNavigationParent = undefined;
+    mockArrivalOverride = null;
     mockCanEnableCard = false;
     mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
+    mockNetworkTier = null;
+    mockHardwareTier = null;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
     mockUseCardRecentTransactions.mockReturnValue({
@@ -2842,7 +2906,7 @@ describe('CardHome Component', () => {
     ).toBeDisabled();
   });
 
-  it('shimmers the card image and disables Enable card while setup is being checked', () => {
+  it('shows the card skeleton and disables Enable card while setup is being checked', () => {
     mockCanEnableCard = true;
     mockProvisioningView = 'reconciling';
     setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
@@ -2855,6 +2919,9 @@ describe('CardHome Component', () => {
 
     render();
 
+    // No card face exists yet, so reconciliation keeps the image skeleton
+    // instead of the virtual freeze animation.
+    expect(screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE)).toBeNull();
     expect(
       screen.getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
     ).toBeOnTheScreen();
@@ -4322,6 +4389,333 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('Freeze animation persistence', () => {
+    it('shows the freeze animation for a card that loads already frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+
+      render();
+
+      // The freeze animation renders in place of the static card art
+      // (the CARD_ART wrapper stays, wrapping the animation).
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the Rive card mounted for a signed-in cardholder with no freeze action', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      // The Rive card stays mounted whenever the signed-in card is shown, so
+      // a later freeze/unfreeze only fires triggers — no swapping layers.
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the animation up after a freeze succeeds while the card is frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+      // A frozen card never schedules the return to static — both mutations
+      // keep isSuccess after they settle, so the timer is keyed off the
+      // card's current state instead.
+      const scheduledTimers = setTimeoutSpy.mock.calls.filter(
+        (call) => call[1] === 4000,
+      );
+      expect(scheduledTimers).toHaveLength(0);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('schedules the return to static 4s after an unfreeze when the card is not frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+      const scheduledTimers = setTimeoutSpy.mock.calls.filter(
+        (call) => call[1] === 4000,
+      );
+      expect(scheduledTimers).toHaveLength(1);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('does not schedule the return to static while the card is still frozen', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      render();
+
+      const scheduledTimers = setTimeoutSpy.mock.calls.filter(
+        (call) => call[1] === 4000,
+      );
+      expect(scheduledTimers).toHaveLength(0);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('keeps metal card art instead of the virtual freeze animation', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.METAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+      expect(
+        artHasProp(screen.getByTestId(CardHomeSelectors.CARD_ART), {
+          fill: METAL_CARD_ART_FILL,
+        }),
+      ).toBe(true);
+    });
+
+    it('dims a blocked card instead of playing the freeze animation', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.BLOCKED },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+      expect(
+        artHasProp(screen.getByTestId(CardHomeSelectors.CARD_ART), {
+          opacity: 0.5,
+        }),
+      ).toBe(true);
+    });
+
+    it('shows the static card face instead of Rive while offline', () => {
+      mockNetworkTier = 'NONE';
+      mockHardwareTier = null;
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+      expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toBeOnTheScreen();
+    });
+
+    it('shows the static card face on a low-end phone with a slow connection', () => {
+      mockNetworkTier = 'SLOW_CELLULAR';
+      mockHardwareTier = 'LOW';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+    });
+
+    it('keeps the freeze animation on a low-end phone with a fast connection', () => {
+      mockNetworkTier = 'WIFI';
+      mockHardwareTier = 'LOW';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+    });
+
+    it('plays the arrival reveal instead of the freeze animation', () => {
+      mockArrivalOverride = { usesRiveCard: true, playReveal: true };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+    });
+
+    it('hands the card from the arrival reveal to the freeze animation after a freeze', () => {
+      mockArrivalOverride = { usesRiveCard: true, playReveal: false };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+      mockUseCardFreeze.mockReturnValue({
+        freeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: true,
+          mutate: mockFreezeMutate,
+          data: undefined,
+          error: null,
+        },
+        unfreeze: {
+          isError: false,
+          isPending: false,
+          isSuccess: false,
+          mutate: mockUnfreezeMutate,
+          data: undefined,
+          error: null,
+        },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the static card face instead of the arrival reveal while offline', () => {
+      mockArrivalOverride = { usesRiveCard: true, playReveal: true };
+      mockNetworkTier = 'NONE';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+    });
+
+    it('stacks the card art wrapper above the content below so the drips fall over the action buttons', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      // The card art wrapper Box has no testID; walk up from the card art box
+      // to the ancestor carrying the z-20 stacking class. The animation
+      // overlay itself ignores touches (pointerEvents="none"), so the action
+      // buttons below stay tappable.
+      let cardArtWrapper = screen.getByTestId(
+        CardHomeSelectors.CARD_ART,
+      ).parent;
+      while (
+        cardArtWrapper &&
+        StyleSheet.flatten([cardArtWrapper.props.style])?.zIndex !== 20
+      ) {
+        cardArtWrapper = cardArtWrapper.parent;
+      }
+      expect(cardArtWrapper).not.toBeNull();
+    });
+  });
+
   describe('KYC Status Verification', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -5204,8 +5598,8 @@ describe('CardHome Component', () => {
         });
       });
 
-      it('clears image and shows error when image fails to load', async () => {
-        // Given: Authenticated user with card and image URL returned (image loading)
+      it('shows the revealed card details over the still-mounted, hidden Rive card', () => {
+        // Given: Authenticated user with card and image URL returned (details showing)
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -5226,15 +5620,149 @@ describe('CardHome Component', () => {
           clearImageUrl: mockClearCardDetailsImageUrl,
         });
 
-        // When: component renders and image fails to load
         render();
-        const image = screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE);
-        fireEvent(image, 'error');
 
-        // Then: clearImageUrl is called to reset the state
-        await waitFor(() => {
-          expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+        // The details render on top of the card art while it is revealed.
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeOnTheScreen();
+        // The Rive card is never unmounted — it is only hidden while the
+        // details are up, so a later freeze never replays its first frame.
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+        ).toBeOnTheScreen();
+        expect(
+          StyleSheet.flatten([
+            screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER).props
+              .style,
+          ])?.opacity,
+        ).toBe(0);
+      });
+
+      it('returns to the Rive card when the details are hidden', () => {
+        // Given: Authenticated user with the details currently revealed
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
+
+        let tokenState: {
+          imageUrl: string | null;
+          [key: string]: unknown;
+        } = {
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        };
+        mockClearCardDetailsImageUrl.mockImplementation(() => {
+          tokenState = { ...tokenState, imageUrl: null };
+        });
+        (useCardDetailsToken as jest.Mock).mockImplementation(() => tokenState);
+
+        const view = renderAuthTransition();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeOnTheScreen();
+
+        // When: the details toggle is pressed (hide)
+        fireEvent.press(
+          screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        );
+
+        // Then: the details swap out and the Rive card is visible again
+        view.update();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeNull();
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+        ).toBeOnTheScreen();
+        expect(
+          StyleSheet.flatten([
+            screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER).props
+              .style,
+          ])?.opacity,
+        ).toBeUndefined();
+      });
+
+      it('closes the revealed details when a freeze succeeds', () => {
+        // Given: Authenticated user with the details currently revealed
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        let tokenState: {
+          imageUrl: string | null;
+          [key: string]: unknown;
+        } = {
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        };
+        mockClearCardDetailsImageUrl.mockImplementation(() => {
+          tokenState = { ...tokenState, imageUrl: null };
+        });
+        (useCardDetailsToken as jest.Mock).mockImplementation(() => tokenState);
+
+        const view = renderAuthTransition();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeOnTheScreen();
+
+        // When: a freeze succeeds while the details are open
+        mockUseCardFreeze.mockReturnValue({
+          freeze: {
+            isError: false,
+            isPending: false,
+            isSuccess: true,
+            mutate: mockFreezeMutate,
+            data: undefined,
+            error: null,
+          },
+          unfreeze: {
+            isError: false,
+            isPending: false,
+            isSuccess: false,
+            mutate: mockUnfreezeMutate,
+            data: undefined,
+            error: null,
+          },
+        });
+        view.update();
+        view.update();
+
+        // Then: the details are gone and the freeze animation shows
+        expect(
+          screen.queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE),
+        ).toBeNull();
+        expect(
+          screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+        ).toBeOnTheScreen();
+        expect(
+          StyleSheet.flatten([
+            screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE_WRAPPER).props
+              .style,
+          ])?.opacity,
+        ).toBeUndefined();
       });
 
       describe('Biometric Authentication', () => {

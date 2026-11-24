@@ -60,7 +60,7 @@ jest.mock('../../../hooks/useRevealCardDetails', () => ({
     onCardDetailsImageError: jest.fn(),
     cardSensitiveDetails: null,
     isSensitiveDetailsLoading: false,
-    clearCardSensitiveDetails: jest.fn(),
+    clearCardDetails: jest.fn(),
     copyCardDetail: jest.fn(),
     viewCardDetailsAction: jest.fn(),
   }),
