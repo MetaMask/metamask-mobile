@@ -91,9 +91,7 @@ export function isSameAssetId(
   otherAssetId: string | undefined,
 ): boolean {
   return Boolean(
-    assetId &&
-      otherAssetId &&
-      assetId.toLowerCase() === otherAssetId.toLowerCase(),
+    otherAssetId && assetId?.toLowerCase() === otherAssetId.toLowerCase(),
   );
 }
 
@@ -153,7 +151,7 @@ export function encodeEvmAssetId(
   { address, chainId }: EvmTokenReference,
   index: AssetIdIndex,
 ): CaipAssetType {
-  const chainReference = String(parseInt(chainId, 16));
+  const chainReference = String(Number.parseInt(chainId, 16));
   const caipChainId = toCaipChainId(KnownCaipNamespace.Eip155, chainReference);
   const isNative =
     address.toLowerCase() === getNativeTokenAddress(chainId).toLowerCase();

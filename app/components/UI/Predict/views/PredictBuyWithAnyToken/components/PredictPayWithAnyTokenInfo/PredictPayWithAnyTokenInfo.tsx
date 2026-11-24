@@ -159,7 +159,8 @@ function PredictPayWithAnyTokenInfoInner({
       key: emissionKey,
       value: amountHuman,
     };
-    updateTokenAmountCallback(amountHuman);
+    // useUpdateTokenAmount logs a failed update before rethrowing it.
+    updateTokenAmountCallback(amountHuman)?.catch(() => undefined);
     EngineService.flushState();
   }, [
     amountHuman,

@@ -573,6 +573,28 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('updateTokenAmountCallback effect', () => {
+    it('handles a rejected token amount update', async () => {
+      mockIsPredictBalanceSelected = false;
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100.50';
+      const updateError = new Error('update failed');
+      const updatePromise = Promise.reject(updateError);
+      const catchSpy = jest.spyOn(updatePromise, 'catch');
+      mockUpdateTokenAmountCallback = jest.fn(() => updatePromise);
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100.50');
+      expect(catchSpy).toHaveBeenCalledTimes(1);
+      await expect(catchSpy.mock.results[0].value).resolves.toBeUndefined();
+    });
+
     it('calls updateTokenAmountCallback with amountHuman when deposit is valid', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
