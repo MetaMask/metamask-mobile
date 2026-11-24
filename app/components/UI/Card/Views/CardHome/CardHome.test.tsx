@@ -89,6 +89,7 @@ import { Alert, Linking, Platform, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { CardHomeStatusViewSelectors } from './components/CardHomeStatusView';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
@@ -2878,8 +2879,10 @@ describe('CardHome Component', () => {
     expect(
       screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Checking your card')).toBeOnTheScreen();
-    expect(screen.queryByText('Creating your card')).toBeNull();
+    expect(
+      screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+    ).toHaveTextContent(strings('card.card_home.setup_pending.checking.title'));
+    expect(screen.queryByText('Creating your card')).not.toBeOnTheScreen();
   });
 
   it('rechecks an Immersve review when the waiting view is pulled to refresh', async () => {
@@ -2894,7 +2897,30 @@ describe('CardHome Component', () => {
 
     render();
 
-    await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+    const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechecks a card that is still being created when the waiting view is pulled to refresh', async () => {
+    mockProvisioningView = 'provisioning';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
 
     expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
   });
@@ -2917,11 +2943,15 @@ describe('CardHome Component', () => {
     expect(
       screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
     ).toBeOnTheScreen();
-    expect(screen.getByText("We're reviewing your identity")).toBeOnTheScreen();
-    expect(screen.queryByTestId('card-message-box')).toBeNull();
+    expect(
+      screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+    ).toHaveTextContent(
+      strings('card.card_home.setup_pending.reviewing.title'),
+    );
+    expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the Immersve privacy policy and contact support before a card exists', () => {
@@ -4781,8 +4811,10 @@ describe('CardHome Component', () => {
           screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
         ).toBeOnTheScreen();
         expect(
-          screen.getByText("We're reviewing your identity"),
-        ).toBeOnTheScreen();
+          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+        ).toHaveTextContent(
+          strings('card.card_home.setup_pending.reviewing.title'),
+        );
       });
 
       it('displays KYC warning for UNVERIFIED user without card', () => {
@@ -4805,8 +4837,10 @@ describe('CardHome Component', () => {
           screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
         ).toBeOnTheScreen();
         expect(
-          screen.getByText("We're reviewing your identity"),
-        ).toBeOnTheScreen();
+          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+        ).toHaveTextContent(
+          strings('card.card_home.setup_pending.reviewing.title'),
+        );
       });
 
       it('does not display KYC warning for VERIFIED user', () => {
@@ -4847,13 +4881,15 @@ describe('CardHome Component', () => {
         // Then: the waiting view shows — no Enable Card button, no Add funds
         expect(
           screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
-          screen.getByText("We're reviewing your identity"),
-        ).toBeOnTheScreen();
+          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+        ).toHaveTextContent(
+          strings('card.card_home.setup_pending.reviewing.title'),
+        );
       });
     });
 
@@ -4870,19 +4906,23 @@ describe('CardHome Component', () => {
         expect(
           screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
         ).toBeOnTheScreen();
-        expect(screen.getByText('Setting up your card')).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+        ).toHaveTextContent(
+          strings('card.card_home.setup_pending.signed_out_pending.title'),
+        );
         expect(
           screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.SET_PIN_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         // The card art is muted to 50% opacity
         expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
           opacity: 0.5,

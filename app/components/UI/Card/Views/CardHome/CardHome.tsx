@@ -706,9 +706,13 @@ const CardHome = () => {
     try {
       if (waitingState.kind === 'waiting') {
         // Re-check the thing being waited on: the Immersve reconcile for an
-        // under-review status, and the onboarding registration status when
-        // signed out. Everything else waits on card home data itself.
-        if (waitingState.step === 'immersve-review') {
+        // under-review status or a card that is still being created, and the
+        // onboarding registration status when signed out. Everything else
+        // waits on card home data itself.
+        if (
+          waitingState.step === 'immersve-review' ||
+          waitingState.step === 'creating-card'
+        ) {
           recheckProvisioning();
         }
         if (!isAuthenticated) {
