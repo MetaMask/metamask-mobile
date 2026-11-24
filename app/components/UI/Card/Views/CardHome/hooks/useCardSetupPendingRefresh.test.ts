@@ -242,6 +242,21 @@ describe('useCardSetupPendingRefresh', () => {
     expect(mockStopPolling).toHaveBeenCalledTimes(1);
   });
 
+  it('polls registration status on the setup cadence when signed out', () => {
+    renderHook(() =>
+      useCardSetupPendingRefresh({
+        isPending: true,
+        isAuthenticated: false,
+        isFocused: true,
+        pollIntervalMs: 15000,
+      }),
+    );
+
+    expect(useUserRegistrationStatus).toHaveBeenCalledWith({
+      pollIntervalMs: 15000,
+    });
+  });
+
   it('invalidates the registration status query on refresh', async () => {
     const { result } = renderHook(() =>
       useCardSetupPendingRefresh({

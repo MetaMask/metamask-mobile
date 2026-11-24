@@ -195,6 +195,20 @@ describe('useUserRegistrationStatus', () => {
       expect(result).toBe(5000);
     });
 
+    it('refetchInterval uses the interval the caller passes', () => {
+      renderHook(() => useUserRegistrationStatus({ pollIntervalMs: 15000 }));
+
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
+
+      const result = refetchIntervalFn({
+        state: { data: { verificationState: 'PENDING' } },
+      });
+
+      expect(result).toBe(15000);
+    });
+
     it('refetchInterval returns false when state is VERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
