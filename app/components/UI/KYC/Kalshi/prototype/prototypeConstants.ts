@@ -146,11 +146,11 @@ export const PROTOTYPE_COPY = {
     title: "Enter Kalshi's verification code",
     body: 'Kalshi texted a 6-digit code to your phone.',
   },
-  /** The email screen behind "Use a different email". */
+  /** The email screen behind "Use my Kalshi email", for an existing Kalshi account. */
   emailEntry: {
-    title: 'Enter your email',
-    body: 'Kalshi will send a 6-digit code to this address.',
-    placeholder: 'name@example.com',
+    title: 'Already have a Kalshi account?',
+    body: "Enter the email you use for Kalshi. We'll send it a 6-digit code to link your account to MetaMask.",
+    placeholder: 'Kalshi account email',
     invalid: 'Enter a valid email address.',
   },
   /** The phone number screen, worded like the code screens. */
@@ -159,7 +159,7 @@ export const PROTOTYPE_COPY = {
     body: 'Kalshi will text a 6-digit code to this number.',
     invalid: 'Enter a valid phone number.',
   },
-  useDifferentEmail: 'Use a different email',
+  useDifferentEmail: 'Use my Kalshi email',
   sumsub: {
     title: 'Sumsub (placeholder)',
     body: 'User enters their details in Sumsub’s environment',

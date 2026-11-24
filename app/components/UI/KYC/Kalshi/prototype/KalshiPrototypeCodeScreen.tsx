@@ -40,7 +40,7 @@ interface KalshiPrototypeCodeScreenProps {
  * The Kalshi email and phone code screens, built on the shared MFA code-entry
  * view. Both carry the Kalshi wordmark in the header and Kalshi's own copy,
  * left-aligned like MetaMask's MFA code screen. The email screen adds the
- * "Use a different email" way back as a full-width secondary button under the
+ * "Use my Kalshi email" way as a full-width secondary button under the
  * resend button. Codes are faked; the checked code is the prototype's.
  *
  * @param props - The channel and the fake actions.

@@ -30,7 +30,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const noAction = () => undefined;
 
 /**
- * The email Kalshi sends its code to, opened from "Use a different email".
+ * The email Kalshi sends its code to, opened from "Use my Kalshi email" for an existing Kalshi account.
  * Laid out like the Kalshi phone screen: the shared MFA step layout under the
  * Kalshi wordmark.
  *
