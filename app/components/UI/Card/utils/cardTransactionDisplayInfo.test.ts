@@ -85,6 +85,28 @@ describe('cardTransactionDisplayInfo', () => {
       expect(result).toBe('card.transactions.yesterday');
     });
 
+    it.each([
+      [
+        'after the clocks go back (25 hour day)',
+        new Date(2026, 10, 2, 12, 0),
+        new Date(2026, 10, 1, 0, 30),
+      ],
+      [
+        'after the clocks go forward (23 hour day)',
+        new Date(2026, 2, 9, 12, 0),
+        new Date(2026, 2, 8, 23, 30),
+      ],
+    ])(
+      'returns yesterday label for the previous day %s',
+      (_, now, transactionDate) => {
+        jest.setSystemTime(now);
+
+        const result = formatCardTransactionDate(transactionDate.getTime());
+
+        expect(result).toBe('card.transactions.yesterday');
+      },
+    );
+
     it('returns an absolute date for older timestamps', () => {
       const result = formatCardTransactionDate(
         new Date('2026-07-10T08:00:00.000Z').getTime(),

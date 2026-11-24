@@ -38,7 +38,13 @@ export function formatCardTransactionDate(timestamp: number): string {
   const now = new Date();
   const date = new Date(timestamp);
   const todayStart = startOfDayMs(now);
-  const yesterdayStart = todayStart - 86_400_000;
+  // Calendar arithmetic, not 24 hours: a day around a daylight saving change
+  // lasts 23 or 25 hours.
+  const yesterdayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - 1,
+  ).getTime();
   const dateStart = startOfDayMs(date);
 
   if (dateStart === todayStart) {
