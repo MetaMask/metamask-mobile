@@ -30,7 +30,7 @@ describe('SOCIAL_API_MOCKS', () => {
   });
 
   it('keeps the list open-position route separate from the asset route', () => {
-    const listOpenPositionMocks = SOCIAL_API_MOCKS.GET?.filter(
+    const listOpenPositionMocks = (SOCIAL_API_MOCKS.GET ?? []).filter(
       (mock) =>
         mock.urlEndpoint instanceof RegExp &&
         mock.urlEndpoint.test(
