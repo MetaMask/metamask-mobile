@@ -1,11 +1,22 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
-import { TransactionType } from '@metamask/transaction-controller';
-import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
+import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
+
+jest.mock('../transactions/useTransactionAccountOverride');
+
+const useTransactionAccountOverrideMock = jest.mocked(
+  useTransactionAccountOverride,
+);
+
+const RECIPIENT_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
+const SECOND_RECIPIENT_ACCOUNT_MOCK =
+  '0x2222222222222222222222222222222222222222';
 
 function runHook({
   type,
@@ -33,6 +44,11 @@ function runHook({
 }
 
 describe('usePaySectionRecipientMetrics', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
+  });
+
   describe('deposit flows (fixed by transaction type)', () => {
     it('returns perps for perpsDeposit', () => {
       const { result } = runHook({ type: TransactionType.perpsDeposit });
@@ -154,6 +170,143 @@ describe('usePaySectionRecipientMetrics', () => {
       });
 
       rerender({});
+      rerender({});
+
+      expect(result.current.switchCount).toBe(0);
+    });
+  });
+
+  describe('moneyAccountWithdraw accountOverride tracking', () => {
+    it('captures presented after accountOverride loads', () => {
+      const { result, rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      expect(result.current.presented).toBeNull();
+      expect(result.current.switchCount).toBe(0);
+
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      rerender({});
+
+      expect(result.current).toEqual({
+        presented: 'crypto',
+        selected: 'crypto',
+        switchCount: 0,
+      });
+    });
+
+    it('increments switchCount when switching between two recipient accounts', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      const { result, rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        SECOND_RECIPIENT_ACCOUNT_MOCK,
+      );
+
+      rerender({});
+
+      expect(result.current).toEqual({
+        presented: 'crypto',
+        selected: 'crypto',
+        switchCount: 1,
+      });
+    });
+
+    it('increments switchCount twice when switching recipient account away and back', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      const { result, rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        SECOND_RECIPIENT_ACCOUNT_MOCK,
+      );
+
+      rerender({});
+
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      rerender({});
+
+      expect(result.current.switchCount).toBe(2);
+    });
+
+    it('does not increment switchCount when the same recipient account is re-selected', () => {
+      const accountLowercase =
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
+      const accountUppercase =
+        '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' as const;
+      useTransactionAccountOverrideMock.mockReturnValue(accountLowercase);
+
+      const { result, rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      useTransactionAccountOverrideMock.mockReturnValue(accountUppercase);
+
+      rerender({});
+
+      expect(result.current.switchCount).toBe(0);
+    });
+
+    it('does not increment switchCount on re-render without an account change', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      const { result, rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      rerender({});
+      rerender({});
+
+      expect(result.current.switchCount).toBe(0);
+    });
+
+    it('increments switchCount on section change for moneyAccountWithdraw', () => {
+      let currentSourceSection: PayWithSectionId = 'crypto';
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      const state = merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+      );
+      state.engine.backgroundState.TransactionController.transactions[0].type =
+        TransactionType.moneyAccountWithdraw;
+
+      const { result, rerender } = renderHookWithProvider(
+        () => usePaySectionRecipientMetrics(currentSourceSection, true),
+        { state },
+      );
+
+      currentSourceSection = 'money-account';
+
+      rerender({});
+
+      expect(result.current).toEqual({
+        presented: 'crypto',
+        selected: 'money-account',
+        switchCount: 1,
+      });
+    });
+
+    it('does not increment switchCount when accountOverride changes on moneyAccountDeposit', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+
+      const { result, rerender } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        SECOND_RECIPIENT_ACCOUNT_MOCK,
+      );
+
       rerender({});
 
       expect(result.current.switchCount).toBe(0);

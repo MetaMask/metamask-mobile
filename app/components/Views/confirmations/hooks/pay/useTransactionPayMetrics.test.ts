@@ -1238,6 +1238,37 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
+    it('increments recipient switch count when recipient changes between two MetaMask accounts on moneyAccountWithdraw', async () => {
+      useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+      const { rerender } = runHook({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      await act(async () => noop());
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        SECOND_PAYING_ACCOUNT_MOCK,
+      );
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 1,
+            mm_pay_source_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
     it('is not included when no pay token', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: undefined,
