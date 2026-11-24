@@ -662,7 +662,7 @@ const Wallet = ({
       actionButtonOnPress: () => {
         storePrivacyPolicyClickedOrClosed();
         toast.dismiss();
-        Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
       },
     });
   }, [

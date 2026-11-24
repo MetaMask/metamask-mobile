@@ -314,7 +314,7 @@ describe('homeTabFlatParamsBridge normalizers', () => {
       normalizeWalletTabHomeParams({
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: direct,
-      } as WalletTabHomeRouteParams),
+      }),
     ).toEqual({ ...direct, pop: true });
     expect(
       normalizeWalletTabHomeParams(state as WalletTabHomeRouteParams),

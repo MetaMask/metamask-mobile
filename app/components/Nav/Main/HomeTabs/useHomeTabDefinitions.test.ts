@@ -71,7 +71,7 @@ const renderDefinitions = (
     { state: initialRootState },
   );
 
-const flushMicrotasks = () =>
+const flushMicrotasks = async () =>
   new Promise<void>((resolve) => queueMicrotask(resolve));
 
 describe('useHomeTabDefinitions', () => {
