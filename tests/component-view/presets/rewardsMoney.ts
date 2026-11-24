@@ -282,6 +282,9 @@ export interface EarningsSummaryFixtureOptions {
   revShareLifetime?: string;
   /** Follow-trade claimable base units. Omitted leaves that family out. */
   followTradeClaimable?: string;
+  /** Follow-trade held base units, with the reason the family reports. */
+  followTradeHeld?: string;
+  followTradeBlockingReason?: SummaryTotalsDto['blocking_reason'];
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -330,6 +333,12 @@ export function earningsSummaryFixture(
           : {
               SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
                 claimable: followTradeClaimable,
+                ...(options.followTradeHeld === undefined
+                  ? {}
+                  : { held: options.followTradeHeld }),
+                ...(options.followTradeBlockingReason === undefined
+                  ? {}
+                  : { blocking_reason: options.followTradeBlockingReason }),
               }),
             }),
       },
@@ -385,6 +394,20 @@ export const UNDER_REVIEW_EARNINGS_SUMMARY = earningsSummaryFixture({
   cashbackClaimable: '0',
   cashbackBlocked: '12000000',
   cashbackBlockingReason: 'UNDER_REVIEW',
+});
+
+/**
+ * $9.15 of follow-trade income held for tax, while cashback and revenue share
+ * hold nothing. Only the copy-trading family reads `TAX_DETERMINATION_REQUIRED`.
+ */
+export const TAX_HELD_EARNINGS_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '9150000',
+  claimable: '0',
+  held: '9150000',
+  cashbackClaimable: '0',
+  followTradeClaimable: '0',
+  followTradeHeld: '9150000',
+  followTradeBlockingReason: 'TAX_DETERMINATION_REQUIRED',
 });
 
 /** Summary a refusal refresh returns, with the hold that opens the sheet. */

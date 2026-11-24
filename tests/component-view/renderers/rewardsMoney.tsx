@@ -26,6 +26,8 @@ import ReduxService from '../../../app/core/redux/ReduxService';
 import type { ReduxStore } from '../../../app/core/redux/types';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
+import RewardsCopyTradingView from '../../../app/components/UI/Rewards/Views/RewardsCopyTradingView';
+import RewardsMoneyReferralsView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralsView';
 import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
 import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
@@ -590,6 +592,31 @@ export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {
   return renderMoneyScreen(
     RewardsEarningsHistoryView,
     Routes.REWARDS_EARNINGS_HISTORY_VIEW,
+    options,
+  );
+}
+
+/**
+ * Copy trading earn page. Its action opens the post composer, which reads the
+ * Social onboarding state from `ReduxService`.
+ */
+export function renderCopyTradingView(options: RenderRewardsMoneyOptions = {}) {
+  const result = renderMoneyScreen(
+    RewardsCopyTradingView,
+    Routes.REWARDS_COPY_TRADING_VIEW,
+    options,
+  );
+  shareStoreWithReduxService(result.store);
+  return result;
+}
+
+/** Referrals earn page, the family a copy-trading hold must not reach. */
+export function renderMoneyReferralsView(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  return renderMoneyScreen(
+    RewardsMoneyReferralsView,
+    Routes.REWARDS_MONEY_REFERRALS_VIEW,
     options,
   );
 }
