@@ -11661,29 +11661,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^36.0.0":
-  version: 36.0.0
-  resolution: "@metamask/profile-sync-controller@npm:36.0.0"
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@36.1.2-preview-6f89cf588":
+  version: 36.1.2-preview-6f89cf588
+  resolution: "@metamask-previews/profile-sync-controller@npm:36.1.2-preview-6f89cf588"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/cryptography": "npm:^1.1.2"
-    "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/key-tree": "npm:^11.0.0"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
+    "@metamask/seedless-onboarding-controller": "npm:^12.1.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^12.0.2"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     "@signinwithethereum/siwe": "npm:^4.2.1"
-    immer: "npm:^11.1.18"
+    immer: "npm:^11.2.10"
     loglevel: "npm:^1.9.2"
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/c21e240c1d109e1c03261af74f5b09fdf43924135e19479f89474e11ebc00e4fb7ecef53745c59e3f42645ef7d7cf84be7816b0415d4efbe7370357572229bcf
+  checksum: 10/da6b23d61be47ce42fd90d7fb50db119537fabb60812cc883f189f4f8ebdce9b2c402b58ff849191c99059452ce18400917ec2bff55ce90e0b9d249ddf92d4c2
   languageName: node
   linkType: hard
 
@@ -11977,6 +11977,26 @@ __metadata:
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
   checksum: 10/290517239aa8ab2063335aa08337466dc7f01c7f6711980f4bc456f10cce8b8c24e6667811cecc536b3c1cb9e1eb9b350dace24b51ffb6e0ff42b5565852e880
+  languageName: node
+  linkType: hard
+
+"@metamask/seedless-onboarding-controller@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@metamask/seedless-onboarding-controller@npm:12.1.0"
+  dependencies:
+    "@metamask/analytics-controller": "npm:^4.3.1"
+    "@metamask/auth-network-utils": "npm:^0.4.0"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/browser-passworder": "npm:^6.0.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/keyring-controller": "npm:^28.2.2"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/toprf-secure-backup": "npm:^1.1.0"
+    "@metamask/utils": "npm:^12.0.2"
+    "@noble/curves": "npm:^1.9.7"
+    "@noble/hashes": "npm:^1.8.0"
+    async-mutex: "npm:^0.5.0"
+  checksum: 10/ff01fd8fda8814d96da82a3c53916710f13d9254ee656fc207329d854f188653814411a1f7bb530d56a628d2782abb14d23084e0c63ad360caf1d3409a94934d
   languageName: node
   linkType: hard
 
@@ -34441,6 +34461,13 @@ __metadata:
   version: 11.1.18
   resolution: "immer@npm:11.1.18"
   checksum: 10/5693c081651aac9ed27dd004e825cfae6c1d0ff6c0e3e1ef15a9938a489e6099893c2e98e270cc30a7633a6cc84f4750a8d37ce73e93aefb104e8a26999e70de
+  languageName: node
+  linkType: hard
+
+"immer@npm:^11.2.10":
+  version: 11.2.10
+  resolution: "immer@npm:11.2.10"
+  checksum: 10/d7f70ead405377e0a2a0e41374ef75ee009b6a566e0ed473f9b0bbd45d686e104f1b9fb3c49f531259d86047be74ecb803d408d4e166b6f70b5dcb16c268655b
   languageName: node
   linkType: hard
 
