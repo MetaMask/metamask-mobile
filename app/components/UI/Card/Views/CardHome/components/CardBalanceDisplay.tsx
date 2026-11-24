@@ -50,7 +50,7 @@ export const formatCardHomeZeroBalance = (currentCurrency?: string): string => {
     typeof currentCurrency === 'string' && currentCurrency.trim() !== ''
       ? currentCurrency.trim().toUpperCase()
       : 'USD';
-  return formatWithThreshold(0, 0.01, I18n.locale || 'en-US', {
+  return formatWithThreshold(0, 0.01, I18n.locale ?? 'en-US', {
     style: 'currency',
     currency,
   });
@@ -94,13 +94,23 @@ const CardBalanceDisplay = ({
 
   if (isBalanceLoading) {
     // Same padding as MoneyBalanceSummary; h-14 matches the AmountDisplayLg line height.
+    // The subtitle row keeps its height so the card art does not shift when
+    // "Available balance" arrives (same block as CardHomeLoadingSkeleton).
     return (
-      <Box twClassName="px-4 pt-1" testID={CardHomeSelectors.BALANCE_HEADER}>
-        <Skeleton
-          twClassName="h-14 w-40 rounded-xl"
-          testID={CardHomeSelectors.BALANCE_SKELETON}
-        />
-      </Box>
+      <>
+        <Box twClassName="px-4 pt-1" testID={CardHomeSelectors.BALANCE_HEADER}>
+          <Skeleton
+            twClassName="h-14 w-40 rounded-xl"
+            testID={CardHomeSelectors.BALANCE_SKELETON}
+          />
+        </Box>
+        <Box twClassName="px-4 mt-1 h-6 justify-center">
+          <Skeleton
+            twClassName="h-5 w-36 rounded-md"
+            testID={CardHomeSelectors.BALANCE_SUBTITLE_SKELETON}
+          />
+        </Box>
+      </>
     );
   }
 

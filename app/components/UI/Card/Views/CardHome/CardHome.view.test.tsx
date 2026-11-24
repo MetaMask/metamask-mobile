@@ -676,7 +676,11 @@ describe('CardHome', () => {
       });
 
       await openActivity(view);
-      fireEvent.press(await view.findByTestId('card-home-tx-view-tx-1'));
+      fireEvent.press(
+        await view.findByTestId(
+          `${CardHomeSelectors.RECENT_ACTIVITY_ROW_PREFIX}view-tx-1`,
+        ),
+      );
 
       expect(
         await view.findByTestId(

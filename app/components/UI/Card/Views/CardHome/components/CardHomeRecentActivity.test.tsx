@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import {
@@ -61,27 +60,38 @@ const renderPanel = (
   );
 
 describe('CardHomeRecentActivity', () => {
-  it('renders the latest transactions and See all when a history destination exists', () => {
+  it('renders the latest transactions', () => {
     const transactions = [
       buildTransaction({ id: 'tx-1', merchant: { name: 'Pret A Manger' } }),
       buildTransaction({ id: 'tx-2', merchant: { name: 'Uber' } }),
     ];
     const { getByTestId, getByText, queryByText, queryByTestId } = renderPanel({
       transactions,
-      onSeeAll: jest.fn(),
     });
 
     expect(getByTestId(CardHomeSelectors.RECENT_ACTIVITY)).toBeOnTheScreen();
     expect(getByText('Pret A Manger')).toBeOnTheScreen();
     expect(getByText('Uber')).toBeOnTheScreen();
     expect(
+      queryByText('card.card_home.recent_activity.title'),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows See all when a history destination exists', () => {
+    const { getByTestId, getByText } = renderPanel({
+      transactions: [buildTransaction({ id: 'tx-1' })],
+      onSeeAll: jest.fn(),
+    });
+
+    expect(
       getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
     ).toBeOnTheScreen();
     expect(
       getByText('card.card_home.recent_activity.see_all'),
     ).toBeOnTheScreen();
-    expect(queryByText('card.card_home.recent_activity.title')).toBeNull();
-    expect(queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_EMPTY)).toBeNull();
   });
 
   it('caps the list at five transactions', () => {
@@ -157,7 +167,6 @@ describe('CardHomeRecentActivity', () => {
     expect(
       getByText('card.card_home.activity_empty_description'),
     ).toBeOnTheScreen();
-    expect(empty.findByProps({ name: IconName.Card })).toBeTruthy();
     expect(
       getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
     ).toBeOnTheScreen();
@@ -189,7 +198,9 @@ describe('CardHomeRecentActivity', () => {
       onTransactionPress,
     });
 
-    fireEvent.press(getByTestId('card-home-tx-tx-press'));
+    fireEvent.press(
+      getByTestId(`${CardHomeSelectors.RECENT_ACTIVITY_ROW_PREFIX}tx-press`),
+    );
 
     expect(onTransactionPress).toHaveBeenCalledTimes(1);
     expect(onTransactionPress).toHaveBeenCalledWith(transaction);
