@@ -546,11 +546,6 @@ describe('useSyncPerpsLighterTransactionType', () => {
       hyperliquidDeposit as never,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {
-      useLighterAccountLookupState,
-    } = require('./useSyncPerpsLighterTransactionType');
-
     renderSync({
       destination: 'lighter',
       source: 'hyperliquid',
