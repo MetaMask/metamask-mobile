@@ -689,4 +689,64 @@ describe('useSyncPerpsLighterTransactionType', () => {
       'Failed to recreate the Perps transaction',
     );
   });
+
+  it('continues lookup when transactionMeta object changes with same id and type', async () => {
+    let resolveLookup: (response: unknown) => void = () => undefined;
+    global.fetch = jest.fn().mockImplementation(
+      async () =>
+        new Promise((resolve) => {
+          resolveLookup = resolve;
+        }),
+    );
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      hyperliquidDeposit as never,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+
+    const { rerender } = renderSync({
+      destination: 'lighter',
+      source: 'hyperliquid',
+    });
+
+    const { result } = renderHook(() =>
+      useLighterAccountLookupState(hyperliquidDeposit.id),
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.isPending).toBe(true);
+    });
+
+    // Simulate transactionMeta object changing (e.g., gas update) but same id/type
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...hyperliquidDeposit,
+      txParams: {
+        ...hyperliquidDeposit.txParams,
+        gas: '0x40000', // Different gas value
+      },
+    } as never);
+
+    rerender({
+      destination: 'lighter',
+      source: 'hyperliquid',
+    });
+
+    // Should still be pending, not cancelled
+    expect(result.current.isPending).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(1); // Not re-fired
+
+    resolveLookup({
+      ok: true,
+      status: 200,
+      json: async () => ({ code: 200, sub_accounts: [] }),
+    });
+
+    await waitFor(() => {
+      expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+    });
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.error).toBeUndefined();
+  });
 });

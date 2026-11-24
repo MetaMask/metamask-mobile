@@ -275,12 +275,12 @@ function depositMainnetUsdcWhenUnregistered({
   LighterLookupState.setPending(transactionMeta.id);
 
   const onLookup = async (exists: boolean) => {
+    Logger.log('Lighter account lookup', { address: from, exists });
+
     // Cancelled by unmount or dependency change
     if (lookupGenerationRef.current !== generation) {
       return undefined;
     }
-
-    Logger.log('Lighter account lookup', { address: from, exists });
 
     if (exists) {
       LighterLookupState.setSuccess(transactionMeta.id);
@@ -416,6 +416,18 @@ export function useSyncPerpsLighterTransactionType({
     });
   }, [currentType, destination, source, transactionMeta?.txParams?.from]);
 
+  // Unmount-only cleanup: invalidate any in-flight lookup and clear state
+  useEffect(
+    () => () => {
+      if (transactionId) {
+        lookupGenerationRef.current += 1;
+        LighterLookupState.clear(transactionId);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   useEffect(() => {
     if (!transactionId || !currentType || !transactionMeta) {
       return;
@@ -465,11 +477,5 @@ export function useSyncPerpsLighterTransactionType({
       releaseAppliedKey(appliedKeyRef, requestKey);
       Logger.error(error as Error, RECREATE_ERROR);
     });
-
-    // Cleanup: clear lookup state on unmount or when dependencies change
-    return () => {
-      lookupGenerationRef.current += 1;
-      LighterLookupState.clear(transactionId);
-    };
   }, [currentType, destination, source, transactionId, transactionMeta]);
 }
