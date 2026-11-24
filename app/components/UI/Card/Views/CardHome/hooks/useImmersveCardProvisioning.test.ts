@@ -1300,6 +1300,74 @@ describe('useImmersveCardProvisioning', () => {
       jest.useRealTimers();
     });
 
+    it('reads as reconciling while a self-check runs', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+
+      jest.useFakeTimers();
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
+      });
+
+      expect(result.current.isReconciling).toBe(true);
+      jest.useRealTimers();
+    });
+
+    it('does not report the same routed step again when a review is still pending', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'pending' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          kycReviewSelfCheck: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+
+      jest.useFakeTimers();
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+      const routedCalls = () =>
+        (mockCreateEventBuilder.mock.calls as unknown[][]).filter(
+          (call) => call[0] === MetaMetricsEvents.CARD_BUTTON_CLICKED,
+        ).length;
+      const before = routedCalls();
+
+      act(() => {
+        jest.advanceTimersByTime(CARD_SETUP_PENDING_POLL_MS);
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      expect(routedCalls()).toBe(before);
+      jest.useRealTimers();
+    });
+
     it('does not self-check a review unless the screen opts in', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [{ stage: 'kyc', status: 'pending' }],
