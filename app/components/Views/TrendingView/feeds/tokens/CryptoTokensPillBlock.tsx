@@ -237,7 +237,6 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
           Skeleton={TrendingTokensSingleSkeleton}
           idPrefix={idPrefix}
           listTestId={listTestId}
-          horizontalInset={false}
         />
       )}
     </Box>
