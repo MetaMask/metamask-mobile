@@ -23,6 +23,8 @@ export const CardHomeSelectors = {
   RECENT_ACTIVITY_LOADING: 'card-home-recent-activity-loading',
   RECENT_ACTIVITY_ERROR: 'card-home-recent-activity-error',
   RECENT_ACTIVITY_RETRY: 'card-home-recent-activity-retry',
+  /** Prefix for a recent-activity row; the transaction id follows. */
+  RECENT_ACTIVITY_ROW_PREFIX: 'card-home-tx-',
   CHANGE_ASSET_BUTTON: 'change-asset-button',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',
