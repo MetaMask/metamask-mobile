@@ -1,8 +1,7 @@
 /**
- * Host-owned locked social MFA helpers for wallet recovery.
+ * Locked social MFA helpers for wallet recovery.
  *
- * Lives outside Accounts `useMfa` / `flow.ts` so this PR does not change kit
- * entry points. Uses existing kit primitives (`startMfaFlow`, social adapter).
+ * Uses existing kit primitives (`startMfaFlow`, social adapter).
  */
 import {
   getMfaErrorCode,
@@ -163,7 +162,7 @@ const watchPasskeyCeremonyCancel = (
  * failure is non-fatal.
  *
  * For passkey attempts, OS cancel is turned into `flow_cancelled` via the
- * active-flow watcher (no Accounts `flow.ts` change).
+ * active-flow watcher.
  */
 export const verifyForSocialLogin = async ({
   reason,

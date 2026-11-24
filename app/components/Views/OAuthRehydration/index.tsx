@@ -645,8 +645,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [componentAuthenticationType, requestBiometricsAccessControlForIOS]);
 
   /**
-   * Pre-password locked social MFA via host `lockedSocialMfa` helpers
-   * (kit primitives only — no Accounts `useMfa` / `flow.ts` changes).
+   * Pre-password locked social MFA via host `lockedSocialMfa` helpers.
    * Arrival tries passkey then totp. Email is included only for Telegram,
    * where that inbox is not the sign-in factor. Social pairing runs inside
    * `verifyForSocialLogin`.
