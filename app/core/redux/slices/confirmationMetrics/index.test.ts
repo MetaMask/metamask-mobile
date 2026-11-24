@@ -70,6 +70,79 @@ describe('confirmationMetrics slice', () => {
         sensitiveProperties: {},
       });
     });
+
+    it('replaces arrays instead of merging them by index', () => {
+      const existingState = {
+        ...initialState,
+        metricsById: {
+          [ID_MOCK]: {
+            properties: { alert_trigger_name: ['a', 'b'] },
+            sensitiveProperties: {},
+          },
+        },
+      };
+
+      const state = reducer(
+        existingState,
+        updateConfirmationMetric({
+          id: ID_MOCK,
+          params: { properties: { alert_trigger_name: ['b'] } },
+        }),
+      );
+
+      expect(state.metricsById[ID_MOCK].properties).toEqual({
+        alert_trigger_name: ['b'],
+      });
+    });
+
+    it('stores an empty array over a non-empty one', () => {
+      const existingState = {
+        ...initialState,
+        metricsById: {
+          [ID_MOCK]: {
+            properties: { alert_resolved: ['insufficient_balance'] },
+            sensitiveProperties: {},
+          },
+        },
+      };
+
+      const state = reducer(
+        existingState,
+        updateConfirmationMetric({
+          id: ID_MOCK,
+          params: { properties: { alert_resolved: [] } },
+        }),
+      );
+
+      expect(state.metricsById[ID_MOCK].properties).toEqual({
+        alert_resolved: [],
+      });
+    });
+
+    it('returns the same state object when the update changes nothing', () => {
+      const existingState = {
+        ...initialState,
+        metricsById: {
+          [ID_MOCK]: {
+            properties: { alert_trigger_name: ['a'], count: 1 },
+            sensitiveProperties: { secret: 'x' },
+          },
+        },
+      };
+
+      const state = reducer(
+        existingState,
+        updateConfirmationMetric({
+          id: ID_MOCK,
+          params: {
+            properties: { alert_trigger_name: ['a'], count: 1 },
+            sensitiveProperties: { secret: 'x' },
+          },
+        }),
+      );
+
+      expect(state).toBe(existingState);
+    });
   });
 
   describe('selectConfirmationMetrics', () => {
