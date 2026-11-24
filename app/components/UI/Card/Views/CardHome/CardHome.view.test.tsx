@@ -1,6 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import { RefreshControl } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import {
   CardTransactionStatus,
@@ -547,14 +547,22 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not show contact support or logout on the main screen', async () => {
-      const { queryByTestId } = renderCardHomeView();
+    it('opens contact support from the More sheet and keeps logout off Card home', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
 
-      // Contact support lives in the More sheet. Log out is not on Card home;
-      // it stays in Settings > Experimental.
       expect(
         queryByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(CardHomeSelectors.MORE_BUTTON));
+
+      const sheet = await findByTestId(CardHomeSelectors.MORE_SHEET);
+      expect(
+        within(sheet).getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
       ).not.toBeOnTheScreen();

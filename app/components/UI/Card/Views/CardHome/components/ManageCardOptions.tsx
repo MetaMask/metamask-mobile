@@ -1,6 +1,13 @@
 import React from 'react';
 import { Image, Platform, StyleSheet, Switch } from 'react-native';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName,
+  SensitiveText,
+  SensitiveTextLength,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ManageCardListItem from '../../../components/ManageCardListItem';
 import { formatSpendingLimitDisplayValue } from '../../../util/formatSpendingLimitDisplayValue';
@@ -64,6 +71,8 @@ interface ManageCardOptionsProps {
   showLimitedSpendingAmounts?: boolean;
   /** Blocked cards still show the amounts, without a way to change them. */
   spendingLimitReadOnly?: boolean;
+  /** Hides the remaining and total amounts, matching the balance privacy mode. */
+  privacyMode?: boolean;
   spendingLimitRemaining?: string;
   spendingLimitTotal?: string;
   spendingLimitSymbol?: string;
@@ -122,6 +131,7 @@ const ManageCardOptions = ({
   isSpendingLimitActive,
   showLimitedSpendingAmounts = false,
   spendingLimitReadOnly = false,
+  privacyMode = false,
   spendingLimitRemaining,
   spendingLimitTotal,
   spendingLimitSymbol,
@@ -205,15 +215,24 @@ const ManageCardOptions = ({
         'card.card_home.manage_card_options.manage_spending_limit',
       )}
       description={
-        hasSpendingLimitAmounts
-          ? strings(showSpendingLimitDescription, {
+        hasSpendingLimitAmounts ? (
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+          >
+            {strings(showSpendingLimitDescription, {
               remaining: formatSpendingLimitDisplayValue(
                 spendingLimitRemainingValue,
               ),
               total: formatSpendingLimitDisplayValue(spendingLimitTotalValue),
               symbol: spendingLimitSymbol ?? '',
-            })
-          : strings(showSpendingLimitDescription)
+            })}
+          </SensitiveText>
+        ) : (
+          strings(showSpendingLimitDescription)
+        )
       }
       rightIcon={spendingLimitReadOnly ? undefined : IconName.ArrowRight}
       onPress={spendingLimitReadOnly ? undefined : onManageSpendingLimit}

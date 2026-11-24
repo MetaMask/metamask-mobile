@@ -1242,6 +1242,7 @@ const CardHome = () => {
                 <ManageCardOptions
                   spendingLimitOnly={!(showManageOptions && !isBlocked)}
                   spendingLimitReadOnly={isBlocked}
+                  privacyMode={privacyMode}
                   card={data?.card}
                   account={data?.account}
                   capabilities={capabilities}

@@ -4042,7 +4042,6 @@ describe('CardHome Component', () => {
     });
 
     it('shows the remaining and total amounts on the Activity segment', () => {
-      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
       setupMockSelectors({ isAuthenticated: true });
       setupLoadCardDataMock({
         priorityToken: limitedToken(),
