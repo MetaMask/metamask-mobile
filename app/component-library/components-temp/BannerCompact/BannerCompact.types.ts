@@ -27,8 +27,8 @@ export interface BannerCompactProps extends Omit<PressableProps, 'onPress'> {
    */
   description: string;
   /**
-   * Optional text action shown under the description, in the design-system
-   * text-link style.
+   * Optional action shown under the description as a small secondary
+   * button. The whole row stays the press target.
    */
   actionLabel?: string;
   /**

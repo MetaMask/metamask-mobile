@@ -5,7 +5,10 @@ import { Image, Pressable } from 'react-native';
 // External dependencies
 import {
   Box,
+  Button,
   ButtonIcon,
+  ButtonSize,
+  ButtonVariant,
   ButtonIconSize,
   FontWeight,
   IconName,
@@ -111,15 +114,17 @@ const RowContent = ({
           {description}
         </Text>
         {actionLabel ? (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
-            twClassName="mt-1"
-            testID={actionTestID}
-          >
-            {actionLabel}
-          </Text>
+          // The row is the one press target, so the button only shows the
+          // action and passes touches through to it.
+          <Box twClassName="mt-2 self-start" pointerEvents="none">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              testID={actionTestID}
+            >
+              {actionLabel}
+            </Button>
+          </Box>
         ) : null}
       </Box>
     </>
@@ -128,7 +133,7 @@ const RowContent = ({
 
 /**
  * A compact status banner: a leading 72x72 thumbnail beside a title, a
- * two-line description, and an optional text action. The whole row is one
+ * description, and an optional small secondary button. The whole row is one
  * press target when `onPress` is given, and the optional close button is
  * laid over its top-right corner as a sibling rather than nested inside it,
  * because on Android a press on a nested pressable can also press the row.

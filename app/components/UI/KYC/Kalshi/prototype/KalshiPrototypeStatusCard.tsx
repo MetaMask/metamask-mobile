@@ -1,6 +1,6 @@
 // PROTOTYPE-DO-NOT-MERGE
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, Linking } from 'react-native';
 import BannerCompact, {
   type BannerCompactProps,
 } from '../../../../../component-library/components-temp/BannerCompact';
@@ -33,6 +33,9 @@ const IDENTITY_ANIMATION_THUMBNAIL = VERIFYING_HERO.heroAnimation ? (
     fallback={VERIFYING_THUMBNAIL}
   />
 ) : undefined;
+
+/** Where the can't-verify card's Learn more goes. */
+const SUPPORT_URL = 'https://support.metamask.io';
 
 /** How wide the X and the tick's visible artwork sit in the 72pt slot. */
 const STATUS_GLYPH_SIZE = 56;
@@ -109,7 +112,8 @@ const CARD_STATE_CONFIG: Record<
   },
   cantVerify: {
     thumbnail: CANT_VERIFY_THUMBNAIL,
-    isPressable: false,
+    // Learn more opens the support site, like the VBA can't-verify card.
+    isPressable: true,
     isDismissible: true,
   },
   verified: {
@@ -148,6 +152,10 @@ const KalshiPrototypeStatusCard = ({
 }: KalshiPrototypeStatusCardProps) => {
   const copy = PROTOTYPE_COPY.card[state];
   const config = CARD_STATE_CONFIG[state];
+  const handlePress =
+    state === 'cantVerify'
+      ? () => Linking.openURL(SUPPORT_URL)
+      : onPress;
 
   return (
     <BannerCompact
@@ -155,7 +163,7 @@ const KalshiPrototypeStatusCard = ({
       title={copy.title}
       description={copy.description}
       actionLabel={'action' in copy ? copy.action : undefined}
-      onPress={config.isPressable ? onPress : undefined}
+      onPress={config.isPressable ? handlePress : undefined}
       onClose={config.isDismissible ? onClose : undefined}
       testID={testID}
     />

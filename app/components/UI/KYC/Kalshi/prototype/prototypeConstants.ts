@@ -216,17 +216,20 @@ export const PROTOTYPE_COPY = {
       title: 'Get started in a few steps',
       description:
         'Verify your identity and sign in with Kalshi to trade prediction markets.',
+      action: 'Get started',
     },
     needMoreInfo: {
       title: 'Finish verifying your identity',
       description:
         'Pick up where you left off. Kalshi still needs a few details from you.',
+      action: 'Continue',
     },
     // The VBA home card's step-up words (money.vba_home_card.finish_verification).
     stepUp: {
       title: 'We need more info',
       description:
         'Provide more details to finish verifying your identity. It only takes a minute.',
+      action: 'Continue',
     },
     verifying: {
       // The VBA home card's words (money.vba_home_card.kyc_pending).
@@ -240,6 +243,8 @@ export const PROTOTYPE_COPY = {
       title: 'We can’t verify your identity',
       description:
         'Prediction markets aren’t available to you right now.',
+      // The VBA can't-verify card's button (money.vba_home_card.kyc_decision.cta).
+      action: 'Learn more',
     },
     verified: {
       title: GEORGE_COPY.done.title,
