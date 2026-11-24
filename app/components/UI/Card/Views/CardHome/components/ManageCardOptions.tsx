@@ -95,6 +95,11 @@ interface ManageCardOptionsProps {
    * progress bar was.
    */
   spendingLimitOnly?: boolean;
+  /**
+   * Keeps the history row for a fully set-up card whose history has no
+   * Activity panel on Card home (history lives in Money activity).
+   */
+  showTransactionHistoryRow?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -143,6 +148,7 @@ const ManageCardOptions = ({
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
   spendingLimitOnly = false,
+  showTransactionHistoryRow = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -190,16 +196,16 @@ const ManageCardOptions = ({
       : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
   // Recent activity panel (with its own "See all"). This row only remains for
-  // the setup override (Immersve while setup actions are pending), where the
-  // panel is not shown.
+  // the setup override (Immersve while setup actions are pending) and for
+  // Money-history users, where the panel is not shown.
   const showTransactionHistory =
     Boolean(onTransactionHistory) &&
     !isLoading &&
     isAuthenticated &&
     Boolean(card) &&
     !hideManageOptions &&
-    showTransactionHistoryDuringSetup &&
-    !isFullySetUp;
+    ((showTransactionHistoryDuringSetup && !isFullySetUp) ||
+      (showTransactionHistoryRow && isFullySetUp));
 
   // Amounts follow the old progress bar: a limited, supported allowance stays
   // visible at a zero balance. The other manage rows still wait for funds.
