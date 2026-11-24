@@ -112,7 +112,7 @@ export const accountsMultiaccountBalancesV6 =
 export const tokenSupportedNetworksV2 =
   defineApiMock<TokenSupportedNetworksV2Response>({
     id: 'token-v2-supported-networks',
-    url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
+    url: /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
     body: TOKEN_SUPPORTED_NETWORKS_V2,
   });
 

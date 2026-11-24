@@ -172,6 +172,17 @@ describe('defineApiMock', () => {
 });
 
 describe('API_MOCKS', () => {
+  it.each(['token', 'tokens'])(
+    'matches the %s.api host for the token supported networks endpoint',
+    (host) => {
+      expect(
+        API_MOCKS.tokenSupportedNetworksV2.url.test(
+          `https://${host}.api.cx.metamask.io/v2/supportedNetworks?a=b`,
+        ),
+      ).toBe(true);
+    },
+  );
+
   it('matches the URL the app requests for each endpoint', () => {
     const requests: Record<keyof typeof API_MOCKS, string> = {
       priceSpotPricesV3:
