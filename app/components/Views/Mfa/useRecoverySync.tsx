@@ -238,7 +238,7 @@ const useRecoverySync = (): RecoverySync => {
     recoverySheets = (
       <SocialLinkEmailBottomSheet
         onSubmit={closeSocialLinkPrompt}
-        onClose={() => closeSocialLinkPrompt(undefined)}
+        onClose={() => closeSocialLinkPrompt()}
       />
     );
   }
