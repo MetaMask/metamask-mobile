@@ -37,27 +37,42 @@ const TOTALS = {
   claimed: '10000000',
 };
 
+const {
+  breakdown: BREAKDOWN,
+  totalEarningsLabel: RECORDED_EARNINGS,
+  availableToClaim: AVAILABLE_TO_CLAIM,
+  held: HELD,
+  blocked: BLOCKED,
+  voided: VOIDED,
+  pending: PENDING,
+  claimed: CLAIMED,
+  claimsPausedTitle: PAUSED_TITLE,
+  claimsPausedDescription: PAUSED_DESCRIPTION,
+} = REFERRAL_LOCALIZED_TEXT;
+
+// Same mapping EarningsTab passes in: the recorded earnings row is labelled
+// with totalEarningsLabel.
 const LABELS = {
-  breakdown: 'Breakdown',
-  recordedEarningsLabel: 'Recorded earnings',
-  availableToClaim: 'Available to claim',
-  held: 'Held',
-  blocked: 'Blocked',
-  voided: 'Voided',
-  pending: 'Pending',
-  claimed: 'Claimed',
+  breakdown: BREAKDOWN,
+  recordedEarningsLabel: RECORDED_EARNINGS,
+  availableToClaim: AVAILABLE_TO_CLAIM,
+  held: HELD,
+  blocked: BLOCKED,
+  voided: VOIDED,
+  pending: PENDING,
+  claimed: CLAIMED,
 };
 
 const PAUSED_PARAMS: RewardsMoneyClaimsPausedModalParams = {
-  title: 'Claims paused',
-  description: 'You cannot claim rewards right now.',
+  title: PAUSED_TITLE,
+  description: PAUSED_DESCRIPTION,
   totals: TOTALS,
   labels: LABELS,
 };
 
 const BREAKDOWN_PARAMS: RewardsMoneyClaimsPausedModalParams = {
   variant: 'breakdown',
-  title: 'Breakdown',
+  title: BREAKDOWN,
   totals: TOTALS,
   labels: LABELS,
 };
@@ -96,27 +111,27 @@ describe('RewardsMoneyClaimsPausedModal', () => {
       renderRewardsMoneyClaimsPausedModal(PAUSED_PARAMS);
 
     expect(await findByTestId(TEST_IDS.TITLE)).toHaveTextContent(
-      'Claims paused',
+      PAUSED_TITLE,
     );
     expect(getByTestId(TEST_IDS.DESCRIPTION)).toHaveTextContent(
-      'You cannot claim rewards right now.',
+      PAUSED_DESCRIPTION,
     );
     expect(getByTestId(TEST_IDS.BREAKDOWN_HEADER)).toHaveTextContent(
-      'Breakdown',
+      BREAKDOWN,
     );
-    expect(getByText('Recorded earnings')).toBeOnTheScreen();
+    expect(getByText(RECORDED_EARNINGS)).toBeOnTheScreen();
     expect(getByText('$132.00')).toBeOnTheScreen();
-    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(getByText(AVAILABLE_TO_CLAIM)).toBeOnTheScreen();
     expect(getByText('$0.00')).toBeOnTheScreen();
-    expect(getByText('Held')).toBeOnTheScreen();
+    expect(getByText(HELD)).toBeOnTheScreen();
     expect(getByText('$100.00')).toBeOnTheScreen();
-    expect(getByText('Blocked')).toBeOnTheScreen();
+    expect(getByText(BLOCKED)).toBeOnTheScreen();
     expect(getByText('$12.00')).toBeOnTheScreen();
-    expect(getByText('Voided')).toBeOnTheScreen();
+    expect(getByText(VOIDED)).toBeOnTheScreen();
     expect(getByText('$6.00')).toBeOnTheScreen();
-    expect(getByText('Pending')).toBeOnTheScreen();
+    expect(getByText(PENDING)).toBeOnTheScreen();
     expect(getByText('$4.00')).toBeOnTheScreen();
-    expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText(CLAIMED)).toBeOnTheScreen();
     expect(getByText('$10.00')).toBeOnTheScreen();
     expect(getByTestId(TEST_IDS.TERMS_DIVIDER)).toBeOnTheScreen();
     expect(getByTestId(TEST_IDS.TERMS_DESCRIPTION)).toHaveTextContent(
@@ -130,13 +145,13 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     const { findByTestId, getByTestId, getByText, queryByTestId, queryByText } =
       renderRewardsMoneyClaimsPausedModal(BREAKDOWN_PARAMS);
 
-    expect(await findByTestId(TEST_IDS.TITLE)).toHaveTextContent('Breakdown');
+    expect(await findByTestId(TEST_IDS.TITLE)).toHaveTextContent(BREAKDOWN);
     expect(queryByTestId(TEST_IDS.DESCRIPTION)).not.toBeOnTheScreen();
     expect(queryByTestId(TEST_IDS.DIVIDER)).not.toBeOnTheScreen();
     expect(queryByTestId(TEST_IDS.BREAKDOWN_HEADER)).not.toBeOnTheScreen();
-    expect(getByText('Recorded earnings')).toBeOnTheScreen();
+    expect(getByText(RECORDED_EARNINGS)).toBeOnTheScreen();
     expect(getByText('$132.00')).toBeOnTheScreen();
-    expect(getByText('Held')).toBeOnTheScreen();
+    expect(getByText(HELD)).toBeOnTheScreen();
     expect(getByText('$100.00')).toBeOnTheScreen();
     expect(getByTestId(TEST_IDS.TERMS_DESCRIPTION)).toHaveTextContent(
       TERMS_DESCRIPTION,
@@ -158,10 +173,10 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     expect(queryByTestId(`${TEST_IDS.TOTALS}-held`)).not.toBeOnTheScreen();
     expect(queryByTestId(`${TEST_IDS.TOTALS}-blocked`)).not.toBeOnTheScreen();
     expect(queryByTestId(`${TEST_IDS.TOTALS}-voided`)).not.toBeOnTheScreen();
-    expect(queryByText('Held')).not.toBeOnTheScreen();
-    expect(queryByText('Blocked')).not.toBeOnTheScreen();
-    expect(queryByText('Voided')).not.toBeOnTheScreen();
-    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(queryByText(HELD)).not.toBeOnTheScreen();
+    expect(queryByText(BLOCKED)).not.toBeOnTheScreen();
+    expect(queryByText(VOIDED)).not.toBeOnTheScreen();
+    expect(getByText(AVAILABLE_TO_CLAIM)).toBeOnTheScreen();
     expect(getByText('$0.00')).toBeOnTheScreen();
     expect(getByTestId(`${TEST_IDS.TOTALS}-pending`)).toBeOnTheScreen();
     expect(getByTestId(`${TEST_IDS.TOTALS}-claimed`)).toBeOnTheScreen();

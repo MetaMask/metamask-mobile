@@ -614,15 +614,32 @@ export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
   HOST: 'referral-invite-host',
 } as const;
 
-function ReferralInviteJourneyHost() {
-  const navigation = useNavigation<AppNavigationProp>();
+/**
+ * Host screen that opens a modal route on mount and shows a labelled marker
+ * while it is focused, so a journey can assert it is back on the screen below.
+ */
+function createModalJourneyHost(
+  modalRoute: string,
+  hostTestId: string,
+  label: string,
+) {
+  return function ModalJourneyHost() {
+    const navigation = useNavigation<AppNavigationProp>();
+    const isFocused = useIsFocused();
 
-  React.useEffect(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_MONEY_INVITE_SHEET);
-  }, [navigation]);
+    React.useEffect(() => {
+      navigation.navigate(modalRoute);
+    }, [navigation]);
 
-  return <Text testID={REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST}>Swap</Text>;
+    return isFocused ? <Text testID={hostTestId}>{label}</Text> : null;
+  };
 }
+
+const ReferralInviteJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+  REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST,
+  'Swap',
+);
 
 /**
  * Deeplink invite sheet pushed over a destination, with the accepted splash
@@ -668,7 +685,7 @@ export function renderRewardsMoneyInviteSheet(
 
   return {
     ...renderScreenWithRoutes(
-      ReferralInviteJourneyHost as unknown as React.ComponentType,
+      ReferralInviteJourneyHost,
       { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
       [
         {
@@ -687,18 +704,11 @@ export const CLAIMS_PAUSED_JOURNEY_TEST_IDS = {
   HOST: 'claims-paused-host',
 } as const;
 
-function ClaimsPausedJourneyHost() {
-  const navigation = useNavigation<AppNavigationProp>();
-  const isFocused = useIsFocused();
-
-  React.useEffect(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL);
-  }, [navigation]);
-
-  return isFocused ? (
-    <Text testID={CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST}>Earnings</Text>
-  ) : null;
-}
+const ClaimsPausedJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST,
+  'Earnings',
+);
 
 /**
  * Claims paused sheet, or the balance breakdown, pushed over a host screen with
