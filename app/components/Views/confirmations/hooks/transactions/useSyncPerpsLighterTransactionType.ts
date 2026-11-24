@@ -327,8 +327,11 @@ function depositMainnetUsdcWhenUnregistered({
 
     releaseAppliedKey(appliedKeyRef, requestKey);
     const errorMessage =
-      error instanceof Error ? error.message : 'Failed to look up the Lighter account';
-    const lookupError = error instanceof Error ? error : new Error(errorMessage);
+      error instanceof Error
+        ? error.message
+        : 'Failed to look up the Lighter account';
+    const lookupError =
+      error instanceof Error ? error : new Error(errorMessage);
     LighterLookupState.setError(transactionMeta.id, lookupError);
     Logger.error(lookupError, 'Failed to look up the Lighter account');
   };
@@ -466,16 +469,15 @@ export function useSyncPerpsLighterTransactionType({
         snapshotRef: hyperliquidConfirmationRef,
         transactionMeta,
       });
-      return;
+    } else {
+      replaceWithSelectedType({
+        nextType,
+        snapshot: hyperliquidConfirmationRef.current,
+        transactionMeta,
+      }).catch((error: unknown) => {
+        releaseAppliedKey(appliedKeyRef, requestKey);
+        Logger.error(error as Error, RECREATE_ERROR);
+      });
     }
-
-    replaceWithSelectedType({
-      nextType,
-      snapshot: hyperliquidConfirmationRef.current,
-      transactionMeta,
-    }).catch((error: unknown) => {
-      releaseAppliedKey(appliedKeyRef, requestKey);
-      Logger.error(error as Error, RECREATE_ERROR);
-    });
   }, [currentType, destination, source, transactionId, transactionMeta]);
 }

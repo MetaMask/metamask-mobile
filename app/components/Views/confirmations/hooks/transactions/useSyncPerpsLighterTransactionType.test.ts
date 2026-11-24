@@ -476,6 +476,8 @@ describe('useSyncPerpsLighterTransactionType', () => {
       hyperliquidDeposit as never,
     );
 
+    const addTransactionCallsBefore = mockAddTransaction.mock.calls.length;
+
     const { rerender } = renderSync({
       destination: 'lighter',
       source: 'hyperliquid',
@@ -498,7 +500,11 @@ describe('useSyncPerpsLighterTransactionType', () => {
         exists: false,
       });
     });
-    expect(mockAddTransaction).not.toHaveBeenCalled();
+
+    // Wait a bit to ensure no transaction was added
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(mockAddTransaction).toHaveBeenCalledTimes(addTransactionCallsBefore);
     expect(mockRejectRequest).not.toHaveBeenCalled();
   });
 
@@ -538,7 +544,9 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+    const {
+      useLighterAccountLookupState,
+    } = require('./useSyncPerpsLighterTransactionType');
 
     renderSync({
       destination: 'lighter',
@@ -580,7 +588,9 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+    const {
+      useLighterAccountLookupState,
+    } = require('./useSyncPerpsLighterTransactionType');
 
     renderSync({
       destination: 'lighter',
@@ -644,6 +654,9 @@ describe('useSyncPerpsLighterTransactionType', () => {
       });
     });
 
+    // Wait a bit to ensure no transaction was added
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
     expect(mockAddTransaction).toHaveBeenCalledTimes(addTransactionCallsBefore);
     expect(mockRejectRequest).not.toHaveBeenCalled();
   });
@@ -662,7 +675,9 @@ describe('useSyncPerpsLighterTransactionType', () => {
     mockAddTransaction.mockRejectedValueOnce(new Error('Network error'));
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+    const {
+      useLighterAccountLookupState,
+    } = require('./useSyncPerpsLighterTransactionType');
 
     renderSync({
       destination: 'lighter',
@@ -703,7 +718,9 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { useLighterAccountLookupState } = require('./useSyncPerpsLighterTransactionType');
+    const {
+      useLighterAccountLookupState,
+    } = require('./useSyncPerpsLighterTransactionType');
 
     const { rerender } = renderSync({
       destination: 'lighter',
