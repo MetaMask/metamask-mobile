@@ -1105,7 +1105,7 @@ const CardHome = () => {
                 Stacked above the content below so the freeze animation's
                 drips fall over the action buttons; the animation overlay
                 itself ignores touches (pointerEvents="none"). */}
-            <Box twClassName="mt-4 mx-4 z-20">
+            <Box twClassName="mt-4 mx-4 z-20 overflow-visible">
               <Animated.View
                 style={[
                   tw.style('w-full relative overflow-visible'),
