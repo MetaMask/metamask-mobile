@@ -65,7 +65,7 @@ const CardHomeMoreSheet = ({
   onNavigateToCardTos,
 }: CardHomeMoreSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
 
   // Close the sheet first, then run the action (same as MoneyMoreSheet).
   const closeThen = useCallback((action: () => void) => {
