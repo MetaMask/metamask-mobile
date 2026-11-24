@@ -904,10 +904,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
         params &&
         typeof params === 'object'
       ) {
+        const limitParams = params as {
+          remaining?: string | number;
+          total?: string | number;
+          symbol?: string;
+        };
         return value
-          .replaceAll('{{remaining}}', String(params.remaining ?? ''))
-          .replaceAll('{{total}}', String(params.total ?? ''))
-          .replaceAll('{{symbol}}', String(params.symbol ?? ''));
+          .replaceAll('{{remaining}}', String(limitParams.remaining ?? ''))
+          .replaceAll('{{total}}', String(limitParams.total ?? ''))
+          .replaceAll('{{symbol}}', String(limitParams.symbol ?? ''));
       }
       return value;
     }
