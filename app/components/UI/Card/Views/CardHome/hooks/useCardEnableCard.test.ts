@@ -34,6 +34,7 @@ function mockImmersveState(
     provisioningView: 'hidden',
     setupStep: null,
     isEnableCardPending: false,
+    isProvisioningPollActive: false,
     markCardFlowOpened: jest.fn(),
     ...overrides,
   });

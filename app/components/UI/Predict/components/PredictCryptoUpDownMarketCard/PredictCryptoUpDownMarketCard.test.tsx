@@ -394,6 +394,42 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
   });
 
+  it('shows the price to beat in cents for a gold market', () => {
+    const goldMarket = createMarket({
+      slug: 'xau-updown-15m-1794338100',
+      tags: ['finance', 'gold', 'up-or-down'],
+      priceToBeat: 4031.35,
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [goldMarket],
+      isLoading: false,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    });
+
+    renderCard(goldMarket);
+
+    expect(screen.getByText('$4,031.35')).toBeOnTheScreen();
+  });
+
+  it('shows the price to beat in whole dollars for a crypto market', () => {
+    const btcMarket = createMarket({ priceToBeat: 77123.45 });
+    mockUsePredictSeries.mockReturnValue({
+      data: [btcMarket],
+      isLoading: false,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    });
+
+    renderCard(btcMarket);
+
+    expect(screen.getByText('$77,123')).toBeOnTheScreen();
+  });
+
   it('fetches the target price using the market TWAP window', () => {
     const twapMarket = createMarket({ twapWindowSeconds: 60 });
     mockUsePredictSeries.mockReturnValue({

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
@@ -131,6 +132,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectCollectiblesEnabled = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -172,6 +174,12 @@ jest.mock(
       mockSelectPredictEnabledFlag(state),
   }),
 );
+
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Collectibles/selectors/featureFlags'),
+  selectCollectiblesEnabled: (state: unknown) =>
+    mockSelectCollectiblesEnabled(state),
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -1274,6 +1282,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1373,6 +1382,32 @@ describe('MainNavigator', () => {
       );
 
       expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes the Collectibles route when its feature flag is enabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeDefined();
+    });
+
+    it('excludes the Collectibles route when its feature flag is disabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeUndefined();
     });
 
     it('includes Market Insights view when feature flag is enabled', () => {
