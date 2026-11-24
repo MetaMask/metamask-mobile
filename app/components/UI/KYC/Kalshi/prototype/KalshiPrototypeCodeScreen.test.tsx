@@ -51,7 +51,9 @@ describe('KalshiPrototypeCodeScreen', () => {
       expect(getByLabelText('Kalshi')).toBeOnTheScreen();
       expect(getByText("Enter Kalshi's verification code")).toBeOnTheScreen();
       expect(
-        getByText('Kalshi sent a 6-digit code to d•••@example.com.'),
+        getByText(
+          'Check your email for a 6-digit code from Kalshi. We sent it to d•••@example.com.',
+        ),
       ).toBeOnTheScreen();
       expect(queryByText(PROTOTYPE_COPY.lockup)).toBeNull();
     });
