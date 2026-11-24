@@ -224,7 +224,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Subscribe to top-of-book (best bid/ask) for spread display.
   // This is intentionally independent from order book aggregation/grouping.
-  const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: symbol || '',
+    providerId: market?.providerId,
+  });
 
   // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
   const focusedPrice = usePerpsLiveFocusedPrice({
@@ -303,6 +306,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     error,
   } = usePerpsLiveOrderBook({
     symbol: symbol || '',
+    providerId: market?.providerId,
     levels: FAST_ORDER_BOOK_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,

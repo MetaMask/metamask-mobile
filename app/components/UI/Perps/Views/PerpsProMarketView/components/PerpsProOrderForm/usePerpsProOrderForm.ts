@@ -1216,7 +1216,10 @@ export const usePerpsProOrderForm = ({
     throttleMs: 1000,
   });
   const currentPrice = prices[symbol];
-  const currentTopOfBook = usePerpsTopOfBook({ symbol });
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol,
+    providerId: market.providerId,
+  });
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -1925,6 +1928,7 @@ export const usePerpsProOrderForm = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: market.providerId,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps: resolvedMaxSlippageBps,

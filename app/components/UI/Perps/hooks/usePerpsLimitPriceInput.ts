@@ -112,7 +112,10 @@ export function usePerpsLimitPriceInput({
     currentPrice,
   );
 
-  const topOfBook = usePerpsTopOfBook({ symbol: enabled ? asset : '' });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: enabled ? asset : '',
+    providerId,
+  });
   const isLong = direction === 'long';
 
   // Destructured so an inline `testIDs` literal from a caller cannot rebuild

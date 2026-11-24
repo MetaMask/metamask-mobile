@@ -212,14 +212,14 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
 }));
 
 // Mock usePerpsTopOfBook
-const mockUsePerpsTopOfBook = jest.fn(() => ({
+const mockUsePerpsTopOfBook = jest.fn((_params?: unknown) => ({
   bestBid: '50000',
   bestAsk: '50001',
   spread: '1.00000',
 }));
 
 jest.mock('../../hooks/stream/usePerpsTopOfBook', () => ({
-  usePerpsTopOfBook: () => mockUsePerpsTopOfBook(),
+  usePerpsTopOfBook: (params: unknown) => mockUsePerpsTopOfBook(params),
 }));
 
 // Mock usePerpsEventTracking
@@ -443,6 +443,28 @@ describe('PerpsOrderBookView', () => {
         getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
       expect(getByText('Order Book')).toBeOnTheScreen();
+    });
+
+    it('reads top of book and the book from the market venue', () => {
+      const lighterMarket = { ...mockRouteMarketData, providerId: 'lighter' };
+      mockUseRoute.mockReturnValue({
+        params: { symbol: 'BTC', marketData: lighterMarket },
+      });
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [lighterMarket],
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsTopOfBook).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbol: 'BTC', providerId: 'lighter' }),
+      );
+      expect(mockUsePerpsLiveOrderBook).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbol: 'BTC', providerId: 'lighter' }),
+      );
     });
 
     it('renders with custom testID', () => {

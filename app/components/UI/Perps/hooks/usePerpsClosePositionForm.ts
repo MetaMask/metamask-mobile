@@ -354,6 +354,7 @@ export function usePerpsClosePositionForm(
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: position.symbol,
+    providerId: position.providerId,
   });
 
   // Subscribe to live position updates for this coin

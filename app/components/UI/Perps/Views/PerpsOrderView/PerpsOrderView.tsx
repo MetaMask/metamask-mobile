@@ -865,6 +865,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: isDataReady ? orderForm.asset : '', // Defer subscription
+    providerId: route.params?.providerId ?? orderProvider ?? undefined,
   });
 
   // Track screen load with unified hook (measure data loading, not initial render)
@@ -991,6 +992,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: route.params?.providerId ?? orderProvider ?? undefined,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps,
@@ -3728,6 +3730,7 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
   openStartTime,
 }) => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const orderProvider = useSelector(selectPerpsOrderProvider);
   const { payToken } = useTransactionPayToken();
   const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
@@ -3760,7 +3763,14 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
 
   return (
     <PerpsOrderProvider
-      providerId={route.params?.providerId}
+      // Match the venue the rest of the order view uses; an existing
+      // position's venue still wins over the routing default.
+      providerId={
+        route.params?.providerId ??
+        existingPosition?.providerId ??
+        orderProvider ??
+        undefined
+      }
       initialAsset={asset}
       initialDirection={direction}
       initialAmount={paramAmount}
