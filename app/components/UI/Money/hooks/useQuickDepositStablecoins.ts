@@ -1,12 +1,9 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
-import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { EVM_SCOPE } from '../../Earn/constants/networks';
-import { RootState } from '../../../../reducers';
-import { selectMoneyDepositBlockedTokens } from '../selectors/depositTokens';
+import {
+  selectMoneyDepositAssetsMeetingMinimumBalance,
+  selectMoneyDepositPayTokens,
+} from '../selectors/depositTokens';
 import {
   buildQuickDepositStablecoinOptions,
   type QuickDepositStablecoinOption,
@@ -14,24 +11,11 @@ import {
 
 export const useQuickDepositStablecoins =
   (): QuickDepositStablecoinOption[] => {
-    const selectedEvmAddress = useSelector(
-      (state: RootState) =>
-        selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
+    const assets = useSelector(selectMoneyDepositAssetsMeetingMinimumBalance);
+    const supportedTokens = useSelector(selectMoneyDepositPayTokens);
+
+    return useMemo(
+      () => buildQuickDepositStablecoinOptions({ assets, supportedTokens }),
+      [assets, supportedTokens],
     );
-    const tokenBalances = useSelector(selectTokensBalances);
-    const blockedTokens = useSelector(selectMoneyDepositBlockedTokens);
-    const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
-
-    return useMemo(() => {
-      const accountBalances = selectedEvmAddress
-        ? (tokenBalances?.[selectedEvmAddress as Hex] ??
-          tokenBalances?.[selectedEvmAddress.toLowerCase() as Hex])
-        : undefined;
-
-      return buildQuickDepositStablecoinOptions({
-        relayFlag: remoteFeatureFlags?.confirmations_relay_fixed_spread,
-        accountBalances,
-        blockedTokens,
-      });
-    }, [blockedTokens, remoteFeatureFlags, selectedEvmAddress, tokenBalances]);
   };

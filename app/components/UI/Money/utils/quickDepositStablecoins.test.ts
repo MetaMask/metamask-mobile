@@ -1,70 +1,81 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import type { PreferredToken } from '../../../../selectors/featureFlagController/confirmations';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import { buildQuickDepositStablecoinOptions } from './quickDepositStablecoins';
+import {
+  buildQuickDepositStablecoinOptions,
+  type QuickDepositAsset,
+} from './quickDepositStablecoins';
 
 const ETH_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const ETH_USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+const ETH_AUSDC = '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c';
+const ARB_USDT = '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9';
 const BASE_USDC = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+const BSC_USDC = '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d';
 const BSC_USDT = '0x55d398326f99059ff775485246999027b3197955';
 const POLYGON_USDC = '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359';
-const MUSD = MUSD_TOKEN_ADDRESS.toLowerCase();
+const MUSD = MUSD_TOKEN_ADDRESS;
 
-const flag = {
-  chains: {
-    eth: CHAIN_IDS.MAINNET,
-    base: CHAIN_IDS.BASE,
-    bsc: CHAIN_IDS.BSC,
-    polygon: CHAIN_IDS.POLYGON,
-    monad: CHAIN_IDS.MONAD,
-    sepolia: CHAIN_IDS.SEPOLIA,
-  },
-  tokens: {
-    eth_usdc: ETH_USDC,
-    eth_usdt: ETH_USDT,
-    eth_ausdc: '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c',
-    base_usdc: BASE_USDC,
-    bsc_usdt: BSC_USDT,
-    polygon_usdc: POLYGON_USDC,
-    sepolia_usdc: ETH_USDC,
-    musd: MUSD,
-  },
-  routes: [
-    ['eth', 'eth_usdc', 'monad', 'musd'],
-    ['eth', 'eth_usdt', 'monad', 'musd'],
-    ['eth', 'eth_ausdc', 'monad', 'musd'],
-    ['base', 'base_usdc', 'monad', 'musd'],
-    ['bsc', 'bsc_usdt', 'monad', 'musd'],
-    ['polygon', 'polygon_usdc', 'base', 'base_usdc'],
-    ['sepolia', 'sepolia_usdc', 'monad', 'musd'],
-    ['eth', 'musd', 'monad', 'musd'],
-  ],
-};
+const token = (address: string, chainId: string): PreferredToken => ({
+  address,
+  chainId,
+  successRate: 1,
+});
+
+const supportedTokens = [
+  token(ETH_USDC, CHAIN_IDS.MAINNET),
+  token(ETH_USDT, CHAIN_IDS.MAINNET),
+  token(ETH_AUSDC, CHAIN_IDS.MAINNET),
+  token(ARB_USDT, CHAIN_IDS.ARBITRUM),
+  token(BASE_USDC, CHAIN_IDS.BASE),
+  token(BSC_USDC, CHAIN_IDS.BSC),
+  token(BSC_USDT, CHAIN_IDS.BSC),
+  token(MUSD, CHAIN_IDS.MAINNET),
+  token(MUSD, CHAIN_IDS.LINEA_MAINNET),
+  token(MUSD, CHAIN_IDS.MONAD),
+];
 
 const raw = (whole: string, decimals: number): Hex =>
   `0x${(BigInt(whole) * 10n ** BigInt(decimals)).toString(16)}`;
 
-const row = (
-  balances: Record<string, Record<string, string>>,
-  relayFlag: unknown = flag,
-  blockedTokens?: object,
-) =>
-  buildQuickDepositStablecoinOptions({
-    relayFlag,
-    accountBalances: balances,
-    blockedTokens: blockedTokens as never,
-  })[0];
+const asset = (
+  overrides: Pick<QuickDepositAsset, 'address' | 'chainId' | 'symbol'> &
+    Partial<QuickDepositAsset>,
+): QuickDepositAsset => ({
+  decimals: 6,
+  rawBalance: '0x0',
+  ...overrides,
+});
 
-describe('quickDepositStablecoins', () => {
+const build = (
+  assets: QuickDepositAsset[],
+  tokens: PreferredToken[] = supportedTokens,
+) => buildQuickDepositStablecoinOptions({ assets, supportedTokens: tokens })[0];
+
+describe('buildQuickDepositStablecoinOptions', () => {
   it('sums the winner and prefills its largest chain', () => {
     expect(
-      row({
-        [CHAIN_IDS.MAINNET]: {
-          [ETH_USDC]: raw('10', 6),
-          [ETH_USDT]: raw('20', 6),
-        },
-        [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('40', 6) },
-      }),
+      build([
+        asset({
+          address: ETH_USDC,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDC',
+          rawBalance: raw('10', 6),
+        }),
+        asset({
+          address: BASE_USDC,
+          chainId: CHAIN_IDS.BASE,
+          symbol: 'USDC',
+          rawBalance: raw('40', 6),
+        }),
+        asset({
+          address: ETH_USDT,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDT',
+          rawBalance: raw('20', 6),
+        }),
+      ]),
     ).toEqual(
       expect.objectContaining({
         symbol: 'USDC',
@@ -75,58 +86,194 @@ describe('quickDepositStablecoins', () => {
     );
   });
 
-  it('prefers the largest total, then USDC, USDT, mUSD', () => {
-    const main = CHAIN_IDS.MAINNET;
+  it('picks USDT on Arbitrum when it is the largest balance', () => {
     expect(
-      row({
-        [main]: {
-          [ETH_USDC]: raw('10', 6),
-          [ETH_USDT]: raw('10', 6),
-          [MUSD]: raw('10', 6),
+      build([
+        asset({
+          address: ETH_USDC,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDC',
+          rawBalance: raw('5', 6),
+        }),
+        asset({
+          address: ARB_USDT,
+          chainId: CHAIN_IDS.ARBITRUM,
+          symbol: 'USDT',
+          rawBalance: raw('75', 6),
+        }),
+      ]),
+    ).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
+        intent: 'addUsdt',
+        aggregatedBalance: '75',
+        preferredPaymentToken: {
+          address: ARB_USDT,
+          chainId: CHAIN_IDS.ARBITRUM,
         },
-      })?.symbol,
+      }),
+    );
+  });
+
+  it('picks mUSD when it is the largest balance', () => {
+    expect(
+      build([
+        asset({
+          address: ETH_USDC,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDC',
+          rawBalance: raw('4', 6),
+        }),
+        asset({
+          address: MUSD,
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+          symbol: 'MUSD',
+          rawBalance: raw('9', 6),
+        }),
+      ]),
+    ).toEqual(
+      expect.objectContaining({
+        symbol: 'mUSD',
+        intent: 'addMusd',
+        aggregatedBalance: '9',
+        preferredPaymentToken: {
+          address: MUSD,
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+        },
+      }),
+    );
+  });
+
+  it('prefers USDC, then USDT, then mUSD when totals tie', () => {
+    expect(
+      build([
+        asset({
+          address: ETH_USDC,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDC',
+          rawBalance: raw('10', 6),
+        }),
+        asset({
+          address: ETH_USDT,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDT',
+          rawBalance: raw('10', 6),
+        }),
+        asset({
+          address: MUSD,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'mUSD',
+          rawBalance: raw('10', 6),
+        }),
+      ])?.symbol,
     ).toBe('USDC');
+
     expect(
-      row({ [main]: { [ETH_USDT]: raw('10', 6), [MUSD]: raw('10', 6) } })
-        ?.intent,
+      build([
+        asset({
+          address: ETH_USDT,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDT',
+          rawBalance: raw('10', 6),
+        }),
+        asset({
+          address: MUSD,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'mUSD',
+          rawBalance: raw('10', 6),
+        }),
+      ])?.intent,
     ).toBe('addUsdt');
-    expect(
-      row({ [main]: { [ETH_USDC]: raw('4', 6), [MUSD]: raw('9', 6) } })?.intent,
-    ).toBe('addMusd');
   });
 
-  it('hides empty, unsponsored, testnet, non-EVM, and unconfigured balances', () => {
-    const hidden: [Record<string, Record<string, string>>, unknown?][] = [
-      [{ [CHAIN_IDS.MAINNET]: { [ETH_USDC]: '0x0' } }],
-      [{ [CHAIN_IDS.POLYGON]: { [POLYGON_USDC]: raw('80', 6) } }],
-      [{ [CHAIN_IDS.SEPOLIA]: { [ETH_USDC]: raw('90', 6) } }],
-      [
-        {
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-            [ETH_USDC]: raw('78', 6),
-          },
+  it('reads 18-decimal BNB Chain tokens from the asset metadata', () => {
+    expect(
+      build([
+        asset({
+          address: BSC_USDC,
+          chainId: CHAIN_IDS.BSC,
+          symbol: 'USDC',
+          decimals: 18,
+          rawBalance: raw('7', 18),
+        }),
+      ]),
+    ).toEqual(
+      expect.objectContaining({
+        symbol: 'USDC',
+        aggregatedBalance: '7',
+        preferredPaymentToken: {
+          address: BSC_USDC,
+          chainId: CHAIN_IDS.BSC,
         },
-      ],
-      [{ [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('8', 6) } }, null],
-    ];
-    hidden.forEach(([balances, relayFlag]) => {
-      expect(row(balances, relayFlag)).toBeUndefined();
-    });
+      }),
+    );
+
+    expect(
+      build([
+        asset({
+          address: BSC_USDT,
+          chainId: CHAIN_IDS.BSC,
+          symbol: 'USDT',
+          decimals: 18,
+          rawBalance: raw('3', 18),
+        }),
+      ])?.aggregatedBalance,
+    ).toBe('3');
   });
 
-  it('reads 18-decimal BNB Chain USDT and skips a blocked chain', () => {
+  it('hides empty, zero, and unsupported balances', () => {
+    expect(build([])).toBeUndefined();
     expect(
-      row({ [CHAIN_IDS.BSC]: { [BSC_USDT]: raw('7', 18) } })?.aggregatedBalance,
-    ).toBe('7');
+      build([
+        asset({
+          address: ETH_USDC,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'USDC',
+          rawBalance: '0x0',
+        }),
+      ]),
+    ).toBeUndefined();
     expect(
-      row(
-        {
-          [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('12', 6) },
-          [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('2', 6) },
-        },
-        flag,
-        { chainIds: [CHAIN_IDS.MAINNET], tokens: [] },
-      )?.aggregatedBalance,
-    ).toBe('2');
+      build([
+        asset({
+          address: POLYGON_USDC,
+          chainId: CHAIN_IDS.POLYGON,
+          symbol: 'USDC',
+          rawBalance: raw('80', 6),
+        }),
+      ]),
+    ).toBeUndefined();
+    expect(
+      build(
+        [
+          asset({
+            address: ETH_USDC,
+            chainId: CHAIN_IDS.MAINNET,
+            symbol: 'USDC',
+            rawBalance: raw('8', 6),
+          }),
+        ],
+        [],
+      ),
+    ).toBeUndefined();
+  });
+
+  it('ignores aUSDC and USDC.e', () => {
+    expect(
+      build([
+        asset({
+          address: ETH_AUSDC,
+          chainId: CHAIN_IDS.MAINNET,
+          symbol: 'aUSDC',
+          rawBalance: raw('50', 6),
+        }),
+        asset({
+          address: POLYGON_USDC,
+          chainId: CHAIN_IDS.POLYGON,
+          symbol: 'USDC.e',
+          rawBalance: raw('60', 6),
+        }),
+      ]),
+    ).toBeUndefined();
   });
 });
