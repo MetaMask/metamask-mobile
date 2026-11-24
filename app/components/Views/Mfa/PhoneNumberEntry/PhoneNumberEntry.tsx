@@ -136,32 +136,31 @@ const PhoneNumberEntry = ({
     setIsTouched(false);
   };
 
-  const renderError = () => {
-    if (showInvalid) {
-      return (
-        <HelpText
-          severity={HelpTextSeverity.Danger}
-          fontWeight={FontWeight.Medium}
-          accessibilityRole="alert"
-          testID={ids.INVALID}
-        >
-          {strings('mfa.phone_entry.invalid')}
-        </HelpText>
-      );
-    }
-    if (typeof error === 'string') {
-      return (
-        <HelpText
-          severity={HelpTextSeverity.Danger}
-          accessibilityRole="alert"
-          testID={ids.ERROR}
-        >
-          {error}
-        </HelpText>
-      );
-    }
-    return error ?? null;
-  };
+  // The invalid number takes the place of the caller's error: one message at
+  // a time.
+  let message: ReactNode = error;
+  if (showInvalid) {
+    message = (
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        fontWeight={FontWeight.Medium}
+        accessibilityRole="alert"
+        testID={ids.INVALID}
+      >
+        {strings('mfa.phone_entry.invalid')}
+      </HelpText>
+    );
+  } else if (typeof error === 'string') {
+    message = (
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        accessibilityRole="alert"
+        testID={ids.ERROR}
+      >
+        {error}
+      </HelpText>
+    );
+  }
 
   return (
     <>
@@ -191,7 +190,9 @@ const PhoneNumberEntry = ({
               isFullWidth
               isLoading={isSubmitting}
               isDisabled={!isValid}
-              onPress={submit}
+              onPress={() => {
+                submit().catch(noop);
+              }}
               testID={ids.SUBMIT_BUTTON}
             >
               {ctaLabel}
@@ -252,7 +253,7 @@ const PhoneNumberEntry = ({
               testID: ids.INPUT,
             }}
           />
-          {renderError()}
+          {message}
         </Box>
       </StepLayout>
       {isPickerOpen ? (

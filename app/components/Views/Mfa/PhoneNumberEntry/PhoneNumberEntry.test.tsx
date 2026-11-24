@@ -173,12 +173,11 @@ describe('PhoneNumberEntry', () => {
 
   it('ignores a second submit while the first is pending', async () => {
     let resolve: () => void = () => undefined;
-    const onSubmit = jest.fn(
-      () =>
-        new Promise<void>((done) => {
-          resolve = done;
-        }),
-    );
+    const onSubmit = jest.fn(async () => {
+      await new Promise<void>((done) => {
+        resolve = done;
+      });
+    });
     const { getByTestId } = renderEntry({ onSubmit });
 
     fireEvent.changeText(getByTestId(ids.INPUT), '4155552671');

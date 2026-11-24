@@ -182,7 +182,11 @@ describe('the rest of the world', () => {
   });
 
   it('keeps the current country when a calling code is shared', () => {
-    expect(parsePhoneInput('+7 912 345 6789', getPhoneCountry('KZ')).country.iso).toBe('KZ');
-    expect(parsePhoneInput('+7 912 345 6789', getPhoneCountry('US')).country.iso).toBe('RU');
+    expect(
+      parsePhoneInput('+7 912 345 6789', getPhoneCountry('KZ')).country.iso,
+    ).toBe('KZ');
+    expect(
+      parsePhoneInput('+7 912 345 6789', getPhoneCountry('US')).country.iso,
+    ).toBe('RU');
   });
 });
