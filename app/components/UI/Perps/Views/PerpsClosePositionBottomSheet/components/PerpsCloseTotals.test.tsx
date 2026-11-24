@@ -5,15 +5,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import PerpsCloseTotals from './PerpsCloseTotals';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
-}));
-
-jest.mock('../../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: jest.fn() }),
-}));
-
 describe('PerpsCloseTotals', () => {
   const label = escapeRegExp(strings('perps.close_position.included_pnl'));
 
@@ -60,11 +51,6 @@ describe('PerpsCloseTotals', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      screen.queryByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON,
-      ),
-    ).not.toBeOnTheScreen();
-    expect(
       screen.getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE),
     ).toHaveTextContent('$17');
     expect(
@@ -90,5 +76,40 @@ describe('PerpsCloseTotals', () => {
     ).toHaveTextContent(
       new RegExp(`^${escapeRegExp(strings('perps.close_position.pnl'))}`),
     );
+  });
+
+  it('shows the cross margin with its mode tag when showMargin is set', () => {
+    render(
+      <PerpsCloseTotals
+        pnl={2}
+        receiveAmount={17}
+        margin={15}
+        marginMode="cross"
+        showMargin
+      />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).toHaveTextContent('$15');
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+  });
+
+  it('omits the margin row when showMargin is set without a margin mode', () => {
+    render(
+      <PerpsCloseTotals pnl={2} receiveAmount={17} margin={15} showMargin />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
   });
 });
