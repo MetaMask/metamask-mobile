@@ -107,9 +107,7 @@ const KycPending = ({
         includesTopInset
         onClose={onClose}
         closeButtonProps={
-          onClose
-            ? { testID: KycPendingSelectorsIDs.CLOSE_BUTTON }
-            : undefined
+          onClose ? { testID: KycPendingSelectorsIDs.CLOSE_BUTTON } : undefined
         }
       />
       <ScrollView
@@ -119,7 +117,10 @@ const KycPending = ({
         <TitleStandard
           title={
             <Animated.View style={[tw.style('w-full'), titleStyle]}>
-              <MarketingMomentTitle twClassName="w-full text-center">
+              <MarketingMomentTitle
+                variant={TextVariant.DisplayLg}
+                twClassName="w-full text-center"
+              >
                 {title ?? strings('kyc.kyc_taking_longer.title')}
               </MarketingMomentTitle>
             </Animated.View>

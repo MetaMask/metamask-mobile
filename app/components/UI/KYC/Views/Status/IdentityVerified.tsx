@@ -99,7 +99,10 @@ const KycIdentityVerified = ({
         <TitleStandard
           title={
             <Animated.View style={[tw.style('w-full'), titleStyle]}>
-              <MarketingMomentTitle twClassName="w-full text-center">
+              <MarketingMomentTitle
+                variant={TextVariant.DisplayLg}
+                twClassName="w-full text-center"
+              >
                 {title ?? strings('kyc.identity_verified.title')}
               </MarketingMomentTitle>
             </Animated.View>
