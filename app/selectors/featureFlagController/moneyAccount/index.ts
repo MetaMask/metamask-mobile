@@ -277,9 +277,6 @@ export const selectProSubscriptionEnabled = createSelector(
   },
 );
 
-export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
-  'moneyEnableOnboardingStepperAnimation' as const;
-
 export const MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY =
   'moneyAccountDepositQuotePipeline' as const;
 
@@ -294,25 +291,6 @@ export const selectMoneyAccountDepositQuotePipelineEnabled = createSelector(
       localOverrideEnabled ||
       (validatedVersionGatedFeatureFlag(remoteFlag) ?? false)
     );
-  },
-);
-
-export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag =
-      remoteFeatureFlags?.[MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY];
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
-export const MONEY_ENABLE_SPLASH_FLAG_KEY = 'moneyEnableSplash' as const;
-
-export const selectMoneySplashEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag = remoteFeatureFlags?.[MONEY_ENABLE_SPLASH_FLAG_KEY];
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

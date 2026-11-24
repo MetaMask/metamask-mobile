@@ -139,11 +139,6 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     regions: ['US'],
     layout: 'UsBank',
   },
-  // Keep the new Money CTA splash disabled in smoke tests.
-  moneyEnableSplash: {
-    enabled: false,
-    minimumVersion: '0.0.0',
-  },
   // 2026-11-17 prod sync turned these on at versions the 8.21.0 E2E build
   // meets. Keep the registry at the prod values; pin the pre-sync UI here so
   // smoke tests do not pick up the new MFA screen, brand-refresh chrome, or

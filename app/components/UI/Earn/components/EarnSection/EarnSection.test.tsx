@@ -16,8 +16,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
-import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
@@ -104,9 +104,9 @@ const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseMoneyCtaDepositNavigation =
-  useMoneyCtaDepositNavigation as jest.MockedFunction<
-    typeof useMoneyCtaDepositNavigation
+const mockUseMoneyDepositNavigation =
+  useMoneyDepositNavigation as jest.MockedFunction<
+    typeof useMoneyDepositNavigation
   >;
 const mockLoggerError = jest.mocked(Logger.error);
 type Tailwind = ReturnType<typeof useTailwind>;
@@ -228,7 +228,7 @@ let mockMoneyAccountVisible = false;
 let mockPrivacyMode = false;
 let mockMoneyEntryContext: MoneyEntryContext = {
   accessBlockReason: undefined,
-  isOnboardingRedirectNeeded: false,
+  isSplashRedirectNeeded: false,
 };
 
 const createSectionResult = (
@@ -288,7 +288,7 @@ describe('EarnSection', () => {
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
         ? mockMoneyAccountVisible
-        : selector === selectMoneyCtaEntryContext
+        : selector === selectMoneyEntryContext
           ? mockMoneyEntryContext
           : mockPrivacyMode,
     );
@@ -306,19 +306,15 @@ describe('EarnSection', () => {
       track?.({
         redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
           ? 'money_splash'
-          : mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? 'money_onboarding'
-            : 'money_deposit',
+          : 'money_deposit',
         button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
           ? 'go_to_money_splash'
-          : mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? 'go_to_money_onboarding'
-            : 'add_money',
+          : 'add_money',
       });
     });
-    mockUseMoneyCtaDepositNavigation.mockReturnValue({
+    mockUseMoneyDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
-    } as ReturnType<typeof useMoneyCtaDepositNavigation>);
+    } as ReturnType<typeof useMoneyDepositNavigation>);
     mockEarnOpportunityNavigation();
     mockSectionResult();
   });
@@ -639,30 +635,18 @@ describe('EarnSection', () => {
   it.each([
     {
       isSplashRedirectNeeded: true,
-      isOnboardingRedirectNeeded: false,
       redirectTarget: 'money_splash',
     },
     {
       isSplashRedirectNeeded: false,
-      isOnboardingRedirectNeeded: true,
-      redirectTarget: 'money_onboarding',
-    },
-    {
-      isSplashRedirectNeeded: false,
-      isOnboardingRedirectNeeded: false,
       redirectTarget: 'money_deposit',
     },
   ] as const)(
     'tracks Money account card presses with the $redirectTarget destination',
-    ({
-      isSplashRedirectNeeded,
-      isOnboardingRedirectNeeded,
-      redirectTarget,
-    }) => {
+    ({ isSplashRedirectNeeded, redirectTarget }) => {
       mockMoneyAccountVisible = true;
       mockMoneyEntryContext = {
         accessBlockReason: undefined,
-        isOnboardingRedirectNeeded,
         isSplashRedirectNeeded,
       };
       mockSectionResult({ assetSlots: [] });
