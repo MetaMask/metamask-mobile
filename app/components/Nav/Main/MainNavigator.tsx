@@ -10,7 +10,11 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import type { ParamListBase, RouteProp } from '@react-navigation/native';
+import {
+  getFocusedRouteNameFromRoute,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import {
@@ -171,7 +175,6 @@ import {
   MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
-import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
@@ -243,7 +246,6 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
-import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
 import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
@@ -1127,10 +1129,6 @@ const MainNavigator = () => {
           component={AcceptInviteSheet}
         />
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
-        />
-        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
           component={TaxFormQuestionSheet}
         />
@@ -1151,7 +1149,7 @@ const MainNavigator = () => {
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
-       * invite sheet dismisses — same pattern as Money onboarding.
+       * invite sheet dismisses — same pattern as the Money splash.
        */}
       <NativeStack.Screen
         name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
@@ -1322,9 +1320,17 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={{
-          ...slideFromRightNativeOptions,
-          fullScreenGestureEnabled: true,
+        options={({ route }) => {
+          const focusedBridgeRouteName =
+            getFocusedRouteNameFromRoute(route) ?? Routes.BRIDGE.BRIDGE_VIEW;
+          return {
+            ...slideFromRightNativeOptions,
+            // On iOS a full screen gesture here also catches swipes on pushed
+            // Bridge screens and pops the whole Bridge stack instead of them.
+            ...(focusedBridgeRouteName === Routes.BRIDGE.BRIDGE_VIEW
+              ? { fullScreenGestureEnabled: true }
+              : null),
+          };
         }}
       />
       <NativeStack.Screen
@@ -1383,11 +1389,6 @@ const MainNavigator = () => {
               component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
-          <NativeStack.Screen
-            name={Routes.MONEY.ONBOARDING}
-            component={MoneyOnboardingView}
-            options={fadeNativeOptions}
-          />
           <NativeStack.Screen
             name={Routes.MONEY.SPLASH}
             component={MoneySplashView}

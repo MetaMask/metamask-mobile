@@ -14,7 +14,7 @@ import { calculateProjectedEarnings } from '../utils/projections';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
@@ -72,7 +72,7 @@ export const useMoneyAssetOverviewCtas = ({
   const isFooterCtaEligible =
     isStablecoinFooterCtaEnabled || isATokenFooterCtaEligible;
 
-  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
     enabled: isBalanceCtaEligible || isFooterCtaEligible,
   });

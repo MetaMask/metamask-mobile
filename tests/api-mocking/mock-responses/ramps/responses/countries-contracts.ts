@@ -1,4 +1,4 @@
-import { RAMPS_COUNTRIES_RESPONSE } from './ramps-countries-response.ts';
+import { rampsCountriesV2 } from '../../../api-mocks.ts';
 import { RAMPS_AGGREGATOR_COUNTRIES_RESPONSE } from './ramps-aggregator-countries-response.ts';
 import { RAMPS_DEPOSIT_COUNTRIES_RESPONSE } from './ramps-deposit-countries-response.ts';
 
@@ -15,7 +15,7 @@ export function getCountryResponseForUrl(url: string) {
   const parsedUrl = new URL(url);
 
   if (parsedUrl.pathname === '/v2/regions/countries') {
-    return RAMPS_COUNTRIES_RESPONSE;
+    return rampsCountriesV2.response();
   }
 
   if (isDepositCountriesRequest(url)) {
