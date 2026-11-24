@@ -77,6 +77,7 @@ jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
 const CHAIN_ID_MOCK = '0x1';
 const TOKEN_AMOUNT_MOCK = '1.23';
 const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
+const SECOND_PAYING_ACCOUNT_MOCK = '0x2222222222222222222222222222222222222222';
 
 const PAY_TOKEN_MOCK = {
   address: tokenAddress1Mock,
@@ -1011,6 +1012,51 @@ describe('useTransactionPayMetrics', () => {
           properties: expect.objectContaining({
             mm_pay_account_type_source_presented: 'metamask',
             mm_pay_account_type_source_selected: 'money-account',
+            mm_pay_source_mm_account_switch_count: 1,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('increments switch count when payer changes between two MetaMask accounts', async () => {
+      useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+      const { rerender } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'metamask',
+            mm_pay_account_type_source_selected: 'metamask',
+            mm_pay_source_mm_account_switch_count: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        SECOND_PAYING_ACCOUNT_MOCK,
+      );
+      useTransactionPayingAccountMock.mockReturnValue(
+        SECOND_PAYING_ACCOUNT_MOCK,
+      );
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_account_type_source_presented: 'metamask',
+            mm_pay_account_type_source_selected: 'metamask',
             mm_pay_source_mm_account_switch_count: 1,
           }),
           sensitiveProperties: {},

@@ -15,6 +15,7 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { getAddressAccountType } from '../../../../../util/address';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { KeyringType } from '@metamask/keyring-api/v2';
 
 jest.mock('../../../../../selectors/transactionPayController');
@@ -52,6 +53,7 @@ const getInternalAccountByAddressMock = jest.mocked(
 );
 
 const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
+const SECOND_PAYING_ACCOUNT_MOCK = '0x2222222222222222222222222222222222222222';
 
 function runHook({
   type,
@@ -300,6 +302,99 @@ describe('usePaySectionSourceMetrics', () => {
     rerender({});
     rerender({});
 
+    expect(result.current.switchCount).toBe(0);
+  });
+
+  it('increments switchCount when switching between two accounts of the same keyring type', () => {
+    getInternalAccountByAddressMock.mockImplementation((_, address) =>
+      createMockInternalAccount(address ?? PAYING_ACCOUNT_MOCK, 'Account'),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+    const { result, rerender } = runHook({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(result.current).toEqual({
+      presented: 'metamask',
+      selected: 'metamask',
+      switchCount: 0,
+    });
+
+    useTransactionAccountOverrideMock.mockReturnValue(
+      SECOND_PAYING_ACCOUNT_MOCK,
+    );
+    useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
+    rerender({});
+
+    expect(result.current).toEqual({
+      presented: 'metamask',
+      selected: 'metamask',
+      switchCount: 1,
+    });
+  });
+
+  it('increments switchCount twice when switching to another account and back', () => {
+    getInternalAccountByAddressMock.mockImplementation((_, address) =>
+      createMockInternalAccount(address ?? PAYING_ACCOUNT_MOCK, 'Account'),
+    );
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+    const { result, rerender } = runHook({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    useTransactionAccountOverrideMock.mockReturnValue(
+      SECOND_PAYING_ACCOUNT_MOCK,
+    );
+    useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
+    rerender({});
+
+    expect(result.current.switchCount).toBe(1);
+
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+    useTransactionPayingAccountMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+    rerender({});
+
+    expect(result.current.switchCount).toBe(2);
+  });
+
+  it('does not increment switchCount when the same account is re-selected', () => {
+    const accountLowercase =
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
+    const accountUppercase =
+      '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' as const;
+    useTransactionPayingAccountMock.mockReturnValue(accountLowercase);
+    useTransactionAccountOverrideMock.mockReturnValue(accountLowercase);
+
+    const { result, rerender } = runHook({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    useTransactionPayingAccountMock.mockReturnValue(accountUppercase);
+    useTransactionAccountOverrideMock.mockReturnValue(accountUppercase);
+    rerender({});
+
+    expect(result.current.switchCount).toBe(0);
+  });
+
+  it('does not increment switchCount when payingAccount changes under a non-crypto section', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'pm_123',
+    });
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+    const { result, rerender } = runHook({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    useTransactionAccountOverrideMock.mockReturnValue(
+      SECOND_PAYING_ACCOUNT_MOCK,
+    );
+    useTransactionPayingAccountMock.mockReturnValue(SECOND_PAYING_ACCOUNT_MOCK);
+    rerender({});
+
+    expect(result.current.selected).toBe('bank-card');
     expect(result.current.switchCount).toBe(0);
   });
 });
