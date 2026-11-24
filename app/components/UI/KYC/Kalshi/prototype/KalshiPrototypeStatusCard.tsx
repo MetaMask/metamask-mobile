@@ -1,9 +1,11 @@
 // PROTOTYPE-DO-NOT-MERGE
 import React from 'react';
+import { Image } from 'react-native';
 import BannerCompact, {
   type BannerCompactProps,
 } from '../../../../../component-library/components-temp/BannerCompact';
-import moneyVbaKycDecisionArt from '../../../../../images/money-vba-kyc-decision-art.png';
+// The VBA can't-verify X, cropped to its artwork so it sits as large as the tick.
+import cantVerifyArt from './kalshi-proto-cant-verify-x.png';
 import verifiedCheckAnimation from '../../../../../animations/card_verified_check.riv';
 import kycVerifiedCheckArt from '../../components/assets/kyc-identity-verified-art.png';
 import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
@@ -32,6 +34,22 @@ const IDENTITY_ANIMATION_THUMBNAIL = VERIFYING_HERO.heroAnimation ? (
   />
 ) : undefined;
 
+/** How wide the X and the tick's visible artwork sit in the 72pt slot. */
+const STATUS_GLYPH_SIZE = 56;
+/**
+ * The tick Rive's artboard carries its own empty margin, so the view is drawn
+ * larger than the slot and the slot clips the margin away.
+ */
+const VERIFIED_RIVE_WIDTH = 126;
+
+const CANT_VERIFY_THUMBNAIL = (
+  <Image
+    source={cantVerifyArt}
+    style={{ width: STATUS_GLYPH_SIZE, height: STATUS_GLYPH_SIZE }}
+    resizeMode="contain"
+  />
+);
+
 /**
  * The green verified tick Rive (`card_verified_check.riv`): `Intro` plays
  * once, then holds. Its static art is the fallback.
@@ -45,8 +63,8 @@ const VERIFIED_THUMBNAIL = (
     }}
     fallback={{
       source: kycVerifiedCheckArt,
-      width: THUMBNAIL_WIDTH,
-      height: Math.round((107 / 140) * THUMBNAIL_WIDTH),
+      width: VERIFIED_RIVE_WIDTH,
+      height: Math.round((107 / 140) * VERIFIED_RIVE_WIDTH),
     }}
   />
 );
@@ -90,8 +108,7 @@ const CARD_STATE_CONFIG: Record<
     isDismissible: false,
   },
   cantVerify: {
-    // The VBA can't-verify card's X.
-    thumbnail: moneyVbaKycDecisionArt,
+    thumbnail: CANT_VERIFY_THUMBNAIL,
     isPressable: false,
     isDismissible: true,
   },
