@@ -49,12 +49,6 @@ import {
   revShareHeldForTax,
 } from './taxDocumentation';
 
-/**
- * The address on the press is a previous Money Account that is no longer paid
- * (422 body names the current one). Retried once with the store's account.
- */
-const PAYOUT_ADDRESS_MIGRATED = 'PAYOUT_ADDRESS_MIGRATED';
-
 const RETRY_REASONS = new Set([
   'PROOF_INVALID',
   'SIGNER_UNAVAILABLE',
@@ -924,7 +918,7 @@ function toastKeyForReason(
   if (reason === 'EARNING_ADDRESS_MISSING') {
     return 'claimFailureContactSupportToast';
   }
-  if (reason === PAYOUT_ADDRESS_MIGRATED) {
+  if (reason === 'PAYOUT_ADDRESS_MIGRATED') {
     return 'claimFailurePayoutMigratedToast';
   }
   if (TERMINAL_REASONS.has(reason)) {
@@ -1041,7 +1035,7 @@ export function claimFailureReason(reason: string): string {
   if (reason === 'NO_ELIGIBLE_BALANCE') {
     return 'nothing_to_claim';
   }
-  if (reason === PAYOUT_ADDRESS_MIGRATED) {
+  if (reason === 'PAYOUT_ADDRESS_MIGRATED') {
     return 'payout_migrated';
   }
   if (WAIT_REASONS.has(reason)) {
@@ -1572,7 +1566,7 @@ export async function runEarningsClaim(
     // The payee moved to a new Money Account since this press started. Retry
     // this route once with the account the store now names. A second refusal,
     // or the same address again, stays as it is.
-    if (outcome.reason === PAYOUT_ADDRESS_MIGRATED) {
+    if (outcome.reason === 'PAYOUT_ADDRESS_MIGRATED') {
       const current = deps.getMoneyAccountAddress();
       if (
         current &&
