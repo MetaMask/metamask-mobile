@@ -5,12 +5,6 @@
 export const SPENDING_LIMIT_WARNING_THRESHOLD = 0.8;
 
 /**
- * Consumed fraction at which the Manage limit sublabel turns error
- * (less than 10% of the total remaining, including none left).
- */
-export const SPENDING_LIMIT_ERROR_THRESHOLD = 0.9;
-
-/**
  * Display formatting used by SpendingLimitProgressBar and the Manage limit
  * row. Values are already in token units; decimals are not re-applied.
  */
