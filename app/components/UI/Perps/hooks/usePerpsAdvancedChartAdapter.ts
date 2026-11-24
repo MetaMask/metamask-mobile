@@ -87,6 +87,13 @@ export interface UsePerpsAdvancedChartAdapterResult {
   hasCurrentSeriesData?: boolean;
   deliveryRevision: number;
   hasFreshCurrentSeriesDelivery: boolean;
+  /**
+   * Keys the AdvancedChart WebView: stable across interval switches (the live
+   * WebView swaps the series) and bumped when a new interval resolves without
+   * bars, since the WebView ignores an empty series and would keep showing the
+   * previous interval's candles.
+   */
+  webViewInstanceKey?: string;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
@@ -120,6 +127,11 @@ export function usePerpsAdvancedChartAdapter({
     string | undefined
   >();
   const acceptedDeliveryRef = useRef(false);
+  const [webViewEpoch, setWebViewEpoch] = useState(0);
+  /** Symbol and series whose bars the current WebView shows; null when none. */
+  const shownSeriesRef = useRef<{ symbol: string; seriesKey: string } | null>(
+    null,
+  );
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
@@ -147,10 +159,7 @@ export function usePerpsAdvancedChartAdapter({
   }, [symbol, stream]);
 
   useEffect(() => {
-    // A new symbol remounts the WebView; a new interval swaps the series in the
-    // live WebView. Clear the prior series and set `isLoading` together so an
-    // empty response cannot leave old bars in state. `PerpsAdvancedChart`
-    // relies on that pairing to tell a resolved-empty series from a switch.
+    // Clear the prior series so an empty response cannot leave old bars in state.
     setIsLoading(true);
     setOhlcvData([]);
     setRealtimeBar(undefined);
@@ -159,6 +168,19 @@ export function usePerpsAdvancedChartAdapter({
     prevLastBarRef.current = null;
     latestCandleDataRef.current = null;
     hasReceivedFirstUpdateRef.current = false;
+
+    // A new symbol already gets a new WebView key, so nothing is shown in it.
+    if (shownSeriesRef.current?.symbol !== symbol) {
+      shownSeriesRef.current = null;
+    }
+    const seriesKey = `${symbol}|${interval}`;
+    const remountIfShowingAnotherSeries = () => {
+      const shown = shownSeriesRef.current;
+      if (shown && shown.seriesKey !== seriesKey) {
+        shownSeriesRef.current = null;
+        setWebViewEpoch((epoch) => epoch + 1);
+      }
+    };
 
     const unsubscribe = stream.candles.subscribe({
       symbol,
@@ -204,6 +226,7 @@ export function usePerpsAdvancedChartAdapter({
           setLatestBarSeriesKey(`${symbol}|${interval}`);
           prevLastBarRef.current = null;
           setRealtimeBar(undefined);
+          remountIfShowingAnotherSeries();
           return;
         }
 
@@ -213,6 +236,7 @@ export function usePerpsAdvancedChartAdapter({
         if (prev === null) {
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
+          shownSeriesRef.current = { symbol, seriesKey };
           setLatestBarSeriesKey(`${symbol}|${interval}`);
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
         } else if (
@@ -244,6 +268,7 @@ export function usePerpsAdvancedChartAdapter({
         // A transient candle error should not tear down the WebView chart, so we do
         // not trigger the Lightweight fallback here.
         setIsLoading(false);
+        remountIfShowingAnotherSeries();
         DevLogger.log(
           'usePerpsAdvancedChartAdapter: candle subscription error',
           { symbol, interval: interval as string, error: err?.message },
@@ -325,6 +350,7 @@ export function usePerpsAdvancedChartAdapter({
     deliveryRevision,
     hasFreshCurrentSeriesDelivery:
       freshDeliverySeriesKey === `${symbol}|${interval}`,
+    webViewInstanceKey: `${symbol}|perps|${webViewEpoch}`,
     handleFetchOlderBarsRequest,
   };
 }
