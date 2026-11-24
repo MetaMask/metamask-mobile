@@ -3746,6 +3746,40 @@ describe('PerpsStreamManager', () => {
       expect(defaultCallback).toHaveBeenLastCalledWith(['BTC']);
     });
 
+    it("does not hand another venue's tick to an untagged subscriber before the default venue reports", () => {
+      const venueCallbacks = new Map<string, (caps: string[]) => void>();
+      mockSubscribeToOICaps.mockImplementation(
+        (params: {
+          providerId?: string;
+          callback: (caps: string[]) => void;
+        }) => {
+          venueCallbacks.set(params.providerId ?? 'default', params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const defaultCallback = jest.fn();
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: defaultCallback,
+        throttleMs: 0,
+      });
+
+      act(() => venueCallbacks.get('lighter')?.(['BTC']));
+
+      expect(defaultCallback).not.toHaveBeenCalled();
+
+      act(() => venueCallbacks.get('default')?.([]));
+
+      expect(defaultCallback).toHaveBeenCalledTimes(1);
+      expect(defaultCallback).toHaveBeenLastCalledWith([]);
+    });
+
     it('restores every venue stream on reconnect', () => {
       mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
       testStreamManager.oiCaps.subscribeToSymbol({

@@ -2246,16 +2246,19 @@ class OICapStreamChannel extends StreamChannel<string[]> {
 
   protected getPayloadForSubscriber(
     subscriber: StreamSubscription<string[]>,
-    updates: string[],
   ): string[] | undefined {
     const venueCaps = this.capsByVenue.get(subscriber.providerId ?? 'default');
     if (venueCaps) {
       return venueCaps;
     }
     // A venue that has not reported yet gets nothing rather than another
-    // venue's caps. Untagged subscribers keep the generic payload (e.g. a
+    // venue's caps. The broadcast payload may be another venue's tick, so an
+    // untagged subscriber falls back only to the default-venue cache (e.g. a
     // seeded cache replayed on resume).
-    return subscriber.providerId ? undefined : updates;
+    if (subscriber.providerId) {
+      return undefined;
+    }
+    return this.getCachedData() ?? undefined;
   }
 
   protected getCachedData(): string[] | null {
