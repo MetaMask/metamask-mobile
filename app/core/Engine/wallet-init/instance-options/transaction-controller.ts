@@ -394,7 +394,8 @@ function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
     return false;
   }
 
-  return CONFIRMATION_TRANSACTION_TYPES.includes(
-    transaction.type as TransactionType,
+  return (
+    transaction.type !== undefined &&
+    CONFIRMATION_TRANSACTION_TYPES.includes(transaction.type)
   );
 }

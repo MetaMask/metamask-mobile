@@ -9,9 +9,8 @@ import { CONFIRMATION_TRANSACTION_TYPES } from '../../../../../components/Views/
 export function handleShowNotification(transactionMeta: TransactionMeta) {
   const { status } = transactionMeta;
   if (
-    CONFIRMATION_TRANSACTION_TYPES.includes(
-      transactionMeta.type as TransactionType,
-    ) &&
+    transactionMeta.type !== undefined &&
+    CONFIRMATION_TRANSACTION_TYPES.includes(transactionMeta.type) &&
     status !== TransactionStatus.failed
   ) {
     NotificationManager.watchSubmittedTransaction(transactionMeta);

@@ -82,9 +82,9 @@ export function shouldNavigateConfirmationModal(
   if (approvalType === ApprovalTypes.TRANSACTION) {
     // Skip swap-related transactions (handled by dedicated swap UI)
     if (
-      transactionMetadata &&
+      transactionMetadata?.type !== undefined &&
       TRANSACTION_TYPES_TO_SKIP_RENDER_CONFIRMATION.includes(
-        transactionMetadata.type as TransactionType,
+        transactionMetadata.type,
       )
     ) {
       return false;
@@ -92,10 +92,8 @@ export function shouldNavigateConfirmationModal(
 
     // Valid transaction types use modal
     if (
-      transactionMetadata &&
-      CONFIRMATION_TRANSACTION_TYPES.includes(
-        transactionMetadata.type as TransactionType,
-      )
+      transactionMetadata?.type !== undefined &&
+      CONFIRMATION_TRANSACTION_TYPES.includes(transactionMetadata.type)
     ) {
       return true;
     }
