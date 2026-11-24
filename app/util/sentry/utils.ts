@@ -713,6 +713,10 @@ export async function setupSentry(
       Sentry.extraErrorDataIntegration(),
       Sentry.reactNativeTracingIntegration({ traceFetch: true }),
       getNavIntegration(),
+      // Sentry Spotlight integration for observing Sentry span and perforance metrics locally.
+      ...(isDev && process.env.SENTRY_SPOTLIGHT === 'true'
+        ? [Sentry.spotlightIntegration()]
+        : []),
     ];
     const environment = deriveSentryEnvironment(
       __DEV__,
