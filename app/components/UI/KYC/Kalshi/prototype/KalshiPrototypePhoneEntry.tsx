@@ -38,7 +38,7 @@ import { KalshiPrototypePhoneEntrySelectorsIDs } from './KalshiPrototypePhoneEnt
 
 interface KalshiPrototypePhoneEntryProps {
   /** Sends the code to the full number (dial code + digits). */
-  onSend: (phoneNumber: string) => void | Promise<void>;
+  onSend: (phoneNumber: string, displayNumber: string) => void | Promise<void>;
   /** Leaves the screen. */
   onBack: () => void;
 }
@@ -99,7 +99,10 @@ const KalshiPrototypePhoneEntry = ({
     }
     setIsSending(true);
     try {
-      await onSend(`${country.phone.prefix}${digits}`);
+      await onSend(
+        `${country.phone.prefix}${digits}`,
+        `${country.phone.prefix} ${formatNumberToTemplate(digits, country.phone.template)}`,
+      );
     } finally {
       setIsSending(false);
     }

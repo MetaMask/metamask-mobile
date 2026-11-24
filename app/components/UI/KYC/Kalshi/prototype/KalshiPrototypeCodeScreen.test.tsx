@@ -160,8 +160,25 @@ describe('KalshiPrototypeCodeScreen', () => {
       expect(getByLabelText('Kalshi')).toBeOnTheScreen();
       expect(queryByLabelText(PROTOTYPE_COPY.lockup)).toBeNull();
       expect(getByText(PROTOTYPE_COPY.phoneCode.title)).toBeOnTheScreen();
-      expect(getByText(PROTOTYPE_COPY.phoneCode.body)).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Check your messages for a 6-digit code from Kalshi. We sent it to your phone.',
+        ),
+      ).toBeOnTheScreen();
       expect(queryByTestId(MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK)).toBeNull();
+    });
+
+    it('shows the number the user entered', () => {
+      const { getByText } = renderScreen({
+        channel: 'phone',
+        phoneNumber: '+1 (555) 123-4567',
+      });
+
+      expect(
+        getByText(
+          'Check your messages for a 6-digit code from Kalshi. We sent it to +1 (555) 123-4567.',
+        ),
+      ).toBeOnTheScreen();
     });
   });
 });

@@ -45,7 +45,7 @@ describe('KalshiPrototypePhoneEntry', () => {
     await act(async () => {
       fireEvent.press(getByTestId(IDs.SEND_BUTTON));
     });
-    expect(onSend).toHaveBeenCalledWith('+15551234567');
+    expect(onSend).toHaveBeenCalledWith('+15551234567', '+1 (555) 123-4567');
   });
 
   it('shows the error and does not send a short number', async () => {

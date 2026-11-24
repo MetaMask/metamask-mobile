@@ -142,9 +142,11 @@ export const PROTOTYPE_COPY = {
     body: 'Check your email for a 6-digit code from Kalshi. We sent it to {maskedEmail}.',
   },
   /** The phone code screen, worded like the email one under the same wordmark. */
+  /** Shown on the phone code screen when no number was passed in. */
+  phoneCodeFallbackNumber: 'your phone',
   phoneCode: {
     title: "Enter Kalshi's verification code",
-    body: 'Kalshi texted a 6-digit code to your phone.',
+    body: 'Check your messages for a 6-digit code from Kalshi. We sent it to {phoneNumber}.',
   },
   /** The email screen behind "Use my Kalshi email", for an existing Kalshi account. */
   emailEntry: {

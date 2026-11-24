@@ -38,7 +38,7 @@ export type KalshiPrototypeParamList = {
   KalshiPrototypePhoneEntry: undefined;
   // Ramp's phone country sheet, opened from the phone field.
   KalshiPrototypePhoneCountry: PhoneCountrySelectorModalParams;
-  KalshiPrototypePhoneCode: undefined;
+  KalshiPrototypePhoneCode: { phoneNumber?: string } | undefined;
   KalshiPrototypeSumsub: undefined;
   KalshiPrototypeDecision: undefined;
 };
