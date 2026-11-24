@@ -713,9 +713,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
-  // Same venue the lock and the liquidation formula use. Another venue's
-  // position for this symbol must not set the cross estimate.
+  // A route provider wins. Otherwise use the venue this order will go to, so
+  // the sheet, the margin lock, and the liquidation formula follow the
+  // position it will change. Another venue's position for this symbol must
+  // not set the cross estimate.
   const liquidationProviderId =
+    route.params?.providerId ??
+    orderProvider ??
     marketData?.providerId ??
     (activePerpsProvider === PROVIDER_CONFIG.LighterProvider
       ? PROVIDER_CONFIG.LighterProvider
