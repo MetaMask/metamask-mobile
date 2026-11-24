@@ -36,12 +36,14 @@ interface SymbolTotal {
 
 const getQuickDepositSymbol = (
   asset: QuickDepositAsset,
+  preferredName?: string,
 ): QuickDepositSymbol | undefined => {
   if (isMusdTokenOnChain(asset.address, asset.chainId)) {
     return 'mUSD';
   }
 
-  const symbol = asset.symbol.toUpperCase();
+  // The Pay config name is authoritative; token metadata can differ (e.g. USDT0).
+  const symbol = (preferredName ?? asset.symbol).toUpperCase();
   if (symbol === 'USDC') {
     return 'USDC';
   }
@@ -69,18 +71,19 @@ export const buildQuickDepositStablecoinOption = ({
   assets: readonly QuickDepositAsset[];
   supportedTokens: readonly PreferredToken[];
 }): QuickDepositStablecoinOption | undefined => {
-  const supported = new Set(
-    supportedTokens.map(
-      ({ address, chainId }) =>
-        `${chainId.toLowerCase()}:${address.toLowerCase()}`,
-    ),
+  const supported = new Map(
+    supportedTokens.map((token) => [
+      `${token.chainId.toLowerCase()}:${token.address.toLowerCase()}`,
+      token,
+    ]),
   );
   const totals = new Map<QuickDepositSymbol, SymbolTotal>();
 
   for (const asset of assets) {
     const key = `${asset.chainId.toLowerCase()}:${asset.address.toLowerCase()}`;
-    const symbol = supported.has(key)
-      ? getQuickDepositSymbol(asset)
+    const supportedToken = supported.get(key);
+    const symbol = supportedToken
+      ? getQuickDepositSymbol(asset, supportedToken.name)
       : undefined;
     const balance = symbol ? getBalance(asset) : undefined;
 

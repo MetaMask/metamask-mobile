@@ -40,6 +40,7 @@ export const STX_DISABLED_DEFAULT = false;
 export interface PreferredToken {
   address: string;
   chainId: string;
+  name?: string;
   successRate: number;
 }
 

@@ -17,23 +17,28 @@ const BSC_USDT = '0x55d398326f99059ff775485246999027b3197955';
 const POLYGON_USDC = '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359';
 const MUSD = MUSD_TOKEN_ADDRESS;
 
-const token = (address: string, chainId: string): PreferredToken => ({
+const token = (
+  address: string,
+  chainId: string,
+  name?: string,
+): PreferredToken => ({
   address,
   chainId,
+  name,
   successRate: 1,
 });
 
 const supportedTokens = [
-  token(ETH_USDC, CHAIN_IDS.MAINNET),
-  token(ETH_USDT, CHAIN_IDS.MAINNET),
-  token(ETH_AUSDC, CHAIN_IDS.MAINNET),
-  token(ARB_USDT, CHAIN_IDS.ARBITRUM),
-  token(BASE_USDC, CHAIN_IDS.BASE),
-  token(BSC_USDC, CHAIN_IDS.BSC),
-  token(BSC_USDT, CHAIN_IDS.BSC),
-  token(MUSD, CHAIN_IDS.MAINNET),
-  token(MUSD, CHAIN_IDS.LINEA_MAINNET),
-  token(MUSD, CHAIN_IDS.MONAD),
+  token(ETH_USDC, CHAIN_IDS.MAINNET, 'USDC'),
+  token(ETH_USDT, CHAIN_IDS.MAINNET, 'USDT'),
+  token(ETH_AUSDC, CHAIN_IDS.MAINNET, 'aEthUSDC'),
+  token(ARB_USDT, CHAIN_IDS.ARBITRUM, 'USDT'),
+  token(BASE_USDC, CHAIN_IDS.BASE, 'USDC'),
+  token(BSC_USDC, CHAIN_IDS.BSC, 'USDC'),
+  token(BSC_USDT, CHAIN_IDS.BSC, 'USDT'),
+  token(MUSD, CHAIN_IDS.MAINNET, 'mUSD'),
+  token(MUSD, CHAIN_IDS.LINEA_MAINNET, 'mUSD'),
+  token(MUSD, CHAIN_IDS.MONAD, 'mUSD'),
 ];
 
 const raw = (whole: string, decimals: number): Hex =>
@@ -111,6 +116,25 @@ describe('buildQuickDepositStablecoinOption', () => {
           address: ARB_USDT,
           chainId: CHAIN_IDS.ARBITRUM,
         },
+      }),
+    );
+  });
+
+  it('uses the Pay config name when token metadata differs', () => {
+    expect(
+      build([
+        asset({
+          address: ARB_USDT,
+          chainId: CHAIN_IDS.ARBITRUM,
+          symbol: 'USDT0',
+          rawBalance: raw('75', 6),
+        }),
+      ]),
+    ).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
+        intent: 'addUsdt',
+        aggregatedBalance: '75',
       }),
     );
   });
@@ -285,7 +309,25 @@ describe('buildQuickDepositStablecoinOption', () => {
             rawBalance: raw('60', 6),
           }),
         ],
-        [...supportedTokens, token(POLYGON_USDC, CHAIN_IDS.POLYGON)],
+        [...supportedTokens, token(POLYGON_USDC, CHAIN_IDS.POLYGON, 'USDC.e')],
+      ),
+    ).toBeUndefined();
+  });
+
+  it('ignores the legacy MUSD token', () => {
+    const legacyMusd = '0xe2fceac20813592220b8c56999000d08c7844e6c';
+
+    expect(
+      build(
+        [
+          asset({
+            address: legacyMusd,
+            chainId: CHAIN_IDS.MAINNET,
+            symbol: 'MUSD',
+            rawBalance: raw('50', 6),
+          }),
+        ],
+        [...supportedTokens, token(legacyMusd, CHAIN_IDS.MAINNET, 'MUSD')],
       ),
     ).toBeUndefined();
   });
