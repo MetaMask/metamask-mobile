@@ -25417,11 +25417,6 @@
       "count": 1
     }
   },
-  "tests/component-view/renderers/bridge.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 12
-    }
-  },
   "tests/component-view/renderers/identity.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 4

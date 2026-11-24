@@ -66,9 +66,7 @@ export function BridgeLimitOrderActivityNavigator() {
     <LimitOrderActivityStack.Navigator screenOptions={{ headerShown: false }}>
       <LimitOrderActivityStack.Screen
         name={Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY}
-        component={
-          SwapsLimitOrderActivityPage as unknown as React.ComponentType<object>
-        }
+        component={SwapsLimitOrderActivityPage}
       />
     </LimitOrderActivityStack.Navigator>
   );
@@ -115,6 +113,12 @@ interface RenderBridgeViewOptions {
   deterministicFiat?: boolean;
 }
 
+interface RenderBridgeViewForMoneySwapOptions extends RenderBridgeViewOptions {
+  srcTokenAddress?: string;
+  destTokenAddress?: string;
+  srcAmount?: string;
+}
+
 interface RenderRecurringOrderDetailsViewOptions
   extends RenderBridgeViewOptions,
     RecurringOrderDetailsRouteParams {}
@@ -143,11 +147,54 @@ export function renderBridgeView(
   const state = builder.build();
 
   return renderComponentViewScreen(
-    BridgeViewWithSession as unknown as React.ComponentType,
+    BridgeViewWithSession,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     { state },
   );
 }
+
+/**
+ * BridgeView plus probes for Money home and the post-trade sheet so a confirm
+ * press can assert which destination the swap actually took.
+ */
+export const renderBridgeViewForMoneySwap = (
+  options: RenderBridgeViewForMoneySwapOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> => {
+  const {
+    overrides,
+    deterministicFiat,
+    srcTokenAddress,
+    destTokenAddress,
+    srcAmount,
+  } = options;
+
+  const builder = initialStateBridge({
+    deterministicFiat,
+  }).withBridgeRecommendedQuoteEvmSimple({
+    srcTokenAddress,
+    destTokenAddress,
+    srcAmount,
+  });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+
+  return renderScreenWithRoutes(
+    BridgeViewWithSession,
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    [
+      {
+        name: Routes.HOME_TABS,
+        Component: createRouteParamsProbe(Routes.HOME_TABS),
+      },
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+      },
+    ],
+    { state: builder.build() },
+  );
+};
 
 export function renderBridgeViewWithModals(
   options: RenderBridgeViewOptions = {},
@@ -184,13 +231,11 @@ export function renderBridgeViewWithRecurringOrderDetails(
     [
       {
         name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
-        Component:
-          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+        Component: RecurringOrderDetailsView,
       },
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
-        Component:
-          RecurringSwapDetailsView as unknown as React.ComponentType<object>,
+        Component: RecurringSwapDetailsView,
       },
     ],
     state,
@@ -204,8 +249,7 @@ export const renderBridgeViewWithTokenSelector = (
     [
       {
         name: Routes.BRIDGE.TOKEN_SELECTOR,
-        Component:
-          BridgeTokenSelector as unknown as React.ComponentType<object>,
+        Component: BridgeTokenSelector,
       },
     ],
     state,
@@ -250,13 +294,11 @@ export function renderRecurringOrderDetailsView({
       },
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
-        Component:
-          RecurringSwapDetailsViewWithSession as unknown as React.ComponentType<object>,
+        Component: RecurringSwapDetailsViewWithSession,
       },
       {
         name: Routes.BRIDGE.ROOT,
-        Component:
-          BridgeNavigatorProbe as unknown as React.ComponentType<object>,
+        Component: BridgeNavigatorProbe,
       },
       {
         name: Routes.WEBVIEW.MAIN,
@@ -299,7 +341,7 @@ export function renderOpenLimitOrderDetailsModal({
     [
       {
         name: Routes.BRIDGE.MODALS.ROOT,
-        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+        Component: BridgeModalStack,
       },
     ],
     { state },
@@ -328,12 +370,11 @@ export function renderLimitOrderTabRow({
     [
       {
         name: Routes.BRIDGE.MODALS.ROOT,
-        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+        Component: BridgeModalStack,
       },
       {
         name: Routes.BRIDGE.ROOT,
-        Component:
-          BridgeLimitOrderActivityNavigator as unknown as React.ComponentType<object>,
+        Component: BridgeLimitOrderActivityNavigator,
       },
       {
         name: Routes.WEBVIEW.MAIN,
@@ -354,7 +395,7 @@ export function renderBlockExplorersModal(
   options: RenderBlockExplorersModalOptions,
 ): ReturnType<typeof renderScreenWithRoutes> {
   return renderScreenWithRoutes(
-    BlockExplorersModal as unknown as React.ComponentType,
+    BlockExplorersModal,
     { name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER },
     [
       {
@@ -363,6 +404,6 @@ export function renderBlockExplorersModal(
       },
     ],
     { state: options.state },
-    options.params as unknown as Record<string, unknown>,
+    options.params,
   );
 }
