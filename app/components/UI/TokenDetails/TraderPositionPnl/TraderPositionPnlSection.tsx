@@ -1,5 +1,6 @@
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import React, { type FC } from 'react';
+import type { SharedValue } from 'react-native-reanimated';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
@@ -12,6 +13,10 @@ interface TraderPositionPnlSectionProps {
   securityData?: TokenSecurityData | null;
   /** Reports the laid-out height of the sticky footer. */
   onFooterLayout?: (height: number) => void;
+  /** Reports how far the floating Buy/Sell row reaches up from the bottom. */
+  onFloatingActionsInsetChange?: (inset: number) => void;
+  /** Page scroll offset; scrolling down slides the floating actions away. */
+  floatingActionsScrollY?: SharedValue<number>;
 }
 
 /**
@@ -25,6 +30,8 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   tokenKey,
   securityData,
   onFooterLayout,
+  onFloatingActionsInsetChange,
+  floatingActionsScrollY,
 }) => {
   const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
     token,
@@ -48,6 +55,9 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
         onOpenQuickBuy={openQuickBuy}
         traderPositionPnl={traderPositionPnl}
         onFooterLayout={onFooterLayout}
+        isFloatingActions
+        onFloatingActionsInsetChange={onFloatingActionsInsetChange}
+        floatingActionsScrollY={floatingActionsScrollY}
       />
       {quickBuySheet}
     </>

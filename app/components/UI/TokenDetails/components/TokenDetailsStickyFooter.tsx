@@ -16,7 +16,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -24,6 +30,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,6 +56,15 @@ import TraderPositionPnl, {
   type TraderPositionPnlProps,
 } from '../TraderPositionPnl/TraderPositionPnl';
 import TraderPositionPnlDetails from '../TraderPositionPnl/TraderPositionPnlDetails';
+import FloatingActionButtonGlass, {
+  type FloatingActionButtonGlassProps,
+} from '../../../../component-library/components-temp/ButtonGlass/FloatingActionButtonGlass';
+import {
+  FLOATING_ACTIONS_BOTTOM_MARGIN,
+  useFloatingActionsScrollHide,
+} from '../../../hooks/useFloatingActionsScrollHide';
+import { useIsGlassSurfaceEnabled } from '../../../hooks/useIsGlassSurfaceEnabled';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -68,6 +84,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 0,
     paddingRight: 4,
+  },
+  floatingActions: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
   },
   quickBuyButton: {
     width: 48,
@@ -98,6 +119,29 @@ const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
 const EXPANDED_DETAILS_FALLBACK_HEIGHT = 240;
 const EXPANDED_DETAILS_BOTTOM_SPACING = 16;
 const SHEET_SWIPE_ACTIVATION_OFFSET_PX = 10;
+/** Space between the floating actions and the sheet or safe area below them. */
+export { FLOATING_ACTIONS_BOTTOM_MARGIN };
+export const FLOATING_ACTIONS_TEST_ID = 'token-details-floating-actions';
+/**
+ * The dialog's hidden drag-handle row above the position line (p-1, h-1, p-1).
+ * With the actions floating, the sheet adds it below the safe area too.
+ */
+const SHEET_HANDLE_ROW_HEIGHT = 12;
+type FooterActionButtonProps = Omit<
+  FloatingActionButtonGlassProps,
+  'tintColor'
+> & {
+  /** Primary fill drawn as the glass tint. */
+  glassTintColor?: string;
+};
+
+/** A footer action: the plain `Button`, or floating glass when `isGlass`. */
+const FooterActionButton = ({
+  glassTintColor,
+  ...props
+}: FooterActionButtonProps) => (
+  <FloatingActionButtonGlass {...props} tintColor={glassTintColor} />
+);
 
 type StickyButtonLayout =
   | 'both'
@@ -169,6 +213,22 @@ interface TokenStickyFooterProps {
    */
   reserveTraderPositionLayout?: boolean;
   onFooterLayout?: (height: number) => void;
+  /**
+   * Pull the action buttons out of the footer and float them on Liquid Glass,
+   * 16px above the position sheet (or the safe area when there is no sheet).
+   */
+  isFloatingActions?: boolean;
+  /**
+   * With `isFloatingActions`: how far from the screen bottom the floating
+   * actions reach, so the page can pad its scroll content clear of them.
+   */
+  onFloatingActionsInsetChange?: (inset: number) => void;
+  /**
+   * With `isFloatingActions`: the page's scroll offset. Scrolling down slides
+   * the actions down behind the sheet; scrolling up brings them back. Omit to
+   * keep them shown.
+   */
+  floatingActionsScrollY?: SharedValue<number>;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -195,9 +255,18 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   traderPositionPnl,
   reserveTraderPositionLayout = false,
   onFooterLayout,
+  isFloatingActions = false,
+  onFloatingActionsInsetChange,
+  floatingActionsScrollY,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
+  const isGlassSurfaceEnabled = useIsGlassSurfaceEnabled(
+    selectTokenDetailsBrandRefreshEnabled,
+  );
+  const isGlassActions = isFloatingActions && isGlassSurfaceEnabled;
+  const [sheetHeight, setSheetHeight] = useState(0);
+  const [floatingActionsHeight, setFloatingActionsHeight] = useState(0);
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
@@ -557,20 +626,68 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       borderWidth: 0,
       borderTopColor: colors.border.muted,
       borderTopWidth: traderPositionPnl?.isExpanded ? 0 : 1,
-      paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
+      // With the actions floating: the safe area plus the same space that
+      // sits above the position line.
+      paddingBottom: isFloatingActions
+        ? insets.bottom + SHEET_HANDLE_ROW_HEIGHT
+        : skipBottomInset
+          ? 4
+          : insets.bottom + 6,
     }),
     [
       colors.border.muted,
       footerSurfaceColor,
       insets.bottom,
+      isFloatingActions,
       skipBottomInset,
       traderPositionPnl?.isExpanded,
     ],
   );
+  // Floating actions leave the sheet only for the position line, so an empty
+  // reserved sheet (position still loading) isn't drawn.
+  const showPositionSheet =
+    showTraderPositionLayout &&
+    (!isFloatingActions || (hasTraderPosition && hasTokenBalance));
+
+  // 16px above the sheet's top edge; with no sheet (or before it measures),
+  // on the safe area.
+  const floatingActionsBottom =
+    showPositionSheet && sheetHeight > 0
+      ? sheetHeight + FLOATING_ACTIONS_BOTTOM_MARGIN
+      : insets.bottom;
+
+  const floatingActionsInset =
+    isFloatingActions && (tradingOpen || isTokenDetailsV1)
+      ? floatingActionsBottom + floatingActionsHeight
+      : 0;
+  useEffect(() => {
+    if (isFloatingActions) {
+      onFloatingActionsInsetChange?.(floatingActionsInset);
+    }
+  }, [floatingActionsInset, isFloatingActions, onFloatingActionsInsetChange]);
+
+  // Scroll down hides the floating actions, scroll up shows them again. With
+  // the sheet they end just under its top edge; without, off the screen bottom.
+  const {
+    slideStyle: floatingActionsSlideStyle,
+    isHidden: areFloatingActionsHidden,
+  } = useFloatingActionsScrollHide({
+    scrollY: floatingActionsScrollY,
+    travel:
+      floatingActionsHeight +
+      (showPositionSheet
+        ? FLOATING_ACTIONS_BOTTOM_MARGIN
+        : floatingActionsBottom),
+    // The open position details keep the actions in view.
+    isForcedShown: isTraderPositionExpanded,
+  });
+
   if (!tradingOpen && !isTokenDetailsV1) return null;
 
   const moneyDepositButton = showMoneyDepositButton ? (
-    <Button
+    <FooterActionButton
+      isGlass={isGlassActions}
+      glassTintColor={successColorHex}
       testID="money-asset-overview-footer-cta"
       variant={ButtonVariant.Primary}
       style={styles.moneyDepositButton}
@@ -601,18 +718,27 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       >
         {moneyDepositCta?.label}
       </Text>
-    </Button>
+    </FooterActionButton>
   ) : null;
 
   const handleFooterLayout = (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    if (isFloatingActions) {
+      setSheetHeight(height);
+    }
     if (expandedDetailsProgress.value === 0) {
-      onFooterLayout?.(event.nativeEvent.layout.height);
+      onFooterLayout?.(height);
     }
   };
 
   const positionContent = traderPositionPnl ? (
     <>
-      <TraderPositionPnl {...traderPositionPnl} />
+      <TraderPositionPnl
+        {...traderPositionPnl}
+        // Floating actions no longer sit under the header; keep the gap only
+        // for the expanded details.
+        hasBottomMargin={!isFloatingActions || isTraderPositionExpanded}
+      />
       {traderPositionPnl.expandedDetails && (
         <View
           pointerEvents="none"
@@ -643,7 +769,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         ]}
       >
         {showSwapButton && !isBuySellLayout && (
-          <Button
+          <FooterActionButton
+            isGlass={isGlassActions}
+            glassTintColor={successColorHex}
             testID={swapTestID}
             variant={
               swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
@@ -678,11 +806,13 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             }}
           >
             {strings('asset_overview.swap')}
-          </Button>
+          </FooterActionButton>
         )}
         {moneyDepositButton}
         {showBuyButton && !isBuySellLayout && (
-          <Button
+          <FooterActionButton
+            isGlass={isGlassActions}
+            glassTintColor={successColorHex}
             testID={buyTestID}
             variant={
               buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
@@ -709,10 +839,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             }}
           >
             {buyButtonLabel}
-          </Button>
+          </FooterActionButton>
         )}
         {isBuySellLayout && hasTokenBalance && (
-          <Button
+          <FooterActionButton
+            isGlass={isGlassActions}
+            glassTintColor={colors.error.default}
             testID="token-details-footer-quick-sell"
             variant={
               isTokenDetailsV1 ? ButtonVariant.Primary : ButtonVariant.Secondary
@@ -727,10 +859,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             onPress={() => handleOpenQuickBuy('sell')}
           >
             {strings('asset_overview.sell_button')}
-          </Button>
+          </FooterActionButton>
         )}
         {isBuySellLayout && (
-          <Button
+          <FooterActionButton
+            isGlass={isGlassActions}
+            glassTintColor={successColorHex}
             testID="token-details-footer-quick-buy"
             variant={ButtonVariant.Primary}
             style={styles.iconButton}
@@ -739,7 +873,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             onPress={() => handleOpenQuickBuy('buy')}
           >
             {buyButtonLabel}
-          </Button>
+          </FooterActionButton>
         )}
         {showQuickBuyButton && entrypointLayout === 'lightning_swap_buy' && (
           <ButtonAnimated
@@ -780,7 +914,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     </>
   );
 
-  const traderPositionFooter = showTraderPositionLayout ? (
+  const traderPositionFooter = showPositionSheet ? (
     <BottomSheetDialog
       testID="token-details-sticky-footer"
       isInteractable={false}
@@ -798,13 +932,34 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             </Box>
           )}
           {positionContent}
-          {footerActions}
+          {!isFloatingActions && footerActions}
         </View>
       </GestureDetector>
     </BottomSheetDialog>
-  ) : (
+  ) : isFloatingActions ? null : (
     <View style={legacyFooterStyle}>{footerActions}</View>
   );
+
+  const floatingActions = isFloatingActions ? (
+    <Animated.View
+      testID={FLOATING_ACTIONS_TEST_ID}
+      pointerEvents={areFloatingActionsHidden ? 'none' : 'box-none'}
+      accessibilityElementsHidden={areFloatingActionsHidden}
+      importantForAccessibility={
+        areFloatingActionsHidden ? 'no-hide-descendants' : 'auto'
+      }
+      style={[
+        styles.floatingActions,
+        { bottom: floatingActionsBottom },
+        floatingActionsSlideStyle,
+      ]}
+      onLayout={(event) =>
+        setFloatingActionsHeight(event.nativeEvent.layout.height)
+      }
+    >
+      {footerActions}
+    </Animated.View>
+  ) : null;
 
   return (
     <>
@@ -814,6 +969,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           onPress={handleCollapseTraderPosition}
         />
       )}
+      {/* Before the sheet, so the actions slide down behind it. */}
+      {floatingActions}
       {traderPositionFooter}
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />
       {networkModal}

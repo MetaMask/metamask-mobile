@@ -360,6 +360,11 @@ const mockSelectPredictFeeCollectionFlag = {
   permit2Enabled: false,
 };
 
+let mockIsGlassSurfaceEnabled = false;
+jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsGlassSurfaceEnabled,
+}));
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectPredictUpDownEnabledFlag: jest.fn(
     () => mockSelectPredictUpDownEnabledFlag,
@@ -1050,6 +1055,62 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(strings).toHaveBeenCalledWith('predict.buttons.back');
+    });
+  });
+
+  describe('floating footer', () => {
+    const createBinaryMarket = () =>
+      createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+    afterEach(() => {
+      mockIsGlassSurfaceEnabled = false;
+    });
+
+    it('floats the binary buy buttons when glass surfaces are on', () => {
+      mockIsGlassSurfaceEnabled = true;
+      const market = createBinaryMarket();
+
+      setupPredictMarketDetailsTest(market);
+
+      expect(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_BUY_NO_BUTTON,
+        ),
+      );
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcomeToken: market.outcomes[0].tokens[1],
+        }),
+      );
+    });
+
+    it('keeps the docked footer when glass surfaces are off', () => {
+      setupPredictMarketDetailsTest(createBinaryMarket());
+
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(findActionButtonByPrice(35)).toBeDefined();
     });
   });
 

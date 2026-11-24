@@ -20,6 +20,7 @@ import type { TraderPositionPnlDetailsProps } from './TraderPositionPnlDetails';
 const DEFAULT_TEST_ID = 'token-details-trader-position-pnl';
 const positionRowsStyle = { flex: 1 };
 const POSITION_BLOCK_MARGIN = 12;
+const positionBlockMarginStyle = { marginBottom: POSITION_BLOCK_MARGIN };
 
 export interface TraderPositionPnlProps {
   /** Formatted position value in the selected display currency. */
@@ -40,6 +41,12 @@ export interface TraderPositionPnlProps {
   onToggleExpanded?: (isExpanded: boolean) => void;
   /** Test ID for the position header. */
   testID?: string;
+  /**
+   * Keeps the gap below the header, for actions or details that follow it.
+   *
+   * @default true
+   */
+  hasBottomMargin?: boolean;
 }
 
 const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
@@ -49,6 +56,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
   isExpanded = false,
   onToggleExpanded,
   testID = DEFAULT_TEST_ID,
+  hasBottomMargin = true,
 }) => {
   const hasPositionValue = positionValue !== undefined;
   const showLoadingSkeleton = isLoading && !hasPositionValue;
@@ -130,7 +138,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="gap-2"
-      style={{ marginBottom: POSITION_BLOCK_MARGIN }}
+      style={hasBottomMargin ? positionBlockMarginStyle : undefined}
     >
       {isExpandable ? (
         <Pressable

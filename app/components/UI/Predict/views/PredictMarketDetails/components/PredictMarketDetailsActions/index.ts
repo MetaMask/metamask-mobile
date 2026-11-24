@@ -1,2 +1,8 @@
-export { default } from './PredictMarketDetailsActions';
-export type { PredictMarketDetailsActionsProps } from './PredictMarketDetailsActions';
+export {
+  default,
+  getPredictMarketDetailsActionsMode,
+} from './PredictMarketDetailsActions';
+export type {
+  PredictMarketDetailsActionsMode,
+  PredictMarketDetailsActionsProps,
+} from './PredictMarketDetailsActions';

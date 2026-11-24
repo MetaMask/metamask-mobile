@@ -1,5 +1,5 @@
 import React from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { ColorValue, StyleProp, ViewStyle } from 'react-native';
 import {
   Button,
   ButtonVariant,
@@ -24,26 +24,43 @@ export type ButtonGlassProps = ButtonBaseProps & {
   isDanger?: boolean;
   /** Optional prop to show the inverse state of the button, reserved for buttons on colored backgrounds. */
   isInverse?: boolean;
+  /**
+   * Fills the glass with a colour. Set on a primary button to draw it on
+   * tinted glass; without it, primary stays the plain button.
+   */
+  tintColor?: ColorValue;
+  /**
+   * Secondary only: covers the glass with the brand sheen. False shows the
+   * clear glass at rest.
+   *
+   * @default true
+   */
+  hasSheen?: boolean;
 };
 
 /**
  * The design-system `Button` drawn on Liquid Glass, kept out of the package
  * until the design system takes it. Callers pass their screen flag as `isGlass`.
- * Primary and tertiary stay the plain button.
+ * Primary and tertiary stay the plain button, unless a primary passes
+ * `tintColor` to draw on tinted glass.
  */
 const ButtonGlass = ({
   isGlass = true,
   variant = ButtonVariant.Secondary,
   containerStyle,
   twClassName,
+  tintColor,
+  hasSheen = true,
   ...props
 }: ButtonGlassProps) => {
   const { isGlassEnabled } = useLiquidGlass();
+  const isTintedPrimary =
+    variant === ButtonVariant.Primary && tintColor !== undefined;
 
   if (
     !isGlass ||
     !isGlassEnabled ||
-    variant === ButtonVariant.Primary ||
+    (variant === ButtonVariant.Primary && !isTintedPrimary) ||
     variant === ButtonVariant.Tertiary
   ) {
     return (
@@ -60,7 +77,8 @@ const ButtonGlass = ({
     <BoxGlass
       radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
-      hasSheen
+      hasSheen={!isTintedPrimary && hasSheen}
+      tintColor={isTintedPrimary ? tintColor : undefined}
       containerStyle={containerStyle}
     >
       <Button

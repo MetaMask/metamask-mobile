@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import ThemeProvider from '../../../../../component-library/providers/ThemeProvider/ThemeProvider';
+import FloatingActionButtonGlass from '../../../../../component-library/components-temp/ButtonGlass/FloatingActionButtonGlass';
 import PerpsDirectionButton, {
   type PerpsDirection,
 } from './PerpsDirectionButton';
@@ -13,6 +14,7 @@ const mockStore = configureMockStore();
 const renderDirectionButton = (
   direction: PerpsDirection,
   appTheme: 'dark' | 'light',
+  isGlass = false,
 ) => {
   const store = mockStore({ user: { appTheme } });
 
@@ -21,6 +23,7 @@ const renderDirectionButton = (
       <ThemeProvider>
         <PerpsDirectionButton
           direction={direction}
+          isGlass={isGlass}
           testID="perps-direction-button"
         >
           {direction}
@@ -119,5 +122,46 @@ describe('PerpsDirectionButton', () => {
     fireEvent.press(button);
 
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['long', darkTheme.colors.success.default],
+    ['short', darkTheme.colors.error.default],
+  ] as const)(
+    'floats %s on glass tinted with its direction colour',
+    (direction, tintColor) => {
+      const { UNSAFE_getByType } = renderDirectionButton(
+        direction,
+        'dark',
+        true,
+      );
+
+      const glassButton = UNSAFE_getByType(FloatingActionButtonGlass);
+      expect(glassButton.props.isGlass).toBe(true);
+      expect(glassButton.props.tintColor).toBe(tintColor);
+    },
+  );
+
+  it('fires onPress on glass', () => {
+    const onPress = jest.fn();
+    const store = mockStore({ user: { appTheme: 'dark' } });
+    render(
+      <Provider store={store}>
+        <ThemeProvider>
+          <PerpsDirectionButton
+            direction="long"
+            isGlass
+            onPress={onPress}
+            testID="perps-direction-button"
+          >
+            long
+          </PerpsDirectionButton>
+        </ThemeProvider>
+      </Provider>,
+    );
+
+    fireEvent.press(screen.getByTestId('perps-direction-button'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -19,10 +19,13 @@ import {
 import usePredictShare from '../../hooks/usePredictShare';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
+import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 
 const mockUsePredictShare = usePredictShare as jest.Mock;
 const mockUsePredictSeries = usePredictSeries as jest.Mock;
 const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
+const mockPredictMarketDetailsActions =
+  PredictMarketDetailsActions as unknown as jest.Mock;
 let mockChartCurrentPrice: number | undefined;
 
 interface HeaderCompactStandardMockProps {
@@ -89,6 +92,23 @@ jest.mock('react-native-reanimated', () => {
 });
 
 let mockPredictBrandRefreshEnabled = false;
+let mockIsGlassSurfaceEnabled = false;
+jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsGlassSurfaceEnabled,
+}));
+jest.mock('../PredictFloatingActionsFooter', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => <View testID={testID}>{children}</View>,
+  };
+});
 jest.mock('react-redux', () => {
   const { selectPredictBrandRefreshEnabled } = jest.requireActual(
     '../../../../../selectors/featureFlagController/predictBrandRefresh',
@@ -233,6 +253,9 @@ jest.mock(
 
     return {
       __esModule: true,
+      getPredictMarketDetailsActionsMode: jest.requireActual(
+        '../../views/PredictMarketDetails/components/PredictMarketDetailsActions',
+      ).getPredictMarketDetailsActionsMode,
       default: jest.fn(
         ({
           hasPositivePnl,
@@ -361,6 +384,7 @@ describe('PredictCryptoUpDownDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPredictBrandRefreshEnabled = false;
+    mockIsGlassSurfaceEnabled = false;
     mockChartCurrentPrice = undefined;
     mockUsePredictSeries.mockReturnValue({
       data: [
@@ -515,6 +539,103 @@ describe('PredictCryptoUpDownDetails', () => {
       screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
     ).toBeOnTheScreen();
     expect(mockOnBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('floating footer', () => {
+    const createBinaryMarket = () =>
+      createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [
+              { id: 'token-up', title: 'Up', price: 0.5 },
+              { id: 'token-down', title: 'Down', price: 0.5 },
+            ],
+            volume: 0,
+            groupItemTitle: 'BTC',
+          },
+        ],
+      });
+
+    it('floats the binary buy buttons when glass surfaces are on', () => {
+      mockIsGlassSurfaceEnabled = true;
+      const market = createBinaryMarket();
+      mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+      render(
+        <PredictCryptoUpDownDetails
+          market={market}
+          onBack={mockOnBack}
+          onBetPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockPredictMarketDetailsActions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isFloating: true }),
+        undefined,
+      );
+    });
+
+    it('keeps the docked footer when glass surfaces are off', () => {
+      const market = createBinaryMarket();
+      mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+      render(
+        <PredictCryptoUpDownDetails
+          market={market}
+          onBack={mockOnBack}
+          onBetPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(mockPredictMarketDetailsActions).toHaveBeenLastCalledWith(
+        expect.not.objectContaining({ isFloating: true }),
+        undefined,
+      );
+    });
+
+    it('keeps the docked claim footer when winnings are claimable', () => {
+      mockIsGlassSurfaceEnabled = true;
+      const market = createBinaryMarket();
+      mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+      render(
+        <PredictCryptoUpDownDetails
+          market={market}
+          onBack={mockOnBack}
+          onBetPress={jest.fn()}
+          onClaimPress={jest.fn()}
+          hasPositivePnl
+        />,
+      );
+
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_ACTIONS_FOOTER,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('calls usePredictShare with market id and slug', () => {

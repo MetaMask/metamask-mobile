@@ -13,7 +13,22 @@ import {
 } from '../../../../types';
 import { POLYMARKET_PROVIDER_ID } from '../../../../providers/polymarket/constants';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
-import PredictMarketDetailsActions from './PredictMarketDetailsActions';
+import PredictMarketDetailsActions, {
+  getPredictMarketDetailsActionsMode,
+} from './PredictMarketDetailsActions';
+
+jest.mock('../../../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 const createOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
@@ -261,5 +276,94 @@ describe('PredictMarketDetailsActions', () => {
     expect(
       screen.queryByTestId('predict-details-buttons-skeleton-button-1'),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('floating', () => {
+    it('renders the binary buy buttons as floating glass actions', () => {
+      const onBuyPress = jest.fn();
+      const openOutcome = createOutcome({
+        tokens: [
+          { id: 'token-yes', title: 'Up', price: 0.65, buyPrice: 0.71 },
+          { id: 'token-no', title: 'Down', price: 0.35, buyPrice: 0.41 },
+        ],
+      });
+      const props = createProps({
+        isFloating: true,
+        onBuyPress,
+        openOutcomes: [openOutcome],
+      });
+
+      renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+      expect(screen.getByText('Up • 71¢')).toBeOnTheScreen();
+      expect(screen.getByText('Down • 41¢')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_BUY_YES_BUTTON,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_BUY_NO_BUTTON,
+        ),
+      );
+      expect(onBuyPress).toHaveBeenNthCalledWith(1, openOutcome.tokens[0]);
+      expect(onBuyPress).toHaveBeenNthCalledWith(2, openOutcome.tokens[1]);
+    });
+
+    it('keeps the docked claim button when claimable pnl is available', () => {
+      const props = createProps({ isFloating: true, hasPositivePnl: true });
+
+      renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+      expect(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.FLOATING_BUY_YES_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('getPredictMarketDetailsActionsMode', () => {
+    const baseArgs = {
+      isClaimablePositionsLoading: false,
+      hasPositivePnl: false,
+      marketStatus: PredictMarketStatus.OPEN,
+      singleOutcomeMarket: true,
+      isMarketLoading: false,
+    };
+
+    it.each([
+      ['claim', { hasPositivePnl: true }],
+      ['binary', {}],
+      [
+        'skeleton',
+        {
+          marketStatus: undefined,
+          singleOutcomeMarket: false,
+          isMarketLoading: true,
+        },
+      ],
+      [null, { singleOutcomeMarket: false }],
+    ])('returns %s', (expected, overrides) => {
+      expect(
+        getPredictMarketDetailsActionsMode({ ...baseArgs, ...overrides }),
+      ).toBe(expected);
+    });
+
+    it('returns binary while claimable positions are still loading', () => {
+      expect(
+        getPredictMarketDetailsActionsMode({
+          ...baseArgs,
+          hasPositivePnl: true,
+          isClaimablePositionsLoading: true,
+        }),
+      ).toBe('binary');
+    });
   });
 });

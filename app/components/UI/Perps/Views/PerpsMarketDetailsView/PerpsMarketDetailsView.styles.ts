@@ -73,13 +73,11 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       // No horizontal padding - TabsList provides its own
     },
     // Fixed actions footer - positioned at bottom of screen
-    actionsFooter: {
-      backgroundColor: theme.colors.background.default,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border.muted,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 24,
+    // Floats over the content; `bottom` and the slide come from the view.
+    floatingActionsFooter: {
+      position: 'absolute',
+      left: 16,
+      right: 16,
     },
     // Action buttons container
     actionsContainer: {

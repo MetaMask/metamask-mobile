@@ -6340,14 +6340,30 @@ describe('PerpsMarketDetailsView', () => {
       }
     });
 
-    it('clears the home indicator at the bottom', () => {
+    it('floats the actions on the home indicator safe area', () => {
       withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
 
       const { getByTestId } = renderLite({ edgeInsets });
 
       expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.FLOATING_ACTIONS_FOOTER),
+      ).toHaveStyle({ position: 'absolute', bottom: 34 });
+    });
+
+    it('pads the content clear of the home indicator and the floating actions', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
+      fireEvent(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.FLOATING_ACTIONS_FOOTER),
+        'layout',
+        { nativeEvent: { layout: { x: 0, y: 0, width: 375, height: 48 } } },
+      );
+
+      // Home indicator (34) + 48 actions + 16 above.
+      expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
-      ).toHaveStyle({ height: 34 });
+      ).toHaveStyle({ height: 98 });
     });
 
     it('lets the service banner pad the status bar instead of the header', () => {
@@ -6363,16 +6379,22 @@ describe('PerpsMarketDetailsView', () => {
       expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 0 });
     });
 
-    it('adds no spacers with the flag off', () => {
+    it('adds no header spacer with the flag off', () => {
       const { queryByTestId } = renderLite();
 
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
       ).toBeNull();
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
-      ).toBeNull();
       expect(queryByTestId(headerGlassTestID)).toBeNull();
+    });
+
+    it('floats the actions at the bottom with the flag off', () => {
+      const { getByTestId } = renderLite();
+
+      // The router's safe area already clears the home indicator.
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.FLOATING_ACTIONS_FOOTER),
+      ).toHaveStyle({ bottom: 0 });
     });
   });
 });

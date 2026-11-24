@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
 import { ButtonVariant } from '@metamask/design-system-react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import ButtonGlass from './ButtonGlass';
+
+const TINT = lightTheme.colors.success.default;
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
 
 let mockIsGlassEnabled = true;
@@ -62,6 +65,18 @@ describe('ButtonGlass', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('draws clear glass without the sheen when hasSheen is false', () => {
+    const { getByText, queryByTestId, UNSAFE_getByType } = render(
+      <ButtonGlass isGlass hasSheen={false} onPress={jest.fn()}>
+        Sell
+      </ButtonGlass>,
+    );
+
+    expect(getByText('Sell')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(GlassView)).toBeTruthy();
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+  });
+
   it('does not fire while disabled', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(
@@ -104,6 +119,47 @@ describe('ButtonGlass', () => {
     fireEvent.press(getByTestId('add-funds'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('draws a tinted primary on glass without the sheen', () => {
+    const onPress = jest.fn();
+    const { getByTestId, getByText, queryByTestId, UNSAFE_getByType } = render(
+      <ButtonGlass
+        isGlass
+        variant={ButtonVariant.Primary}
+        tintColor={TINT}
+        onPress={onPress}
+        testID="buy"
+      >
+        Buy
+      </ButtonGlass>,
+    );
+
+    expect(getByText('Buy')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(GlassView).props.tintColor).toBe(TINT);
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('buy'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a tinted primary as the plain button where the OS cannot draw glass', () => {
+    mockIsGlassEnabled = false;
+
+    const { getByText, UNSAFE_queryByType } = render(
+      <ButtonGlass
+        isGlass
+        variant={ButtonVariant.Primary}
+        tintColor={TINT}
+        onPress={jest.fn()}
+      >
+        Buy
+      </ButtonGlass>,
+    );
+
+    expect(getByText('Buy')).toBeOnTheScreen();
+    expect(UNSAFE_queryByType(GlassView)).toBeNull();
   });
 
   it('renders tertiary as the plain button, without glass', () => {
