@@ -52,10 +52,9 @@ const WatchOnlyDeveloperOptionsSection = () => {
         account.id,
       )?.groupId;
       const name =
-        (groupId &&
-          AccountTreeController.getAccountGroupObject(groupId)?.metadata
-            .name) ||
-        account.address;
+        (groupId
+          ? AccountTreeController.getAccountGroupObject(groupId)?.metadata.name
+          : undefined) ?? account.address;
       setResult(
         strings('app_settings.developer_options.watch_only.added', { name }),
       );
@@ -106,7 +105,9 @@ const WatchOnlyDeveloperOptionsSection = () => {
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        onPress={handleAdd}
+        onPress={() => {
+          handleAdd().catch(() => undefined);
+        }}
         isDisabled={!address.trim() || isAdding}
         isLoading={isAdding}
         isFullWidth

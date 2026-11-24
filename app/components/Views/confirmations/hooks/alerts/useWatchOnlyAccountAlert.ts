@@ -17,7 +17,7 @@ export function useWatchOnlyAccountAlert(): Alert[] {
   const payingAccount = useTransactionPayingAccount();
 
   const fromAddress =
-    payingAccount || (approvalRequest?.requestData?.from as string | undefined);
+    payingAccount ?? (approvalRequest?.requestData?.from as string | undefined);
 
   return useMemo(() => {
     if (
