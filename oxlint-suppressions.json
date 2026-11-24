@@ -7575,11 +7575,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Perps/hooks/usePerpsMarketForAsset.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Perps/hooks/usePerpsMarketHeaderActions.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
@@ -13722,9 +13717,6 @@
     }
   },
   "app/components/UI/TokenDetails/Views/TokenDetails.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -14016,9 +14008,6 @@
     }
   },
   "app/components/UI/TokenDetails/hooks/useTokenAtomicActions.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
     },

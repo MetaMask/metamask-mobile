@@ -179,7 +179,7 @@ export const useHandleOnBuy = ({
         .build(),
     );
 
-    goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
+    goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' }).catch(() => undefined);
   }, [
     store,
     token,

@@ -292,7 +292,7 @@ export const usePerpsMarketForAsset = (
 
     // Need to fetch
     setState((prev) => ({ ...prev, isLoading: true }));
-    checkMarketExists();
+    checkMarketExists().catch(() => undefined);
 
     return cleanup;
   }, [cacheKey, checkMarketExists]);

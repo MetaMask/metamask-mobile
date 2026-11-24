@@ -134,7 +134,7 @@ jest.mock('../../../Views/confirmations/hooks/useSendNavigation', () => ({
   }),
 }));
 
-const mockGoToBuy = jest.fn();
+const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
