@@ -19,7 +19,7 @@ const fs = require('node:fs');
 const args = process.argv.slice(2);
 const option = (name) => { const i = args.indexOf(name); return i !== -1 ? args[i + 1] : ''; };
 const outputFile = option('--outputFile');
-const files = args.filter((arg, i) => arg.endsWith('.view.test.tsx') && !['--outputFile', '--seed'].includes(args[i - 1]));
+const files = args.filter((arg, i) => /\.view\.test\.tsx?$/.test(arg) && !['--outputFile', '--seed'].includes(args[i - 1]));
 fs.appendFileSync(process.env.STUB_CALLS_PATH, JSON.stringify({ seed: option('--seed'), files }) + '\\n');
 const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
 const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
@@ -209,20 +209,23 @@ describe('cv-flakiness-detection', () => {
   it('runs changed component view tests once per repetition', () => {
     const first = makeCvFile(tempDir, 'First.view.test.tsx');
     const second = makeCvFile(tempDir, 'Second.view.test.tsx');
+    const tsOnly = makeCvFile(tempDir, 'Third.view.test.ts');
     const { status, calls, output, summary } = runScript({
-      changedFiles: `${first} ${second}`,
+      changedFiles: `${first} ${second} ${tsOnly}`,
       repeatCount: '2',
     });
 
     expect(status).toBe(0);
     expect(calls).toHaveLength(2);
-    calls.forEach((call) => expect(call.files).toHaveLength(2));
+    calls.forEach((call) => expect(call.files).toHaveLength(3));
+    expect(output).toContain(path.relative(REPOSITORY_ROOT, tsOnly));
     expect(output).toContain('cv_files_to_repeat=');
     expect(output).toContain('completed_iterations=2');
     expect(output).toContain('budget_exhausted=false');
     expect(output).toContain('status=passed');
     expect(summary).toContain('First.view.test.tsx');
     expect(summary).toContain('Second.view.test.tsx');
+    expect(summary).toContain('Third.view.test.ts');
     expect(summary).toContain('| 1 |');
     expect(summary).toContain('| 2 |');
   });
@@ -244,8 +247,7 @@ describe('cv-flakiness-detection', () => {
     expect(stderr).toContain('Flaky.view.test.tsx');
   });
 
-  // A repetition that does not end cleanly must fail the job even when no
-  // failing test assertion was parsed (Bugbot: "Jest crashes do not fail job").
+  // A repetition that does not end cleanly must fail the job (Bugbot).
   it.each([
     ['non-zero exit, passing assertions', { stubExitCode: '1' }, 'non-zero status'],
     ['unparsable report', { stubExitCode: '1', stubReport: 'invalid' }, 'unparsable'],
@@ -268,9 +270,9 @@ describe('cv-flakiness-detection', () => {
     const { status, output, stderr } = runScript({
       changedFiles: file,
       repeatCount: '1',
-      sleepMs: 3000,
-      // Real-clock deadline (Date.now is mocked); the stub outlasts the kill.
-      deadlineMs: String(new Date().getTime() + 1500),
+      // The stub outlasts the whole remaining budget; the 5s deadline leaves room for slow startups.
+      sleepMs: 30000,
+      deadlineMs: String(new Date().getTime() + 5000),
     });
 
     expect(status).toBe(1);
