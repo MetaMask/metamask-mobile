@@ -192,7 +192,6 @@ const CardHome = () => {
   const theme = useTheme();
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
-  const recentTransactions = useCardRecentTransactions();
   const [activeHomeSegment, setActiveHomeSegment] = useState<CardHomeSegment>(
     CardHomeSegment.Manage,
   );
@@ -823,9 +822,10 @@ const CardHome = () => {
         showVerificationPendingBanner));
 
   // Activity / Manage segments only in the active and frozen states of a
-  // fully set-up card. Every other state keeps the management list as
-  // before, with no segments.
+  // fully set-up card that has a history destination. Every other state
+  // keeps the management list as before, with no segments.
   const showHomeSegments =
+    transactionHistoryDestination !== null &&
     !isLoading &&
     isAuthenticated &&
     (data?.card?.status === CardStatus.ACTIVE ||
@@ -838,6 +838,9 @@ const CardHome = () => {
     showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
   const showManageOptions =
     !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
+  const recentTransactions = useCardRecentTransactions({
+    enabled: showRecentActivity && isFocused,
+  });
 
   // --- Main render ---
   return (

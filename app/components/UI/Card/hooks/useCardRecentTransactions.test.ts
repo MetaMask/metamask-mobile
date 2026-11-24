@@ -63,6 +63,14 @@ describe('useCardRecentTransactions', () => {
     ]);
   });
 
+  it('forwards enabled so the fetch stays idle until Activity is open', () => {
+    mockUseCardTransactions.mockReturnValue({ items: [] } as never);
+
+    renderHook(() => useCardRecentTransactions({ enabled: false }));
+
+    expect(mockUseCardTransactions).toHaveBeenCalledWith({ enabled: false });
+  });
+
   it('returns an empty list when there is no history', () => {
     mockUseCardTransactions.mockReturnValue({ items: [] } as never);
 

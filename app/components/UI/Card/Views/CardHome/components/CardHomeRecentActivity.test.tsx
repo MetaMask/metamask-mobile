@@ -110,7 +110,7 @@ describe('CardHomeRecentActivity', () => {
 
   it('shows the Activity empty state when there are no transactions', () => {
     const onSeeAll = jest.fn();
-    const { getByTestId, getByText, queryByTestId } = renderPanel({
+    const { getByTestId, getByText } = renderPanel({
       transactions: [],
       onSeeAll,
     });
@@ -122,6 +122,14 @@ describe('CardHomeRecentActivity', () => {
       getByText('card.card_home.activity_empty_description'),
     ).toBeOnTheScreen();
     expect(empty.findByProps({ name: IconName.Card })).toBeTruthy();
+    expect(
+      getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides See all on the empty state when there is no history destination', () => {
+    const { queryByTestId } = renderPanel({ transactions: [] });
+
     expect(queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL)).toBeNull();
   });
 

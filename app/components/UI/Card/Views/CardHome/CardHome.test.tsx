@@ -378,7 +378,10 @@ jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
 }));
 
 const mockRecheckProvisioning = jest.fn();
-const mockUseCardRecentTransactions = jest.fn<CardTransaction[], []>(() => []);
+const mockUseCardRecentTransactions = jest.fn<
+  CardTransaction[],
+  [{ enabled?: boolean }?]
+>(() => []);
 
 const mockActivityTransactions: CardTransaction[] = [
   {
@@ -417,10 +420,11 @@ const mockActivityTransactions: CardTransaction[] = [
 ];
 
 jest.mock('../../hooks/useCardRecentTransactions', () => ({
-  useCardRecentTransactions: () => mockUseCardRecentTransactions(),
+  useCardRecentTransactions: (options?: { enabled?: boolean }) =>
+    mockUseCardRecentTransactions(options),
 }));
 
-const mockTransactionHistoryDestination = 'card' as 'card' | 'money' | null;
+let mockTransactionHistoryDestination: 'card' | 'money' | null = 'card';
 jest.mock('../../hooks/useCardTransactionHistoryDestination', () => ({
   useCardTransactionHistoryDestination: () => mockTransactionHistoryDestination,
 }));
@@ -1443,6 +1447,7 @@ describe('CardHome Component', () => {
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
     mockUseCardRecentTransactions.mockReturnValue([]);
+    mockTransactionHistoryDestination = 'card';
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -3799,6 +3804,9 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
       ).toBeOnTheScreen();
+      expect(mockUseCardRecentTransactions).toHaveBeenLastCalledWith({
+        enabled: true,
+      });
       expect(
         screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
       ).toBeNull();
@@ -3867,8 +3875,19 @@ describe('CardHome Component', () => {
         screen.getByText('Your card purchases will show here.'),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
-      ).toBeNull();
+        screen.getByTestId(CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the segments and does not fetch when history has no destination', () => {
+      mockTransactionHistoryDestination = null;
+      mockUseCardRecentTransactions.mockReturnValue(mockActivityTransactions);
+      renderActiveAuthenticated();
+
+      expect(screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS)).toBeNull();
+      expect(mockUseCardRecentTransactions).toHaveBeenCalledWith({
+        enabled: false,
+      });
     });
 
     it('shows the segments when the card is frozen', () => {

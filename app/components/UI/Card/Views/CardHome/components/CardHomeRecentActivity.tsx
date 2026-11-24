@@ -146,7 +146,20 @@ const CardHomeRecentActivity = ({
 }: CardHomeRecentActivityProps) => {
   const recent = transactions.slice(0, CARD_RECENT_TRANSACTIONS_LIMIT);
   const hasTransactions = recent.length > 0;
-  const canSeeAll = hasTransactions && Boolean(onSeeAll);
+  // A destination is enough: an empty or failed feed still opens full history.
+  const seeAllButton = onSeeAll ? (
+    <Box twClassName={hasTransactions ? 'px-4 pt-2 pb-2' : 'w-full pt-2 pb-2'}>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        isFullWidth
+        onPress={onSeeAll}
+        testID={CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL}
+      >
+        {strings('card.card_home.recent_activity.see_all')}
+      </Button>
+    </Box>
+  ) : null;
 
   return (
     <Box
@@ -163,19 +176,7 @@ const CardHomeRecentActivity = ({
               privacyMode={privacyMode}
             />
           ))}
-          {canSeeAll ? (
-            <Box twClassName="px-4 pt-2 pb-2">
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                isFullWidth
-                onPress={onSeeAll}
-                testID={CardHomeSelectors.RECENT_ACTIVITY_SEE_ALL}
-              >
-                {strings('card.card_home.recent_activity.see_all')}
-              </Button>
-            </Box>
-          ) : null}
+          {seeAllButton}
         </>
       ) : (
         <Box
@@ -201,6 +202,7 @@ const CardHomeRecentActivity = ({
               {strings('card.card_home.activity_empty_description')}
             </Text>
           </TabEmptyState>
+          {seeAllButton}
         </Box>
       )}
     </Box>
