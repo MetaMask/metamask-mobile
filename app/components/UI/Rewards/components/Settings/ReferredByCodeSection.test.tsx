@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -17,6 +18,7 @@ import {
 } from '../../../../../reducers/rewardsMoney/selectors';
 import ReferredByCodeSection from './ReferredByCodeSection';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
+import { MONEY_REFERRAL_CODE_MAX_LENGTH } from '../../utils/moneyReferralCode';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -175,6 +177,69 @@ describe('ReferredByCodeSection', () => {
 
     expect(mockClearError).toHaveBeenCalled();
     expect(mockSetReferralCode).toHaveBeenCalledWith('AB12CD');
+  });
+
+  it('caps the typed code at the Money code max length', () => {
+    const { getByTestId } = renderSection();
+
+    fireEvent.changeText(
+      getByTestId('referred-by-code-input'),
+      'a'.repeat(MONEY_REFERRAL_CODE_MAX_LENGTH + 6),
+    );
+
+    expect(mockSetReferralCode).toHaveBeenCalledWith(
+      'A'.repeat(MONEY_REFERRAL_CODE_MAX_LENGTH),
+    );
+  });
+
+  it('keeps Apply disabled before the code reaches the minimum length', () => {
+    jest.mocked(useValidateMoneyReferralCode).mockReturnValue({
+      referralCode: 'AB',
+      setReferralCode: mockSetReferralCode,
+      validateCode: jest.fn(),
+      isValidating: false,
+      isValid: false,
+      isUnknownError: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderSection();
+
+    expect(getByTestId('referred-by-code-apply')).toBeDisabled();
+    expect(queryByTestId('referred-by-code-error')).toBeNull();
+  });
+
+  it('shows the validating spinner and keeps Apply disabled while the code validates', () => {
+    jest.mocked(useValidateMoneyReferralCode).mockReturnValue({
+      referralCode: 'ABC123',
+      setReferralCode: mockSetReferralCode,
+      validateCode: jest.fn(),
+      isValidating: true,
+      isValid: false,
+      isUnknownError: false,
+    });
+
+    const { getByTestId, queryByTestId, UNSAFE_queryAllByType } =
+      renderSection();
+
+    expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(1);
+    expect(getByTestId('referred-by-code-apply')).toBeDisabled();
+    expect(queryByTestId('referred-by-code-error')).toBeNull();
+  });
+
+  it('enables Apply once the code validates', () => {
+    jest.mocked(useValidateMoneyReferralCode).mockReturnValue({
+      referralCode: 'ABC123',
+      setReferralCode: mockSetReferralCode,
+      validateCode: jest.fn(),
+      isValidating: false,
+      isValid: true,
+      isUnknownError: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderSection();
+
+    expect(getByTestId('referred-by-code-apply')).toBeEnabled();
+    expect(queryByTestId('referred-by-code-error')).toBeNull();
   });
 
   it('shows an invalid code the same way as the invite sheet', () => {
