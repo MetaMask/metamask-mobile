@@ -83,6 +83,7 @@ export const mockContext = {
   token_symbol_source: 'ETH',
   usd_amount_source: 0,
   custom_slippage: false,
+  operation: undefined,
   warnings: [],
 };
 

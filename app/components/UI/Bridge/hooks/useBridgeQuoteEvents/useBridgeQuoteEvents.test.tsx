@@ -235,6 +235,8 @@ describe('useBridgeQuoteEvents', () => {
     renderHookWithProvider(
       () =>
         useBridgeQuoteEvents({
+          enabled: true,
+          eventName: UnifiedSwapBridgeEventName.QuotesReceived,
           hasNoQuotesAvailable: false,
           hasInsufficientBalance: false,
           hasInsufficientGas: false,
