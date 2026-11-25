@@ -1,73 +1,59 @@
+import Engine from '../../../../core/Engine';
 import { fetchLighterWithdrawableBalance } from './lighter-balance';
 
-const USER = '0x1111111111111111111111111111111111111111';
+jest.mock('../../../../core/Engine', () => ({
+  context: { PerpsController: { getAccountState: jest.fn() } },
+}));
+
+const getAccountStateMock = jest.mocked(
+  Engine.context.PerpsController.getAccountState,
+);
+
+function mockAccountState(providerStates: unknown) {
+  getAccountStateMock.mockResolvedValue({ providerStates } as never);
+}
 
 describe('fetchLighterWithdrawableBalance', () => {
-  const fetchMock = jest.fn();
-
   beforeEach(() => {
     jest.resetAllMocks();
-    global.fetch = fetchMock;
   });
 
-  it('returns the available balance of the account', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        code: 200,
-        accounts: [{ available_balance: '5.570887' }],
-      }),
+  it('returns the withdrawable balance of the Lighter account', async () => {
+    mockAccountState({
+      lighter: {
+        status: 'available',
+        providerId: 'lighter',
+        state: { withdrawableBalance: '5.570887', totalBalance: '9.1' },
+      },
     });
 
-    const balance = await fetchLighterWithdrawableBalance(USER);
-
-    expect(balance).toBe('5.570887');
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining(`/api/v1/account?by=l1_address&value=${USER}`),
-    );
+    expect(await fetchLighterWithdrawableBalance()).toBe('5.570887');
   });
 
-  it('returns undefined when the address has no Lighter account', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: async () => ({ code: 21100, message: 'account not found' }),
+  it('returns undefined when Lighter is unavailable', async () => {
+    mockAccountState({
+      lighter: { status: 'unavailable', providerId: 'lighter' },
     });
 
-    expect(await fetchLighterWithdrawableBalance(USER)).toBeUndefined();
+    expect(await fetchLighterWithdrawableBalance()).toBeUndefined();
   });
 
-  it('throws on a 400 that is not the account not found code', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: async () => ({ code: 20001, message: 'invalid parameter' }),
-    });
+  it('returns undefined when Lighter has not reported yet', async () => {
+    mockAccountState({ lighter: { status: 'pending', providerId: 'lighter' } });
 
-    await expect(fetchLighterWithdrawableBalance(USER)).rejects.toThrow(
-      'invalid parameter',
-    );
+    expect(await fetchLighterWithdrawableBalance()).toBeUndefined();
   });
 
-  it('returns undefined when the account has no available balance', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ code: 200, accounts: [{ available_balance: '' }] }),
-    });
+  it('returns undefined when the account state has no per-venue states', async () => {
+    mockAccountState(undefined);
 
-    expect(await fetchLighterWithdrawableBalance(USER)).toBeUndefined();
+    expect(await fetchLighterWithdrawableBalance()).toBeUndefined();
   });
 
-  it('throws on any other failure so an outage is not read as an empty balance', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 503,
-      json: async () => ({ code: 503, message: 'unavailable' }),
-    });
+  it('throws when the lookup fails so an outage is not read as an empty balance', async () => {
+    getAccountStateMock.mockRejectedValue(new Error('unavailable'));
 
-    await expect(fetchLighterWithdrawableBalance(USER)).rejects.toThrow(
+    await expect(fetchLighterWithdrawableBalance()).rejects.toThrow(
       'unavailable',
     );
   });

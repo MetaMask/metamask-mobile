@@ -76,6 +76,16 @@ function renderRow(
       engine: {
         backgroundState: {
           ...backgroundState,
+          PerpsController: {
+            ...backgroundState.PerpsController,
+            perpsBalances: {
+              lighter: {
+                totalBalance: '12.349',
+                unrealizedPnl: '0',
+                lastUpdated: 1,
+              },
+            },
+          },
           RemoteFeatureFlagController: {
             ...backgroundState.RemoteFeatureFlagController,
             remoteFeatureFlags,
@@ -138,7 +148,7 @@ describe('PerpsReceiveToRow', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: 'XXX.XX' }),
+        strings('confirm.perps_receive_to.available', { amount: '$12.34' }),
       ),
     ).toBeOnTheScreen();
 
@@ -151,13 +161,13 @@ describe('PerpsReceiveToRow', () => {
       getByText(strings('confirm.perps_receive_to.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('(XXX.XX)', { includeHiddenElements: true }),
+      getByText('($12.34)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
           'confirm.perps_receive_to.lighter',
-        )}, XXX.XX`,
+        )}, $12.34`,
       ),
     ).toBeOnTheScreen();
   });

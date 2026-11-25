@@ -1,17 +1,28 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { TransactionType } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { usePerpsLiveAccount } from '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
+import { useLighterWithdrawableBalance } from '../../../temp-lighter/useLighterWithdrawableBalance';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { PerpsWithdrawBalance } from './perps-withdraw-balance';
 
 jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(),
 }));
 jest.mock('../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount');
+jest.mock('../../../temp-lighter/useLighterWithdrawableBalance');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 
 const mockUseStyles = jest.mocked(useStyles);
 const mockUsePerpsLiveAccount = jest.mocked(usePerpsLiveAccount);
+const mockUseLighterWithdrawableBalance = jest.mocked(
+  useLighterWithdrawableBalance,
+);
+const mockUseTransactionMetadataRequest = jest.mocked(
+  useTransactionMetadataRequest,
+);
 
 function renderComponent() {
   return render(<PerpsWithdrawBalance />);
@@ -21,6 +32,10 @@ describe('PerpsWithdrawBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      id: 'tx-1',
+      type: TransactionType.perpsWithdraw,
+    } as never);
     mockUseStyles.mockReturnValue({
       styles: {
         container: {},
@@ -74,5 +89,35 @@ describe('PerpsWithdrawBalance', () => {
     expect(
       getByText(`${strings('confirm.available_balance')}$0`),
     ).toBeOnTheScreen();
+  });
+
+  describe('for a Lighter withdraw', () => {
+    beforeEach(() => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.perpsLighterWithdraw,
+      } as never);
+    });
+
+    it('renders the Lighter withdrawable balance instead of the Hyperliquid one', () => {
+      mockUseLighterWithdrawableBalance.mockReturnValue('5.579');
+
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(`${strings('confirm.available_balance')}$5.57`),
+      ).toBeOnTheScreen();
+      expect(mockUseLighterWithdrawableBalance).toHaveBeenCalledWith(true);
+    });
+
+    it('renders a zero balance until the Lighter balance loads', () => {
+      mockUseLighterWithdrawableBalance.mockReturnValue(undefined);
+
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(`${strings('confirm.available_balance')}$0`),
+      ).toBeOnTheScreen();
+    });
   });
 });

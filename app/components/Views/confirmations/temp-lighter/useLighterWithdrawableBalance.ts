@@ -4,16 +4,11 @@ import Logger from '../../../../util/Logger';
 import { fetchLighterWithdrawableBalance } from './lighter-balance';
 
 /**
- * Temporary. Move this next to the Perps balance hooks once the perps package
- * exports the Lighter balance, and delete this file.
- *
- * @param address - EVM address of the logged-in user.
  * @param enabled - Whether a Lighter withdraw is open. Nothing is fetched otherwise.
  * @returns Human-readable USDC balance, or `undefined` until loaded for this
  * address, while disabled, or when the lookup failed.
  */
 export function useLighterWithdrawableBalance(
-  address: string | undefined,
   enabled: boolean,
 ): string | undefined {
   // The balance is kept with the address it was fetched for, so a balance
@@ -23,12 +18,12 @@ export function useLighterWithdrawableBalance(
   >(undefined);
 
   useEffect(() => {
-    if (!enabled || !address) {
+    if (!enabled) {
       return undefined;
     }
 
     let cancelled = false;
-    fetchLighterWithdrawableBalance(address)
+    fetchLighterWithdrawableBalance()
       .then((fetched) => {
         if (!cancelled) {
           setLoaded({ address, balance: fetched });
@@ -44,7 +39,7 @@ export function useLighterWithdrawableBalance(
     return () => {
       cancelled = true;
     };
-  }, [address, enabled]);
+  }, [enabled]);
 
   return enabled && loaded && loaded.address === address
     ? loaded.balance
