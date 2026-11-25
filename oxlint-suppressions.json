@@ -5489,22 +5489,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Money/hooks/useMoneyActivityValuations.test.ts": {
-    "typescript/await-thenable": {
-      "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 9
-    },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Money/hooks/useMoneyActivityValuations.ts": {
-    "typescript/promise-function-async": {
-      "count": 3
-    }
-  },
   "app/components/UI/Money/hooks/useMoneyAnalytics.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
