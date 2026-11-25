@@ -7161,7 +7161,6 @@
     "gas_education_3": "MetaMask no se beneficia de las tarifas de gas.",
     "gas_education_4": "Las tarifas de gas fluctúan según el tráfico de la red y la complejidad de las transacciones.",
     "gas_education_learn_more": "Más información acerca de las tarifas de gas",
-    "confusable_title": "Verifique la dirección del destinatario",
     "confusable_msg": "Se detectó un carácter que puede confundirse con otro similar en el nombre de ENS. Verifique el nombre de ENS para evitar una posible estafa.",
     "similar_to": "es parecido a",
     "contains_zero_width": "contiene un carácter de ancho cero",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Datos hexadecimales copiados al portapapeles",
     "invalid_recipient": "Destinatario inválido",
     "invalid_recipient_description": "Verifique la dirección y asegúrese de que sea válida",
-    "swap_tokens": "Canjear tokens",
-    "fromWithColon": "De:"
+    "swap_tokens": "Canjear tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Hash de transacción copiado en el Portapapeles",
     "address_copied_to_clipboard": "Dirección copiada al portapapeles",
     "transaction_error": "Error de transacción",
-    "address_to_placeholder": "Búsqueda, dirección pública (0x) o ENS",
-    "address_from_balance": "Saldo:",
     "status": "Estado",
     "date": "Fecha",
     "nonce": "Mientras tanto",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Eliminar contacto",
     "delete": "Eliminar",
     "cancel": "Cancelar",
-    "add_to_address_book": "Agregar a la libreta de direcciones",
-    "enter_an_alias": "Escribir un alias",
     "add_this_address": "Agregar esta dirección a su libreta de direcciones",
     "next": "Siguiente",
-    "enter_an_alias_placeholder": "p. ej., Vitalik B.",
     "add_contact_title": "Agregar contacto",
     "add_contact": "Agregar contacto",
     "edit_contact_title": "Editar contacto",

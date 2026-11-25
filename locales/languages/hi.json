@@ -7161,7 +7161,6 @@
     "gas_education_3": "MetaMask को गैस शुल्क से लाभ नहीं होता।",
     "gas_education_4": "गैस फीस का उतार-चढ़ाव नेटवर्क ट्रैफिक और ट्रांसेक्शन की जटिलता पर आधारित होता है।",
     "gas_education_learn_more": "गैस शुल्क के बारे में ज्यादा जानें",
-    "confusable_title": "प्राप्तकर्ता का पता जांचें",
     "confusable_msg": "ENS के नाम पर हमने एक भ्रमित करने वाले कैरेक्टर का पता लगाया है। संभावित स्कैम से बचने के लिए ENS नाम को जांचे",
     "similar_to": "के समान है",
     "contains_zero_width": "शून्य चौड़ाई वाला वर्ण शामिल है",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
     "invalid_recipient": "अवैध प्राप्तकर्ता",
     "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है",
-    "swap_tokens": "टोकन स्वैप करें",
-    "fromWithColon": "से:"
+    "swap_tokens": "टोकन स्वैप करें"
   },
   "custom_gas": {
     "total": "कुल",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "लेन-देन हैश क्लिपबोर्ड पर कॉपी किया गया",
     "address_copied_to_clipboard": "पता क्लिपबोर्ड पर कॉपी किया गया",
     "transaction_error": "लेन-देन में त्रुटि",
-    "address_to_placeholder": "खोजें, पब्लिक एड्रेस (0x), या ENS",
-    "address_from_balance": "बैलेंस:",
     "status": "स्थिति",
     "date": "तिथि",
     "nonce": "नॉन्स (nonce)",
@@ -7540,11 +7536,8 @@
     "delete_contact": "संपर्क डिलीट करें",
     "delete": "डिलीट करें",
     "cancel": "रद्द करें",
-    "add_to_address_book": "पता किताब में जोड़ें",
-    "enter_an_alias": "एक दूसरा नाम दर्ज करें",
     "add_this_address": "इस पता को अपने पता किताब में जोड़ें",
     "next": "अगला",
-    "enter_an_alias_placeholder": "उदाहरण के लिए विटालिक B",
     "add_contact_title": "संपर्क जोड़ें",
     "add_contact": "संपर्क जोड़ें",
     "edit_contact_title": "कॉन्टेक्ट्स बदलें",
