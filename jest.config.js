@@ -305,6 +305,7 @@ const config = {
       '<rootDir>/app/__mocks__/react-native-laminar.tsx',
   },
   cache: true,
+  testSequencer: '<rootDir>/scripts/jest/duration-sequencer.mjs',
   ...(process.env.JEST_CACHE_DIRECTORY && {
     cacheDirectory: process.env.JEST_CACHE_DIRECTORY,
   }),

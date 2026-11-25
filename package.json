@@ -717,6 +717,7 @@
     "@ethersproject/providers": "^5.7.2",
     "@expo/metro-config": "~57.0.0",
     "@google/generative-ai": "^0.24.1",
+    "@jest/test-sequencer": "^29.7.0",
     "@gorhom/bottom-sheet": "5.2.8",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
