@@ -24,6 +24,18 @@ function loadedCatalog() {
   };
 }
 
+function catalogWithoutWatches() {
+  return {
+    ...buildPacksCatalog(
+      mockCatalogPacks.map((pack) =>
+        pack.code === 'pack-5' ? { ...pack, isMachineOpen: false } : pack,
+      ),
+      mockPackCategoryMapping,
+    ),
+    isPending: false,
+  };
+}
+
 function shownPackCodes() {
   const grid = screen.getByTestId(collectiblesTestIds.packsGrid);
   return within(grid)
@@ -79,45 +91,54 @@ describe('PacksView', () => {
     expect(shownPackCodes()).not.toContain('pack-12');
   });
 
-  it('shows only the tapped category, and every pack again on "All"', () => {
+  it('shows only the packs of the tapped category', () => {
     renderWithProvider(<PacksView />);
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('pokemon')),
     );
+
     expect(shownPackCodes()).toEqual(['pack-8', 'pack-1', 'pack-3']);
+  });
+
+  it('shows every pack again after tapping "All"', () => {
+    renderWithProvider(<PacksView />);
+    fireEvent.press(
+      screen.getByTestId(collectiblesTestIds.packsCategoryChip('pokemon')),
+    );
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
     );
+
     expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
   });
 
-  it('falls back to "All" when the selected category empties, and stays there', () => {
+  it('falls back to "All" when the selected category loses its last pack', () => {
     const { rerender } = renderWithProvider(<PacksView />);
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('watches')),
     );
-    expect(shownPackCodes()).toEqual(['pack-5']);
 
-    mockCatalog = {
-      ...buildPacksCatalog(
-        mockCatalogPacks.map((pack) =>
-          pack.code === 'pack-5' ? { ...pack, isMachineOpen: false } : pack,
-        ),
-        mockPackCategoryMapping,
-      ),
-      isPending: false,
-    };
+    mockCatalog = catalogWithoutWatches();
     rerender(<PacksView />);
 
     expect(
       screen.queryByTestId(collectiblesTestIds.packsCategoryChip('watches')),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
     ).toBeSelected();
     expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
+  });
+
+  it('stays on "All" when a lost category comes back', () => {
+    const { rerender } = renderWithProvider(<PacksView />);
+    fireEvent.press(
+      screen.getByTestId(collectiblesTestIds.packsCategoryChip('watches')),
+    );
+    mockCatalog = catalogWithoutWatches();
+    rerender(<PacksView />);
 
     mockCatalog = loadedCatalog();
     rerender(<PacksView />);

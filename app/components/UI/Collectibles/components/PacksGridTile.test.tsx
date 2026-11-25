@@ -137,18 +137,21 @@ describe('PacksGridTile', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the detail from the art, counter and name', () => {
+  it.each([
+    ['name', () => screen.getByText('Lorem ipsum')],
+    ['counter', () => screen.getByText('1,234')],
+    [
+      'art',
+      () =>
+        screen.getByTestId(
+          collectiblesTestIds.packsTileArtPlaceholder(pack.code),
+        ),
+    ],
+  ])('opens the detail from the %s', (_target, getTarget) => {
     const { onOpenDetail, onOpenBuy } = renderTile();
 
-    fireEvent.press(screen.getByText('Lorem ipsum'));
-    fireEvent.press(screen.getByText('1,234'));
-    fireEvent.press(
-      screen.getByTestId(
-        collectiblesTestIds.packsTileArtPlaceholder(pack.code),
-      ),
-    );
+    fireEvent.press(getTarget());
 
-    expect(onOpenDetail).toHaveBeenCalledTimes(3);
     expect(onOpenDetail).toHaveBeenCalledWith(
       expect.objectContaining({ code: pack.code }),
     );
