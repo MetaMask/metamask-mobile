@@ -106,13 +106,38 @@ interface ReportDiff {
 }
 
 /**
+ * Orders baseline entries by issue type (known types in `ISSUE_TYPE_ORDER`
+ * first, unknown future types after them), then by code point so the order
+ * does not depend on the machine's locale.
+ *
+ * @param a - Baseline-format entry.
+ * @param b - Baseline-format entry.
+ * @returns A negative, zero or positive number, as expected by `Array.sort`.
+ */
+export function compareEntries(a: string, b: string): number {
+  const rank = (entry: string): number => {
+    const index = ISSUE_TYPE_ORDER.indexOf(entry.split('|')[0]);
+    return index === -1 ? ISSUE_TYPE_ORDER.length : index;
+  };
+  const byType = rank(a) - rank(b);
+  if (byType !== 0) {
+    return byType;
+  }
+  if (a === b) {
+    return 0;
+  }
+  return a < b ? -1 : 1;
+}
+
+/**
  * Normalizes the knip JSON report into baseline entries keyed by
  * `<type>|<file>|<symbol>` (no line numbers), plus a line-number lookup used
  * for GitHub annotations. A flagged file is its own symbol; every other issue
  * type is keyed by the file it was found in.
  *
  * @param groups - Issue groups as emitted by the knip JSON reporter.
- * @returns Sorted baseline entries and their optional line numbers.
+ * @returns Baseline entries sorted with `compareEntries`, and their optional
+ * line numbers.
  */
 export function normalizeReport(groups: KnipIssueGroup[]): NormalizedReport {
   const entries = new Set<string>();
@@ -122,12 +147,8 @@ export function normalizeReport(groups: KnipIssueGroup[]): NormalizedReport {
     const groupTypes = Object.keys(group).filter(
       (key) => key !== 'file' && key !== 'owners' && Array.isArray(group[key]),
     );
-    const orderedTypes = [
-      ...ISSUE_TYPE_ORDER.filter((type) => groupTypes.includes(type)),
-      ...groupTypes.filter((type) => !ISSUE_TYPE_ORDER.includes(type)).sort(),
-    ];
 
-    for (const type of orderedTypes) {
+    for (const type of groupTypes) {
       for (const item of group[type] as KnipIssueSymbol[]) {
         if (!item?.name) {
           continue;
@@ -142,7 +163,7 @@ export function normalizeReport(groups: KnipIssueGroup[]): NormalizedReport {
     }
   }
 
-  return { entries: [...entries].sort(), linesByEntry };
+  return { entries: [...entries].sort(compareEntries), linesByEntry };
 }
 
 /**
@@ -241,7 +262,7 @@ export function writeBaseline(baselinePath: string, entries: string[]): void {
       'shrink this file by fixing the findings and running `yarn knip:update`.',
       'Suppress intentional findings in knip.config.ts with a reason comment instead.',
     ].join(' '),
-    entries: [...entries].sort(),
+    entries: [...entries].sort(compareEntries),
   };
   fs.writeFileSync(baselinePath, `${JSON.stringify(contents, null, 2)}\n`);
 }

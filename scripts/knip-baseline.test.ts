@@ -5,10 +5,37 @@
  */
 
 import {
+  compareEntries,
   diffFindings,
   formatEntry,
   normalizeReport,
 } from './knip-baseline';
+
+describe('compareEntries', () => {
+  it('sorts by issue type order before sorting entries of the same type', () => {
+    const sorted = [
+      'unlisted|a.ts|pkg',
+      'dependencies|package.json|b-pkg',
+      'files|z.ts',
+      'dependencies|package.json|a-pkg',
+      'files|a.ts',
+    ].sort(compareEntries);
+
+    expect(sorted).toEqual([
+      'files|a.ts',
+      'files|z.ts',
+      'dependencies|package.json|a-pkg',
+      'dependencies|package.json|b-pkg',
+      'unlisted|a.ts|pkg',
+    ]);
+  });
+
+  it('places unknown future issue types after known ones, sorted by name', () => {
+    const sorted = ['zeta|f.ts|z', 'alpha|f.ts|a', 'cycles|f.ts|c'].sort(compareEntries);
+
+    expect(sorted).toEqual(['cycles|f.ts|c', 'alpha|f.ts|a', 'zeta|f.ts|z']);
+  });
+});
 
 describe('normalizeReport', () => {
   it('keys unused files by the flagged file itself', () => {
