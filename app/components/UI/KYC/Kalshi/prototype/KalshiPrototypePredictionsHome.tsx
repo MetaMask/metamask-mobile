@@ -1,6 +1,6 @@
 // PROTOTYPE-DO-NOT-MERGE
 // Paper screens: KP-01, KP-27 (see prototypeScreens.ts)
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -116,9 +116,10 @@ const KalshiPrototypePredictionsHome = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const runtime = useKalshiPrototypeRuntime();
   const cardState = deriveKalshiPrototypeCardState(runtime.script);
-  // The entry card hides for this visit; the terminal states' dismissal
-  // lives in the runtime, until the scenario resets.
-  const [isEntryCardDismissed, setIsEntryCardDismissed] = useState(false);
+  // The get-started card is persistent: it always shows while that state
+  // applies. Only the terminal states' dismissal lives in the runtime, until
+  // the scenario resets.
+  const isCardHidden = runtime.cardDismissed && cardState !== 'getStarted';
 
   const startFlow = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.KALSHI_PROTOTYPE_ONBOARDING);
@@ -157,16 +158,11 @@ const KalshiPrototypePredictionsHome = () => {
       />
       <ScrollView contentContainerStyle={tw.style('px-4 pb-6 gap-4')}>
         <Text variant={TextVariant.HeadingLg}>Predictions</Text>
-        {runtime.cardDismissed ||
-        (cardState === 'getStarted' && isEntryCardDismissed) ? null : (
+        {isCardHidden ? null : (
           <KalshiPrototypeStatusCard
             state={cardState}
             onPress={startFlow}
-            onClose={
-              cardState === 'getStarted'
-                ? () => setIsEntryCardDismissed(true)
-                : dismissKalshiPrototypeCard
-            }
+            onClose={dismissKalshiPrototypeCard}
             testID={KalshiPrototypePredictionsHomeSelectorsIDs.GET_STARTED_CARD}
           />
         )}

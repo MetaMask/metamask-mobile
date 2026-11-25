@@ -22,11 +22,11 @@ describe('KalshiPrototypeStatusCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the get-started copy as one pressable, dismissible row', () => {
+  it('renders the get-started copy as one pressable, persistent row', () => {
     const onPress = jest.fn();
     const onClose = jest.fn();
     const copy = copyOf('getStarted');
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <KalshiPrototypeStatusCard
         state="getStarted"
         onPress={onPress}
@@ -42,16 +42,12 @@ describe('KalshiPrototypeStatusCard', () => {
       getByTestId(KalshiPrototypeStatusCardSelectorsIDs.THUMBNAIL),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CLOSE_BUTTON),
-    ).toBeOnTheScreen();
+      queryByTestId(KalshiPrototypeStatusCardSelectorsIDs.CLOSE_BUTTON),
+    ).toBeNull();
 
     fireEvent.press(row);
     expect(onPress).toHaveBeenCalledTimes(1);
-    fireEvent.press(
-      getByTestId(KalshiPrototypeStatusCardSelectorsIDs.CLOSE_BUTTON),
-    );
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('renders the step-up row pressable, with the Rive thumbnail and no close', () => {

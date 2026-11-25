@@ -75,7 +75,8 @@ const VERIFIED_THUMBNAIL = (
 
 /**
  * What each card state shows. Only the states the flow continues from are
- * pressable, and only the states that outlive a visit can be dismissed.
+ * pressable, and only the terminal states (can't verify, verified) can be
+ * dismissed. The get-started card is persistent.
  */
 const CARD_STATE_CONFIG: Record<
   KalshiPrototypeCardState,
@@ -88,7 +89,8 @@ const CARD_STATE_CONFIG: Record<
   getStarted: {
     thumbnail: IDENTITY_ANIMATION_THUMBNAIL,
     isPressable: true,
-    isDismissible: true,
+    // The entry card stays until the user starts: no close (Paper CB7-2).
+    isDismissible: false,
   },
   needMoreInfo: {
     thumbnail: IDENTITY_ANIMATION_THUMBNAIL,
