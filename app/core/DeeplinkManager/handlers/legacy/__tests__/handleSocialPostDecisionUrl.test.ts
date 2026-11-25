@@ -64,6 +64,19 @@ describe('handleSocialPostDecisionUrl', () => {
     );
   });
 
+  it('opens a position-only post, which has no text', () => {
+    handleSocialPostDecisionUrl({
+      actionPath:
+        '/social/post/decision?kind=report-post-removed&handle=alphawhale&reason=Financial%20conduct',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POST_DECISION,
+      expect.objectContaining({ kind: 'report-post-removed', text: undefined }),
+    );
+    expect(mockNavigateToProfile).not.toHaveBeenCalled();
+  });
+
   it('attributes the open to the notification that carried the link', () => {
     handleSocialPostDecisionUrl({
       actionPath:
@@ -79,7 +92,6 @@ describe('handleSocialPostDecisionUrl', () => {
 
   it.each([
     ['the handle', '/social/post/decision?text=hi&reason=spam'],
-    ['the post text', '/social/post/decision?handle=alphawhale&reason=spam'],
     ['the reason', '/social/post/decision?handle=alphawhale&text=hi'],
     ['every param', '/social/post/decision'],
     [

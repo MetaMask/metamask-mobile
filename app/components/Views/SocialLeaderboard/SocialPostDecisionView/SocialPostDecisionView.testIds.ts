@@ -20,6 +20,8 @@ export const SocialPostDecisionViewSelectorsIDs = {
   PROFILE_PREVIEW_USERNAME:
     'social-post-decision-view-profile-preview-username',
   REASON_VALUE: 'social-post-decision-view-reason-value',
+  REPORT_VALUE: 'social-post-decision-view-report-value',
+  DECISION_VALUE: 'social-post-decision-view-decision-value',
   AI_DISCLOSURE: 'social-post-decision-view-ai-disclosure',
   APPEAL_BUTTON: 'social-post-decision-view-appeal-button',
   DONE_BUTTON: 'social-post-decision-view-done-button',

@@ -17,6 +17,8 @@ describe('parseSocialPostDecisionParams', () => {
       text: 'hello',
       reason: 'spam',
       postedAt: undefined,
+      reportedAt: undefined,
+      decidedAt: undefined,
       avatarUrl: undefined,
       profileId: undefined,
       verified: false,
@@ -59,15 +61,26 @@ describe('parseSocialPostDecisionParams', () => {
   });
 
   it.each(['post-removed', 'report-post-removed', 'report-post-left-up'])(
-    'needs the post text for the %s kind',
+    'reads the %s kind of a position-only post, which has no text',
     (kind) => {
       expect(
         parseSocialPostDecisionParams(
           `/social/post/decision?kind=${kind}&handle=alphawhale&reason=spam`,
         ),
-      ).toBeUndefined();
+      ).toMatchObject({ kind, handle: 'alphawhale', text: undefined });
     },
   );
+
+  it('reads when the report was filed and when the decision was made', () => {
+    expect(
+      parseSocialPostDecisionParams(
+        `/social/post/decision?kind=report-post-removed&${REQUIRED}&reportedAt=1763380800000&decidedAt=1763467200000`,
+      ),
+    ).toMatchObject({
+      reportedAt: 1763380800000,
+      decidedAt: 1763467200000,
+    });
+  });
 
   it('trims the text it reads', () => {
     const decision = parseSocialPostDecisionParams(
@@ -83,7 +96,6 @@ describe('parseSocialPostDecisionParams', () => {
 
   it.each([
     ['handle', `text=hello&reason=spam`],
-    ['text', `handle=alphawhale&reason=spam`],
     ['reason', `handle=alphawhale&text=hello`],
     ['handle', `handle=%20%20&text=hello&reason=spam`],
   ])('returns undefined without a usable %s', (_, query) => {

@@ -180,30 +180,97 @@ describe('SocialPostDecisionView', () => {
     ).toBeOnTheScreen();
   });
 
-  it.each<SocialDecisionKind>([
-    'post-removed',
-    'profile-hidden',
-    'report-post-left-up',
-    'report-profile-left-up',
-  ])('lets the viewer appeal the %s outcome', async (kind) => {
+  it('shows a position-only post, which has no text', async () => {
     renderSocialPostDecisionView({
       ...POST_DECISION,
-      kind,
+      kind: 'report-post-removed',
+      text: undefined,
       reason: 'Financial conduct',
     });
 
+    const preview = await screen.findByTestId(
+      SocialPostDecisionViewSelectorsIDs.POST_PREVIEW,
+    );
+    expect(within(preview).getByText('alphawhale')).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(
-        SocialPostDecisionViewSelectorsIDs.APPEAL_BUTTON,
+      screen.queryByTestId(
+        SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_TEXT,
       ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(SocialPostDecisionViewSelectorsIDs.DONE_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
-  it.each<SocialDecisionKind>(['report-post-removed', 'report-profile-hidden'])(
-    'ends the %s outcome with Done instead of an appeal',
+  it.each<[SocialDecisionKind, string]>([
+    ['report-post-removed', 'Removed'],
+    ['report-post-left-up', 'No action'],
+    ['report-profile-hidden', 'Hidden'],
+    ['report-profile-left-up', 'No action'],
+  ])(
+    'tells a reporter when they reported and what was decided for %s',
+    async (kind, outcome) => {
+      renderSocialPostDecisionView({
+        ...POST_DECISION,
+        kind,
+        reason: 'Financial conduct',
+        // Local noon, so the formatted day cannot slip across a timezone boundary.
+        reportedAt: new Date(2026, 10, 17, 12).getTime(),
+        decidedAt: new Date(2026, 10, 18, 12).getTime(),
+      });
+
+      expect(
+        await screen.findByTestId(
+          SocialPostDecisionViewSelectorsIDs.REPORT_VALUE,
+        ),
+      ).toHaveTextContent('Nov 17, 2026');
+      expect(
+        screen.getByTestId(SocialPostDecisionViewSelectorsIDs.DECISION_VALUE),
+      ).toHaveTextContent(`${outcome} · Nov 18, 2026`);
+    },
+  );
+
+  it('shows no report or decision dates to the poster', async () => {
+    renderSocialPostDecisionView({
+      ...POST_DECISION,
+      reportedAt: new Date(2026, 10, 17, 12).getTime(),
+      decidedAt: new Date(2026, 10, 18, 12).getTime(),
+    });
+
+    await screen.findByTestId(SocialPostDecisionViewSelectorsIDs.REASON_VALUE);
+
+    expect(
+      screen.queryByTestId(SocialPostDecisionViewSelectorsIDs.REPORT_VALUE),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialPostDecisionViewSelectorsIDs.DECISION_VALUE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each<SocialDecisionKind>(['post-removed', 'profile-hidden'])(
+    'lets the poster appeal the %s outcome',
+    async (kind) => {
+      renderSocialPostDecisionView({
+        ...POST_DECISION,
+        kind,
+        reason: 'Financial conduct',
+      });
+
+      expect(
+        await screen.findByTestId(
+          SocialPostDecisionViewSelectorsIDs.APPEAL_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialPostDecisionViewSelectorsIDs.DONE_BUTTON),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it.each<SocialDecisionKind>([
+    'report-post-removed',
+    'report-post-left-up',
+    'report-profile-hidden',
+    'report-profile-left-up',
+  ])(
+    'ends the reporter %s outcome with Done instead of an appeal',
     async (kind) => {
       renderSocialPostDecisionView({
         ...POST_DECISION,

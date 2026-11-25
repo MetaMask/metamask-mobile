@@ -1,7 +1,6 @@
-import {
-  POST_DECISION_KINDS,
-  type SocialDecisionKind,
-  type SocialPostDecisionViewParams,
+import type {
+  SocialDecisionKind,
+  SocialPostDecisionViewParams,
 } from '../../../../components/Views/SocialLeaderboard/SocialPostDecisionView/SocialPostDecisionView.types';
 
 /**
@@ -65,9 +64,9 @@ const readAvatarUrl = (urlParams: URLSearchParams): string | undefined => {
 
 /**
  * Reads the moderation decision a notification link carries.
- * Returns `undefined` when the kind is unknown or the link lacks the handle,
- * the reason or (for outcomes about a post) the post text, so a malformed
- * link never opens a half-empty decision.
+ * Returns `undefined` when the kind is unknown or the link lacks the handle
+ * or the reason, so a malformed link never opens a half-empty decision.
+ * The post text is optional: a position-only post has none.
  */
 export const parseSocialPostDecisionParams = (
   actionPath: string,
@@ -96,9 +95,6 @@ export const parseSocialPostDecisionParams = (
   if (!kind || !handle || !reason) {
     return undefined;
   }
-  if (POST_DECISION_KINDS.includes(kind) && !text) {
-    return undefined;
-  }
 
   return {
     kind,
@@ -106,6 +102,8 @@ export const parseSocialPostDecisionParams = (
     text,
     reason,
     postedAt: readTimestamp(urlParams, 'postedAt'),
+    reportedAt: readTimestamp(urlParams, 'reportedAt'),
+    decidedAt: readTimestamp(urlParams, 'decidedAt'),
     avatarUrl: readAvatarUrl(urlParams),
     profileId: readText(
       urlParams,

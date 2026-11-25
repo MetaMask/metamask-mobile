@@ -26,7 +26,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
@@ -35,6 +35,7 @@ import type {
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import Logger from '../../../../util/Logger';
 import FeedPostAge from '../../../UI/SocialFeed/components/FeedPostAge';
 import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
@@ -45,6 +46,7 @@ import {
   APPEALABLE_DECISION_KINDS,
   POST_DECISION_KINDS,
   PROFILE_DECISION_KINDS,
+  REPORTER_DECISION_KINDS,
   type SocialDecisionKind,
 } from './SocialPostDecisionView.types';
 
@@ -125,6 +127,26 @@ const getDecisionCopy = (
   }
 };
 
+/** What happened to the reported post or profile, named in the Decision row. */
+const getReporterOutcome = (kind: SocialDecisionKind): string => {
+  switch (kind) {
+    case 'report-post-removed':
+      return strings('social_leaderboard.post_decision.outcome_removed');
+    case 'report-profile-hidden':
+      return strings('social_leaderboard.post_decision.outcome_hidden');
+    default:
+      return strings('social_leaderboard.post_decision.outcome_no_action');
+  }
+};
+
+/** "Nov 17, 2026" in the app locale. */
+const formatDecisionDate = (timestampMs: number): string =>
+  getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(timestampMs));
+
 interface KeyValueProps {
   label: string;
   value: string;
@@ -155,8 +177,8 @@ const KeyValue: React.FC<KeyValueProps> = ({
 
 /**
  * Explains a moderation decision: the poster's removed post or hidden
- * profile, or the outcome of a post or profile the viewer reported. Outcomes
- * the viewer can appeal lead to the appeal form, the rest end with Done.
+ * profile, or the outcome of a post or profile the viewer reported. The poster
+ * can appeal; a reporter's outcome ends with Done.
  * Opened from the matching notification deeplink.
  */
 const SocialPostDecisionView: React.FC = () => {
@@ -175,14 +197,25 @@ const SocialPostDecisionView: React.FC = () => {
     text,
     reason,
     postedAt,
+    reportedAt,
+    decidedAt,
     avatarUrl,
     profileId,
     verified,
   } = params;
 
   const isProfileDecision = PROFILE_DECISION_KINDS.includes(kind);
-  const showsPost = POST_DECISION_KINDS.includes(kind) && text !== undefined;
+  const showsPost = POST_DECISION_KINDS.includes(kind);
   const isAppealable = APPEALABLE_DECISION_KINDS.includes(kind);
+  const isReporterDecision = REPORTER_DECISION_KINDS.includes(kind);
+  const reportDate =
+    isReporterDecision && reportedAt !== undefined
+      ? formatDecisionDate(reportedAt)
+      : undefined;
+  const decisionDate =
+    isReporterDecision && decidedAt !== undefined
+      ? formatDecisionDate(decidedAt)
+      : undefined;
 
   const handleAppeal = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.POST_APPEAL, { kind, handle, reason });
@@ -377,23 +410,51 @@ const SocialPostDecisionView: React.FC = () => {
                   />
                 )}
               </Box>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextDefault}
-                testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_TEXT}
-              >
-                {text}
-              </Text>
+              {text ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                  testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_TEXT}
+                >
+                  {text}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         ) : null}
 
         <Box gap={4}>
-          <KeyValue
-            label={strings('social_leaderboard.post_decision.reason_label')}
-            value={reason}
-            testID={SocialPostDecisionViewSelectorsIDs.REASON_VALUE}
-          />
+          <Box flexDirection={BoxFlexDirection.Row} gap={4}>
+            <KeyValue
+              label={strings('social_leaderboard.post_decision.reason_label')}
+              value={reason}
+              testID={SocialPostDecisionViewSelectorsIDs.REASON_VALUE}
+              twClassName="flex-1"
+            />
+            {reportDate ? (
+              <KeyValue
+                label={strings(
+                  'social_leaderboard.post_decision.your_report_label',
+                )}
+                value={reportDate}
+                testID={SocialPostDecisionViewSelectorsIDs.REPORT_VALUE}
+                twClassName="flex-1"
+              />
+            ) : null}
+          </Box>
+          {decisionDate ? (
+            <KeyValue
+              label={strings('social_leaderboard.post_decision.decision_label')}
+              value={strings(
+                'social_leaderboard.post_decision.decision_value',
+                {
+                  outcome: getReporterOutcome(kind),
+                  date: decisionDate,
+                },
+              )}
+              testID={SocialPostDecisionViewSelectorsIDs.DECISION_VALUE}
+            />
+          ) : null}
           <Box
             flexDirection={BoxFlexDirection.Row}
             gap={2}

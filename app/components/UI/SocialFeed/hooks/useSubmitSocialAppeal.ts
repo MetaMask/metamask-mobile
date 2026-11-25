@@ -1,12 +1,4 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { buildSocialAppealSupportUrl } from '../../../../constants/urls';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import Logger from '../../../../util/Logger';
-import { getBetaSupportUrl } from '../../../../util/support/betaSupportUrl';
-import { useSupportConsent } from '../../../hooks/useSupportConsent';
 
 export interface SocialAppeal {
   /** Where the appeal outcome is emailed. */
@@ -22,66 +14,25 @@ export interface SocialAppeal {
 }
 
 interface UseSubmitSocialAppealOptions {
-  /** Called once support has opened with the appeal. */
+  /** Called once the appeal has been accepted. */
   onSent: () => void;
-  /** Called when support could not be opened. */
+  /** Called when the appeal could not be submitted. */
   onFailed: () => void;
 }
 
 /**
- * Hands a social moderation appeal to MetaMask support: the support consent
- * sheet first (unless the viewer saved a preference), then the in-app browser
- * on the help center, the way the Rewards contact-support flows open it. The
- * email, message and decision ride along as URL params.
+ * Submits a social moderation appeal.
  *
- * Neither callback fires when the viewer dismisses the consent sheet.
+ * TODO(TSA-1668): placeholder. Hand the appeal to Intercom here (separate PR).
+ * Until then this only confirms receipt to the form: nothing is sent to the
+ * backend or to support, and no webview opens.
  */
 export const useSubmitSocialAppeal = ({
   onSent,
-  onFailed,
-}: UseSubmitSocialAppealOptions): ((appeal: SocialAppeal) => void) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const { openSupportWithConsent } = useSupportConsent();
-
-  return useCallback(
-    (appeal: SocialAppeal) => {
-      const openWebview = (url: string): void => {
-        try {
-          navigation.navigate(Routes.WEBVIEW.MAIN, {
-            screen: Routes.WEBVIEW.SIMPLE,
-            params: {
-              url,
-              title: strings('app_settings.contact_support'),
-            },
-          });
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'useSubmitSocialAppeal: failed to open support',
-          );
-          onFailed();
-          // The consent flow logs and swallows this, and skips `onSent`.
-          throw error;
-        }
-      };
-
-      const betaSupportUrl = getBetaSupportUrl();
-      if (betaSupportUrl) {
-        try {
-          openWebview(buildSocialAppealSupportUrl(appeal, betaSupportUrl));
-          onSent();
-        } catch {
-          // `openWebview` already reported the failure.
-        }
-        return;
-      }
-
-      openSupportWithConsent(
-        openWebview,
-        buildSocialAppealSupportUrl(appeal),
-        onSent,
-      );
+}: UseSubmitSocialAppealOptions): ((appeal: SocialAppeal) => void) =>
+  useCallback(
+    (_appeal: SocialAppeal) => {
+      onSent();
     },
-    [navigation, onFailed, onSent, openSupportWithConsent],
+    [onSent],
   );
-};

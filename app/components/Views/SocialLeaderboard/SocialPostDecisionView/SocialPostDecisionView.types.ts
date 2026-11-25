@@ -16,11 +16,17 @@ export type SocialDecisionKind =
   | 'report-profile-hidden'
   | 'report-profile-left-up';
 
-/** Outcomes the viewer can appeal. The others end with Done. */
+/** Outcomes the poster can appeal. Reporters never appeal; Done ends the flow. */
 export const APPEALABLE_DECISION_KINDS: readonly SocialDecisionKind[] = [
   'post-removed',
   'profile-hidden',
+];
+
+/** Outcomes of a post or profile the viewer reported. */
+export const REPORTER_DECISION_KINDS: readonly SocialDecisionKind[] = [
+  'report-post-removed',
   'report-post-left-up',
+  'report-profile-hidden',
   'report-profile-left-up',
 ];
 
@@ -50,12 +56,16 @@ export interface SocialPostDecisionViewParams {
   kind: SocialDecisionKind;
   /** Handle of the post's author or the profile, shown in the preview. */
   handle: string;
-  /** Text of the post, shown in the post preview. Required for post outcomes. */
+  /** Text of the post, shown in the post preview. A position-only post has none. */
   text?: string;
   /** Why the decision was made, shown as the decision reason. */
   reason: string;
   /** Epoch milliseconds the post was published. Hides the age when absent. */
   postedAt?: number;
+  /** Epoch milliseconds the reporter filed the report. Reporter outcomes only. */
+  reportedAt?: number;
+  /** Epoch milliseconds the decision was made. Reporter outcomes only. */
+  decidedAt?: number;
   /** Avatar of the post's author or the profile. Falls back to a Maskicon. */
   avatarUrl?: string;
   /** Profile id seeding the fallback avatar. */

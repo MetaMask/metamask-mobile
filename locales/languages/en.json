@@ -1330,6 +1330,12 @@
     "post_decision": {
       "terms_link": "Terms of Service",
       "reason_label": "Reason",
+      "your_report_label": "Your report",
+      "decision_label": "Decision",
+      "decision_value": "{{outcome}} · {{date}}",
+      "outcome_removed": "Removed",
+      "outcome_hidden": "Hidden",
+      "outcome_no_action": "No action",
       "ai_disclosure": "We used automated tools, including AI, to help make this decision.",
       "appeal": "Appeal",
       "done": "Done",
@@ -1347,7 +1353,7 @@
       },
       "report_post_left_up": {
         "title": "We left the post up",
-        "subtitle": "We reviewed it and it doesn’t violate our acceptable use requirements, as set out in our {{termsLink}}. You can appeal this decision."
+        "subtitle": "We reviewed it and it doesn’t violate our acceptable use requirements, as set out under our {{termsLink}}."
       },
       "report_profile_hidden": {
         "title": "We hid the profile you reported",
@@ -1355,7 +1361,7 @@
       },
       "report_profile_left_up": {
         "title": "We left the profile up",
-        "subtitle": "We reviewed it and it doesn’t violate our acceptable use requirements, as set out in our {{termsLink}}. You can appeal this decision."
+        "subtitle": "We reviewed it and it doesn’t violate our acceptable use requirements, as set out under our {{termsLink}}."
       }
     },
     "post_appeal": {
