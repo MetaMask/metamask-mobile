@@ -175,6 +175,20 @@ describe('useClearPaymentOverride', () => {
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
   });
 
+  it('keeps the Lighter payment override', () => {
+    mockSelectors({
+      paymentOverride: 'perpsLighter' as PaymentOverride,
+    });
+
+    const { result } = renderHook(() => useClearPaymentOverride());
+
+    act(() => {
+      result.current();
+    });
+
+    expect(setTransactionConfigMock).not.toHaveBeenCalled();
+  });
+
   it('does not call setTransactionConfig when transactionId is empty', () => {
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
     mockSelectors({ paymentOverride: PaymentOverride.MoneyAccount });

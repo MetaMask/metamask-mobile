@@ -2109,6 +2109,38 @@ describe('CandleStreamChannel', () => {
   });
 
   describe('reconnect', () => {
+    it('reconnects an untagged HIP-3 dex named lighter separately from a Lighter listing', () => {
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+      const options = {
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      };
+      channel.subscribe({ ...options, symbol: 'lighter:FOO-USD' });
+      channel.subscribe({
+        ...options,
+        symbol: 'FOO-USD',
+        providerId: 'lighter',
+      });
+      flushConnectDebounce();
+      mockSubscribeToCandles.mockClear();
+      channel.reconnect();
+      flushConnectDebounce();
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'lighter:FOO-USD',
+          interval: CandlePeriod.OneHour,
+        }),
+      );
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'FOO-USD',
+          providerId: 'lighter',
+          interval: CandlePeriod.OneHour,
+        }),
+      );
+    });
     it('should correctly parse cache keys with coin symbols containing hyphens', () => {
       const mockEthUsdUnsubscribe = jest.fn();
       const mockBtcUnsubscribe = jest.fn();

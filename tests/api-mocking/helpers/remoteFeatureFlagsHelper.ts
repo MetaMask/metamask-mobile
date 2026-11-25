@@ -114,6 +114,12 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     enabled: false,
     minimumVersion: '0.0.0',
   },
+  // The production sync enables card link discovery for the E2E app, but the
+  // card links endpoint is not part of the shared smoke-test API fixtures.
+  cardLinkApi: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
   crossmintApplePayCheckout: {
     enabled: false,
     minimumVersion: '0.0.0',
@@ -138,6 +144,17 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     currency: 'USD',
     regions: ['US'],
     layout: 'UsBank',
+  },
+  // Keep the new Money CTA splash disabled in smoke tests.
+  moneyEnableSplash: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  // The production sync enables this controller, which starts the referral
+  // request during app startup. Keep it disabled until that endpoint is mocked.
+  rewardsMoneyControllerEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
   },
   // 2026-11-17 prod sync turned these on at versions the 8.21.0 E2E build
   // meets. Keep the registry at the prod values; pin the pre-sync UI here so

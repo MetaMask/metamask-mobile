@@ -13,14 +13,14 @@
 interface FetchPathStub {
   body: unknown;
   status: number;
-  onRequest?: (request: { method: string; body: unknown }) => void;
+  onRequest?: (request: { method: string; body: unknown; url: string }) => void;
 }
 
 export interface FetchPathStubOptions {
   /** Scope the stub to one HTTP method; per-method stubs win over the method-agnostic entry for the same target. */
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   /** Observe the requests this stub answers (method + raw body). */
-  onRequest?: (request: { method: string; body: unknown }) => void;
+  onRequest?: (request: { method: string; body: unknown; url: string }) => void;
 }
 
 const stubs = new Map<string, FetchPathStub>();
@@ -72,7 +72,7 @@ const ensureFetchSpy = (): void => {
       const stub =
         (key && (stubs.get(`${key}#${method}`) ?? stubs.get(key))) || undefined;
       if (stub) {
-        stub.onRequest?.({ method, body: init?.body });
+        stub.onRequest?.({ method, body: init?.body, url: requestUrl(url) });
         return Promise.resolve({
           ok: stub.status >= 200 && stub.status < 300,
           status: stub.status,

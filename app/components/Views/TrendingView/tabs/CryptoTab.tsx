@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { strings } from '../../../../../locales/i18n';
 import ExploreEarnSection from '../components/ExploreEarnSection';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
@@ -25,6 +27,8 @@ import ExploreSectionList, {
 } from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSection';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -129,6 +133,13 @@ const CryptoTabContent: React.FC<TabProps> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isEarnSectionVisible = useSelector(selectIsExploreEarnSectionVisible);
+  const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const networkTier = useNetworkTier();
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const showTopTraders = isTopTradersEnabled && networkTier !== 'NONE';
+  const prefetchTraderProfiles = !(
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+  );
   const { openQuickBuy } = useTrendingQuickBuySheet();
 
   const { variant: quickBuyVariant } = useABTest(
@@ -276,6 +287,17 @@ const CryptoTabContent: React.FC<TabProps> = ({
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
       >
+        {showTopTraders && (
+          <>
+            <Box twClassName="pb-1">
+              <TopTradersSection
+                source="explore_crypto"
+                prefetchProfiles={prefetchTraderProfiles}
+              />
+            </Box>
+            <SectionDivider />
+          </>
+        )}
         <ExploreSectionList sections={sections} />
       </ExploreScroll>
     </View>

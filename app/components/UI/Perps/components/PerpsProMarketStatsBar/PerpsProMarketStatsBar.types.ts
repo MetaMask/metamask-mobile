@@ -1,3 +1,4 @@
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import type { PerpsMarketDetailSectionState } from '../../hooks/usePerpsMarketDetailSession';
 
 export interface PerpsProMarketStatsBarProps {
@@ -5,6 +6,7 @@ export interface PerpsProMarketStatsBarProps {
    * Raw market symbol used to subscribe to live stats (e.g. "BTC", "xyz:TSLA").
    */
   symbol: string;
+  providerId?: PerpsProviderType;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific).
    * Feeds the funding-rate countdown, mirroring PerpsMarketStatisticsCard.
