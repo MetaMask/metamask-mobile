@@ -40,6 +40,9 @@ describe('formatAccountPnl', () => {
   it.each([
     [{ unrealizedPnl: '12.5', marginUsed: '120' }, '+$12.50 (+10.4%)'],
     [{ unrealizedPnl: '-12.5', marginUsed: '120' }, '-$12.50 (-10.4%)'],
+    // A return that rounds to zero keeps the loss sign.
+    [{ unrealizedPnl: '-0.01', marginUsed: '120' }, '-$0.01 (-0.0%)'],
+    [{ unrealizedPnl: '0', marginUsed: '120' }, '+$0.00 (+0.0%)'],
     // No margin in use: no return to show.
     [{ unrealizedPnl: '0', marginUsed: '0' }, '+$0.00'],
     [{ unrealizedPnl: '', marginUsed: '120' }, '$---'],

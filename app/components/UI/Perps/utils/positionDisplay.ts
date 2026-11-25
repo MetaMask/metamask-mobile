@@ -2,14 +2,12 @@ import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import {
   calculateAccountReturnOnEquity,
   getPerpsDisplaySymbol,
-  PERPS_DISPLAY_PRECISION,
   type AccountState,
   type Position,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   formatLeverage,
-  formatPercentage,
   formatRoePercentage,
   formatPerpsFiat,
   formatPnl,
@@ -59,7 +57,7 @@ export const formatAccountPnl = (
     | undefined,
 ): string => {
   const formatRoe = (roe: number | undefined) =>
-    `(${formatPercentage(roe, PERPS_DISPLAY_PRECISION.RoePercent)})`;
+    `(${formatRoePercentage(roe, roe !== undefined && roe < 0)})`;
   if (!account) {
     return `${formatPnl(undefined)} ${formatRoe(undefined)}`;
   }
