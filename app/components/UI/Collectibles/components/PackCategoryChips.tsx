@@ -4,6 +4,7 @@ import {
   FilterButtonGroup,
   IconName,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import type { PackCategory } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function PackCategoryChips({ categories, selectedId, onSelect }: Props) {
+  const tw = useTailwind();
   const activeId = selectedId ?? allChipId;
 
   return (
@@ -25,6 +27,7 @@ export function PackCategoryChips({ categories, selectedId, onSelect }: Props) {
       value={activeId}
       onChange={(value) => onSelect(value === allChipId ? undefined : value)}
       twClassName="gap-2 px-4"
+      style={tw.style('grow-0')}
       accessibilityLabel={strings('collectibles.packs.categories')}
     >
       <FilterButton
