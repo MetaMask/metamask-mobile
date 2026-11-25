@@ -1,16 +1,14 @@
+import type { PriceUpdate } from '@metamask/perps-controller';
+
 /**
- * The two prices a perps quote can carry. `markPrice` is the exchange oracle.
- * `price` is the live mid.
+ * The prices a perps quote can carry: `oraclePrice` is the exchange oracle and
+ * `price` is the live mid. `isTradable` is `false` when the oracle has diverged
+ * from the mid far enough that the venue would reject an order, and absent on
+ * quotes that have not been assessed.
  */
-export interface PerpPriceQuote {
-  price?: string;
-  markPrice?: string;
-  /**
-   * `false` when the oracle has diverged from the mid far enough that the
-   * venue would reject an order. Absent on quotes that have not been assessed.
-   */
-  isTradable?: boolean;
-}
+export type PerpPriceQuote = Partial<
+  Pick<PriceUpdate, 'price' | 'oraclePrice' | 'isTradable'>
+>;
 
 const parsePositivePrice = (value: string | undefined): number | undefined => {
   if (value == null) {
@@ -32,7 +30,7 @@ export const selectPerpDisplayPrice = (
   update: PerpPriceQuote,
 ): number | undefined => {
   const mid = parsePositivePrice(update.price);
-  const oracle = parsePositivePrice(update.markPrice);
+  const oracle = parsePositivePrice(update.oraclePrice);
   if (oracle == null || update.isTradable === false) {
     return mid;
   }

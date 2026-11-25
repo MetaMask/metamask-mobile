@@ -207,6 +207,12 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
+jest.mock('../../rows/money-deposit-to-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    MoneyDepositToRow: () => <View testID="money-deposit-to-row-mock" />,
+  };
+});
 jest.mock('../../rows/perps-receive-to-row', () => ({
   DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
   PerpsReceiveToRow: () => null,
@@ -449,7 +455,10 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayPostQuoteMock = jest.mocked(
     useTransactionPayPostQuote,
   );
-  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
+  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount> & {
+    isClampCommitPending?: boolean;
+    isClampCommitFailed?: boolean;
+  };
   const createCustomAmountMock = (
     overrides: Partial<CustomAmountMock> = {},
   ): CustomAmountMock => ({
@@ -466,6 +475,8 @@ describe('CustomAmountInfo', () => {
     updatePendingAmount: noop,
     updatePendingAmountPercentage: () => false,
     updateTokenAmount: jest.fn(),
+    isClampCommitPending: false,
+    isClampCommitFailed: false,
     ...overrides,
   });
 
@@ -525,12 +536,11 @@ describe('CustomAmountInfo', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
-        address: '0x123',
+        assetId: 'eip155:1/erc20:0x123',
         balanceHuman: '0',
         balanceFiat: '0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
       },
@@ -912,6 +922,82 @@ describe('CustomAmountInfo', () => {
 
     expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
     expect(getByText('Test Help Text')).toBeDefined();
+  });
+
+  async function openEnabledReview(
+    view: ReturnType<typeof render>,
+  ): Promise<void> {
+    await act(async () => {
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+    });
+
+    useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+    view.rerender(createCustomAmountInfo());
+  }
+
+  it('blocks Continue when clamp commit is pending', async () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ amountFiat: '900' }),
+    );
+
+    const view = render();
+    await openEnabledReview(view);
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '900',
+        isClampCommitPending: true,
+      }),
+    );
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertMessage: 'Updating transaction amount',
+    });
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+      fieldAlerts: [],
+      generalAlerts: [],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+    view.rerender(createCustomAmountInfo());
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('blocks Continue when clamp commit has failed', async () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ amountFiat: '900' }),
+    );
+
+    const view = render();
+    await openEnabledReview(view);
+
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '900',
+        isClampCommitFailed: true,
+      }),
+    );
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertMessage: 'Failed to update transaction amount',
+    });
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+      fieldAlerts: [],
+      generalAlerts: [],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+    view.rerender(createCustomAmountInfo());
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
@@ -1755,12 +1841,11 @@ describe('CustomAmountInfo', () => {
     it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'TST',
         },
@@ -1787,12 +1872,11 @@ describe('CustomAmountInfo', () => {
         } as never);
         useTransactionPayTokenMock.mockReturnValue({
           payToken: {
-            address: '0x123',
+            assetId: 'eip155:1/erc20:0x123',
             balanceHuman: '0',
             balanceFiat: '0',
             balanceRaw: '0',
             balanceUsd: '0',
-            chainId: '0x1',
             decimals: 18,
             symbol: 'TST',
           },
@@ -1839,12 +1923,11 @@ describe('CustomAmountInfo', () => {
       useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
@@ -2088,12 +2171,11 @@ describe('CustomAmountInfo', () => {
       useTransactionPayTokenMock.mockReturnValue({
         isNative: true,
         payToken: {
-          address: '0x0000000000000000000000000000000000000000',
+          assetId: 'eip155:1/slip44:60',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
@@ -2358,7 +2440,7 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('PayWithRow visibility for moneyAccountDeposit', () => {
-    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+    it('renders PayWithRow and MoneyDepositToRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         txParams: { from: '0x123' },
@@ -2369,6 +2451,53 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(getByTestId('pay-with')).toBeOnTheScreen();
+      expect(getByTestId('money-deposit-to-row-mock')).toBeOnTheScreen();
+    });
+  });
+
+  describe('DepositToRow placement for perpsDeposit and predictDeposit', () => {
+    it.each([
+      [TransactionType.perpsDeposit, 'Perps balance'],
+      [TransactionType.predictDeposit, 'Predict balance'],
+    ])(
+      'renders DepositToRow directly below the Convert row for %s',
+      (type, expectedDestination) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type,
+          txParams: { from: '0x123' },
+        } as never);
+
+        const { getByTestId, toJSON } = render({ transactionType: type });
+
+        expect(getByTestId('pay-with')).toBeOnTheScreen();
+        expect(getByTestId('deposit-to')).toBeOnTheScreen();
+        expect(getByTestId('deposit-to-value')).toHaveTextContent(
+          expectedDestination,
+        );
+
+        const json = JSON.stringify(toJSON());
+        expect(json.indexOf('"pay-with"')).toBeLessThan(
+          json.indexOf('"deposit-to"'),
+        );
+      },
+    );
+
+    it('hides DepositToRow when payWithOption is money_account', () => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { queryByTestId } = render({
+        transactionType: TransactionType.perpsDeposit,
+      });
+
+      expect(queryByTestId('deposit-to')).toBeNull();
     });
   });
 
@@ -2657,6 +2786,93 @@ describe('CustomAmountInfo', () => {
     expect(
       getByText(strings('confirm.custom_amount.buy_predict')),
     ).toBeOnTheScreen();
+  });
+
+  describe('when the deposit prefill is skipped and nothing can fund it', () => {
+    const renderWithSkippedPrefill = (transactionType: TransactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          depositPrefillStatus: DepositPrefillStatus.Skipped,
+        }),
+      );
+
+      return render({ transactionType });
+    };
+
+    it('offers Buy crypto for a Predict deposit', () => {
+      const { getByText } = renderWithSkippedPrefill(
+        TransactionType.predictDeposit,
+      );
+
+      expect(
+        getByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('confirm.custom_amount.buy_predict')),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.moneyAccountDeposit,
+    ])('keeps Buy crypto hidden for %s', (transactionType) => {
+      const { queryByText } = renderWithSkippedPrefill(transactionType);
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+  });
+
+  it('keeps the keypad and hides Buy crypto for a Predict deposit with a skipped prefill and a payment option', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        depositPrefillStatus: DepositPrefillStatus.Skipped,
+      }),
+    );
+
+    const { getByTestId, queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
+  it('keeps Buy crypto hidden for a Predict deposit while its prefill loads', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        depositPrefillStatus: DepositPrefillStatus.Loading,
+      }),
+    );
+
+    const { queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
   });
 
   it('renders headless buy error when no alert message is present', () => {

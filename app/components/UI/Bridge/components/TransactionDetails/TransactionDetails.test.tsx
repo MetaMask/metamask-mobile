@@ -342,7 +342,7 @@ describe('BridgeTransactionDetails', () => {
   it('hides the do-it-again CTA for a 7702 batch sell', () => {
     const batchTxHash = '0xbatchsellhash';
     const batchTxId = 'batch-sell-tx-id';
-    const batchId = '0xbatch123';
+    const batchId = '0xbatch123' as const;
     const batchSellState = {
       ...mockState,
       engine: {

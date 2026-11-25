@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
@@ -27,6 +27,8 @@ import {
   clearSuppressedNetworkAddedToast,
   suppressNextNetworkAddedToast,
 } from '../../../../util/networks/networkToastSuppression';
+import { upgradeMoneyAccount } from '../../../../actions/money';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -34,7 +36,7 @@ import {
  * @param type - Whether this is a source or dest token selector
  */
 export const useTokenSelection = (type: TokenSelectorType) => {
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -44,6 +46,15 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const { autoUpdateDestToken } = useAutoUpdateDestToken();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  /**
+   * Kick off CHOMP setup for the money account. The asset picker always navs back
+   * after selection, so this signal must outlive the hook: aborting on unmount
+   * skips an already-aborted run and cancels retry backoff before the swap.
+   */
+  const handleMoneySelection = useCallback(() => {
+    dispatch(upgradeMoneyAccount(new AbortController().signal));
+  }, [dispatch]);
 
   const handleTokenPress = useCallback(
     async (token: BridgeToken) => {
@@ -104,6 +115,10 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         }
       }
 
+      if (token.isMoneyToken) {
+        handleMoneySelection();
+      }
+
       if (isSelectingOtherToken && sourceToken && destToken) {
         // Only allow swap if the destination network (which would become source) is enabled
         if (!isDestNetworkEnabled) {
@@ -151,6 +166,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
       isDestNetworkEnabled,
       autoUpdateDestToken,
       networkConfigurations,
+      handleMoneySelection,
     ],
   );
 

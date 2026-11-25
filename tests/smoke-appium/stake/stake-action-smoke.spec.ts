@@ -19,6 +19,10 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils.js';
 import { AnvilManager } from '../../seeder/anvil-manager.js';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
+import {
+  accountsBalancesV2,
+  accountsMultiaccountBalancesV4,
+} from '../../api-mocking/api-mocks.js';
 
 appiumTest.describe(SmokeStake('Stake from Actions'), () => {
   const AMOUNT_TO_STAKE = '1';
@@ -115,51 +119,42 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
             // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
             // Without this, the default mock returns 0 balance and the Earn button
             // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
-            await setupMockRequest(mockServer, {
-              url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-              response: {
-                balances: [
-                  {
-                    object: 'token',
-                    address: '0x0000000000000000000000000000000000000000',
-                    symbol: 'ETH',
-                    name: 'Ether',
-                    type: 'native',
-                    decimals: 18,
-                    chainId: 1,
-                    balance: '10000.000000000000000000',
-                    accountAddress: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
-                  },
-                ],
-                unprocessedNetworks: [],
-              },
-              requestMethod: 'GET',
-              responseCode: 200,
-            });
+            await accountsMultiaccountBalancesV4.register(mockServer, () => ({
+              count: 1,
+              balances: [
+                {
+                  object: 'token',
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  decimals: 18,
+                  chainId: 1,
+                  balance: '10000.000000000000000000',
+                  accountAddress: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+                },
+              ],
+              unprocessedNetworks: [],
+            }));
 
             // Mock Accounts API V2 (per-account balances) for the same reason.
-            await setupMockRequest(mockServer, {
-              url: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances/,
-              response: {
-                count: 1,
-                balances: [
-                  {
-                    object: 'token',
-                    address: '0x0000000000000000000000000000000000000000',
-                    symbol: 'ETH',
-                    name: 'Ether',
-                    type: 'native',
-                    timestamp: '2015-07-30T15:26:13.000Z',
-                    decimals: 18,
-                    chainId: 1,
-                    balance: '10000.0',
-                  },
-                ],
-                unprocessedNetworks: [],
-              },
-              requestMethod: 'GET',
-              responseCode: 200,
-            });
+            await accountsBalancesV2.register(mockServer, () => ({
+              count: 1,
+              balances: [
+                {
+                  object: 'token',
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  timestamp: '2015-07-30T15:26:13.000Z',
+                  decimals: 18,
+                  chainId: 1,
+                  balance: '10000.0',
+                },
+              ],
+              unprocessedNetworks: [],
+            }));
 
             await setupMockRequest(mockServer, {
               url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/getFees/,
@@ -193,14 +188,13 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
-          // Redesigned stake confirmations use confirm-button (FooterActions),
+          // Stake confirmations use confirm-button (FooterActions),
           // not the legacy text "Confirm" locator in StakeView.tapReviewWithRetry.
           await StakeView.tapReview();
           await Assertions.expectElementToBeVisible(
             FooterActions.confirmButton,
             {
-              description:
-                'Redesigned Confirm button should appear after Review',
+              description: 'Confirm button should appear after Review',
             },
           );
           await FooterActions.tapConfirmButton();

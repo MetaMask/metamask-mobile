@@ -8,7 +8,8 @@ import Routes from '../../../../constants/navigation/Routes';
  */
 export const REWARDS_MONEY_FLOW_SCREENS = [
   Routes.REWARDS_SETTINGS_VIEW,
-  Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
+  Routes.REWARDS_MONEY_REFERRALS_VIEW,
+  Routes.REWARDS_COPY_TRADING_VIEW,
   Routes.REWARDS_TRADING_REBATES_VIEW,
   Routes.REWARDS_EARNINGS_HISTORY_VIEW,
 ] as const;

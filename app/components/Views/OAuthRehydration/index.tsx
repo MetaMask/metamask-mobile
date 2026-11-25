@@ -6,7 +6,7 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import { BackHandler, TouchableOpacity, Alert } from 'react-native';
+import { Alert, BackHandler, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -14,7 +14,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -93,16 +93,52 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
+import Engine from '../../../core/Engine';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectMfaUiKitEnabled } from '../../../selectors/featureFlagController/mfaUiKit';
+import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
+import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
+import { useMfa } from '../../../util/identity/mfa';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../util/identity/mfa/engine/types';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
+import {
+  WalletRecoveryLoading,
+  WalletRecoveryPassword,
+  WalletRecoveryVerify,
+} from './WalletRecovery';
+import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
+import { promptPostMfaDeviceBiometrics } from './promptPostMfaDeviceBiometrics';
+
+/**
+ * Best-effort social identifier pairing before locked MFA verify.
+ * Failure is non-fatal — verify can still proceed.
+ */
+const exchangeSocialTokenForLockedMfa = async () => {
+  try {
+    await Engine.context.AuthenticationController.exchangeSocialAccessToken();
+  } catch (exchangeError) {
+    Logger.log('OAuthRehydration: social login exchange failed', {
+      message:
+        exchangeError instanceof Error
+          ? exchangeError.message
+          : String(exchangeError),
+    });
+  }
+};
+
+type WalletRecoveryStep = 'loading' | 'verify' | 'password'; // existing password — only from custom picker (or no-MFA fallback)
 
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
@@ -113,6 +149,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
+  const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
+  const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
+  const route =
+    useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
+  const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
+  // Locked passkey check, then the existing unlock screen. When recovery is
+  // set up, Unlock applies the typed password as the new one. Gated by the
+  // existing Money MFA remote flag (`isMoneyMfaEnabled`).
+  const canOfferSocialMfaVerify = isMfaUiKitEnabled && isMoneyMfaEnabledFlag;
+  const authConnection =
+    useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const analyticsId = useSelector(selectAnalyticsId);
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
@@ -123,11 +171,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [startFoxAnimation, setStartFoxAnimation] = useState<
     undefined | 'Start'
   >(undefined);
-
-  const route =
-    useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
-  const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
-  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
 
   const [password, setPassword] = useState('');
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
@@ -180,6 +223,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const {
     unlockWallet,
     getAuthType,
+    componentAuthenticationType,
     requestBiometricsAccessControlForIOS,
     updateAuthPreference,
   } = useAuthentication();
@@ -187,28 +231,31 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   /**
    * After a successful password unlock, offer device auth / biometrics for keychain storage.
    */
-  const upgradeKeychainAuthAfterSuccessfulUnlock = useCallback(async () => {
-    try {
-      const upgradeAuthType = await requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-      if (upgradeAuthType !== AUTHENTICATION_TYPE.PASSWORD) {
-        await updateAuthPreference({
-          authType: upgradeAuthType,
-          password,
-          fallbackToPassword: true,
-        });
+  const upgradeKeychainAuthAfterSuccessfulUnlock = useCallback(
+    async (unlockPassword: string) => {
+      try {
+        const upgradeAuthType = await requestBiometricsAccessControlForIOS(
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        );
+        if (upgradeAuthType !== AUTHENTICATION_TYPE.PASSWORD) {
+          await updateAuthPreference({
+            authType: upgradeAuthType,
+            password: unlockPassword,
+            fallbackToPassword: true,
+          });
+        }
+      } catch (postUnlockAuthErr) {
+        Logger.error(
+          ensureError(
+            postUnlockAuthErr,
+            'Post-unlock auth preference update failed',
+          ),
+          'OAuthRehydration: post-unlock biometric preference',
+        );
       }
-    } catch (postUnlockAuthErr) {
-      Logger.error(
-        ensureError(
-          postUnlockAuthErr,
-          'Post-unlock auth preference update failed',
-        ),
-        'OAuthRehydration: post-unlock biometric preference',
-      );
-    }
-  }, [password, requestBiometricsAccessControlForIOS, updateAuthPreference]);
+    },
+    [requestBiometricsAccessControlForIOS, updateAuthPreference],
+  );
 
   const track = useCallback(
     (
@@ -318,21 +365,26 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
+      // Prefer message match — unlockWallet may wrap the controller error.
+      if (
+        containsErrorMessage(
+          seedlessError,
+          SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+        )
+      ) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: accountType,
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
+        setError(strings('login.invalid_password'));
+        return;
+      }
+
       if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
         if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-        ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: accountType,
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
-          setError(strings('login.invalid_password'));
-          return;
-        } else if (
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
         ) {
@@ -460,12 +512,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         endTrace({ name: TraceName.OnboardingPasswordLoginError });
       }
 
-      if (loginErrorMessage.includes('SeedlessOnboardingController')) {
-        handleSeedlessOnboardingControllerError(loginError);
-        return;
-      }
-
       const isWrongPasswordError =
+        containsErrorMessage(
+          loginError,
+          SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+        ) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
@@ -479,6 +530,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           });
         }
         handlePasswordError(loginErrorMessage);
+        return;
+      }
+
+      if (loginErrorMessage.includes('SeedlessOnboardingController')) {
+        handleSeedlessOnboardingControllerError(loginError);
         return;
       }
 
@@ -530,6 +586,225 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     ],
   );
 
+  // Loader → custom verify (enrolled methods) → password.
+  const [walletRecoveryStep, setWalletRecoveryStep] =
+    useState<WalletRecoveryStep>(
+      canOfferSocialMfaVerify ? 'loading' : 'password',
+    );
+  /** Active MFA factors from `refreshSocialLoginCredentials`. */
+  const [fallbackMethods, setFallbackMethods] = useState<MfaMethod[]>([]);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  /** Password opened from verify → back returns to the picker. */
+  const [passwordFromVerify, setPasswordFromVerify] = useState(false);
+  /**
+   * Auth preference chosen right after MFA (device biometrics prompt).
+   * Reused when unlocking the vault so we do not prompt twice.
+   */
+  const postMfaAuthPreferenceRef = useRef<AuthData | null>(null);
+  /**
+   * Last MFA factor that just succeeded. Passkey already showed an OS biometric
+   * sheet — do not prompt again in continueAfterVerified.
+   */
+  const lastVerifiedMfaMethodRef = useRef<MfaMethod | null>(null);
+  /** Prevent overlapping post-MFA biometric prompts. */
+  const continueAfterVerifiedInFlightRef = useRef(false);
+  /** Arrival verify (OS sheet) is in flight. Hardware back must not leave it. */
+  const lockedVerifyInFlightRef = useRef(false);
+  const { listActiveSocialLoginMethods, verifyForSocialLogin } = useMfa();
+
+  const lockedMfaReason = useMemo(
+    (): MfaReason => ({
+      operation: 'settings.social_mfa_verify',
+      presentation: 'modal',
+      verifyDescription: strings('wallet_recovery_mfa.verify_description'),
+    }),
+    [],
+  );
+
+  /**
+   * After MFA verified: prompt device biometrics, then existing password
+   * unlock. A rejected prompt keeps password-only auth for that unlock.
+   */
+  const continueAfterVerified = useCallback(async () => {
+    if (continueAfterVerifiedInFlightRef.current) {
+      return;
+    }
+    continueAfterVerifiedInFlightRef.current = true;
+
+    setError(null);
+    setVerifyError(null);
+    setPasswordFromVerify(false);
+    setPassword('');
+    // Stay on loader while the OS biometrics sheet is up.
+    setWalletRecoveryStep('loading');
+
+    // Post-MFA device biometrics (Figma): separate from passkey MFA.
+    // 1) Passkey / SMS / etc. = identity MFA
+    // 2) This prompt = enable device unlock biometrics
+    //    Accept or reject → existing password unlock (wallet needs a password today)
+    try {
+      postMfaAuthPreferenceRef.current = await promptPostMfaDeviceBiometrics(
+        {
+          componentAuthenticationType,
+          requestBiometricsAccessControlForIOS,
+        },
+        lastVerifiedMfaMethodRef.current === 'passkey',
+      );
+    } finally {
+      continueAfterVerifiedInFlightRef.current = false;
+    }
+
+    // Existing MetaMask password unlock.
+    // Ideal Figma end state is Wallet; password is still required to unlock today.
+    setWalletRecoveryStep('password');
+  }, [componentAuthenticationType, requestBiometricsAccessControlForIOS]);
+
+  /**
+   * Pre-password locked social MFA via `useMfa`.
+   * Lists enrolled factors once, verifies the highest allowed one, and on
+   * cancel opens the full-screen methods list. Email OTP is only allowed for
+   * Telegram (sign-in email is never a Google/Apple recovery factor).
+   */
+  const offerLockedSocialMfaVerify = useCallback(async () => {
+    if (!canOfferSocialMfaVerify) {
+      setWalletRecoveryStep('password');
+      return;
+    }
+
+    setError(null);
+    setVerifyError(null);
+    setPasswordFromVerify(false);
+    lockedVerifyInFlightRef.current = true;
+    let allowedMethods: MfaMethod[] = [];
+    try {
+      try {
+        const methods = await listActiveSocialLoginMethods();
+        // Google/Apple sign-in email is the first factor, so it is not a
+        // recovery factor. Telegram's inbox is separate, so email stays.
+        allowedMethods =
+          authConnection === 'telegram'
+            ? methods
+            : methods.filter((method) => method !== 'email_otp');
+      } catch (listError) {
+        Logger.log('OAuthRehydration: locked MFA list failed', {
+          code: getMfaErrorCode(listError),
+        });
+        setWalletRecoveryStep('password');
+        return;
+      }
+      if (allowedMethods.length === 0) {
+        setWalletRecoveryStep('password');
+        return;
+      }
+      setFallbackMethods(allowedMethods);
+
+      const highestMethod = allowedMethods[0];
+      await exchangeSocialTokenForLockedMfa();
+      await verifyForSocialLogin({
+        reason: lockedMfaReason,
+        method: highestMethod,
+      });
+      Logger.log('OAuthRehydration: locked social MFA', {
+        status: 'verified',
+        method: highestMethod,
+      });
+      lastVerifiedMfaMethodRef.current = highestMethod;
+      await continueAfterVerified();
+    } catch (mfaError) {
+      const code = getMfaErrorCode(mfaError);
+      // OS passkey cancel before any kit screen (`!presented`) or back from
+      // kit retry → full-page methods list.
+      if (code === 'flow_cancelled') {
+        Logger.log('OAuthRehydration: locked social MFA', {
+          status: 'fallback_verify',
+          code,
+          message:
+            mfaError instanceof Error ? mfaError.message : String(mfaError),
+        });
+        if (allowedMethods.length === 0) {
+          setWalletRecoveryStep('password');
+          return;
+        }
+        setFallbackMethods(allowedMethods);
+        setWalletRecoveryStep('verify');
+        return;
+      }
+      Logger.log('OAuthRehydration: locked social MFA', {
+        status: 'failed',
+        code,
+        message:
+          mfaError instanceof Error ? mfaError.message : String(mfaError),
+      });
+    } finally {
+      lockedVerifyInFlightRef.current = false;
+      setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
+    }
+  }, [
+    canOfferSocialMfaVerify,
+    authConnection,
+    lockedMfaReason,
+    listActiveSocialLoginMethods,
+    verifyForSocialLogin,
+    continueAfterVerified,
+  ]);
+
+  const handleRecoveryMethodSelect = useCallback(
+    async (method: WalletRecoveryMethod) => {
+      // Email OTP only for Telegram — never Google/Apple sign-in email.
+      if (method === 'email' && authConnection !== 'telegram') {
+        return;
+      }
+
+      if (method === 'password') {
+        setVerifyError(null);
+        setPasswordFromVerify(true);
+        // Picker password is existing unlock — not the post-MFA biometric path.
+        postMfaAuthPreferenceRef.current = null;
+        setWalletRecoveryStep('password');
+        return;
+      }
+
+      const mfaMethod: MfaMethod = method === 'email' ? 'email_otp' : method;
+      setVerifyBusy(true);
+      setVerifyError(null);
+      setError(null);
+      try {
+        await exchangeSocialTokenForLockedMfa();
+        await verifyForSocialLogin({
+          reason: lockedMfaReason,
+          method: mfaMethod,
+        });
+        Logger.log('OAuthRehydration: locked social MFA', {
+          status: 'verified',
+          method: mfaMethod,
+        });
+        lastVerifiedMfaMethodRef.current = mfaMethod;
+        await continueAfterVerified();
+      } catch (mfaError) {
+        const code = getMfaErrorCode(mfaError);
+        Logger.log('OAuthRehydration: locked social MFA factor', {
+          status: 'failed',
+          method: mfaMethod,
+          code,
+        });
+        if (code === 'flow_cancelled') {
+          // Stay on full-screen verify; no error line.
+          return;
+        }
+        setVerifyError(strings('wallet_recovery_mfa.method_failed'));
+      } finally {
+        setVerifyBusy(false);
+      }
+    },
+    [
+      authConnection,
+      lockedMfaReason,
+      verifyForSocialLogin,
+      continueAfterVerified,
+    ],
+  );
+
   const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
     track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
@@ -563,8 +838,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
       const passwordLoginAttemptCtx = passwordLoginAttemptTraceCtxRef.current;
 
-      // Password first: do not prompt biometrics until unlock succeeds
-      const authData: AuthData = {
+      // Prefer auth chosen right after MFA; otherwise password unlock then
+      // post-unlock biometric upgrade (picker Password / lock-screen path).
+      const postMfaAuth = postMfaAuthPreferenceRef.current;
+      const authData: AuthData = postMfaAuth ?? {
         currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         oauth2Login: true,
       };
@@ -580,8 +857,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             password,
             authPreference: authData,
             onBeforeNavigate: async () => {
-              // End unlock/journey spans before the biometric keychain upgrade so
-              // human biometric wait is excluded from Password Login Attempt (and
+              // End unlock/journey spans before any biometric wait so human
+              // biometric time is excluded from Password Login Attempt (and
               // parent journey) duration. Still must finish before unlockWallet
               // navigates home: navigation unmounts Onboarding, whose cleanup would
               // otherwise end OnboardingJourneyOverall with success:false.
@@ -591,7 +868,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               }
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
-              await upgradeKeychainAuthAfterSuccessfulUnlock();
+              if (!postMfaAuth) {
+                await upgradeKeychainAuthAfterSuccessfulUnlock(password);
+              }
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
             parentContext: passwordLoginAttemptCtx ?? journeyCtx,
@@ -652,11 +931,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
       setLoading(true);
 
-      // biometrics/passcode preference is applied only after sync succeeds
-      const authData: AuthData = {
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        oauth2Login: false,
-      };
+      // Keep biometric preference from post-MFA, but never oauth2Login here —
+      // that would rehydrate instead of syncPasswordAndUnlockWallet for
+      // seedless-outdated unlock.
+      const postMfaAuth = postMfaAuthPreferenceRef.current;
+      const authData: AuthData = postMfaAuth
+        ? { ...postMfaAuth, oauth2Login: false }
+        : {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: false,
+          };
 
       await trace(
         {
@@ -667,7 +951,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           await unlockWallet({
             password,
             authPreference: authData,
-            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+            onBeforeNavigate: async () => {
+              // Skip when MFA already prompted for device biometrics — same
+              // as onRehydrateLogin — so iOS does not show a second sheet.
+              if (!postMfaAuth) {
+                await upgradeKeychainAuthAfterSuccessfulUnlock(password);
+              }
+            },
           });
         },
       );
@@ -718,10 +1008,107 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
   }, [track]);
 
-  const handleBackPress = useCallback(() => {
+  // Wait for Seedless social authConnection before locked MFA — OAuth can
+  // land here before social state is written ("no social login").
+  const hasOfferedLockedSocialMfa = useRef(false);
+  const hasSocialAuthConnection =
+    authConnection === 'google' ||
+    authConnection === 'apple' ||
+    authConnection === 'telegram';
+  useEffect(() => {
+    if (
+      !canOfferSocialMfaVerify ||
+      !hasSocialAuthConnection ||
+      hasOfferedLockedSocialMfa.current
+    ) {
+      return;
+    }
+    hasOfferedLockedSocialMfa.current = true;
+    void offerLockedSocialMfaVerify();
+  }, [
+    canOfferSocialMfaVerify,
+    hasSocialAuthConnection,
+    offerLockedSocialMfaVerify,
+  ]);
+
+  // Safety: don't leave the loading gate forever if social state never arrives.
+  useEffect(() => {
+    if (
+      !canOfferSocialMfaVerify ||
+      walletRecoveryStep !== 'loading' ||
+      hasSocialAuthConnection
+    ) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      Logger.log(
+        'OAuthRehydration: locked MFA gate timed out waiting for social auth',
+      );
+      // Prevent a late authConnection from launching MFA after we give up.
+      hasOfferedLockedSocialMfa.current = true;
+      setWalletRecoveryStep('password');
+    }, 10_000);
+    return () => clearTimeout(timer);
+  }, [canOfferSocialMfaVerify, walletRecoveryStep, hasSocialAuthConnection]);
+
+  const handleUseOtherMethod = useCallback(() => {
+    track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
+      account_type: accountType,
+    });
     navigation.goBack();
-    return false;
-  }, [navigation]);
+    OAuthService.resetOauthState();
+  }, [accountType, navigation, track]);
+
+  const handlePasswordBack = useCallback(() => {
+    // Existing-password unlock opened from the picker → return to picker.
+    if (passwordFromVerify && walletRecoveryStep === 'password') {
+      setError(null);
+      setWalletRecoveryStep('verify');
+      return;
+    }
+    handleUseOtherMethod();
+  }, [passwordFromVerify, walletRecoveryStep, handleUseOtherMethod]);
+
+  // Hardware back matches header back on recovery steps.
+  const handleBackPress = useCallback(() => {
+    if (!canOfferSocialMfaVerify) {
+      navigation.goBack();
+      return true;
+    }
+    if (walletRecoveryStep === 'password') {
+      if (finalLoading) {
+        return true;
+      }
+      handlePasswordBack();
+      return true;
+    }
+    if (walletRecoveryStep === 'verify') {
+      if (verifyBusy) {
+        return true;
+      }
+      handleUseOtherMethod();
+      return true;
+    }
+    // Loading covers the arrival OS sheet and the post-MFA biometrics sheet.
+    // Leaving now would keep that prompt running after navigation.
+    if (
+      walletRecoveryStep === 'loading' &&
+      (lockedVerifyInFlightRef.current ||
+        continueAfterVerifiedInFlightRef.current)
+    ) {
+      return true;
+    }
+    handleUseOtherMethod();
+    return true;
+  }, [
+    canOfferSocialMfaVerify,
+    walletRecoveryStep,
+    finalLoading,
+    verifyBusy,
+    handlePasswordBack,
+    handleUseOtherMethod,
+    navigation,
+  ]);
 
   useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
@@ -733,14 +1120,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       backHandlerSubscription.remove();
     };
   }, [handleBackPress]);
-
-  const handleUseOtherMethod = () => {
-    track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
-      account_type: accountType,
-    });
-    navigation.goBack();
-    OAuthService.resetOauthState();
-  };
 
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
@@ -765,6 +1144,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   };
 
   const handleLogin = async () => {
+    // Picker unlock matches Login: Unlock enabled when non-empty;
+    // length / wrong-password come from unlock.
+    if (walletRecoveryStep === 'password' && password.length === 0) {
+      return;
+    }
     if (isSeedlessPasswordOutdated) {
       await newGlobalPasswordLogin();
     } else {
@@ -773,6 +1157,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setPassword('');
   };
 
+  /** Void wrappers for props that must not accept promise-returning handlers. */
+  const onLoginPress = () => {
+    handleLogin().catch(() => undefined);
+  };
+  const onRecoveryMethodSelect = (method: WalletRecoveryMethod) => {
+    handleRecoveryMethodSelect(method).catch(() => undefined);
+  };
+
+  /** Legacy Login reset-wallet (not Figma forgot-password recovery). */
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
@@ -797,6 +1190,119 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const ctaSize = Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg;
 
+  const renderLegacyUnlock = () => (
+    <OnboardingLoginCanvas
+      canvasColor={canvasColor}
+      containerTestID={LoginViewSelectors.CONTAINER}
+      startFoxAnimation={startFoxAnimation}
+      setStartFoxAnimation={handleStartFoxAnimation}
+      renderWordmark={renderWordmark}
+    >
+      <Box flexDirection={BoxFlexDirection.Column} gap={2}>
+        <TextField
+          placeholder={strings('login.password_placeholder')}
+          onChangeText={handlePasswordChange}
+          value={password}
+          isDisabled={disabledInput}
+          isError={!!error}
+          inputProps={{
+            testID: LoginViewSelectors.PASSWORD_INPUT,
+            accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+            returnKeyType: 'done',
+            autoCapitalize: 'none',
+            secureTextEntry: true,
+            onSubmitEditing: onLoginPress,
+            keyboardAppearance: themeAppearance,
+          }}
+        />
+        {!!error && (
+          <HelpText
+            severity={HelpTextSeverity.Error}
+            testID={LoginViewSelectors.PASSWORD_ERROR}
+          >
+            {error}
+          </HelpText>
+        )}
+      </Box>
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ctaSize}
+        onPress={onLoginPress}
+        isDisabled={password.length === 0 || disabledInput || finalLoading}
+        testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+        isLoading={finalLoading}
+        isFullWidth
+      >
+        {strings('login.unlock_button')}
+      </Button>
+      {isSeedlessPasswordOutdated ? (
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ctaSize}
+          testID={LoginViewSelectors.RESET_WALLET}
+          onPress={toggleWarningModal}
+          isDisabled={loading}
+          isFullWidth
+        >
+          {strings('login.forgot_password')}
+        </Button>
+      ) : (
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ctaSize}
+          onPress={handleUseOtherMethod}
+          isDisabled={finalLoading}
+          testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+          isFullWidth
+        >
+          {strings('login.other_methods')}
+        </Button>
+      )}
+    </OnboardingLoginCanvas>
+  );
+
+  // Email OTP only when enrolled and auth is Telegram.
+  const showEmailOnVerify =
+    authConnection === 'telegram' && fallbackMethods.includes('email_otp');
+
+  const isRecoveryOffline =
+    netInfo.isConnected === false || netInfo.isInternetReachable === false;
+
+  const renderWalletRecovery = () => {
+    if (walletRecoveryStep === 'loading') {
+      return <WalletRecoveryLoading />;
+    }
+    if (walletRecoveryStep === 'verify') {
+      return (
+        <WalletRecoveryVerify
+          showPasskey={fallbackMethods.includes('passkey')}
+          showPassword
+          showEmail={showEmailOnVerify}
+          showTotp={fallbackMethods.includes('totp')}
+          isBusy={verifyBusy}
+          isOffline={isRecoveryOffline}
+          error={verifyError}
+          onBack={handleUseOtherMethod}
+          onSelectMethod={onRecoveryMethodSelect}
+        />
+      );
+    }
+    // Existing unlock (picker Password / no-MFA / after MFA).
+    return (
+      <WalletRecoveryPassword
+        password={password}
+        error={error}
+        isLoading={finalLoading}
+        isDisabled={disabledInput}
+        keyboardAppearance={themeAppearance}
+        onChangePassword={handlePasswordChange}
+        onSubmit={onLoginPress}
+        onBack={handlePasswordBack}
+        onForgotPassword={toggleWarningModal}
+      />
+    );
+  };
+
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -804,74 +1310,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
     >
       <ThrowErrorIfNeeded />
-      <OnboardingLoginCanvas
-        canvasColor={canvasColor}
-        containerTestID={LoginViewSelectors.CONTAINER}
-        startFoxAnimation={startFoxAnimation}
-        setStartFoxAnimation={handleStartFoxAnimation}
-        renderWordmark={renderWordmark}
-      >
-        <Box flexDirection={BoxFlexDirection.Column} gap={2}>
-          <TextField
-            placeholder={strings('login.password_placeholder')}
-            onChangeText={handlePasswordChange}
-            value={password}
-            isDisabled={disabledInput}
-            isError={!!error}
-            inputProps={{
-              testID: LoginViewSelectors.PASSWORD_INPUT,
-              accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
-              returnKeyType: 'done',
-              autoCapitalize: 'none',
-              secureTextEntry: true,
-              onSubmitEditing: handleLogin,
-              keyboardAppearance: themeAppearance,
-            }}
-          />
-          {!!error && (
-            <HelpText
-              severity={HelpTextSeverity.Error}
-              testID={LoginViewSelectors.PASSWORD_ERROR}
-            >
-              {error}
-            </HelpText>
-          )}
-        </Box>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ctaSize}
-          onPress={handleLogin}
-          isDisabled={password.length === 0 || disabledInput || finalLoading}
-          testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-          isLoading={finalLoading}
-          isFullWidth
-        >
-          {strings('login.unlock_button')}
-        </Button>
-        {isSeedlessPasswordOutdated ? (
-          <Button
-            variant={ButtonVariant.Tertiary}
-            size={ctaSize}
-            testID={LoginViewSelectors.RESET_WALLET}
-            onPress={toggleWarningModal}
-            isDisabled={loading}
-            isFullWidth
-          >
-            {strings('login.forgot_password')}
-          </Button>
-        ) : (
-          <Button
-            variant={ButtonVariant.Tertiary}
-            size={ctaSize}
-            onPress={handleUseOtherMethod}
-            isDisabled={finalLoading}
-            testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-            isFullWidth
-          >
-            {strings('login.other_methods')}
-          </Button>
-        )}
-      </OnboardingLoginCanvas>
+      {canOfferSocialMfaVerify ? renderWalletRecovery() : renderLegacyUnlock()}
     </ErrorBoundary>
   );
 };

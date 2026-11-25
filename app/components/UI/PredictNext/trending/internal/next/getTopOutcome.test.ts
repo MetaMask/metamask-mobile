@@ -1,3 +1,4 @@
+import { fullGameMoneylineMetadata } from '../../../contracts/v1/fixtures/fullGameMoneyline';
 import type {
   PredictEvent,
   PredictGame,
@@ -23,6 +24,7 @@ const market = (
     id,
     question: `Will ${label} win?`,
     status,
+    ...(gameSelection ? fullGameMoneylineMetadata() : {}),
     outcomes: [
       { id: `${id}-yes`, side: 'yes', label, askPrice: yesAsk, gameSelection },
       { id: `${id}-no`, side: 'no', label: `Not ${label}`, askPrice: '0.5' },
@@ -76,6 +78,7 @@ describe('getTopOutcome', () => {
       id: 'away',
       question: 'Will Bills win?',
       status: 'active',
+      ...fullGameMoneylineMetadata(),
       outcomes: [
         { id: 'away-yes', side: 'yes', label: 'Bills', askPrice: '0.34' },
         {

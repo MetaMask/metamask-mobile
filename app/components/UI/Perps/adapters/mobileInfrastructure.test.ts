@@ -866,6 +866,38 @@ describe('createMobileInfrastructure - terminalApi', () => {
   });
 });
 
+describe('createMobileInfrastructure - notifyPerpsApi', () => {
+  let savedUrl: string | undefined;
+
+  beforeEach(() => {
+    savedUrl = process.env.NOTIFY_PERPS_API_URL;
+  });
+
+  afterEach(() => {
+    if (savedUrl === undefined) {
+      delete process.env.NOTIFY_PERPS_API_URL;
+    } else {
+      process.env.NOTIFY_PERPS_API_URL = savedUrl;
+    }
+  });
+
+  it('passes the build-configured URL as the base URL', () => {
+    process.env.NOTIFY_PERPS_API_URL = 'https://perps.dev-api.cx.metamask.io';
+
+    expect(createMobileInfrastructure().notifyPerpsApi).toEqual({
+      baseUrl: 'https://perps.dev-api.cx.metamask.io',
+    });
+  });
+
+  it('leaves the base URL undefined when the URL is unset', () => {
+    delete process.env.NOTIFY_PERPS_API_URL;
+
+    expect(
+      createMobileInfrastructure().notifyPerpsApi?.baseUrl,
+    ).toBeUndefined();
+  });
+});
+
 describe('resolveTerminalGlobalSnapshotUrl', () => {
   it('returns a trimmed explicit endpoint only for a dev bundle in dev', () => {
     expect(
