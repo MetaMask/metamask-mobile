@@ -1,10 +1,9 @@
-import I18n from '../../../../../locales/i18n';
 import {
   mockCatalogPacks,
   mockPackCategoryMapping,
 } from '#app/components/UI/Collectibles/mocks/packsCatalog';
 import type { CatalogPack } from '#app/components/UI/Collectibles/types/packs';
-import { buildPacksCatalog, formatPackPrice } from './packsCatalog';
+import { buildPacksCatalog } from './packsCatalog';
 
 function pack(code: string, priceUsd?: number, isMachineOpen = true) {
   const result: CatalogPack = {
@@ -81,25 +80,5 @@ describe('buildPacksCatalog', () => {
 
     expect(categories.map(({ id }) => id)).not.toContain('riftbound');
     expect(categories[0].id).toBe('pokemon');
-  });
-});
-
-describe('formatPackPrice', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it.each([
-    [25, '$25'],
-    [24.5, '$24.50'],
-    [1500, '$1,500'],
-  ])('formats %d as %s', (price, label) => {
-    expect(formatPackPrice(price)).toBe(label);
-  });
-
-  it('keeps the US dollar format in other locales', () => {
-    jest.replaceProperty(I18n, 'locale', 'de');
-
-    expect(formatPackPrice(1500)).toBe('$1,500');
   });
 });

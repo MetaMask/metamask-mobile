@@ -1,4 +1,3 @@
-import { getIntlNumberFormatter } from '../../../../util/intl';
 import type {
   CatalogPack,
   ListedPack,
@@ -44,14 +43,4 @@ export function buildPacksCatalog(
   );
 
   return { packs: listedPacks, categories };
-}
-
-export function formatPackPrice(priceUsd: number) {
-  const fractionDigits = Number.isInteger(priceUsd) ? 0 : 2;
-  return getIntlNumberFormatter('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  }).format(priceUsd);
 }
