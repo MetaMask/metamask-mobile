@@ -115,6 +115,49 @@ describe('formatGameTeamLabel', () => {
 
     expect(label).toBe('ARI');
   });
+
+  it.each([
+    [
+      { name: 'Portland Trail Blazers', abbreviation: 'POR' },
+      'POR',
+      'POR Trail Blazers',
+    ],
+    [
+      { name: 'Toronto Maple Leafs', abbreviation: 'TOR' },
+      'TOR',
+      'TOR Maple Leafs',
+    ],
+    [{ name: 'Boston Red Sox', abbreviation: 'BOS' }, 'BOS', 'BOS Red Sox'],
+    [{ name: 'Ohio State', abbreviation: 'OSU' }, 'OSU', 'OSU Ohio State'],
+    [
+      { name: 'Ohio State Buckeyes', abbreviation: 'OSU' },
+      'OSU',
+      'OSU Buckeyes',
+    ],
+    [{ name: 'New England Patriots', abbreviation: 'NE' }, 'NE', 'NE Patriots'],
+    [
+      { name: 'Manchester United', abbreviation: 'MUN' },
+      'MUN',
+      'MUN Manchester United',
+    ],
+    [
+      { name: 'North Carolina Tar Heels', abbreviation: 'UNC' },
+      'UNC',
+      'UNC Tar Heels',
+    ],
+    [
+      { name: 'North Carolina', abbreviation: 'UNC' },
+      'UNC',
+      'UNC North Carolina',
+    ],
+  ])(
+    'preserves multi-word nicknames and school or club names for %j',
+    (team, abbreviation, expected) => {
+      const label = formatGameTeamLabel(team, abbreviation);
+
+      expect(label).toBe(expected);
+    },
+  );
 });
 
 describe('createGameCardProjection', () => {

@@ -94,7 +94,7 @@ describe('HomeTrendingSection', () => {
         screen.getByTestId(`${PredictHomeTestIds.HOME_TRENDING}-card-2`).props
           .style,
       ),
-    ).toMatchObject({ width: 340, minHeight: 250 });
+    ).toMatchObject({ width: 340, minHeight: 268 });
   });
 
   it('spans the screen edge to edge and keeps the header padded', () => {
@@ -169,7 +169,7 @@ describe('HomeTrendingSection', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows 340x250 skeleton cards and no pagination while loading', () => {
+  it('shows 340x268 skeleton cards and no pagination while loading', () => {
     renderSection({ events: [], isLoading: true });
 
     expect(
@@ -180,7 +180,7 @@ describe('HomeTrendingSection', () => {
     );
     expect(skeletons.length).toBeGreaterThan(0);
     skeletons.forEach((skeleton) =>
-      expect(skeleton).toHaveStyle({ width: 340, height: 250 }),
+      expect(skeleton).toHaveStyle({ width: 340, height: 268 }),
     );
     expect(
       screen.queryByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN),

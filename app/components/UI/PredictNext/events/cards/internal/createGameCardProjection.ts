@@ -67,6 +67,106 @@ const CARD_STATUS_KEYS: Partial<Record<PredictGame['status'], string>> = {
   canceled: 'canceled',
 };
 
+const MULTI_WORD_MASCOTS = new Set([
+  'black knights',
+  'blue devils',
+  'blue jackets',
+  'blue jays',
+  'crimson tide',
+  'demon deacons',
+  'fighting illini',
+  'fighting irish',
+  'golden eagles',
+  'golden gophers',
+  'golden knights',
+  'horned frogs',
+  'maple leafs',
+  'mean green',
+  'nittany lions',
+  'red bulls',
+  'red raiders',
+  'red sox',
+  'red storm',
+  'red wings',
+  'scarlet knights',
+  'sun devils',
+  'tar heels',
+  'thundering herd',
+  'trail blazers',
+  'white sox',
+  'wolf pack',
+  'yellow jackets',
+]);
+
+const NON_MASCOT_SUFFIXES = new Set([
+  'a&m',
+  'ac',
+  'cf',
+  'city',
+  'club',
+  'college',
+  'fc',
+  'sc',
+  'state',
+  'tech',
+  'united',
+  'university',
+]);
+
+const TWO_WORD_TEAM_PREFIXES = new Set([
+  'air',
+  'aston',
+  'east',
+  'fort',
+  'green',
+  'inter',
+  'kansas',
+  'las',
+  'los',
+  'mount',
+  'mt',
+  'mt.',
+  'new',
+  'north',
+  'notre',
+  'oklahoma',
+  'ole',
+  'real',
+  'saint',
+  'salt',
+  'san',
+  'santa',
+  'south',
+  'st',
+  'st.',
+  'tampa',
+  'wake',
+  'west',
+]);
+
+const resolveGameTeamShortName = (words: string[]): string => {
+  if (words.length >= 2) {
+    const lastTwo = `${words[words.length - 2]} ${words[words.length - 1]}`;
+    if (MULTI_WORD_MASCOTS.has(lastTwo.toLowerCase())) {
+      return lastTwo;
+    }
+
+    const lastWord = words[words.length - 1].toLowerCase();
+    if (NON_MASCOT_SUFFIXES.has(lastWord)) {
+      return words.join(' ');
+    }
+
+    if (
+      words.length === 2 &&
+      TWO_WORD_TEAM_PREFIXES.has(words[0].toLowerCase())
+    ) {
+      return words.join(' ');
+    }
+  }
+
+  return words[words.length - 1];
+};
+
 const formatPercentLabel = (percent?: number): string | undefined =>
   percent !== undefined ? `${Math.round(percent)}%` : undefined;
 
@@ -75,12 +175,12 @@ export const formatGameTeamLabel = (
   abbreviation: string,
 ): string => {
   const words = team.name.trim().split(/\s+/).filter(Boolean);
-  const shortName = words[words.length - 1];
 
-  if (!shortName) {
+  if (words.length === 0) {
     return abbreviation;
   }
 
+  const shortName = resolveGameTeamShortName(words);
   const normalizedShort = shortName.toUpperCase();
   const normalizedAbbr = abbreviation.toUpperCase();
 
@@ -95,7 +195,10 @@ export const formatGameTeamLabel = (
     return `${abbreviation} ${shortName}`;
   }
 
-  if (normalizedShort === normalizedAbbr) {
+  if (
+    normalizedShort === normalizedAbbr ||
+    normalizedShort.replace(/\s+/g, '') === normalizedAbbr
+  ) {
     return abbreviation;
   }
 

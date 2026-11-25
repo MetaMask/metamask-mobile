@@ -315,7 +315,7 @@ const TeamOutcomeRow = ({
           {barPercent !== undefined ? (
             <Box
               testID={`predict-next-game-bar-${event.id}-${selection}`}
-              twClassName="h-[2px] rounded-[1px] bg-success-default"
+              twClassName="h-[2px] rounded-full bg-success-default"
               style={{ width: `${barPercent}%` }}
             />
           ) : null}
@@ -326,7 +326,7 @@ const TeamOutcomeRow = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink-0 text-right"
+            twClassName="min-w-[24px] shrink-0 text-right"
             testID={`predict-next-game-score-${event.id}-${selection}`}
           >
             {score}
@@ -350,7 +350,7 @@ const DrawOutcomeRow = ({
   labelVariant: GameOutcomeLabelVariant;
 }) => {
   const tw = useTailwind();
-  const { event, projection, actions } = useGameCard();
+  const { event, game, projection, actions } = useGameCard();
   const { draw } = projection;
 
   if (!draw) {
@@ -358,6 +358,9 @@ const DrawOutcomeRow = ({
   }
 
   const drawLabel = strings('predict_next.event.game_draw_label');
+  const hasScore =
+    projection.showScore &&
+    (game.score?.away !== undefined || game.score?.home !== undefined);
   const barPercent =
     draw.percent !== undefined
       ? Math.max(0, Math.min(100, draw.percent))
@@ -371,15 +374,22 @@ const DrawOutcomeRow = ({
       <NativePressable
         onPress={actions.openEvent}
         accessible={false}
-        style={tw.style('min-w-0 flex-1 flex-row items-center')}
+        style={tw.style('min-w-0 flex-1 flex-row items-center gap-3')}
         testID={`predict-next-game-team-content-${event.id}-draw`}
       >
+        <Box
+          twClassName="h-7 w-7 shrink-0"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={`predict-next-game-logo-spacer-${event.id}-draw`}
+        />
         <Box twClassName="min-w-0 flex-1 gap-1.5">
           <Text
             variant={labelVariant}
             fontWeight={FontWeight.Regular}
             color={TextColor.TextDefault}
             numberOfLines={1}
+            accessibilityLabel={drawLabel}
             testID={`predict-next-game-team-label-${event.id}-draw`}
           >
             {drawLabel}
@@ -387,11 +397,19 @@ const DrawOutcomeRow = ({
           {barPercent !== undefined ? (
             <Box
               testID={`predict-next-game-bar-${event.id}-draw`}
-              twClassName="h-[2px] rounded-[1px] bg-success-default"
+              twClassName="h-[2px] rounded-full bg-success-default"
               style={{ width: `${barPercent}%` }}
             />
           ) : null}
         </Box>
+        {hasScore ? (
+          <Box
+            twClassName="min-w-[24px] shrink-0"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            testID={`predict-next-game-score-spacer-${event.id}-draw`}
+          />
+        ) : null}
       </NativePressable>
       <OutcomePill
         selection="draw"

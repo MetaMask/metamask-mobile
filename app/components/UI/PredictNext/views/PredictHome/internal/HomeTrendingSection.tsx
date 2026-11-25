@@ -17,9 +17,9 @@ import { PredictHomeTestIds } from '../PredictHome.testIds';
 import { Carousel, type CarouselPagination } from './Carousel';
 import { CarouselPaginationDots } from './CarouselPaginationDots';
 
-// The design's card row: 340x250pt cards, 12pt apart.
+// The design's card row: 340pt wide, 12pt apart; 268pt fits 3-way featured cards without clipping.
 const CARD_WIDTH = 340;
-const CARD_HEIGHT = 250;
+const CARD_HEIGHT = 268;
 const CARD_GAP = 12;
 
 interface HomeTrendingSectionProps {

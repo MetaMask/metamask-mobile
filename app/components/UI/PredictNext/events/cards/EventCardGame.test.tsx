@@ -371,7 +371,7 @@ describe('EventCardGame', () => {
       ).toHaveStyle({
         width: '47%',
         height: 2,
-        borderRadius: 1,
+        borderRadius: 9999,
         backgroundColor: lightTheme.colors.success.default,
       });
       expect(
@@ -379,7 +379,7 @@ describe('EventCardGame', () => {
       ).toHaveStyle({
         width: '53%',
         height: 2,
-        borderRadius: 1,
+        borderRadius: 9999,
         backgroundColor: lightTheme.colors.success.default,
       });
 
@@ -390,6 +390,7 @@ describe('EventCardGame', () => {
       expect(awayScore).toHaveStyle({
         fontSize: 16,
         lineHeight: 24,
+        minWidth: 24,
         color: lightTheme.colors.text.default,
       });
 
@@ -415,7 +416,7 @@ describe('EventCardGame', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders a Draw row between away and home for a 3-way game market without a logo', () => {
+    it('renders a Draw row between away and home aligned with team logos, bars, and score column', () => {
       const event = createEvent({
         markets: [
           createMarket('away-market', 'away', '0.45'),
@@ -431,21 +432,61 @@ describe('EventCardGame', () => {
         'draw',
         'home',
       ]);
-      expect(
-        screen.getByTestId('predict-next-game-team-label-game-event-draw'),
-      ).toHaveTextContent('Draw');
+      const drawLabel = screen.getByTestId(
+        'predict-next-game-team-label-game-event-draw',
+      );
+      expect(drawLabel).toHaveTextContent('Draw');
+      expect(drawLabel).toHaveProp('accessibilityLabel', 'Draw');
       expect(
         screen.queryByTestId('predict-next-game-logo-game-event-draw', HIDDEN),
       ).not.toBeOnTheScreen();
       expect(
+        screen.getByTestId(
+          'predict-next-game-logo-spacer-game-event-draw',
+          HIDDEN,
+        ),
+      ).toHaveStyle({ width: 28, height: 28 });
+      expect(
+        screen.getByTestId('predict-next-game-team-content-game-event-draw'),
+      ).toHaveStyle({ flexDirection: 'row', alignItems: 'center', gap: 12 });
+      expect(
         screen.queryByTestId('predict-next-game-score-game-event-draw', HIDDEN),
       ).not.toBeOnTheScreen();
       expect(
+        screen.getByTestId(
+          'predict-next-game-score-spacer-game-event-draw',
+          HIDDEN,
+        ),
+      ).toHaveStyle({ minWidth: 24 });
+      expect(
         screen.getByTestId('predict-next-game-bar-game-event-draw'),
-      ).toHaveStyle({ width: '25%' });
+      ).toHaveStyle({ width: '25%', height: 2, borderRadius: 9999 });
       expect(
         screen.getByTestId('predict-next-game-quote-game-event-draw'),
       ).toHaveTextContent('25%');
+      expect(
+        screen.getByRole('button', { name: 'Draw, 25%, buy' }),
+      ).toBeOnTheScreen();
+    });
+
+    it('omits the Draw score spacer when sibling rows have no scores', () => {
+      const event = createEvent({
+        markets: [
+          createMarket('away-market', 'away', '0.45'),
+          createMarket('draw-market', 'draw', '0.25'),
+          createMarket('home-market', 'home', '0.30'),
+        ],
+      });
+      getGame(event).status = 'scheduled';
+
+      renderCard(event, { ...variantProps, onOrder: jest.fn() });
+
+      expect(
+        screen.queryByTestId(
+          'predict-next-game-score-spacer-game-event-draw',
+          HIDDEN,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('lists the home Team first for a home_first Game, keeping draw in the middle', () => {
@@ -514,7 +555,7 @@ describe('EventCardGame', () => {
       expect(onPress).not.toHaveBeenCalled();
     });
 
-    it('shows non-interactive percentage pills without an order handler or on inactive markets', () => {
+    it('shows a non-interactive percentage pill on an inactive market', () => {
       const event = createEvent({
         markets: [
           createMarket('away', 'away', '0.47', 'inactive'),
@@ -530,8 +571,38 @@ describe('EventCardGame', () => {
       );
       expect(awayPill).toHaveTextContent('47%');
       expect(screen.getByLabelText('Arizona Cardinals, 47%')).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', { name: 'Arizona Cardinals, 47%, buy' }),
+      ).not.toBeOnTheScreen();
       fireEvent.press(awayPill);
       expect(onOrder).not.toHaveBeenCalled();
+    });
+
+    it('shows non-interactive percentage pills when no order handler is provided', () => {
+      const event = createEvent({
+        markets: [
+          createMarket('away', 'away', '0.47'),
+          createMarket('home', 'home', '0.53'),
+        ],
+      });
+
+      renderCard(event, variantProps);
+
+      const awayPill = screen.getByTestId(
+        'predict-next-game-quote-game-event-away',
+      );
+      const homePill = screen.getByTestId(
+        'predict-next-game-quote-game-event-home',
+      );
+      expect(awayPill).toHaveTextContent('47%');
+      expect(homePill).toHaveTextContent('53%');
+      expect(screen.getByLabelText('Arizona Cardinals, 47%')).toBeOnTheScreen();
+      expect(screen.getByLabelText('Carolina Panthers, 53%')).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', { name: /buy/ }),
+      ).not.toBeOnTheScreen();
+      expect(awayPill).not.toHaveProp('accessibilityRole', 'button');
+      expect(homePill).not.toHaveProp('accessibilityRole', 'button');
     });
 
     it('opens the Event screen from header, team row, and footer without ordering, and opens Order Flow from a pill', () => {
