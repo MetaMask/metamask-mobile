@@ -7,8 +7,8 @@ import {
   BoxJustifyContent,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
-import { AppThemeKey } from '../../../../../util/theme/models';
-import { RootState } from '../../../../../reducers';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { RootState } from '../../../../reducers';
 import { useColorScheme } from 'react-native';
 
 interface ProgressIndicatorProps {

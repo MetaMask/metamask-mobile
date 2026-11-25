@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
-import ProgressIndicator from '../ProgressIndicator';
-import { renderWithProviders } from '../testUtils';
+import ProgressIndicator from './ProgressIndicator';
+import { renderWithProviders } from './testUtils';
 
 // Mock react-native hooks
 jest.mock('react-native', () => ({

@@ -48,14 +48,12 @@ import {
 } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
-import {
-  useRewardDashboardModals,
-  RewardsDashboardModalType,
-} from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { isHardwareAccount } from '../../../../util/address';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
 import {
@@ -140,8 +138,7 @@ const RewardsDashboard: React.FC = () => {
     return false;
   }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
 
-  // Use the reward dashboard modals hook
-  const { showNotSupportedModal, hasShownModal } = useRewardDashboardModals();
+  const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
 
   const {
     currentAccountGroupPartiallySupported,
@@ -186,9 +183,8 @@ const RewardsDashboard: React.FC = () => {
     }, []),
   );
 
-  // Auto-trigger dashboard modals based on account/rewards state (session-aware)
-  // This effect runs whenever key dependencies change and determines which informational
-  // modal should be shown to guide the user. Each modal type is only shown once per app session.
+  // Tell the user when the selected account group is entirely not supported
+  // (e.g. a hardware wallet account group).
   useFocusEffect(
     useCallback(() => {
       if (
@@ -196,17 +192,29 @@ const RewardsDashboard: React.FC = () => {
         !hideCurrentAccountNotOptedInBanner &&
         selectedAccountGroup?.id
       ) {
-        // Account group entirely not supported (e.g. hardware wallet account group)
-        if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
-          showNotSupportedModal();
-        }
+        const hasHardwareAccounts = getAccountsByGroupId(
+          selectedAccountGroup.id,
+        ).some((account) => isHardwareAccount(account.address));
+
+        navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+          title: strings(
+            'rewards.dashboard_modal_info.account_not_supported.title',
+          ),
+          description: hasHardwareAccounts
+            ? strings(
+                'rewards.dashboard_modal_info.account_not_supported.description_hardware',
+              )
+            : strings(
+                'rewards.dashboard_modal_info.account_not_supported.description_general',
+              ),
+        });
       }
     }, [
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
       selectedAccountGroup?.id,
-      hasShownModal,
-      showNotSupportedModal,
+      getAccountsByGroupId,
+      navigation,
     ]),
   );
 
