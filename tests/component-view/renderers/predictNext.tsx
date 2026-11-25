@@ -152,15 +152,24 @@ export const renderPredictNext = (
     .withRemoteFeatureFlags(remoteFeatureFlags)
     .withOverrides(overrides ?? {})
     .build();
-  const frame = onboardingGate
-    ? (children: React.ReactNode) => (
+  // Gate Home itself: the shared renderer already puts every screen inside
+  // the query client the readiness gate reads, and wrapping only the screen
+  // keeps the gate Predict-local instead of changing the shared harness.
+  const HomeComponent = onboardingGate
+    ? () => (
         <NextVenueProvider venueId={venueId}>
-          <KalshiDemoOnboardingGate>{children}</KalshiDemoOnboardingGate>
+          <KalshiDemoOnboardingGate>
+            <PredictOrderFlowProvider>
+              <PredictHome />
+            </PredictOrderFlowProvider>
+          </KalshiDemoOnboardingGate>
         </NextVenueProvider>
       )
-    : undefined;
+    : venueId === DEFAULT_VENUE_ID
+      ? HomeScreen
+      : homeScreenFor(venueId);
   return renderScreenWithRoutes(
-    venueId === DEFAULT_VENUE_ID ? HomeScreen : homeScreenFor(venueId),
+    HomeComponent,
     { name: PredictNextRoutes.HOME },
     [
       { name: PredictNextRoutes.FEED, Component: FeedScreen },
@@ -175,7 +184,6 @@ export const renderPredictNext = (
     { state },
     undefined,
     queryClient,
-    frame,
   );
 };
 
