@@ -12420,7 +12420,7 @@
       "report_email_body": "Transaction ID: {{transactionId}}",
       "report_back": "Cancel",
       "you_withdrew": "You withdrew",
-      "you_deposited": "You deposited",
+      "you_deposited": "You added",
       "you_received": "You received",
       "manage_entry_title": "Transaction history",
       "manage_entry_description": "Card purchases and activity"
