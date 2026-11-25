@@ -95,10 +95,12 @@ const MOCK_MONEY_ACCOUNTS = {
 
 function engineState(
   transactions: Partial<TransactionMeta>[] = [],
+  extraBackgroundState: Record<string, unknown> = {},
 ): ProviderValues['state'] {
   return {
     engine: {
       backgroundState: {
+        ...extraBackgroundState,
         MoneyAccountController: {
           moneyAccounts: MOCK_MONEY_ACCOUNTS,
         },
@@ -154,6 +156,32 @@ describe('useMoneyAccountTransactions', () => {
 
     expect(result.current.moneyAddress).toBeDefined();
     expect(result.current.moneyAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
+  });
+
+  it('exposes the MFA address when the MFA account is not restored on this device', () => {
+    const mfaAddress: Hex = '0x0000000000000000000000000000000000000002';
+    const state = engineState([], {
+      MoneyAccountLifecycleController: {
+        moneyAccounts: {
+          [MONEY_ADDRESS]: {
+            type: 'mfa',
+            identity: {
+              currentAddress: mfaAddress,
+              previousAddresses: [MONEY_ADDRESS],
+              status: 'DONE',
+              migration: null,
+            },
+          },
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyAccountTransactions(),
+      { state },
+    );
+
+    expect(result.current.moneyAddress).toBe(mfaAddress);
   });
 
   describe('transaction filtering', () => {

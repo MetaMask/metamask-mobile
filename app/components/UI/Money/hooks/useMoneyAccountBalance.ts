@@ -14,7 +14,7 @@ import {
   getFreshMoneyBalanceOptionsFromLocalFlow,
   getMoneyAccountBalanceQueryKey,
 } from '../utils/moneyAccountBalanceQueryKey';
-import useMoneyAccountInfo from './useMoneyAccountInfo';
+import { selectMoneyAccountDisplayAddress } from '../../../../selectors/moneyAccountLifecycleController';
 import {
   getUsableLastLocalFlowConfirmedAt,
   isPersistedMoneyBalanceUsable,
@@ -76,8 +76,7 @@ const useMoneyAccountBalance = ({
   refetchInterval = DEFAULT_REFETCH_INTERVAL,
 }: UseMoneyAccountBalanceOptions = {}): UseMoneyAccountBalanceResult => {
   const dispatch = useDispatch();
-  const { primaryMoneyAccount } = useMoneyAccountInfo();
-  const moneyAccountAddress = primaryMoneyAccount?.address;
+  const moneyAccountAddress = useSelector(selectMoneyAccountDisplayAddress);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);

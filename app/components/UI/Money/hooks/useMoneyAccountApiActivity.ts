@@ -10,7 +10,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountDisplayAddress } from '../../../../selectors/moneyAccountLifecycleController';
 import {
   selectMoneyAccountPremiumVaultConfig,
   selectMoneyAccountVaultConfig,
@@ -88,7 +88,7 @@ const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
 export function useMoneyAccountApiActivity({
   enabled: callerEnabled = true,
 }: UseMoneyAccountApiActivityOptions = {}): UseMoneyAccountApiActivityResult {
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const rawAddress = useSelector(selectMoneyAccountDisplayAddress);
   const cashbackMultisendContracts = useSelector(
     selectMoneyCardActivityCashbackMultisendContracts,
   );
@@ -117,7 +117,6 @@ export function useMoneyAccountApiActivity({
     }
     return tokens;
   }, [historicalValuationsEnabled, premiumVault, standardVault]);
-  const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
   const enabled = moneyAddress !== '' && callerEnabled;
 

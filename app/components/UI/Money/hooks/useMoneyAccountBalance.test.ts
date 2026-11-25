@@ -8,7 +8,7 @@ import {
   selectLastKnownMoneyBalance,
   setLastKnownMoneyBalance,
 } from '../../../../core/redux/slices/moneyBalance';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountDisplayAddress } from '../../../../selectors/moneyAccountLifecycleController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Engine from '../../../../core/Engine';
 
@@ -42,9 +42,8 @@ jest.mock('../../../../core/ReactQueryService', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
-  selectMoneyAccounts: jest.fn(),
+jest.mock('../../../../selectors/moneyAccountLifecycleController', () => ({
+  selectMoneyAccountDisplayAddress: jest.fn(),
 }));
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
@@ -71,8 +70,8 @@ function setupDefaultSelectors(
   const lastKnownBalance = options.lastKnownBalance ?? null;
 
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectPrimaryMoneyAccount) {
-      return { address: MOCK_ADDRESS };
+    if (selector === selectMoneyAccountDisplayAddress) {
+      return MOCK_ADDRESS;
     }
     if (selector === selectCurrentCurrency) {
       return 'usd';
@@ -173,6 +172,32 @@ describe('useMoneyAccountBalance', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.isBalanceLoading).toBe(false);
+  });
+
+  it('queries the balance for the MFA address when the display address is the MFA account', () => {
+    const mfaAddress = '0x0000000000000000000000000000000000000002';
+    setupDefaultSelectors();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMoneyAccountDisplayAddress) {
+        return mfaAddress;
+      }
+      if (selector === selectCurrentCurrency) {
+        return 'usd';
+      }
+      return undefined;
+    });
+
+    renderHook(() => useMoneyAccountBalance());
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: [
+          'MoneyAccountBalanceService:fetchBalanceWithFallback',
+          mfaAddress,
+        ],
+        enabled: true,
+      }),
+    );
   });
 
   it('disables the balance query when disabled', () => {
@@ -313,7 +338,7 @@ describe('useMoneyAccountBalance', () => {
   it('disables moneyBalanceQuery when no account address', () => {
     setupDefaultSelectors();
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrimaryMoneyAccount) {
+      if (selector === selectMoneyAccountDisplayAddress) {
         return undefined;
       }
       if (selector === selectCurrentCurrency) {
@@ -465,7 +490,7 @@ describe('useMoneyAccountBalance', () => {
     it('refetchBalance is a no-op when no primary Money Account exists', async () => {
       setupDefaultSelectors();
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPrimaryMoneyAccount) {
+        if (selector === selectMoneyAccountDisplayAddress) {
           return undefined;
         }
         if (selector === selectCurrentCurrency) {
