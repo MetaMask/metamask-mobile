@@ -4,4 +4,5 @@ export const MoneyGeoBlockSheetTestIds = {
   BODY: 'money-geo-block-sheet-body',
   CLOSE_BUTTON: 'money-geo-block-sheet-close-button',
   CONTINUE_BUTTON: 'money-geo-block-sheet-continue-button',
+  RETRY_BUTTON: 'money-geo-block-sheet-retry-button',
 } as const;
