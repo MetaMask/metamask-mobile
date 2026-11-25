@@ -421,6 +421,9 @@ describe('BuildQuote View', () => {
     mockUseLimitsValues = {
       ...mockUseLimitsInitialValues,
     };
+    mockUseBalanceValues = {
+      ...mockUseBalanceInitialValue,
+    };
     mockUseParamsValues = {
       showBack: undefined,
     };
