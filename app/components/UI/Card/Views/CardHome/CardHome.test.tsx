@@ -2920,54 +2920,6 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('rechecks an Immersve review when the waiting view is pulled to refresh', async () => {
-    mockProvisioningView = 'kyc_under_review';
-    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
-    setupLoadCardDataMock({
-      isAuthenticated: true,
-      warning: CardStateWarning.NoCard,
-      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      hasExternalWallets: true,
-    });
-
-    render();
-
-    // RefreshControl is a prop of the status view's ScrollView, not a host
-    // element, so reach it through the ScrollView's testID.
-    const { refreshControl } = screen.getByTestId(
-      CardHomeStatusViewSelectors.SCROLL_VIEW,
-    ).props;
-    await act(async () => {
-      await refreshControl.props.onRefresh();
-    });
-
-    expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
-  });
-
-  it('rechecks a card that is still being created when the waiting view is pulled to refresh', async () => {
-    mockProvisioningView = 'provisioning';
-    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
-    setupLoadCardDataMock({
-      isAuthenticated: true,
-      warning: CardStateWarning.NoCard,
-      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      hasExternalWallets: true,
-    });
-
-    render();
-
-    // RefreshControl is a prop of the status view's ScrollView, not a host
-    // element, so reach it through the ScrollView's testID.
-    const { refreshControl } = screen.getByTestId(
-      CardHomeStatusViewSelectors.SCROLL_VIEW,
-    ).props;
-    await act(async () => {
-      await refreshControl.props.onRefresh();
-    });
-
-    expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
-  });
-
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
     mockCanEnableCard = false;
     mockProvisioningView = 'kyc_under_review';
@@ -5108,11 +5060,18 @@ describe('CardHome Component', () => {
     });
 
     describe('Waiting re-checks on pull to refresh', () => {
+      // The waiting view hands RefreshControl a void wrapper, so awaiting
+      // onRefresh does not wait for the refresh; wait for it to settle.
       const pullToRefresh = async () => {
         const refreshControl = screen.UNSAFE_getByType(RefreshControl);
         await act(async () => {
           await refreshControl.props.onRefresh();
         });
+        await waitFor(() =>
+          expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(
+            false,
+          ),
+        );
       };
 
       it('re-checks a card that is still being created', async () => {

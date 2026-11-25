@@ -945,6 +945,12 @@ describe('CardHome', () => {
       await act(async () => {
         await scrollView.props.refreshControl.props.onRefresh();
       });
+      await waitFor(() =>
+        expect(
+          view.getByTestId(CardHomeStatusViewSelectors.SCROLL_VIEW).props
+            .refreshControl.props.refreshing,
+        ).toBe(false),
+      );
 
       await waitFor(() =>
         expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBeforeRefresh),
