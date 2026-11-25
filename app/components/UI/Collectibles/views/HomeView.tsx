@@ -3,11 +3,11 @@ import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
-import { CollectiblesNavButtons } from '../components/CollectiblesNavButtons';
+import { NavButtons } from '../components/NavButtons';
 import { LandingSection } from '../components/LandingSection';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-export function CollectiblesHomeView() {
+export function HomeView() {
   const tw = useTailwind();
 
   return (
@@ -17,7 +17,7 @@ export function CollectiblesHomeView() {
         className="mx-4 h-64 rounded-2xl bg-muted"
         testID={collectiblesTestIds.landingHero}
       />
-      <CollectiblesNavButtons />
+      <NavButtons />
       <LandingSection
         name="just-opened"
         title={strings('collectibles.landing.just_opened')}

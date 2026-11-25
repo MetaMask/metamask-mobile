@@ -3,7 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '../Collectibles.testIds';
-import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
+import { HomeScreen } from './HomeScreen';
 
 const mockGoBack = jest.fn();
 
@@ -12,13 +12,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
 }));
 
-describe('CollectiblesHomeScreen', () => {
+describe('HomeScreen', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
   });
 
   it('shows the Collectibles header and the main page', () => {
-    renderWithProvider(<CollectiblesHomeScreen />);
+    renderWithProvider(<HomeScreen />);
 
     expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     expect(
@@ -27,7 +27,7 @@ describe('CollectiblesHomeScreen', () => {
   });
 
   it('goes back when the back button is pressed', () => {
-    renderWithProvider(<CollectiblesHomeScreen />);
+    renderWithProvider(<HomeScreen />);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 

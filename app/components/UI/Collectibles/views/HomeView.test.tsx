@@ -3,16 +3,16 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '../Collectibles.testIds';
-import { CollectiblesHomeView } from './CollectiblesHomeView';
+import { HomeView } from './HomeView';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
-describe('CollectiblesHomeView', () => {
+describe('HomeView', () => {
   it('shows the hero, the three buttons and the sections', () => {
-    renderWithProvider(<CollectiblesHomeView />);
+    renderWithProvider(<HomeView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.landingHero),

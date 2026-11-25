@@ -3,21 +3,23 @@ import { useNavigation } from '@react-navigation/native';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
-import { CollectiblesHomeView } from '../views/CollectiblesHomeView';
+import { PacksView } from '../views/PacksView';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-export function CollectiblesHomeScreen() {
+export function PacksScreen() {
   const navigation = useNavigation();
 
   return (
-    <View className="flex-1 bg-default" testID={collectiblesTestIds.landing}>
+    <View
+      className="flex-1 bg-default"
+      testID={collectiblesTestIds.packsScreen}
+    >
       <HeaderStandard
-        title={strings('collectibles.title')}
-        backButtonProps={{ testID: collectiblesTestIds.homeBackButton }}
+        title={strings('collectibles.landing.packs')}
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <CollectiblesHomeView />
+      <PacksView />
     </View>
   );
 }

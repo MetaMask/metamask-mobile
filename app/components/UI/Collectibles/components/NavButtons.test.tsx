@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesRoutes } from '../routeNames';
 import { collectiblesTestIds } from '../Collectibles.testIds';
-import { CollectiblesNavButtons } from './CollectiblesNavButtons';
+import { NavButtons } from './NavButtons';
 
 const mockNavigate = jest.fn();
 
@@ -13,7 +13,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-describe('CollectiblesNavButtons', () => {
+describe('NavButtons', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
   });
@@ -27,7 +27,7 @@ describe('CollectiblesNavButtons', () => {
     ],
     ['market', 'collectibles.landing.market', collectiblesRoutes.market],
   ])('opens the %s screen', (name, labelKey, route) => {
-    renderWithProvider(<CollectiblesNavButtons />);
+    renderWithProvider(<NavButtons />);
 
     expect(screen.getByText(strings(labelKey))).toBeOnTheScreen();
     fireEvent.press(

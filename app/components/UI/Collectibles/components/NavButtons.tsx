@@ -20,7 +20,7 @@ interface NavButton {
   label: string;
 }
 
-export function CollectiblesNavButtons() {
+export function NavButtons() {
   const navigation =
     useNavigation<NativeStackNavigationProp<CollectiblesStackParamList>>();
   const navButtons: NavButton[] = [

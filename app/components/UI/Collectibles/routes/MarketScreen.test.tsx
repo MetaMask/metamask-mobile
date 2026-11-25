@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { CollectiblesMarketScreen } from './CollectiblesMarketScreen';
+import { MarketScreen } from './MarketScreen';
 
 const mockGoBack = jest.fn();
 
@@ -11,13 +11,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
 }));
 
-describe('CollectiblesMarketScreen', () => {
+describe('MarketScreen', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
   });
 
   it('shows the Market header and the coming soon placeholder', () => {
-    renderWithProvider(<CollectiblesMarketScreen />);
+    renderWithProvider(<MarketScreen />);
 
     expect(
       screen.getByText(strings('collectibles.landing.market')),
@@ -28,7 +28,7 @@ describe('CollectiblesMarketScreen', () => {
   });
 
   it('goes back when the back button is pressed', () => {
-    renderWithProvider(<CollectiblesMarketScreen />);
+    renderWithProvider(<MarketScreen />);
 
     // The design-system back button's default testID.
     fireEvent.press(screen.getByTestId('button-icon'));

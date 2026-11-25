@@ -3,23 +3,23 @@ import { useNavigation } from '@react-navigation/native';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
-import { CollectiblesCollectionView } from '../views/CollectiblesCollectionView';
+import { MarketView } from '../views/MarketView';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-export function CollectiblesCollectionScreen() {
+export function MarketScreen() {
   const navigation = useNavigation();
 
   return (
     <View
       className="flex-1 bg-default"
-      testID={collectiblesTestIds.collectionScreen}
+      testID={collectiblesTestIds.marketScreen}
     >
       <HeaderStandard
-        title={strings('collectibles.landing.collection')}
+        title={strings('collectibles.landing.market')}
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <CollectiblesCollectionView />
+      <MarketView />
     </View>
   );
 }
