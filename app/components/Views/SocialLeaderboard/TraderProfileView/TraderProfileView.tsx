@@ -220,6 +220,7 @@ const TraderProfileView = () => {
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: isSocialV1Enabled,
     requireSocialProfile: isSocialV1Enabled,
   });
   const handleMutePress = useCallback(

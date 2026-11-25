@@ -43,6 +43,25 @@ const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
 const mockSocialFeedProps = jest.fn();
 
 jest.mock('../terms/socialTermsAcceptance');
+
+let mockIsSocialV1Enabled = false;
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual('../../../../selectors/featureFlagController/socialV1'),
+  selectIsSocialV1Enabled: () => mockIsSocialV1Enabled,
+}));
+
+const mockFollowSetupOptions = jest.fn();
+jest.mock('../hooks/useFollowWithNotificationSetup', () => {
+  const actual = jest.requireActual('../hooks/useFollowWithNotificationSetup');
+  return {
+    ...actual,
+    useFollowWithNotificationSetup: (options: unknown) => {
+      mockFollowSetupOptions(options);
+      return actual.useFollowWithNotificationSetup(options);
+    },
+  };
+});
+
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
@@ -500,6 +519,7 @@ describe('TraderProfileView', () => {
     mockRefreshPosts.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
     mockToggleFollow.mockResolvedValue(undefined);
+    mockIsSocialV1Enabled = false;
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -663,6 +683,26 @@ describe('TraderProfileView', () => {
     mockProfileResult.isFollowing = true;
     renderWithProvider(<TraderProfileView />);
     expect(screen.getByText('Following')).toBeOnTheScreen();
+  });
+
+  it('asks for the Social terms and a social profile before following in Social V1', () => {
+    mockIsSocialV1Enabled = true;
+
+    renderWithProvider(<TraderProfileView />);
+
+    expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
+      requireSocialTerms: true,
+      requireSocialProfile: true,
+    });
+  });
+
+  it('follows without the Social gates outside Social V1', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
+      requireSocialTerms: false,
+      requireSocialProfile: false,
+    });
   });
 
   it('calls toggleFollow when the follow button is pressed', async () => {
