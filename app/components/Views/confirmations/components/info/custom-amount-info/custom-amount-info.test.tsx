@@ -924,12 +924,34 @@ describe('CustomAmountInfo', () => {
     expect(getByText('Test Help Text')).toBeDefined();
   });
 
-  it('blocks Continue when clamp commit is pending', () => {
+  async function openEnabledReview(
+    view: ReturnType<typeof render>,
+  ): Promise<void> {
+    await act(async () => {
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+    });
+
+    useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+    view.rerender(createCustomAmountInfo());
+  }
+
+  it('blocks Continue when clamp commit is pending', async () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ amountFiat: '900' }),
+    );
+
+    const view = render();
+    await openEnabledReview(view);
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+
     useTransactionCustomAmountMock.mockReturnValue(
       createCustomAmountMock({
         amountFiat: '900',
         isClampCommitPending: true,
-        isClampCommitFailed: false,
       }),
     );
     useTransactionCustomAmountAlertsMock.mockReturnValue({
@@ -937,21 +959,28 @@ describe('CustomAmountInfo', () => {
     });
     useAlertsMock.mockReturnValue({
       alerts: [],
+      fieldAlerts: [],
+      generalAlerts: [],
       hasBlockingAlerts: true,
     } as unknown as AlertsContextParams);
-
-    const view = render();
+    view.rerender(createCustomAmountInfo());
 
     expect(
       view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeDisabled();
   });
 
-  it('blocks Continue when clamp commit has failed', () => {
+  it('blocks Continue when clamp commit has failed', async () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ amountFiat: '900' }),
+    );
+
+    const view = render();
+    await openEnabledReview(view);
+
     useTransactionCustomAmountMock.mockReturnValue(
       createCustomAmountMock({
         amountFiat: '900',
-        isClampCommitPending: false,
         isClampCommitFailed: true,
       }),
     );
@@ -960,10 +989,11 @@ describe('CustomAmountInfo', () => {
     });
     useAlertsMock.mockReturnValue({
       alerts: [],
+      fieldAlerts: [],
+      generalAlerts: [],
       hasBlockingAlerts: true,
     } as unknown as AlertsContextParams);
-
-    const view = render();
+    view.rerender(createCustomAmountInfo());
 
     expect(
       view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),

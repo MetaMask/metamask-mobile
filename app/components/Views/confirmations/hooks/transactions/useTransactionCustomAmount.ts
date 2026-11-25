@@ -49,6 +49,7 @@ import {
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 import { useFirstDepositAmountClamp } from './useFirstDepositAmountClamp';
+import { useKeepAmountAfterReplacement } from './useKeepAmountAfterReplacement';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -147,40 +148,26 @@ export function useTransactionCustomAmount({
   const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
   const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
-  // A Perps provider switch replaces the confirmation with a new transaction,
-  // while this screen stays mounted. The amount on screen, entered or
-  // prefilled, must survive that, so once the transaction is replaced the
-  // prefill below no longer overwrites or clears it. Declared before the
-  // token-change effect so the ref exists when that effect reads it.
-  const keepAmountAfterReplacementRef = useRef(false);
-  const ignoreNextAutomaticTokenChangeRef = useRef(false);
-
-  const previousPayTokenKeyRef = useRef(payTokenKey);
-  useEffect(() => {
-    // Only reset when the pay token genuinely changes to a different token.
-    // Becoming undefined (during transaction replacement) should not reset.
-    const hasToken = Boolean(payTokenAsset?.address && payTokenAsset?.chainId);
-    const isGenuineChange =
-      hasToken && previousPayTokenKeyRef.current !== payTokenKey;
-
-    if (isGenuineChange) {
-      // After a replacement, automatic token selection picks a different token
-      // (Hyperliquid on Arbitrum vs Lighter on mainnet). Ignore the first
-      // automatic change to preserve the kept amount; clear on later user changes.
-      if (ignoreNextAutomaticTokenChangeRef.current) {
-        ignoreNextAutomaticTokenChangeRef.current = false;
-      } else {
+  const clearPrefetchForTokenChange = useCallback(
+    (keptAcrossReplacement: boolean): void => {
+      if (!keptAcrossReplacement) {
         userHasEditedRef.current = false;
-        keepAmountAfterReplacementRef.current = false;
       }
       prefetchQuoteRequestRef.current = undefined;
       prefetchedQuoteAmountHumanRef.current = undefined;
       prefetchedQuotePayTokenKeyRef.current = undefined;
       setPrefetchedQuoteAmountHuman(undefined);
       setPrefetchedQuotePayTokenKey(undefined);
-      previousPayTokenKeyRef.current = payTokenKey;
-    }
-  }, [payTokenAsset?.address, payTokenAsset?.chainId, payTokenKey]);
+    },
+    [],
+  );
+  const { ignoreNextAutomaticTokenChangeRef, keepAmountAfterReplacementRef } =
+    useKeepAmountAfterReplacement({
+      onGenuineTokenChange: clearPrefetchForTokenChange,
+      payTokenAddress: payTokenAsset?.address,
+      payTokenChainId: payTokenAsset?.chainId,
+      payTokenKey,
+    });
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -405,6 +392,7 @@ export function useTransactionCustomAmount({
       isFiatBuyLimited,
       fiatMaxAmount,
       isMaxAmount,
+      keepAmountAfterReplacementRef,
       setIsMax,
       setConfirmationMetric,
     ],
