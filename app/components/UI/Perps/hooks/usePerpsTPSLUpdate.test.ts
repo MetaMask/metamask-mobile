@@ -617,6 +617,7 @@ describe('usePerpsTPSLUpdate', () => {
         'ETH',
         takeProfitPrice,
         stopLossPrice,
+        position.providerId,
       );
     });
 
@@ -639,6 +640,7 @@ describe('usePerpsTPSLUpdate', () => {
         'ETH',
         undefined,
         stopLossPrice,
+        position.providerId,
       );
     });
 
@@ -661,6 +663,7 @@ describe('usePerpsTPSLUpdate', () => {
         'ETH',
         takeProfitPrice,
         undefined,
+        position.providerId,
       );
     });
 
@@ -681,6 +684,7 @@ describe('usePerpsTPSLUpdate', () => {
         'ETH',
         undefined,
         undefined,
+        position.providerId,
       );
     });
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
@@ -21,6 +22,7 @@ import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteShe
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
+import { SOCIAL_TAB_BADGE_OVERLAY_TEST_ID } from './HomeTabs/NativeSocialTabBadge';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -88,6 +90,13 @@ jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
   useCanOpenSocialTabDirectly: () => false,
 }));
 
+const mockUseSocialTabNewBadge = jest.fn(() => ({
+  showSocialTabNewBadge: false,
+}));
+jest.mock('./HomeTabs/useSocialTabNewBadge', () => ({
+  useSocialTabNewBadge: () => mockUseSocialTabNewBadge(),
+}));
+
 jest.mock(
   '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
   () => ({
@@ -131,6 +140,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectCollectiblesEnabled = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -172,6 +182,12 @@ jest.mock(
       mockSelectPredictEnabledFlag(state),
   }),
 );
+
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Collectibles/selectors/featureFlags'),
+  selectCollectiblesEnabled: (state: unknown) =>
+    mockSelectCollectiblesEnabled(state),
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -239,6 +255,9 @@ describe('MainNavigator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
+    mockUseSocialTabNewBadge.mockReturnValue({
+      showSocialTabNewBadge: false,
+    });
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
     mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(false);
@@ -450,9 +469,9 @@ describe('MainNavigator', () => {
   });
 
   describe('Native tab bar (iOS 26)', () => {
-    const renderHomeTabs = () => {
+    const renderHomeTabs = (state = initialRootState) => {
       const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
+        state,
       });
       const homeScreen = mainRoot.findAll(
         (node: ReactTestInstance) =>
@@ -462,7 +481,7 @@ describe('MainNavigator', () => {
         Record<string, unknown>
       >;
       return renderWithProvider(<HomeTabs route={{ params: {} }} />, {
-        state: initialRootState,
+        state,
       });
     };
 
@@ -493,6 +512,59 @@ describe('MainNavigator', () => {
           (node: ReactTestInstance) =>
             node.type?.toString?.() === 'TabNavigator' ||
             node.type?.toString?.() === 'TabScreen',
+        ),
+      ).toHaveLength(0);
+    });
+
+    it('renders the Social badge overlay when the native Social tab is available', () => {
+      mockUseSocialTabNewBadge.mockReturnValue({
+        showSocialTabNewBadge: true,
+      });
+      const stateWithSocialTab = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                homeTMCU1276AbtestHeaderNavBar: 'searchFocused',
+                socialAiTSA1122AbtestSocialBundleV1: 'treatment',
+              },
+            },
+          },
+        },
+      };
+
+      const { root } = renderHomeTabs(stateWithSocialTab);
+
+      expect(
+        root.findAll(
+          (node: ReactTestInstance) =>
+            node.props?.testID === SOCIAL_TAB_BADGE_OVERLAY_TEST_ID,
+        ),
+      ).not.toHaveLength(0);
+    });
+
+    it('omits the Social badge overlay when the native Social tab is unavailable', () => {
+      mockUseSocialTabNewBadge.mockReturnValue({
+        showSocialTabNewBadge: true,
+      });
+
+      const { root } = renderHomeTabs();
+
+      expect(
+        root.findAll(
+          (node: ReactTestInstance) =>
+            node.props?.testID === SOCIAL_TAB_BADGE_OVERLAY_TEST_ID,
         ),
       ).toHaveLength(0);
     });
@@ -1274,6 +1346,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1373,6 +1446,32 @@ describe('MainNavigator', () => {
       );
 
       expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes the Collectibles route when its feature flag is enabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeDefined();
+    });
+
+    it('excludes the Collectibles route when its feature flag is disabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeUndefined();
     });
 
     it('includes Market Insights view when feature flag is enabled', () => {

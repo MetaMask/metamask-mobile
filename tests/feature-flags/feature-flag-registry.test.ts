@@ -419,21 +419,21 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('enables Social AI comment translation from 8.17.0', () => {
+    it('enables Social AI comment translation from 8.21.0', () => {
       expect(
         getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
       ).toEqual({
         enabled: true,
-        minimumVersion: '8.17.0',
+        minimumVersion: '8.21.0',
       });
     });
 
-    it('keeps the Social GIF API disabled in production', () => {
+    it('enables the Social GIF API from 8.21.0', () => {
       expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.17.0',
+          enabled: true,
+          minimumVersion: '8.21.0',
         },
         status: FeatureFlagStatus.Active,
       });

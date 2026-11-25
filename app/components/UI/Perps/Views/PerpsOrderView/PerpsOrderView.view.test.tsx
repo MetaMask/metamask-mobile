@@ -3018,7 +3018,7 @@ describe('PerpsOrderView', () => {
         fetchGasFeeEstimates?: () => Promise<undefined>;
       };
       previousFetchGasFeeEstimates = gasFeeController.fetchGasFeeEstimates;
-      gasFeeController.fetchGasFeeEstimates = () => Promise.resolve(undefined);
+      gasFeeController.fetchGasFeeEstimates = async () => undefined;
       const flushState = jest
         .spyOn(EngineService, 'flushState')
         .mockImplementation(() => undefined);

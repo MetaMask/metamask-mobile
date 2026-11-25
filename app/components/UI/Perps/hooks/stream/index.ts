@@ -11,6 +11,11 @@ export {
   readAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from './usePerpsLiveAvailableToTrade';
+export { usePerpsVenueBalances } from './usePerpsVenueBalances';
+export type {
+  PerpsVenueBalance,
+  UsePerpsVenueBalancesReturn,
+} from './usePerpsVenueBalances';
 export { usePerpsTopOfBook } from './usePerpsTopOfBook';
 export { usePerpsLiveFocusedPrice } from './usePerpsLiveFocusedPrice';
 export { usePerpsLiveCandles } from './usePerpsLiveCandles';

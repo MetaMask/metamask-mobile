@@ -4,7 +4,9 @@ import {
   useScreenTransitionComplete,
 } from './useScreenTransitionComplete';
 
-type TransitionEndListener = (event: { data: { closing: boolean } }) => void;
+type TransitionEndListener = (event: {
+  data: { closing: boolean } | undefined;
+}) => void;
 type FocusListener = () => void;
 
 const mockUnsubscribe = jest.fn();
@@ -54,6 +56,14 @@ describe('useScreenTransitionComplete', () => {
     const { result } = renderHook(() => useScreenTransitionComplete());
 
     act(() => transitionListener?.({ data: { closing: false } }));
+
+    expect(result.current).toBe(true);
+  });
+
+  it('returns true when the transition event carries no data', () => {
+    const { result } = renderHook(() => useScreenTransitionComplete());
+
+    act(() => transitionListener?.({ data: undefined }));
 
     expect(result.current).toBe(true);
   });
