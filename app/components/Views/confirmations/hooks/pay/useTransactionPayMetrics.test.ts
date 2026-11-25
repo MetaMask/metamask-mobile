@@ -53,7 +53,7 @@ import { updateBgState } from '../../../../../core/redux/slices/engine';
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
-    state: {} as Record<string, unknown>,
+    state: {},
   },
 }));
 
