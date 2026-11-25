@@ -8630,6 +8630,7 @@
     "maximum": "Maximum deposit is",
     "insufficient_balance": "This amount is higher than your balance",
     "insufficient_native_balance": "You don't have enough {{currency}} to cover the network fees.",
+    "network_fee_unavailable": "We couldn't estimate the network fee. You'll review it before you send.",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
     "enter_lower_gas_fees": "Enter a lower amount to pay for network fees",
