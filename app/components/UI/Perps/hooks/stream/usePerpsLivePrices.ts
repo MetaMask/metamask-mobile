@@ -15,6 +15,32 @@ export interface UsePerpsLivePricesOptions {
 }
 
 /**
+ * Merges one venue's price batch into the per-key price map. `keys` maps the
+ * venue's bare symbols to the keys the caller asked for. An empty batch means
+ * the venue's prices were cleared, so its keys are removed.
+ */
+const applyVenuePriceUpdates = (
+  prices: Record<string, PriceUpdate>,
+  updates: Record<string, PriceUpdate>,
+  keys: Map<string, string>,
+): Record<string, PriceUpdate> => {
+  const next = { ...prices };
+  if (Object.keys(updates).length === 0) {
+    for (const key of keys.values()) {
+      delete next[key];
+    }
+    return next;
+  }
+  for (const [symbol, update] of Object.entries(updates)) {
+    const key = keys.get(symbol);
+    if (key) {
+      next[key] = update;
+    }
+  }
+  return next;
+};
+
+/**
  * Hook for real-time price updates via WebSocket subscription
  * Supports component-specific throttling for performance optimization
  *
@@ -53,28 +79,27 @@ export function usePerpsLivePrices(
       group.set(parsed.symbol, key);
       groups.set(venue, group);
     });
-    const unsubscribes = Array.from(groups, ([venue, keys]) =>
-      stream.prices.subscribeToSymbols({
-        symbols: Array.from(keys.keys()),
-        providerId: venue,
-        throttleMs,
-        callback: (updates) => {
-          if (!updates) return;
-          setSnapshot((prev) => {
-            const prices = prev.identity === identity ? { ...prev.prices } : {};
-            if (Object.keys(updates).length === 0) {
-              keys.forEach((key) => delete prices[key]);
-            } else {
-              Object.entries(updates).forEach(([symbol, update]) => {
-                const key = keys.get(symbol);
-                if (key) prices[key] = update;
-              });
-            }
-            return { identity, prices };
-          });
-        },
-      }),
-    );
+    const unsubscribes: (() => void)[] = [];
+    for (const [venue, keys] of groups) {
+      unsubscribes.push(
+        stream.prices.subscribeToSymbols({
+          symbols: Array.from(keys.keys()),
+          providerId: venue,
+          throttleMs,
+          callback: (updates) => {
+            if (!updates) return;
+            setSnapshot((prev) => ({
+              identity,
+              prices: applyVenuePriceUpdates(
+                prev.identity === identity ? prev.prices : {},
+                updates,
+                keys,
+              ),
+            }));
+          },
+        }),
+      );
+    }
     return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
     // identity captures the symbol values, not the caller's array reference.
     // eslint-disable-next-line react-hooks/exhaustive-deps
