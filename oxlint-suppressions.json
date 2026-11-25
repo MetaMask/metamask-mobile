@@ -1714,7 +1714,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Bridge/components/SwapsRecurringBuyConfirmButton/index.tsx": {
@@ -2209,11 +2209,6 @@
     }
   },
   "app/components/UI/Bridge/hooks/useTokenBalanceInUsd/useTokenBalanceInUsd.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Bridge/hooks/useTokenSelection.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
@@ -24036,11 +24031,6 @@
       "count": 9
     }
   },
-  "app/util/bridge/hooks/useSubmitBridgeTx.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/util/browser/downloadFile.ts": {
     "typescript/no-base-to-string": {
       "count": 1
@@ -25297,11 +25287,6 @@
   "tests/component-view/presets/watchlist.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
-    }
-  },
-  "tests/component-view/renderers/bridge.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 12
     }
   },
   "tests/component-view/renderers/identity.tsx": {
