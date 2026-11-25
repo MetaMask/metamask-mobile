@@ -64,6 +64,7 @@ jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: jest.fn(() => ({
     removeQueries: mockRemoveQueries,
+    invalidateQueries: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -405,7 +406,6 @@ jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => false,
 }));
 
-const mockRecheckProvisioning = jest.fn();
 const mockUseCardRecentTransactions = jest.fn(
   (_options?: { enabled?: boolean }) => ({
     transactions: [],
