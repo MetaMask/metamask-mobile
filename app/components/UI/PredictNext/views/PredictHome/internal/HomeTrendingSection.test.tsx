@@ -82,20 +82,19 @@ describe('HomeTrendingSection', () => {
         .getAllByTestId(/^predict-next-event-kalshi-/)
         .map((card) => card.props.testID),
     ).toEqual(GAMES.map(({ id }) => PredictHomeTestIds.event('kalshi', id)));
-    // The featured composition: both Teams around the score, then an
-    // "ABBR · price" pill per Team.
+    // The featured composition: stacked Team rows with percentage pills.
     expect(
-      carousel().getByTestId('predict-next-game-matchup-nfl-1'),
+      carousel().getByTestId('predict-next-game-team-nfl-1-away'),
     ).toBeOnTheScreen();
     expect(
       carousel().getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
-    ).toHaveTextContent(/^PAC\s*· 42¢$/);
+    ).toHaveTextContent('42%');
     expect(
       StyleSheet.flatten(
         screen.getByTestId(`${PredictHomeTestIds.HOME_TRENDING}-card-2`).props
           .style,
       ),
-    ).toMatchObject({ width: 340 });
+    ).toMatchObject({ width: 340, minHeight: 250 });
   });
 
   it('spans the screen edge to edge and keeps the header padded', () => {
@@ -170,7 +169,7 @@ describe('HomeTrendingSection', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows 340x220 skeleton cards and no pagination while loading', () => {
+  it('shows 340x250 skeleton cards and no pagination while loading', () => {
     renderSection({ events: [], isLoading: true });
 
     expect(
@@ -181,7 +180,7 @@ describe('HomeTrendingSection', () => {
     );
     expect(skeletons.length).toBeGreaterThan(0);
     skeletons.forEach((skeleton) =>
-      expect(skeleton).toHaveStyle({ width: 340, height: 220 }),
+      expect(skeleton).toHaveStyle({ width: 340, height: 250 }),
     );
     expect(
       screen.queryByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN),

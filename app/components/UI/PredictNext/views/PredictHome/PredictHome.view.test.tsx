@@ -568,16 +568,16 @@ describe('PredictHome', () => {
         home: 'Steelers',
         awayScore: '17',
         homeScore: '21',
-        awayQuote: /^PAC\s*· 41¢$/,
-        homeQuote: /^STE\s*· 59¢$/,
+        awayQuote: '41%',
+        homeQuote: '59%',
       });
       expectPredictNextGameCard(trending, 'ncaa-2', {
         away: 'Georgia',
         home: 'Florida',
         awayScore: '3',
         homeScore: '0',
-        awayQuote: /^GEO\s*· 55¢$/,
-        homeQuote: /^FLO\s*· 45¢$/,
+        awayQuote: '55%',
+        homeQuote: '45%',
       });
       // NCAAF's third Game ranks after the five Trending shows.
       expect(
@@ -894,7 +894,7 @@ describe('PredictHome', () => {
     // Trending shows other live Games, so read this card's own score.
     expect(within(card).getByText('28')).toBeOnTheScreen();
     expect(within(card).getByText('24')).toBeOnTheScreen();
-    expect(within(card).getByText('Q4 · 01:12')).toBeOnTheScreen();
+    expect(within(card).getByText('Q4 01:12')).toBeOnTheScreen();
   });
 
   describe('live-data subscriptions', () => {
@@ -1384,7 +1384,7 @@ describe('PredictHome', () => {
     expect(
       within(
         view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3')),
-      ).getByText('Q1 · 14:00'),
+      ).getByText('Q1 14:00'),
     ).toBeOnTheScreen();
     expect(
       rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
