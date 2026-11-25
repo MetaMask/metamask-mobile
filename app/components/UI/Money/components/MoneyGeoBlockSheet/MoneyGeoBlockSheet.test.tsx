@@ -325,6 +325,74 @@ describe('MoneyGeoBlockSheet', () => {
     });
   });
 
+  describe('background geolocation refresh', () => {
+    const lookupErrorState = {
+      engine: {
+        backgroundState: {
+          GeolocationController: {
+            location: UNKNOWN_LOCATION,
+            status: 'error' as const,
+          },
+        },
+      },
+    };
+
+    it('keeps the lookup error copy and try again button while a background lookup is loading', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <MoneyGeoBlockSheet />,
+        { state: lookupErrorState },
+      );
+
+      act(() => {
+        mockEngineGeolocationState = {
+          location: UNKNOWN_LOCATION,
+          status: 'loading',
+        };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+      });
+
+      expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+        strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title'),
+      );
+      expect(
+        getByTestId(MoneyGeoBlockSheetTestIds.RETRY_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the Money modal flow when a background lookup resolves an eligible location', async () => {
+      const { store } = renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: lookupErrorState,
+      });
+
+      act(() => {
+        mockEngineGeolocationState = { location: 'ES', status: 'complete' };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+      });
+
+      await waitFor(() => {
+        expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(mockRefreshGeolocation).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-close when the sheet opened with an already eligible location', () => {
+      renderWithProvider(<MoneyGeoBlockSheet />, {
+        state: {
+          engine: {
+            backgroundState: {
+              GeolocationController: {
+                location: 'US',
+                status: 'complete' as const,
+              },
+            },
+          },
+        },
+      });
+
+      expect(mockParentGoBack).not.toHaveBeenCalled();
+    });
+  });
+
   describe('analytics', () => {
     it('initialises useMoneyAnalytics with MONEY_GEO_BLOCK_SHEET bottom_sheet_name', () => {
       renderWithProvider(<MoneyGeoBlockSheet />);

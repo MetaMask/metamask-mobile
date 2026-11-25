@@ -40,16 +40,23 @@ const MoneyGeoBlockSheet = () => {
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
-  const [hasRequestedRetry, setHasRequestedRetry] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  // Only auto-close on a transition from ineligible to eligible while open.
+  const wasGeoEligibleOnMountRef = useRef(isGeoEligible);
 
-  // Keep the lookup-error UI while a retry is in flight: the controller status
-  // moves to 'loading' during the refresh, which would otherwise flash the
-  // regional-restriction copy before the result is known.
+  const isLocationUnresolved =
+    !geolocationLocation || geolocationLocation === UNKNOWN_LOCATION;
+
+  // A lookup can be started from this sheet or in the background (the
+  // connectivity-restore retry in the GeolocationController listener), so the
+  // in-flight state is derived from controller status as well as local state.
+  const isLookupInFlight = isRetrying || geolocationStatus === 'loading';
+
+  // Keep the lookup-error UI while any lookup is in flight with no location
+  // yet: otherwise the 'loading' status would flash the regional-restriction
+  // copy before the result is known.
   const isGeolocationLookupError =
-    isRetrying ||
-    (geolocationStatus === 'error' &&
-      (!geolocationLocation || geolocationLocation === UNKNOWN_LOCATION));
+    isLocationUnresolved && (geolocationStatus === 'error' || isLookupInFlight);
 
   const title = isGeolocationLookupError
     ? strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')
@@ -91,7 +98,6 @@ const MoneyGeoBlockSheet = () => {
    * geo-eligibility check, so blocked regions stay blocked.
    */
   const handleRetry = useCallback(async () => {
-    setHasRequestedRetry(true);
     setIsRetrying(true);
     try {
       await Engine.context.GeolocationController.refreshGeolocation();
@@ -102,12 +108,13 @@ const MoneyGeoBlockSheet = () => {
     }
   }, []);
 
-  // Once a retry resolves an eligible location, let the user continue.
+  // Once any lookup (from this sheet or in the background) resolves an
+  // eligible location, let the user continue.
   useEffect(() => {
-    if (hasRequestedRetry && !isRetrying && isGeoEligible) {
+    if (!wasGeoEligibleOnMountRef.current && isGeoEligible) {
       handleClose();
     }
-  }, [hasRequestedRetry, isRetrying, isGeoEligible, handleClose]);
+  }, [isGeoEligible, handleClose]);
 
   const primaryButtonProps = useMemo(
     () =>
@@ -115,8 +122,8 @@ const MoneyGeoBlockSheet = () => {
         ? {
             children: strings('money.geo_block.retry_button'),
             onPress: handleRetry,
-            isLoading: isRetrying,
-            isDisabled: isRetrying,
+            isLoading: isLookupInFlight,
+            isDisabled: isLookupInFlight,
             testID: MoneyGeoBlockSheetTestIds.RETRY_BUTTON,
             size: ButtonSize.Lg,
           }
@@ -126,7 +133,7 @@ const MoneyGeoBlockSheet = () => {
             testID: MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON,
             size: ButtonSize.Lg,
           },
-    [isGeolocationLookupError, handleRetry, handleClose, isRetrying],
+    [isGeolocationLookupError, handleRetry, handleClose, isLookupInFlight],
   );
 
   const secondaryButtonProps = useMemo(
@@ -135,12 +142,11 @@ const MoneyGeoBlockSheet = () => {
         ? {
             children: strings('money.geo_block.button'),
             onPress: handleClose,
-            isDisabled: isRetrying,
             testID: MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON,
             size: ButtonSize.Lg,
           }
         : undefined,
-    [isGeolocationLookupError, handleClose, isRetrying],
+    [isGeolocationLookupError, handleClose],
   );
 
   return (
