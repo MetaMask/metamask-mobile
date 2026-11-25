@@ -1473,7 +1473,7 @@ export const feedScreenTabLabels = (
  * has notified its mounted observers. Await inside `act` to commit the
  * rendered cards without racing a `findBy*` wall-clock timeout on a cold shard.
  */
-export const waitForPredictFeedQueries = (
+export const waitForPredictFeedQueries = async (
   queryClient: QueryClient,
   feedIds: readonly PredictFeedId[],
 ): Promise<void> => {
@@ -1492,7 +1492,7 @@ export const waitForPredictFeedQueries = (
     );
   };
 
-  return new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     // `Query#dispatch` queues observer notifications before it notifies cache
     // listeners, so scheduling on `notifyManager` runs after mounted observers
     // receive the feed data.

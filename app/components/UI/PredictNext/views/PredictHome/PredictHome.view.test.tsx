@@ -1791,13 +1791,13 @@ describe('PredictHome', () => {
 
         // Cold shard 3 runs PredictHome first; await feed query settlement in
         // act instead of racing findBy's 5 s wall clock against GC/coverage.
-        await act(() =>
-          waitForPredictFeedQueries(queryClient, [
+        await act(async () => {
+          await waitForPredictFeedQueries(queryClient, [
             NFL_GAMES_FEED_ID,
             NCAA_GAMES_FEED_ID,
             POLITICS_TRUMP_FEED_ID,
-          ]),
-        );
+          ]);
+        });
 
         expect(
           view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4')),
