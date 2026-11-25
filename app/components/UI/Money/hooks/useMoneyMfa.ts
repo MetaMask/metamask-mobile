@@ -1,4 +1,3 @@
-import { MFA_CREDENTIAL_TYPES } from '@metamask/profile-sync-controller/sdk';
 import {
   useCallback,
   useContext,
@@ -184,12 +183,10 @@ export const useMoneyMfa = () => {
   }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
-    // Every method type, so a stale credential list can't leave one out.
-    const verifyWith = [...MFA_CREDENTIAL_TYPES];
     try {
       await verifyOrEnroll({
-        methods: verifyWith,
-        verifyWith,
+        methods: MONEY_MFA_METHODS,
+        verifyWith: MONEY_MFA_METHODS,
         maxSessionAgeMs: 0,
         verifyOnly: true,
         reason: getTurnOffReason(),

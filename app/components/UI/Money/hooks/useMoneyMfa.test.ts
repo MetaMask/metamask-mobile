@@ -1,10 +1,7 @@
 import React from 'react';
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import {
-  MFA_CREDENTIAL_TYPES,
-  type EnrolledCredential,
-} from '@metamask/profile-sync-controller/sdk';
+import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
@@ -544,8 +541,8 @@ describe('useMoneyMfa', () => {
       });
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: [...MFA_CREDENTIAL_TYPES],
-        verifyWith: [...MFA_CREDENTIAL_TYPES],
+        methods: ['passkey', 'totp'],
+        verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
         verifyOnly: true,
         reason: expect.objectContaining({ operation: 'money.mfa.turnOff' }),
@@ -563,15 +560,15 @@ describe('useMoneyMfa', () => {
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
         expect.objectContaining({
-          methods: [...MFA_CREDENTIAL_TYPES],
-          verifyWith: [...MFA_CREDENTIAL_TYPES],
+          methods: ['passkey', 'totp'],
+          verifyWith: ['passkey', 'totp'],
           maxSessionAgeMs: 0,
           verifyOnly: true,
         }),
       );
     });
 
-    it('verifies with email when it is the only active method left', async () => {
+    it('asks for a passkey or authenticator app even when email is the only active method', async () => {
       const activeEmail: EnrolledCredential = {
         id: 'email',
         type: 'email_otp',
@@ -586,12 +583,11 @@ describe('useMoneyMfa', () => {
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
         expect.objectContaining({
-          methods: [...MFA_CREDENTIAL_TYPES],
-          verifyWith: [...MFA_CREDENTIAL_TYPES],
+          methods: ['passkey', 'totp'],
+          verifyWith: ['passkey', 'totp'],
           verifyOnly: true,
         }),
       );
-      expect(result.current.status).toBe('off');
     });
 
     it('keeps 2FA on when verification is cancelled', async () => {
