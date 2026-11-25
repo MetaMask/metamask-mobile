@@ -24,9 +24,17 @@ import {
 
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import Logger from '../../../../util/Logger';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 import type { PerpsTooltipContentKey } from '../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+
+/**
+ * `screen_type` value emitted with `Perp Screen Viewed` when an
+ * unsupported-account explanation is presented. Mobile-local; a candidate to
+ * move into Core's `PERPS_EVENT_VALUE.SCREEN_TYPE`.
+ */
+export const PERPS_ACCOUNT_UNSUPPORTED_SCREEN_TYPE = 'account_unsupported';
 
 const unsupportedContent = {
   multi_sig_account: 'account_not_supported',
@@ -53,6 +61,14 @@ export interface CheckPerpsAccountSupportOptions {
   bindActiveProvider?: boolean;
   /** A committed deposit reports its outcome via the progress toast instead. */
   showExplanation?: boolean;
+}
+
+export interface UsePerpsAccountSupportOptions {
+  /**
+   * Skip the mount-time prefetch. For callers whose actions never sign
+   * (e.g. a deposit-only sheet), where only the action-time check matters.
+   */
+  skipPrefetch?: boolean;
 }
 
 export interface UsePerpsAccountSupportReturn {
@@ -92,6 +108,7 @@ const getSupportContextKey = (
 export const usePerpsAccountSupport = (
   source: string,
   prefetchProviderId?: PerpsProviderType,
+  options?: UsePerpsAccountSupportOptions,
 ): UsePerpsAccountSupportReturn => {
   const store = useStore<RootState>();
   const contextKey = useSelector((state: RootState) =>
@@ -119,7 +136,8 @@ export const usePerpsAccountSupport = (
   useEffect(() => {
     if (unsupportedContentKey && shownContext.current !== contextKey) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: 'account_unsupported',
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_ACCOUNT_UNSUPPORTED_SCREEN_TYPE,
         [PERPS_EVENT_PROPERTY.SOURCE]: source,
       });
     }
@@ -127,7 +145,11 @@ export const usePerpsAccountSupport = (
   }, [contextKey, source, track, unsupportedContentKey]);
 
   const readAccountSupport = useCallback(
-    async (providerId?: PerpsProviderType): Promise<PerpsAccountSupport> => {
+    async (
+      providerId?: PerpsProviderType,
+      /** Prefetch failures fail open silently; only action-time reads report. */
+      reportErrors = true,
+    ): Promise<PerpsAccountSupport> => {
       const state = store.getState();
       const network = selectPerpsNetwork(state);
       try {
@@ -136,16 +158,27 @@ export const usePerpsAccountSupport = (
         );
       } catch (error) {
         const name = 'usePerpsAccountSupport.readAccountSupport';
-        Logger.error(ensureError(error, name), {
-          tags: { feature: PERPS_CONSTANTS.FeatureName },
-          context: {
-            name,
-            data: {
-              providerId: providerId ?? selectPerpsProvider(state),
-              network,
+        const errorObj = ensureError(error, name);
+        if (reportErrors) {
+          Logger.error(errorObj, {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: {
+              name,
+              data: {
+                providerId: providerId ?? selectPerpsProvider(state),
+                network,
+              },
             },
-          },
-        });
+          });
+        } else {
+          // Core can reject a prefetch with PROVIDER_LIFECYCLE_STALE during a
+          // reconnect; the check fails open and the action-time read reports.
+          DevLogger.log(
+            name,
+            'Prefetch skipped (fail open)',
+            errorObj.message,
+          );
+        }
         return { isSupported: true };
       }
     },
@@ -153,9 +186,12 @@ export const usePerpsAccountSupport = (
   );
 
   useEffect(() => {
+    if (options?.skipPrefetch) {
+      return undefined;
+    }
     let current = true;
     prefetched.current = null;
-    void readAccountSupport(prefetchProviderId).then((support) => {
+    void readAccountSupport(prefetchProviderId, false).then((support) => {
       if (current && !support.isSupported) {
         prefetched.current = { contextKey, reason: support.reason };
       }
@@ -163,7 +199,12 @@ export const usePerpsAccountSupport = (
     return () => {
       current = false;
     };
-  }, [contextKey, prefetchProviderId, readAccountSupport]);
+  }, [
+    contextKey,
+    options?.skipPrefetch,
+    prefetchProviderId,
+    readAccountSupport,
+  ]);
 
   const showPrefetchedUnsupported = useCallback(() => {
     const known = prefetched.current;

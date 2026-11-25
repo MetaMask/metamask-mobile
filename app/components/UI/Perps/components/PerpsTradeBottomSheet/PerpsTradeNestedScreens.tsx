@@ -94,6 +94,15 @@ export const PerpsTradeAccountUnsupportedScreen: React.FC<{
   useEffect(() => {
     if (!contentKey) goBack();
   }, [contentKey, goBack]);
+  useEffect(
+    () => () => {
+      // Android hardware back pops this screen through the sheet's
+      // BackHandler without running handleBack. Clear the explanation so the
+      // next presentation in the same context re-emits the screen view.
+      onDismiss();
+    },
+    [onDismiss],
+  );
   return contentKey ? (
     <PerpsInlineInfoScreen contentKey={contentKey} onBack={handleBack} />
   ) : null;

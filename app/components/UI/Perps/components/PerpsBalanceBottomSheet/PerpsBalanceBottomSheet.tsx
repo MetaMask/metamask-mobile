@@ -54,6 +54,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   isVisible,
   onClose,
   buttonLocation,
+  source,
   testID = PerpsBalanceBottomSheetSelectorsIDs.CONTAINER,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -85,7 +86,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     closeEligibilityModal,
     unsupportedContentKey,
     closeAccountUnsupportedModal,
-  } = usePerpsHomeActions({ source: 'perps_balance_sheet', buttonLocation });
+  } = usePerpsHomeActions({ source, buttonLocation });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
   const spendableBalance = perpsAccount?.spendableBalance || '0';

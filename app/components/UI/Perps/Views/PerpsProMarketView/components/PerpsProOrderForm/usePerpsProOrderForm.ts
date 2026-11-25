@@ -925,7 +925,7 @@ export const usePerpsProOrderForm = ({
     checkAccountSupport,
     closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
-    source: 'perps_pro_order_form',
+    source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
   });
 
@@ -2349,7 +2349,6 @@ export const usePerpsProOrderForm = ({
     maxLeverage: marketData?.maxLeverage,
   });
   const { validateNow } = orderValidation;
-
   const scaleValidationInputKey = JSON.stringify({
     orderForm: effectiveOrderForm,
     positionSize: submissionPositionSize,
@@ -4820,7 +4819,6 @@ export const usePerpsProOrderForm = ({
     const expectedChaseProviderId = chaseProviderIdRef.current;
     const expectedNetwork = networkRef.current;
     const expectedLifecycleGeneration = lifecycleGenerationRef.current;
-
     if (isChaseSubmission && !isChaseLimitBannerVisible) {
       trackedChaseLimitEpisodeKeyRef.current = null;
     }

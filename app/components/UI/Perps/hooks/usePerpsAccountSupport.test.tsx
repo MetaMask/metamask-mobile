@@ -63,7 +63,7 @@ const buildState = ({ address, provider, isTestnet }: SupportContext) => ({
 
 const setContext = createAction<Partial<SupportContext>>('test/setContext');
 
-const renderAccountSupport = () => {
+const renderAccountSupport = (options?: Parameters<typeof usePerpsAccountSupport>[2]) => {
   let context = DEFAULT_CONTEXT;
   const store = configureStore({
     reducer: createReducer(buildState(context), (builder) => {
@@ -76,9 +76,12 @@ const renderAccountSupport = () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
-  const hook = renderHook(() => usePerpsAccountSupport('test-screen'), {
-    wrapper,
-  });
+  const hook = renderHook(
+    () => usePerpsAccountSupport('test-screen', undefined, options),
+    {
+      wrapper,
+    },
+  );
 
   return {
     ...hook,
@@ -111,6 +114,37 @@ describe('usePerpsAccountSupport', () => {
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalledTimes(1));
 
     expect(result.current.unsupportedContentKey).toBeNull();
+  });
+
+  it('skips the prefetch when skipPrefetch is set', async () => {
+    renderAccountSupport({ skipPrefetch: true });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockGetAccountSupport).not.toHaveBeenCalled();
+  });
+
+  it('fails open on a prefetch failure without reporting an error', async () => {
+    mockGetAccountSupport.mockRejectedValueOnce(
+      new Error('PROVIDER_LIFECYCLE_STALE'),
+    );
+    const { result } = renderAccountSupport();
+
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalledTimes(1));
+
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.unsupportedContentKey).toBeNull();
+
+    // The action-time read still reports.
+    mockGetAccountSupport.mockRejectedValueOnce(
+      new Error('PROVIDER_LIFECYCLE_STALE'),
+    );
+    await act(async () => {
+      await result.current.checkAccountSupport('hyperliquid');
+    });
+    expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 
   it('blocks an action and opens the modal for a multi-signature account', async () => {

@@ -179,14 +179,16 @@ Lite order form. It has no Perps-stack route. It renders as the confirmation bod
 
 | Components                                                                                                | Hooks                                                                                                                                                                                                                |
 | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PerpsOrderHeader`, `PerpsAmountDisplay`, `PerpsSlider`, `PerpsFeesDisplay`, `PerpsLimitPriceBottomSheet` | `usePerpsOrderForm` (through `PerpsOrderContext`), `usePerpsOrderFees`, `usePerpsRewards`, `usePerpsOrderValidation`, `usePerpsLivePrices`, `usePerpsOrderExecution`, `usePerpsMeasurement`, `usePerpsEventTracking` |
+| `PerpsOrderHeader`, `PerpsAmountDisplay`, `PerpsSlider`, `PerpsFeesDisplay`, `PerpsLimitPriceBottomSheet`, `PerpsAccountUnsupportedModal` | `usePerpsOrderForm` (through `PerpsOrderContext`), `usePerpsOrderFees`, `usePerpsRewards`, `usePerpsOrderValidation`, `usePerpsLivePrices`, `usePerpsOrderExecution`, `usePerpsAccountSupport`, `usePerpsLiteOrderSubmitGate`, `usePerpsOrderSubmit`, `usePerpsMeasurement`, `usePerpsEventTracking` |
 
 - Params are `PerpsOrderRouteParams`, including `direction`, `asset`, `providerId`, `leverage`, `amount`, `price`, `orderType`, `existingPosition`, `hideTPSL`, `source` and `useBottomSheet`.
 - Form state holds amount (USD), leverage, order type, limit price and direction. `usePerpsOrderFees` computes the fee, discount and rewards.
 - `navigateToOrder` creates the deposit-and-order transaction, then opens `CONFIRMATIONS`. When the order provider is Lighter it opens `BALANCE_ORDER` instead.
+- Submit runs through a support gate: `usePerpsLiteOrderSubmitGate` retires attempts on context changes and `usePerpsAccountSupport` (backed by Core `getAccountSupport`) blocks unsupported accounts, explaining through `PerpsAccountUnsupportedModal` or the Trade sheet's `accountUnsupported` screen.
+- Submit orchestration — validation settle, the pay-with-token deposit branch, direct placement and the post-deposit re-entry — lives in `usePerpsOrderSubmit`.
 - TP/SL opens from the form before submit (`TPSL`). See [tpsl.md](./tpsl.md).
 
-Code: `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx` `PerpsOrderView`; `app/components/UI/Perps/contexts/PerpsOrderContext.tsx` `PerpsOrderProvider`; `app/components/UI/Perps/hooks/usePerpsNavigation.ts` `navigateToOrder`; `app/components/UI/Perps/types/navigation.ts` `PerpsOrderRouteParams`
+Code: `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx` `PerpsOrderView`; `app/components/UI/Perps/contexts/PerpsOrderContext.tsx` `PerpsOrderProvider`; `app/components/UI/Perps/hooks/usePerpsNavigation.ts` `navigateToOrder`; `app/components/UI/Perps/hooks/usePerpsAccountSupport.ts`, `usePerpsOrderSubmitGate.ts`, `usePerpsOrderSubmit.ts`; `app/components/UI/Perps/components/PerpsAccountUnsupportedModal/PerpsAccountUnsupportedModal.tsx`; `app/components/UI/Perps/types/navigation.ts` `PerpsOrderRouteParams`
 
 ## PerpsBalanceOrderView
 
@@ -285,10 +287,11 @@ Legacy withdrawal of USDC to Arbitrum. Home opens it only when `perpsWithdrawCon
 
 | Components                                                                 | Hooks                                                                                                                                        |
 | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Keypad`, `AvatarToken`, `Badge`, `PerpsBottomSheetTooltip`, `KeyValueRow` | `usePerpsLiveAccount`, `usePerpsWithdrawQuote`, `useWithdrawValidation`, `useWithdrawTokens`, `usePerpsEventTracking`, `usePerpsMeasurement` |
+| `Keypad`, `AvatarToken`, `Badge`, `PerpsBottomSheetTooltip`, `KeyValueRow` | `usePerpsLiveAccount`, `usePerpsWithdrawQuote`, `useWithdrawValidation`, `useWithdrawTokens`, `usePerpsAccountSupport`, `usePerpsEventTracking`, `usePerpsMeasurement` |
 
 - Amount by keypad or 10/25/50/Max. Percentage buttons hide once an amount is entered.
 - The minimum is the route's `minAmount` constraint, else Core `WITHDRAWAL_CONSTANTS.DefaultMinAmount`.
+- Confirm resolves the venue through Core `resolveWithdrawalRoute()` (the same resolution and refusal `withdraw()` applies), then checks `usePerpsAccountSupport` for the resolved provider before navigating.
 - Confirm shows a toast, goes back at once, then calls `controller.withdraw()`.
 
 Code: `app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.tsx` `handleContinue`; `app/components/UI/Perps/hooks/useWithdrawValidation.ts`; `app/components/UI/Perps/hooks/useWithdrawTokens.ts`; `app/components/UI/Perps/hooks/usePerpsHomeActions.ts`

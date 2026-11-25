@@ -55,6 +55,11 @@ export interface UsePerpsHomeActionsOptions {
   /** Button location for tracking deposit entry point */
   buttonLocation?: string;
   /**
+   * Skip the account-support prefetch. For callers whose actions never sign
+   * (deposit-only sheets), where only the action-time check matters.
+   */
+  skipSupportPrefetch?: boolean;
+  /**
    * Push the deposit confirmation on the current navigator instead of
    * re-targeting the Perps root. The adjust-margin sheet uses this so the
    * confirmation covers that sheet and dismissing it returns there.
@@ -127,7 +132,9 @@ export const usePerpsHomeActions = (
     checkAccountSupport,
     closeAccountUnsupportedModal,
   } = usePerpsAccountSupport(
-    options?.source ?? PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
+    options?.source ?? PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    undefined,
+    { skipPrefetch: options?.skipSupportPrefetch },
   );
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 

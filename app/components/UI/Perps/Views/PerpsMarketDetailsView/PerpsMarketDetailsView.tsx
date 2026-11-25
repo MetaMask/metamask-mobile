@@ -356,6 +356,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     navigateToClosePosition,
   } = usePerpsNavigation();
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+
   // Use position management hook for bottom sheet state and handlers
   const {
     showModifyActionSheet,
@@ -518,7 +519,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     showPrefetchedUnsupported,
     closeAccountUnsupportedModal,
   } = usePerpsAccountSupport(
-    PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+    PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     market?.providerId,
   );
 

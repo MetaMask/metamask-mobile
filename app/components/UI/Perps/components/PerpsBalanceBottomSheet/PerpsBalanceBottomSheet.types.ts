@@ -7,6 +7,11 @@ export interface PerpsBalanceBottomSheetProps {
   onClose: () => void;
   /** Analytics location of the button that opened the sheet. */
   buttonLocation: (typeof PERPS_EVENT_VALUE.BUTTON_LOCATION)[keyof typeof PERPS_EVENT_VALUE.BUTTON_LOCATION];
+  /**
+   * Analytics `source` naming the presenting screen. Required so events
+   * raised here can attribute the screen that opened the sheet.
+   */
+  source: (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
   /** Optional testID override for the root BottomSheet. */
   testID?: string;
 }

@@ -51,6 +51,11 @@ interface PerpsMarketBalanceActionsProps {
   onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
   children?: React.ReactNode;
   isGlass?: boolean;
+  /**
+   * Analytics `source` naming the presenting screen. Required so events
+   * raised here can attribute the screen that rendered the actions.
+   */
+  source: string;
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -79,6 +84,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   onTitleSectionLayout,
   children,
   isGlass = false,
+  source,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -126,7 +132,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     unsupportedContentKey,
     closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
-    source: 'perps_market_balance_actions',
+    source,
     buttonLocation,
   });
 

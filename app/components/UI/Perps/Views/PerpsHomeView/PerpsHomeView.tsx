@@ -1430,6 +1430,7 @@ const PerpsHomeView = () => {
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
           hideBalanceSection
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           isGlass={isGlass}
           onTitleSectionLayout={(event) =>
             setTitleSectionHeight(event.nativeEvent.layout.height)
@@ -1533,6 +1534,7 @@ const PerpsHomeView = () => {
           isVisible
           onClose={closeBalanceSheet}
           buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
       ) : null}
 
