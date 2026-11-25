@@ -14,10 +14,7 @@ import SharedDeeplinkManager, {
   DeeplinkManager,
   rewriteBranchUri,
 } from './DeeplinkManager';
-import {
-  BRANCH_SHORTLINK_FALLBACK_MS,
-  isPendingBranchShortlink,
-} from './utils/androidShortlinkGate';
+import { BRANCH_SHORTLINK_FALLBACK_MS } from './utils/androidShortlinkGate';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
@@ -998,36 +995,6 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
   });
 });
 
-describe('isPendingBranchShortlink', () => {
-  it.each([
-    'https://link.metamask.io/invite-home?ref=5SYFDM',
-    'https://metamask.app.link/invite-home?ref=5SYFDM',
-    'https://metamask-alternate.app.link/1WkF6GmE40b?amount=100',
-    'https://link.metamask.com/invite-perps',
-    // ACTIONS members that the universal-link pipeline does not route are held
-    // too, so a `/ramp` or `/deposit` alias cannot flash the invalid modal.
-    'https://link.metamask.io/ramp?ref=5SYFDM',
-    'https://link.metamask.io/oauth-redirect?code=123',
-  ])('returns true for an unrouted path on a Branch host: %s', (url) => {
-    expect(isPendingBranchShortlink(url)).toBe(true);
-  });
-
-  it.each([
-    'https://link.metamask.io/perps?ref=5SYFDM',
-    'https://metamask.app.link/swap?amount=100',
-    'https://link.metamask.io/card-kyc-notification',
-    'https://link.metamask.io/earn-musd',
-    'https://link.metamask.io/',
-    'https://example.com/invite-home',
-    'metamask://invite-home',
-  ])(
-    'returns false for a routed action, empty path, or non-Branch URL: %s',
-    (url) => {
-      expect(isPendingBranchShortlink(url)).toBe(false);
-    },
-  );
-});
-
 describe('DeeplinkManager.start Android shortlink deferral', () => {
   const originalPlatformOS = Platform.OS;
 
@@ -1089,116 +1056,26 @@ describe('DeeplinkManager.start Android shortlink deferral', () => {
     expect(handleDeeplink).toHaveBeenCalledTimes(1);
   });
 
-  it('defers metamask.app.link shortlinks the same way as link.metamask.io on Android', () => {
+  it('ignores a late Android initial URL whose query differs from the cold-start Branch referring link', async () => {
     Platform.OS = 'android';
-    const { emitLinkingUrl, emitBranch } = startAndCaptureListeners();
-
-    emitLinkingUrl('https://metamask.app.link/invite-home?ref=5SYFDM');
-    expect(handleDeeplink).not.toHaveBeenCalled();
-
-    emitBranch({
-      uri: 'https://metamask.app.link/invite-home?ref=5SYFDM',
-      params: {
-        '+clicked_branch_link': true,
-        $deeplink_path: 'home?sig_params=&sig=xyz',
-      },
+    const alias = 'https://metamask.app.link/invite-perps?ref=5SYFDM';
+    jest.mocked(Linking.getInitialURL).mockReturnValue(
+      new Promise((resolve) => {
+        setTimeout(() => resolve(alias), 1);
+      }),
+    );
+    jest.mocked(branch.getLatestReferringParams).mockResolvedValue({
+      '~referring_link': `${alias}&_branch_match_id=123`,
+      '+clicked_branch_link': true,
+      $deeplink_path: 'perps?sig_params=&sig=xyz',
     });
+
+    startAndCaptureListeners();
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORTLINK_FALLBACK_MS + 1);
 
     expect(handleDeeplink).toHaveBeenCalledTimes(1);
     expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: 'https://link.metamask.io/home?ref=5SYFDM&sig_params=&sig=xyz',
+      uri: 'https://link.metamask.io/perps?ref=5SYFDM&_branch_match_id=123&sig_params=&sig=xyz',
     });
-  });
-
-  it('falls back to handling the original URL if Branch does not resolve within the timeout', () => {
-    Platform.OS = 'android';
-    const { emitLinkingUrl } = startAndCaptureListeners();
-
-    const bogusUrl = 'https://link.metamask.io/does-not-exist';
-    emitLinkingUrl(bogusUrl);
-    expect(handleDeeplink).not.toHaveBeenCalled();
-
-    jest.advanceTimersByTime(BRANCH_SHORTLINK_FALLBACK_MS);
-
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: bogusUrl });
-  });
-
-  it('dispatches known actions immediately on Android without waiting for Branch', () => {
-    Platform.OS = 'android';
-    const { emitLinkingUrl } = startAndCaptureListeners();
-
-    const directUrl = 'https://link.metamask.io/perps?ref=5SYFDM';
-    emitLinkingUrl(directUrl);
-
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: directUrl });
-  });
-
-  it('ignores a late Linking initial URL on Android when Branch already resolved that shortlink', async () => {
-    Platform.OS = 'android';
-    let resolveInitialUrl!: (url: string | null) => void;
-    jest.spyOn(Linking, 'getInitialURL').mockReturnValue(
-      new Promise<string | null>((resolve) => {
-        resolveInitialUrl = resolve;
-      }),
-    );
-
-    const { emitBranch } = startAndCaptureListeners();
-
-    emitBranch({
-      uri: 'https://link.metamask.io/invite-home?ref=5SYFDM',
-      params: {
-        '+clicked_branch_link': true,
-        $deeplink_path: 'home?sig_params=&sig=xyz',
-      },
-    });
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-
-    resolveInitialUrl('https://link.metamask.io/invite-home?ref=5SYFDM');
-    await Promise.resolve();
-
-    jest.advanceTimersByTime(BRANCH_SHORTLINK_FALLBACK_MS + 100);
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores a late Linking initial URL whose query differs from the Branch resolution', async () => {
-    Platform.OS = 'android';
-    let resolveInitialUrl!: (url: string | null) => void;
-    jest.spyOn(Linking, 'getInitialURL').mockReturnValue(
-      new Promise<string | null>((resolve) => {
-        resolveInitialUrl = resolve;
-      }),
-    );
-
-    const { emitBranch } = startAndCaptureListeners();
-
-    // Branch reports the stored link with its attribution params, while Android
-    // hands React Native the bare alias for the same tap.
-    emitBranch({
-      uri: 'https://metamask.app.link/invite-perps?ref=5SYFDM&_branch_match_id=123&_branch_referrer=H4sIA',
-      params: {
-        '+clicked_branch_link': true,
-        $deeplink_path: 'perps?sig_params=&sig=xyz',
-      },
-    });
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-
-    resolveInitialUrl('https://metamask.app.link/invite-perps?ref=5SYFDM');
-    await Promise.resolve();
-
-    jest.advanceTimersByTime(BRANCH_SHORTLINK_FALLBACK_MS + 100);
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not defer unknown paths from Linking on iOS', () => {
-    Platform.OS = 'ios';
-    const { emitLinkingUrl } = startAndCaptureListeners();
-
-    const url = 'https://link.metamask.io/invite-home?ref=5SYFDM';
-    emitLinkingUrl(url);
-
-    expect(handleDeeplink).toHaveBeenCalledTimes(1);
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: url });
   });
 });

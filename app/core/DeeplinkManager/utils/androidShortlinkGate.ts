@@ -11,7 +11,7 @@ const BRANCH_RESOLUTION_WINDOW_MS = 5000;
  * `1WkF6GmE40b`), meaning it is likely a Branch short link whose destination
  * arrives asynchronously via Branch `$deeplink_path`.
  */
-export function isPendingBranchShortlink(url: string): boolean {
+function isPendingBranchShortlink(url: string): boolean {
   if (!isMetaMaskUniversalLink(url)) {
     return false;
   }
