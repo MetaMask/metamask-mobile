@@ -934,6 +934,37 @@ describe('SendTransaction View', () => {
       );
     });
 
+    it('does not crash on a malformed deposit wallet and tracks the rejection', async () => {
+      const malformedOrder = {
+        ...mockOrder,
+        id: 'test-id-malformed',
+        data: {
+          ...mockOrder.data,
+          id: 'test-id-malformed',
+          providerOrderId: 'test-id-malformed',
+          depositWallet: 'not-an-address',
+        },
+      } as unknown as FiatOrder;
+      mockUseParamsValues = { orderId: 'test-id-malformed' };
+      render(SendTransaction, [malformedOrder]);
+
+      expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Next' }));
+      });
+
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        expect.anything(),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        expect.anything(),
+      );
+    });
+
     it('does not gate Next on network fee or balance', () => {
       render(SendTransaction, mockedOrders, {
         AccountTrackerController: {

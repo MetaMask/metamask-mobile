@@ -15,8 +15,11 @@ interface BuildRampTransferParamsArgs {
 }
 
 /**
- * Builds the native or ERC-20 transfer Ramp submits for a sell. The same
- * object is used for the gas estimate and for `addTransaction`.
+ * Builds the native or ERC-20 transfer Ramp submits for a sell.
+ *
+ * BuildQuote estimates the same transaction shape with a random unfunded
+ * recipient and 1 wei; SendTransaction builds a separate object from the
+ * order's real deposit wallet and amount.
  *
  * @returns The transaction params, or `undefined` when the shape is incomplete.
  */

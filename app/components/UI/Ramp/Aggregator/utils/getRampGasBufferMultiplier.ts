@@ -17,8 +17,8 @@ interface GasBufferFlag {
 
 /**
  * Returns the gas buffer multiplier core applies to a confirmed transaction.
- * The Ramp sell reservation must use the same multiplier or Max can be lower
- * than what the confirmation accepts.
+ * The Ramp sell reservation must not under-count it, or Max can be higher than
+ * the balance can cover at confirmation.
  *
  * @param chainId - Network chain id in hex.
  * @param networkClientId - The network client the transaction will use.
@@ -28,8 +28,10 @@ export function getRampGasBufferMultiplier(
   chainId: Hex,
   networkClientId: NetworkClientId,
 ): number {
-  // Replace with TransactionController.getGasEstimateBuffer once a core
-  // release ships it: https://consensyssoftware.atlassian.net/browse/TRAM-4526
+  // Replace with TransactionController.estimateGasBuffered's default buffer
+  // once a core release ships it:
+  // https://consensyssoftware.atlassian.net/browse/TRAM-4526
+  // https://github.com/MetaMask/core/pull/11756
   // Until then this mirrors core's getGasEstimateBuffer from
   // @metamask/transaction-controller 74.2.0 and can drift if core changes the
   // flag schema or rules.
