@@ -380,6 +380,12 @@ jobs:
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
             profile: namespace-profile-metamask-ci-linux-small
+          # Dead-code check against the committed baseline
+          # (scripts/knip-baseline.ts + knip.config.ts). Analysis only: no
+          # browser installs and no app build; knip itself takes well under a
+          # minute after `yarn install`.
+          - scripts: knip:check
+            profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:app-profiling
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
