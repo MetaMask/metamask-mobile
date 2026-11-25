@@ -776,13 +776,13 @@ describe('MultichainAccountConnect', () => {
 
         fireEvent.press(await findByText('Report a detection problem'));
 
-        expect(mockNavigate).toHaveBeenCalledWith(
+        expect(mockNavigate.mock.calls[0]).toEqual([
           Routes.BROWSER.HOME,
-          expect.objectContaining({
+          {
             newTabUrl: MM_BLOCKLIST_ISSUE_URL,
             timestamp: expect.any(Number),
-          }),
-        );
+          },
+        ]);
       });
     });
   });
