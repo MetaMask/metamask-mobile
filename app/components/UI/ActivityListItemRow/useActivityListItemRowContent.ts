@@ -534,7 +534,7 @@ function resolveCoreContent(
           ? 'Received'
           : 'Sent';
       const pendingLabel = isMoneyDeposit
-        ? strings('money.transaction.depositing')
+        ? strings('money.transaction.adding')
         : item.type === 'receive'
           ? 'Receiving'
           : 'Sending';

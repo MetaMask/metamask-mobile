@@ -756,6 +756,28 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
+  it('shows "Adding mUSD" for a pending EOA transfer to Money', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'pending',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Adding mUSD',
+    );
+  });
+
   it('shows "Funding cancelled" and hides amounts for a cancelled EOA transfer to Money', () => {
     const item = makeItem({
       type: 'send',
