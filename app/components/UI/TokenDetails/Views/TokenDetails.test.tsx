@@ -677,16 +677,17 @@ describe('TokenDetails', () => {
     });
 
     // The dialog's KeyboardAvoidingView forwards onLayout after an await.
-    const layoutFooter = (
+    const layoutFooter = async (
       getByTestId: ReturnType<typeof render>['getByTestId'],
       height: number,
-    ) =>
-      act(async () => {
+    ) => {
+      await act(async () => {
         fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
           persist: jest.fn(),
           nativeEvent: { layout: { x: 0, y: 0, width: 390, height } },
         });
       });
+    };
 
     it('reserves the floating footer height at the end of the activity list', async () => {
       applySelectorsWithMemeFlag(true);
