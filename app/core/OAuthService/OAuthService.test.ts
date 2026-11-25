@@ -155,6 +155,7 @@ jest.mock('../Engine', () => ({
   context: {
     SeedlessOnboardingController: {
       preloadToprfNodeDetails: jest.fn().mockResolvedValue(undefined),
+      clearState: jest.fn().mockResolvedValue(undefined),
       authenticate: jest.fn().mockImplementation(() => ({
         nodeAuthTokens: [],
         isNewUser: false,
@@ -411,6 +412,26 @@ describe('OAuth login service', () => {
         groupedAuthConnectionId: 'mock-android-grouped-auth-connection-id',
       }),
     );
+  });
+
+  it('clears stale seedless state before authenticating', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    const callOrder: string[] = [];
+    const { SeedlessOnboardingController } = Engine.context;
+    const clearStateSpy = jest
+      .spyOn(SeedlessOnboardingController, 'clearState')
+      .mockImplementation(async () => {
+        callOrder.push('clearState');
+      });
+    mockAuthenticate.mockImplementation(() => {
+      callOrder.push('authenticate');
+      return { nodeAuthTokens: [], isNewUser: true };
+    });
+
+    await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+    expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    expect(callOrder).toEqual(['clearState', 'authenticate']);
   });
 
   it('throw on SeedlessOnboardingController error', async () => {
