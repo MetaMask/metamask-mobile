@@ -468,10 +468,10 @@ describe('CryptoTokensPillBlock', () => {
       });
 
     const rowSymbols = (
-      getAllByTestId: (id: RegExp) => { props: { testID: string } }[],
+      getAllByTestId: (id: RegExp) => { props: Record<string, unknown> }[],
     ) =>
       getAllByTestId(/^token-row-/).map((el) =>
-        el.props.testID.replace('token-row-', ''),
+        String(el.props.testID).replace('token-row-', ''),
       );
 
     it('shows the token count and sort button on the trending pill', () => {
