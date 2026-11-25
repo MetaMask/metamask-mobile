@@ -69,6 +69,15 @@ describe('AndroidShortlinkGate', () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  it('keeps a pending fallback when Branch reports an unrelated URI', () => {
+    gate.handleLinkingUrl(alias);
+    gate.recordBranchResolution('https://link.metamask.io/stale-alias?x=1');
+
+    jest.advanceTimersByTime(BRANCH_SHORTLINK_FALLBACK_MS);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith(alias);
+  });
+
   it.each([alias, `${alias}&_branch_match_id=123`])(
     'drops a late alias after Branch reports the same origin and path: %s',
     (branchUri) => {

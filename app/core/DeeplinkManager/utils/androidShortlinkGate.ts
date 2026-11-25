@@ -56,6 +56,7 @@ function getShortlinkMatchKey(uri: string): string {
  */
 export class AndroidShortlinkGate {
   private pendingTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingKey: string | null = null;
   private lastBranchResolvedKey: string | null = null;
   private lastBranchResolvedAt = 0;
   private readonly dispatch: (uri: string) => void;
@@ -69,6 +70,7 @@ export class AndroidShortlinkGate {
       clearTimeout(this.pendingTimer);
       this.pendingTimer = null;
     }
+    this.pendingKey = null;
   }
 
   handleLinkingUrl(url: string): void {
@@ -80,8 +82,10 @@ export class AndroidShortlinkGate {
         return;
       }
       this.clearPending();
+      this.pendingKey = getShortlinkMatchKey(url);
       this.pendingTimer = setTimeout(() => {
         this.pendingTimer = null;
+        this.pendingKey = null;
         this.dispatch(url);
       }, BRANCH_SHORTLINK_FALLBACK_MS);
       return;
@@ -91,11 +95,23 @@ export class AndroidShortlinkGate {
     this.dispatch(url);
   }
 
+  /**
+   * Records that Branch reported a URI so a later Android intent for the same
+   * link is not replayed. Only the URI matching the currently held short link
+   * cancels its fallback; unrelated or stale Branch events (a cached INIT or
+   * old referring link) must not consume another link's fallback window.
+   */
   recordBranchResolution(rawUri?: string): void {
-    this.clearPending();
-    if (rawUri) {
-      this.lastBranchResolvedKey = getShortlinkMatchKey(rawUri);
-      this.lastBranchResolvedAt = Date.now();
+    if (!rawUri) {
+      return;
     }
+
+    const matchKey = getShortlinkMatchKey(rawUri);
+    if (this.pendingKey === matchKey) {
+      this.clearPending();
+    }
+
+    this.lastBranchResolvedKey = matchKey;
+    this.lastBranchResolvedAt = Date.now();
   }
 }
