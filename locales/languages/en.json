@@ -5512,8 +5512,7 @@
       "open_price": "Open · {{price}}",
       "open_pack_price": "Open {{name}}, {{price}}",
       "tile_label": "{{name}}, {{opens}}",
-      "empty": "No packs available right now",
-      "coming_soon": "Coming soon"
+      "empty": "No packs available right now"
     }
   },
   "collectible": {

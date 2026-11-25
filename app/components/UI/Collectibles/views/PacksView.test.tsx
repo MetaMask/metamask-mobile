@@ -154,25 +154,4 @@ describe('PacksView', () => {
       screen.getByText(strings('collectibles.packs.empty')),
     ).toBeOnTheScreen();
   });
-
-  it('opens a placeholder from the filter button', () => {
-    renderWithProvider(<PacksView />);
-
-    fireEvent.press(screen.getByTestId(collectiblesTestIds.packsFilterButton));
-
-    expect(
-      screen.getByTestId(collectiblesTestIds.packsComingSoonSheet),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens a placeholder from a pack price button', () => {
-    renderWithProvider(<PacksView />);
-
-    fireEvent.press(
-      screen.getByTestId(collectiblesTestIds.packsTileBuy('pack-1')),
-    );
-
-    const sheet = screen.getByTestId(collectiblesTestIds.packsComingSoonSheet);
-    expect(within(sheet).getByText('Lorem ipsum')).toBeOnTheScreen();
-  });
 });

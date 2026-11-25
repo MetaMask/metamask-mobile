@@ -18,8 +18,8 @@ import { getOpensLabel, PackOpensBadge } from './PackOpensBadge';
 
 interface Props {
   pack: ListedPack;
-  onOpenDetail: (pack: ListedPack) => void;
-  onOpenBuy: (pack: ListedPack) => void;
+  onOpenDetail?: (pack: ListedPack) => void;
+  onOpenBuy?: (pack: ListedPack) => void;
 }
 
 export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
@@ -38,7 +38,7 @@ export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
         })}
         className="gap-2"
         pressedClassName="opacity-70"
-        onPress={() => onOpenDetail(pack)}
+        onPress={() => onOpenDetail?.(pack)}
         testID={collectiblesTestIds.packsTileDetail(pack.code)}
       >
         <View className="overflow-hidden rounded-xl bg-muted p-2">
@@ -79,7 +79,7 @@ export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
           name: pack.name,
           price,
         })}
-        onPress={() => onOpenBuy(pack)}
+        onPress={() => onOpenBuy?.(pack)}
         testID={collectiblesTestIds.packsTileBuy(pack.code)}
       >
         {strings('collectibles.packs.open_price', { price })}

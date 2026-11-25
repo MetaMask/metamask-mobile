@@ -21,7 +21,6 @@ import { usePacksCatalog } from '../hooks/usePacksCatalog';
 import { PackCategoryChips } from '../components/PackCategoryChips';
 import { PacksGridTile } from '../components/PacksGridTile';
 import { PacksScreenSkeleton } from '../components/PacksScreenSkeleton';
-import { ComingSoonSheet } from '../components/ComingSoonSheet';
 
 function keyExtractor(pack: ListedPack) {
   return pack.code;
@@ -31,7 +30,6 @@ export function PacksView() {
   const tw = useTailwind();
   const { packs, categories, isPending } = usePacksCatalog();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
-  const [comingSoonTitle, setComingSoonTitle] = useState<string>();
 
   const activeCategoryId = categories.some(
     (category) => category.id === selectedCategoryId,
@@ -57,11 +55,7 @@ export function PacksView() {
   function renderItem({ item }: { item: ListedPack }) {
     return (
       <View className="flex-1 px-1.5 pb-6">
-        <PacksGridTile
-          pack={item}
-          onOpenDetail={(pack) => setComingSoonTitle(pack.name)}
-          onOpenBuy={(pack) => setComingSoonTitle(pack.name)}
-        />
+        <PacksGridTile pack={item} />
       </View>
     );
   }
@@ -113,17 +107,11 @@ export function PacksView() {
             <ButtonIcon
               iconName={IconName.Filter}
               accessibilityLabel={strings('collectibles.packs.filter')}
-              onPress={() =>
-                setComingSoonTitle(strings('collectibles.packs.filter'))
-              }
               testID={collectiblesTestIds.packsFilterButton}
             />
             <ButtonIcon
               iconName={IconName.SwapVertical}
               accessibilityLabel={strings('collectibles.packs.sort')}
-              onPress={() =>
-                setComingSoonTitle(strings('collectibles.packs.sort'))
-              }
               testID={collectiblesTestIds.packsSortButton}
             />
           </View>
@@ -145,12 +133,6 @@ export function PacksView() {
   return (
     <View className="flex-1" testID={collectiblesTestIds.packsView}>
       {renderContent()}
-      {comingSoonTitle && (
-        <ComingSoonSheet
-          title={comingSoonTitle}
-          onClose={() => setComingSoonTitle(undefined)}
-        />
-      )}
     </View>
   );
 }
