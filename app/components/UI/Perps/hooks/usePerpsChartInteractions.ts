@@ -12,38 +12,40 @@ import type { ErrorPayload } from '../../Charts/AdvancedChart/AdvancedChart.type
 import type { PerpsChartAnalyticsProperties } from '../utils/chartAnalytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 
+const COMPONENT_NAME = 'usePerpsChartInteractions';
+const OPERATION_CHART_ERROR = 'chart_error';
+const OPERATION_LIBRARY_LOAD = 'chart_library_load';
 const TRADINGVIEW_LIBRARY_LOAD_ERROR_CODE = 'TRADINGVIEW_LIBRARY_LOAD_FAILED';
 
-const getLibraryLoadAnalyticsProperties = (
+/**
+ * Sentry-only structured context for a TradingView library-load failure.
+ * Returns `undefined` for any other chart error.
+ *
+ * Mixpanel properties for these diagnostics are intentionally not sent: they
+ * belong in `@metamask/perps-controller` event constants (shared across
+ * clients) and will be added once Core defines them.
+ */
+const getLibraryLoadContext = (
   details: unknown,
   fallbackUsed: boolean,
-): Record<string, unknown> => {
+): Record<string, unknown> | undefined => {
   if (typeof details !== 'object' || details === null) {
-    return {};
+    return undefined;
   }
 
   const payload = details as Partial<ErrorPayload>;
   if (payload.code !== TRADINGVIEW_LIBRARY_LOAD_ERROR_CODE) {
-    return {};
+    return undefined;
   }
 
   return {
-    chart_error_code: payload.code,
-    chart_failure_stage: 'library_script',
-    chart_fallback_used: fallbackUsed,
-    ...(payload.url ? { chart_library_url: payload.url } : {}),
-    ...(payload.attempt !== undefined
-      ? { chart_library_load_attempt: payload.attempt }
-      : {}),
-    ...(payload.maxAttempts !== undefined
-      ? { chart_library_load_max_attempts: payload.maxAttempts }
-      : {}),
-    ...(payload.online !== undefined
-      ? { chart_library_load_online: payload.online }
-      : {}),
-    ...(payload.visibilityState
-      ? { chart_library_load_visibility_state: payload.visibilityState }
-      : {}),
+    errorCode: payload.code,
+    fallbackUsed,
+    url: payload.url,
+    attempt: payload.attempt,
+    maxAttempts: payload.maxAttempts,
+    online: payload.online,
+    visibilityState: payload.visibilityState,
   };
 };
 
@@ -86,8 +88,29 @@ export const usePerpsChartInteractions = ({
           ? error
           : (error?.message ?? chartErrorMessage);
 
+      const libraryLoadContext = getLibraryLoadContext(
+        details,
+        isAdvancedChartEnabled,
+      );
+      const operation = libraryLoadContext
+        ? OPERATION_LIBRARY_LOAD
+        : OPERATION_CHART_ERROR;
+
       Logger.error(new Error(errorMessage), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: COMPONENT_NAME,
+          operation,
+        },
+        context: {
+          name: operation,
+          data: {
+            asset: asset ?? '',
+            chartLibrary:
+              chartAnalyticsProperties[PERPS_EVENT_PROPERTY.CHART_LIBRARY],
+            ...libraryLoadContext,
+          },
+        },
       });
       track(MetaMetricsEvents.PERPS_ERROR, {
         [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
@@ -98,7 +121,6 @@ export const usePerpsChartInteractions = ({
           PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
         [PERPS_EVENT_PROPERTY.ASSET]: asset || '',
         ...chartAnalyticsProperties,
-        ...getLibraryLoadAnalyticsProperties(details, isAdvancedChartEnabled),
       });
 
       if (isAdvancedChartEnabled) {
