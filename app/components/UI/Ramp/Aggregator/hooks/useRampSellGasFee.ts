@@ -15,7 +15,6 @@ import {
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import useInterval from '../../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
-import { getRampGasBufferMultiplier } from '../utils/getRampGasBufferMultiplier';
 
 const REFRESH_INTERVAL_MS = 15_000;
 const SLOW_CELLULAR_REFRESH_INTERVAL_MS = 60_000;
@@ -136,9 +135,8 @@ export default function useRampSellGasFee({
     inFlightStartedAtRef.current = now;
 
     try {
-      const multiplier = getRampGasBufferMultiplier(chainId, networkClientId);
       const [gasEstimate, gasFee] = await Promise.all([
-        estimateGasBuffered(currentTransaction, multiplier, networkClientId),
+        estimateGasBuffered(currentTransaction, undefined, networkClientId),
         estimateGasFee({
           transactionParams: currentTransaction,
           chainId,

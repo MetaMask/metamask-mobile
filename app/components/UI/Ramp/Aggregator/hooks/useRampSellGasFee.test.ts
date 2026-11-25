@@ -12,7 +12,6 @@ import {
   estimateGasFee,
 } from '../../../../../util/transaction-controller';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
-import { getRampGasBufferMultiplier } from '../utils/getRampGasBufferMultiplier';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import useRampSellGasFee from './useRampSellGasFee';
 
@@ -25,10 +24,6 @@ jest.mock('../../../../../util/networks/engineNetworkUtils', () => ({
   fetchEstimatedMultiLayerL1Fee: jest.fn(),
 }));
 
-jest.mock('../utils/getRampGasBufferMultiplier', () => ({
-  getRampGasBufferMultiplier: jest.fn(),
-}));
-
 jest.mock('../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: jest.fn(),
 }));
@@ -36,7 +31,6 @@ jest.mock('../../../../../hooks/useNetworkTier', () => ({
 const mockEstimateGasBuffered = jest.mocked(estimateGasBuffered);
 const mockEstimateGasFee = jest.mocked(estimateGasFee);
 const mockFetchL1Fee = jest.mocked(fetchEstimatedMultiLayerL1Fee);
-const mockGetBufferMultiplier = jest.mocked(getRampGasBufferMultiplier);
 const mockUseNetworkTier = jest.mocked(useNetworkTier);
 
 const GWEI = 1_000_000_000n;
@@ -97,7 +91,6 @@ describe('useRampSellGasFee', () => {
     jest.clearAllMocks();
     mockNetworkTier = 'WIFI';
     mockUseNetworkTier.mockImplementation(() => mockNetworkTier);
-    mockGetBufferMultiplier.mockReturnValue(1.5);
     mockEstimateGasBuffered.mockResolvedValue({
       gas: '0x4aed4',
       simulationFails: undefined,
@@ -115,7 +108,7 @@ describe('useRampSellGasFee', () => {
 
     expect(mockEstimateGasBuffered).toHaveBeenCalledWith(
       TRANSACTION,
-      1.5,
+      undefined,
       'mainnet',
     );
     expect(result.current).toEqual({

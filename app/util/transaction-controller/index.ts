@@ -163,7 +163,7 @@ export async function estimateGas(
 
 export async function estimateGasBuffered(
   transaction: TransactionParams,
-  multiplier: number,
+  multiplier: number | undefined,
   networkClientId: NetworkClientId,
 ) {
   const { TransactionController } = Engine.context;
