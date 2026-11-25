@@ -1,4 +1,7 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { LIGHTER_BRIDGE_CONFIG } from '@metamask/perps-controller/constants/lighterConfig';
 import { Hex, decodeFunctionData, parseAbi } from 'viem';
 
@@ -7,6 +10,7 @@ import {
   LIGHTER_USDC_DEPOSIT_ASSET_INDEX,
   buildLighterUsdcDepositTransaction,
   getLighterUsdcDepositAmountCalls,
+  isLighterAccountCreationDeposit,
   userHasLighterAccount,
 } from './lighter-usdc-deposit';
 
@@ -131,6 +135,43 @@ describe('buildLighterUsdcDepositTransaction', () => {
         1_500_000n,
       ],
     });
+  });
+});
+
+describe('isLighterAccountCreationDeposit', () => {
+  it('is true for a Lighter deposit that carries the approve and deposit calls', () => {
+    const built = buildLighterUsdcDepositTransaction(USER, 1_000_000n);
+
+    expect(
+      isLighterAccountCreationDeposit({
+        type: TransactionType.perpsLighterDeposit,
+        nestedTransactions: [built.approve, built.deposit],
+      } as unknown as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('is false for a deposit into an existing account, which has no calldata', () => {
+    expect(
+      isLighterAccountCreationDeposit({
+        type: TransactionType.perpsLighterDeposit,
+        txParams: { from: USER, to: USER },
+      } as unknown as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('is false for a Hyperliquid deposit', () => {
+    const built = buildLighterUsdcDepositTransaction(USER, 1_000_000n);
+
+    expect(
+      isLighterAccountCreationDeposit({
+        type: TransactionType.perpsDeposit,
+        nestedTransactions: [built.approve, built.deposit],
+      } as unknown as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('is false when there is no transaction', () => {
+    expect(isLighterAccountCreationDeposit(undefined)).toBe(false);
   });
 });
 

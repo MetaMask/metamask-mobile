@@ -25,7 +25,7 @@ import type { MoneyAccountSweepstakesSeriesStatus } from '../../../utils/moneyAc
 import { strings } from '../../../../../../../locales/i18n';
 import { selectProfileControllerProfile } from '../../../../../../selectors/profileController';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
-import { navigateToSocialTab } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import CampaignOptInSheet from '../CampaignOptInSheet';
 import {
   CAMPAIGN_CTA_TEST_IDS,
@@ -43,6 +43,7 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   MoneyAccountSweepstakesCampaignCTAProps
 > = ({ campaign, seriesStatus, localizedText, inline = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { openComposer } = useOpenSocialPostComposer();
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const hasSocialProfile = Boolean(
     useSelector(selectProfileControllerProfile)?.profileId,
@@ -172,7 +173,7 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
         hasSocialProfile,
       })
     ) {
-      navigateToSocialTab(navigation.navigate);
+      openComposer();
       return;
     }
     setIsOptInSheetOpen(true);
@@ -185,10 +186,10 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     ensureBound,
     showBindingConflictToast,
     navigateToAddMoney,
+    openComposer,
     isSocialV1Enabled,
     hasSocialProfile,
     campaign.socialProfileRequired,
-    navigation,
   ]);
 
   if (seriesStatus !== 'active') {

@@ -8,10 +8,7 @@ import {
   NativeSyntheticEvent,
   LayoutChangeEvent,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -27,7 +24,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
@@ -87,11 +83,7 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
+  const [headerInset, setHeaderInset] = useState(0);
   const metrics = useAnalytics();
 
   useScreenPerformance({
@@ -389,13 +381,15 @@ const OptinMetrics = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title=""
       />
       <ScrollView
-        style={[tw.style('flex-1'), { marginTop: headerInset }]}
+        style={tw.style('flex-1')}
+        contentContainerStyle={{ paddingTop: headerInset }}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}

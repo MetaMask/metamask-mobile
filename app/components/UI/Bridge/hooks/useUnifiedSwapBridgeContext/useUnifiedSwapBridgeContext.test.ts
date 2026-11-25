@@ -1,5 +1,5 @@
 import '../../_mocks_/initialState';
-import { FeatureId } from '@metamask/bridge-controller';
+import { FeatureId, MoneyAccountAction } from '@metamask/bridge-controller';
 import { createBridgeTestState } from '../../testUtils';
 import { useUnifiedSwapBridgeContext } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -104,6 +104,7 @@ describe('useUnifiedSwapBridgeContext', () => {
       usd_amount_source: 0,
       custom_slippage: false,
       feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+      operation: undefined,
     });
   });
 
@@ -232,7 +233,40 @@ describe('useUnifiedSwapBridgeContext', () => {
       usd_amount_source: 0,
       custom_slippage: false,
       feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+      operation: undefined,
     });
+  });
+
+  it('sets operation to deposit when the dest token is a money token', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({ symbol: 'ETH' });
+    mockSelectDestToken.mockReturnValue({
+      symbol: 'MUSD',
+      isMoneyToken: true,
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.operation).toBe(MoneyAccountAction.Deposit);
+  });
+
+  it('sets operation to withdraw when the source token is a money token', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({
+      symbol: 'MUSD',
+      isMoneyToken: true,
+    });
+    mockSelectDestToken.mockReturnValue({ symbol: 'ETH' });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.operation).toBe(MoneyAccountAction.Withdraw);
   });
 
   it('memoizes the result when dependencies do not change', () => {

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -30,6 +31,8 @@ import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../locales/i18n';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
@@ -38,16 +41,23 @@ import {
   earnedByOthersLifetime,
   selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
-import { earnActionRows } from './earnActionRows';
+import { navigateToRewardsRoute } from '../../../utils';
+import { earnActionRows, type EarnActionRowKey } from './earnActionRows';
 import EarnActionSection from './EarnActionSection';
 import { EARN_ACTION_SECTION_TEST_IDS } from './EarnActionSection.testIds';
-import { deriveSummarySection, musdAmount } from './earningsSummarySection';
+import {
+  deriveBreakdownErrorSource,
+  deriveSummarySection,
+  musdAmount,
+} from './earningsSummarySection';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
-/** Ways to earn rows do not open anything yet. Destinations land later. */
-function openWayToEarn(): void {
-  return undefined;
-}
+/** The page each Ways to earn row opens. */
+const WAY_TO_EARN_ROUTES = {
+  referrals: Routes.REWARDS_MONEY_REFERRALS_VIEW,
+  trading: Routes.REWARDS_TRADING_REBATES_VIEW,
+  social: Routes.REWARDS_COPY_TRADING_VIEW,
+} as const satisfies Record<EarnActionRowKey, string>;
 
 // ---------------------------------------------------------------------------
 // Your earnings section: lifetime totals per earning family.
@@ -131,13 +141,31 @@ const BreakdownSkeleton: React.FC<{ rows: number }> = ({ rows }) => {
   );
 };
 
+const SummaryErrorBanner: React.FC<{
+  refreshing: boolean;
+  onRetry: () => void;
+}> = ({ refreshing, onRetry }) => (
+  <RewardsErrorBanner
+    title={strings('rewards.earnings_summary_error.error_fetching_title')}
+    description={strings(
+      'rewards.earnings_summary_error.error_fetching_description',
+    )}
+    onConfirm={onRetry}
+    confirmButtonLabel={strings('rewards.earnings_summary_error.retry_button')}
+    onConfirmLoading={refreshing}
+    testID={EARNINGS_TAB_TEST_IDS.SUMMARY_ERROR}
+  />
+);
+
 const BreakdownSection: React.FC<{
   localizedText: ReferralLocalizedText;
   rows: BreakdownRow[];
   loading: boolean;
   /** Ways to earn above this section supplies the divider and header spacing. */
   followsSection: boolean;
-}> = ({ localizedText, rows, loading, followsSection }) => (
+  /** One banner under the amounts. Summary wins over a funnel failure. */
+  errorBanner?: React.ReactNode;
+}> = ({ localizedText, rows, loading, followsSection, errorBanner }) => (
   <>
     {followsSection ? <SectionDivider marginVertical={8} /> : null}
     <SectionHeader
@@ -163,7 +191,7 @@ const BreakdownSection: React.FC<{
                 iconName={row.iconName}
                 size={AvatarIconSize.Md}
                 severity={AvatarIconSeverity.Neutral}
-                iconProps={{ color: IconColor.IconDefault }}
+                iconProps={{ color: IconColor.IconAlternative }}
               />
               <Box twClassName="flex-1">
                 <Text variant={TextVariant.BodyMd}>{row.label}</Text>
@@ -184,6 +212,7 @@ const BreakdownSection: React.FC<{
           ))}
         </Box>
       )}
+      {errorBanner ? <Box twClassName="pt-4">{errorBanner}</Box> : null}
     </Box>
   </>
 );
@@ -210,6 +239,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const navigation = useNavigation<AppNavigationProp>();
+  const openWayToEarn = useCallback(
+    (key: EarnActionRowKey) => {
+      navigateToRewardsRoute(navigation, WAY_TO_EARN_ROUTES[key]);
+    },
+    [navigation],
+  );
   const retrySummary = useCallback(() => {
     void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
       () => undefined,
@@ -221,6 +257,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
   }
 
   const summary = deriveSummarySection(earningsSummaryEntry);
+  // The Earnings tab has no funnel counts, so the shared chooser only ever
+  // reports the summary. The banner still sits under the breakdown.
+  const errorSource = deriveBreakdownErrorSource(summary.failed, false);
   const rows = breakdownRows(
     persona,
     summary.data,
@@ -235,29 +274,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
     isSocialV1Enabled,
   );
   const showWaysToEarn = waysToEarnRows.length > 0;
-  // The role and Social V1 filters decide the rows. One row is enough.
-  const showBreakdown = summary.show && rows.length >= 1;
+  // The role and Social V1 filters decide the rows. One row is enough, and a
+  // failed summary still renders them so missing amounts read as a dash.
+  const showBreakdown = rows.length >= 1;
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
-      {summary.error ? (
-        <Box twClassName="px-4 pt-4">
-          <RewardsErrorBanner
-            title={strings(
-              'rewards.referral_details_error.error_fetching_title',
-            )}
-            description={strings(
-              'rewards.referral_details_error.error_fetching_description',
-            )}
-            onConfirm={retrySummary}
-            confirmButtonLabel={strings(
-              'rewards.referral_details_error.retry_button',
-            )}
-            onConfirmLoading={summary.refreshing}
-            testID={EARNINGS_TAB_TEST_IDS.SUMMARY_ERROR}
-          />
-        </Box>
-      ) : null}
       {showWaysToEarn ? (
         <EarnActionSection
           title={localizedText.waysToEarn}
@@ -275,9 +297,25 @@ const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
         <BreakdownSection
           localizedText={localizedText}
           rows={rows}
-          loading={summary.loading}
+          loading={summary.loading && !summary.data && !summary.failed}
           followsSection={showWaysToEarn}
+          errorBanner={
+            errorSource ? (
+              <SummaryErrorBanner
+                refreshing={summary.refreshing}
+                onRetry={retrySummary}
+              />
+            ) : undefined
+          }
         />
+      ) : null}
+      {!showBreakdown && errorSource ? (
+        <Box twClassName="px-4 pt-4">
+          <SummaryErrorBanner
+            refreshing={summary.refreshing}
+            onRetry={retrySummary}
+          />
+        </Box>
       ) : null}
     </Box>
   );

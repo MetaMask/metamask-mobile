@@ -3,6 +3,7 @@ import {
   type SortOptionId,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
+import type { PerpsProviderLogoId } from '../../../../hooks/usePerpsProviderLogoIds';
 
 /**
  * Props for PerpsMarketFiltersBar component
@@ -67,16 +68,19 @@ export interface PerpsMarketFiltersBarProps {
   showSortRow?: boolean;
 
   /**
-   * Callback when the exchange (venue) filter button is pressed.
-   * When omitted the button is not rendered (single-provider mode).
+   * Callback when the market-count selector is pressed. When set, the
+   * count row (logos + "N markets" + chevron) is a button that opens the
+   * exchange filter sheet (TAT-4511/TAT-4518 design). When omitted the
+   * count renders as plain text (single-provider mode or flag off).
    */
   onExchangeFilterPress?: () => void;
 
   /**
-   * Label for the exchange filter button (e.g. "All exchanges" or the
-   * selected venue names). Rendered only with `onExchangeFilterPress`.
+   * Exchange marks to draw immediately left of the market count, in
+   * left-to-right order. Omitted or empty renders no mark (single-provider
+   * mode or the Lighter flag off). TAT-4511.
    */
-  exchangeFilterLabel?: string;
+  providerIds?: readonly PerpsProviderLogoId[];
 
   /**
    * Optional test ID for testing

@@ -62,7 +62,7 @@ describe('useConfirmNavigation', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(STACK_MOCK, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       params: { amount: '12.34', loader: ConfirmationLoader.CustomAmount },
     });
   });
@@ -75,7 +75,7 @@ describe('useConfirmNavigation', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       { loader: ConfirmationLoader.CustomAmount },
     );
   });
@@ -91,7 +91,7 @@ describe('useConfirmNavigation', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(STACK_MOCK, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         params: { loader: ConfirmationLoader.CustomAmount },
       }),
     );
@@ -107,12 +107,9 @@ describe('useConfirmNavigation', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        {
-          loader: ConfirmationLoader.CustomAmount,
-        },
-      ),
+      StackActions.replace(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+        loader: ConfirmationLoader.CustomAmount,
+      }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -188,13 +185,10 @@ describe('useConfirmNavigation', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.push(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        {
-          loader: ConfirmationLoader.CustomAmount,
-          launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
-        },
-      ),
+      StackActions.push(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+        loader: ConfirmationLoader.CustomAmount,
+        launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+      }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -230,10 +224,9 @@ describe('useConfirmNavigation', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.push(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        { loader: ConfirmationLoader.CustomAmount },
-      ),
+      StackActions.push(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+        loader: ConfirmationLoader.CustomAmount,
+      }),
     );
   });
 
