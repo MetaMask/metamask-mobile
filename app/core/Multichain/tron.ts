@@ -85,4 +85,3 @@ export async function validateTronTransferAmount(
     },
   })) as SnapAmountValidationResult | undefined;
 }
-

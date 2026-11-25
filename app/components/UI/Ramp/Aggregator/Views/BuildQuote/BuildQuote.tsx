@@ -38,7 +38,7 @@ import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 import { useTronAmountValidation } from '../../hooks/useTronAmountValidation';
-import { getMaxSendableTronAmount } from '../../../../../../core/Multichain/tron';
+import { getTronMaxSendableAmount } from '../../../../../../core/Multichain/tron';
 import { CaipAssetType } from '@metamask/snaps-sdk';
 import { RootState } from '../../../../../../reducers';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
@@ -664,7 +664,7 @@ const BuildQuote = () => {
             maxRequestTokenRef.current = requestToken;
 
             try {
-              const maxResult = await getMaxSendableTronAmount(fromAccount, {
+              const maxResult = await getTronMaxSendableAmount(fromAccount, {
                 accountId: fromAccount.id,
                 assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
               });
@@ -675,7 +675,7 @@ const BuildQuote = () => {
               }
 
               // Use Snap result if available, otherwise fall through to balance-based
-              if (maxResult?.amount) {
+              if (maxResult.amount) {
                 amountToSet = toTokenMinimalUnit(
                   maxResult.amount,
                   selectedAsset?.decimals ?? 0,
@@ -1320,7 +1320,9 @@ const BuildQuote = () => {
             ) : (
               <QuickAmounts
                 isBuy={isBuy}
-                onAmountPress={handleQuickAmountPress}
+                onAmountPress={(amount) => {
+                  void handleQuickAmountPress(amount);
+                }}
                 amounts={quickAmounts}
               />
             )}

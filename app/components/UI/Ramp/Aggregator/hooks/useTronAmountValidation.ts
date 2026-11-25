@@ -77,11 +77,12 @@ export function useTronAmountValidation({
   const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const latestValidationRef = useRef(0);
 
-  const fromAccount = useSelector((state: RootState) =>
-    walletAddress
-      ? getMemoizedInternalAccountByAddress(state, walletAddress)
-      : undefined,
-  ) as InternalAccount | undefined;
+  const fromAccount = useSelector<RootState, InternalAccount | undefined>(
+    (state: RootState) =>
+      walletAddress
+        ? getMemoizedInternalAccountByAddress(state, walletAddress)
+        : undefined,
+  );
 
   const validate = useCallback(async () => {
     if (

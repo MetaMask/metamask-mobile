@@ -27,7 +27,7 @@ import {
   fromTokenMinimalUnitString,
 } from '../../../../../../util/number/bigint';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
-import { getMaxSendableTronAmount } from '../../../../../../core/Multichain/tron';
+import { getTronMaxSendableAmount } from '../../../../../../core/Multichain/tron';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
@@ -53,7 +53,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 jest.mock('../../../../../../core/Multichain/tron', () => ({
   ...jest.requireActual('../../../../../../core/Multichain/tron'),
-  getMaxSendableTronAmount: jest.fn(),
+  getTronMaxSendableAmount: jest.fn(),
 }));
 
 const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
@@ -1752,7 +1752,7 @@ describe('BuildQuote View', () => {
         maxResolve = resolve;
       });
 
-      (getMaxSendableTronAmount as jest.Mock).mockReturnValue(maxPromise);
+      (getTronMaxSendableAmount as jest.Mock).mockReturnValue(maxPromise);
 
       render(BuildQuote);
 
@@ -1793,7 +1793,7 @@ describe('BuildQuote View', () => {
         maxResolve = resolve;
       });
 
-      (getMaxSendableTronAmount as jest.Mock).mockReturnValue(maxPromise);
+      (getTronMaxSendableAmount as jest.Mock).mockReturnValue(maxPromise);
 
       render(BuildQuote);
 
@@ -1821,7 +1821,7 @@ describe('BuildQuote View', () => {
     });
 
     it('falls back to balance-based calculation when Snap returns undefined', async () => {
-      (getMaxSendableTronAmount as jest.Mock).mockResolvedValue(undefined);
+      (getTronMaxSendableAmount as jest.Mock).mockResolvedValue(undefined);
 
       render(BuildQuote);
 
@@ -1847,7 +1847,7 @@ describe('BuildQuote View', () => {
     });
 
     it('falls back to balance-based calculation when Snap returns empty result', async () => {
-      (getMaxSendableTronAmount as jest.Mock).mockResolvedValue({});
+      (getTronMaxSendableAmount as jest.Mock).mockResolvedValue({});
 
       render(BuildQuote);
 

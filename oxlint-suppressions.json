@@ -154,11 +154,6 @@
       "count": 1
     }
   },
-  "app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.styles.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/component-library/components-temp/MultichainAccounts/test-utils.ts": {
     "typescript/prefer-reduce-type-parameter": {
       "count": 3
@@ -10237,9 +10232,6 @@
     }
   },
   "app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     },
@@ -20267,11 +20259,6 @@
   "app/components/hooks/useAnalytics/useAnalytics.ts": {
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/hooks/useArcDefaultTokens/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/components/hooks/useAsyncResult.test.ts": {

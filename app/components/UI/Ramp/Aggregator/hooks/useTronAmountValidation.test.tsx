@@ -459,7 +459,7 @@ describe('useTronAmountValidation', () => {
     });
 
     mockValidateTronTransferAmount.mockImplementationOnce(
-      () => firstRequestPromise,
+      async () => firstRequestPromise,
     );
     mockValidateTronTransferAmount.mockResolvedValueOnce({
       valid: true,
@@ -516,7 +516,9 @@ describe('useTronAmountValidation', () => {
       requestResolve = resolve;
     });
 
-    mockValidateTronTransferAmount.mockImplementationOnce(() => requestPromise);
+    mockValidateTronTransferAmount.mockImplementationOnce(
+      async () => requestPromise,
+    );
 
     const store = mockStore(mockState);
     const { result, rerender } = renderHook(
@@ -579,7 +581,9 @@ describe('useTronAmountValidation', () => {
       requestResolve = resolve;
     });
 
-    mockValidateTronTransferAmount.mockImplementationOnce(() => requestPromise);
+    mockValidateTronTransferAmount.mockImplementationOnce(
+      async () => requestPromise,
+    );
 
     const store = mockStore(mockState);
     const { result, rerender } = renderHook(
