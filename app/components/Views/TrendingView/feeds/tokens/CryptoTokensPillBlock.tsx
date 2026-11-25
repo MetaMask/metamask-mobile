@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -9,6 +15,16 @@ import {
   FilterButton,
   FilterButtonGroup,
   FilterButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  SelectButton,
+  SelectButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../locales/i18n';
@@ -26,6 +42,15 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import WatchlistEmptyFallback from '../../../Homepage/Sections/Watchlist/components/WatchlistEmptyFallback';
 import { TokenRowItem } from './TokenRowItem';
+import { sortTrendingTokens } from '../../../../UI/Trending/utils/sortTrendingTokens';
+import {
+  SortDirection,
+  TimeOption,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
+import CryptoTokensSortBottomSheet, {
+  CRYPTO_TOKENS_SORT_OPTIONS,
+  type CryptoTokensSort,
+} from './CryptoTokensSortBottomSheet';
 import { useTheme } from '../../../../../util/theme';
 import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import {
@@ -49,6 +74,12 @@ type CryptoTokensListRow =
   | { type: 'token'; token: TrendingAsset; index: number };
 
 const STICKY_ROW: CryptoTokensListRow = { type: 'sticky' };
+
+/** Pills whose order is the point of the pill; they get no sort row. */
+const UNSORTABLE_PILL_KEYS: ReadonlySet<CryptoPillKey> = new Set([
+  'gainers',
+  'losers',
+]);
 
 export interface CryptoTokensPillBlockProps {
   title: string;
@@ -196,7 +227,21 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     isLoading: false,
     isError: false,
   };
-  const activeItems = activeResult.data;
+  const [sort, setSort] = useState<CryptoTokensSort | undefined>();
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const isSortable = !UNSORTABLE_PILL_KEYS.has(effectiveActiveKey);
+  const activeItems = useMemo(
+    () =>
+      sort && isSortable && activeResult.data
+        ? sortTrendingTokens(
+            activeResult.data,
+            sort.option,
+            sort.direction,
+            TimeOption.TwentyFourHours,
+          )
+        : activeResult.data,
+    [activeResult.data, sort, isSortable],
+  );
   const isListLoading =
     activeResult.isLoading ||
     (activeResult.data === undefined && !activeResult.isError);
@@ -233,6 +278,14 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     }
   }, [effectiveActiveKey]);
 
+  const tokenCount = isListLoading ? 0 : (activeItems?.length ?? 0);
+  const sortLabel = sort
+    ? strings(
+        CRYPTO_TOKENS_SORT_OPTIONS.find(({ option }) => option === sort.option)
+          ?.labelKey ?? 'trending.sort_by',
+      )
+    : strings('trending.sort_by');
+
   const stickyHeader = (
     <Box twClassName="bg-default" testID={`${testIdPrefix}-sticky-header`}>
       <FilterButtonGroup
@@ -268,6 +321,49 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
           ),
         )}
       </FilterButtonGroup>
+      {isSortable && (
+        <Box
+          twClassName="flex-row items-center justify-between py-1.5 pl-4 pr-1"
+          testID={`${testIdPrefix}-sort-row`}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+            testID={`${testIdPrefix}-count`}
+          >
+            {strings(
+              tokenCount === 1
+                ? 'trending.crypto_token_count'
+                : 'trending.crypto_token_count_plural',
+              { count: tokenCount },
+            )}
+          </Text>
+          <SelectButton
+            testID={`${testIdPrefix}-sort-button`}
+            variant={SelectButtonVariant.Secondary}
+            placeholder={sortLabel}
+            value={sortLabel}
+            onPress={() => setIsSortSheetOpen(true)}
+            hideEndArrow
+            textProps={{
+              variant: TextVariant.BodyMd,
+              fontWeight: FontWeight.Medium,
+            }}
+            endAccessory={
+              <Icon
+                name={
+                  sort?.direction === SortDirection.Ascending
+                    ? IconName.Arrow2Up
+                    : IconName.Arrow2Down
+                }
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            }
+          />
+        </Box>
+      )}
     </Box>
   );
 
@@ -321,32 +417,42 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   }
 
   return (
-    <FlashList
-      ref={listRef}
-      data={listData}
-      extraData={`${effectiveActiveKey}|${visiblePills.length}`}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      getItemType={getItemType}
-      stickyHeaderIndices={STICKY_HEADER_INDICES}
-      ListHeaderComponent={listHeader}
-      ListFooterComponent={listFooter}
-      contentContainerStyle={tw.style(
-        `pt-3 pb-[${16 + floatingTabBarInset}px]`,
-      )}
-      keyboardShouldPersistTaps="handled"
-      maintainVisibleContentPosition={{ disabled: true }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.icon.default}
-          colors={[colors.primary.default]}
+    <>
+      <FlashList
+        ref={listRef}
+        data={listData}
+        extraData={`${effectiveActiveKey}|${visiblePills.length}`}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        getItemType={getItemType}
+        stickyHeaderIndices={STICKY_HEADER_INDICES}
+        ListHeaderComponent={listHeader}
+        ListFooterComponent={listFooter}
+        contentContainerStyle={tw.style(
+          `pt-3 pb-[${16 + floatingTabBarInset}px]`,
+        )}
+        keyboardShouldPersistTaps="handled"
+        maintainVisibleContentPosition={{ disabled: true }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.icon.default}
+            colors={[colors.primary.default]}
+          />
+        }
+        testID={testID ?? listTestId}
+      />
+      {isSortSheetOpen && (
+        <CryptoTokensSortBottomSheet
+          sort={sort}
+          onApply={setSort}
+          onClose={() => setIsSortSheetOpen(false)}
+          testID={`${testIdPrefix}-sort-sheet`}
         />
-      }
-      testID={testID ?? listTestId}
-    />
+      )}
+    </>
   );
 };
 

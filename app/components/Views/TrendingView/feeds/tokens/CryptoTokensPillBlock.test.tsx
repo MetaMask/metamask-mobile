@@ -38,7 +38,8 @@ jest.mock('../../search/analytics', () => ({
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const twFn = () => ({});
   twFn.style = () => ({});
-  return { useTailwind: () => twFn };
+  const actual = jest.requireActual('@metamask/design-system-twrnc-preset');
+  return { ...actual, useTailwind: () => twFn };
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -61,7 +62,7 @@ jest.mock('react-redux', () => ({
 }));
 
 import React, { useState } from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -449,6 +450,74 @@ describe('CryptoTokensPillBlock', () => {
         animated: true,
       });
       mockGetAbsoluteLastScrollOffset.mockReturnValue(0);
+    });
+  });
+
+  describe('sort row', () => {
+    const volumeResults = () =>
+      makeResults({
+        trending: {
+          data: [
+            { ...makeToken('LOW'), aggregatedUsdVolume: 10 },
+            { ...makeToken('HIGH'), aggregatedUsdVolume: 300 },
+            { ...makeToken('MID'), aggregatedUsdVolume: 20 },
+          ] as TrendingAsset[],
+          isLoading: false,
+          isError: false,
+        },
+      });
+
+    const rowSymbols = (
+      getAllByTestId: (id: RegExp) => { props: { testID: string } }[],
+    ) =>
+      getAllByTestId(/^token-row-/).map((el) =>
+        el.props.testID.replace('token-row-', ''),
+      );
+
+    it('shows the token count and sort button on the trending pill', () => {
+      const { getByTestId } = renderBlock(volumeResults());
+
+      expect(getByTestId('crypto-tokens-count')).toHaveTextContent(
+        'trending.crypto_token_count_plural',
+      );
+      expect(getByTestId('crypto-tokens-sort-button')).toBeOnTheScreen();
+    });
+
+    it.each(['gainers', 'losers'] as const)(
+      'hides the sort row on the %s pill',
+      (pill) => {
+        const threeTokens = {
+          data: ['A', 'B', 'C'].map((symbol) => makeToken(symbol)),
+          isLoading: false,
+          isError: false,
+        };
+        const { getByTestId, queryByTestId } = renderBlock(
+          makeResults({ gainers: threeTokens, losers: threeTokens }),
+          DEFAULT_PROPS,
+          pill,
+        );
+
+        expect(getByTestId('token-row-A')).toBeOnTheScreen();
+        expect(queryByTestId('crypto-tokens-sort-row')).not.toBeOnTheScreen();
+      },
+    );
+
+    it('sorts the active pill rows client-side from the sort sheet', async () => {
+      const { getByTestId, getAllByTestId, queryByTestId } =
+        renderBlock(volumeResults());
+      expect(rowSymbols(getAllByTestId)).toEqual(['LOW', 'HIGH', 'MID']);
+
+      fireEvent.press(getByTestId('crypto-tokens-sort-button'));
+      fireEvent.press(getByTestId('crypto-tokens-sort-sheet-option-volume'));
+      fireEvent.press(getByTestId('crypto-tokens-sort-sheet-apply'));
+
+      await waitFor(() =>
+        expect(queryByTestId('crypto-tokens-sort-sheet')).not.toBeOnTheScreen(),
+      );
+      expect(rowSymbols(getAllByTestId)).toEqual(['HIGH', 'MID', 'LOW']);
+      expect(getByTestId('crypto-tokens-sort-button')).toHaveTextContent(
+        'perps.sort.volume',
+      );
     });
   });
 

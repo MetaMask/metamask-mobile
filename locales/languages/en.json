@@ -13648,6 +13648,8 @@
     "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
     "crypto_tokens_section": "Tokens",
+    "crypto_token_count": "{{count}} token",
+    "crypto_token_count_plural": "{{count}} tokens",
     "crypto_pills": {
       "trending": "Trending",
       "most_traded": "Most traded",
