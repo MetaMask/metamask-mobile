@@ -718,7 +718,7 @@ export class ImmersveProvider implements ICardProvider {
   /** Card list requests in flight, by cardholder account. Concurrent callers share one. */
   private readonly currentCardRequests = new Map<
     string,
-    Promise<ImmersveCardListItem | null>
+    Promise<ImmersveCardListItem[]>
   >();
   /** Card creates in flight, by cardholder account. Concurrent callers share one POST. */
   private readonly createCardRequests = new Map<
@@ -1324,13 +1324,20 @@ export class ImmersveProvider implements ICardProvider {
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult> {
-    const existing = await this.resolveCurrentCard(tokens);
+    const cards = await this.listCards(tokens);
+    const existing = this.pickCurrentCard(cards);
     if (existing) {
       return { cardId: existing.id };
     }
 
+    // Only while the list has not caught up: once it shows the card (even
+    // cancelled), the list is the truth.
     const created = this.createdCards.get(accountId);
-    if (created && created.expiresAt > Date.now()) {
+    if (
+      created &&
+      created.expiresAt > Date.now() &&
+      !cards.some((card) => card.id === created.cardId)
+    ) {
       return { cardId: created.cardId };
     }
 
@@ -1377,6 +1384,12 @@ export class ImmersveProvider implements ICardProvider {
   private async resolveCurrentCard(
     tokens: CardAuthTokens,
   ): Promise<ImmersveCardListItem | null> {
+    return this.pickCurrentCard(await this.listCards(tokens));
+  }
+
+  private async listCards(
+    tokens: CardAuthTokens,
+  ): Promise<ImmersveCardListItem[]> {
     const accountId = tokens.cardholderAccountId;
     if (!accountId) {
       throw new CardProviderError(
@@ -1392,7 +1405,7 @@ export class ImmersveProvider implements ICardProvider {
           `/api/accounts/${accountId}/cards?excludeExpired=true`,
           tokens,
         )
-        .then(({ items }) => this.pickCurrentCard(items ?? []))
+        .then(({ items }) => items ?? [])
         .finally(() => {
           this.currentCardRequests.delete(accountId);
         });

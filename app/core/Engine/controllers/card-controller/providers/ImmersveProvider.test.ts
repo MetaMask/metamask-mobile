@@ -1291,6 +1291,22 @@ describe('ImmersveProvider', () => {
       expect(result.cardId).toBe('card-1');
     });
 
+    it('createCard posts a replacement when the just-created card was cancelled', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValueOnce({ items: [] }).mockResolvedValueOnce({
+        items: [{ ...activeCard, id: 'card-1', status: 'cancelled' }],
+      });
+      service.post
+        .mockResolvedValueOnce({ cardId: 'card-1' })
+        .mockResolvedValueOnce({ cardId: 'card-2' });
+
+      await provider.createCard('fs-1', TOKENS);
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(2);
+      expect(result.cardId).toBe('card-2');
+    });
+
     it('createCard posts again once the created card window has passed', async () => {
       jest.useFakeTimers();
       try {
