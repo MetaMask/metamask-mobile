@@ -1704,16 +1704,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderCustomCostToleranceModal.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderDefaultCostToleranceModal.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/components/UI/Bridge/components/SwapsLimitOrderExpirationModal/SwapsLimitOrderExpirationModal.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -6442,7 +6432,7 @@
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderFormPanel.view.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionsOptionSheet.tsx": {
@@ -8834,9 +8824,6 @@
     }
   },
   "app/components/UI/Predict/hooks/usePredictPrices.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/prefer-optional-chain": {
       "count": 1
     }
@@ -10433,7 +10420,7 @@
       "count": 2
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 5
+      "count": 2
     }
   },
   "app/components/UI/Ramp/Aggregator/components/PaymentMethodSelectorModal/PaymentMethodSelectorModal.tsx": {
@@ -12090,33 +12077,12 @@
       "count": 2
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tax.view.test.tsx": {
+  "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.tax.view.test.tsx": {
     "typescript/promise-function-async": {
       "count": 47
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
+  "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.tsx": {
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -12666,11 +12632,6 @@
   "app/components/UI/Rewards/hooks/useInFlightClaims.test.ts": {
     "typescript/promise-function-async": {
       "count": 5
-    }
-  },
-  "app/components/UI/Rewards/hooks/useLast7DaysEarnings.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
     }
   },
   "app/components/UI/Rewards/hooks/useLineaSeasonOneTokenReward.ts": {
@@ -16875,11 +16836,6 @@
     },
     "typescript/restrict-template-expressions": {
       "count": 3
-    }
-  },
-  "app/components/Views/SDK/SDKSessionsManager/SDKSessionAccountListItem.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
     }
   },
   "app/components/Views/SDK/SDKSessionsManager/SDKSessionItem.tsx": {
@@ -25515,10 +25471,10 @@
   },
   "tests/component-view/renderers/rewardsMoney.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 8
+      "count": 7
     },
     "typescript/promise-function-async": {
-      "count": 20
+      "count": 18
     },
     "typescript/unbound-method": {
       "count": 1

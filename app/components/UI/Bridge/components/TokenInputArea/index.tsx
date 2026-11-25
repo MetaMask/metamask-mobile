@@ -184,6 +184,7 @@ interface TokenInputAreaProps {
   isQuoteSponsored?: boolean;
   inputPrefix?: string;
   secondaryValue?: string | null;
+  tokenFiatRate?: number;
   balanceCheckAmount?: string;
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
@@ -237,6 +238,7 @@ export const TokenInputArea = forwardRef<
       isQuoteSponsored = false,
       inputPrefix,
       secondaryValue,
+      tokenFiatRate: tokenFiatRateOverride,
       balanceCheckAmount,
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
@@ -311,8 +313,13 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
     });
 
-    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
-    const tokenFiatRate = useTokenFiatRate(token);
+    const defaultCurrencyValue = useDisplayCurrencyValue(
+      tokenAmount,
+      token,
+      tokenFiatRateOverride,
+    );
+    const polledTokenFiatRate = useTokenFiatRate(token);
+    const tokenFiatRate = tokenFiatRateOverride ?? polledTokenFiatRate;
     // Without a rate the currency value is formatted as a bare "$0.00", which
     // reads as the token being worthless rather than unpriced.
     const shouldHideFiatValue =

@@ -3,8 +3,8 @@ import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { LimitOrderCostToleranceTooltip } from './index';
-import { LimitOrderCostToleranceTooltipSelectorsIDs } from './testIds';
+import { PriceToleranceTooltip } from './index';
+import { PriceToleranceTooltipSelectorsIDs } from './testIds';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -14,31 +14,27 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-describe('LimitOrderCostToleranceTooltip', () => {
+describe('PriceToleranceTooltip', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the cost tolerance label as the tooltip trigger', () => {
-    const { getByTestId } = renderScreen(
-      () => <LimitOrderCostToleranceTooltip />,
-      { name: Routes.BRIDGE.ROOT },
-    );
+    const { getByTestId } = renderScreen(() => <PriceToleranceTooltip />, {
+      name: Routes.BRIDGE.ROOT,
+    });
 
     expect(
-      getByTestId(LimitOrderCostToleranceTooltipSelectorsIDs.BUTTON),
+      getByTestId(PriceToleranceTooltipSelectorsIDs.BUTTON),
     ).toHaveTextContent(strings('bridge.cost_tolerance'));
   });
 
   it('navigates to the cost tolerance info sheet within the Bridge modal stack when pressed', () => {
-    const { getByTestId } = renderScreen(
-      () => <LimitOrderCostToleranceTooltip />,
-      { name: Routes.BRIDGE.ROOT },
-    );
+    const { getByTestId } = renderScreen(() => <PriceToleranceTooltip />, {
+      name: Routes.BRIDGE.ROOT,
+    });
 
-    fireEvent.press(
-      getByTestId(LimitOrderCostToleranceTooltipSelectorsIDs.BUTTON),
-    );
+    fireEvent.press(getByTestId(PriceToleranceTooltipSelectorsIDs.BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
@@ -48,21 +44,18 @@ describe('LimitOrderCostToleranceTooltip', () => {
 
   it('applies a custom testID when provided', () => {
     const { getByTestId, queryByTestId } = renderScreen(
-      () => <LimitOrderCostToleranceTooltip testID="custom-tooltip" />,
+      () => <PriceToleranceTooltip testID="custom-tooltip" />,
       { name: Routes.BRIDGE.ROOT },
     );
 
     expect(getByTestId('custom-tooltip')).toBeOnTheScreen();
-    expect(
-      queryByTestId(LimitOrderCostToleranceTooltipSelectorsIDs.BUTTON),
-    ).toBeNull();
+    expect(queryByTestId(PriceToleranceTooltipSelectorsIDs.BUTTON)).toBeNull();
   });
 
   it('has an accessibility label matching the cost tolerance title', () => {
-    const { getByLabelText } = renderScreen(
-      () => <LimitOrderCostToleranceTooltip />,
-      { name: Routes.BRIDGE.ROOT },
-    );
+    const { getByLabelText } = renderScreen(() => <PriceToleranceTooltip />, {
+      name: Routes.BRIDGE.ROOT,
+    });
 
     expect(getByLabelText(strings('bridge.cost_tolerance'))).toBeOnTheScreen();
   });
