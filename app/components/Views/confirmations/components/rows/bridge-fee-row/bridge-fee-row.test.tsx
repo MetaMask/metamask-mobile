@@ -52,7 +52,11 @@ function createQuoteMock(
 }
 
 function render(
-  options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
+  options: {
+    type?: TransactionType;
+    nestedTypes?: TransactionType[];
+    isGasFeeSponsored?: boolean;
+  } = {},
 ) {
   const state = merge(
     {},
@@ -67,6 +71,10 @@ function render(
   ).transactions[0];
 
   tx.type = options.type ?? TransactionType.perpsDeposit;
+
+  if (options.nestedTypes) {
+    tx.nestedTransactions = options.nestedTypes.map((type) => ({ type }));
+  }
 
   if (options.isGasFeeSponsored !== undefined) {
     tx.isGasFeeSponsored = options.isGasFeeSponsored;
@@ -437,6 +445,35 @@ describe('BridgeFeeRow', () => {
           'Conversion fees include network costs and may include provider fees.',
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('renders moneyAccountDeposit tooltip copy when the deposit is nested under a non-batch transaction', async () => {
+      const { getByTestId, getByText } = render({
+        type: TransactionType.contractInteraction,
+        nestedTypes: [TransactionType.moneyAccountDeposit],
+      });
+
+      expect(getByTestId('transaction-fee-pressable')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('transaction-fee-pressable'));
+      });
+
+      expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Conversion fees include network costs and may include provider fees.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render a tooltip when no tooltip copy exists for the transaction type', () => {
+      const { queryByTestId } = render({
+        type: TransactionType.contractInteraction,
+      });
+
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+      expect(queryByTestId('transaction-fee-pressable')).toBeNull();
     });
 
     it.each([

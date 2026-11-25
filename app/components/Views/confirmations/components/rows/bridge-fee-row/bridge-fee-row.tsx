@@ -41,7 +41,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { resolveTransactionType } from '../../../utils/transaction';
 import {
   Text,
   TextVariant,
@@ -114,7 +113,14 @@ function TransactionFeeRow({
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
-  const hasFeeTooltip = Boolean(!paidByMetaMask && hasQuotes && totals);
+  // Only offer the fee tooltip when there is copy to show, so the sheet never
+  // opens with an empty body.
+  const hasFeeTooltip = Boolean(
+    !paidByMetaMask &&
+      hasQuotes &&
+      totals &&
+      getTooltipMessageKey(transactionMeta),
+  );
   const useDottedFeeTooltip = isMoneyAccountDeposit && hasFeeTooltip;
 
   const handleOpenFeeTooltip = useCallback(() => {
@@ -288,6 +294,31 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.perps_withdraw.swap_to_token',
 };
 
+/**
+ * Returns the tooltip copy key for the transaction, matching a mapped type on
+ * the transaction itself or on any nested transaction. This mirrors
+ * `hasTransactionType`, so a row that is flagged as a money account deposit
+ * always resolves its copy.
+ */
+function getTooltipMessageKey(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const candidateTypes = [
+    transactionMeta.type,
+    ...(transactionMeta.nestedTransactions ?? []).map((tx) => tx.type),
+  ];
+
+  for (const type of candidateTypes) {
+    const key = type ? TOOLTIP_MESSAGE_KEY[type] : undefined;
+
+    if (key) {
+      return key;
+    }
+  }
+
+  return undefined;
+}
+
 function Tooltip({
   quotes,
   transactionMeta,
@@ -297,15 +328,7 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  const transactionType = resolveTransactionType(
-    transactionMeta,
-    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
-  );
-
-  const key =
-    transactionType !== undefined
-      ? TOOLTIP_MESSAGE_KEY[transactionType]
-      : undefined;
+  const key = getTooltipMessageKey(transactionMeta);
 
   if (!key) return null;
 
