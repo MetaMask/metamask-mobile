@@ -45,7 +45,8 @@ let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
-  getSnapshot: () => mockChannelMarketsSnapshot,
+  getSnapshot: (): PerpsMarketData[] | null | undefined =>
+    mockChannelMarketsSnapshot,
   getLastDeliveredAt: jest.fn((): number | null => Date.now()),
 };
 
@@ -141,6 +142,23 @@ describe('usePerpsMarkets', () => {
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refresh).toBe('function');
+    });
+
+    it('ends initial loading when the market stream fails', async () => {
+      mockSubscribe.mockImplementation(({ onError }) => {
+        setTimeout(() => onError(new Error('Market stream failed')), 0);
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasResolvedInitialData).toBe(true);
+      expect(result.current.error).toBe('Market stream failed');
     });
 
     it('returns initial state with loading false when skipInitialFetch is true', () => {
@@ -297,6 +315,32 @@ describe('usePerpsMarkets', () => {
       expect(result.current.markets).toEqual([]);
       expect(result.current.error).toBeNull();
       expect(result.current.hasResolvedInitialData).toBe(true);
+    });
+
+    it('clears a previous error when an empty market update succeeds', async () => {
+      let emitMarkets: ((marketData: PerpsMarketData[]) => void) | undefined;
+      let emitError: ((error: Error) => void) | undefined;
+      mockSubscribe.mockImplementation(({ callback, onError }) => {
+        emitMarkets = callback;
+        emitError = onError;
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        emitError?.(new Error('Market stream failed'));
+      });
+      expect(result.current.error).toBe('Market stream failed');
+
+      act(() => {
+        emitMarkets?.([]);
+      });
+
+      expect(result.current.error).toBeNull();
+      expect(result.current.markets).toEqual([]);
     });
 
     it('returns to unresolved when the current market channel is cleared', async () => {

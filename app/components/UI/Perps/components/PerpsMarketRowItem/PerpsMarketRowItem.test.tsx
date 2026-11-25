@@ -523,6 +523,17 @@ describe('PerpsMarketRowItem', () => {
       });
     });
 
+    it('opts out of live price subscriptions for constrained watchlist rows', () => {
+      render(
+        <PerpsMarketRowItem market={mockMarketData} enableLivePrices={false} />,
+      );
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: [],
+        throttleMs: 3000,
+      });
+    });
+
     it('updates price when live price is available', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: {
