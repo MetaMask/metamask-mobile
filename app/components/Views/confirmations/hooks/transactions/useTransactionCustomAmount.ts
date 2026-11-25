@@ -539,42 +539,56 @@ export function useTransactionCustomAmount({
     }
   }, [amountFiat, transactionId]);
 
-  // Clamp the kept amount once per replacement, deferring until balanceUsd and
-  // the new transactionMeta are both available. Once clamped, clear the pending
-  // flag so successive replacements can clamp again. keepAmountAfterReplacementRef
-  // stays true until a genuine pay-token change or manual edit clears it.
+  // Clamp the kept amount once per replacement, deferring until balanceUsd,
+  // tokenFiatRate, and the new transactionMeta are all available. Once clamped
+  // and committed, clear the pending flag so successive replacements can clamp
+  // again. keepAmountAfterReplacementRef stays true until a genuine pay-token
+  // change or manual edit clears it.
   useEffect(() => {
     if (
-      pendingClampRef.current &&
-      amountFiat !== '0' &&
-      balanceUsd &&
-      transactionMeta
+      !pendingClampRef.current ||
+      amountFiat === '0' ||
+      !balanceUsd ||
+      !transactionMeta
     ) {
-      const clampedAmount = AmountCapHelper.clampToFirstDepositCap(
-        amountFiat,
-        balanceUsd,
-        transactionMeta,
-      );
-      if (clampedAmount !== amountFiat) {
-        setAmountFiat(clampedAmount);
-        // Also commit the clamped amount to the transaction so the deposit
-        // carries the reduced value, not the original 100%.
-        const clampedAmountHuman = getAmountHumanFromFiat(
-          clampedAmount,
-          tokenFiatRate,
-          skipFiatRateConversion,
-        );
-        void updateTransactionPayAmount(clampedAmountHuman).catch(
-          (error: unknown) => {
-            Logger.error(
-              error as Error,
-              'Failed to update transaction pay amount with clamped value',
-            );
-          },
-        );
-      }
-      pendingClampRef.current = false;
+      return;
     }
+
+    // Wait for tokenFiatRate (or skipFiatRateConversion) before proceeding, so
+    // we don't commit a zero amount. The effect will retry when the rate loads.
+    if (!tokenFiatRate && !skipFiatRateConversion) {
+      return;
+    }
+
+    const clampedAmount = AmountCapHelper.clampToFirstDepositCap(
+      amountFiat,
+      balanceUsd,
+      transactionMeta,
+    );
+
+    if (clampedAmount !== amountFiat) {
+      setAmountFiat(clampedAmount);
+      // Also commit the clamped amount to the transaction so the deposit
+      // carries the reduced value, not the original 100%.
+      const clampedAmountHuman = getAmountHumanFromFiat(
+        clampedAmount,
+        tokenFiatRate,
+        skipFiatRateConversion,
+      );
+      void updateTransactionPayAmount(clampedAmountHuman).catch(
+        (error: unknown) => {
+          Logger.error(
+            error as Error,
+            'Failed to update transaction pay amount with clamped value',
+          );
+        },
+      );
+    }
+
+    // Clear the pending flag after the clamp attempt completes (with a valid
+    // rate). Without the rate guard above, a missing rate would clear the flag
+    // before committing, so the effect would never retry.
+    pendingClampRef.current = false;
   }, [
     amountFiat,
     balanceUsd,

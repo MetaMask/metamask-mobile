@@ -3099,6 +3099,80 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1080');
     });
 
+    it('waits for tokenFiatRate before committing clamped amount', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' },
+            { data: '0x8a857083' },
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Pay token is set but tokenFiatRate is missing
+      useTokenFiatRateMock.mockReturnValue(undefined);
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Without tokenFiatRate, the clamp should not run yet
+      expect(result.current.amountFiat).toBe('1000');
+      // And updateTransactionPayAmount should NOT have been called (no rate)
+      expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+
+      // Now the tokenFiatRate loads
+      useTokenFiatRateMock.mockReturnValue(2);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Now the clamp should run: 100% -> 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+      // And updateTransactionPayAmount should be called with the clamped amount
+      // 900 USD / 2 (fiat rate) = 450 tokens
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+    });
+
     it('keeps the replaced amount when depositPrefill status toggles', async () => {
       (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
         prefilledAmount: {
