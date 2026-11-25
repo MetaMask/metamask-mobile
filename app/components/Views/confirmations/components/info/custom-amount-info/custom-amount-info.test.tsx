@@ -153,32 +153,86 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 jest.mock('../../../hooks/custom-amount/useSnapAmountToMax', () => ({
   ...jest.requireActual('../../../hooks/custom-amount/useSnapAmountToMax'),
   useSnapAmountToMax: jest.fn(),
 }));
-jest.mock('../../../hooks/ui/useMMPayNavigation');
-jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
-jest.mock('../../../hooks/pay/useTransactionPayAccountLoading');
-jest.mock('../../../hooks/tokens/useTokenFiatRates');
-jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
-jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/transactions/useTransactionCustomAmount');
-jest.mock('../../../context/confirmation-context');
-jest.mock('../../../context/alert-system-context');
-jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
-jest.mock('../../../hooks/pay/useTransactionPayMetrics');
-jest.mock('../../../hooks/pay/useTransactionPayPostQuote');
-jest.mock('../../../hooks/send/useAccountTokens');
+jest.mock('../../../hooks/ui/useMMPayNavigation', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../../hooks/alerts/useAccountNoFundsAlert', () => ({
+  useAccountNoFundsAlert: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useTransactionPayAccountLoading', () => ({
+  useTransactionPayAccountLoading: jest.fn(),
+}));
+jest.mock('../../../hooks/tokens/useTokenFiatRates', () => ({
+  useTokenFiatRates: jest.fn(),
+  useTokenFiatRate: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken', () => ({
+  useAutomaticTransactionPayToken: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useTransactionPayToken', () => ({
+  useTransactionPayToken: jest.fn(),
+}));
+jest.mock('../../../hooks/transactions/useTransactionCustomAmount', () => ({
+  MAX_LENGTH: 28,
+  useTransactionCustomAmount: jest.fn(),
+}));
+jest.mock('../../../context/confirmation-context', () => ({
+  ConfirmationContextProvider: jest.fn(),
+  useConfirmationContext: jest.fn(),
+}));
+jest.mock('../../../context/alert-system-context', () => ({
+  AlertsContextProvider: jest.fn(),
+  useAlerts: jest.fn(),
+}));
+jest.mock(
+  '../../../hooks/transactions/useTransactionCustomAmountAlerts',
+  () => ({
+    useTransactionCustomAmountAlerts: jest.fn(),
+  }),
+);
+jest.mock('../../../hooks/pay/useTransactionPayMetrics', () => ({
+  useTransactionPayMetrics: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useTransactionPayPostQuote', () => ({
+  useTransactionPayPostQuote: jest.fn(),
+}));
+jest.mock('../../../hooks/send/useAccountTokens', () => ({
+  useAccountTokens: jest.fn(),
+}));
 jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
   usePredictAccountState: () => ({
     data: undefined,
     isLoading: false,
   }),
 }));
-jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
-jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens', () => ({
+  useTransactionPayAvailableTokens: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
+  useTransactionPayQuotesRaw: jest.fn(),
+  useTransactionPayQuotes: jest.fn(),
+  useTransactionPayQuotesLastUpdated: jest.fn(),
+  useTransactionPayRequiredTokens: jest.fn(),
+  useTransactionPayPrimaryRequiredToken: jest.fn(),
+  useTransactionPaySourceAmounts: jest.fn(),
+  useIsTransactionPayQuoteLoading: jest.fn(),
+  useIsTransactionPayLoading: jest.fn(),
+  useTransactionPayTotals: jest.fn(),
+  useTransactionPayIsMaxAmount: jest.fn(),
+  useTransactionPayIsPostQuote: jest.fn(),
+  useTransactionPayFiatPayment: jest.fn(),
+  useTransactionPayQuoteError: jest.fn(),
+  useIsTransactionPaySubmitReady: jest.fn(),
+}));
 jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken', () => ({
   usePredictWithdrawGasFeeToken: () => ({
     isPending: false,
@@ -186,18 +240,36 @@ jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken', () => ({
     recheck: () => Promise.resolve(true),
   }),
 }));
-jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
-jest.mock('../../../hooks/useConfirmActions');
-jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock(
+  '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod',
+  () => ({
+    useTransactionPaySelectedFiatPaymentMethod: jest.fn(),
+  }),
+);
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
+}));
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(),
+  useTransactionMetadataOrThrow: jest.fn(),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   useTransactionPayWithdraw: jest.fn(() => ({
     isWithdraw: false,
     canSelectWithdrawToken: false,
   })),
 }));
-jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
-jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
-jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+jest.mock('../../../hooks/transactions/useTransactionAccountOverride', () => ({
+  useTransactionAccountOverride: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/useMoneyNoFeeTokens', () => ({
+  useMoneyNoFeeTokens: jest.fn(),
+}));
+jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection', () => ({
+  PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID: 'pay-with-section-money-account',
+  PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID: 'pay-with-money-account-row',
+  usePayWithMoneyAccountSection: jest.fn(),
+}));
 // Reaches the Money Account balance query via `useIsMoneyAccountFlagDefault`,
 // which the `usePayWithMoneyAccountSection` mock above does not intercept.
 jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({

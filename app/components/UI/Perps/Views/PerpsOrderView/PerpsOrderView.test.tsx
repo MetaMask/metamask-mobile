@@ -1114,6 +1114,19 @@ jest.mock(
   },
 );
 
+// The mocked sheet only reads the nested screens' props and never renders
+// them; the real module pulls in the confirmations pay-with sections and the
+// PredictNext navigator.
+jest.mock(
+  '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens',
+  () => ({
+    PerpsTradeInfoScreen: () => null,
+    PerpsTradeLeverageScreen: () => null,
+    PerpsTradePayWithScreen: () => null,
+    PerpsTradeTPSLScreen: () => null,
+  }),
+);
+
 // Mock AddRewardsAccount component
 jest.mock(
   '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
