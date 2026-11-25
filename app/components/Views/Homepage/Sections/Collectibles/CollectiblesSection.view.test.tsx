@@ -30,7 +30,7 @@ describeForPlatforms('Collectibles on the wallet homepage', () => {
       expect(screen.queryByTestId(title)).not.toBeOnTheScreen();
       expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     });
-    expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 

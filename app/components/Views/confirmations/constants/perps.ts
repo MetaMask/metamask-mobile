@@ -2,6 +2,8 @@ import { Hex } from '@metamask/utils';
 
 export const PERPS_CURRENCY = 'usd';
 export const PERPS_MINIMUM_DEPOSIT = 0.01;
+/** Lighter's minimum direct L1 USDC deposit to perps. */
+export const LIGHTER_MINIMUM_DEPOSIT = 1;
 
 export const ARBITRUM_USDC = {
   address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as Hex,

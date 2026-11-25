@@ -11,6 +11,7 @@ import {
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
   BRIDGE_MM_FEE_RATE,
+  DiscountType,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { isHardwareAccount } from '../../../../../../util/address';
@@ -462,7 +463,7 @@ describe('BridgeMarketViewFooter', () => {
                 {
                   quoteBpsFee: 0,
                   baseBpsFee: 87.5,
-                  discountType: 'free',
+                  discountType: DiscountType.FREE,
                 },
               ],
             },

@@ -1,3 +1,4 @@
+import { notifyManager, type QueryClient } from '@tanstack/react-query';
 import { within } from '@testing-library/react-native';
 import { escapeRegExp } from 'lodash';
 import {
@@ -1465,3 +1466,48 @@ export const feedScreenTabLabels = (
   within(within(container).getByTestId(PredictFeedScreenTestIds.TABS))
     .getAllByRole('button')
     .map((tab) => tab.props.accessibilityLabel);
+
+/**
+ * Resolves once every requested Predict Feed query in `queryClient` has
+ * settled (`status !== 'pending'` and `fetchStatus === 'idle'`) and React Query
+ * has notified its mounted observers. Await inside `act` to commit the
+ * rendered cards without racing a `findBy*` wall-clock timeout on a cold shard.
+ */
+export const waitForPredictFeedQueries = async (
+  queryClient: QueryClient,
+  feedIds: readonly PredictFeedId[],
+): Promise<void> => {
+  const queryCache = queryClient.getQueryCache();
+  const hasSettled = (): boolean => {
+    const queries = queryCache.findAll({
+      queryKey: ['PredictMarketDataService:getFeed'],
+    });
+    return feedIds.every((feedId) =>
+      queries.some(
+        ({ queryKey, state }) =>
+          queryKey[2] === feedId &&
+          state.status !== 'pending' &&
+          state.fetchStatus === 'idle',
+      ),
+    );
+  };
+
+  await new Promise<void>((resolve) => {
+    // `Query#dispatch` queues observer notifications before it notifies cache
+    // listeners, so scheduling on `notifyManager` runs after mounted observers
+    // receive the feed data.
+    const resolveAfterObservers = (): void => notifyManager.schedule(resolve);
+
+    if (hasSettled()) {
+      resolveAfterObservers();
+      return;
+    }
+
+    const unsubscribe = queryCache.subscribe(() => {
+      if (hasSettled()) {
+        unsubscribe();
+        resolveAfterObservers();
+      }
+    });
+  });
+};

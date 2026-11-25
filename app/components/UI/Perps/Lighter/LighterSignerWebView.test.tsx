@@ -22,6 +22,16 @@ import {
   reviveLighterBridge,
 } from './lighterSignerBridge';
 
+// TODO: temporary casts. Replace them with plain string literals once this app
+// depends on a `@metamask/perps-controller` release with MetaMask/core#11730,
+// which adds these names to the signer function names.
+type LighterSignerFunctionName = Parameters<
+  typeof isValidLighterSignerResult
+>[0];
+const GET_TRANSFER_TRANSACTION =
+  '_getTransferTransaction' as unknown as LighterSignerFunctionName;
+const SIGN_TRANSFER = '_signTransfer' as unknown as LighterSignerFunctionName;
+
 interface MockWebViewProps {
   onMessage?: (event: WebViewMessageEvent) => void;
   onError?: (event: never) => void;
@@ -601,6 +611,22 @@ describe('LighterSignerWebView', () => {
     expect(
       isValidLighterSignerResult('_signCreateOrder', { txInfo: 'signed' }),
     ).toBe(true);
+  });
+
+  it('accepts the transfer plaintext body from _getTransferTransaction', () => {
+    expect(
+      isValidLighterSignerResult(GET_TRANSFER_TRANSACTION, {
+        success: true,
+        pubKeySuccess: true,
+        body: 'Transfer\n\nnonce: 0x05',
+      }),
+    ).toBe(true);
+    expect(
+      isValidLighterSignerResult(GET_TRANSFER_TRANSACTION, { txInfo: '{}' }),
+    ).toBe(false);
+    expect(isValidLighterSignerResult(SIGN_TRANSFER, { body: 'x' })).toBe(
+      false,
+    );
   });
 
   it('rejects immediately when the ready executor has no mounted WebView', async () => {

@@ -9,38 +9,13 @@ import TradingActivityListView, {
   TRADING_ACTIVITY_LIST_EMPTY_TEST_ID,
 } from './TradingActivityListView';
 
-const mockGoBack = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
-  return {
-    ...actual,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: mockGoBack,
-    }),
-  };
-});
-
-jest.mock('../../../../Views/ErrorBoundary', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => (
-      <View>{children}</View>
-    ),
-  };
-});
-
 interface Row {
   id: string;
   label: string;
 }
 
 const TEST_IDS = {
-  CONTAINER: 'activity-view',
   LIST: 'activity-list',
-  SKELETON_SLOT: 'activity-skeleton-slot',
 };
 
 const ROWS: Row[] = [
@@ -73,8 +48,6 @@ const renderView = (
 ) =>
   renderWithProvider(
     <TradingActivityListView
-      view="TestActivityView"
-      title="Activity"
       testIDs={TEST_IDS}
       list={list}
       renderItem={(item) => <Text>{item.label}</Text>}
@@ -90,11 +63,9 @@ describe('TradingActivityListView', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the title and one row per item', () => {
-    const { getByTestId, getByText } = renderView(listState());
+  it('renders one row per item', () => {
+    const { getByText } = renderView(listState());
 
-    expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getByText('Activity')).toBeOnTheScreen();
     expect(getByText('First row')).toBeOnTheScreen();
     expect(getByText('Second row')).toBeOnTheScreen();
   });
@@ -123,23 +94,45 @@ describe('TradingActivityListView', () => {
     expect(loadMore).not.toHaveBeenCalled();
   });
 
-  it('fills the measured body with skeleton rows while the first page is loading', () => {
-    const { getByTestId, getAllByTestId, queryByTestId } = renderView(
+  it('shows skeleton rows while the first page is loading', () => {
+    const { getByTestId, getAllByTestId } = renderView(
       listState({ items: null, isLoading: true, hasMore: false }),
     );
 
     expect(
       getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
-    expect(queryByTestId(TEST_IDS.LIST)).toBeNull();
-
-    fireEvent(getByTestId(TEST_IDS.SKELETON_SLOT), 'layout', {
-      nativeEvent: { layout: { height: 280, width: 200, x: 0, y: 0 } },
-    });
-
     expect(
       getAllByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.ROW),
     ).toHaveLength(5);
+  });
+
+  it('renders the header above the rows and while loading', () => {
+    const header = <Text>Page header</Text>;
+    const { getByText, rerender } = renderWithProvider(
+      <TradingActivityListView
+        testIDs={TEST_IDS}
+        list={listState({ items: null, isLoading: true })}
+        renderItem={(item: Row) => <Text>{item.label}</Text>}
+        emptyDescription="Empty"
+        header={header}
+      />,
+    );
+
+    expect(getByText('Page header')).toBeOnTheScreen();
+
+    rerender(
+      <TradingActivityListView
+        testIDs={TEST_IDS}
+        list={listState()}
+        renderItem={(item: Row) => <Text>{item.label}</Text>}
+        emptyDescription="Empty"
+        header={header}
+      />,
+    );
+
+    expect(getByText('Page header')).toBeOnTheScreen();
+    expect(getByText('First row')).toBeOnTheScreen();
   });
 
   it('keeps rows on screen during pull-to-refresh', () => {
@@ -234,13 +227,5 @@ describe('TradingActivityListView', () => {
 
     expect(getByText('First row')).toBeOnTheScreen();
     expect(queryByText('Error loading your transactions')).toBeNull();
-  });
-
-  it('navigates back from the header', () => {
-    const { getByTestId } = renderView(listState());
-
-    fireEvent.press(getByTestId('header-back-button'));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
