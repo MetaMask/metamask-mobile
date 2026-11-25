@@ -936,6 +936,18 @@ describe('RewardsDashboard', () => {
       });
     };
 
+    const infoSheetOpens = () =>
+      mockNavigate.mock.calls.filter(
+        ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      ).length;
+
+    const overrideSelector = (selector: unknown, value: unknown) => {
+      const defaultImplementation = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((candidate) =>
+        candidate === selector ? value : defaultImplementation?.(candidate),
+      );
+    };
+
     it('opens the info sheet with the general description when the account group is not supported', () => {
       // Arrange
       mockUnsupportedAccountGroup();
@@ -980,69 +992,49 @@ describe('RewardsDashboard', () => {
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        expect.anything(),
-      );
+      expect(infoSheetOpens()).toBe(0);
     });
 
     it('does not open the info sheet when the not-opted-in banner is hidden for the account group', () => {
       // Arrange
       mockUnsupportedAccountGroup();
-      const defaultImplementation = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return [{ accountGroupId: mockSelectedAccountGroup.id, hide: true }];
-        return defaultImplementation?.(selector);
-      });
+      overrideSelector(selectHideCurrentAccountNotOptedInBannerArray, [
+        { accountGroupId: mockSelectedAccountGroup.id, hide: true },
+      ]);
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        expect.anything(),
-      );
+      expect(infoSheetOpens()).toBe(0);
     });
 
     it('does not throw or open the info sheet when there is no selected account group', () => {
       // Arrange
       mockUnsupportedAccountGroup();
       mockSelectSelectedAccountGroup.mockReturnValue(null);
-      const defaultImplementation = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup) return null;
-        return defaultImplementation?.(selector);
-      });
+      overrideSelector(selectSelectedAccountGroup, null);
 
       // Act & Assert
       expect(() => render(<RewardsDashboard />)).not.toThrow();
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        expect.anything(),
-      );
+      expect(infoSheetOpens()).toBe(0);
     });
 
     it('does not open the info sheet when the selected account group has no id', () => {
       // Arrange
       mockUnsupportedAccountGroup();
-      const defaultImplementation = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup)
-          return { ...mockSelectedAccountGroup, id: undefined };
-        return defaultImplementation?.(selector);
+      overrideSelector(selectSelectedAccountGroup, {
+        ...mockSelectedAccountGroup,
+        id: undefined,
       });
 
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        expect.anything(),
-      );
+      expect(infoSheetOpens()).toBe(0);
     });
+
     it('does not reopen the sheet when the dashboard refocuses for the same account group', () => {
       // Arrange
       mockUnsupportedAccountGroup();
@@ -1052,11 +1044,7 @@ describe('RewardsDashboard', () => {
       rerender(<RewardsDashboard />);
 
       // Assert
-      expect(
-        mockNavigate.mock.calls.filter(
-          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        ),
-      ).toHaveLength(1);
+      expect(infoSheetOpens()).toBe(1);
     });
 
     it('does not reopen the sheet after the account group status briefly reports unknown', () => {
@@ -1075,11 +1063,7 @@ describe('RewardsDashboard', () => {
       rerender(<RewardsDashboard />);
 
       // Assert
-      expect(
-        mockNavigate.mock.calls.filter(
-          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        ),
-      ).toHaveLength(1);
+      expect(infoSheetOpens()).toBe(1);
     });
 
     it('does not reopen the sheet for the same account group in a new dashboard mount', () => {
@@ -1092,33 +1076,23 @@ describe('RewardsDashboard', () => {
       render(<RewardsDashboard />);
 
       // Assert
-      expect(
-        mockNavigate.mock.calls.filter(
-          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        ),
-      ).toHaveLength(1);
+      expect(infoSheetOpens()).toBe(1);
     });
 
     it('opens the sheet again when the selected account group changes to another unsupported group', () => {
       // Arrange
       mockUnsupportedAccountGroup();
       const { rerender } = render(<RewardsDashboard />);
-      const otherGroup = { ...mockSelectedAccountGroup, id: 'other-group-id' };
-      const defaultImplementation = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup) return otherGroup;
-        return defaultImplementation?.(selector);
+      overrideSelector(selectSelectedAccountGroup, {
+        ...mockSelectedAccountGroup,
+        id: 'other-group-id',
       });
 
       // Act
       rerender(<RewardsDashboard />);
 
       // Assert
-      expect(
-        mockNavigate.mock.calls.filter(
-          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        ),
-      ).toHaveLength(2);
+      expect(infoSheetOpens()).toBe(2);
     });
   });
 
