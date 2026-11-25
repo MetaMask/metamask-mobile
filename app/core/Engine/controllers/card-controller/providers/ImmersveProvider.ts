@@ -718,6 +718,11 @@ export class ImmersveProvider implements ICardProvider {
     string,
     Promise<ImmersveCardListItem | null>
   >();
+  /** Card creates in flight, by cardholder account. Concurrent callers share one POST. */
+  private readonly createCardRequests = new Map<
+    string,
+    Promise<CardCreateResult>
+  >();
 
   constructor({
     service,
@@ -1279,7 +1284,33 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  /**
+   * Immersve allows several cards per cardholder, so two overlapping creates
+   * would both succeed. Overlapping callers share one request.
+   */
   async createCard(
+    fundingSourceId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCreateResult> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'createCard: missing cardholder account id',
+      );
+    }
+
+    let request = this.createCardRequests.get(accountId);
+    if (!request) {
+      request = this.createCardOnce(fundingSourceId, tokens).finally(() => {
+        this.createCardRequests.delete(accountId);
+      });
+      this.createCardRequests.set(accountId, request);
+    }
+    return request;
+  }
+
+  private async createCardOnce(
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult> {

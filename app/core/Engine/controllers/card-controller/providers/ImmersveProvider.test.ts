@@ -1264,6 +1264,35 @@ describe('ImmersveProvider', () => {
       expect(result.cardId).toBe('card-1');
     });
 
+    it('createCard sends one POST when called concurrently', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
+      const [first, second] = await Promise.all([
+        provider.createCard('fs-1', TOKENS),
+        provider.createCard('fs-1', TOKENS),
+      ]);
+
+      expect(service.post).toHaveBeenCalledTimes(1);
+      expect(first.cardId).toBe('card-1');
+      expect(second.cardId).toBe('card-1');
+    });
+
+    it('createCard posts again after a failed create', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+      service.post
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce({ cardId: 'card-1' });
+
+      await expect(provider.createCard('fs-1', TOKENS)).rejects.toThrow();
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledTimes(2);
+      expect(result.cardId).toBe('card-1');
+    });
+
     it('createCard reuses the existing card instead of issuing a duplicate', async () => {
       const { provider, service } = createProvider();
       service.get.mockResolvedValue({ items: [activeCard] });
