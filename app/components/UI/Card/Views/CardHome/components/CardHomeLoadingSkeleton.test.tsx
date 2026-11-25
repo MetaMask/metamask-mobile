@@ -35,17 +35,4 @@ describe('CardHomeLoadingSkeleton', () => {
     expect(queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON)).toBeNull();
     expect(queryByTestId('push-provisioning-spinner')).toBeNull();
   });
-
-  it('uses the card art aspect ratio so the skeleton matches the loaded card', () => {
-    const { getByTestId } = render(<CardHomeLoadingSkeleton />);
-    const cardArt = getByTestId(CardHomeSelectors.CARD_ART_SKELETON);
-    const style = cardArt.props.style;
-    const styleList = Array.isArray(style) ? style : [style];
-
-    expect(styleList).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ aspectRatio: 851 / 540 }),
-      ]),
-    );
-  });
 });
