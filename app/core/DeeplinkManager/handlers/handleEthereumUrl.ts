@@ -15,7 +15,7 @@ import ReduxService from '../../redux';
 import Routes from '../../../constants/navigation/Routes';
 import {
   addTransactionForDeeplink,
-  isDeeplinkRedesignedConfirmationCompatible,
+  isDeeplinkConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
 import { handleSendPageNavigation } from '../../../components/Views/confirmations/utils/send';
 import { derivePredefinedRecipientParams } from '../../../components/Views/confirmations/utils/address';
@@ -125,7 +125,7 @@ async function handleEthereumUrl({
       return;
     }
 
-    if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+    if (isDeeplinkConfirmationCompatible(ethUrl.function_name)) {
       await addTransactionForDeeplink({
         ...txMeta,
         origin,

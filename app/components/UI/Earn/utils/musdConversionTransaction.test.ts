@@ -4,7 +4,7 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
+import type { CaipAssetType, Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import EngineService from '../../../../core/EngineService';
@@ -19,6 +19,7 @@ import {
 } from './musdConversionTransaction';
 
 jest.mock('@metamask/rpc-errors', () => ({
+  ...jest.requireActual('@metamask/rpc-errors'),
   providerErrors: {
     userRejectedRequest: jest.fn(),
   },
@@ -97,7 +98,7 @@ interface MockedEngineContext {
   TransactionPayController?: {
     updatePaymentToken: jest.Mock<
       void,
-      [{ transactionId: string; tokenAddress: Hex; chainId: Hex }]
+      [{ transactionId: string; assetId: string }]
     >;
   };
   ApprovalController?: {
@@ -154,13 +155,12 @@ const createTransactionMeta = (
   }) as unknown as TransactionMeta;
 
 const createPayTokenSelection = (
-  overrides: Partial<{ address: Hex; chainId: Hex }> = {},
-): { address: Hex; chainId: Hex } =>
-  ({
-    address: '0xpayTokenAddress',
-    chainId: '0x1',
-    ...overrides,
-  }) as { address: Hex; chainId: Hex };
+  overrides: Partial<{ assetId: CaipAssetType; chainId: Hex }> = {},
+): { assetId: CaipAssetType; chainId: Hex } => ({
+  assetId: 'eip155:1/erc20:0xpayTokenAddress',
+  chainId: '0x1',
+  ...overrides,
+});
 
 describe('musdConversionTransaction', () => {
   const networkControllerFindNetworkClientIdByChainId = jest.fn<
@@ -188,7 +188,7 @@ describe('musdConversionTransaction', () => {
 
   const transactionPayControllerUpdatePaymentToken = jest.fn<
     void,
-    [{ transactionId: string; tokenAddress: Hex; chainId: Hex }]
+    [{ transactionId: string; assetId: string }]
   >();
 
   const approvalControllerReject = jest.fn<void, [string, unknown]>();
@@ -482,7 +482,7 @@ describe('musdConversionTransaction', () => {
         } as unknown as TransactionMeta['txParams'],
       });
       const newPayToken = createPayTokenSelection({
-        address: '0xpayTokenAddress' as Hex,
+        assetId: 'eip155:1/erc20:0xpayTokenAddress',
         chainId: '0x1' as Hex,
       });
 
@@ -538,8 +538,7 @@ describe('musdConversionTransaction', () => {
 
       expect(transactionPayControllerUpdatePaymentToken).toHaveBeenCalledWith({
         transactionId: '0xnewTransactionId',
-        tokenAddress: '0xpayTokenAddress',
-        chainId: '0x1',
+        assetId: 'eip155:1/erc20:0xpayTokenAddress',
       });
 
       expect(mockedEngineService.flushState).toHaveBeenCalled();

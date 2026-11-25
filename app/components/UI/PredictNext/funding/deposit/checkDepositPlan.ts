@@ -43,7 +43,7 @@ export type DepositPlanMismatchReason =
 export interface DepositPlanExpectation {
   /** The USD amount the user typed and approved. */
   amount: PredictAmount;
-  /** The build's deposit chain and its USDC (see `depositEnvironment`). */
+  /** The Venue's expected deposit chain and its USDC (see `depositEnvironment`). */
   network: PredictDepositNetwork;
   /** Every account address in the user's wallet, any case. */
   walletAddresses: readonly string[];

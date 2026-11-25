@@ -166,6 +166,10 @@ export const bridgeTestState = {
         },
       },
       BridgeController: defaultBridgeControllerState,
+      MoneyAccountController: {
+        moneyAccounts: {},
+        defaultMoneyAccountId: null,
+      },
       TokenBalancesController: {
         tokenBalances: {
           [evmAccountAddress]: {
@@ -840,10 +844,6 @@ export const bridgeTestState = {
           },
         },
       },
-      MoneyAccountController: {
-        moneyAccounts: {},
-        defaultMoneyAccountId: null,
-      },
       KeyringController: {
         vault: '',
         isUnlocked: true,
@@ -1012,6 +1012,7 @@ export const bridgeTestState = {
     isSelectingToken: false,
     tokenSelectorNetworkFilter: undefined,
     recurring: initialRecurringState,
+    recurringPriceTolerance: undefined,
     limitOrderCostTolerance: undefined,
     limitOrderExpirationMinutes: undefined,
     limitOrderMarketComparison: undefined,

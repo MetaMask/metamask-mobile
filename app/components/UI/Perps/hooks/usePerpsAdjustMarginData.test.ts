@@ -121,6 +121,28 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.hasValidPositionData).toBe(true);
     });
 
+    it('uses the position on the requested venue', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          { ...mockPosition, providerId: 'hyperliquid', marginUsed: '111' },
+          { ...mockPosition, providerId: 'lighter', marginUsed: '222' },
+        ],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: mockPosition.symbol,
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.position?.providerId).toBe('lighter');
+      expect(result.current.position?.marginUsed).toBe('222');
+    });
+
     it('returns null when position is not found', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -292,6 +314,76 @@ describe('usePerpsAdjustMarginData', () => {
 
       expect(result.current.maxAmount).toBe(10000);
       expect(result.current.isAddMode).toBe(true);
+    });
+
+    it("limits the add max to the position venue's balance", () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, providerId: 'lighter' }],
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccount,
+          spendableBalance: '13000',
+          providerStates: {
+            hyperliquid: {
+              status: 'available',
+              providerId: 'hyperliquid',
+              state: { ...mockAccount, spendableBalance: '10000' },
+            },
+            lighter: {
+              status: 'available',
+              providerId: 'lighter',
+              state: { ...mockAccount, spendableBalance: '3000' },
+            },
+          },
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.spendableBalance).toBe(3000);
+      expect(result.current.maxAmount).toBe(3000);
+    });
+
+    it('offers no add max while the position venue has not reported', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, providerId: 'lighter' }],
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccount,
+          providerStates: {
+            hyperliquid: {
+              status: 'available',
+              providerId: 'hyperliquid',
+              state: mockAccount,
+            },
+            lighter: { status: 'pending', providerId: 'lighter' },
+          },
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.maxAmount).toBe(0);
     });
 
     it('calculates max removable margin for remove mode', () => {
@@ -569,6 +661,109 @@ describe('usePerpsAdjustMarginData', () => {
       );
 
       expect(result.current.positionLeverage).toBe(25);
+    });
+
+    it("prefers the position venue's market over an untagged row", () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            providerId: 'lighter',
+            leverage: { value: 0, type: 'cross' as const },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [
+          { ...mockMarkets[0], maxLeverage: '40x' },
+          { ...mockMarkets[0], providerId: 'lighter', maxLeverage: '20x' },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.positionLeverage).toBe(20);
+    });
+
+    it('uses an untagged market when the venue has no row of its own', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            providerId: 'lighter',
+            leverage: { value: 0, type: 'cross' as const },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [
+          { ...mockMarkets[0], providerId: 'hyperliquid', maxLeverage: '40x' },
+          { ...mockMarkets[0], maxLeverage: '30x' },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.positionLeverage).toBe(30);
+    });
+
+    it("falls back to the position venue's market from the full catalog", () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            providerId: 'lighter',
+            leverage: { value: 0, type: 'cross' as const },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [
+          { ...mockMarkets[0], providerId: 'hyperliquid', maxLeverage: '40x' },
+          { ...mockMarkets[0], providerId: 'lighter', maxLeverage: '20x' },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(mockUsePerpsMarkets).toHaveBeenCalledWith({ fullCatalog: true });
+      expect(result.current.positionLeverage).toBe(20);
     });
   });
 });

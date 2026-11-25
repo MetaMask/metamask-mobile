@@ -1,6 +1,6 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useState } from 'react';
-import { Image, type ImageLoadEvent } from 'react-native';
+import { Image, View, type ImageLoadEvent } from 'react-native';
 
 /** Used until the GIF reports its size. */
 const DEFAULT_ASPECT_RATIO = 1;
@@ -24,10 +24,20 @@ export const clampGifAspectRatio = (width: number, height: number): number => {
 export interface SocialFeedGifProps {
   uri: string;
   testID?: string;
+  /**
+   * When false, keep the sized frame and unmount the image so Android can
+   * release the decoded GIF. Defaults to visible for embeds that are not in a
+   * virtualized list.
+   */
+  visible?: boolean;
 }
 
 /** A feed or composer GIF at its own aspect ratio, full width. */
-const SocialFeedGif: React.FC<SocialFeedGifProps> = ({ uri, testID }) => {
+const SocialFeedGif: React.FC<SocialFeedGifProps> = ({
+  uri,
+  testID,
+  visible = true,
+}) => {
   const tw = useTailwind();
   const [measured, setMeasured] = useState<{
     uri: string;
@@ -48,12 +58,17 @@ const SocialFeedGif: React.FC<SocialFeedGifProps> = ({ uri, testID }) => {
     [uri],
   );
 
+  const frameStyle = [tw.style('w-full'), { aspectRatio }];
+  if (!visible) {
+    return <View style={frameStyle} testID={testID} />;
+  }
+
   return (
     <Image
       source={{ uri }}
       onLoad={handleLoad}
       resizeMode="cover"
-      style={[tw.style('w-full'), { aspectRatio }]}
+      style={frameStyle}
       testID={testID}
     />
   );

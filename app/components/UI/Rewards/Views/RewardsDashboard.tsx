@@ -68,7 +68,7 @@ import {
 } from '../utils/rewardsDashboardViewedTracking';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
@@ -316,9 +316,10 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
 
   const copyTradingText = referralMe?.localized_text;
   const showCopyTrading = Boolean(
@@ -456,7 +457,6 @@ const RewardsDashboard: React.FC = () => {
               <CampaignsPreview />
             ) : (
               <RewardsOptInSection
-                showDivider={false}
                 localizedText={{
                   invitedOptInDescription:
                     referralMe?.localized_text.invitedOptInDescription ||
@@ -496,7 +496,7 @@ const RewardsDashboard: React.FC = () => {
                       twClassName: 'mt-3 self-stretch',
                       testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
                     }}
-                    onAction={openSocialTab}
+                    onAction={openComposerPress}
                     testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
                   />
                 </Box>

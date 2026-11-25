@@ -10,8 +10,8 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import { PredictEventCard } from '../../../events/cards';
-import type { FeedScreenId } from '../../../navigation/feedScreens';
 import type {
   PredictEvent,
   PredictMarket,
@@ -20,7 +20,8 @@ import type {
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 
 interface FeedPreviewSectionProps {
-  feedScreenId: FeedScreenId;
+  /** The catalog's section ID; the section's test IDs use it. */
+  sectionId: string;
   title: string;
   events: readonly PredictEvent[];
   isLoading: boolean;
@@ -39,8 +40,12 @@ interface FeedPreviewSectionProps {
   onLayout?: (event: LayoutChangeEvent) => void;
 }
 
+/**
+ * A Home section previewing one Feed's first Events as featured cards, under a
+ * header that opens the section's Feed Screen when there is one.
+ */
 export const FeedPreviewSection = ({
-  feedScreenId,
+  sectionId,
   title,
   events,
   isLoading,
@@ -66,15 +71,17 @@ export const FeedPreviewSection = ({
 
   return (
     <Box
-      testID={PredictHomeTestIds.section(feedScreenId)}
+      testID={PredictHomeTestIds.section(sectionId)}
       twClassName="gap-3"
       onLayout={onLayout}
     >
       {onOpen ? (
         <Pressable
-          testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          testID={PredictHomeTestIds.sectionHeader(sectionId)}
           accessibilityRole="button"
-          accessibilityLabel={`View ${title}`}
+          accessibilityLabel={strings('predict_next.home_feed.open_section', {
+            title,
+          })}
           onPress={onOpen}
         >
           <Box twClassName="flex-row items-center gap-1">
@@ -84,7 +91,7 @@ export const FeedPreviewSection = ({
         </Pressable>
       ) : (
         <Text
-          testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          testID={PredictHomeTestIds.sectionHeader(sectionId)}
           accessibilityRole="header"
           variant={TextVariant.HeadingMd}
         >
@@ -94,7 +101,7 @@ export const FeedPreviewSection = ({
 
       {isLoading ? (
         <Box
-          testID={PredictHomeTestIds.sectionLoading(feedScreenId)}
+          testID={PredictHomeTestIds.sectionLoading(sectionId)}
           twClassName="gap-3"
         >
           <Box twClassName="h-32 rounded-xl bg-muted" />
@@ -102,24 +109,24 @@ export const FeedPreviewSection = ({
         </Box>
       ) : isError && events.length === 0 ? (
         <Box
-          testID={PredictHomeTestIds.sectionError(feedScreenId)}
+          testID={PredictHomeTestIds.sectionError(sectionId)}
           twClassName="items-start gap-2 py-4"
         >
-          <Text>Games couldn’t be loaded.</Text>
+          <Text>{strings('predict_next.home_feed.preview_error')}</Text>
           <Button
-            testID={PredictHomeTestIds.sectionRetry(feedScreenId)}
+            testID={PredictHomeTestIds.sectionRetry(sectionId)}
             variant={ButtonVariant.Tertiary}
             onPress={onRetry}
           >
-            Retry
+            {strings('predict_next.home_feed.retry')}
           </Button>
         </Box>
       ) : events.length === 0 ? (
         <Box
-          testID={PredictHomeTestIds.sectionEmpty(feedScreenId)}
+          testID={PredictHomeTestIds.sectionEmpty(sectionId)}
           twClassName="py-4"
         >
-          <Text>No games available.</Text>
+          <Text>{strings('predict_next.home_feed.preview_empty')}</Text>
         </Box>
       ) : (
         <Box twClassName="gap-3">{events.map(renderEvent)}</Box>

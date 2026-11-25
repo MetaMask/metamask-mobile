@@ -42,6 +42,7 @@ const PerpsMarketRowItem = ({
 }: PerpsMarketRowItemProps) => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
+    providerId: market.providerId,
     symbols: [market.symbol],
     throttleMs: 3000, // 3 seconds for list view
   });

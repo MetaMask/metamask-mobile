@@ -3,12 +3,11 @@ import {
   createDepositConfirmationGuard,
   createDepositPrepSession,
   getFocusedRouteName,
-  isRedesignedConfirmationFocused,
+  isConfirmationFocused,
   type NestedNavigationState,
 } from './depositConfirmationGuard';
 
-const CONFIRMATION_ROUTE =
-  Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+const CONFIRMATION_ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS;
 
 const createState = (
   focusedName: string,
@@ -57,11 +56,11 @@ describe('getFocusedRouteName', () => {
   });
 });
 
-describe('isRedesignedConfirmationFocused', () => {
+describe('isConfirmationFocused', () => {
   it('returns true when a confirmation route is focused', () => {
     const navigation = createNavigation(createState(CONFIRMATION_ROUTE));
 
-    expect(isRedesignedConfirmationFocused(navigation)).toBe(true);
+    expect(isConfirmationFocused(navigation)).toBe(true);
   });
 
   it('returns false when Perps is focused', () => {
@@ -69,7 +68,7 @@ describe('isRedesignedConfirmationFocused', () => {
       createState(Routes.PERPS.MARKET_DETAILS),
     );
 
-    expect(isRedesignedConfirmationFocused(navigation)).toBe(false);
+    expect(isConfirmationFocused(navigation)).toBe(false);
   });
 });
 

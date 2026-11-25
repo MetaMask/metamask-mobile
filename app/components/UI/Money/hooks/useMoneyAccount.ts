@@ -93,7 +93,7 @@ function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
     NavigationService.navigation.getCurrentRoute()?.name ===
     (forceBottomSheet
       ? Routes.CONFIRMATION_REQUEST_MODAL
-      : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS)
+      : Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS)
   );
 }
 

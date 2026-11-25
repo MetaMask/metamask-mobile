@@ -1,0 +1,62 @@
+# Weekly Swaps CPU profile report (shadow mode); scenarios and channel are in .github/scripts/swaps/cpu-profile-report/swaps-cpu-profile-report.config.mjs.
+
+name: Swaps CPU Profile Report
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Log the Slack message instead of posting it'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  report:
+    if: ${{ github.repository == 'MetaMask/metamask-mobile' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Build report
+        id: report
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OUT_DIR: /tmp/swaps-cpu-profile-report
+        run: node .github/scripts/swaps/cpu-profile-report/run-swaps-cpu-profile-report.mjs
+
+      - name: Post to Slack
+        if: ${{ steps.report.outputs.artifact }}
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload-file-path: /tmp/swaps-cpu-profile-report/slack-payload.json
+          errors: true
+
+      # The scheduled reports expire after 21 days; these summaries are the history.
+      - name: Upload weekly summary
+        if: ${{ always() && steps.report.outputs.artifact }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.report.outputs.artifact }}
+          path: /tmp/swaps-cpu-profile-report/summary.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 90

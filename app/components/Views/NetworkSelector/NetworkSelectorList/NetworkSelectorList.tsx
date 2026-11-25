@@ -48,6 +48,8 @@ import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
 import hideProtocolFromUrl from '../../../../util/hideProtocolFromUrl';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+import { useSelector } from 'react-redux';
+import { getRegistryNetworkImagesByChainId } from '../../../../selectors/configRegistry';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import CustomNetwork from '../../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -236,6 +238,8 @@ const NetworkSelectorList = ({
     );
   };
 
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
+
   const renderRpcNetwork = (networkConfiguration: NetworkConfiguration) => {
     const {
       name: nickname,
@@ -247,7 +251,10 @@ const NetworkSelectorList = ({
     const name =
       nickname || rpcEndpoints[defaultRpcEndpointIndex].name || rpcUrl;
 
-    const image = getNetworkImageSource({ chainId: chainId.toString() });
+    const image = getNetworkImageSource(
+      { chainId: chainId.toString() },
+      networkImageUrls,
+    );
     const isSelected = isEvmSelected && chainId === selectedChainId;
 
     if (!isRedesignEnabled) {

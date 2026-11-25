@@ -67,6 +67,8 @@ import { hasMissingTokenFiatRate } from '../../utils/hasMissingTokenFiatRate';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import Engine from '../../../../../core/Engine';
+import DottedUnderline from '../../../DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -182,6 +184,7 @@ interface TokenInputAreaProps {
   isQuoteSponsored?: boolean;
   inputPrefix?: string;
   secondaryValue?: string | null;
+  tokenFiatRate?: number;
   balanceCheckAmount?: string;
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
@@ -205,6 +208,7 @@ interface TokenInputAreaProps {
    * Test ID for the `amountReplacementLabel` text.
    */
   amountReplacementLabelTestID?: string;
+  subtitle?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -234,6 +238,7 @@ export const TokenInputArea = forwardRef<
       isQuoteSponsored = false,
       inputPrefix,
       secondaryValue,
+      tokenFiatRate: tokenFiatRateOverride,
       balanceCheckAmount,
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
@@ -242,6 +247,7 @@ export const TokenInputArea = forwardRef<
       hideAmount = false,
       amountReplacementLabel,
       amountReplacementLabelTestID,
+      subtitle: subtitleOverride,
     },
     ref,
   ) => {
@@ -307,8 +313,13 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
     });
 
-    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
-    const tokenFiatRate = useTokenFiatRate(token);
+    const defaultCurrencyValue = useDisplayCurrencyValue(
+      tokenAmount,
+      token,
+      tokenFiatRateOverride,
+    );
+    const polledTokenFiatRate = useTokenFiatRate(token);
+    const tokenFiatRate = tokenFiatRateOverride ?? polledTokenFiatRate;
     // Without a rate the currency value is formatted as a bare "$0.00", which
     // reads as the token being worthless rather than unpriced.
     const shouldHideFiatValue =
@@ -346,16 +357,15 @@ export const TokenInputArea = forwardRef<
       tokenBalance,
       token,
     );
+    const { colors } = useTheme();
 
     const tokenAddress = useTokenAddress(token);
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    const shouldShowMaxButton = useShouldRenderMaxOption(
-      token,
-      tokenBalance,
-      isQuoteSponsored,
-    );
+    const shouldShowMaxButton =
+      useShouldRenderMaxOption(token, tokenBalance, isQuoteSponsored) &&
+      !token?.isMoneyToken;
 
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
@@ -535,16 +545,27 @@ export const TokenInputArea = forwardRef<
                     gap={4}
                     style={styles.hidden}
                   >
-                    <Text
-                      color={
-                        isInsufficientBalance &&
-                        tokenType === TokenInputAreaType.Source
-                          ? TextColor.Error
-                          : TextColor.Alternative
-                      }
-                    >
-                      {subtitle}
-                    </Text>
+                    {token?.isMoneyToken && subtitleOverride ? (
+                      <DottedUnderline
+                        color={colors.success.default}
+                        testID="subtitle-underline"
+                      >
+                        <Text color={colors.success.default}>
+                          {subtitleOverride}
+                        </Text>
+                      </DottedUnderline>
+                    ) : (
+                      <Text
+                        color={
+                          isInsufficientBalance &&
+                          tokenType === TokenInputAreaType.Source
+                            ? TextColor.Error
+                            : TextColor.Alternative
+                        }
+                      >
+                        {subtitle}
+                      </Text>
+                    )}
                     {tokenType === TokenInputAreaType.Source &&
                       tokenBalance &&
                       onMaxPress &&
