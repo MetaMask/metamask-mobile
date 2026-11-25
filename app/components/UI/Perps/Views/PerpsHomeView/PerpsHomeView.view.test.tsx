@@ -2910,7 +2910,7 @@ describe('PerpsHomeView', () => {
     const withdrawalRoutes = [
       { name: Routes.PERPS.WITHDRAW, mount: 'perps-root' as const },
       {
-        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         mount: 'perps-root' as const,
       },
     ];

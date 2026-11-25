@@ -6221,7 +6221,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 11
     }
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.view.test.tsx": {

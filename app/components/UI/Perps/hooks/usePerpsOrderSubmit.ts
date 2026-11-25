@@ -21,7 +21,10 @@ import {
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_SIZE_UNIT } from '../constants/perpsAnalytics';
-import { bpsToPercent } from '../constants/slippageConfig';
+import {
+  bpsToPercent,
+  type MaxSlippageSource,
+} from '../constants/slippageConfig';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
@@ -52,7 +55,6 @@ import type { usePostTradePromptResolver } from '../../../Views/SocialLeaderboar
 import type { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 import type { deriveOrderSizing } from '../utils/orderSizing';
 import type { PerpsMarketDataWithVolumeNumber } from './usePerpsMarkets';
-import type { MaxSlippageSource } from '../constants/slippageConfig';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { useVipTier } from '../../Rewards/hooks/useVipTier';
 import type { PostTradePrompt } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
@@ -61,9 +63,7 @@ import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 /** Submit entry point shared by the Place Order button and the Trade sheet. */
 export type PlaceOrderHandler = (
   origin: SubmitOrigin,
-) => Promise<
-  'accountUnsupported' | 'abort' | 'alreadySubmitting' | undefined
->;
+) => Promise<'accountUnsupported' | 'abort' | 'alreadySubmitting' | undefined>;
 
 export interface UsePerpsOrderSubmitOptions {
   navigation: AppNavigationProp;
@@ -626,7 +626,8 @@ export const usePerpsOrderSubmit = (
     async (orderParams: OrderParams): Promise<boolean> => {
       // New positions and position flips set TP/SL separately after the order.
       const shouldHandleTPSLSeparately =
-        (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
+        (Boolean(orderForm.takeProfitPrice) ||
+          Boolean(orderForm.stopLossPrice)) &&
         ((!currentMarketPosition && orderForm.type === 'market') ||
           (currentMarketPosition &&
             willFlipPosition(currentMarketPosition, orderParams)));
