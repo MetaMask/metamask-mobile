@@ -727,5 +727,63 @@ describe('parseAnalyticsProperties', () => {
 
       expect(result).toBe('execution reverted: 0x08c379a0');
     });
+
+    it('redacts have/want balance amounts and keeps the surrounding words', () => {
+      const result = sanitizePredictFailureReason(
+        'insufficient funds for intrinsic transaction cost: have 1234567 want 7654321',
+      );
+
+      expect(result).toBe(
+        'insufficient funds for intrinsic transaction cost: have [redacted] want [redacted]',
+      );
+    });
+
+    it('redacts decimal and hex have/want amounts case-insensitively', () => {
+      const result = sanitizePredictFailureReason(
+        'Insufficient funds: HAVE 0.0042 Want 0x1bc16d674ec80000',
+      );
+
+      expect(result).toBe(
+        'Insufficient funds: HAVE [redacted] Want [redacted]',
+      );
+    });
+
+    it.each([
+      ['balance: 123456', 'balance: [redacted]'],
+      ['balance 0.0042 ETH', 'balance [redacted]'],
+      ['Balance=1,234.56 USDC.e', 'Balance=[redacted]'],
+      ['required: 1000000000000000000 wei', 'required: [redacted]'],
+      ['available 25.5 USDC', 'available [redacted]'],
+      ['allowance=0x0de0b6b3a7640000', 'allowance=[redacted]'],
+      ['needed 1e18', 'needed [redacted]'],
+      ['balance: 500n', 'balance: [redacted]'],
+    ])('redacts the labeled amount in "%s"', (input, expected) => {
+      const result = sanitizePredictFailureReason(input);
+
+      expect(result).toBe(expected);
+    });
+
+    it('redacts every labeled amount in a single message', () => {
+      const result = sanitizePredictFailureReason(
+        'Not enough USDC: balance 10.5, required 20, available 3 USDC',
+      );
+
+      expect(result).toBe(
+        'Not enough USDC: balance [redacted], required [redacted], available [redacted]',
+      );
+    });
+
+    it.each([
+      'Gas fee token not found and insufficient native balance',
+      'insufficient funds for gas * price + value',
+      'execution reverted: 0x08c379a0',
+      'Request failed with status 500',
+      'RPC error code -32000: header not found',
+      'gas required exceeds allowance (30000000)',
+    ])('leaves non-balance text untouched in "%s"', (input) => {
+      const result = sanitizePredictFailureReason(input);
+
+      expect(result).toBe(input);
+    });
   });
 });

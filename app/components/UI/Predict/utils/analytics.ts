@@ -178,11 +178,30 @@ function getPredictErrorMessage(error?: unknown): string {
     : PREDICT_ERROR_CODES.UNKNOWN_ERROR;
 }
 
+const AMOUNT_PATTERN =
+  '(?:0x[0-9a-f]+|\\d+(?:,\\d{3})*(?:\\.\\d+)?(?:e[+-]?\\d+)?n?)\\b(?:\\s*(?:eth|wei|gwei|usdc(?:\\.e)?|usdt|pol|matic|usd)\\b)?';
+const HAVE_WANT_AMOUNT_REGEX = new RegExp(
+  `\\b(have\\s+)${AMOUNT_PATTERN}(\\s+want\\s+)${AMOUNT_PATTERN}`,
+  'gi',
+);
+const LABELED_AMOUNT_REGEX = new RegExp(
+  `\\b(balance|required|available|allowance|needed)(\\s*[:=]\\s*|\\s+)${AMOUNT_PATTERN}`,
+  'gi',
+);
+
+/**
+ * Produces a bounded failure reason that is safe to send as a regular
+ * analytics property: strips HTML and redacts URLs, long hex values
+ * (addresses, hashes, calldata), credentials, and wallet amounts such as
+ * `have X want Y` or `balance: X`.
+ */
 export function sanitizePredictFailureReason(error?: unknown): string {
   return getPredictErrorMessage(error)
     .replace(/<[^>]*>/g, ' ')
     .replace(/https?:\/\/\S+/gi, REDACTED_VALUE)
     .replace(/0x[a-f0-9]{40,}\b/gi, REDACTED_VALUE)
+    .replace(HAVE_WANT_AMOUNT_REGEX, `$1${REDACTED_VALUE}$2${REDACTED_VALUE}`)
+    .replace(LABELED_AMOUNT_REGEX, `$1$2${REDACTED_VALUE}`)
     .replace(/\bBearer\s+\S+/gi, `Bearer ${REDACTED_VALUE}`)
     .replace(
       /\b(api[_-]?key|token|authorization|password)\s*[:=]\s*[^\s,;]+/gi,
