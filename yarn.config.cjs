@@ -63,11 +63,31 @@ function expectYarnPackageManager(workspace) {
   }
 }
 
+/**
+ * Expect `react-native-passkeys` to be pinned to an exact 0.x version. On npm,
+ * `react-native-passkeys@1.0.0` is an unrelated, empty placeholder package.
+ *
+ * @param {Yarn} Yarn - The Yarn constraints API.
+ */
+function expectPasskeysPinnedTo0x(Yarn) {
+  for (const dependency of Yarn.dependencies({
+    ident: 'react-native-passkeys',
+  })) {
+    if (!/^0\.\d+\.\d+$/u.test(dependency.range)) {
+      dependency.error(
+        `Expected an exact 0.x version, but got "${dependency.range}". react-native-passkeys@1.0.0 on npm is an unrelated placeholder.`,
+      );
+    }
+  }
+}
+
 module.exports = defineConfig({
   async constraints({ Yarn }) {
     const workspace = Yarn.workspace();
 
     // The package must specify Yarn as the package manager, with a sha256 hash.
     expectYarnPackageManager(workspace);
+
+    expectPasskeysPinnedTo0x(Yarn);
   },
 });

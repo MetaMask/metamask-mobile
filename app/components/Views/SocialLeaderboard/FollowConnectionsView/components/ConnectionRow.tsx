@@ -1,0 +1,144 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
+import {
+  getConnectionFollowButtonTestId,
+  getConnectionRowTestId,
+  getConnectionVerifiedBadgeTestId,
+} from '../FollowConnectionsView.testIds';
+
+const AVATAR_SIZE = 40;
+
+export interface ConnectionRowProps {
+  id: string;
+  username: string;
+  /**
+   * Secondary line under the display name. Omit it when the row has nothing
+   * public to show there. Never pass a wallet address.
+   */
+  subtitle?: string;
+  address: string;
+  avatarUri?: string;
+  /** Profile API verified this trader. */
+  isVerified?: boolean;
+  isFollowing: boolean;
+  /**
+   * Follow control style. Omitted keeps a primary Follow button and a
+   * secondary Following button.
+   */
+  followVariant?: ButtonVariant;
+  onFollowPress?: () => void;
+  onRowPress?: () => void;
+}
+
+const ConnectionRow: React.FC<ConnectionRowProps> = ({
+  id,
+  username,
+  subtitle,
+  address,
+  avatarUri,
+  isVerified = false,
+  isFollowing,
+  followVariant,
+  onFollowPress,
+  onRowPress,
+}) => {
+  const tw = useTailwind();
+  const handleRowPress = useCallback(() => {
+    onRowPress?.();
+  }, [onRowPress]);
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="px-4 py-3"
+    >
+      <Pressable
+        onPress={onRowPress ? handleRowPress : undefined}
+        disabled={!onRowPress}
+        style={tw.style('flex-1 min-w-0 mr-3')}
+        testID={getConnectionRowTestId(id)}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+        >
+          <TraderAvatar
+            imageUrl={avatarUri}
+            address={address}
+            profileId={id}
+            size={AVATAR_SIZE}
+            recyclingKey={id}
+          />
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {username}
+              </Text>
+              {isVerified ? (
+                <ProfileVerifiedBadge
+                  testID={getConnectionVerifiedBadgeTestId(id)}
+                />
+              ) : null}
+            </Box>
+            {subtitle ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </Text>
+            ) : null}
+          </Box>
+        </Box>
+      </Pressable>
+      {onFollowPress ? (
+        <Button
+          variant={
+            followVariant ??
+            (isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary)
+          }
+          size={ButtonSize.Md}
+          onPress={onFollowPress}
+          testID={getConnectionFollowButtonTestId(id)}
+        >
+          {isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+      ) : null}
+    </Box>
+  );
+};
+
+export default ConnectionRow;

@@ -93,11 +93,20 @@ const DeFiSectionV1 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       fireImmediateWhenNoView: false,
     });
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'warm';
+    if (isLoading) {
+      cacheState = 'cold';
+    } else if (hasError) {
+      cacheState = 'unknown';
+    }
+
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
       contentReady: !isLoading,
       isEmpty: isEmpty && !hasError,
       contentStateForTrace: hasError ? 'error' : undefined,
+      demandStarted: isDeFiEnabled,
+      cacheState,
       isLoading,
       enabled: isDeFiEnabled,
     });
@@ -125,7 +134,7 @@ const DeFiSectionV1 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
           />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
+              section: title,
             })}
             onRetry={refresh}
           />

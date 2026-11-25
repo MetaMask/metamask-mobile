@@ -4,6 +4,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -11,12 +14,14 @@ jest.mock('./OnboardingStep', () => {
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     React.createElement(
       View,
@@ -32,7 +37,11 @@ jest.mock('./OnboardingStep', () => {
         { testID: 'onboarding-step-form-fields' },
         formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
     );
 });
 
@@ -118,50 +127,50 @@ jest.mock('@metamask/design-system-react-native', () => {
         { testID, onPress, disabled: disabled || isDisabled, ...props },
         React.createElement(Text, {}, children || label),
       ),
+    HelpText: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(Text, { testID, ...props }, children),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+    },
+    FontWeight: { Medium: '500' },
     TextVariant,
     IconName,
     IconSize,
     ButtonVariant,
     ButtonSize,
-  };
-});
-
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
-  const React = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-
-  const MockTextField = ({
-    testID,
-    onChangeText,
-    onBlur,
-    value,
-    placeholder,
-    maxLength,
-    accessibilityLabel,
-    ...props
-  }: {
-    testID?: string;
-    onChangeText?: (text: string) => void;
-    onBlur?: () => void;
-    value?: string;
-    placeholder?: string;
-    maxLength?: number;
-    accessibilityLabel?: string;
-  }) =>
-    React.createElement(TextInput, {
-      testID,
+    TextField: ({
+      value,
       onChangeText,
       onBlur,
-      value,
-      placeholder,
-      maxLength,
-      accessibilityLabel,
-      ...props,
-    });
-
-  return {
-    __esModule: true,
-    default: MockTextField,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 
@@ -227,7 +236,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-jest.mock('../../../Ramp/components/DepositDateField', () => {
+jest.mock('./CardDateField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 

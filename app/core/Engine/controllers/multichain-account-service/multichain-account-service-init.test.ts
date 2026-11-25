@@ -1,4 +1,5 @@
 import {
+  AccountProviderWrapper,
   MultichainAccountService,
   MultichainAccountServiceMessenger,
   SOL_ACCOUNT_PROVIDER_NAME,
@@ -77,7 +78,7 @@ describe('MultichainAccountServiceInit', () => {
     ).toBeInstanceOf(MultichainAccountService);
   });
 
-  it('initializes with correct messenger and providerConfigs', () => {
+  it('initializes with correct messenger, providers, and providerConfigs', () => {
     const initRequestMock = getInitRequestMock();
 
     multichainAccountServiceInit(initRequestMock);
@@ -88,6 +89,7 @@ describe('MultichainAccountServiceInit', () => {
     const callArgs = serviceMock.mock.calls[0][0];
 
     expect(callArgs.messenger).toBe(initRequestMock.controllerMessenger);
+    expect(callArgs.providers).toEqual([expect.any(AccountProviderWrapper)]);
     expect(callArgs.providerConfigs).toBeDefined();
   });
 
@@ -113,5 +115,29 @@ describe('MultichainAccountServiceInit', () => {
     ).toMatchObject({
       timeoutMs: 3000,
     });
+    expect(providerConfigs).not.toHaveProperty('Stellar');
+  });
+
+  it('does not call RemoteFeatureFlagController:getState during init', () => {
+    const requestMock = getInitRequestMock();
+    const callSpy = jest.spyOn(requestMock.initMessenger, 'call');
+
+    multichainAccountServiceInit(requestMock);
+
+    expect(callSpy).not.toHaveBeenCalledWith(
+      'RemoteFeatureFlagController:getState',
+    );
+  });
+
+  it('does not subscribe to RemoteFeatureFlagController:stateChange', () => {
+    const requestMock = getInitRequestMock();
+    const subscribeSpy = jest.spyOn(requestMock.initMessenger, 'subscribe');
+
+    multichainAccountServiceInit(requestMock);
+
+    expect(subscribeSpy).not.toHaveBeenCalledWith(
+      'RemoteFeatureFlagController:stateChange',
+      expect.any(Function),
+    );
   });
 });

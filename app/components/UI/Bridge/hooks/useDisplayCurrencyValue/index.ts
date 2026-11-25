@@ -7,13 +7,12 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
 export const useDisplayCurrencyValue = (
   amount?: string,
   token?: BridgeToken,
+  tokenFiatRate?: number,
 ) => {
   const evmMultiChainMarketData = useSelector(selectTokenMarketData);
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -23,9 +22,7 @@ export const useDisplayCurrencyValue = (
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   let nonEvmMultichainAssetRates = {};
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
   const currencyValue = getDisplayCurrencyValue({
     token,
@@ -35,6 +32,7 @@ export const useDisplayCurrencyValue = (
     evmMultiChainCurrencyRates,
     currentCurrency,
     nonEvmMultichainAssetRates,
+    tokenFiatRate,
   });
 
   return currencyValue;

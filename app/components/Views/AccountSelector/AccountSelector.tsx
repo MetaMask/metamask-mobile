@@ -7,12 +7,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
@@ -22,20 +17,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  HeaderStandard,
-  FontWeight,
-  Text,
-  TextVariant,
+  ButtonIconSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import AddWalletButton from '../../../component-library/components-temp/MultichainAccounts/AddWalletButton';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
@@ -45,7 +33,10 @@ import { useAccounts } from '../../hooks/useAccounts';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../selectors/multichainAccounts/manageAccounts';
+import { selectInternalAccountsById } from '../../../selectors/accountsController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 // Internal dependencies.
 import {
@@ -57,6 +48,12 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
+  SearchInteractedSource,
+  SearchInteractionType,
+  buildSearchInteractedProperties,
+} from '../../../core/Analytics/events/navigation';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
+import {
   TraceName,
   TraceOperation,
   endTrace,
@@ -64,10 +61,14 @@ import {
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
-import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import Routes from '../../../constants/navigation/Routes';
+import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
+import ButtonIconGlass from '../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -79,6 +80,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const {
     navigateToAddAccountActions,
     disableAddAccountButton,
+    isEvmOnly,
     onSelectAccount: onSelectAccountFromRoute,
   } = routeParams || {};
 
@@ -86,6 +88,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     (state: RootState) => state.accounts.reloadAccounts,
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const accountSections = useSelector(selectVisibleAccountGroupsByWallet);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+
+  // Hide groups that have no EVM account. A group that also holds SOL stays,
+  // because the row is the account, not the chain.
+  const evmOnlyAccountSections = useMemo(() => {
+    if (!isEvmOnly) {
+      return undefined;
+    }
+
+    return accountSections
+      .map((section) => ({
+        ...section,
+        data: section.data.filter((group) =>
+          group.accounts.some((accountId) => {
+            const account = internalAccountsById[accountId];
+            return Boolean(account && isEvmAccountType(account.type));
+          }),
+        ),
+      }))
+      .filter((section) => section.data.length > 0);
+  }, [accountSections, internalAccountsById, isEvmOnly]);
 
   // Stable array reference so the memoized list isn't re-rendered (and its
   // selectedIdSet / renderItem rebuilt) on every parent render.
@@ -94,20 +118,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [selectedAccountGroup],
   );
 
-  const {
-    isAccountSyncingInProgress,
-    loadingMessage: accountOperationLoadingMessage,
-  } = useAccountsOperationsLoadingStates();
-
   useSyncSRPs();
-
-  const buttonLabel = useMemo(() => {
-    if (isAccountSyncingInProgress) {
-      return accountOperationLoadingMessage;
-    }
-
-    return strings('multichain_accounts.add_wallet');
-  }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
@@ -144,6 +155,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const handleClose = useCallback(() => {
     navigation.goBack();
+  }, [navigation]);
+
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   }, [navigation]);
 
   useEffect(() => {
@@ -212,6 +229,30 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigation.navigate(Routes.SHEET.ADD_WALLET);
   }, [navigation]);
 
+  const trackSearchInteracted = useCallback(
+    (interactionType: SearchInteractionType) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SEARCH_INTERACTED)
+          .addProperties(
+            buildSearchInteractedProperties(
+              SearchInteractedSource.AccountList,
+              interactionType,
+            ),
+          )
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+  const handleSearchFocus = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Focused),
+    [trackSearchInteracted],
+  );
+  const handleSearchSettled = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Searched),
+    [trackSearchInteracted],
+  );
+
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
@@ -220,58 +261,39 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <Fragment>
         {selectedAccountGroup ? (
-          <MultichainAccountSelectorList
-            onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={selectedAccountGroups}
-            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-            showFooter={!disableAddAccountButton}
-          />
+          <AccountListBalanceProviders>
+            <MultichainAccountSelectorList
+              onSelectAccount={_onSelectMultichainAccount}
+              selectedAccountGroups={selectedAccountGroups}
+              accountSections={evmOnlyAccountSections}
+              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+              setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+              showFooter={!disableAddAccountButton}
+              onSearchFocus={handleSearchFocus}
+              onSearchSettled={handleSearchSettled}
+            />
+          </AccountListBalanceProviders>
         ) : null}
         {!disableAddAccountButton && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="px-4 pt-6 pb-5"
-          >
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleAddAccount}
-              isDisabled={isAccountSyncingInProgress}
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-              twClassName="flex-1"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                {isAccountSyncingInProgress ? (
-                  <ActivityIndicator size="small" />
-                ) : null}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {buttonLabel}
-                </Text>
-              </Box>
-            </Button>
-          </Box>
+          <AddWalletButton
+            onPress={handleAddAccount}
+            testID={
+              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+            }
+          />
         )}
       </Fragment>
     ),
     [
       selectedAccountGroup,
       selectedAccountGroups,
+      evmOnlyAccountSections,
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
-      buttonLabel,
-      isAccountSyncingInProgress,
+      handleSearchFocus,
+      handleSearchSettled,
+      setKeyboardAvoidingViewEnabled,
     ],
   );
 
@@ -302,12 +324,29 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             paddingBottom: insets.bottom,
           }}
         >
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('accounts.accounts_title')}
             onBack={handleClose}
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
+            endAccessory={
+              <ButtonIconGlass
+                isCapsule={isGlassHeader}
+                iconName={IconName.Setting}
+                size={ButtonIconSize.Md}
+                onPress={handleManageAccountsPress}
+                testID={
+                  AccountListBottomSheetSelectorsIDs.MANAGE_ACCOUNTS_BUTTON
+                }
+                accessibilityLabel={strings(
+                  'multichain_accounts.manage_accounts.title',
+                )}
+                accessibilityRole="button"
+              />
+            }
           />
           {renderAccountSelector()}
         </Box>
@@ -326,7 +365,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               paddingBottom: insets.bottom,
             }}
           >
-            <HeaderStandard
+            <HeaderStandardGlass
+              isGlass={isGlassHeader}
+              isFloating={false}
               title={strings('multichain_accounts.add_wallet')}
               onBack={handleBackToSelector}
               backButtonProps={{

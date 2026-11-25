@@ -20,7 +20,7 @@ export default function AnnouncementCtaFooter(
 
   const callEvent = () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED)
         .addProperties({
           ...notificationAnalyticsProperties(props.notification),
           clicked_item: 'cta_button',

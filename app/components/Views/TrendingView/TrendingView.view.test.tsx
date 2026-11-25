@@ -1,6 +1,9 @@
 import '../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import {
+  HeaderNavBarVariant,
+  renderTrendingViewWithRoutes,
+} from '../../../../tests/component-view/renderers/trending';
 import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import { EXPLORE_TAB_INDEX } from './TrendingView';
@@ -266,6 +269,36 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
+  it('Sites tab Ecosystems carousel shows every network in order, including Stellar and Tron', async () => {
+    const { getByTestId } = renderTrendingViewWithRoutes();
+
+    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.DAPPS, getByTestId);
+
+    await waitFor(() => {
+      const carousel = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_DAPPS_NETWORKS_CAROUSEL,
+      );
+      const tileNames = within(carousel)
+        .getAllByTestId(
+          new RegExp(`^${TrendingViewSelectorsIDs.SITE_RECENTS_TILE_PREFIX}`),
+        )
+        .map((tile) =>
+          String(tile.props.testID).replace(
+            TrendingViewSelectorsIDs.SITE_RECENTS_TILE_PREFIX,
+            '',
+          ),
+        );
+      expect(tileNames).toEqual([
+        'Linea',
+        'Sei',
+        'Monad',
+        'Solana',
+        'Tron',
+        'Stellar',
+      ]);
+    });
+  });
+
   it('opens the requested Explore tab from route params', async () => {
     const { getByText, queryAllByTestId } = renderTrendingViewWithRoutes({
       initialParams: { initialTab: EXPLORE_TAB_INDEX.SITES },
@@ -280,6 +313,14 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
+    const searchEthereumResult = {
+      ...mockTrendingTokensData[0],
+      pricePercentChange1d: '5.2',
+    };
+    setupTrendingApiFetchMock(mockTrendingTokensData, undefined, undefined, [
+      searchEthereumResult,
+    ]);
+
     const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -313,12 +354,15 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
           pricePercentageChange: '+5.20%',
         },
       ],
+      missing: [{ id: TRENDING_BITCOIN_ID }, { id: TRENDING_UNISWAP_ID }],
     });
   });
 
-  it('exits search mode when cancel is pressed and restores the search button', async () => {
+  it('exits search mode when the inline back button is pressed and restores the search button', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
-      renderTrendingViewWithRoutes();
+      renderTrendingViewWithRoutes({
+        headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+      });
 
     await waitFor(() => {
       expect(
@@ -338,7 +382,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     await findByTestId(TrendingViewSelectorsIDs.TRENDING_SEARCH_RESULTS_LIST);
 
     await actButtonPress(
-      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
     );
 
     await waitFor(() => {
@@ -505,6 +549,14 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
+
+    const searchEthereumResult = {
+      ...mockTrendingTokensData[0],
+      pricePercentChange1d: '5.2',
+    };
+    setupTrendingApiFetchMock(mockTrendingTokensData, undefined, undefined, [
+      searchEthereumResult,
+    ]);
 
     await userEvent.type(searchInput, 'ethereum');
 

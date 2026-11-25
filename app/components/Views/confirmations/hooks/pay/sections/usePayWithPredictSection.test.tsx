@@ -1,23 +1,54 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
+import { usePredictTrading } from '../../../../../UI/Predict/hooks/usePredictTrading';
+import { showDepositErrorToast } from '../../../../../UI/Predict/utils/predictErrorHandler';
+import { ConfirmationLoader } from '../../../components/confirm/confirm-component';
 import useApprovalRequest from '../../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { usePayWithPredictSection } from './usePayWithPredictSection';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
+// This test stubs every selector with one value; Predict serves the legacy
+// lane, as it does wherever this pay-with section exists.
+jest.mock(
+  '../../../../../UI/PredictNext/implementation/usePredictImplementation',
+  () => {
+    const legacyLane = { status: 'ready', implementation: 'legacy' };
+    return { usePredictImplementation: () => legacyLane };
+  },
+);
+// The availability and capability gate reads the store; this test has no
+// Provider, so it drives the gate directly.
+let mockIsPredictDepositAvailable = true;
+let mockIsPredictDepositAvailableNow = true;
+jest.mock(
+  '../../../../../UI/PredictNext/funding/usePredictLegacyDeposit',
+  () => {
+    const isAvailableNow = () => mockIsPredictDepositAvailableNow;
+    return {
+      usePredictLegacyDeposit: () => ({
+        isAvailable: mockIsPredictDepositAvailable,
+        isAvailableNow,
+      }),
+    };
+  },
+);
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
     const translations: Record<string, string> = {
@@ -37,8 +68,15 @@ jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
 jest.mock('../../../../../UI/Predict/contexts', () => ({
   dismissActivePreviewSheet: jest.fn(),
 }));
+jest.mock('../../../../../UI/Predict/hooks/usePredictTrading');
+jest.mock('../../../../../UI/Predict/utils/predictErrorHandler', () => ({
+  ensureError: (error: unknown) => error,
+  showDepositErrorToast: jest.fn(),
+}));
+jest.mock('../../../../../../util/Logger');
 jest.mock('../../useApprovalRequest');
 jest.mock('../../transactions/useTransactionMetadataRequest');
+jest.mock('./useClearPaymentOverride');
 
 describe('usePayWithPredictSection', () => {
   const useSelectorMock = jest.mocked(useSelector);
@@ -50,17 +88,24 @@ describe('usePayWithPredictSection', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useClearPaymentOverrideMock = jest.mocked(useClearPaymentOverride);
   const dismissActivePreviewSheetMock = jest.mocked(dismissActivePreviewSheet);
+  const usePredictTradingMock = jest.mocked(usePredictTrading);
+  const showDepositErrorToastMock = jest.mocked(showDepositErrorToast);
 
-  const navigateMock = jest.fn();
+  const dispatchMock = jest.fn();
+  const depositMock = jest.fn();
   const goBackMock = jest.fn();
   const onRejectMock = jest.fn();
   const resetSelectedPaymentTokenMock = jest.fn();
   const onPaymentTokenChangeMock = jest.fn();
+  const clearPaymentOverrideMock = jest.fn();
   const formatFiatMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockIsPredictDepositAvailable = true;
+    mockIsPredictDepositAvailableNow = true;
 
     formatFiatMock.mockImplementation(
       (value: { toString: () => string }) =>
@@ -68,9 +113,12 @@ describe('usePayWithPredictSection', () => {
     );
 
     useNavigationMock.mockReturnValue({
-      navigate: navigateMock,
       goBack: goBackMock,
+      dispatch: dispatchMock,
     } as never);
+
+    depositMock.mockResolvedValue({ success: true });
+    usePredictTradingMock.mockReturnValue({ deposit: depositMock } as never);
 
     useFiatFormatterMock.mockReturnValue(formatFiatMock as never);
 
@@ -93,7 +141,8 @@ describe('usePayWithPredictSection', () => {
       onReject: onRejectMock,
     } as never);
 
-    useSelectorMock.mockReturnValue({ image: 'https://example.com/pusd.png' });
+    useSelectorMock.mockReturnValue(undefined);
+    useClearPaymentOverrideMock.mockReturnValue(clearPaymentOverrideMock);
   });
 
   it('returns null when the transaction type is not predictDepositAndOrder', () => {
@@ -155,6 +204,14 @@ describe('usePayWithPredictSection', () => {
     );
   });
 
+  it('marks the row as not selected when Money Account is selected', () => {
+    useSelectorMock.mockReturnValue(PaymentOverride.MoneyAccount);
+
+    const { result } = renderHook(() => usePayWithPredictSection());
+
+    expect(result.current?.rows[0].isSelected).toBe(false);
+  });
+
   it('treats a missing balance as zero', () => {
     usePredictBalanceMock.mockReturnValue({ data: undefined } as never);
 
@@ -171,10 +228,11 @@ describe('usePayWithPredictSection', () => {
     });
 
     expect(resetSelectedPaymentTokenMock).toHaveBeenCalledTimes(1);
+    expect(clearPaymentOverrideMock).toHaveBeenCalledTimes(1);
     expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to the Predict add-funds sheet with autoDeposit when Add is pressed', () => {
+  it('closes the sheet and opens the Predict deposit confirmation when Add is pressed', () => {
     const { result } = renderHook(() => usePayWithPredictSection());
 
     const trailing = result.current?.rows[0].trailingElement as
@@ -187,10 +245,35 @@ describe('usePayWithPredictSection', () => {
 
     expect(onRejectMock).toHaveBeenCalledTimes(1);
     expect(dismissActivePreviewSheetMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      params: { autoDeposit: true },
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+    expect(goBackMock.mock.invocationCallOrder[0]).toBeLessThan(
+      dispatchMock.mock.invocationCallOrder[0],
+    );
+    expect(dispatchMock).toHaveBeenCalledWith(
+      CommonActions.navigate({
+        name: Routes.PREDICT.ROOT,
+        params: {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: { loader: ConfirmationLoader.CustomAmount },
+        },
+      }),
+    );
+    expect(depositMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the confirmation and shows the deposit error toast when the deposit fails', async () => {
+    depositMock.mockRejectedValue(new Error('deposit failed'));
+    const { result } = renderHook(() => usePayWithPredictSection());
+    const trailing = result.current?.rows[0].trailingElement as
+      | { props: { onPress: () => void } }
+      | undefined;
+
+    await act(async () => {
+      trailing?.props.onPress();
     });
+
+    expect(goBackMock).toHaveBeenCalledTimes(2);
+    expect(showDepositErrorToastMock).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the result reference stable across renders when nothing changes', () => {
@@ -200,5 +283,48 @@ describe('usePayWithPredictSection', () => {
     rerender();
 
     expect(result.current).toBe(firstResult);
+  });
+
+  describe('while the legacy Predict deposit does not serve the Active Venue', () => {
+    beforeEach(() => {
+      mockIsPredictDepositAvailable = false;
+      mockIsPredictDepositAvailableNow = false;
+    });
+
+    it('returns no section for a predictDepositAndOrder transaction', () => {
+      const { result } = renderHook(() => usePayWithPredictSection());
+
+      expect(result.current).toBeNull();
+    });
+
+    it('does not read the legacy Predict balance', () => {
+      renderHook(() => usePayWithPredictSection());
+
+      expect(usePredictBalanceMock).toHaveBeenCalledWith({ enabled: false });
+    });
+  });
+
+  it('reads the legacy Predict balance while the legacy deposit is available', () => {
+    renderHook(() => usePayWithPredictSection());
+
+    expect(usePredictBalanceMock).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('keeps the confirmation and opens nothing when Add is pressed after the Active Venue changed', () => {
+    const { result } = renderHook(() => usePayWithPredictSection());
+    const trailing = result.current?.rows[0].trailingElement as
+      | { props: { onPress: () => void } }
+      | undefined;
+    mockIsPredictDepositAvailableNow = false;
+
+    act(() => {
+      trailing?.props.onPress();
+    });
+
+    expect(onRejectMock).not.toHaveBeenCalled();
+    expect(dismissActivePreviewSheetMock).not.toHaveBeenCalled();
+    expect(goBackMock).not.toHaveBeenCalled();
+    expect(dispatchMock).not.toHaveBeenCalled();
+    expect(depositMock).not.toHaveBeenCalled();
   });
 });

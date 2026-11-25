@@ -15,8 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
     },
     headerBackButton: {
       marginRight: 12,

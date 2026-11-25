@@ -6,6 +6,12 @@ import {
   setupMockRequest,
   setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
+import {
+  bridgeGetTokens,
+  priceSpotPricesV3,
+  spotPrice,
+  tokensAssetsV3,
+} from '../../api-mocking/api-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 import {
@@ -74,12 +80,14 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
     },
   };
 
-  await setupMockRequest(mockServer, {
-    url: /price\.api\.cx\.metamask\.io\/v3\/spot-prices/,
-    response: spotPricesResponse,
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  await priceSpotPricesV3.register(mockServer, () =>
+    Object.fromEntries(
+      Object.entries(spotPricesResponse).map(([assetId, { price }]) => [
+        assetId,
+        spotPrice(assetId, price),
+      ]),
+    ),
+  );
 }
 
 export const mockSwapPopularTokens = async (
@@ -103,7 +111,8 @@ export async function setupSwapSocialAndComplianceMocks(
     mockServer,
     {
       requestMethod: 'GET',
-      url: /social\.api\.cx\.metamask\.io\/api\/v1\/leaderboard/,
+      // main-e2e builds use social.dev-api (builds.yml); prod uses social.api.
+      url: /social\.(?:dev-api|api|uat-api)\.cx\.metamask\.io\/api\/v1\/leaderboard/,
       response: SOCIAL_LEADERBOARD_EMPTY_RESPONSE,
       responseCode: 200,
     },
@@ -148,12 +157,7 @@ export async function setupSwapSocialAndComplianceMocks(
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    stxMigrationBatchStatus: false,
-    stxMigrationCancel: false,
-    stxMigrationGetFees: false,
-    stxMigrationSubmitTransactions: false,
-  });
+  await setupRemoteFeatureFlagsMock(mockServer);
   await setupSpotPricesMock(mockServer);
   await setupSwapSocialAndComplianceMocks(mockServer);
 
@@ -225,39 +229,35 @@ export const testSpecificMock: TestSpecificMock = async (
   );
 
   // Mock Ethereum token list
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getTokens.*chainId=1/i,
-    response: GET_TOKENS_MAINNET_RESPONSE,
-    responseCode: 200,
-  });
+  await bridgeGetTokens.register(
+    mockServer,
+    () => GET_TOKENS_MAINNET_RESPONSE,
+    { chainId: 1 },
+  );
 
   // Mock popular tokens (POST - for token selector)
   await mockSwapPopularTokens(mockServer);
 
   // Mock API tokens for USDC
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    response: GET_TOKENS_API_USDC_RESPONSE,
-    responseCode: 200,
-  });
+  await tokensAssetsV3.register(
+    mockServer,
+    () => GET_TOKENS_API_USDC_RESPONSE,
+    { assetIds: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' },
+  );
 
   // Mock API tokens for USDT
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    response: GET_TOKENS_API_USDT_RESPONSE,
-    responseCode: 200,
-  });
+  await tokensAssetsV3.register(
+    mockServer,
+    () => GET_TOKENS_API_USDT_RESPONSE,
+    { assetIds: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7' },
+  );
 
   // Mock API tokens for MUSD
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-    response: GET_TOKENS_API_MUSD_RESPONSE,
-    responseCode: 200,
-  });
+  await tokensAssetsV3.register(
+    mockServer,
+    () => GET_TOKENS_API_MUSD_RESPONSE,
+    { assetIds: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA' },
+  );
 
   // Mock USDC->GOOGLON (SSE)
   await setupSSEMockRequest(

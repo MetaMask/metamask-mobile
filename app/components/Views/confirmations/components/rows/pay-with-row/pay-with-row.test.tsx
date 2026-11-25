@@ -131,12 +131,11 @@ describe('PayWithRow', () => {
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
-        address: ADDRESS_MOCK,
+        assetId: `eip155:${parseInt(CHAIN_ID_MOCK, 16)}/erc20:${ADDRESS_MOCK}`,
         balanceHuman: '0',
         balanceFiat: '$0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'test',
       },
@@ -446,6 +445,50 @@ describe('PayWithRow', () => {
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
 
+    it('shows money account from the flag default before a pay token is chosen', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-no-override',
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('shows the selected token when the money-account override is cleared', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-no-override',
+        txParams: { from: '0x1' },
+      } as never);
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: {
+          assetId: `eip155:${parseInt(CHAIN_ID_MOCK, 16)}/erc20:${ADDRESS_MOCK}`,
+          balanceHuman: '0',
+          balanceFiat: '$0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^USDC/);
+    });
+
     it('renders interactive row on review page when only flag-defaulted (no explicit override)', () => {
       jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
@@ -508,6 +551,62 @@ describe('PayWithRow', () => {
       });
 
       expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+    });
+  });
+
+  describe('Convert label scoping', () => {
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])('shows "Convert" token row label for %s', (type) => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-convert',
+        type,
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Convert')).toBeOnTheScreen();
+      expect(queryByText('Pay with')).toBeNull();
+    });
+
+    it.each([
+      TransactionType.contractInteraction,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDepositAndOrder,
+    ])('keeps "Pay with" label for %s', (type) => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-pay-with',
+        type,
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Pay with')).toBeOnTheScreen();
+      expect(queryByText('Convert')).toBeNull();
+    });
+
+    it('keeps "Pay with" label when a fiat payment method is selected on a deposit', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-fiat',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x1' },
+      } as never);
+      jest.mocked(useTransactionPaySelectedFiatPaymentMethod).mockReturnValue({
+        id: 'pm-card',
+        paymentType: 'debit-credit-card',
+        name: 'Credit Card',
+        score: 1,
+        icon: 'card-icon',
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Pay with')).toBeOnTheScreen();
+      expect(queryByText('Convert')).toBeNull();
     });
   });
 });

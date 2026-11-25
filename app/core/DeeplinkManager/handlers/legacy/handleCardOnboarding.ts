@@ -3,11 +3,11 @@ import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../Engine';
 import {
   selectIsCardAuthenticated,
-  selectCardholderAccounts,
+  selectHasCard,
 } from '../../../../selectors/cardController';
+import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
 
 /**
  * Card onboarding deeplink handler
@@ -19,9 +19,10 @@ import {
  * DEEP_LINK_USED event - this handler only handles navigation and business logic.
  *
  * Behavior:
- * - User is logged in or has a card-linked account: Switch to first card-linked account,
- * navigate to Card Home, and show a toast notification
- * - User is not logged in and has no card-linked account: Remain in current account and
+ * - User is logged in: Navigate to Card Home and show a toast notification
+ * - User is not logged in but has a stored card link: Switch to that account and
+ * navigate to Card login
+ * - User is not logged in and has no card link: Remain in current account and
  * navigate to Card Welcome/onboarding screen
  *
  * Supported URL formats:
@@ -35,50 +36,24 @@ export const handleCardOnboarding = () => {
 
   try {
     const state = ReduxService.store.getState();
-    const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsCardAuthenticated(state);
-    const hasCardLinkedAccount = cardholderAccounts.length > 0;
+    const hasCard = selectHasCard(state);
 
-    // If user is logged in OR has a card-linked account
-    if (isAuthenticated || hasCardLinkedAccount) {
-      if (hasCardLinkedAccount) {
-        // Switch to the first account that has a linked card
-        const firstCardholderAddress = cardholderAccounts[0];
-        DevLogger.log(
-          '[handleCardOnboarding] Switching to first cardholder account:',
-          firstCardholderAddress,
-        );
-
-        try {
-          Engine.setSelectedAddress(firstCardholderAddress);
-          DevLogger.log(
-            '[handleCardOnboarding] Successfully switched to cardholder account',
-          );
-        } catch (switchError) {
-          // Log error but continue with navigation to Card Home
-          DevLogger.log(
-            '[handleCardOnboarding] Error switching account:',
-            switchError,
-          );
-          Logger.error(
-            switchError as Error,
-            '[handleCardOnboarding] Failed to switch to cardholder account',
-          );
-        }
+    if (isAuthenticated || hasCard) {
+      const openCard = () =>
+        isAuthenticated
+          ? navigateToCardHomeWithToast()
+          : navigateToCardAuthentication();
+      DevLogger.log(
+        isAuthenticated
+          ? '[handleCardOnboarding] Navigating to Card Home'
+          : '[handleCardOnboarding] Navigating to Card login',
+      );
+      if (!isAuthenticated && hasCard) {
+        switchToLinkedCardAccount().then(openCard, openCard);
+      } else {
+        openCard();
       }
-
-      DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
-      setTimeout(() => {
-        NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.HOME,
-            params: {
-              showDeeplinkToast: true,
-            },
-          },
-        });
-      }, 500);
     } else {
       // User is not logged in AND has no card-linked account
       // Navigate to Card Welcome/onboarding screen
@@ -113,3 +88,28 @@ export const handleCardOnboarding = () => {
     }
   }
 };
+
+function navigateToCardHomeWithToast(): void {
+  setTimeout(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.HOME,
+        params: {
+          showDeeplinkToast: true,
+        },
+      },
+    });
+  }, 500);
+}
+
+function navigateToCardAuthentication(): void {
+  setTimeout(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.AUTHENTICATION,
+      },
+    });
+  }, 500);
+}

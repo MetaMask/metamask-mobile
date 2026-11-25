@@ -109,6 +109,7 @@ jest.mock(
 describe('PerpsSelectModifyActionView', () => {
   const mockLongPosition: Position = {
     symbol: 'ETH',
+    providerId: 'lighter',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',
@@ -182,10 +183,26 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockLongPosition,
       hideTPSL: true,
       source: 'position_screen',
     });
+  });
+
+  it('forwards the bottom-sheet treatment when adding to a position', () => {
+    render(
+      <PerpsSelectModifyActionView
+        position={mockLongPosition}
+        useBottomSheet
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
+    expect(mockNavigateToOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ useBottomSheet: true }),
+    );
   });
 
   it('navigates to order with short direction when add_to_position is selected for short position', () => {
@@ -196,6 +213,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockShortPosition,
       hideTPSL: true,
       source: 'position_screen',
@@ -239,6 +257,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      providerId: 'lighter',
       amount: '2.5',
       leverage: 10,
       source: 'position_screen',
@@ -253,6 +272,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       amount: '2.5',
       leverage: 10,
       source: 'position_screen',
@@ -333,6 +353,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockLongPosition,
       hideTPSL: true,
       source: 'position_screen',

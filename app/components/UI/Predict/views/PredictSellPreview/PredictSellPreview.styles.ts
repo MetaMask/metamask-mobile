@@ -64,9 +64,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       gap: 8,
     },
-    cashOutButton: {
-      width: '100%',
-    },
     cashOutButtonText: {
       textAlign: 'center',
       color: theme.colors.text.alternative,

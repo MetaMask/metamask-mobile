@@ -10,7 +10,7 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import { isPositionOpen } from '../../flows/perps.flow';
 
 class PerpsMarketDetailsView {
@@ -30,7 +30,7 @@ class PerpsMarketDetailsView {
   }
 
   /** Header - wdio PerpsPositionDetailsView uses 'perps-market-header' for isContainerDisplayed */
-  get header(): EncapsulatedElementType {
+  get header(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER);
   }
 
@@ -115,19 +115,19 @@ class PerpsMarketDetailsView {
   }
 
   // Scroll view
-  get scrollView(): EncapsulatedElementType {
+  get scrollView(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
     );
   }
 
-  get confirmCloseButton(): EncapsulatedElementType {
+  get confirmCloseButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
@@ -136,13 +136,13 @@ class PerpsMarketDetailsView {
   // Trading action buttons — On Android, Reanimated's AnimatedPressable
   // inside ButtonSemantic doesn't propagate testID to resource-id, so Appium
   // targets the plain View wrapper (LONG/SHORT_BUTTON_WRAPPER) instead.
-  get longButton(): EncapsulatedElementType {
+  get longButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
     );
   }
 
-  get shortButton(): EncapsulatedElementType {
+  get shortButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
     );

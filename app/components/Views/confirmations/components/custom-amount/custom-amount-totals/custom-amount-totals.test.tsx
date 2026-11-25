@@ -7,13 +7,19 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
-jest.mock('../../rows/bridge-fee-row', () => ({
-  BridgeFeeRow: () => null,
-}));
+jest.mock('../../rows/bridge-fee-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    BridgeFeeRow: () => <View testID="bridge-fee-row" />,
+  };
+});
 
-jest.mock('../../rows/bridge-time-row', () => ({
-  BridgeTimeRow: () => null,
-}));
+jest.mock('../../rows/bridge-time-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    BridgeTimeRow: () => <View testID="bridge-time-row" />,
+  };
+});
 
 jest.mock('../../rows/total-row', () => {
   const { View } = jest.requireActual('react-native');
@@ -22,33 +28,24 @@ jest.mock('../../rows/total-row', () => {
   };
 });
 
-jest.mock('../../rows/receive-row', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    ReceiveRow: () => <View testID="receive-row" />,
-  };
-});
-
-function render(props: {
-  amountFiat?: string;
-  canSelectWithdrawToken?: boolean;
-  stage: CustomAmountStage;
-}) {
-  return renderWithProvider(
-    <CustomAmountTotals
-      amountFiat={props.amountFiat ?? '100'}
-      canSelectWithdrawToken={props.canSelectWithdrawToken ?? false}
-      stage={props.stage}
-    />,
-    {
-      state: merge(
-        {},
-        simpleSendTransactionControllerMock,
-        transactionApprovalControllerMock,
-        otherControllersMock,
-      ),
-    },
-  );
+function render(props: { stage: CustomAmountStage; type?: string }) {
+  return renderWithProvider(<CustomAmountTotals stage={props.stage} />, {
+    state: merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      otherControllersMock,
+      props.type && {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [{ type: props.type }],
+            },
+          },
+        },
+      },
+    ),
+  });
 }
 
 describe('CustomAmountTotals', () => {
@@ -68,30 +65,28 @@ describe('CustomAmountTotals', () => {
     expect(queryByTestId('total-row-skeleton')).toBeNull();
   });
 
-  it('renders without skeletons when stage is ShowTotals', () => {
-    const { queryByTestId } = render({ stage: CustomAmountStage.ShowTotals });
+  it('renders the total row when stage is ShowTotals', () => {
+    const { getByTestId, queryByTestId } = render({
+      stage: CustomAmountStage.ShowTotals,
+    });
 
+    expect(getByTestId('total-row')).toBeOnTheScreen();
     expect(queryByTestId('bridge-fee-row-skeleton')).toBeNull();
     expect(queryByTestId('total-row-skeleton')).toBeNull();
   });
 
-  it('renders ReceiveRow when canSelectWithdrawToken is true and stage is ShowTotals', () => {
-    const { getByTestId, queryByTestId } = render({
+  it('orders Est. time before Transaction fees for moneyAccountDeposit', () => {
+    const { toJSON } = render({
       stage: CustomAmountStage.ShowTotals,
-      canSelectWithdrawToken: true,
+      type: 'moneyAccountDeposit',
     });
 
-    expect(getByTestId('receive-row')).toBeOnTheScreen();
-    expect(queryByTestId('total-row')).toBeNull();
-  });
-
-  it('renders TotalRow when canSelectWithdrawToken is false and stage is ShowTotals', () => {
-    const { getByTestId, queryByTestId } = render({
-      stage: CustomAmountStage.ShowTotals,
-      canSelectWithdrawToken: false,
-    });
-
-    expect(getByTestId('total-row')).toBeOnTheScreen();
-    expect(queryByTestId('receive-row')).toBeNull();
+    const json = JSON.stringify(toJSON());
+    expect(json.indexOf('bridge-time-row')).toBeLessThan(
+      json.indexOf('bridge-fee-row'),
+    );
+    expect(json.indexOf('bridge-fee-row')).toBeLessThan(
+      json.indexOf('total-row'),
+    );
   });
 });

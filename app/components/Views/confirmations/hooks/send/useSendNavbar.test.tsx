@@ -15,6 +15,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigationState: jest.fn(),
 }));
 
+let mockGlassHeadersEnabled = false;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockGlassHeadersEnabled,
+}));
+
 jest.mock('./useSendActions', () => ({
   useSendActions: () => ({
     handleCancelPress: mockHandleCancelPress,
@@ -27,8 +34,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 describe('useSendNavbar', () => {
   const mockParentNavigate = jest.fn();
+  const mockParentGoBack = jest.fn();
+  const mockGoBack = jest.fn();
   const mockNavigation = {
     navigate: mockNavigate,
+    goBack: mockGoBack,
     getParent: jest.fn(),
   };
 
@@ -55,6 +65,7 @@ describe('useSendNavbar', () => {
     const state = createMockNavigationState(routes, index);
     mockNavigation.getParent.mockReturnValue({
       navigate: mockParentNavigate,
+      goBack: mockParentGoBack,
       getState: () => state,
     });
     return state;
@@ -62,6 +73,7 @@ describe('useSendNavbar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGlassHeadersEnabled = false;
     mockParentStackState([{ name: 'Send' }]);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useNavigationState as jest.Mock).mockReturnValue(
@@ -122,7 +134,7 @@ describe('useSendNavbar', () => {
       expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
-    it('navigates to previous main route when back button is pressed', () => {
+    it('pops the outer stack when a previous non-Home route exists', () => {
       mockParentStackState([
         { name: 'SomeOtherRoute', params: { test: 'data' } },
         { name: 'Send' },
@@ -137,9 +149,36 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockParentNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
-        test: 'data',
-      });
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockParentNavigate).not.toHaveBeenCalled();
+    });
+
+    /**
+     * Regression test: entering Send from TokenDetails does not pop 'Asset'
+     * off the outer stack first, so the outer stack is [Home, Asset, Send].
+     * Exiting the nested Send stack must pop 'Send' (via goBack) to reveal
+     * the existing 'Asset' screen, not push a duplicate 'Asset' via
+     * navigate(name, params) — a duplicate leaves the original 'Send' screen
+     * on the stack underneath, causing TokenDetails' own back press to land
+     * back inside Send instead of Home.
+     */
+    it('pops back to the existing TokenDetails screen instead of duplicating it', () => {
+      mockParentStackState([{ name: 'Asset' }, { name: 'Send' }]);
+
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Amount } = result.current;
+
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+      const backButton = getByTestId('send-navbar-back-button');
+
+      fireEvent.press(backButton);
+
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockParentNavigate).not.toHaveBeenCalledWith(
+        'Asset',
+        expect.anything(),
+      );
     });
 
     it('navigates to wallet view when previous route is Home', () => {
@@ -157,16 +196,13 @@ describe('useSendNavbar', () => {
       expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
-    it('navigates within Send sub-routes when nested routes exist', () => {
-      mockParentStackState([
-        {
-          name: 'Send',
-          state: {
-            index: 1,
-            routes: [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
-          },
-        },
-      ]);
+    it('pops the nested Send stack when nested history exists', () => {
+      (useNavigationState as jest.Mock).mockReturnValue(
+        createMockNavigationState(
+          [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
+          1,
+        ),
+      );
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -177,21 +213,18 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ASSET,
-      });
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockParentNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to Asset screen when at first route in nested Send stack', () => {
+    it('exits by popping the outer stack when at first route in nested Send stack', () => {
       mockParentStackState([
-        {
-          name: 'Send',
-          state: {
-            index: 0,
-            routes: [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
-          },
-        },
+        { name: 'SomeOtherRoute', params: { test: 'data' } },
+        { name: 'Send' },
       ]);
+      (useNavigationState as jest.Mock).mockReturnValue(
+        createMockNavigationState([{ name: Routes.SEND.AMOUNT }], 0),
+      );
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -202,9 +235,25 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ASSET,
-      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockParentNavigate).not.toHaveBeenCalled();
+    });
+
+    it('keeps back and close working when glassHeaders is on', () => {
+      mockGlassHeadersEnabled = true;
+
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Amount } = result.current;
+
+      const Header = Amount.header;
+      const { getByTestId } = render(<Header />);
+
+      fireEvent.press(getByTestId('send-navbar-close-button'));
+      fireEvent.press(getByTestId('send-navbar-back-button'));
+
+      expect(mockHandleCancelPress).toHaveBeenCalled();
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('calls handleCancelPress when close button is pressed', () => {
@@ -289,9 +338,8 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockParentNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
-        test: 'data',
-      });
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockParentNavigate).not.toHaveBeenCalled();
     });
 
     it('calls handleCancelPress when close button is pressed', () => {

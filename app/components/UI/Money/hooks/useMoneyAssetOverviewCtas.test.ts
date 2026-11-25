@@ -8,41 +8,45 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+} from '../../TokenDetails/components/abTestConfig';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
-jest.mock('./useMoneyAccount');
 jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
-jest.mock('./useMoneyNavigation');
+jest.mock('./useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: jest.fn(),
+}));
+jest.mock('../../../../hooks/useABTest');
 
 const mockInitiateDeposit = jest.fn();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
   useMoneyAssetOverviewCtaVisibility,
 );
-const mockUseMoneyOnboardingNavigation = jest.mocked(
-  useMoneyOnboardingNavigation,
-);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+const mockUseABTest = jest.mocked(useABTest);
 
 const asset = {
-  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
   chainId: '0x1',
-  symbol: 'USDC',
+  symbol: 'aUSDC',
   balance: '1',
 } as TokenI;
 
@@ -50,10 +54,18 @@ describe('useMoneyAssetOverviewCtas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        track?.({
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        });
+        await mockInitiateDeposit(options);
+      },
+    );
     mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: 0.04,
       apyPercent: 4,
@@ -66,9 +78,10 @@ describe('useMoneyAssetOverviewCtas', () => {
       isBalanceCtaEligible: true,
       isFooterCtaEligible: true,
     });
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: true },
+      variantName: 'treatment',
+      isActive: true,
     });
   });
 
@@ -105,8 +118,164 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
   });
 
-  it('tracks footer onboarding with interpolated labels and token context', async () => {
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+  it('shows balance CTA loading when eligible', () => {
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyDecimal: undefined,
+      apyPercent: undefined,
+      vaultApyQuery: { isLoading: true },
+    } as ReturnType<typeof useMoneyVaultApy>);
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isBalanceCtaLoading).toBe(true);
+    expect(result.current.isBalanceCtaVisible).toBe(false);
+  });
+
+  it('hides the eligible balance CTA when the APY query settles without data', () => {
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyDecimal: undefined,
+      apyPercent: undefined,
+      vaultApyQuery: { isLoading: false },
+    } as ReturnType<typeof useMoneyVaultApy>);
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isBalanceCtaLoading).toBe(false);
+    expect(result.current.isBalanceCtaVisible).toBe(false);
+  });
+
+  it('shows the footer CTA for an aToken', () => {
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(true);
+  });
+
+  it('shows the footer CTA for an allowlisted stablecoin', () => {
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset: {
+          ...asset,
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          symbol: 'USDC',
+        },
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(true);
+  });
+
+  it('hides the footer CTA for a stablecoin in the control variant', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: false },
+      variantName: 'control',
+      isActive: true,
+    });
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset: {
+          ...asset,
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          symbol: 'USDC',
+        },
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(false);
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+      {
+        ...EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+        trackExposure: true,
+      },
+    );
+  });
+
+  it('does not expose ineligible stablecoins to the footer experiment', () => {
+    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
+      isBalanceCtaEligible: false,
+      isFooterCtaEligible: false,
+    });
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset: {
+          ...asset,
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          symbol: 'USDC',
+        },
+        balanceFiatUsd: 0,
+        hasBalance: false,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(false);
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+      {
+        ...EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+        trackExposure: false,
+      },
+    );
+  });
+
+  it('shows an allowlisted aToken in the stablecoin control variant', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: false },
+      variantName: 'control',
+      isActive: true,
+    });
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(true);
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+      {
+        ...EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+        trackExposure: false,
+      },
+    );
+  });
+
+  it('tracks footer splash with interpolated labels and token context', async () => {
+    mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+      });
+    });
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
@@ -121,14 +290,14 @@ describe('useMoneyAssetOverviewCtas', () => {
 
     expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
       component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
       label_en: strings('money.asset_overview.cta.earn_apy', {
         apy: 4,
         locale: 'en',
       }),
       label_localized: strings('money.asset_overview.cta.earn_apy', { apy: 4 }),
-      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       token_symbol: asset.symbol,
       token_position_in_list: 1,
       token_chain_id: asset.chainId,
@@ -215,8 +384,13 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('sends the selected asset to onboarding before tracking footer navigation', async () => {
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+  it('sends the selected asset to the splash before tracking footer navigation', async () => {
+    mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+      });
+    });
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
@@ -229,14 +403,12 @@ describe('useMoneyAssetOverviewCtas', () => {
       await result.current.onFooterPress();
     });
 
-    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
-      postOnboardingRedirect: {
-        type: MoneyPostOnboardingRedirectType.DEPOSIT,
-        preferredPaymentToken: {
-          address: asset.address,
-          chainId: asset.chainId,
-        },
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+      preferredPaymentToken: {
+        address: asset.address,
+        chainId: asset.chainId,
       },
+      track: expect.any(Function),
     });
   });
 });

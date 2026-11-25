@@ -1,115 +1,60 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import QuickBuyToolbar from './QuickBuyToolbar';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
 
 jest.mock('../useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
 }));
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+jest.mock('./QuickBuyTokenIcon', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
-const baseContext = {
-  setActiveScreen: jest.fn(),
-  onClose: jest.fn(),
-  isQuickAmountPreferencesLoaded: true,
-  features: {
-    tradeModes: ['buy'] as ('buy' | 'sell')[],
-    quickAmountPills: true,
-  },
-  tradeMode: 'buy' as const,
-  setTradeMode: jest.fn(),
-};
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string, vars?: { symbol?: string }) =>
+    key.endsWith('sell_title') ? `Sell ${vars?.symbol ?? ''}` : key,
+}));
 
+const PUMP_PRICE = 0.003524833432906117;
+
+// Unit, not component-view: the sheet preset prices USDC at $1.00, which
+// both formatters render the same, and the header rate does not follow a
+// TokenRatesController override. This locks the formatter at the label.
 describe('QuickBuyToolbar', () => {
-  const setActiveScreen = jest.fn();
-  const onClose = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      setActiveScreen,
-      onClose,
-    });
   });
 
-  it('hides the trade mode toggle when only buy mode is enabled', () => {
-    render(<QuickBuyToolbar />);
-    expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
-    expect(
-      screen.queryByText('social_leaderboard.quick_buy.buy_label'),
-    ).toBeNull();
-  });
-
-  it('hides the trade mode toggle when sell is unavailable due to zero balance', () => {
+  it('formats a sub-cent sell price with the token page formatter', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      setActiveScreen,
-      onClose,
-      features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
-      hasSellableBalance: false,
-    });
-    render(<QuickBuyToolbar />);
-    expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
-  });
-
-  it('renders the Buy/Sell toggle when both modes are enabled and sellable', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      setActiveScreen,
-      onClose,
-      features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
+      features: { tradeModes: ['buy', 'sell'] },
       hasSellableBalance: true,
+      currentCurrency: 'usd',
+      sourceToken: {
+        symbol: 'PUMP',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        address: 'pump',
+        currencyExchangeRate: PUMP_PRICE,
+      },
+      destToken: undefined,
+      tokenPrice: PUMP_PRICE,
+      target: { tokenSymbol: 'PUMP' },
+      tradeMode: 'sell',
+      setTradeMode: jest.fn(),
     });
-    render(<QuickBuyToolbar />);
-    expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
-  });
 
-  it('shows the edit quick amounts gear when quickAmountPills is enabled', () => {
     render(<QuickBuyToolbar />);
+
     expect(
-      screen.getByTestId('quick-buy-edit-amounts-button'),
+      screen.getByText(formatPriceWithSubscriptNotation(PUMP_PRICE, 'usd')),
     ).toBeOnTheScreen();
-  });
-
-  it('hides the edit quick amounts gear when quickAmountPills is disabled', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      setActiveScreen,
-      onClose,
-      features: { tradeModes: ['buy'], quickAmountPills: false },
-    });
-    render(<QuickBuyToolbar />);
-    expect(screen.queryByTestId('quick-buy-edit-amounts-button')).toBeNull();
-  });
-
-  it('navigates to editQuickAmounts when the gear is pressed', () => {
-    render(<QuickBuyToolbar />);
-    fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
-    expect(setActiveScreen).toHaveBeenCalledWith('editQuickAmounts');
-  });
-
-  it('disables the gear while quick amount preferences are loading', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      setActiveScreen,
-      onClose,
-      isQuickAmountPreferencesLoaded: false,
-    });
-
-    render(<QuickBuyToolbar />);
-
-    expect(screen.getByTestId('quick-buy-edit-amounts-button')).toBeDisabled();
-    fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
-    expect(setActiveScreen).not.toHaveBeenCalled();
-  });
-
-  it('calls onClose when the close button is pressed', () => {
-    render(<QuickBuyToolbar />);
-    fireEvent.press(screen.getByTestId('quick-buy-close-button'));
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('$0.00')).not.toBeOnTheScreen();
   });
 });

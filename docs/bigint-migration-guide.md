@@ -55,11 +55,7 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 
 ### @MetaMask/card
 
-- `app/components/UI/Card/hooks/useAssetBalances.tsx`
-- `app/components/UI/Card/hooks/useCardDelegation.test.ts`
-- `app/components/UI/Card/hooks/useCardDelegation.ts`
-- `app/components/UI/Card/hooks/useNeedsGasFaucet.ts`
-- `app/components/UI/Card/sdk/CardSDK.ts`
+_(migrated — no remaining burndown entries)_
 
 ### @MetaMask/confirmations
 
@@ -173,14 +169,11 @@ These burndown paths did not match any owner line in `.github/CODEOWNERS` at the
 
 - `app/components/UI/AccountInfoCard/index.js`
 - `app/components/UI/HardwareWallet/AccountDetails/index.tsx`
-- `app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx`
 - `app/components/UI/UrlAutocomplete/Result.tsx`
-- `app/components/Views/GasEducationCarousel/index.js`
 - `app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts`
 - `app/components/hooks/useAddressBalance/useAddressBalance.ts`
 - `app/components/hooks/useGetFormattedTokensPerChain.tsx`
 - `app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx`
-- `app/core/GasPolling/GasPolling.ts`
 - `app/core/NotificationManager.js`
 - `app/selectors/multichain/evm.ts`
 

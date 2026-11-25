@@ -13,6 +13,11 @@ import {
 } from '../../../../util/trace';
 import PerpsConnectionManager from '../services/PerpsConnectionManager';
 import {
+  buildVenueSymbolKey,
+  parseVenueSymbolKey,
+  venueMatchesSubscription,
+} from './venueKeys';
+import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   PerpsMeasurementName,
@@ -21,12 +26,23 @@ import {
   type Order,
   type OrderFill,
   type AccountState,
+  type AccountAggregateMetadata,
+  type PerpsProviderAccountStateEntry,
   type PerpsMarketData,
   type PerpsUserDataSnapshot,
+  type PerpsProviderType,
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
-import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectHip3ConfigVersion,
+  selectPerpsTerminalBackendEnabledFlag,
+} from '../selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -48,7 +64,16 @@ import {
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getTerminalGlobalSnapshotUrl } from '../constants/terminalApi';
+import {
+  getTerminalGlobalSnapshotUrl,
+  TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
+} from '../constants/terminalApi';
+import {
+  createPerpsLoadingSessionIdentity,
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsLoadingSessionValuesReady,
+  type PerpsLoadingSessionIdentity,
+} from '../utils/perpsLoadingSession';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -61,23 +86,81 @@ function getEvmAccountFromSelectedAccountGroup() {
   return findEvmAccount(accounts as InternalAccount[]);
 }
 
+function getCurrentPerpsLoadingSessionIdentity(): PerpsLoadingSessionIdentity {
+  const state = store.getState();
+  return createPerpsLoadingSessionIdentity({
+    address: selectPerpsSelectedAccountAddress(state),
+    hip3ConfigVersion: selectHip3ConfigVersion(state),
+    network: selectPerpsNetwork(state),
+    provider: selectPerpsProvider(state),
+  });
+}
+
+type LoadingSessionTraceData = ReturnType<
+  typeof getActivePerpsLoadingSessionTraceData
+>;
+const loadingSessionDataByTraceId = new Map<string, LoadingSessionTraceData>();
+const MAX_CAPTURED_LOADING_SESSION_TRACE_IDS = 100;
+
+function captureLoadingSessionTraceData(
+  traceId: string,
+): LoadingSessionTraceData {
+  const sessionData = getActivePerpsLoadingSessionTraceData();
+  const data = sessionData
+    ? {
+        ...sessionData,
+        connection_generation: PerpsConnectionManager.getConnectionGeneration(),
+      }
+    : undefined;
+  loadingSessionDataByTraceId.set(traceId, data);
+  while (
+    loadingSessionDataByTraceId.size > MAX_CAPTURED_LOADING_SESSION_TRACE_IDS
+  ) {
+    const oldestTraceId = loadingSessionDataByTraceId.keys().next().value;
+    if (oldestTraceId === undefined) {
+      break;
+    }
+    loadingSessionDataByTraceId.delete(oldestTraceId);
+  }
+  return data;
+}
+
+function getCapturedLoadingSessionTraceData(
+  traceId: string,
+): LoadingSessionTraceData {
+  return loadingSessionDataByTraceId.get(traceId);
+}
+
+function clearCapturedLoadingSessionTraceData(traceId: string): void {
+  loadingSessionDataByTraceId.delete(traceId);
+}
+
+type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic' | 'cleared';
+
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
+  onDelivery?: (source: StreamUpdateSource) => void;
+  onError?: (error: Error) => void;
   throttleMs?: number;
-  timer?: NodeJS.Timeout;
+  timer?: ReturnType<typeof setTimeout>;
   pendingUpdate?: T;
   hasReceivedFirstFreshUpdate?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
   // an update only to subscribers registered for the symbols that changed,
   // instead of iterating every subscriber on every tick. Used by the price channel.
   symbols?: string[];
+  // Venue this subscriber wants data for (TAT-4407). Omitted subscribers
+  // follow the active/default venue, which keeps existing callers working.
+  providerId?: PerpsProviderType;
 }
 
-type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
 const DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE =
   'User data snapshot DEX identity is not static';
+
+// Expected abort in @metamask/perps-controller@22.0.0 src/PerpsController.ts L1818, L1841, L1864.
+const USER_DATA_SNAPSHOT_CONTEXT_CHANGED = 'User data snapshot context changed';
 
 interface StreamChannelLifecycle {
   onSubscribe?: () => void;
@@ -90,9 +173,44 @@ type PerpsUserDataBundle = Pick<
   'positions' | 'orders' | 'accountState'
 >;
 
+/**
+ * Whether a cached row matches the venue an action targets (TAT-4407).
+ * Optimistic updates match on providerId and symbol/orderId. A row without
+ * a providerId (direct mode, legacy cache) falls back to the lenient rule:
+ * an untagged side is treated as matching, following the existing pattern in
+ * useHasExistingPosition.
+ */
+const rowMatchesVenue = (
+  rowProviderId: PerpsProviderType | undefined,
+  targetProviderId: PerpsProviderType | undefined,
+): boolean =>
+  !rowProviderId || !targetProviderId || rowProviderId === targetProviderId;
+
+/**
+ * The venue an untagged (default-routed) subscriber follows (TAT-4407).
+ *
+ * `activeProvider` is the mode, not a venue: in two-venue mode it is
+ * `'aggregated'`, which never matches a stamped `hyperliquid`/`lighter` row.
+ * Direct mode uses the single active venue; aggregated mode uses the
+ * controller's routing default.
+ */
+const getRoutingDefaultProvider = (): PerpsProviderType => {
+  const { activeProvider, defaultProvider } =
+    Engine.context.PerpsController.state;
+  if (activeProvider && activeProvider !== 'aggregated') {
+    return activeProvider;
+  }
+  return defaultProvider ?? PROVIDER_CONFIG.DefaultProvider;
+};
+
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
+  private streamError: Error | null = null;
+  private readonly providerErrors = new Map<
+    PerpsProviderType | 'default',
+    Error
+  >();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   // Reverse index: symbol -> set of subscriber ids registered for that symbol.
   // Populated only for subscriptions that declare `symbols` (the price channel),
@@ -100,6 +218,7 @@ abstract class StreamChannel<T> {
   // subscribers. Channels without symbol subscriptions never touch this map.
   protected readonly symbolSubscribers = new Map<string, Set<string>>();
   protected wsSubscription: (() => void) | null = null;
+  private subscriptionGeneration = 0;
   readonly #onDataPersist?: () => void;
   readonly #lifecycle?: StreamChannelLifecycle;
 
@@ -110,6 +229,39 @@ abstract class StreamChannel<T> {
 
   protected triggerPersist(): void {
     this.#onDataPersist?.();
+  }
+
+  protected getSubscriptionContext(): {
+    generation: number;
+    address: string | null;
+  } {
+    return {
+      generation: this.subscriptionGeneration,
+      address:
+        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase() ?? null,
+    };
+  }
+
+  protected isSubscriptionContextCurrent(context: {
+    generation: number;
+    address: string | null;
+  }): boolean {
+    if (!this.isSubscriptionGenerationCurrent(context)) {
+      return false;
+    }
+    const currentAddress =
+      getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase() ?? null;
+    return context.address === currentAddress;
+  }
+
+  protected isSubscriptionGenerationCurrent(context: {
+    generation: number;
+  }): boolean {
+    return context.generation === this.subscriptionGeneration;
+  }
+
+  protected invalidateSubscriptionContext(): void {
+    this.subscriptionGeneration += 1;
   }
 
   // Track account context to prevent stale data across account switches
@@ -127,6 +279,9 @@ abstract class StreamChannel<T> {
   // than to when the caller happened to look.
   protected lastDeliveredAt: number | null = null;
   protected deliveryRevision = 0;
+  // Set when a delivery is dropped because the channel is paused, so resume()
+  // knows the cache holds data the subscribers never saw.
+  protected hasSuppressedDelivery = false;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -136,17 +291,38 @@ abstract class StreamChannel<T> {
   protected notifySubscribers(
     updates: T,
     source: StreamUpdateSource = 'fresh',
+    sourceProviderId?: PerpsProviderType,
   ) {
+    if (source === 'fresh') {
+      this.providerErrors.delete(sourceProviderId ?? 'default');
+      this.streamError = this.providerErrors.values().next().value ?? null;
+    }
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
+      this.hasSuppressedDelivery = true;
       return;
     }
 
     this.lastDeliveredAt = Date.now();
     this.subscribers.forEach((subscriber) => {
-      this.deliverToSubscriber(subscriber, updates, source);
+      const payload = this.getPayloadForSubscriber(subscriber, updates);
+      if (payload !== undefined) {
+        this.deliverToSubscriber(subscriber, payload, source);
+      }
     });
+  }
+
+  /**
+   * Payload a broadcast delivers to one subscriber. The base delivers the
+   * broadcast unchanged; venue-scoped channels override this to hand each
+   * subscriber its own venue's data, or `undefined` to skip it (TAT-4407).
+   */
+  protected getPayloadForSubscriber(
+    _subscriber: StreamSubscription<T>,
+    updates: T,
+  ): T | undefined {
+    return updates;
   }
 
   /**
@@ -166,6 +342,11 @@ abstract class StreamChannel<T> {
    */
   public getLastDeliveredAt(): number | null {
     return this.lastDeliveredAt;
+  }
+
+  /** Current provider failure, retained while other providers keep delivering. */
+  public getError(): Error | null {
+    return this.streamError;
   }
 
   public getDeliveryRevision(): number {
@@ -189,6 +370,7 @@ abstract class StreamChannel<T> {
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
+      this.hasSuppressedDelivery = true;
       return;
     }
 
@@ -232,16 +414,19 @@ abstract class StreamChannel<T> {
       }
       subscriber.pendingUpdate = undefined;
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       return;
     }
 
     if (source === 'cache') {
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       return;
     }
 
     if (!subscriber.hasReceivedFirstFreshUpdate) {
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       subscriber.hasReceivedFirstFreshUpdate = true;
       return;
     }
@@ -249,6 +434,7 @@ abstract class StreamChannel<T> {
     // If no throttling (throttleMs is 0 or undefined), notify immediately
     if (!subscriber.throttleMs) {
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       return;
     }
 
@@ -263,6 +449,7 @@ abstract class StreamChannel<T> {
     subscriber.timer ??= setTimeout(() => {
       if (subscriber.pendingUpdate) {
         subscriber.callback(subscriber.pendingUpdate);
+        subscriber.onDelivery?.('fresh');
         subscriber.pendingUpdate = undefined;
       }
       subscriber.timer = undefined;
@@ -288,6 +475,7 @@ abstract class StreamChannel<T> {
       subscriber.timer = undefined;
       if (subscriber.pendingUpdate !== undefined) {
         subscriber.callback(subscriber.pendingUpdate);
+        subscriber.onDelivery?.('fresh');
         subscriber.pendingUpdate = undefined;
       }
     });
@@ -296,17 +484,23 @@ abstract class StreamChannel<T> {
   /**
    * Register a subscription's symbols into the reverse index so symbol-scoped
    * dispatch can find it. No-op for subscriptions without symbols.
+   *
+   * Index keys are composite `(providerId, symbol)` keys (TAT-4407): a
+   * subscriber asking for a venue is indexed under that venue's key, so a tick
+   * for the same symbol from another venue never reaches it. Untagged
+   * subscribers keep the bare-symbol key.
    */
   private indexSubscriptionSymbols(subscription: StreamSubscription<T>) {
-    const { symbols } = subscription;
+    const { symbols, providerId } = subscription;
     if (!symbols) {
       return;
     }
     symbols.forEach((symbol) => {
-      let ids = this.symbolSubscribers.get(symbol);
+      const key = buildVenueSymbolKey(symbol, providerId);
+      let ids = this.symbolSubscribers.get(key);
       if (!ids) {
         ids = new Set<string>();
-        this.symbolSubscribers.set(symbol, ids);
+        this.symbolSubscribers.set(key, ids);
       }
       ids.add(subscription.id);
     });
@@ -316,26 +510,30 @@ abstract class StreamChannel<T> {
    * Remove a subscription's symbols from the reverse index, pruning empty sets.
    */
   private deindexSubscriptionSymbols(subscription?: StreamSubscription<T>) {
-    const symbols = subscription?.symbols;
+    const { symbols, providerId } = subscription ?? {};
     if (!subscription || !symbols) {
       return;
     }
     symbols.forEach((symbol) => {
-      const ids = this.symbolSubscribers.get(symbol);
+      const key = buildVenueSymbolKey(symbol, providerId);
+      const ids = this.symbolSubscribers.get(key);
       if (!ids) {
         return;
       }
       ids.delete(subscription.id);
       if (ids.size === 0) {
-        this.symbolSubscribers.delete(symbol);
+        this.symbolSubscribers.delete(key);
       }
     });
   }
 
   subscribe(params: {
     callback: (data: T) => void;
+    onDelivery?: (source: StreamUpdateSource) => void;
+    onError?: (error: Error) => void;
     throttleMs?: number;
     symbols?: string[];
+    providerId?: PerpsProviderType;
   }): () => void {
     const id = Math.random().toString(36);
 
@@ -348,13 +546,15 @@ abstract class StreamChannel<T> {
     this.indexSubscriptionSymbols(subscription);
 
     // Give immediate cached data if available
-    const cached = this.getCachedData();
+    const cached = this.getCachedDataForSubscription(params);
     if (cached != null) {
       params.callback(cached);
+      params.onDelivery?.('cache');
       // Cached data renders immediately but must not consume the first fresh
       // update exemption. The first live snapshot should also bypass throttling.
     }
 
+    if (this.streamError) params.onError?.(this.streamError);
     this.#lifecycle?.onSubscribe?.();
 
     // Ensure WebSocket connected
@@ -494,6 +694,7 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
+    this.invalidateSubscriptionContext();
     this.#lifecycle?.onDisconnect?.();
     this.connectRetryCount = 0;
     if (this.deferConnectTimer) {
@@ -542,14 +743,61 @@ abstract class StreamChannel<T> {
    * Resume emission of updates to subscribers.
    * Each pause() call must be matched by exactly one resume(). Emission
    * resumes only when all callers have released their pause.
+   *
+   * Updates that arrived while paused were cached but never delivered, so the
+   * last one is flushed here. Without it a batch operation that settles during
+   * the pause — cancelling every order, closing every position — leaves the UI
+   * rendering rows the venue has already removed until some later unrelated
+   * tick, which is stale state the user can act on.
    */
   public resume(): void {
-    this.pauseCount = Math.max(0, this.pauseCount - 1);
+    if (this.pauseCount === 0) {
+      // Unmatched resume — nothing was held, so there is nothing to flush.
+      return;
+    }
+
+    this.pauseCount -= 1;
+    if (this.pauseCount > 0) {
+      return;
+    }
+
+    if (!this.hasSuppressedDelivery) {
+      return;
+    }
+    this.hasSuppressedDelivery = false;
+
+    const latest = this.getCachedData();
+    if (latest === null || latest === undefined) {
+      return;
+    }
+
+    // The latest snapshot supersedes updates queued before the pause. Cancel
+    // their timers so older data cannot follow the immediate cache replay.
+    this.subscribers.forEach((subscriber) => {
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
+    // Replaying a snapshot is not a successful post-error provider update.
+    this.notifySubscribers(latest, 'cache');
   }
 
   protected getCachedData(): T | null {
     // Override in subclasses to return null for no cache, or actual data
     return null;
+  }
+
+  /**
+   * Return the cache payload used to hydrate a new subscriber.
+   * Symbol-aware channels can override this to avoid materializing data the
+   * subscriber did not request.
+   */
+  protected getCachedDataForSubscription(
+    params: Pick<StreamSubscription<T>, 'symbols'>,
+  ): T | null {
+    return this.getCachedData();
   }
 
   public seedCache(key: string, data: T): void {
@@ -577,7 +825,24 @@ abstract class StreamChannel<T> {
     this.notifySubscribers(data, source);
   }
 
+  protected notifyError(
+    error: Error,
+    sourceProviderId?: PerpsProviderType,
+  ): void {
+    this.providerErrors.set(sourceProviderId ?? 'default', error);
+    this.streamError = error;
+    this.endOpenFirstDataTrace();
+    // A queued delivery can contain healthy-provider data. Keep its throttle
+    // order; hooks read getError() so delivery cannot erase the provider error.
+    for (const subscriber of this.subscribers.values()) {
+      subscriber.onError?.(error);
+    }
+  }
+
   public clearCache(): void {
+    this.providerErrors.clear();
+    this.streamError = null;
+    this.invalidateSubscriptionContext();
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
     this.endOpenFirstDataTrace();
@@ -612,6 +877,7 @@ abstract class StreamChannel<T> {
     this.subscribers.forEach((subscriber) => {
       // Send cleared data to indicate "no data yet" (loading state)
       subscriber.callback(this.getClearedData());
+      subscriber.onDelivery?.('cleared');
     });
 
     // If we have active subscribers, they'll trigger reconnect in their next render
@@ -629,16 +895,47 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private prewarmUnsubscribe?: () => void;
   private actualPriceUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+  private deliveryToken = 0;
 
   protected endOpenFirstDataTrace(): void {
     if (this.firstDataTraceId) {
       endTrace({
         name: TraceName.PerpsWebSocketFirstPrice,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
+  }
+
+  private finishFirstDataTrace(): void {
+    const traceId = this.firstDataTraceId;
+    if (this.wsConnectionStartTime === null || !traceId) {
+      return;
+    }
+
+    const firstDataDuration = performance.now() - this.wsConnectionStartTime;
+    DevLogger.log(
+      `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
+      { duration: `${firstDataDuration.toFixed(0)}ms` },
+    );
+    endTrace({
+      name: TraceName.PerpsWebSocketFirstPrice,
+      id: traceId,
+      data: {
+        ...getCapturedLoadingSessionTraceData(traceId),
+        success: true,
+        duration: firstDataDuration,
+      },
+    });
+    this.wsConnectionStartTime = null;
+    clearCapturedLoadingSessionTraceData(traceId);
+    this.firstDataTraceId = undefined;
   }
 
   private allMarketSymbols: string[] = [];
@@ -648,8 +945,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   protected priceCache = new Map<string, PriceUpdate>();
 
   /**
-   * Maps a raw price update to the cached PriceUpdate shape, stamping the
-   * receive time and applying backward-compatible defaults.
+   * Stamps a raw price update with the receive time and applies
+   * backward-compatible defaults. Every controller field is forwarded, so a
+   * field the controller adds reaches subscribers without a change here.
    *
    * Backward-compatible default for `isTradable`: pre-8.3.0 streams don't
    * emit the field, so treat absence as tradable to avoid breaking existing
@@ -657,19 +955,42 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    */
   private toPriceUpdate(update: PriceUpdate): PriceUpdate {
     return {
-      symbol: update.symbol,
-      price: update.price,
+      // Preserve every controller field, including the venue stamp used by lookups.
+      ...update,
       timestamp: Date.now(),
-      percentChange24h: update.percentChange24h,
-      bestBid: update.bestBid,
-      bestAsk: update.bestAsk,
-      spread: update.spread,
-      markPrice: update.markPrice,
-      funding: update.funding,
-      openInterest: update.openInterest,
-      volume24h: update.volume24h,
       isTradable: update.isTradable ?? true,
     };
+  }
+
+  private deliverPriceUpdates(updates: PriceUpdate[]) {
+    // Update cache and build price map. Cache and dispatch keys are
+    // composite `(providerId, symbol)` keys so updates for the same symbol
+    // from two venues no longer overwrite each other (TAT-4407). Direct
+    // mode updates carry no providerId and keep the bare-symbol key.
+    const priceMap: Record<string, PriceUpdate> = {};
+    const changedKeys = new Set<string>();
+    const defaultProvider = getRoutingDefaultProvider();
+    updates.forEach((update) => {
+      const priceUpdate = this.toPriceUpdate(update);
+      const cacheKey = buildVenueSymbolKey(update.symbol, update.providerId);
+      this.priceCache.set(cacheKey, priceUpdate);
+      priceMap[cacheKey] = priceUpdate;
+      changedKeys.add(cacheKey);
+      if (!update.providerId) {
+        changedKeys.add(buildVenueSymbolKey(update.symbol, defaultProvider));
+      }
+      // Subscribers that name no venue follow the active/default venue:
+      // they are indexed under the bare symbol, so the default venue's
+      // tick (and any direct-mode tick) also dispatches there.
+      if (!update.providerId || update.providerId === defaultProvider) {
+        changedKeys.add(update.symbol);
+      }
+    });
+
+    // Scope dispatch to subscribers registered for the symbols in this tick.
+    if (this.subscribers.size) {
+      this.notifySubscribersForSymbols(priceMap, changedKeys);
+    }
   }
 
   protected connect() {
@@ -707,39 +1028,34 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
       tags: buildPerpsCufStartTags(),
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
+    const deliveryToken = ++this.deliveryToken;
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
-        // Track first price data from WebSocket (only once per connection)
-        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-          const firstDataDuration =
-            performance.now() - this.wsConnectionStartTime;
-          DevLogger.log(
-            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
-            { duration: `${firstDataDuration.toFixed(0)}ms` },
-          );
-          endTrace({
-            name: TraceName.PerpsWebSocketFirstPrice,
-            id: this.firstDataTraceId,
-            data: { success: true, duration: firstDataDuration },
-          });
-          this.wsConnectionStartTime = null;
-          this.firstDataTraceId = undefined;
+        if (
+          deliveryToken !== this.deliveryToken ||
+          !this.isSubscriptionGenerationCurrent(subscriptionContext)
+        ) {
+          return;
         }
+        recordPerpsLoadingSessionValuesReady(
+          'prices',
+          'fresh_socket',
+          updates.length,
+          {},
+          loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
+        );
+        // Track first price data from WebSocket (only once per connection)
+        this.finishFirstDataTrace();
 
-        // Update cache and build price map
-        const priceMap: Record<string, PriceUpdate> = {};
-        updates.forEach((update) => {
-          const priceUpdate = this.toPriceUpdate(update);
-          this.priceCache.set(update.symbol, priceUpdate);
-          priceMap[update.symbol] = priceUpdate;
-        });
-
-        // Scope dispatch to subscribers registered for the symbols in this tick.
-        this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
+        this.deliverPriceUpdates(updates);
       },
     });
   }
@@ -753,12 +1069,65 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     return cached;
   }
 
+  protected getCachedDataForSubscription(
+    params: Pick<
+      StreamSubscription<Record<string, PriceUpdate>>,
+      'symbols' | 'providerId'
+    >,
+  ): Record<string, PriceUpdate> | null {
+    if (!params.symbols) {
+      return this.getCachedData();
+    }
+
+    const cached: Record<string, PriceUpdate> = {};
+    params.symbols.forEach((symbol) => {
+      const price = this.getSnapshotForSymbol(symbol, params.providerId);
+      if (price) {
+        // Report under the bare symbol so consumers keep their existing shape.
+        cached[symbol] = price;
+      }
+    });
+    return Object.keys(cached).length > 0 ? cached : null;
+  }
+
   protected getClearedData(): Record<string, PriceUpdate> {
     return {};
   }
 
   public getSnapshot(): Record<string, PriceUpdate> | null {
     return this.getCachedData();
+  }
+
+  /**
+   * Latest cached update for one symbol, optionally scoped to a venue
+   * (TAT-4407). A subscriber that gives no venue gets the default venue's row
+   * when both venues report the symbol, so existing callers keep working.
+   * Unlike `getSnapshot()` this does not clone the whole price map, so it is
+   * safe to call during render.
+   */
+  public getSnapshotForSymbol(
+    symbol: string,
+    providerId?: PerpsProviderType,
+  ): PriceUpdate | null {
+    const venuePrice = this.priceCache.get(
+      buildVenueSymbolKey(symbol, providerId),
+    );
+    if (venuePrice) {
+      return venuePrice;
+    }
+    if (providerId && providerId !== getRoutingDefaultProvider()) return null;
+    const bare = this.priceCache.get(symbol);
+    if (bare) {
+      return bare;
+    }
+    if (providerId) return null;
+    // Aggregated mode with both venues stamped and no bare row: prefer the
+    // default venue.
+    return (
+      this.priceCache.get(
+        buildVenueSymbolKey(symbol, getRoutingDefaultProvider()),
+      ) ?? null
+    );
   }
 
   public clearCache(): void {
@@ -790,6 +1159,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
   subscribeToSymbols(params: {
     symbols: string[];
+    /**
+     * Venue the prices must come from (TAT-4407). Without one the default
+     * venue's row is delivered, which keeps existing callers working.
+     */
+    providerId?: PerpsProviderType;
     callback: (prices: Record<string, PriceUpdate>) => void;
     throttleMs?: number;
   }): () => void {
@@ -809,12 +1183,24 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Registering symbols lets the channel scope dispatch to only the
       // subscribers interested in the symbols present in a given tick.
       symbols: params.symbols,
+      providerId: params.providerId,
       callback: (allPrices) => {
-        // Filter to only requested symbols
+        // Filter to only requested symbols. The payload is keyed by composite
+        // `(providerId, symbol)` cache keys (TAT-4407), so resolve each
+        // requested symbol from the subscriber's venue — or the default venue
+        // for untagged subscribers — before delivering the bare-symbol shape.
         const filtered: Record<string, PriceUpdate> = {};
         params.symbols.forEach((symbol) => {
-          if (allPrices?.[symbol]) {
-            filtered[symbol] = allPrices[symbol];
+          const price =
+            allPrices?.[buildVenueSymbolKey(symbol, params.providerId)] ??
+            allPrices?.[symbol] ??
+            (!params.providerId
+              ? allPrices?.[
+                  buildVenueSymbolKey(symbol, getRoutingDefaultProvider())
+                ]
+              : undefined);
+          if (price) {
+            filtered[symbol] = price;
           }
         });
         params.callback(filtered);
@@ -875,6 +1261,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           },
         );
 
+        if (this.wsSubscription) {
+          this.disconnect();
+        }
+
         // End any first-price span still open from a prior connect()/prewarm
         // before overwriting the trace id, or that span is orphaned and ships
         // bogus first-data telemetry.
@@ -887,8 +1277,12 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
           tags: buildPerpsCufStartTags(),
+          data: captureLoadingSessionTraceData(this.firstDataTraceId),
         });
         this.wsConnectionStartTime = performance.now();
+        const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+        const subscriptionContext = this.getSubscriptionContext();
+        const deliveryToken = ++this.deliveryToken;
 
         // WARNING: Do NOT set includeMarketData: true here. It triggers
         // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
@@ -898,34 +1292,24 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
+            if (
+              deliveryToken !== this.deliveryToken ||
+              !this.isSubscriptionGenerationCurrent(subscriptionContext)
+            ) {
+              return;
+            }
+            recordPerpsLoadingSessionValuesReady(
+              'prices',
+              'fresh_socket',
+              updates.length,
+              {},
+              loadingIdentity,
+              PerpsConnectionManager.getConnectionGeneration(),
+            );
             // Track first price data from WebSocket (only once per prewarm)
-            if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-              const firstDataDuration =
-                performance.now() - this.wsConnectionStartTime;
-              DevLogger.log(
-                `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
-                { duration: `${firstDataDuration.toFixed(0)}ms` },
-              );
-              endTrace({
-                name: TraceName.PerpsWebSocketFirstPrice,
-                id: this.firstDataTraceId,
-                data: { success: true, duration: firstDataDuration },
-              });
-              this.wsConnectionStartTime = null;
-              this.firstDataTraceId = undefined;
-            }
+            this.finishFirstDataTrace();
 
-            const priceMap: Record<string, PriceUpdate> = {};
-            updates.forEach((update) => {
-              const priceUpdate = this.toPriceUpdate(update);
-              this.priceCache.set(update.symbol, priceUpdate);
-              priceMap[update.symbol] = priceUpdate;
-            });
-
-            if (this.subscribers.size > 0) {
-              // Scope dispatch to subscribers registered for the symbols in this tick.
-              this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
-            }
+            this.deliverPriceUpdates(updates);
           },
         });
 
@@ -966,6 +1350,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    * Cleanup pre-warm subscription
    */
   public cleanupPrewarm(): void {
+    this.deliveryToken += 1;
+    this.invalidateSubscriptionContext();
     // Prewarm starts the first-price trace; end it here too so a soft reconnect
     // (preserveCaches: true skips clearCache) doesn't leave it open to be
     // overwritten by the next prewarm.
@@ -989,8 +1375,13 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstOrders,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1006,25 +1397,25 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       name: TraceName.PerpsWebSocketFirstOrders,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
-      callback: (orders: Order[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('OrderStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
+      onError: (error: Error, sourceProviderId?: PerpsProviderType) => {
+        if (this.isSubscriptionContextCurrent(subscriptionContext))
+          this.notifyError(error, sourceProviderId);
+      },
+      callback: (orders: Order[], sourceProviderId?: PerpsProviderType) => {
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-        this.cacheAccountAddress = currentAccount;
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
 
         // Track first order data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1044,17 +1435,27 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
             name: TraceName.PerpsWebSocketFirstOrders,
             id: this.firstDataTraceId,
             data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'orders',
+          'fresh_socket',
+          orders.length,
+          {},
+          loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
+        );
         this.cache.set('orders', orders);
-        this.notifySubscribers(orders);
+        this.notifySubscribers(orders, 'fresh', sourceProviderId);
         // Orders confirmed in the live stream — close pending cancel / limit
         // order-render CUF spans at this delivery instant. The boundary is
         // stream confirmation (the order is now present/absent in live orders
@@ -1098,10 +1499,13 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   /**
    * Apply optimistic price and/or size updates to an open order before the
    * venue confirms the edit. WebSocket delivery reconciles the cache afterward.
+   * @param providerId - Venue the order rests on (TAT-4407): even if both
+   * venues use the same order id, only that venue's order is edited.
    */
   public updateOrderOptimistic(
     orderId: string,
     edit: { limitPrice?: string; size?: string },
+    providerId?: PerpsProviderType,
   ): void {
     const { limitPrice, size } = edit;
     if (limitPrice === undefined && size === undefined) {
@@ -1117,7 +1521,9 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
     }
 
     const orderIndex = cachedOrders.findIndex(
-      (order) => order.orderId === orderId,
+      (order) =>
+        order.orderId === orderId &&
+        rowMatchesVenue(order.providerId, providerId),
     );
     if (orderIndex === -1) {
       DevLogger.log(
@@ -1142,6 +1548,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
     DevLogger.log('OrderStreamChannel: Applying optimistic order edit', {
       orderId,
+      providerId,
       limitPrice,
       size,
     });
@@ -1215,8 +1622,13 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstPositions,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1232,28 +1644,21 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       name: TraceName.PerpsWebSocketFirstPositions,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(
-            new Error('PositionStreamChannel: Wrong account context'),
-            {
-              expected: currentAccount,
-              received: this.accountAddress,
-            },
-          );
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-        this.cacheAccountAddress = currentAccount;
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
 
         // Track first position data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1274,15 +1679,25 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
             name: TraceName.PerpsWebSocketFirstPositions,
             id: this.firstDataTraceId,
             data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'positions',
+          'fresh_socket',
+          positions.length,
+          {},
+          loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
+        );
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
         // Positions just rendered to subscribers — close any pending CUF span
@@ -1375,11 +1790,15 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
    * @param coin - The coin/asset symbol
    * @param takeProfitPrice - The new take profit price (undefined to remove)
    * @param stopLossPrice - The new stop loss price (undefined to remove)
+   * @param providerId - Venue the position is held on (TAT-4407); the
+   * optimistic update is applied only to that venue's position, so a same-
+   * symbol position on another venue never shows the edit.
    */
   public updatePositionTPSLOptimistic(
     coin: string,
     takeProfitPrice: string | undefined,
     stopLossPrice: string | undefined,
+    providerId?: PerpsProviderType,
   ): void {
     const cachedPositions = this.cache.get('positions');
     if (!cachedPositions) {
@@ -1389,7 +1808,9 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       return;
     }
 
-    const positionIndex = cachedPositions.findIndex((p) => p.symbol === coin);
+    const positionIndex = cachedPositions.findIndex(
+      (p) => p.symbol === coin && rowMatchesVenue(p.providerId, providerId),
+    );
     if (positionIndex === -1) {
       DevLogger.log(
         `PositionStreamChannel: Cannot apply optimistic update - position not found for ${coin}`,
@@ -1414,6 +1835,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
     DevLogger.log('PositionStreamChannel: Applying optimistic TP/SL update', {
       coin,
+      providerId,
       takeProfitPrice,
       stopLossPrice,
     });
@@ -1433,29 +1855,55 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 
     if (!this.ensureReady()) return;
 
+    const subscriptionContext = this.getSubscriptionContext();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
-      callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+      onError: (error: Error, sourceProviderId?: PerpsProviderType) => {
+        if (this.isSubscriptionContextCurrent(subscriptionContext))
+          this.notifyError(error, sourceProviderId);
+      },
+      callback: (
+        fills: OrderFill[],
+        isSnapshot?: boolean,
+        sourceProviderId?: PerpsProviderType,
+      ) => {
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
+          return;
+        }
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
+
+        const incoming = sourceProviderId
+          ? fills.map((fill) => ({ ...fill, providerId: sourceProviderId }))
+          : fills;
+        const existing = this.cache.get('fills') || [];
         let updated: OrderFill[];
         if (isSnapshot) {
-          // Snapshot: replace cache with initial historical data
-          // Sort by timestamp descending (newest first)
-          updated = [...fills]
+          // A provider snapshot replaces only that provider's history.
+          // Callbacks without a source retain the legacy full-snapshot contract.
+          const retained = sourceProviderId
+            ? existing.filter((fill) => fill.providerId !== sourceProviderId)
+            : [];
+          updated = [...incoming, ...retained]
             .sort((a, b) => b.timestamp - a.timestamp)
             .slice(0, 100);
         } else {
           // Streaming: prepend new fills to existing (newest first)
-          const existing = this.cache.get('fills') || [];
           // New fills go at the beginning since they're most recent
-          updated = [...fills, ...existing].slice(0, 100);
+          updated = [...incoming, ...existing].slice(0, 100);
         }
         this.cache.set('fills', updated);
-        this.notifySubscribers(updated);
+        this.notifySubscribers(updated, 'fresh', sourceProviderId);
       },
     });
   }
 
   protected getCachedData() {
-    return this.cache.get('fills') || [];
+    const cached = this.cache.get('fills');
+    if (cached === undefined) {
+      return [];
+    }
+    return this.isAccountContextCurrent() ? cached : null;
   }
 
   protected getClearedData(): OrderFill[] {
@@ -1463,7 +1911,9 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   }
 
   public getSnapshot(): OrderFill[] | null {
-    return this.cache.get('fills') ?? null;
+    return this.isAccountContextCurrent()
+      ? (this.cache.get('fills') ?? null)
+      : null;
   }
 
   /**
@@ -1514,14 +1964,23 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 class AccountStreamChannel extends StreamChannel<AccountState | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+  // Aggregated-stream completeness metadata delivered as the subscribeToAccount
+  // callback's second argument (core 25.x). Null in direct mode or before the
+  // first aggregated update.
+  private aggregateMetadata: AccountAggregateMetadata | null = null;
 
   protected endOpenFirstDataTrace(): void {
     if (this.firstDataTraceId) {
       endTrace({
         name: TraceName.PerpsWebSocketFirstAccount,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1537,28 +1996,24 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       name: TraceName.PerpsWebSocketFirstAccount,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
-      callback: (account: AccountState | null) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(
-            new Error('AccountStreamChannel: Wrong account context'),
-            {
-              expected: currentAccount,
-              received: this.accountAddress,
-            },
-          );
+      callback: (
+        account: AccountState | null,
+        aggregate?: AccountAggregateMetadata,
+      ) => {
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-        this.cacheAccountAddress = currentAccount;
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
 
         // Track first account data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1578,17 +2033,28 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
             name: TraceName.PerpsWebSocketFirstAccount,
             id: this.firstDataTraceId,
             data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'account',
+          'fresh_socket',
+          account ? 1 : 0,
+          {},
+          loadingIdentity,
+          PerpsConnectionManager.getConnectionGeneration(),
+        );
         // Use base cache Map with consistent key
         this.cache.set('account', account);
+        this.aggregateMetadata = aggregate ?? null;
         this.notifySubscribers(account as AccountState | null);
         this.triggerPersist();
       },
@@ -1612,6 +2078,52 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     return this.isAccountContextCurrent()
       ? (this.cache.get('account') ?? null)
       : null;
+  }
+
+  /**
+   * Completeness metadata from the latest aggregated account update
+   * (`status: 'complete' | 'partial'` plus the per-venue lists). Null for
+   * direct-mode streams and user-data snapshots, which have no incompleteness
+   * claim.
+   */
+  public getAggregateMetadata(): AccountAggregateMetadata | null {
+    return this.isAccountContextCurrent() ? this.aggregateMetadata : null;
+  }
+
+  /**
+   * Per-venue account view built from the aggregated state's
+   * `providerStates` (TAT-4407). Each entry carries the venue's stream status:
+   * its own `AccountState` when `available`, or a `pending`/`unavailable`
+   * verdict with no balances — a venue that has not reported or failed to load
+   * is never shown as zero.
+   *
+   * In direct mode there is no `providerStates`; the single state is reported
+   * as the active venue's entry, so the total equals it.
+   */
+  public getVenueAccountStates(): PerpsProviderAccountStateEntry[] {
+    const account = this.getSnapshot();
+    if (!account) {
+      return [];
+    }
+    if (
+      account.providerStates &&
+      Object.keys(account.providerStates).length > 0
+    ) {
+      return Object.values(account.providerStates);
+    }
+    const activeProvider = (Engine.context.PerpsController.state
+      .activeProvider ?? PROVIDER_CONFIG.DefaultProvider) as PerpsProviderType;
+    return [
+      {
+        status: 'available',
+        state: account,
+        providerId: account.providerId ?? activeProvider,
+      },
+    ];
+  }
+
+  public clearAggregateMetadata(): void {
+    this.aggregateMetadata = null;
   }
 
   public disconnect() {
@@ -1666,34 +2178,74 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
-// Open Interest Cap channel for tracking markets at capacity
+// Open Interest Cap channel for tracking markets at capacity.
+// The controller's OI-cap stream is venue-scoped (subscribeToOICaps takes a
+// providerId but no symbol), so this channel keeps one controller subscription
+// per venue (TAT-4407) and delivers the venue's cap list to symbol-scoped
+// subscribers. "Is this market at its cap?" is answered for (providerId,
+// symbol): a subscriber pinned to Lighter never sees Hyperliquid's cap.
 class OICapStreamChannel extends StreamChannel<string[]> {
   private prewarmUnsubscribe?: () => void;
+  // Venue key -> latest cap list. Venue key is the providerId, or 'default'
+  // for the untagged (default-routed) subscription.
+  private readonly capsByVenue = new Map<string, string[]>();
+  private readonly wsSubscriptionsPerVenue = new Map<string, () => void>();
 
   protected connect() {
-    if (this.wsSubscription) return;
+    // One controller stream per venue that has a subscriber. Untagged
+    // subscribers (including the prewarm) share the default-routed stream.
+    // Base reconnect() calls this after disconnect(), so every venue's stream
+    // is restored, not only the default one.
+    const venues = new Set<PerpsProviderType | undefined>();
+    this.subscribers.forEach((subscriber) => venues.add(subscriber.providerId));
+    venues.forEach((providerId) => this.connectVenue(providerId));
+  }
 
-    if (!this.ensureReady()) return;
-
-    // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
-    this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
+  private connectVenue(providerId: PerpsProviderType | undefined): void {
+    const venueKey = providerId ?? 'default';
+    if (this.wsSubscriptionsPerVenue.has(venueKey)) {
+      return;
+    }
+    if (!this.ensureReady()) {
+      return;
+    }
+    const subscriptionContext = this.getSubscriptionContext();
+    const wsUnsubscribe = Engine.context.PerpsController.subscribeToOICaps({
+      ...(providerId ? { providerId } : {}),
       callback: (caps: string[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('OICapStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-
-        this.cache.set('oiCaps', caps);
-        this.notifySubscribers(caps);
+        this.capsByVenue.set(venueKey, caps);
+        if (venueKey === 'default') {
+          // The generic cache keeps the pre-TAT-4407 shape: the default-routed
+          // venue's caps. Venue caps are never unioned — a Lighter market must
+          // not inherit Hyperliquid's at-cap flag.
+          this.cache.set('oiCaps', caps);
+        }
+        // Cap ticks are low-frequency and venue-wide; each subscriber gets its
+        // own venue's list (see getPayloadForSubscriber) and filters by symbol.
+        this.notifySubscribers(caps, 'fresh', providerId);
       },
     });
+    this.wsSubscriptionsPerVenue.set(venueKey, wsUnsubscribe);
+  }
+
+  protected getPayloadForSubscriber(
+    subscriber: StreamSubscription<string[]>,
+  ): string[] | undefined {
+    const venueCaps = this.capsByVenue.get(subscriber.providerId ?? 'default');
+    if (venueCaps) {
+      return venueCaps;
+    }
+    // A venue that has not reported yet gets nothing rather than another
+    // venue's caps. The broadcast payload may be another venue's tick, so an
+    // untagged subscriber falls back only to the default-venue cache (e.g. a
+    // seeded cache replayed on resume).
+    if (subscriber.providerId) {
+      return undefined;
+    }
+    return this.getCachedData() ?? undefined;
   }
 
   protected getCachedData(): string[] | null {
@@ -1704,6 +2256,42 @@ class OICapStreamChannel extends StreamChannel<string[]> {
 
   protected getClearedData(): string[] {
     return [];
+  }
+
+  protected getCachedDataForSubscription(
+    params: Pick<StreamSubscription<string[]>, 'symbols' | 'providerId'>,
+  ): string[] | null {
+    const venueCaps = this.capsByVenue.get(params.providerId ?? 'default');
+    if (venueCaps) {
+      return venueCaps;
+    }
+    return params.providerId ? null : this.getCachedData();
+  }
+
+  /**
+   * Subscribe to at-cap updates for one market on one venue (TAT-4407). The
+   * first subscription for a venue opens that venue's controller stream.
+   * Without a providerId the subscriber follows the default-routed stream,
+   * which keeps existing callers working.
+   */
+  public subscribeToSymbol(params: {
+    symbol: string;
+    providerId?: PerpsProviderType;
+    callback: (caps: string[]) => void;
+    throttleMs?: number;
+    onError?: (error: Error) => void;
+  }): () => void {
+    const unsubscribe = this.subscribe({
+      symbols: [params.symbol],
+      providerId: params.providerId,
+      callback: params.callback,
+      throttleMs: params.throttleMs,
+      onError: params.onError,
+    });
+
+    this.connectVenue(params.providerId);
+
+    return unsubscribe;
   }
 
   public getSnapshot(): string[] | null {
@@ -1749,8 +2337,17 @@ class OICapStreamChannel extends StreamChannel<string[]> {
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
+    this.wsSubscriptionsPerVenue.forEach((unsubscribe) => unsubscribe());
+    this.wsSubscriptionsPerVenue.clear();
+    this.capsByVenue.clear();
     // Call parent clearCache
     super.clearCache();
+  }
+
+  public disconnect(): void {
+    this.wsSubscriptionsPerVenue.forEach((unsubscribe) => unsubscribe());
+    this.wsSubscriptionsPerVenue.clear();
+    super.disconnect();
   }
 }
 
@@ -1759,6 +2356,9 @@ class TopOfBookStreamChannel extends StreamChannel<
   { bestBid?: string; bestAsk?: string; spread?: string } | undefined
 > {
   private currentSymbol: string | null = null;
+  // Venue the channel is focused on (TAT-4407). Updates from other venues are
+  // ignored instead of accepted as "the first update whose symbol matches".
+  private currentProviderId: PerpsProviderType | undefined = undefined;
   private cachedTopOfBook:
     | { bestBid?: string; bestAsk?: string; spread?: string }
     | undefined = undefined;
@@ -1788,22 +2388,40 @@ class TopOfBookStreamChannel extends StreamChannel<
 
     // Start trace for first top-of-book measurement (before subscription)
     this.firstDataTraceId = uuidv4();
+    const traceId = this.firstDataTraceId;
     trace({
       name: TraceName.PerpsWebSocketFirstOrderBook,
-      id: this.firstDataTraceId,
+      id: traceId,
       op: TraceOperation.PerpsOperation,
       tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
+    const subscribedSymbol = this.currentSymbol;
+    const subscribedProviderId = this.currentProviderId;
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
-      symbols: [this.currentSymbol],
+      symbols: [subscribedSymbol],
       includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
-        const update = updates.find((u) => u.symbol === this.currentSymbol);
+        if (!this.isSubscriptionGenerationCurrent(subscriptionContext)) {
+          return;
+        }
+        const update = updates.find(
+          (u) =>
+            u.symbol === subscribedSymbol &&
+            venueMatchesSubscription(
+              subscribedProviderId,
+              u.providerId,
+              getRoutingDefaultProvider(),
+            ),
+        );
         if (update) {
           // Track first top-of-book data (only once per connection)
-          if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+          if (
+            this.wsConnectionStartTime !== null &&
+            this.firstDataTraceId === traceId
+          ) {
             const firstDataDuration =
               performance.now() - this.wsConnectionStartTime;
             DevLogger.log(
@@ -1812,7 +2430,7 @@ class TopOfBookStreamChannel extends StreamChannel<
             );
             endTrace({
               name: TraceName.PerpsWebSocketFirstOrderBook,
-              id: this.firstDataTraceId,
+              id: traceId,
               data: { success: true, duration: firstDataDuration },
             });
             this.wsConnectionStartTime = null;
@@ -1825,7 +2443,9 @@ class TopOfBookStreamChannel extends StreamChannel<
             spread: update.spread,
           };
           this.cachedTopOfBook = topOfBook;
-          this.notifySubscribers(topOfBook);
+          this.notifySubscribersForSymbols(topOfBook, [
+            buildVenueSymbolKey(subscribedSymbol, subscribedProviderId),
+          ]);
         }
       },
     });
@@ -1851,19 +2471,30 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 
   public clearCache(): void {
+    const symbol = this.currentSymbol;
+    const providerId = this.currentProviderId;
     this.cachedTopOfBook = undefined;
     super.clearCache();
+    this.currentSymbol = symbol;
+    this.currentProviderId = providerId;
   }
 
   subscribeToSymbol(params: {
     symbol: string;
+    providerId?: PerpsProviderType;
     callback: (
       orderBook:
         | { bestBid?: string; bestAsk?: string; spread?: string }
         | undefined,
     ) => void;
   }): () => void {
-    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
+    if (!params.symbol) {
+      return () => undefined;
+    }
+    const focusChanged =
+      this.currentSymbol !== params.symbol ||
+      this.currentProviderId !== params.providerId;
+    if (this.currentSymbol && focusChanged) {
       DevLogger.log(
         'TopOfBookStreamChannel: Warning - different symbol requested, staying on current',
         {
@@ -1874,22 +2505,70 @@ class TopOfBookStreamChannel extends StreamChannel<
 
       // Force disconnect to clear old symbol
       this.disconnect();
-
-      // Set new symbol
+    }
+    if (!this.currentSymbol || focusChanged) {
       this.currentSymbol = params.symbol;
-    } else if (!this.currentSymbol) {
-      this.currentSymbol = params.symbol;
+      this.currentProviderId = params.providerId;
     }
 
-    return this.subscribe({
+    const unsubscribe = this.subscribe({
+      symbols: [params.symbol],
+      providerId: params.providerId,
       callback: params.callback,
     });
+
+    return () => {
+      unsubscribe();
+      this.refocusToRemainingSymbol();
+    };
+  }
+
+  private refocusToRemainingSymbol(): void {
+    if (this.subscribers.size === 0) {
+      return;
+    }
+    const currentKey = buildVenueSymbolKey(
+      this.currentSymbol ?? '',
+      this.currentProviderId,
+    );
+    if (this.currentSymbol && this.symbolSubscribers.has(currentKey)) {
+      return;
+    }
+    const nextKey = this.symbolSubscribers.keys().next().value;
+    if (!nextKey) {
+      return;
+    }
+    this.disconnect();
+    const parsed = parseVenueSymbolKey(nextKey);
+    this.currentSymbol = parsed.symbol;
+    this.currentProviderId = parsed.providerId;
+    this.connect();
   }
 
   public disconnect() {
     this.currentSymbol = null;
+    this.currentProviderId = undefined;
     this.cachedTopOfBook = undefined;
     super.disconnect();
+  }
+
+  public reconnect(): void {
+    const currentKey = buildVenueSymbolKey(
+      this.currentSymbol ?? '',
+      this.currentProviderId,
+    );
+    const nextKey =
+      this.currentSymbol && this.symbolSubscribers.has(currentKey)
+        ? currentKey
+        : this.symbolSubscribers.keys().next().value;
+    this.disconnect();
+    super.clearCache();
+    if (nextKey && this.subscribers.size > 0) {
+      const parsed = parseVenueSymbolKey(nextKey);
+      this.currentSymbol = parsed.symbol;
+      this.currentProviderId = parsed.providerId;
+      this.connect();
+    }
   }
 }
 
@@ -1906,6 +2585,9 @@ class TopOfBookStreamChannel extends StreamChannel<
  */
 class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
   private currentSymbol: string | null = null;
+  // Venue the channel is focused on (TAT-4407). Only updates from this venue
+  // are cached and delivered.
+  private currentProviderId: PerpsProviderType | undefined = undefined;
   private cachedPriceUpdate: PriceUpdate | undefined = undefined;
 
   protected connect() {
@@ -1919,18 +2601,35 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       symbol: this.currentSymbol,
     });
 
+    const subscribedSymbol = this.currentSymbol;
+    const subscribedProviderId = this.currentProviderId;
+    const subscriptionContext = this.getSubscriptionContext();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
-      symbols: [this.currentSymbol],
+      symbols: [subscribedSymbol],
       includeMarketData: true,
       callback: (updates: PriceUpdate[]) => {
-        const update = updates.find((u) => u.symbol === this.currentSymbol);
+        if (!this.isSubscriptionGenerationCurrent(subscriptionContext)) {
+          return;
+        }
+        const update = updates.find(
+          (u) =>
+            u.symbol === subscribedSymbol &&
+            venueMatchesSubscription(
+              subscribedProviderId,
+              u.providerId,
+              getRoutingDefaultProvider(),
+            ),
+        );
         if (update) {
           this.cachedPriceUpdate = update;
           // Scope dispatch to subscribers registered for this update's symbol.
           // Prevents a stale subscriber left mounted after navigating to a
           // different symbol (e.g. React Navigation keeping a prior screen
           // mounted) from receiving/caching another symbol's price.
-          this.notifySubscribersForSymbols(update, [update.symbol]);
+          this.notifySubscribersForSymbols(update, [
+            buildVenueSymbolKey(subscribedSymbol, subscribedProviderId),
+          ]);
         }
       },
     });
@@ -1955,17 +2654,22 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
 
   public subscribeToSymbol(params: {
     symbol: string;
+    providerId?: PerpsProviderType;
     callback: (update: PriceUpdate | undefined) => void;
   }): () => void {
-    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
+    const focusChanged =
+      this.currentSymbol !== params.symbol ||
+      this.currentProviderId !== params.providerId;
+    if (this.currentSymbol && focusChanged) {
       DevLogger.log('FocusedPriceStreamChannel: Symbol changed, reconnecting', {
         currentSymbol: this.currentSymbol,
         requestedSymbol: params.symbol,
       });
       this.disconnect();
+    }
+    if (!this.currentSymbol || focusChanged) {
       this.currentSymbol = params.symbol;
-    } else if (!this.currentSymbol) {
-      this.currentSymbol = params.symbol;
+      this.currentProviderId = params.providerId;
     }
 
     const unsubscribe = this.subscribe({
@@ -1974,6 +2678,7 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       // requested it, even while another symbol's subscriber is still
       // mounted and registered on this same channel.
       symbols: [params.symbol],
+      providerId: params.providerId,
       callback: params.callback,
     });
 
@@ -1999,29 +2704,56 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       // called disconnect() when the last one unsubscribed.
       return;
     }
-    if (this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)) {
+    const currentKey = buildVenueSymbolKey(
+      this.currentSymbol ?? '',
+      this.currentProviderId,
+    );
+    if (this.currentSymbol && this.symbolSubscribers.has(currentKey)) {
       // The focused symbol still has at least one subscriber.
       return;
     }
 
-    const nextSymbol = this.symbolSubscribers.keys().next().value;
-    if (!nextSymbol) {
+    const nextKey = this.symbolSubscribers.keys().next().value;
+    if (!nextKey) {
       return;
     }
 
     DevLogger.log(
       'FocusedPriceStreamChannel: Re-focusing to remaining subscriber symbol',
-      { nextSymbol },
+      { nextSymbol: nextKey },
     );
     this.disconnect();
-    this.currentSymbol = nextSymbol;
+    const parsed = parseVenueSymbolKey(nextKey);
+    this.currentSymbol = parsed.symbol;
+    this.currentProviderId = parsed.providerId;
     this.connect();
   }
 
   public disconnect() {
     this.currentSymbol = null;
+    this.currentProviderId = undefined;
     this.cachedPriceUpdate = undefined;
     super.disconnect();
+  }
+
+  public reconnect(): void {
+    const currentKey = buildVenueSymbolKey(
+      this.currentSymbol ?? '',
+      this.currentProviderId,
+    );
+    const nextKey =
+      this.currentSymbol && this.symbolSubscribers.has(currentKey)
+        ? currentKey
+        : this.symbolSubscribers.keys().next().value;
+    this.cachedPriceUpdate = undefined;
+    this.disconnect();
+    super.clearCache();
+    if (nextKey && this.subscribers.size > 0) {
+      const parsed = parseVenueSymbolKey(nextKey);
+      this.currentSymbol = parsed.symbol;
+      this.currentProviderId = parsed.providerId;
+      this.connect();
+    }
   }
 }
 
@@ -2044,25 +2776,25 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     return (
       data.length > 0 &&
       data.every(
-        (market) => market.dataSource === 'terminal-global-snapshot-mark',
+        (market) => market.dataSource === TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
       )
     );
   }
 
   private isGlobalSnapshotActive(): boolean {
-    const { activeProvider = PROVIDER_CONFIG.DefaultProvider } =
-      Engine.context.PerpsController.state;
-    return (
-      Boolean(this.terminalGlobalSnapshotUrl) &&
-      activeProvider === 'hyperliquid'
-    );
+    // TAT-4407: the gate is no longer tied to `activeProvider ===
+    // 'hyperliquid'`. The snapshot is active whenever a Terminal global
+    // snapshot URL is configured and at least one active venue can be read
+    // from it (after TAT-4395, Hyperliquid and Lighter). Which venues actually
+    // return snapshot rows is decided per venue by core.
+    return Boolean(this.terminalGlobalSnapshotUrl);
   }
 
   private getCurrentSourceKey(): string {
     const controller = Engine.context.PerpsController;
-    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-      store.getState(),
-    );
+    const state = store.getState();
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(state);
+    const hip3ConfigVersion = selectHip3ConfigVersion(state);
     const activeProvider =
       controller.state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider;
     const providerNetworkKey = buildProviderCacheKey(
@@ -2075,7 +2807,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     } else if (terminalEnabled) {
       source = 'terminal';
     }
-    return `${providerNetworkKey}:${source}`;
+    return `${providerNetworkKey}:${hip3ConfigVersion}:${source}`;
   }
 
   protected connect() {
@@ -2128,6 +2860,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheValidForMs: this.CACHE_DURATION - cacheAge,
         providerId: currentProviderId,
       });
+      recordPerpsLoadingSessionValuesReady(
+        'markets',
+        'memory_cache',
+        cached.length,
+        {},
+        getCurrentPerpsLoadingSessionIdentity(),
+      );
       // subscribe() already delivered this cache. Existing subscribers already
       // render it, so wait for the next fresh fetch before notifying again.
     }
@@ -2181,6 +2920,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           this.cache.set('markets', cachedForProvider);
           this.lastFetchTime = Date.now();
           this.cachedSourceKey = controllerNetworkKey;
+          recordPerpsLoadingSessionValuesReady(
+            'markets',
+            'memory_cache',
+            cachedForProvider.length,
+            {},
+            getCurrentPerpsLoadingSessionIdentity(),
+          );
           this.notifySubscribers(cachedForProvider, 'cache');
           return;
         }
@@ -2220,6 +2966,15 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
         this.cachedSourceKey = preFetchNetworkKey;
+        recordPerpsLoadingSessionValuesReady(
+          'markets',
+          this.isCompleteGlobalSnapshot(data)
+            ? 'terminal_global_snapshot_v2'
+            : 'provider',
+          data.length,
+          {},
+          getCurrentPerpsLoadingSessionIdentity(),
+        );
         // Notify all subscribers
         this.notifySubscribers(data);
         this.triggerPersist();
@@ -2349,6 +3104,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       this.cache.clear();
       this.lastFetchTime = 0;
       this.cachedSourceKey = null;
+      this.lastDeliveredAt = null;
     }
 
     this.subscribers.forEach((subscriber) => {
@@ -2361,6 +3117,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       if (!preserveCache) {
         subscriber.hasReceivedFirstFreshUpdate = false;
         subscriber.callback([]);
+        subscriber.onDelivery?.('cleared');
       }
     });
   }
@@ -2448,6 +3205,34 @@ export class PerpsStreamManager {
     this.positions.seedCache('positions', snapshot.positions);
     this.orders.seedCache('orders', snapshot.orders);
     this.account.seedCache('account', snapshot.accountState);
+    // The user-data snapshot is Hyperliquid-only: it carries no aggregate
+    // completeness claim, so drop any stale aggregated-stream metadata.
+    this.account.clearAggregateMetadata();
+
+    const proofSource =
+      source === 'cache' ? 'memory_cache' : 'provider_snapshot';
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    recordPerpsLoadingSessionValuesReady(
+      'positions',
+      proofSource,
+      snapshot.positions.length,
+      {},
+      loadingIdentity,
+    );
+    recordPerpsLoadingSessionValuesReady(
+      'orders',
+      proofSource,
+      snapshot.orders.length,
+      {},
+      loadingIdentity,
+    );
+    recordPerpsLoadingSessionValuesReady(
+      'account',
+      proofSource,
+      1,
+      {},
+      loadingIdentity,
+    );
 
     this.positions.publish(snapshot.positions, source);
     this.orders.publish(snapshot.orders, source);
@@ -2539,6 +3324,12 @@ export class PerpsStreamManager {
           );
           return;
         }
+        if (safeError.message === USER_DATA_SNAPSHOT_CONTEXT_CHANGED) {
+          DevLogger.log(
+            'PerpsStreamManager: User data snapshot aborted because the context changed',
+          );
+          return;
+        }
         Logger.error(safeError, {
           context: 'PerpsStreamManager.getUserDataSnapshot',
         });
@@ -2627,6 +3418,14 @@ export class PerpsStreamManager {
     )?.catch(() => {
       /* fire-and-forget */
     });
+  }
+
+  /** Retry both authenticated order channels after a trading-key failure. */
+  public retryOrderStreams(): void {
+    this.orders.clearCache();
+    this.fills.clearCache();
+    this.orders.reconnect();
+    this.fills.reconnect();
   }
 
   /**

@@ -11,7 +11,7 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import {
   type MoneyDepositAsset,
-  selectMoneyDepositEligibleAssets,
+  selectMoneyDepositAssetsMeetingMinimumBalance,
 } from '../selectors/depositTokens';
 
 jest.mock('react-redux');
@@ -134,7 +134,9 @@ const mockSelectors = (
   relayFixedSpread: RelayFixedSpreadConfig = EMPTY_RELAY_CONFIG,
 ) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectMoneyDepositEligibleAssets) return eligibleAssets;
+    if (selector === selectMoneyDepositAssetsMeetingMinimumBalance) {
+      return eligibleAssets;
+    }
     if (selector === selectRelayFixedSpread) return relayFixedSpread;
     if (selector === selectCurrencyRates) return DEFAULT_CURRENCY_RATES;
     if (selector === selectNetworkConfigurations)

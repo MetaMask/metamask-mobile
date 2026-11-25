@@ -1,9 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useInfiniteQuery,
-  type UseInfiniteQueryOptions,
-} from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
@@ -14,18 +11,31 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
+import {
+  selectMoneyAccountPremiumVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyCardActivityCashbackMultisendContracts,
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
+} from '../selectors/featureFlags';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import {
   oldestRawActivityTime,
   parseAccountsApiActivity,
+  type VaultShareToken,
 } from '../utils/accountsApi';
 import {
   readCachedFirstPage,
   writeCachedFirstPage,
 } from '../utils/moneyActivityCache';
+import { useMoneyActivityValuations } from './useMoneyActivityValuations';
+
+interface UseMoneyAccountApiActivityOptions {
+  enabled?: boolean;
+}
 
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
@@ -49,12 +59,15 @@ export interface UseMoneyAccountApiActivityResult {
   /** True while a follow-up (non-initial) page is being fetched. */
   isLoadingMore: boolean;
   isLoading: boolean;
+  isValuationSettling: boolean;
   error: boolean;
   refetch: () => void;
 }
 
 const EMPTY_ACTIVITY: AccountsApiActivity[] = [];
 const EMPTY_PAGES: V1AccountTransactionsResponse[] = [];
+const EMPTY_PAGE_ACTIVITY: AccountsApiActivity[][] = [];
+const EMPTY_VAULT_SHARE_TOKENS: VaultShareToken[] = [];
 
 const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
   chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
@@ -72,14 +85,41 @@ const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
  * scrolled. The `watermark` tells the consumer how far down the merged list is
  * complete and safe to display.
  */
-export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
+export function useMoneyAccountApiActivity({
+  enabled: callerEnabled = true,
+}: UseMoneyAccountApiActivityOptions = {}): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const cashbackMultisendContracts = useSelector(
     selectMoneyCardActivityCashbackMultisendContracts,
   );
+  const standardVault = useSelector(selectMoneyAccountVaultConfig);
+  const premiumVault = useSelector(selectMoneyAccountPremiumVaultConfig);
+  const historicalValuationsEnabled = useSelector(
+    selectMoneyEnableHistoricalVaultShareValuationsFlag,
+  );
+  const vaultShareTokens = useMemo(() => {
+    if (!historicalValuationsEnabled) {
+      return EMPTY_VAULT_SHARE_TOKENS;
+    }
+
+    const tokens: VaultShareToken[] = [];
+    if (standardVault) {
+      tokens.push({
+        chainId: standardVault.chainId,
+        address: standardVault.boringVault,
+      });
+    }
+    if (premiumVault) {
+      tokens.push({
+        chainId: premiumVault.chainId,
+        address: premiumVault.boringVault,
+      });
+    }
+    return tokens;
+  }, [historicalValuationsEnabled, premiumVault, standardVault]);
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
-  const enabled = moneyAddress !== '';
+  const enabled = moneyAddress !== '' && callerEnabled;
 
   // Reuse the client's query key (cursor-free) so all pages share one cache
   // entry and the home preview and full list don't refetch each other's pages.
@@ -96,10 +136,9 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     [enabled, moneyAddress],
   );
 
-  // `apiClient` is built against query-core v5; this repo's react-query is v4, so
-  // the query options aren't nominally compatible. The shapes match at runtime.
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
+    initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam }: { pageParam?: string }) => {
       // `useMoneyActivityItems` auto-fills pages serially, so `is_initial_page`
       // separates the request gating time-to-content from those behind it.
@@ -146,28 +185,47 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       ? { pages: [cachedFirstPage.page], pageParams: [undefined] }
       : undefined,
     initialDataUpdatedAt: cachedFirstPage?.cachedAt,
-  } as unknown as UseInfiniteQueryOptions<
-    V1AccountTransactionsResponse,
-    Error
-  >);
+  });
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
+  const pageActivities = useMemo(
+    () =>
+      pages.length === 0
+        ? EMPTY_PAGE_ACTIVITY
+        : pages.map((page) =>
+            parseAccountsApiActivity(
+              page,
+              moneyAddress,
+              cashbackMultisendContracts,
+              vaultShareTokens,
+            ),
+          ),
+    [pages, moneyAddress, cashbackMultisendContracts, vaultShareTokens],
+  );
+
+  const { getDisplayAmount, isSettling: isValuationSettling } =
+    useMoneyActivityValuations({
+      pageActivities,
+      moneyAddress,
+      vaultShareTokens,
+      enabled: Boolean(historicalValuationsEnabled && enabled),
+    });
+
   const activity = useMemo(() => {
-    if (pages.length === 0) {
+    if (pageActivities.length === 0) {
       return EMPTY_ACTIVITY;
     }
     // Dedupe across page boundaries: if the API cursor is ever inclusive (the
     // last row of one page repeated as the first of the next), the duplicate
     // would otherwise render twice and collide on the list's `id` key.
     const seen = new Set<string>();
-    return pages
-      .flatMap((page) =>
-        parseAccountsApiActivity(
-          page,
-          moneyAddress,
-          cashbackMultisendContracts,
-        ),
+    return pageActivities
+      .flatMap((rows) =>
+        rows.map((row): AccountsApiActivity => {
+          const displayAmount = getDisplayAmount(row);
+          return displayAmount ? { ...row, displayAmount } : row;
+        }),
       )
       .filter((row) => {
         const key = `${row.kind}:${row.hash.toLowerCase()}`;
@@ -177,7 +235,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
         seen.add(key);
         return true;
       });
-  }, [pages, moneyAddress, cashbackMultisendContracts]);
+  }, [pageActivities, getDisplayAmount]);
 
   // "Complete" means no further pages will arrive, so the merged list can be
   // shown in full. This happens if:
@@ -210,9 +268,8 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     hasMore: hasNextPage === true && !isError,
     loadMore,
     isLoadingMore: isFetchingNextPage,
-    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
-    // loading and a background refetch doesn't flash the spinner.
-    isLoading: query.isInitialLoading,
+    isLoading: query.isLoading,
+    isValuationSettling,
     error: query.isError,
     refetch: query.refetch,
   };

@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import {
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -16,15 +15,18 @@ import {
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionDetails.styles';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { formatWithThreshold } from '../../../../../util/assets';
-import I18n from '../../../../../../locales/i18n';
 import DeFiAvatarWithBadge from '../../../DeFiPositions/DeFiAvatarWithBadge';
 import Summary from '../../../../Base/Summary';
+import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
 import { useStyles } from '../../../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import DeFiProtocolPositionGroupsV2 from './DeFiProtocolPositionGroupsV2';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
@@ -40,11 +42,13 @@ interface DeFiProtocolPositionDetailsV2Params {
  * (no separate fetch).
  */
 const DeFiProtocolPositionDetailsV2: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation<AppStackNavigationProp>();
   const { protocolPositionGroup, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsV2Params>();
   const privacyMode = useSelector(selectPrivacyMode);
+  const currency = useSelector(getSelectedCurrency);
 
   const handleBack = useCallback(() => {
     navigation.pop();
@@ -62,7 +66,9 @@ const DeFiProtocolPositionDetailsV2: React.FC = () => {
       style={styles.protocolPositionDetailsWrapper}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title=""
         onBack={handleBack}
         includesTopInset
@@ -80,10 +86,15 @@ const DeFiProtocolPositionDetailsV2: React.FC = () => {
               length={SensitiveTextLength.Medium}
               testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
             >
-              {formatWithThreshold(marketValue ?? 0, 0.01, I18n.locale, {
-                style: 'currency',
-                currency: 'USD',
-              })}
+              {formatWithThreshold(
+                marketValue ?? 0,
+                0.01,
+                getLocaleLanguageCode(),
+                {
+                  style: 'currency',
+                  currency,
+                },
+              )}
             </SensitiveText>
           </View>
 

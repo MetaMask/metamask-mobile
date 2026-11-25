@@ -14,9 +14,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You are approaching your spending limit. Consider closing it.',
       'card.card_home.warnings.close_spending_limit.confirm_button_label':
         'Close Limit',
-      'card.card_home.warnings.kyc_pending.title': 'Verification in Progress',
+      'card.card_home.warnings.kyc_pending.title': 'Verifying your identity',
       'card.card_home.warnings.kyc_pending.description':
-        'Your identity verification is still being reviewed.',
+        'Most applications are reviewed within a few hours.',
       'card.card_home.messages.card_provisioning.title':
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
@@ -45,6 +45,35 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.credit_banner.description':
         'Spend it or move it to your Money account to keep earning on your balance.',
       'card.credit_banner.confirm_button_label': 'Move funds',
+      'card.uk_migration_soft.title': 'Update your MetaMask Card',
+      'card.uk_migration_soft.description':
+        'Set up by {{deadline}} to avoid interruptions.',
+      'card.uk_migration_soft.description_no_deadline':
+        'Set up your card to avoid interruptions.',
+      'card.uk_migration_soft.confirm_button_label': 'Set up card',
+      'card.uk_migration_required.title': 'Update required to continue',
+      'card.uk_migration_required.description':
+        'Complete your MetaMask Card update to keep using your card.',
+      'card.uk_migration_required.confirm_button_label': 'Update now',
+      'card.push_provisioning.verification_pending_title':
+        'Verification pending',
+      'card.push_provisioning.verification_pending_description':
+        'Open the card in Apple Wallet to verify it on {{devices}}.',
+      'card.push_provisioning.open_in_apple_wallet': 'Open in Apple Wallet',
+      'card.card_home.messages.setup_incomplete.title':
+        'Finish setting up your card',
+      'card.card_home.messages.setup_incomplete.descriptions.contact':
+        'Add your contact details to continue.',
+      'card.card_home.messages.setup_incomplete.descriptions.kyc':
+        'Verify your identity to continue.',
+      'card.card_home.messages.setup_incomplete.descriptions.expected_spend':
+        'Tell us how you plan to use your card to continue.',
+      'card.card_home.messages.setup_incomplete.descriptions.funding':
+        'Approve funding so you can start spending.',
+      'card.card_home.messages.setup_incomplete.descriptions.rejected':
+        "We couldn't verify your identity. Try again to continue.",
+      'card.card_home.messages.setup_incomplete.confirm_button_label':
+        'Continue',
     };
     let value = mockStrings[key] || key;
     if (params) {
@@ -139,8 +168,8 @@ describe('CardMessageBox', () => {
     });
   });
 
-  describe('KYCPending warning', () => {
-    it('renders warning banner', () => {
+  describe('KYCPending info', () => {
+    it('renders info banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
@@ -153,9 +182,9 @@ describe('CardMessageBox', () => {
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
-      expect(getByText('Verification in Progress')).toBeOnTheScreen();
+      expect(getByText('Verifying your identity')).toBeOnTheScreen();
       expect(
-        getByText('Your identity verification is still being reviewed.'),
+        getByText('Most applications are reviewed within a few hours.'),
       ).toBeOnTheScreen();
     });
 
@@ -210,28 +239,6 @@ describe('CardMessageBox', () => {
       ));
 
       expect(getByTestId('card-message-box')).toBeOnTheScreen();
-    });
-  });
-
-  describe('PendingVerification warning', () => {
-    it('renders title, description, and continue CTA', () => {
-      const { getByText, getByTestId } = renderWithProvider(() => (
-        <CardMessageBox
-          messageType={CardMessageBoxType.PendingVerification}
-          onConfirm={mockOnConfirm}
-        />
-      ));
-
-      expect(getByText('Finish setting up your card')).toBeOnTheScreen();
-      expect(
-        getByText(
-          'You have pending verification steps to complete before your card can be enabled.',
-        ),
-      ).toBeOnTheScreen();
-      expect(getByText('Continue verification')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('confirm-button'));
-      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -322,6 +329,36 @@ describe('CardMessageBox', () => {
     });
   });
 
+  describe('WalletVerificationPending warning', () => {
+    it('interpolates the devices into the description', () => {
+      const { getByText, queryByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
+        />
+      ));
+
+      expect(getByText('Verification pending')).toBeOnTheScreen();
+      expect(
+        getByText('Open the card in Apple Wallet to verify it on iPhone.'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
+    });
+
+    it('renders Open in Apple Wallet when onConfirm is provided', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('common behaviors', () => {
     it('renders dismiss button when onDismiss is provided', () => {
       const { getByTestId } = renderWithProvider(() => (
@@ -386,5 +423,32 @@ describe('CardMessageBox', () => {
         expect(getByTestId('card-message-box')).toBeOnTheScreen();
       });
     });
+  });
+
+  describe('SetupIncomplete warning', () => {
+    it.each([
+      ['contact', 'Add your contact details to continue.'],
+      ['kyc', 'Verify your identity to continue.'],
+      ['expected_spend', 'Tell us how you plan to use your card to continue.'],
+      ['funding', 'Approve funding so you can start spending.'],
+      ['rejected', "We couldn't verify your identity. Try again to continue."],
+    ] as const)(
+      'describes the %s setup step and continues',
+      (step, description) => {
+        const { getByText, getByTestId } = renderWithProvider(() => (
+          <CardMessageBox
+            messageType={CardMessageBoxType.SetupIncomplete}
+            values={{ step }}
+            onConfirm={mockOnConfirm}
+          />
+        ));
+
+        expect(getByText('Finish setting up your card')).toBeOnTheScreen();
+        expect(getByText(description)).toBeOnTheScreen();
+
+        fireEvent.press(getByTestId('confirm-button'));
+        expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 });

@@ -67,6 +67,15 @@ describe('DeviceSelectionContent', () => {
     );
 
     expect(getByTestId(DEVICE_SELECTION_CONTENT_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(DEVICE_SELECTION_CONTENT_TEST_ID)).toHaveStyle({
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    });
+    expect(
+      getByTestId(`${DEVICE_SELECTION_ITEM_TEST_ID}-device-1`),
+    ).toHaveStyle({
+      paddingHorizontal: 16,
+    });
     expect(getByText('Select Ledger')).toBeOnTheScreen();
     expect(getByText('Nano X 1234')).toBeOnTheScreen();
     expect(getByText('Nano X 5678')).toBeOnTheScreen();

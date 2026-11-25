@@ -16,20 +16,15 @@ import {
   CardType,
   type CardNetwork,
 } from '../../../../../components/UI/Card/types';
-import type {
-  CardFeatureFlag,
-  SupportedToken,
-} from '../../../../../selectors/featureFlagController/card';
+import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
   ARBITRARY_ALLOWANCE,
-  BALANCE_SCANNER_ABI,
   SUPPORTED_ASSET_NETWORKS,
-  LINEA_PUBLIC_RPC_URL,
   cardNetworkInfos,
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
-import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
+import { buildBaanxCardholderName } from './utils/cardholderName';
 import {
   generatePKCEPair,
   generateState,
@@ -49,6 +44,8 @@ import {
   CardFundingAsset,
   CardHomeData,
   CardProviderCapabilities,
+  ApplePayProvisioningParams,
+  CardWalletProvisioningInfo,
   CardSecureView,
   CardSecureViewParams,
   AuthTokenValidity,
@@ -70,6 +67,9 @@ import {
   CreditWithdrawParams,
   CreditWithdrawResponse,
   type DelegationChallengeResponse,
+  type CompleteMoneyAccountLinkParams,
+  type MoneyAccountLinkPreparation,
+  type PrepareMoneyAccountLinkParams,
   emptyCardHomeData,
   isCardAuthTokenError,
   CardProviderIds,
@@ -82,6 +82,12 @@ import {
   type CardTransactionPage,
 } from '../provider-types';
 import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { resolveMoneyAccountCardToken } from '../utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../../components/UI/Card/util/vedaToken';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -360,6 +366,20 @@ function mapAllowanceToFundingStatus(
   return FundingAssetStatus.Active;
 }
 
+function baanxProvisioningCountryCode(
+  location: string,
+  countryOfResidence: string | null | undefined,
+): string | undefined {
+  if (location === 'us') {
+    return 'US';
+  }
+  const residence = countryOfResidence?.trim();
+  if (!residence) {
+    return undefined;
+  }
+  return residence.toUpperCase();
+}
+
 export class BaanxProvider implements ICardProvider {
   readonly id = CardProviderIds.Baanx;
 
@@ -370,7 +390,7 @@ export class BaanxProvider implements ICardProvider {
     supportsFundingLimits: true,
     fundingChains: ['eip155:59144', 'eip155:8453'],
     supportsFreeze: true,
-    supportsPushProvisioning: true,
+    pushProvisioning: { applePay: true, googlePay: true },
     onboarding: {
       type: 'steps',
       steps: [
@@ -390,7 +410,10 @@ export class BaanxProvider implements ICardProvider {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsTransactionHistory: true,
+    supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
+    reportsVerificationStatus: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -456,10 +479,24 @@ export class BaanxProvider implements ICardProvider {
     if (credentials.type === 'email_password') {
       return this.handleEmailPassword(session, credentials);
     }
+    if (credentials.type === 'email_code') {
+      return this.handleEmailCode(session, credentials);
+    }
     throw new Error(`Unsupported credential type: ${credentials.type}`);
   }
 
+  async requestEmailLoginCode(email: string): Promise<void> {
+    try {
+      await this.service.post('/v1/auth/login/email-code/request', { email });
+    } catch (error) {
+      throw mapApiError(error, 'requestEmailLoginCode');
+    }
+  }
+
   async executeStepAction(session: CardAuthSession): Promise<void> {
+    if (session._metadata.otpMode === 'TOTP') {
+      return;
+    }
     const userId = session._metadata.otpUserId as string | undefined;
     if (!userId) {
       throw new CardProviderError(
@@ -541,6 +578,36 @@ export class BaanxProvider implements ICardProvider {
     await this.service.post('/v1/auth/logout', {}, tokens);
   }
 
+  /**
+   * Full authenticated Baanx profile (`GET /v1/user`), including contact fields
+   * used for UK migration SignUp prefill.
+   */
+  async getUserDetails(tokens: CardAuthTokens): Promise<UserResponse> {
+    try {
+      return await this.service.get<UserResponse>('/v1/user', tokens);
+    } catch (error) {
+      throw mapApiError(error, 'getUserDetails');
+    }
+  }
+
+  /**
+   * Signals Exodus that this Baanx user started Immersve onboarding and wants
+   * their Exodus account closed (`POST /v1/user/closure`). A 400 means the
+   * closure was already requested and is treated as success.
+   */
+  async requestAccountClosure(tokens: CardAuthTokens): Promise<void> {
+    try {
+      const userId =
+        tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
+      await this.service.post('/v1/user/closure', { userId }, tokens);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 400) {
+        return;
+      }
+      throw mapApiError(error, 'requestAccountClosure');
+    }
+  }
+
   // -- Card Home Data --
 
   async getCardHomeData(
@@ -553,7 +620,12 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
-        if (err instanceof CardApiError && err.statusCode === 429) {
+        // getUserDetails maps CardApiError → CardProviderError before this
+        // catch runs, so check statusCode on both shapes.
+        if (
+          (err instanceof CardApiError || err instanceof CardProviderError) &&
+          err.statusCode === 429
+        ) {
           throw mapApiError(err, logContext);
         }
         Logger.error(err as Error, getErrorContext(logContext));
@@ -574,9 +646,9 @@ export class BaanxProvider implements ICardProvider {
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
             .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
-          this.service
-            .get<UserResponse>('/v1/user', tokens)
-            .catch(swallowUnlessAuthError('getCardHomeData.user')),
+          this.getUserDetails(tokens).catch(
+            swallowUnlessAuthError('getCardHomeData.user'),
+          ),
         ],
       );
 
@@ -629,9 +701,12 @@ export class BaanxProvider implements ICardProvider {
             tokens.location as CardLocation,
           )
         : null;
-      const account = user
-        ? this.mapAccountStatus(user, cardDetailsResponse)
-        : null;
+      const account = user ? this.mapAccountStatus(user) : null;
+      const walletProvisioning = this.mapWalletProvisioning(
+        user,
+        card,
+        tokens.location,
+      );
       const alerts = this.buildAlerts(primaryFundingAsset, card, account);
       const actions = this.buildActions(primaryFundingAsset, card, account);
 
@@ -646,6 +721,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets,
         card,
         account,
+        walletProvisioning,
         alerts,
         actions,
         delegationSettings,
@@ -908,6 +984,90 @@ export class BaanxProvider implements ICardProvider {
     );
   }
 
+  async prepareMoneyAccountLink(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation> {
+    const cardToken = resolveMoneyAccountCardToken(params.delegationSettings);
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const { delegationToken, nonce } = await this.fetchDelegationChallenge(
+      {
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        address: params.moneyAccountAddress,
+      },
+      tokens,
+    );
+    const caipChainId =
+      cardToken.caipChainId ?? MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID;
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+      address: params.moneyAccountAddress,
+      nonce,
+      caipChainId,
+    });
+
+    return {
+      tokenAddress,
+      spender: cardToken.delegationContract,
+      decimals: cardToken.decimals ?? 6,
+      caipChainId,
+      context: {
+        signatureMessage,
+        delegationToken,
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+      },
+    };
+  }
+
+  async completeMoneyAccountLink(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const { signatureMessage, delegationToken, network, currency } =
+      params.context;
+    if (!params.sigHash || !signatureMessage || !delegationToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account link completion is missing the delegation signature',
+      );
+    }
+
+    await this.approveFunding(
+      {
+        address: params.moneyAccountAddress,
+        network: network ?? MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: currency ?? MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        amount: params.amountHuman,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
+      },
+      tokens,
+    );
+  }
+
   // -- Onboarding --
 
   async getRegistrationSettings(
@@ -980,12 +1140,7 @@ export class BaanxProvider implements ICardProvider {
   }
 
   async createApplePayProvisioningRequest(
-    params: {
-      leafCertificate: string;
-      intermediateCertificate: string;
-      nonce: string;
-      nonceSignature: string;
-    },
+    params: ApplePayProvisioningParams,
     tokens: CardAuthTokens,
   ): Promise<{
     encryptedPassData: string;
@@ -1002,7 +1157,11 @@ export class BaanxProvider implements ICardProvider {
       encryptedPassData?: string;
       activationData?: string;
       ephemeralPublicKey?: string;
-    }>('/v1/card/wallet/provision/apple', params, tokens);
+    }>(
+      '/v1/card/wallet/provision/apple',
+      this.toBaanxApplePayWire(params),
+      tokens,
+    );
 
     const data = response.data || response;
     if (
@@ -1028,379 +1187,113 @@ export class BaanxProvider implements ICardProvider {
   async getCashbackWallet(
     tokens: CardAuthTokens,
   ): Promise<CashbackWalletResponse> {
-    return this.service.get<CashbackWalletResponse>(
-      '/v1/wallet/reward',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWalletResponse>(
+        '/v1/wallet/reward',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
+      }
+      throw mapApiError(error, 'getCashbackWallet');
+    }
   }
 
   async getCashbackWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawEstimationResponse> {
-    return this.service.get<CashbackWithdrawEstimationResponse>(
-      '/v1/wallet/reward/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWithdrawEstimationResponse>(
+        '/v1/wallet/reward/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCashbackWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCashbackWithdrawEstimation');
+    }
   }
 
   async withdrawCashback(
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse> {
-    return this.service.post<CashbackWithdrawResponse>(
-      '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CashbackWithdrawResponse>(
+        '/v1/wallet/reward/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCashback'));
+      }
+      throw mapApiError(error, 'withdrawCashback');
+    }
   }
 
   // -- Credit --
 
   async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
-    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+    try {
+      return await this.service.get<CreditWalletResponse>(
+        '/v1/wallet/credit',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCreditWallet'));
+      }
+      throw mapApiError(error, 'getCreditWallet');
+    }
   }
 
   async getCreditWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawEstimationResponse> {
-    return this.service.get<CreditWithdrawEstimationResponse>(
-      '/v1/wallet/credit/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CreditWithdrawEstimationResponse>(
+        '/v1/wallet/credit/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCreditWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCreditWithdrawEstimation');
+    }
   }
 
   async withdrawCredit(
     params: CreditWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawResponse> {
-    return this.service.post<CreditWithdrawResponse>(
-      '/v1/wallet/credit/withdraw',
-      params,
-      tokens,
-    );
-  }
-
-  // -- On-Chain (unauthenticated) --
-
-  async getOnChainAssets(address: string): Promise<CardHomeData> {
-    const fallback: CardHomeData = {
-      ...emptyCardHomeData(),
-      actions: [{ type: 'add_funds', enabled: true }],
-    };
-
     try {
-      const lineaChainId = 'eip155:59144';
-      const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
-      if (!lineaChain?.tokens?.length) return fallback;
-
-      const supportedTokens = lineaChain.tokens.filter(
-        (t): t is SupportedToken & { address: string } =>
-          !!t && typeof t.address === 'string' && t.enabled !== false,
+      return await this.service.post<CreditWithdrawResponse>(
+        '/v1/wallet/credit/withdraw',
+        params,
+        tokens,
       );
-      if (supportedTokens.length === 0) return fallback;
-
-      const foxConnect = lineaChain.foxConnectAddresses;
-      const scannerAddress = lineaChain.balanceScannerAddress;
-      if (!foxConnect?.global || !foxConnect?.us || !scannerAddress) {
-        return fallback;
-      }
-
-      const primaryRpcUrl = cardNetworkInfos.linea?.rpcUrl;
-      if (!primaryRpcUrl) return fallback;
-
-      const rpcCandidates = Array.from(
-        new Set(
-          [primaryRpcUrl, LINEA_PUBLIC_RPC_URL].filter(
-            (url): url is string => typeof url === 'string' && url.length > 0,
-          ),
-        ),
-      );
-
-      let lineaProvider: ethers.providers.StaticJsonRpcProvider | undefined;
-      let lastRpcError: unknown;
-      for (const rpcUrl of rpcCandidates) {
-        try {
-          const candidate = this.#createLineaProvider(rpcUrl);
-          await candidate.getBlockNumber();
-          lineaProvider = candidate;
-          break;
-        } catch (error) {
-          lastRpcError = error;
-        }
-      }
-      if (!lineaProvider) {
-        throw lastRpcError instanceof Error
-          ? lastRpcError
-          : new Error('Linea RPC unreachable');
-      }
-
-      const rawAllowances = await this.#fetchOnChainAllowances(
-        address,
-        supportedTokens,
-        foxConnect as { global: string; us: string },
-        scannerAddress,
-        lineaProvider,
-      );
-
-      const fundingAssets = this.#mapOnChainAllowancesToAssets(
-        rawAllowances,
-        supportedTokens,
-        lineaChainId,
-        address,
-      );
-
-      const primaryFundingAsset = await this.#pickOnChainPrimaryAsset(
-        address,
-        fundingAssets,
-        foxConnect as { global: string; us: string },
-        lineaProvider,
-      );
-
-      return {
-        primaryFundingAsset,
-        fundingAssets,
-        availableFundingAssets: fundingAssets,
-        card: null,
-        account: null,
-        alerts: [],
-        actions: [{ type: 'add_funds', enabled: true }],
-        delegationSettings: null,
-      };
     } catch (error) {
-      Logger.error(error as Error, getErrorContext('getOnChainAssets'));
-      // When Linea RPC is unreachable, still surface feature-flag Linea tokens so
-      // CardHome can render the asset; useAssetBalances fills wallet balances.
-      return this.#buildLineaAssetsFromFeatureFlag(address) ?? fallback;
-    }
-  }
-
-  /**
-   * Builds Inactive Linea funding rows from the card feature flag when on-chain
-   * allowance scanning is unavailable. Empty spendableBalance lets
-   * useAssetBalances fall back to MultichainBalances wallet balances.
-   */
-  #buildLineaAssetsFromFeatureFlag(address: string): CardHomeData | null {
-    const lineaChainId = 'eip155:59144';
-    const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
-    if (!lineaChain?.tokens?.length) return null;
-
-    const fundingAssets = lineaChain.tokens
-      .filter(
-        (t): t is SupportedToken & { address: string } =>
-          !!t && typeof t.address === 'string' && t.enabled !== false,
-      )
-      .map(
-        (t): CardFundingAsset => ({
-          symbol: t.symbol ?? '',
-          name: t.name ?? t.symbol ?? '',
-          address: t.address,
-          walletAddress: address,
-          decimals: t.decimals ?? 6,
-          chainId: lineaChainId,
-          spendableBalance: '',
-          spendingCap: '0',
-          priority: 0,
-          status: FundingAssetStatus.Inactive,
-        }),
-      )
-      .filter((asset) => asset.symbol !== '');
-
-    if (fundingAssets.length === 0) return null;
-
-    return {
-      primaryFundingAsset: fundingAssets[0],
-      fundingAssets,
-      availableFundingAssets: fundingAssets,
-      card: null,
-      account: null,
-      alerts: [],
-      actions: [{ type: 'add_funds', enabled: true }],
-      delegationSettings: null,
-    };
-  }
-
-  #createLineaProvider(rpcUrl: string): ethers.providers.StaticJsonRpcProvider {
-    // StaticJsonRpcProvider skips ethers' auto network detection.
-    // skipFetchSetup is required in React Native — without it ethers mutates
-    // fetch headers/body and Linea RPCs respond with "Invalid JSON" / noNetwork.
-    return new ethers.providers.StaticJsonRpcProvider(
-      {
-        url: rpcUrl,
-        skipFetchSetup: true,
-      },
-      {
-        name: 'linea',
-        chainId: 59144,
-      },
-    );
-  }
-
-  // -- On-Chain private helpers --
-
-  async #fetchOnChainAllowances(
-    owner: string,
-    tokens: (SupportedToken & { address: string })[],
-    foxConnect: { global: string; us: string },
-    scannerAddress: string,
-    provider: ethers.providers.StaticJsonRpcProvider,
-  ): Promise<
-    {
-      address: string;
-      globalAllowance: ethers.BigNumber;
-      usAllowance: ethers.BigNumber;
-      walletBalance: ethers.BigNumber;
-    }[]
-  > {
-    const scanner = new ethers.Contract(
-      scannerAddress,
-      BALANCE_SCANNER_ABI,
-      provider,
-    );
-
-    const tokenAddresses = tokens
-      .map((t) => t.address)
-      .filter((addr): addr is string => ethers.utils.isAddress(addr));
-
-    if (tokenAddresses.length === 0) return [];
-
-    const spenders: string[][] = tokenAddresses.map(() => [
-      foxConnect.global,
-      foxConnect.us,
-    ]);
-
-    // Two batched calls instead of 1 + N individual ones:
-    //   1. spendersAllowancesForTokens — all allowances in one eth_call
-    //   2. tokensBalance             — all balanceOf results in one eth_call
-    const [allowanceResults, balanceResults]: [
-      [boolean, string][][],
-      { success: boolean; data: string }[],
-    ] = await Promise.all([
-      scanner.spendersAllowancesForTokens(owner, tokenAddresses, spenders),
-      scanner.tokensBalance(owner, tokenAddresses),
-    ]);
-
-    return tokenAddresses.map((addr, i) => {
-      const [globalTuple, usTuple] = allowanceResults[i];
-
-      let walletBalance = ethers.BigNumber.from(0);
-      const balResult = balanceResults[i];
-      if (balResult?.success && balResult.data && balResult.data !== '0x') {
-        try {
-          walletBalance = ethers.BigNumber.from(
-            ethers.utils.defaultAbiCoder.decode(['uint256'], balResult.data)[0],
-          );
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            getErrorContext('fetchOnChainAllowances/tokensBalance', {
-              tokenAddr: addr,
-              owner,
-            }),
-          );
-        }
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCredit'));
       }
-
-      return {
-        address: addr,
-        globalAllowance: ethers.BigNumber.from(globalTuple[1]),
-        usAllowance: ethers.BigNumber.from(usTuple[1]),
-        walletBalance,
-      };
-    });
-  }
-
-  #mapOnChainAllowancesToAssets(
-    rawAllowances: {
-      address: string;
-      globalAllowance: ethers.BigNumber;
-      usAllowance: ethers.BigNumber;
-      walletBalance: ethers.BigNumber;
-    }[],
-    supportedTokens: (SupportedToken & { address: string })[],
-    chainId: string,
-    ownerAddress: string,
-  ): CardFundingAsset[] {
-    return rawAllowances
-      .map((raw) => {
-        const tokenInfo = supportedTokens.find(
-          (t) => t.address?.toLowerCase() === raw.address.toLowerCase(),
-        );
-        if (!tokenInfo) return null;
-
-        const allowance = raw.usAllowance.isZero()
-          ? raw.globalAllowance
-          : raw.usAllowance;
-        const decimals = tokenInfo.decimals ?? 6;
-        const allowanceFloat = parseFloat(
-          ethers.utils.formatUnits(allowance, decimals),
-        );
-        const balanceFloat = parseFloat(
-          ethers.utils.formatUnits(raw.walletBalance, decimals),
-        );
-        const availableBalance = Math.min(balanceFloat, allowanceFloat);
-
-        return {
-          symbol: tokenInfo.symbol ?? '',
-          name: tokenInfo.name ?? '',
-          address: raw.address,
-          walletAddress: ownerAddress,
-          decimals: tokenInfo.decimals ?? 0,
-          chainId,
-          spendableBalance: availableBalance.toString(),
-          spendingCap: allowance.toString(),
-          priority: 0,
-          status: mapAllowanceToFundingStatus(allowanceFloat),
-        } as CardFundingAsset;
-      })
-      .filter((a): a is CardFundingAsset => a !== null && a.symbol !== '');
-  }
-
-  /**
-   * Picks the primary asset for unauthenticated users.
-   * For 0 non-zero allowances: returns the first supported token.
-   * For 1 non-zero: returns that token.
-   * For 2+: reads Approval event logs to find the most recently approved token.
-   */
-  async #pickOnChainPrimaryAsset(
-    owner: string,
-    assets: CardFundingAsset[],
-    foxConnect: { global: string; us: string },
-    provider: ethers.providers.StaticJsonRpcProvider,
-  ): Promise<CardFundingAsset | null> {
-    if (assets.length === 0) return null;
-
-    const nonZero = assets.filter(
-      (a) => a.status !== FundingAssetStatus.Inactive,
-    );
-
-    if (nonZero.length === 0) return assets[0];
-    if (nonZero.length === 1) return nonZero[0];
-
-    try {
-      const priorityAddress = await this.#findLastApprovedToken(
-        owner,
-        nonZero.map((a) => a.address),
-        foxConnect,
-        provider,
-      );
-      if (priorityAddress) {
-        const match = nonZero.find(
-          (a) => a.address.toLowerCase() === priorityAddress.toLowerCase(),
-        );
-        if (match) return match;
-      }
-    } catch (error) {
-      Logger.error(error as Error, getErrorContext('pickOnChainPrimaryAsset'));
+      throw mapApiError(error, 'withdrawCredit');
     }
-
-    return nonZero[0];
   }
 
   /**
    * Fetches ERC-20 Approval event logs for `owner` across multiple token
    * contracts, filtered to `spenderTopics`, and returns them sorted
-   * oldest-first (ascending block/logIndex). Both callers need this sorted
-   * list; they differ only in how they consume it.
+   * oldest-first (ascending block/logIndex).
    *
    * @param spenderTopics - a single hex-padded spender topic string, or an
    * array of them (OR-filter across spenders).
@@ -1434,38 +1327,6 @@ export class BaanxProvider implements ICardProvider {
         : a.blockNumber - b.blockNumber,
     );
     return allLogs;
-  }
-
-  /**
-   * Reads Approval event logs from Linea to find which token was most recently
-   * approved for the FoxConnect spender contracts.
-   */
-  async #findLastApprovedToken(
-    owner: string,
-    tokenAddresses: string[],
-    foxConnect: { global: string; us: string },
-    provider: ethers.providers.StaticJsonRpcProvider,
-  ): Promise<string | null> {
-    const spenderTopics = [foxConnect.global, foxConnect.us].map((s) =>
-      ethers.utils.hexZeroPad(s.toLowerCase(), 32),
-    );
-
-    const logs = await this.#getApprovalLogs(
-      provider,
-      owner,
-      tokenAddresses,
-      spenderTopics,
-    );
-
-    for (let i = logs.length - 1; i >= 0; i--) {
-      const { args } = APPROVAL_IFACE.parseLog(logs[i]);
-      const value = args.value as ethers.BigNumber;
-      if (!value.isZero()) {
-        return logs[i].tokenAddress;
-      }
-    }
-
-    return null;
   }
 
   /**
@@ -1572,6 +1433,7 @@ export class BaanxProvider implements ICardProvider {
 
     if (loginResponse.isOtpRequired) {
       session._metadata.otpUserId = loginResponse.userId;
+      delete session._metadata.otpMode;
       return {
         done: false,
         nextStep: {
@@ -1589,6 +1451,61 @@ export class BaanxProvider implements ICardProvider {
           phase: loginResponse.phase,
         },
       };
+    }
+
+    try {
+      return await this.completeAuth(session, loginResponse);
+    } catch (error) {
+      throw mapApiError(error, 'completeAuth');
+    }
+  }
+
+  private async handleEmailCode(
+    session: CardAuthSession,
+    credentials: Extract<CardCredentials, { type: 'email_code' }>,
+  ): Promise<CardAuthResult> {
+    let loginResponse: CardLoginResponse & {
+      otpMode?: 'SMS' | 'TOTP' | null;
+    };
+    try {
+      loginResponse = await this.service.post('/v1/auth/login/email-code', {
+        email: credentials.email,
+        code: credentials.code,
+        ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
+      });
+    } catch (error) {
+      throw mapLoginError(error, !!credentials.otpCode);
+    }
+
+    if (loginResponse.isOtpRequired) {
+      const mode = loginResponse.otpMode === 'TOTP' ? 'TOTP' : 'SMS';
+      session._metadata.otpUserId = loginResponse.userId;
+      session._metadata.otpMode = mode;
+      return {
+        done: false,
+        nextStep: {
+          type: 'otp',
+          destination: loginResponse.phoneNumber ?? credentials.email,
+          mode,
+        },
+      };
+    }
+
+    if (loginResponse.phase) {
+      return {
+        done: false,
+        onboardingRequired: {
+          sessionId: loginResponse.userId,
+          phase: loginResponse.phase,
+        },
+      };
+    }
+
+    if (!loginResponse.accessToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Email-code login response missing access token',
+      );
     }
 
     try {
@@ -1923,16 +1840,61 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
-  private mapAccountStatus(
-    user: UserResponse,
-    card: CardDetailsResponse | null,
-  ): CardAccountStatus {
+  private mapWalletProvisioning(
+    user: UserResponse | null,
+    card: CardDetails | null,
+    location: string,
+  ): CardWalletProvisioningInfo | null {
+    if (!user || !card) {
+      return null;
+    }
+
+    const countryCode = baanxProvisioningCountryCode(
+      location,
+      user.countryOfResidence,
+    );
+    const cardProcessor =
+      typeof user.cardProvider === 'string' && user.cardProvider.length > 0
+        ? user.cardProvider
+        : undefined;
+
+    return {
+      eligible: card.status === CardStatus.ACTIVE,
+      cardholderName: buildBaanxCardholderName(user),
+      lastFour: card.lastFour,
+      network: 'MASTERCARD',
+      ...(countryCode ? { countryCode } : {}),
+      ...(cardProcessor ? { cardProcessor } : {}),
+    };
+  }
+
+  private toBaanxApplePayWire(params: ApplePayProvisioningParams): {
+    leafCertificate: string;
+    intermediateCertificate: string;
+    nonce: string;
+    nonceSignature: string;
+  } {
+    if (params.certificates.length < 2) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidRequest,
+        'Apple Pay certificate chain must include a leaf and intermediate',
+      );
+    }
+
+    const toHex = (value: string) =>
+      Buffer.from(value, 'base64').toString('hex');
+
+    return {
+      leafCertificate: toHex(params.certificates[0]),
+      intermediateCertificate: toHex(params.certificates[1]),
+      nonce: toHex(params.nonce),
+      nonceSignature: toHex(params.nonceSignature),
+    };
+  }
+
+  private mapAccountStatus(user: UserResponse): CardAccountStatus {
     return {
       verificationStatus: user.verificationState ?? null,
-      provisioningEligible:
-        !!card &&
-        card.status === CardStatus.ACTIVE &&
-        isAccountEligibleForProvisioning(user.createdAt),
       holderName: user.firstName
         ? `${user.firstName} ${user.lastName ?? ''}`.trim()
         : null,

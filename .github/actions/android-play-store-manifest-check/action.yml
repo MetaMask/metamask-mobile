@@ -16,7 +16,7 @@ runs:
     # Third-party actions such as android-actions/setup-android are not allowlisted for this org;
     # install SDK components with Google's cmdline-tools + sdkmanager (same packages as android/build.gradle).
     - name: Cache Gradle
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ~/.gradle/caches
@@ -27,7 +27,7 @@ runs:
 
     - name: Cache Android SDK
       id: android-sdk-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/android-sdk
         key: ${{ runner.os }}-android-sdk-manifest-v2-cmd11076708-api35-ndk26.1-cmake322
@@ -66,14 +66,10 @@ runs:
           "ndk;26.1.10909125" \
           "cmake;3.22.1"
 
-    - name: Configure Android SDK environment
+    - name: Resolve Android SDK root
+      id: android-sdk
       shell: bash
-      run: |
-        SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
-        echo "ANDROID_SDK_ROOT=${SDK_ROOT}" >> "$GITHUB_ENV"
-        echo "ANDROID_HOME=${SDK_ROOT}" >> "$GITHUB_ENV"
-        echo "${SDK_ROOT}/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-        echo "${SDK_ROOT}/platform-tools" >> "$GITHUB_PATH"
+      run: echo "root=${ANDROID_SDK_ROOT:-$HOME/android-sdk}" >> "$GITHUB_OUTPUT"
 
     - uses: actions/setup-node@v6
       with:
@@ -82,7 +78,7 @@ runs:
 
     - name: Restore .metamask folder
       id: restore-metamask
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .metamask
         key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -93,7 +89,7 @@ runs:
       run: yarn install:foundryup
 
     - name: Install Yarn dependencies with retry
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: 10
         max_attempts: 3
@@ -102,6 +98,9 @@ runs:
 
     - name: Project setup for CI (Android tooling path)
       shell: bash
+      env:
+        ANDROID_HOME: ${{ steps.android-sdk.outputs.root }}
+        ANDROID_SDK_ROOT: ${{ steps.android-sdk.outputs.root }}
       run: yarn setup:github-ci --no-build-ios
 
     - name: Write google-services.json
@@ -121,7 +120,7 @@ runs:
 
     - name: Cache bundletool
       id: bundletool-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ runner.temp }}/bundletool-all.jar
         key: bundletool-1.18.3-jar
@@ -137,6 +136,8 @@ runs:
       shell: bash
       env:
         SENTRY_DISABLE_AUTO_UPLOAD: true
+        ANDROID_HOME: ${{ steps.android-sdk.outputs.root }}
+        ANDROID_SDK_ROOT: ${{ steps.android-sdk.outputs.root }}
       run: |
         set -euo pipefail
         STORE_FILE="${GITHUB_WORKSPACE}/android/keystores/debug.keystore"

@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { type Position, type PriceUpdate } from '@metamask/perps-controller';
-import { calculateRoEForPrice } from '../../utils/tpslValidation';
+import {
+  calculateSignedRoEForPrice,
+  type Position,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
@@ -11,6 +14,8 @@ import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccou
 const EMPTY_POSITIONS: Position[] = [];
 
 export interface UsePerpsLivePositionsOptions {
+  /** Whether to subscribe to position updates (default: true) */
+  enabled?: boolean;
   /** Throttle delay in milliseconds (default: 0 - no throttling for instant updates) */
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
@@ -22,6 +27,8 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -46,9 +53,12 @@ export function enrichPositionsWithLivePnL(
       return position;
     }
 
-    // Use mark price if available, fallback to mid price
+    // Both venues compute unrealized PnL from the mark price (HyperLiquid
+    // markPx, Lighter mark_price). Fall back to the mid only until the first
+    // mark arrives: HyperLiquid mid-only updates and Lighter's REST fallback
+    // carry none.
     const currentPrice = Number.parseFloat(
-      priceUpdate.price ?? priceUpdate.markPrice,
+      priceUpdate.markPrice ?? priceUpdate.price,
     );
 
     if (!currentPrice || Number.isNaN(currentPrice) || currentPrice <= 0) {
@@ -67,17 +77,12 @@ export function enrichPositionsWithLivePnL(
 
     const calculatedUnrealizedPnl = (currentPrice - entryPrice) * size;
 
-    const roePercentage = calculateRoEForPrice(
-      currentPrice.toString(),
-      calculatedUnrealizedPnl >= 0, // isProfit
-      true, // isForPositionBoundTpsl - true for existing positions
-      {
-        currentPrice,
-        direction,
-        leverage,
-        entryPrice,
-      },
-    );
+    const roePercentage = calculateSignedRoEForPrice(currentPrice.toString(), {
+      currentPrice,
+      direction,
+      leverage,
+      entryPrice,
+    });
 
     const calculatedRoe = roePercentage
       ? Number.parseFloat(roePercentage) / 100
@@ -104,7 +109,7 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
+  const { enabled = true, throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelPositions = stream.positions.getSnapshot();
@@ -119,6 +124,8 @@ export function usePerpsLivePositions(
     return !hasCached;
   });
   const hasReceivedFirstUpdate = useRef(false);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   // Store raw positions and price data in state
   const [rawPositions, setRawPositions] = useState<Position[]>(() => {
@@ -146,8 +153,12 @@ export function usePerpsLivePositions(
 
   // Subscribe to position updates
   useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
+        acceptedDeliveryRef.current = false;
         if (newPositions === null) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
@@ -168,6 +179,13 @@ export function usePerpsLivePositions(
 
         setRawPositions(newPositions);
         setRawPositionsAddress(selectedAddress);
+        acceptedDeliveryRef.current = true;
+      },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
       },
       throttleMs,
     });
@@ -175,7 +193,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [selectedAddress, stream, throttleMs]);
+  }, [enabled, selectedAddress, stream, throttleMs]);
 
   // Derive the unique set of symbols from the current positions so we only
   // subscribe to the prices we actually need (instead of the full price channel).
@@ -230,5 +248,6 @@ export function usePerpsLivePositions(
     positions,
     isInitialLoading:
       rawPositionsAddress !== selectedAddress || isInitialLoading,
+    deliveryRevision,
   };
 }

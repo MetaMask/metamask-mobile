@@ -1,6 +1,7 @@
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { initialRecurringState } from '../../../app/components/UI/Bridge/utils/recurringSchedule';
 
 interface InitialStateBridgeOptions {
   deterministicFiat?: boolean;
@@ -39,7 +40,15 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
         backgroundState: {
           // useBridgeQuoteEvents -> selectTokensBalances
           TokenBalancesController: { tokenBalances: {} },
+          // BridgeTokenSelector -> useMoneyToken -> selectMoneyAccounts
+          MoneyAccountController: {
+            moneyAccounts: {},
+            defaultMoneyAccountId: null,
+          },
         },
+      },
+      bridge: {
+        recurring: initialRecurringState,
       },
     } as unknown as DeepPartial<RootState>)
     .withMinimalAnalyticsController()
@@ -52,7 +61,11 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
       // resolves the LaunchDarkly `{ versions: {...} }` config into this plain
       // `{ enabled }` shape before it ever reaches Redux state.
       swapsLimitOrder: { enabled: true },
-      swapsRecurringBuy: { enabled: true },
+      swapsRecurringBuy: {
+        enabled: true,
+        enabledChainIds: ['eip155:1'],
+        defaultPriceTolerance: 3,
+      },
     });
 
   if (options?.deterministicFiat) {
@@ -65,6 +78,26 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
               ETH: { conversionRate: 2000 },
             },
             conversionRate: 2000,
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
           },
           TokenRatesController: {
             marketData: {

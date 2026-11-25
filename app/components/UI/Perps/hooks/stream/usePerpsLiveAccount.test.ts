@@ -37,6 +37,8 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     account: {
       subscribe: mockSubscribe,
       getSnapshot: () => mockChannelAccountSnapshot,
+      getAggregateMetadata: () => null,
+      getVenueAccountStates: () => [],
     },
   })),
 }));
@@ -69,6 +71,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
 
@@ -83,6 +87,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
   });
@@ -108,6 +114,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: mockAccountState,
         isInitialLoading: false,
+        deliveryRevision: 0,
+        aggregate: null,
       });
     });
 
@@ -126,6 +134,7 @@ describe('usePerpsLiveAccount', () => {
         .mockImplementationOnce((params) => {
           callback = params.callback;
           callback(mockAccountState);
+          params.onDelivery('fresh');
           return jest.fn();
         })
         .mockImplementation((params) => {
@@ -140,6 +149,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: mockAccountState,
         isInitialLoading: false,
+        deliveryRevision: 1,
+        aggregate: null,
       });
 
       act(() => callback(null));
@@ -170,6 +181,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: mockAccountState,
         isInitialLoading: false,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
       expect(result.current?.account?.spendableBalance).toBe('0');
       expect(result.current?.account?.totalBalance).toBe('0');
@@ -212,6 +225,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
   });
@@ -345,6 +360,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: cachedAccount,
         isInitialLoading: false,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
 
@@ -360,6 +377,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
 
@@ -375,6 +394,8 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
   });

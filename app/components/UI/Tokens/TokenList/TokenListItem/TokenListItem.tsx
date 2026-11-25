@@ -5,13 +5,8 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { RootState } from '../../../../../reducers';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
@@ -23,10 +18,8 @@ import { FlashListAssetKey } from '../TokenList';
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 import { Colors } from '../../../../../util/theme/models';
@@ -56,7 +49,7 @@ import {
   getNativeTokenAddress,
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
@@ -71,6 +64,9 @@ import {
   SECONDARY_BALANCE_TEST_ID,
 } from '../../../AssetElement/index.constants';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -87,8 +83,6 @@ import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
 import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stellar-assets';
-
-export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 export interface TokenListItemCtaPressContext {
   tokenPositionInList: number;
@@ -185,9 +179,7 @@ export const TokenListItem = React.memo(
     const tokenMarketData = useSelector(selectTokenMarketData);
     const currencyRates = useSelector(selectCurrencyRates);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF
 
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
@@ -233,7 +225,7 @@ export const TokenListItem = React.memo(
       queryFn: () => getCaipAssetIdForToken(asset),
       enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
       staleTime: Infinity,
-      cacheTime: Infinity,
+      gcTime: Infinity,
     });
 
     const chainId = asset?.chainId as Hex;
@@ -279,14 +271,12 @@ export const TokenListItem = React.memo(
         return undefined;
       }
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
       const multichainRate =
         multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
       if (multichainRate !== undefined) {
         return multichainRate;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       // EVM: convert token price from native currency to fiat
       if (!nativeCurrency) {
@@ -329,9 +319,7 @@ export const TokenListItem = React.memo(
       currencyRates,
       nativeCurrency,
       showFiatOnTestnets,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssetsRates,
-      ///: END:ONLY_INCLUDE_IF
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
@@ -462,10 +450,6 @@ export const TokenListItem = React.memo(
       return null;
     }
 
-    const label = asset.accountType
-      ? ACCOUNT_TYPE_LABELS[asset.accountType]
-      : undefined;
-
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const hideFiatForScamWarning = showScamWarningIcon;
@@ -521,6 +505,20 @@ export const TokenListItem = React.memo(
       );
     }
 
+    const assetLogoWithNetworkBadge = (
+      <BadgeWrapper
+        style={styles.badge}
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          networkBadgeSource && (
+            <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
+          )
+        }
+      >
+        <AssetLogo asset={asset} />
+      </BadgeWrapper>
+    );
+
     // Money Hub compact mUSD layout: name vertically centered, fiat over
     // native on the right, no price/24h-change row.
     if (hideSecondaryPriceRow && isMusdAsset) {
@@ -530,20 +528,7 @@ export const TokenListItem = React.memo(
           style={styles.itemWrapper}
           testID={getAssetTestId(asset.symbol)}
         >
-          <BadgeWrapper
-            style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
-                />
-              )
-            }
-          >
-            <AssetLogo asset={asset} />
-          </BadgeWrapper>
+          {assetLogoWithNetworkBadge}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -593,27 +578,17 @@ export const TokenListItem = React.memo(
         onLongPress={() => {
           const onLongPress =
             asset.isNative || isMusdAsset ? null : showRemoveMenu;
-          onLongPress?.(asset);
+          if (onLongPress) {
+            fireImpact(ImpactMoment.SecondaryCTA);
+            onLongPress(asset);
+          }
         }}
         activeOpacity={0.7}
         style={styles.itemWrapper}
         testID={getAssetTestId(asset.symbol)}
       >
         {/* Column: 1 - Token logo */}
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkBadgeSource && (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-              />
-            )
-          }
-        >
-          <AssetLogo asset={asset} />
-        </BadgeWrapper>
+        {assetLogoWithNetworkBadge}
 
         {/* Column 2*/}
         <Box twClassName="flex-1 ml-5">
@@ -639,9 +614,6 @@ export const TokenListItem = React.memo(
                 >
                   {asset.name || asset.symbol}
                 </Text>
-                {label && (
-                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
-                )}
                 {shouldResolveCaipForSecurityBadge &&
                   caipAssetIdForSecurity && (
                     <TokenListSecurityBadge

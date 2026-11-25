@@ -11,13 +11,13 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 /**
  * Stable home section name, derived from the upstream SECTION_NAME enum.
  *
- * 'recently_added' is a local addition: the upstream @metamask/perps-controller
- * SECTION_NAME enum does not yet have a member for the "Recently added" rail.
- * Remove this union member once upstream adds one and use theirs instead.
+ * 'social_feed' is a local addition: the upstream @metamask/perps-controller
+ * SECTION_NAME enum does not yet have a member for it. Remove this union
+ * member once upstream adds it and use theirs instead.
  */
 export type PerpsHomeSectionName =
   | (typeof PERPS_EVENT_VALUE.SECTION_NAME)[keyof typeof PERPS_EVENT_VALUE.SECTION_NAME]
-  | 'recently_added';
+  | 'social_feed';
 
 /**
  * Ordered master list of all Perps home sections.
@@ -29,14 +29,16 @@ export const PERPS_HOME_SECTION_ORDER: PerpsHomeSectionName[] = [
   PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
   PERPS_EVENT_VALUE.SECTION_NAME.ORDERS,
   PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
+  PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE,
   PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
   PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
   PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,
-  'recently_added',
+  'social_feed',
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX,
+  PERPS_EVENT_VALUE.SECTION_NAME.RECENTLY_ADDED,
   PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
 ];
 

@@ -11,6 +11,8 @@ import {
   createMockEventBuilder,
 } from '../../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { getRankMedalTestId } from '../../../../Views/Homepage/Sections/TopTraders/topRank/RankMedal.testIds';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
@@ -322,15 +324,15 @@ describe('OndoLeaderboard', () => {
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
       ).toBeDefined();
 
-      expect(getByText('01')).toBeDefined();
+      expect(getByTestId(getRankMedalTestId(1))).toBeDefined();
       expect(getByText('AAA111')).toBeDefined();
       expect(getByText('+20.00%')).toBeDefined();
 
-      expect(getByText('02')).toBeDefined();
+      expect(getByTestId(getRankMedalTestId(2))).toBeDefined();
       expect(getByText('BBB222')).toBeDefined();
       expect(getByText('+15.00%')).toBeDefined();
 
-      expect(getByText('03')).toBeDefined();
+      expect(getByTestId(getRankMedalTestId(3))).toBeDefined();
       expect(getByText('CCC333')).toBeDefined();
       expect(getByText('-5.00%')).toBeDefined();
     });

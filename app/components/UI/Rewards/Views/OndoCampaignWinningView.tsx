@@ -5,8 +5,7 @@ import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
-
-const PRIZE_EMAIL = 'ondocampaign@consensys.net';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -54,7 +53,7 @@ const OndoCampaignWinningView: React.FC = () => {
     <CampaignWinningView
       testID={ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER}
       viewName="OndoCampaignWinningView"
-      prizeEmail={PRIZE_EMAIL}
+      prizeEmail={REWARDS_WINNER_CONTACT_EMAIL}
       campaignName={campaignName}
       campaignId={campaignId}
       analyticsPageType="ondo_campaign_winning"

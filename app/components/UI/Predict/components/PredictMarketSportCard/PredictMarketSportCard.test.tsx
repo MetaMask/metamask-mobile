@@ -15,11 +15,13 @@ import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictGame } from '../../hooks/usePredictGame';
 
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 const mockIsFromTrending = jest.fn();
@@ -202,6 +204,7 @@ const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
 describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFocused = true;
     mockIsFromTrending.mockReturnValue(false);
     mockGetLivePrice.mockReturnValue(undefined);
     mockUsePredictGame.mockImplementation((market) => ({
@@ -482,6 +485,35 @@ describe('PredictMarketSportCard', () => {
     );
   });
 
+  it('pauses live subscriptions while the screen is blurred', () => {
+    mockIsFocused = false;
+
+    renderWithProvider(<PredictMarketSportCard market={mockMarket} />, {
+      state: initialState,
+    });
+
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['token-home', 'token-draw', 'token-away'],
+      { enabled: false },
+    );
+  });
+
+  it('resumes live subscriptions when the screen regains focus', () => {
+    mockIsFocused = false;
+    const { rerender } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    mockIsFocused = true;
+    rerender(<PredictMarketSportCard market={mockMarket} />);
+
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['token-home', 'token-draw', 'token-away'],
+      { enabled: true },
+    );
+  });
+
   it('uses the main moneyline outcome when extended sports markets are present', () => {
     const extendedMarket: PredictMarketType = {
       ...mockMarket,
@@ -722,21 +754,6 @@ describe('PredictMarketSportCard', () => {
     );
   });
 
-  it('does not navigate to market details when card press is disabled', () => {
-    const { getByTestId } = renderWithProvider(
-      <PredictMarketSportCard
-        market={mockMarket}
-        testID="sport-market-card"
-        cardPressDisabled
-      />,
-      { state: initialState },
-    );
-
-    fireEvent.press(getByTestId('sport-market-card'));
-
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
   it('explicit entry point takes priority over trending session', () => {
     mockIsFromTrending.mockReturnValue(true);
 
@@ -788,8 +805,8 @@ describe('PredictMarketSportCard', () => {
     );
   });
 
-  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
-    const onBuyButtonPress = jest.fn(() => true);
+  it('opens the buy sheet after calling the buy handler', () => {
+    const onBuyButtonPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <PredictMarketSportCard
         market={mockMarket}
@@ -806,7 +823,7 @@ describe('PredictMarketSportCard', () => {
       outcome: mockMarket.outcomes[0],
       outcomeToken: mockMarket.outcomes[0].tokens[0],
     });
-    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+    expect(mockOpenBuySheet).toHaveBeenCalled();
   });
 
   it('renders close button and calls onDismiss without navigating', () => {

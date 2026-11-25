@@ -1,13 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  annotateTrace,
   endTrace,
+  getTraceContext,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
 import type { HomeSectionName } from './useHomeViewedEvent';
 import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
+
+export type HomepageSectionCacheState = 'cold' | 'warm' | 'unknown';
 
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
@@ -21,14 +25,27 @@ interface UseSectionPerformanceConfig {
   /** True when the section is in an empty / placeholder state. */
   isEmpty: boolean;
   /**
-   * When set, sent as `content_state` on successful trace ends instead of
-   * deriving from `isEmpty` (e.g. `error` for connection / fetch error UI).
+   * True when loading resolved with no presentable content because the
+   * request failed. This ends TTC as a failed content result.
+   */
+  contentError?: boolean;
+  /**
+   * When set, sent as `content_state` on trace ends instead of deriving from
+   * `isEmpty` (e.g. `error` for connection / fetch error UI).
    */
   contentStateForTrace?: 'filled' | 'empty' | 'error';
   /**
+   * True when the section has entered a real loading/render demand. This must
+   * remain false for mounted, deferred placeholders.
+   */
+  demandStarted: boolean;
+  /** Cache state captured when the TTC/DFD span starts. */
+  cacheState?: HomepageSectionCacheState;
+  /**
    * When provided, tracks **full** data loading (including background work) via
-   * the first `isLoading` true→false transition per mount. Can stay true after
-   * `contentReady` if the section still fetches optional/secondary data.
+   * the first `isLoading` true→false transition per mount.
+   * Can stay true after `contentReady` if the section still fetches
+   * optional/secondary data.
    */
   isLoading?: boolean;
   /** Skip all tracing when false. Use for feature-flagged sections that return null. @default true */
@@ -37,16 +54,55 @@ interface UseSectionPerformanceConfig {
   reRenderThreshold?: number;
   /** Sliding window in ms for re-render detection. @default 500 */
   reRenderWindowMs?: number;
+  /** Bounded cohort tags applied to the existing TTC and DFD starts. */
+  tags?: Record<string, string | number | boolean>;
+  /** Trace data/context applied to the existing TTC and DFD ends. */
+  data?: Record<string, string | number | boolean>;
+  /** Restarts TTC/DFD when one mounted surface begins a new data generation. */
+  generationKey?: string;
+  /** Accept content that is already valid when a warm generation starts. */
+  acceptReadyContentOnGenerationStart?: boolean;
 }
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
 const DEFAULT_RE_RENDER_WINDOW_MS = 500;
+const RESERVED_METADATA_KEYS = new Set([
+  'section_id',
+  'success',
+  'content_state',
+  'reason',
+  'demand_started',
+  'cache_state',
+  'content_ready_at_demand',
+]);
+
+const sanitizeMetadata = (
+  metadata?: Record<string, string | number | boolean>,
+) =>
+  metadata
+    ? Object.fromEntries(
+        Object.entries(metadata).filter(
+          ([key]) => !RESERVED_METADATA_KEYS.has(key),
+        ),
+      )
+    : undefined;
+
+const resolveCancellationReason = (
+  startedGenerationKey: string | undefined,
+  nextGenerationKey: string | undefined,
+) => {
+  if (nextGenerationKey === startedGenerationKey) {
+    return 'unmounted';
+  }
+  return nextGenerationKey === undefined ? 'unfocused' : 'generation_changed';
+};
 
 /**
  * Reusable performance telemetry for homepage sections.
  *
  * Captures three metrics via the existing trace/endTrace Sentry integration:
- * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
+ * 1. **Time to Content** — explicit demand boundary through committed resident
+ * content, or the first presented frame after async content becomes ready.
  * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
  * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs after every commit).
  *
@@ -56,25 +112,68 @@ export const useSectionPerformance = ({
   sectionId,
   contentReady,
   isEmpty,
+  contentError = false,
   contentStateForTrace,
+  demandStarted,
+  cacheState = 'unknown',
   isLoading,
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
   reRenderWindowMs = DEFAULT_RE_RENDER_WINDOW_MS,
+  tags,
+  data,
+  generationKey,
+  acceptReadyContentOnGenerationStart = false,
 }: UseSectionPerformanceConfig) => {
+  const nextTagsRef = useRef(sanitizeMetadata(tags));
+  nextTagsRef.current = sanitizeMetadata(tags);
+  const nextDataRef = useRef(sanitizeMetadata(data));
+  nextDataRef.current = sanitizeMetadata(data);
+  const pendingGenerationKeyRef = useRef(generationKey);
+  pendingGenerationKeyRef.current = generationKey;
+  const contentReadyRef = useRef(contentReady);
+  contentReadyRef.current = contentReady;
+  const acceptReadyContentOnGenerationStartRef = useRef(
+    acceptReadyContentOnGenerationStart,
+  );
+  acceptReadyContentOnGenerationStartRef.current =
+    acceptReadyContentOnGenerationStart;
+  const activeGenerationKeyRef = useRef(generationKey);
+  const tagsRef = useRef(nextTagsRef.current);
+  const dataRef = useRef(nextDataRef.current);
+  if (activeGenerationKeyRef.current === generationKey) {
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+  }
+
+  const annotateLatestTags = (name: TraceName, id: string) => {
+    if (!tagsRef.current) {
+      return;
+    }
+    annotateTrace(getTraceContext({ name, id }), tagsRef.current);
+  };
+
   // --- Time to Content refs ---
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
   const ttcEnded = useRef(false);
+  const hasStartedTtcGeneration = useRef(false);
+  const ttcReadyForCompletion = useRef(true);
+  const ttcCacheState = useRef<HomepageSectionCacheState>(cacheState);
+  const ttcContentReadyAtDemand = useRef(false);
+  const pendingTtcCompletion = useRef<(() => void) | null>(null);
 
   // --- Data Fetch Latency refs ---
   const fetchTraceId = useRef(uuidv4());
   const fetchStarted = useRef(false);
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
+  const fetchCacheState = useRef<HomepageSectionCacheState>(cacheState);
 
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+  const traceContentStateRef = useRef(traceContentState);
+  traceContentStateRef.current = traceContentState;
 
   useRenderStormMonitor({
     id: sectionId,
@@ -87,56 +186,278 @@ export const useSectionPerformance = ({
   });
 
   // ──────────────────────────────────────────────
-  // 1. Time to Content — start span on mount
+  // 1. Time to Content — start at the explicit demand boundary
   // ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!enabled) return;
+  const ttcStartReady = demandStarted;
 
+  useEffect(() => {
+    activeGenerationKeyRef.current = generationKey;
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+    fetchStarted.current = false;
+    fetchEnded.current = false;
+    prevIsLoading.current = undefined;
+    ttcStarted.current = false;
+    ttcEnded.current = false;
+    pendingTtcCompletion.current?.();
+    pendingTtcCompletion.current = null;
+    if (!enabled) {
+      hasStartedTtcGeneration.current = false;
+      ttcReadyForCompletion.current = true;
+      return;
+    }
+
+    const startedGenerationKey = generationKey;
+    return () => {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
+      if (ttcStarted.current && !ttcEnded.current) {
+        const reason = resolveCancellationReason(
+          startedGenerationKey,
+          pendingGenerationKeyRef.current,
+        );
+        annotateLatestTags(
+          TraceName.HomepageSectionTimeToContent,
+          ttcTraceId.current,
+        );
+        endTrace({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: ttcTraceId.current,
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            demand_started: true,
+            cache_state: ttcCacheState.current,
+            content_ready_at_demand: ttcContentReadyAtDemand.current,
+            success: false,
+            reason,
+            section_id: sectionId,
+          },
+        });
+        ttcStarted.current = false;
+      }
+      if (fetchStarted.current && !fetchEnded.current) {
+        const reason = resolveCancellationReason(
+          startedGenerationKey,
+          pendingGenerationKeyRef.current,
+        );
+        annotateLatestTags(
+          TraceName.HomepageSectionDataFetch,
+          fetchTraceId.current,
+        );
+        endTrace({
+          name: TraceName.HomepageSectionDataFetch,
+          id: fetchTraceId.current,
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            demand_started: true,
+            cache_state: fetchCacheState.current,
+            success: false,
+            reason,
+            section_id: sectionId,
+          },
+        });
+        fetchStarted.current = false;
+      }
+    };
+  }, [enabled, generationKey, sectionId]);
+
+  useEffect(() => {
+    if (!enabled || !ttcStartReady || ttcStarted.current || ttcEnded.current)
+      return;
+
+    const isRestart = hasStartedTtcGeneration.current;
+    hasStartedTtcGeneration.current = true;
+    ttcReadyForCompletion.current =
+      !isRestart ||
+      !contentReadyRef.current ||
+      acceptReadyContentOnGenerationStartRef.current;
+    ttcContentReadyAtDemand.current =
+      ttcReadyForCompletion.current && contentReadyRef.current;
     ttcTraceId.current = uuidv4();
+    ttcCacheState.current = cacheState;
     ttcEnded.current = false;
     trace({
       name: TraceName.HomepageSectionTimeToContent,
       op: TraceOperation.HomepageSectionPerformance,
       id: ttcTraceId.current,
-      tags: { section_id: sectionId },
+      tags: {
+        ...tagsRef.current,
+        section_id: sectionId,
+        demand_started: true,
+        cache_state: cacheState,
+        content_ready_at_demand: ttcContentReadyAtDemand.current,
+      },
+      data: {
+        ...dataRef.current,
+        section_id: sectionId,
+        demand_started: true,
+        cache_state: cacheState,
+        content_ready_at_demand: ttcContentReadyAtDemand.current,
+      },
     });
     ttcStarted.current = true;
+  }, [enabled, generationKey, sectionId, ttcStartReady, cacheState]);
 
-    return () => {
-      if (ttcStarted.current && !ttcEnded.current) {
-        endTrace({
-          name: TraceName.HomepageSectionTimeToContent,
-          id: ttcTraceId.current,
-          data: { success: false, reason: 'unmounted', section_id: sectionId },
-        });
-        ttcStarted.current = false;
-      }
-      if (fetchStarted.current && !fetchEnded.current) {
-        endTrace({
-          name: TraceName.HomepageSectionDataFetch,
-          id: fetchTraceId.current,
-          data: { success: false, reason: 'unmounted', section_id: sectionId },
-        });
-        fetchStarted.current = false;
-      }
-    };
-  }, [enabled, sectionId]);
-
-  // Time to Content — end span when content is ready
+  // Time to Content — abort when demand ends before content resolves
   useEffect(() => {
-    if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {
+    if (
+      enabled &&
+      !ttcStartReady &&
+      !contentReady &&
+      ttcStarted.current &&
+      !ttcEnded.current
+    ) {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
+      annotateLatestTags(
+        TraceName.HomepageSectionTimeToContent,
+        ttcTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionTimeToContent,
         id: ttcTraceId.current,
         data: {
-          success: true,
+          ...tagsRef.current,
+          ...dataRef.current,
+          demand_started: true,
+          cache_state: ttcCacheState.current,
+          content_ready_at_demand: ttcContentReadyAtDemand.current,
+          success: false,
+          reason: 'unfocused',
           section_id: sectionId,
-          content_state: traceContentState,
         },
       });
-      ttcEnded.current = true;
+      ttcStarted.current = false;
+      hasStartedTtcGeneration.current = false;
+      ttcReadyForCompletion.current = true;
     }
-  }, [enabled, contentReady, sectionId, traceContentState]);
+  }, [contentReady, enabled, sectionId, ttcStartReady]);
+
+  // Time to Content — end span when content is ready
+  useEffect(() => {
+    if (contentError) {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
+      if (enabled && ttcStarted.current && !ttcEnded.current) {
+        annotateLatestTags(
+          TraceName.HomepageSectionTimeToContent,
+          ttcTraceId.current,
+        );
+        endTrace({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: ttcTraceId.current,
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            demand_started: true,
+            cache_state: ttcCacheState.current,
+            content_ready_at_demand: ttcContentReadyAtDemand.current,
+            success: false,
+            reason: 'content_error',
+            section_id: sectionId,
+            content_state: traceContentStateRef.current,
+          },
+        });
+        ttcStarted.current = false;
+        ttcEnded.current = true;
+      }
+      ttcReadyForCompletion.current = true;
+      return;
+    }
+    if (!contentReady) {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
+      ttcReadyForCompletion.current = true;
+      return;
+    }
+    if (
+      enabled &&
+      ttcReadyForCompletion.current &&
+      ttcStarted.current &&
+      !ttcEnded.current &&
+      !pendingTtcCompletion.current
+    ) {
+      const traceId = ttcTraceId.current;
+      const finishTtc = () => {
+        pendingTtcCompletion.current = null;
+        if (
+          !contentReadyRef.current ||
+          !ttcStarted.current ||
+          ttcEnded.current ||
+          ttcTraceId.current !== traceId
+        ) {
+          return;
+        }
+
+        annotateLatestTags(TraceName.HomepageSectionTimeToContent, traceId);
+        endTrace({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: traceId,
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            demand_started: true,
+            cache_state: ttcCacheState.current,
+            content_ready_at_demand: ttcContentReadyAtDemand.current,
+            success: true,
+            section_id: sectionId,
+            content_state: traceContentStateRef.current,
+          },
+        });
+        ttcEnded.current = true;
+      };
+
+      if (ttcContentReadyAtDemand.current) {
+        finishTtc();
+        return;
+      }
+
+      let beforePaintFrameId: number | undefined;
+      let afterPaintFrameId: number | undefined;
+      let cancelled = false;
+      const finishAfterPresentedFrame = () => {
+        if (cancelled) {
+          return;
+        }
+        try {
+          afterPaintFrameId = requestAnimationFrame(finishTtc);
+        } catch {
+          finishTtc();
+        }
+      };
+      try {
+        beforePaintFrameId = requestAnimationFrame(finishAfterPresentedFrame);
+      } catch {
+        finishTtc();
+        return;
+      }
+
+      const cancelFrames = () => {
+        cancelled = true;
+        if (beforePaintFrameId !== undefined) {
+          cancelAnimationFrame(beforePaintFrameId);
+        }
+        if (afterPaintFrameId !== undefined) {
+          cancelAnimationFrame(afterPaintFrameId);
+        }
+      };
+      if (ttcEnded.current) {
+        cancelFrames();
+      } else {
+        pendingTtcCompletion.current = cancelFrames;
+      }
+    }
+  }, [
+    enabled,
+    contentReady,
+    contentError,
+    generationKey,
+    sectionId,
+    traceContentState,
+    ttcStartReady,
+  ]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -147,14 +468,30 @@ export const useSectionPerformance = ({
     const wasLoading = prevIsLoading.current;
     prevIsLoading.current = isLoading;
 
+    // Do not start a fetch span for idle or deferred work. Once a span has
+    // started, let it finish even if demand ends while the request is active.
+    if (isLoading && !demandStarted) return;
+
     // Start: first loading spell only (subsequent refresh cycles are not traced)
     if (isLoading && !fetchStarted.current && !fetchEnded.current) {
       fetchTraceId.current = uuidv4();
+      fetchCacheState.current = cacheState;
       trace({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { section_id: sectionId },
+        tags: {
+          ...tagsRef.current,
+          section_id: sectionId,
+          demand_started: true,
+          cache_state: cacheState,
+        },
+        data: {
+          ...dataRef.current,
+          section_id: sectionId,
+          demand_started: true,
+          cache_state: cacheState,
+        },
       });
       fetchStarted.current = true;
     }
@@ -166,17 +503,35 @@ export const useSectionPerformance = ({
       fetchStarted.current &&
       !fetchEnded.current
     ) {
+      annotateLatestTags(
+        TraceName.HomepageSectionDataFetch,
+        fetchTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionDataFetch,
         id: fetchTraceId.current,
         data: {
-          success: true,
+          ...tagsRef.current,
+          ...dataRef.current,
+          demand_started: true,
+          cache_state: fetchCacheState.current,
+          success: !contentError,
           section_id: sectionId,
           content_state: traceContentState,
+          ...(contentError ? { reason: 'content_error' } : {}),
         },
       });
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, traceContentState]);
+  }, [
+    enabled,
+    generationKey,
+    demandStarted,
+    isLoading,
+    contentError,
+    sectionId,
+    traceContentState,
+    cacheState,
+  ]);
 };

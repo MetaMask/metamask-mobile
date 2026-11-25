@@ -9,7 +9,6 @@ export type {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
-  RewardsDataServiceValidateReferralCodeAction,
   RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
@@ -19,7 +18,9 @@ export type {
   RewardsDataServiceClaimRewardAction,
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
+  RewardsDataServiceGetTradingFeeGrantsAction,
   RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,
@@ -27,10 +28,10 @@ export type {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,
-  RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

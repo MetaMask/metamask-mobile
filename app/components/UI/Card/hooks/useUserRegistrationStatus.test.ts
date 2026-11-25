@@ -195,14 +195,30 @@ describe('useUserRegistrationStatus', () => {
       expect(result).toBe(5000);
     });
 
+    it('refetchInterval uses the interval the caller passes', () => {
+      renderHook(() => useUserRegistrationStatus({ pollIntervalMs: 15000 }));
+
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
+
+      const result = refetchIntervalFn({
+        state: { data: { verificationState: 'PENDING' } },
+      });
+
+      expect(result).toBe(15000);
+    });
+
     it('refetchInterval returns false when state is VERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: { verificationState: string } | undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      const result = refetchIntervalFn({ verificationState: 'VERIFIED' });
+      const result = refetchIntervalFn({
+        state: { data: { verificationState: 'VERIFIED' } },
+      });
 
       expect(result).toBe(false);
     });
@@ -210,11 +226,13 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval returns false when state is REJECTED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: { verificationState: string } | undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      const result = refetchIntervalFn({ verificationState: 'REJECTED' });
+      const result = refetchIntervalFn({
+        state: { data: { verificationState: 'REJECTED' } },
+      });
 
       expect(result).toBe(false);
     });
@@ -222,11 +240,11 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval returns 5000 when data is undefined', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      const result = refetchIntervalFn(undefined);
+      const result = refetchIntervalFn({ state: { data: undefined } });
 
       expect(result).toBe(5000);
     });
@@ -283,43 +301,57 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval stops polling when state is VERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: { verificationState: string } | undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      expect(refetchIntervalFn({ verificationState: 'VERIFIED' })).toBe(false);
+      expect(
+        refetchIntervalFn({
+          state: { data: { verificationState: 'VERIFIED' } },
+        }),
+      ).toBe(false);
     });
 
     it('refetchInterval stops polling when state is UNVERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: { verificationState: string } | undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      expect(refetchIntervalFn({ verificationState: 'UNVERIFIED' })).toBe(
-        false,
-      );
+      expect(
+        refetchIntervalFn({
+          state: { data: { verificationState: 'UNVERIFIED' } },
+        }),
+      ).toBe(false);
     });
 
     it('refetchInterval stops polling when state is REJECTED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: { verificationState: string } | undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      expect(refetchIntervalFn({ verificationState: 'REJECTED' })).toBe(false);
+      expect(
+        refetchIntervalFn({
+          state: { data: { verificationState: 'REJECTED' } },
+        }),
+      ).toBe(false);
     });
 
     it('refetchInterval continues polling when state is PENDING', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
-        data: { verificationState: string } | undefined,
-      ) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
+        state: { data: { verificationState: string } | undefined };
+      }) => number | false;
 
-      expect(refetchIntervalFn({ verificationState: 'PENDING' })).toBe(5000);
+      expect(
+        refetchIntervalFn({
+          state: { data: { verificationState: 'PENDING' } },
+        }),
+      ).toBe(5000);
     });
   });
 
@@ -441,10 +473,22 @@ describe('useUserRegistrationStatus', () => {
   });
 
   describe('setUser effect', () => {
-    it('calls setUser when data is available', () => {
+    it('does not call setUser for cached data while polling is off', () => {
       mockUseQueryReturn.data = mockUserResponse;
 
       renderHook(() => useUserRegistrationStatus());
+
+      expect(mockSetUser).not.toHaveBeenCalled();
+    });
+
+    it('calls setUser after polling starts when data is available', () => {
+      mockUseQueryReturn.data = mockUserResponse;
+
+      const { result } = renderHook(() => useUserRegistrationStatus());
+
+      act(() => {
+        result.current.startPolling();
+      });
 
       expect(mockSetUser).toHaveBeenCalledWith(mockUserResponse);
     });

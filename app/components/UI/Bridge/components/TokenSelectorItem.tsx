@@ -32,20 +32,12 @@ import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken, SecurityDataType } from '../types';
-import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
-import Tag from '../../../../component-library/components/Tags/Tag';
-import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { formatTokenBalance, getTokenImageSource } from '../utils';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  TokenSelectorBalanceLayoutConfig,
-  TokenSelectorBalanceLayoutVariant,
-} from './TokenSelectorItem.abTestConfig';
 import {
   Icon,
   IconColor,
@@ -69,9 +61,9 @@ const createStyles = ({
       marginLeft: 12,
     },
     container: {
-      backgroundColor: vars.isSelected
-        ? theme.colors.primary.muted
-        : theme.colors.background.default,
+      ...(vars.isSelected && {
+        backgroundColor: theme.colors.primary.muted,
+      }),
       paddingVertical: 4,
       minHeight: 72,
       paddingLeft: 16,
@@ -133,12 +125,6 @@ const createStyles = ({
       borderRadius: 30,
       backgroundColor: theme.colors.background.alternative,
     },
-    secondaryBalance: {
-      color: theme.colors.text.alternative,
-      paddingHorizontal: 0,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
     badgeWrapper: {
       // override the BadgeWrapper alignSelf: 'flex-start', let parent control the alignment
       alignSelf: undefined,
@@ -174,10 +160,9 @@ interface TokenSelectorItemProps {
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
   isNoFeeAsset?: boolean;
-  showStockBadge?: boolean;
+  badgeLabel?: string;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
-  balanceLayoutConfigOverride?: TokenSelectorBalanceLayoutConfig;
   shouldChangeSelectedStyle?: boolean;
   shouldShowNetworkIcon?: boolean;
   shouldIncludeChildrenInPressTarget?: boolean;
@@ -282,10 +267,9 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   shouldShowBalance = true,
   children,
   isNoFeeAsset = false,
-  showStockBadge = false,
+  badgeLabel,
   secondaryRowContent,
   tokenBalanceTextProps,
-  balanceLayoutConfigOverride,
   shouldChangeSelectedStyle = true,
   shouldShowNetworkIcon = true,
   shouldIncludeChildrenInPressTarget = false,
@@ -299,19 +283,10 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
 
   const fiatValue = token.balanceFiat;
 
-  const selectedVariant =
-    balanceLayoutConfigOverride ??
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-      TokenSelectorBalanceLayoutVariant.Control
-    ];
   const formattedTokenBalance = token.balance
     ? formatTokenBalance(token.balance)
     : undefined;
-  const cryptoBalance = formattedTokenBalance
-    ? selectedVariant.removeTickerFromTokenBalance
-      ? formattedTokenBalance
-      : `${formattedTokenBalance} ${token.symbol}`
-    : undefined;
+  const cryptoBalance = formattedTokenBalance;
 
   const isNative = token.address === ethers.constants.AddressZero;
 
@@ -332,10 +307,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
 
   const fiatBalance = shouldShowBalance ? fiatValue : undefined;
   const tokenBalance = shouldShowBalance ? cryptoBalance : undefined;
-
-  const label = token.accountType
-    ? ACCOUNT_TYPE_LABELS[token.accountType]
-    : undefined;
 
   const securityTag = getSecurityTag(token.securityData?.type);
   const tokenAvatar = (
@@ -413,7 +384,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             accessible={false}
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
-            gap={4}
           >
             <Box
               accessible={false}
@@ -458,7 +428,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                     </TagBase>
                   )}
                 </Box>
-                {label && <Tag label={label} />}
                 {showNoFeeBadge && (
                   <TagBase
                     shape={TagShape.Rectangle}
@@ -471,32 +440,22 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 )}
               </Box>
 
-              {selectedVariant.showTokenBalanceFirst ? (
-                <TokenBalanceView
-                  balance={tokenBalance}
-                  isSelected={shouldShowSelectedStyle}
-                  textStyle={[
-                    styles.rightValue,
-                    tokenBalanceTextProps?.textStyle,
-                  ]}
-                  textVariant={
-                    tokenBalanceTextProps?.textVariant ??
-                    TOP_ROW_BALANCE_TEXT_STYLE.textVariant
-                  }
-                  textColor={
-                    tokenBalanceTextProps?.textColor ??
-                    TOP_ROW_BALANCE_TEXT_STYLE.textColor
-                  }
-                />
-              ) : (
-                <FiatBalanceView
-                  balance={fiatBalance}
-                  isSelected={shouldShowSelectedStyle}
-                  textStyle={styles.rightValue}
-                  textVariant={TOP_ROW_BALANCE_TEXT_STYLE.textVariant}
-                  textColor={TOP_ROW_BALANCE_TEXT_STYLE.textColor}
-                />
-              )}
+              <TokenBalanceView
+                balance={tokenBalance}
+                isSelected={shouldShowSelectedStyle}
+                textStyle={[
+                  styles.rightValue,
+                  tokenBalanceTextProps?.textStyle,
+                ]}
+                textVariant={
+                  tokenBalanceTextProps?.textVariant ??
+                  TOP_ROW_BALANCE_TEXT_STYLE.textVariant
+                }
+                textColor={
+                  tokenBalanceTextProps?.textColor ??
+                  TOP_ROW_BALANCE_TEXT_STYLE.textColor
+                }
+              />
             </Box>
 
             <Box
@@ -524,34 +483,17 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 )}
               </Box>
 
-              {selectedVariant.showTokenBalanceFirst ? (
-                <FiatBalanceView
-                  balance={fiatBalance}
-                  isSelected={shouldShowSelectedStyle}
-                  textStyle={styles.rightValue}
-                  textVariant={BOTTOM_ROW_BALANCE_TEXT_STYLE.textVariant}
-                  textColor={BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor}
-                />
-              ) : (
-                <TokenBalanceView
-                  balance={tokenBalance}
-                  isSelected={shouldShowSelectedStyle}
-                  textStyle={[
-                    styles.rightValue,
-                    tokenBalanceTextProps?.textStyle,
-                  ]}
-                  textVariant={
-                    tokenBalanceTextProps?.textVariant ??
-                    BOTTOM_ROW_BALANCE_TEXT_STYLE.textVariant
-                  }
-                  textColor={
-                    tokenBalanceTextProps?.textColor ??
-                    BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor
-                  }
-                />
-              )}
+              <FiatBalanceView
+                balance={fiatBalance}
+                isSelected={shouldShowSelectedStyle}
+                textStyle={styles.rightValue}
+                textVariant={BOTTOM_ROW_BALANCE_TEXT_STYLE.textVariant}
+                textColor={BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor}
+              />
             </Box>
-            {showStockBadge && <StockBadge token={token} />}
+            {badgeLabel ? (
+              <StockBadge token={token} label={badgeLabel} />
+            ) : null}
           </Box>
         </Box>
         {shouldIncludeChildrenInPressTarget && children ? (

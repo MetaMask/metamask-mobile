@@ -26,7 +26,7 @@ const mockGetCarouselMarkets = Engine.context.PredictController
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { cacheTime: 0, retry: false } },
+    defaultOptions: { queries: { gcTime: 0, retry: false } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);

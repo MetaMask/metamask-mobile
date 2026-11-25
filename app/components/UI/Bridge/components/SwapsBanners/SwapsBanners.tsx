@@ -21,16 +21,19 @@ import type { SwapsBannersProps } from './SwapsBanners.types';
  */
 export const SwapsBanners = ({
   children,
-  latestSourceAtomicBalance,
+  gap = 3,
   location,
   onAdjustSourceAmount,
 }: SwapsBannersProps) => (
   <SwapsBannersProvider
-    latestSourceAtomicBalance={latestSourceAtomicBalance}
     location={location}
     onAdjustSourceAmount={onAdjustSourceAmount}
   >
-    <Box gap={3} twClassName="mx-4" testID={SwapsBannersSelectorsIDs.CONTAINER}>
+    <Box
+      gap={gap}
+      twClassName="mx-4"
+      testID={SwapsBannersSelectorsIDs.CONTAINER}
+    >
       {children}
     </Box>
   </SwapsBannersProvider>

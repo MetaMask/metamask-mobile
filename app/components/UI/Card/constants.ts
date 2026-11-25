@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-import balanceScannerAbi from './sdk/balanceScannerAbi.json';
 import { CardNetwork, CardNetworkInfo } from './types';
 import { CaipChainId } from '@metamask/utils';
 
@@ -36,13 +34,9 @@ export const CRB_PRIVACY_NOTICE_URL =
   'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
 export const CRB_PRIVACY_POLICY_URL =
   'https://www.crossriver.com/legal/privacy-notice';
-export const BALANCE_SCANNER_ABI =
-  balanceScannerAbi as ethers.ContractInterface;
 export const ARBITRARY_ALLOWANCE = 100000000000;
 export const DEPOSIT_SUPPORTED_TOKENS = ['USDC', 'USDT', 'mUSD'];
 export const BAANX_MAX_LIMIT = '2199023255551';
-export const AUTHENTICATED_CACHE_DURATION = 60 * 1000;
-export const UNAUTHENTICATED_CACHE_DURATION = 5 * 60 * 1000;
 export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'linea',
   'solana',
@@ -53,6 +47,9 @@ export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 export const IMMERSVE_SUPPORT_EMAIL = 'support@metamask.io';
 export const IMMERSVE_TERMS_URL =
   'https://immersve.com/terms-and-conditions/uk/general-terms-of-use';
+export const IMMERSVE_REPORT_TRANSACTION_ID_PARAM = 'tf_22954572650393';
+export const DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL =
+  'https://help.immersve.com/hc/en-us/requests/new?ticket_form_id=22905679582745';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 // Fixed sentinel Immersve redirects the user to when they exit the hosted KYC
@@ -103,13 +100,8 @@ export const caipChainIdToNetwork = Object.fromEntries(
   ]),
 ) as Record<CaipChainId, CardNetwork>;
 
-export const SOLANA_CAIP_CHAIN_ID = cardNetworkInfos.solana.caipChainId;
-
 export const isEvmChain = (chainId: CaipChainId | undefined): boolean =>
   chainId?.startsWith('eip155:') ?? false;
-
-export const isSolanaChain = (chainId: CaipChainId | undefined): boolean =>
-  chainId === SOLANA_CAIP_CHAIN_ID;
 
 /**
  * Tokens that don't support the spending limit progress bar feature.

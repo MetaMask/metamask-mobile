@@ -1,21 +1,25 @@
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import type { LaunchArgs } from '../../types.ts';
 import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  isUiAutomator2SessionDeadError,
   resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
 } from '../../Constants.ts';
 import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
-import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import AppiumUtilities from '../../AppiumUtilities.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
+import { PlatformDetector } from '../../PlatformLocator.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import {
   isDeviceHealthError,
+  recreateSharedSessionNow,
   requestSharedSessionRecreate,
 } from './sessionRecovery.ts';
 
-const logger = createPlaywrightLogger('softReloadApp');
+const logger = createAppiumLogger('softReloadApp');
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
@@ -25,6 +29,102 @@ const sleep = (ms: number): Promise<void> =>
       timer.unref();
     }
   });
+
+/** XCUITest `mobile: queryAppState` values. */
+const IOS_APP_STATE_BACKGROUND_SUSPENDED = 2;
+const IOS_APP_STATE_BACKGROUND = 3;
+const IOS_APP_STATE_FOREGROUND = 4;
+
+/**
+ * Reads the iOS app process state via XCUITest `mobile: queryAppState`.
+ */
+const queryIosAppState = async (
+  drv: WebdriverIO.Browser,
+  bundleId: string,
+): Promise<number> =>
+  Number(await drv.execute('mobile: queryAppState', { bundleId }));
+
+/**
+ * Soft-reload can return from `launchApp` while SpringBoard is still showing.
+ * Callers then burn fixture-bootstrap / onboarding / waitForAppReady budgets
+ * against the home screen.
+ *
+ * Only a backgrounded process is activated: `activateApp` keeps the running
+ * process and the `mobile: launchApp` fixture arguments it was started with.
+ * When the app is not running, `activateApp` would cold-start it without those
+ * arguments, so `/state.json` would never arrive. Fail fast instead and let
+ * Playwright retry on a recreated session.
+ */
+async function ensureIosAppInForeground(
+  drv: WebdriverIO.Browser | undefined,
+  bundleId: string | undefined,
+  phase: string,
+): Promise<void> {
+  if (!drv || !bundleId || !PlatformDetector.isIOS()) {
+    return;
+  }
+
+  let state = await queryIosAppState(drv, bundleId);
+  if (state === IOS_APP_STATE_FOREGROUND) {
+    return;
+  }
+
+  if (
+    state === IOS_APP_STATE_BACKGROUND ||
+    state === IOS_APP_STATE_BACKGROUND_SUSPENDED
+  ) {
+    logger.warn(
+      `iOS app in background after soft-reload ${phase} (state=${state}); ` +
+        `activating ${bundleId}`,
+    );
+    // XCUITest activate returns once the app is in the foreground.
+    await drv.activateApp(bundleId);
+    state = await queryIosAppState(drv, bundleId);
+    if (state === IOS_APP_STATE_FOREGROUND) {
+      return;
+    }
+  }
+
+  requestSharedSessionRecreate();
+  throw new Error(
+    `iOS app ${bundleId} not in foreground after soft-reload ${phase} ` +
+      `(queryAppState=${state}). Not relaunching without fixture launch ` +
+      `arguments; failing fast instead of waiting on /state.json or app ready.`,
+  );
+}
+
+/**
+ * Soft-reload can leave the WDIO session alive while UiAutomator2 instrumentation
+ * is dead. Element probes then burn the full waitForAppReady budget as false
+ * "rehydration" timeouts. Fail fast and request session recreate.
+ */
+async function assertAndroidInstrumentationAlive(
+  drv: WebdriverIO.Browser | undefined,
+): Promise<void> {
+  if (!drv || !PlatformDetector.isAndroid()) {
+    return;
+  }
+
+  try {
+    // Zero the implicit wait so the guaranteed-missing probe id returns
+    // immediately on a healthy session instead of stalling for the full
+    // DEFAULT_IMPLICIT_WAIT_MS.
+    await drv.setTimeout({ implicit: 0 });
+    try {
+      // Any element command hits the instrumentation process. Use a cheap,
+      // non-existent id so a healthy session returns quickly with no match.
+      await drv.$('id=mm-soft-reload-uia2-health-probe').isExisting();
+    } finally {
+      await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+    }
+  } catch (error) {
+    if (isUiAutomator2SessionDeadError(error) || isDeviceHealthError(error)) {
+      requestSharedSessionRecreate();
+      throw error;
+    }
+    // Other lookup failures are unrelated to instrumentation liveness.
+  }
+}
 
 /**
  * Minimal fixture-server surface needed for soft reload bootstrap wait.
@@ -70,13 +170,7 @@ async function measureMs(fn: () => Promise<void>): Promise<number> {
   return Date.now() - start;
 }
 
-/**
- * Soft-reload the app on an existing Appium session for fixture re-bootstrap.
- *
- * Extract of the Appium `restartDevice: true` path:
- * clearAppData → NATIVE_APP context reset → launchApp → wait for /state.json.
- */
-export async function softReloadAppForFixtures(
+async function softReloadAppForFixturesOnce(
   options: SoftReloadAppForFixturesOptions,
 ): Promise<SoftReloadAppForFixturesResult> {
   const {
@@ -129,7 +223,15 @@ export async function softReloadAppForFixtures(
 
   try {
     launchAppMs = await measureMs(() =>
-      PlaywrightUtilities.launchApp(currentDeviceDetails, { launchArgs }),
+      AppiumUtilities.launchApp(currentDeviceDetails, { launchArgs }),
+    );
+
+    // Before waiting on /state.json: a failed iOS launch leaves SpringBoard
+    // and the bootstrap waiter burns up to E2E_FIXTURE_BOOTSTRAP_TIMEOUT_MS.
+    await ensureIosAppInForeground(
+      drv,
+      currentDeviceDetails.appId,
+      'post-launch',
     );
 
     const bootstrapStart = Date.now();
@@ -162,6 +264,16 @@ export async function softReloadAppForFixtures(
     throw error;
   }
 
+  // After bootstrap the process can still drop to background / SpringBoard
+  // before login or onboarding waits begin.
+  await ensureIosAppInForeground(
+    drv,
+    currentDeviceDetails.appId,
+    'post-bootstrap',
+  );
+
+  await assertAndroidInstrumentationAlive(drv);
+
   logger.info(
     `Soft reload complete: clearAppData=${clearAppDataMs}ms, ` +
       `contextReset=${contextResetMs}ms, launchApp=${launchAppMs}ms, ` +
@@ -178,4 +290,42 @@ export async function softReloadAppForFixtures(
     fixtureBootstrapMs,
     attemptedMetroDevLauncherDismissal,
   };
+}
+
+/**
+ * Soft-reload the app on an existing Appium session for fixture re-bootstrap.
+ *
+ * Extract of the Appium `restartDevice: true` path:
+ * clearAppData → NATIVE_APP context reset → launchApp → wait for /state.json.
+ *
+ * When UiAutomator2 (or other device-health) dies mid soft-reload, recreate the
+ * shared WebDriver session in-process (same Playwright attempt) and retry once
+ * so the health report does not count a flake that Playwright retry would heal.
+ */
+export async function softReloadAppForFixtures(
+  options: SoftReloadAppForFixturesOptions,
+): Promise<SoftReloadAppForFixturesResult> {
+  try {
+    return await softReloadAppForFixturesOnce(options);
+  } catch (error) {
+    if (!isDeviceHealthError(error)) {
+      throw error;
+    }
+
+    requestSharedSessionRecreate();
+    const recreatedDrv = await recreateSharedSessionNow();
+    if (!recreatedDrv) {
+      throw error;
+    }
+
+    logger.warn(
+      'Soft reload hit a device-health error; retrying once after in-process session recreate',
+      error,
+    );
+
+    return softReloadAppForFixturesOnce({
+      ...options,
+      drv: recreatedDrv,
+    });
+  }
 }

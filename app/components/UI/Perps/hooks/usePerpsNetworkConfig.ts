@@ -5,6 +5,7 @@ import {
   type SwitchProviderResult,
   type ToggleTestnetResult,
 } from '@metamask/perps-controller';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 /**
  * Hook for network and provider configuration
@@ -13,7 +14,9 @@ import {
 export function usePerpsNetworkConfig() {
   const toggleTestnet = useCallback(async (): Promise<ToggleTestnetResult> => {
     const controller = Engine.context.PerpsController;
-    return controller.toggleTestnet();
+    return PerpsConnectionManager.runWithContextChangePreparation(() =>
+      controller.toggleTestnet(),
+    );
   }, []);
 
   const getCurrentNetwork = useCallback((): 'mainnet' | 'testnet' => {
@@ -26,7 +29,9 @@ export function usePerpsNetworkConfig() {
       providerId: PerpsActiveProviderMode,
     ): Promise<SwitchProviderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.switchProvider(providerId);
+      return PerpsConnectionManager.runWithContextChangePreparation(() =>
+        controller.switchProvider(providerId),
+      );
     },
     [],
   );

@@ -1,8 +1,9 @@
 import { PayWithBottomSheetIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
+  Assertions,
   Gestures,
   Matchers,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 
 /**
@@ -11,33 +12,37 @@ import {
  * secondary all-assets picker handled by PayWithModalTokenPicker.
  */
 class PayWithModal {
-  get preferredTokenRow(): EncapsulatedElementType {
+  get preferredTokenRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
     );
   }
 
-  get noFeeTokenRow(): EncapsulatedElementType {
+  get noFeeTokenRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_NO_FEE_TOKEN_ROW,
     );
   }
 
-  get otherAssetsRow(): EncapsulatedElementType {
+  get otherAssetsRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_OTHER_ASSETS_ROW,
     );
   }
 
-  get moneyAccountRow(): EncapsulatedElementType {
+  get moneyAccountRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.MONEY_ACCOUNT_ROW);
   }
 
-  get perpsBalanceRow(): EncapsulatedElementType {
+  get moneyAccountSection(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PayWithBottomSheetIDs.MONEY_ACCOUNT_SECTION);
+  }
+
+  get perpsBalanceRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.PERPS_BALANCE_ROW);
   }
 
-  get predictBalanceRow(): EncapsulatedElementType {
+  get predictBalanceRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.PREDICT_BALANCE_ROW);
   }
 
@@ -74,6 +79,20 @@ class PayWithModal {
   async tapPredictBalance(): Promise<void> {
     await Gestures.waitAndTap(this.predictBalanceRow, {
       elemDescription: 'Predict balance row',
+    });
+  }
+
+  async verifyMoneyAccountRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.moneyAccountRow, {
+      description: 'Money account row should be visible in pay-with modal',
+      timeout: 15000,
+    });
+  }
+
+  async verifyMoneyAccountSectionVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.moneyAccountSection, {
+      description: 'Money account section should be visible in pay-with modal',
+      timeout: 15000,
     });
   }
 }

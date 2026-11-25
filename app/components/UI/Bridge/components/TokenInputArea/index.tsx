@@ -12,8 +12,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
+  TextInputSelectionChangeEvent,
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -21,6 +20,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
+  getFontFamily,
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -40,29 +40,22 @@ import OldButton, {
   ButtonVariants as OldButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import {
-  CaipChainId,
-  isCaipAssetType,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
-  FeatureId,
   formatAddressToAssetId,
   isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
@@ -74,6 +67,8 @@ import { hasMissingTokenFiatRate } from '../../utils/hasMissingTokenFiatRate';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import Engine from '../../../../../core/Engine';
+import DottedUnderline from '../../../DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -107,6 +102,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       backgroundColor: importedColors.transparent,
       flex: 1,
@@ -116,6 +112,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       transform: [{ translateY: -vars.fontSize * 0.08 }],
       ...(Platform.OS === 'android' && {
@@ -128,7 +125,7 @@ const createStyles = ({
     secondaryValueContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 1,
       alignSelf: 'flex-start',
       paddingVertical: 4,
       paddingHorizontal: 4,
@@ -180,28 +177,18 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
   isQuoteSponsored?: boolean;
   inputPrefix?: string;
   secondaryValue?: string | null;
+  tokenFiatRate?: number;
   balanceCheckAmount?: string;
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
-  /**
-   * When provided, restricts the network list to these chains instead
-   * of the default allowed chainRanking.
-   */
-  enabledChainIds?: CaipChainId[];
-  /**
-   * When true, the token selector hides real-world asset tokens.
-   */
-  excludeRwaTokens?: boolean;
   /**
    * When true, no fiat value is shown for a token that has no fiat rate,
    * rather than the "$0.00" such a token would otherwise be priced at.
@@ -221,6 +208,7 @@ interface TokenInputAreaProps {
    * Test ID for the `amountReplacementLabel` text.
    */
   amountReplacementLabelTestID?: string;
+  subtitle?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -250,19 +238,20 @@ export const TokenInputArea = forwardRef<
       isQuoteSponsored = false,
       inputPrefix,
       secondaryValue,
+      tokenFiatRate: tokenFiatRateOverride,
       balanceCheckAmount,
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
-      enabledChainIds,
-      excludeRwaTokens,
       hideFiatValueWhenUnpriced = false,
       hideAmount = false,
       amountReplacementLabel,
       amountReplacementLabelTestID,
+      subtitle: subtitleOverride,
     },
     ref,
   ) => {
+    const featureId = useSwapsFeatureId();
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     // Need to fetch the exchange rate for the token if we don't have it already
@@ -293,45 +282,29 @@ export const TokenInputArea = forwardRef<
       isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
-    const navigation = useNavigation<AppNavigationProp>();
     const tokenSelectorType =
       tokenType === TokenInputAreaType.Source || isSourceToken
         ? TokenSelectorType.Source
         : TokenSelectorType.Dest;
 
-    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
-      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.AssetPickerOpened,
-        {
-          asset_location:
-            type === TokenSelectorType.Source ? 'source' : 'destination',
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
-        },
-      );
-    }, []);
+    const trackAssetPickerOpened = useCallback(
+      (type: TokenSelectorType) => {
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetPickerOpened,
+          {
+            asset_location:
+              type === TokenSelectorType.Source ? 'source' : 'destination',
+            feature_id: featureId,
+          },
+        );
+      },
+      [featureId],
+    );
 
     const handleTokenButtonPress = useCallback(() => {
       trackAssetPickerOpened(tokenSelectorType);
       onTokenPress?.();
     }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
-
-    const navigateToDestTokenSelector = () => {
-      trackAssetPickerOpened(TokenSelectorType.Dest);
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-        enabledChainIds,
-        excludeRwaTokens,
-      });
-    };
-
-    const navigateToSourceTokenSelector = () => {
-      trackAssetPickerOpened(TokenSelectorType.Source);
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Source,
-        enabledChainIds,
-        excludeRwaTokens,
-      });
-    };
 
     const tokenAmount = balanceCheckAmount ?? amount;
     const isInsufficientBalance = useIsInsufficientBalance({
@@ -340,8 +313,13 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
     });
 
-    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
-    const tokenFiatRate = useTokenFiatRate(token);
+    const defaultCurrencyValue = useDisplayCurrencyValue(
+      tokenAmount,
+      token,
+      tokenFiatRateOverride,
+    );
+    const polledTokenFiatRate = useTokenFiatRate(token);
+    const tokenFiatRate = tokenFiatRateOverride ?? polledTokenFiatRate;
     // Without a rate the currency value is formatted as a bare "$0.00", which
     // reads as the token being worthless rather than unpriced.
     const shouldHideFiatValue =
@@ -379,16 +357,15 @@ export const TokenInputArea = forwardRef<
       tokenBalance,
       token,
     );
+    const { colors } = useTheme();
 
     const tokenAddress = useTokenAddress(token);
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    const shouldShowMaxButton = useShouldRenderMaxOption(
-      token,
-      tokenBalance,
-      isQuoteSponsored,
-    );
+    const shouldShowMaxButton =
+      useShouldRenderMaxOption(token, tokenBalance, isQuoteSponsored) &&
+      !token?.isMoneyToken;
 
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
@@ -414,10 +391,22 @@ export const TokenInputArea = forwardRef<
         return defaultCurrencyValue;
       }
 
-      return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
-        : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+      if (!amount || amount === '0') {
+        return amount;
+      }
+
+      const displayAmount =
+        tokenType === TokenInputAreaType.Destination
+          ? (formatSecondaryTokenAmount(amount) ?? amount)
+          : amount;
+
+      return formatAmountWithLocaleSeparators(displayAmount);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
@@ -502,15 +491,12 @@ export const TokenInputArea = forwardRef<
                 testID={testID}
                 onPress={handleTokenButtonPress}
                 securityBadgeAssetId={tokenSecurityBadgeAssetId}
+                isMoneyToken={token?.isMoneyToken}
               />
             ) : (
               <Button
                 variant={ButtonVariant.Primary}
-                onPress={
-                  isSourceToken
-                    ? navigateToSourceTokenSelector
-                    : navigateToDestTokenSelector
-                }
+                onPress={handleTokenButtonPress}
                 testID={testID}
               >
                 {strings(tokenButtonText)}
@@ -559,16 +545,27 @@ export const TokenInputArea = forwardRef<
                     gap={4}
                     style={styles.hidden}
                   >
-                    <Text
-                      color={
-                        isInsufficientBalance &&
-                        tokenType === TokenInputAreaType.Source
-                          ? TextColor.Error
-                          : TextColor.Alternative
-                      }
-                    >
-                      {subtitle}
-                    </Text>
+                    {token?.isMoneyToken && subtitleOverride ? (
+                      <DottedUnderline
+                        color={colors.success.default}
+                        testID="subtitle-underline"
+                      >
+                        <Text color={colors.success.default}>
+                          {subtitleOverride}
+                        </Text>
+                      </DottedUnderline>
+                    ) : (
+                      <Text
+                        color={
+                          isInsufficientBalance &&
+                          tokenType === TokenInputAreaType.Source
+                            ? TextColor.Error
+                            : TextColor.Alternative
+                        }
+                      >
+                        {subtitle}
+                      </Text>
+                    )}
                     {tokenType === TokenInputAreaType.Source &&
                       tokenBalance &&
                       onMaxPress &&

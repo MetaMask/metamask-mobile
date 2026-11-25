@@ -4,6 +4,7 @@ import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
@@ -14,6 +15,7 @@ import { TokenI } from '../../../components/UI/Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { RootState } from '../../../reducers';
 import { getDecimalChainId } from '../../../util/networks';
+import { buildEvmCaip19AssetId } from '../../../util/multichain/buildEvmCaip19AssetId';
 import {
   hexToBN,
   renderFiat,
@@ -37,7 +39,10 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
-import { selectMoneyDepositEligibleAssets } from '../../../components/UI/Money/selectors/depositTokens';
+import {
+  selectMoneyDepositAssetsMeetingMinimumBalance,
+  selectMoneyDepositBlockedTokens,
+} from '../../../components/UI/Money/selectors/depositTokens';
 import { selectAssetsBySelectedAccountGroup } from '../../assets/assets-list';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
@@ -81,6 +86,24 @@ const selectSelectedEvmAddress = (state: RootState) =>
 const selectAllLendingMarkets = createSelector(
   selectEarnControllerState,
   (earnControllerState) => selectLendingMarkets(earnControllerState),
+);
+
+const selectAssetId = (_state: RootState, assetId?: string) => assetId;
+
+export const selectIsAaveOutputToken = createSelector(
+  [selectAllLendingMarkets, selectAssetId],
+  (markets, assetId) =>
+    Boolean(
+      assetId &&
+        markets.some(
+          ({ protocol, outputToken }) =>
+            protocol === 'aave' &&
+            buildEvmCaip19AssetId(
+              outputToken.address,
+              toHex(outputToken.chainId) as Hex,
+            ).toLowerCase() === assetId.toLowerCase(),
+        ),
+    ),
 );
 
 const selectEarnTokenBaseData = createSelector(
@@ -383,7 +406,7 @@ const selectEarnTokens = createDeepEqualSelector(
           for (const market of lendingMarketsForToken) {
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              apr: String(market.netSupplyRate.toFixed(1)),
+              apr: String(market.netSupplyRate),
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,
@@ -530,11 +553,41 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
+export const selectHighestBalanceAaveOutputToken = createSelector(
+  selectEarnTokens,
+  ({ earnOutputTokens }) =>
+    earnOutputTokens.reduce<EarnTokenDetails | undefined>(
+      (highestBalanceToken, token) => {
+        const isAaveOutputToken = token.experiences.some(
+          ({ market }) => market?.protocol === 'aave',
+        );
+        const hasPositiveFiatBalance =
+          Number.isFinite(token.balanceFiatNumber) &&
+          token.balanceFiatNumber > 0;
+
+        if (!isAaveOutputToken || !hasPositiveFiatBalance) {
+          return highestBalanceToken;
+        }
+
+        if (
+          !highestBalanceToken ||
+          token.balanceFiatNumber > highestBalanceToken.balanceFiatNumber
+        ) {
+          return token;
+        }
+
+        return highestBalanceToken;
+      },
+      undefined,
+    ),
+);
+
 export const selectEarnAssetCatalogueInputs = createSelector(
   [
     selectEarnTokens,
     selectAllLendingMarkets,
-    selectMoneyDepositEligibleAssets,
+    selectMoneyDepositAssetsMeetingMinimumBalance,
+    selectMoneyDepositBlockedTokens,
     selectAssetsBySelectedAccountGroup,
     pooledStakingSelectors.selectEligibility,
     selectPooledStakingEnabledFlag,
@@ -544,7 +597,8 @@ export const selectEarnAssetCatalogueInputs = createSelector(
   (
     earnTokensData,
     lendingMarkets,
-    moneyDepositAssets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
     assetsByChain,
     isEarnEligible,
     isPooledStakingEnabled,
@@ -554,7 +608,8 @@ export const selectEarnAssetCatalogueInputs = createSelector(
     earnTokens: earnTokensData.earnTokens,
     earnOutputTokens: earnTokensData.earnOutputTokens,
     lendingMarkets,
-    moneyDepositAssets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
     assets: Object.values(assetsByChain).flat(),
     isEarnEligible,
     isPooledStakingEnabled,
@@ -691,6 +746,8 @@ export const earnSelectors = {
   selectAllLendingMarkets,
   selectEarnTokens,
   selectEarnAssetCatalogueInputs,
+  selectIsAaveOutputToken,
+  selectHighestBalanceAaveOutputToken,
   selectEarnToken,
   selectEarnOutputToken,
   selectEarnTokenPair,

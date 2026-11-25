@@ -15,6 +15,11 @@ export interface CurrentDeviceDetails {
   launchableActivity?: string;
   /** Derived from `use.device.provider === ProviderName.BROWSERSTACK` in Playwright config. */
   isBrowserstack: boolean;
+  /**
+   * Remote cloud device (BrowserStack or TestMu). Local adb/simctl commands
+   * are not available.
+   */
+  isRemoteCloud?: boolean;
 }
 
 /**
@@ -38,6 +43,19 @@ export interface WorkerLevelFixtures {
 }
 
 export interface TestLevelFixtures {
+  /**
+   * Android device log capture. Auto fixture: clears the logcat buffer before
+   * each test and attaches a filtered dump on failure (Android local devices
+   * only; iOS and cloud devices are a no-op).
+   */
+  androidDeviceLogs: void;
+
+  /**
+   * Opt-in Hermes `.cpuprofile` harvest for performance specs
+   * (`COLLECT_HERMES_CPUPROFILES=true`).
+   */
+  appProfiling: void;
+
   /**
    * Platform detector to be used for the test.
    * This detects the platform of the device being tested.

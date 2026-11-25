@@ -7,13 +7,14 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
+  FontWeight,
   IconName,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
-import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
@@ -21,7 +22,11 @@ import { TransactionDetailDivider } from '../../../../Views/confirmations/compon
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
 import CopyButton from '../../../../Views/confirmations/components/UI/copy-button/copy-button';
 import { strings } from '../../../../../../locales/i18n';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import type { CardTransactionHeroToken } from '../../utils/getCardTransactionHeroToken';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface CardTransactionDetailsContentProps {
   heroCopy: string;
@@ -36,6 +41,7 @@ export interface CardTransactionDetailsContentProps {
   locationLabel?: string;
   declineReason?: string;
   transactionId?: string;
+  networkFeeLabel?: string;
   heroToken: CardTransactionHeroToken;
   heroIconTestID?: string;
   onBack: () => void;
@@ -57,6 +63,7 @@ const CardTransactionDetailsContent = ({
   locationLabel,
   declineReason,
   transactionId,
+  networkFeeLabel,
   heroToken,
   heroIconTestID = 'card-transaction-details-asset-icon',
   onBack,
@@ -64,28 +71,43 @@ const CardTransactionDetailsContent = ({
   onViewOnExplorer,
   footer,
 }: CardTransactionDetailsContentProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('card.transactions.details_title')}
         onBack={onBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
       />
-      <ScrollView contentContainerStyle={tw.style('pb-8')}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={tw.style('pb-8')}
+      >
         <Box twClassName="px-4">
           <Box twClassName="gap-3">
             <Box twClassName="gap-1">
               <Text color={TextColor.TextAlternative}>{heroCopy}</Text>
               <Box twClassName="flex-row items-center gap-3">
-                <AvatarToken
-                  name={heroToken.symbol}
-                  src={heroToken.iconSource as ImageOrSvgSrc}
-                  size={AvatarTokenSize.Md}
-                  testID={heroIconTestID}
-                />
+                {heroToken.isMoneyAccount ? (
+                  <MoneyBalanceIcon
+                    width={32}
+                    height={32}
+                    name="money-balance"
+                    testID={heroIconTestID}
+                  />
+                ) : (
+                  <AvatarToken
+                    name={heroToken.symbol}
+                    src={heroToken.iconSource as ImageOrSvgSrc}
+                    size={AvatarTokenSize.Md}
+                    testID={heroIconTestID}
+                  />
+                )}
                 <Text variant={TextVariant.DisplayMd} color={amountColor}>
                   {primaryAmount}
                 </Text>
@@ -147,12 +169,25 @@ const CardTransactionDetailsContent = ({
               </TransactionDetailsRow>
             ) : null}
 
-            {declineReason ? (
+            {networkFeeLabel ? (
               <TransactionDetailsRow
-                label={strings('card.transactions.decline_reason')}
+                label={strings('card.transactions.network_fee')}
               >
-                <Text color={TextColor.TextAlternative}>{declineReason}</Text>
+                <Text>{networkFeeLabel}</Text>
               </TransactionDetailsRow>
+            ) : null}
+
+            {declineReason ? (
+              <Box twClassName="gap-1">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('card.transactions.decline_reason')}
+                </Text>
+                <Text color={TextColor.TextAlternative}>{declineReason}</Text>
+              </Box>
             ) : null}
 
             {footer}
@@ -164,7 +199,7 @@ const CardTransactionDetailsContent = ({
                   size={ButtonSize.Lg}
                   isFullWidth
                   onPress={onViewOnExplorer}
-                  startIconName={IconName.Export}
+                  startIconName={IconName.ArrowSquareOut}
                   testID="card-transaction-details-explorer-button"
                 >
                   {strings('card.transactions.view_on_explorer')}
@@ -173,16 +208,13 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {onReportPress ? (
-              <Box twClassName="w-full pt-2">
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
+              <Box twClassName="w-full items-center pt-2">
+                <TextButton
                   onPress={onReportPress}
-                  isFullWidth
                   testID="card-transaction-details-report-button"
                 >
                   {strings('card.transactions.report_cta')}
-                </Button>
+                </TextButton>
               </Box>
             ) : null}
           </Box>

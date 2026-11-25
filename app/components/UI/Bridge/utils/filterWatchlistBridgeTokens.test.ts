@@ -75,4 +75,44 @@ describe('filterWatchlistBridgeTokens', () => {
       'USDC',
     ]);
   });
+
+  describe('allowedChainIds', () => {
+    it('restricts results to the allowed chains when no specific chain is selected', () => {
+      const result = filterWatchlistBridgeTokens(tokens, {
+        allowedChainIds: [MOCK_CHAIN_IDS.ethereum],
+      });
+
+      expect(result.map((token) => token.symbol)).toStrictEqual([
+        'ETH',
+        'USDC',
+      ]);
+    });
+
+    it('returns an empty list when no watchlist token is on an allowed chain', () => {
+      const result = filterWatchlistBridgeTokens(tokens, {
+        allowedChainIds: [MOCK_CHAIN_IDS.optimism],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('combines with selectedChainId as an additional, narrower filter', () => {
+      const result = filterWatchlistBridgeTokens(tokens, {
+        allowedChainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+        selectedChainId: MOCK_CHAIN_IDS.polygon,
+      });
+
+      expect(result.map((token) => token.symbol)).toStrictEqual(['POL']);
+    });
+
+    it('does not restrict results when allowedChainIds is undefined', () => {
+      const result = filterWatchlistBridgeTokens(tokens, {});
+
+      expect(result.map((token) => token.symbol)).toStrictEqual([
+        'ETH',
+        'POL',
+        'USDC',
+      ]);
+    });
+  });
 });

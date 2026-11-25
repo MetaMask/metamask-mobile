@@ -1,6 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import { type PriceUpdate } from '@metamask/perps-controller';
+import {
+  type PriceUpdate,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
+import { usePerpsMarketContext } from '../usePerpsMarketContext';
 
 export interface UsePerpsLiveFocusedPriceOptions {
   /**
@@ -9,6 +13,12 @@ export interface UsePerpsLiveFocusedPriceOptions {
    * detail or ticket screen.
    */
   symbol: string;
+  /**
+   * Venue the focused price must come from (TAT-4407). Updates from other
+   * venues are never delivered; without one the stream follows the
+   * active/default venue.
+   */
+  providerId?: PerpsProviderType;
   /**
    * Whether to activate the subscription (default: true).
    * Set to false when the screen is inactive to avoid unnecessary connections.
@@ -50,45 +60,35 @@ export interface UsePerpsLiveFocusedPriceOptions {
 export function usePerpsLiveFocusedPrice(
   options: UsePerpsLiveFocusedPriceOptions,
 ): PriceUpdate | undefined {
-  const { symbol, enabled = true } = options;
+  const { symbol, enabled = true, providerId } = options;
   const stream = usePerpsStream();
-  const [priceUpdate, setPriceUpdate] = useState<PriceUpdate | undefined>(
-    undefined,
-  );
-
-  // Track the symbol that produced the current cached value so we can clear
-  // stale data only when the symbol changes, not on every effect re-run
-  // (stream is a singleton in production but tests may return a new object
-  // reference each render, which would otherwise trigger spurious resets).
-  const activeSymbolRef = useRef<string | null>(null);
-
+  const { key: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
+  const identity = JSON.stringify([marketContextKey, providerId, symbol]);
+  const [priceState, setPriceState] = useState<{
+    identity: string;
+    update: PriceUpdate;
+  }>();
   useEffect(() => {
-    if (!symbol || !enabled) {
-      activeSymbolRef.current = null;
-      setPriceUpdate(undefined);
+    if (!symbol || !enabled || !isMarketContextReady) {
+      setPriceState(undefined);
       return;
     }
-
-    // Clear stale data only when switching to a different symbol
-    if (
-      activeSymbolRef.current !== null &&
-      activeSymbolRef.current !== symbol
-    ) {
-      setPriceUpdate(undefined);
-    }
-    activeSymbolRef.current = symbol;
-
+    setPriceState((prev) => (prev?.identity === identity ? prev : undefined));
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
+      providerId,
       callback: (update) => {
-        setPriceUpdate(update);
+        setPriceState(update ? { identity, update } : undefined);
       },
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, symbol, enabled]);
+  }, [identity, stream, symbol, enabled, isMarketContextReady, providerId]);
 
-  return priceUpdate;
+  return enabled && isMarketContextReady && priceState?.identity === identity
+    ? priceState.update
+    : undefined;
 }

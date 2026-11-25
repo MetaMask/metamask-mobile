@@ -1,12 +1,13 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { TransactionType } from '@metamask/transaction-controller';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { updateTransaction } from '../../../../../../util/transaction-controller';
+import { addTransaction } from '../../../../../../util/transaction-controller';
+import Engine from '../../../../../../core/Engine';
 import { PerpsAccountPickerSelectorsIDs } from '../../../ConfirmationView.testIds';
 import {
   usePerpsSubAccounts,
@@ -24,12 +25,19 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(() => jest.fn()),
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({
-  updateTransaction: jest.fn(),
+  addTransaction: jest.fn(),
 }));
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
+    ApprovalController: {
+      rejectRequest: jest.fn(),
+    },
     PerpsController: {},
   },
+}));
+jest.mock('../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 jest.mock('../../../../../UI/Perps/utils/formatUtils', () => ({
   formatPerpsBalance: (val: string) => `$${val}`,
@@ -92,7 +100,24 @@ jest.mock(
 );
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  CHAIN_IDS: {
+    BSC: '0x38',
+    LINEA_MAINNET: '0xe708',
+    MAINNET: '0x1',
+    MONAD: '0x8f',
+  },
+  TransactionStatus: {
+    confirmed: 'confirmed',
+    dropped: 'dropped',
+    failed: 'failed',
+  },
+  TransactionType: {
+    perpsDeposit: 'perpsDeposit',
+    perpsLighterDeposit: 'perpsLighterDeposit',
+    perpsLighterDepositAndOrder: 'perpsLighterDepositAndOrder',
+    perpsLighterWithdraw: 'perpsLighterWithdraw',
+    simpleSend: 'simpleSend',
+  },
   hasTransactionType: (meta: { type?: string } | undefined, types: string[]) =>
     meta?.type ? types.includes(meta.type) : false,
 }));
@@ -129,8 +154,12 @@ describe('PerpsAccountPickerRow', () => {
       selectedSubAccount: MOCK_ACCOUNTS[0],
     });
 
+    jest.mocked(addTransaction).mockResolvedValue({} as never);
     jest.mocked(useTransactionMetadataRequest).mockReturnValue({
       id: 'tx-1',
+      networkClientId: 'network-client-1',
+      origin: 'metamask',
+      txParams: { from: '0xabc', value: '0x1' },
       type: TransactionType.perpsDeposit,
     } as never);
 
@@ -204,7 +233,7 @@ describe('PerpsAccountPickerRow', () => {
     expect(getByTestId(PerpsAccountPickerSelectorsIDs.SHEET)).toBeDefined();
   });
 
-  it('calls updateTransaction with updated from address on account selection', () => {
+  it('creates a new transaction for the selected account and rejects the current one', async () => {
     const { getByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
       state: STATE_MOCK,
     });
@@ -215,16 +244,51 @@ describe('PerpsAccountPickerRow', () => {
       getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
     );
 
-    expect(updateTransaction).toHaveBeenCalledWith(
+    expect(addTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ from: '0xdef', value: '0x1' }),
       expect.objectContaining({
-        id: 'tx-1',
-        txParams: expect.objectContaining({ from: '0xdef' }),
+        networkClientId: 'network-client-1',
+        origin: 'metamask',
+        requireApproval: true,
+        type: TransactionType.perpsDeposit,
       }),
-      'tx-1',
     );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).toHaveBeenCalledWith('tx-1', expect.anything());
+    });
   });
 
-  it('does not call updateTransaction when transactionMeta has no id', () => {
+  it('does not recreate the transaction when the same account is selected', () => {
+    const { getByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
+      state: STATE_MOCK,
+    });
+
+    fireEvent.press(getByTestId(PerpsAccountPickerSelectorsIDs.ROW));
+    fireEvent.press(
+      getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xabc`),
+    );
+
+    expect(addTransaction).not.toHaveBeenCalled();
+  });
+
+  it('renders for a Lighter deposit', () => {
+    jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+      id: 'tx-1',
+      networkClientId: 'network-client-1',
+      type: 'perpsLighterDeposit',
+    } as never);
+
+    const { getByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
+      state: STATE_MOCK,
+    });
+
+    expect(getByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeDefined();
+  });
+
+  it('does not recreate the transaction when transactionMeta has no id', () => {
     jest.mocked(useTransactionMetadataRequest).mockReturnValue({
       type: TransactionType.perpsDeposit,
     } as never);
@@ -239,7 +303,7 @@ describe('PerpsAccountPickerRow', () => {
       getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
     );
 
-    expect(updateTransaction).not.toHaveBeenCalled();
+    expect(addTransaction).not.toHaveBeenCalled();
   });
 
   it('does not render when transactionMeta is undefined', () => {

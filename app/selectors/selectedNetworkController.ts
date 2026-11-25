@@ -7,7 +7,6 @@ import { getNetworkImageSource, NetworkList } from '../util/networks';
 import { strings } from '../../locales/i18n';
 import {
   selectProviderConfig,
-  selectNetworkClientId,
   selectSelectedNetworkClientId,
   selectEvmChainId as selectProviderChainId,
   selectRpcUrl as selectProviderRpcUrl,
@@ -18,6 +17,7 @@ import {
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../core/Multichain/utils';
+import { getRegistryNetworkImagesByChainId } from './configRegistry';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -26,16 +26,6 @@ export const selectNetworkClientIdsByDomains = createSelector(
   selectSelectedNetworkControllerState,
   (selectedNetworkControllerState: SelectedNetworkControllerState) =>
     selectedNetworkControllerState?.domains,
-);
-
-export const selectActiveDappNetwork = createSelector(
-  selectSelectedNetworkControllerState,
-  (selectedNetworkControllerState: SelectedNetworkControllerState) =>
-    (
-      selectedNetworkControllerState as SelectedNetworkControllerState & {
-        activeDappNetwork?: string | null;
-      }
-    )?.activeDappNetwork || null,
 );
 
 export const makeSelectDomainNetworkClientId = () =>
@@ -47,6 +37,21 @@ export const makeSelectDomainNetworkClientId = () =>
     (networkClientIdsByDomains, hostname) =>
       hostname ? networkClientIdsByDomains?.[hostname] : undefined,
   );
+
+/**
+ * Network client for a dapp origin. Matches SelectedNetworkController's
+ * `getNetworkClientIdForDomain`: the per-dapp `domains` entry, or the
+ * globally selected network client when that origin has none.
+ */
+export const selectNetworkClientIdForDomain = createSelector(
+  [
+    selectNetworkClientIdsByDomains,
+    selectSelectedNetworkClientId,
+    (_: RootState, hostname?: string) => hostname,
+  ],
+  (domains, selectedNetworkClientId, hostname) =>
+    (hostname ? domains?.[hostname] : undefined) ?? selectedNetworkClientId,
+);
 
 const selectProviderNetworkName = createSelector(
   [
@@ -86,31 +91,27 @@ const selectProviderNetworkName = createSelector(
 );
 
 const selectProviderNetworkImageSource = createSelector(
-  selectProviderConfig,
-  (providerConfig: ProviderConfig) =>
-    getNetworkImageSource({
-      networkType: providerConfig.type,
-      chainId: providerConfig.chainId,
-    }),
+  [selectProviderConfig, getRegistryNetworkImagesByChainId],
+  (providerConfig: ProviderConfig, networkImageUrls) =>
+    getNetworkImageSource(
+      {
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
+      },
+      networkImageUrls,
+    ),
 );
 
 const selectChainIdToUse = createSelector(
-  [
-    selectEvmNetworkConfigurationsByChainId,
-    makeSelectDomainNetworkClientId(),
-    selectNetworkClientId,
-  ],
-  (networkConfigurations, domainNetworkClientId, globalNetworkClientId) => {
-    const relevantNetworkClientId =
-      domainNetworkClientId || globalNetworkClientId;
-
+  [selectEvmNetworkConfigurationsByChainId, selectNetworkClientIdForDomain],
+  (networkConfigurations, networkClientIdForDomain) => {
     let chainIdToUse;
 
     for (const networkConfig of Object.values(
       networkConfigurations as unknown as Record<Hex, NetworkConfiguration>,
     )) {
       const matchingRpcEndpoint = networkConfig.rpcEndpoints.find(
-        (endpoint) => endpoint.networkClientId === relevantNetworkClientId,
+        (endpoint) => endpoint.networkClientId === networkClientIdForDomain,
       );
 
       if (matchingRpcEndpoint) {
@@ -127,8 +128,7 @@ export const makeSelectNetworkName = () =>
     [
       selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkName,
-      makeSelectDomainNetworkClientId(),
-      selectNetworkClientId,
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
@@ -136,25 +136,22 @@ export const makeSelectNetworkName = () =>
     (
       networkConfigurations,
       providerNetworkName,
-      domainNetworkClientId,
-      globalNetworkClientId,
+      networkClientIdForDomain,
       chainId,
       hostname,
       chainIdToUse,
     ) => {
       if (!hostname) return providerNetworkName;
-      const relevantNetworkClientId =
-        domainNetworkClientId || globalNetworkClientId;
 
       const relevantChainId = chainIdToUse || chainId;
 
       return (
         networkConfigurations[relevantChainId]?.rpcEndpoints.find(
           ({ networkClientId }: { networkClientId: string }) =>
-            networkClientId === relevantNetworkClientId,
+            networkClientId === networkClientIdForDomain,
         )?.name ||
         // @ts-expect-error The utils/network file is still JS
-        NetworkList[relevantNetworkClientId]?.name
+        NetworkList[networkClientIdForDomain]?.name
       );
     },
   );
@@ -164,40 +161,41 @@ export const makeSelectNetworkImageSource = () =>
     [
       selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkImageSource,
-      makeSelectDomainNetworkClientId(),
-      selectNetworkClientId,
-      selectActiveDappNetwork,
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
+      getRegistryNetworkImagesByChainId,
     ],
     (
       networkConfigurations,
       providerNetworkImageSource,
-      domainNetworkClientId,
-      globalNetworkClientId,
-      activeDappNetwork,
+      networkClientIdForDomain,
       chainId,
       hostname,
       chainIdToUse,
+      networkImageUrls,
     ) => {
       if (!hostname) return providerNetworkImageSource;
-
-      const relevantNetworkClientId =
-        activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
 
       const relevantChainId = chainIdToUse || chainId;
 
       const networkConfig = networkConfigurations[relevantChainId];
       if (networkConfig) {
-        return getNetworkImageSource({ chainId: networkConfig.chainId });
+        return getNetworkImageSource(
+          { chainId: networkConfig.chainId },
+          networkImageUrls,
+        );
       }
-      return getNetworkImageSource({
-        // @ts-expect-error The utils/network file is still JS
-        networkType: NetworkList[relevantNetworkClientId]?.networkType,
-        // @ts-expect-error The utils/network file is still JS
-        chainId: NetworkList[relevantNetworkClientId]?.chainId,
-      });
+      return getNetworkImageSource(
+        {
+          // @ts-expect-error The utils/network file is still JS
+          networkType: NetworkList[networkClientIdForDomain]?.networkType,
+          // @ts-expect-error The utils/network file is still JS
+          chainId: NetworkList[networkClientIdForDomain]?.chainId,
+        },
+        networkImageUrls,
+      );
     },
   );
 
@@ -205,19 +203,15 @@ export const makeSelectChainId = () =>
   createSelector(
     [
       selectProviderChainId,
-      makeSelectDomainNetworkClientId(),
-      selectNetworkClientId,
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
-      selectActiveDappNetwork,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
     ],
     (
       providerChainId,
-      domainNetworkClientId,
-      globalNetworkClientId,
+      networkClientIdForDomain,
       chainId,
-      activeDappNetwork,
       hostname,
       chainIdToUse,
     ) => {
@@ -225,15 +219,12 @@ export const makeSelectChainId = () =>
         return providerChainId;
       }
 
-      const relevantNetworkClientId =
-        activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
-
       const relevantChainId = chainIdToUse || chainId;
 
       return (
         relevantChainId ||
         // @ts-expect-error The utils/network file is still JS
-        NetworkList[relevantNetworkClientId]?.chainId
+        NetworkList[networkClientIdForDomain]?.chainId
       );
     },
   );
@@ -244,18 +235,14 @@ export const makeSelectRpcUrl = () =>
     [
       selectEvmNetworkConfigurationsByChainId,
       selectProviderRpcUrl,
-      makeSelectDomainNetworkClientId(),
-      selectNetworkClientId,
-      selectActiveDappNetwork,
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
     (
       networkConfigurations,
       providerRpcUrl,
-      domainNetworkClientId,
-      globalNetworkClientId,
-      activeDappNetwork,
+      networkClientIdForDomain,
       chainId,
       hostname,
     ) => {
@@ -264,10 +251,8 @@ export const makeSelectRpcUrl = () =>
       }
       if (!hostname) return providerRpcUrl;
 
-      const relevantNetworkClientId =
-        activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[chainId]?.rpcEndpoints.find(
-        ({ networkClientId }) => networkClientId === relevantNetworkClientId,
+        ({ networkClientId }) => networkClientId === networkClientIdForDomain,
       )?.url;
     },
   );

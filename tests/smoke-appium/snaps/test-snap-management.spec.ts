@@ -1,6 +1,6 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
-import { Assertions } from '../../framework/index.js';
+import { Assertions, Utilities } from '../../framework/index.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView.js';
 import {
@@ -11,7 +11,10 @@ import {
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Increased from 150 s: 4 serial tests include a snap install (up to 60 s
+  // on Android) and two full browser→settings→browser navigation round-trips,
+  // exhausting 150 s on slower CI runners on both Android and iOS.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to the Dialog Snap',
@@ -61,10 +64,31 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await SnapSettingsView.setEnabled(true);
           await navigateFromSnapSettingsToBrowser();
 
-          await TestSnaps.tapButton('sendAlertButton');
-          // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
-          await Assertions.expectTextDisplayed('This is an alert dialog');
-          await Assertions.expectTextDisplayed('single button');
+          // Re-tap until the enabled dialog is visible. Probe first on retries
+          // so a slow prior tap does not queue a second snap_dialog.
+          let firstAttempt = true;
+          await Utilities.executeWithRetry(
+            async () => {
+              if (!firstAttempt) {
+                try {
+                  await TestSnaps.expectEnabledSnapAlert(1_000);
+                  return; // prior tap succeeded — dialog on screen
+                } catch {
+                  /* not yet — re-tap */
+                }
+              }
+              firstAttempt = false;
+              await TestSnaps.tapButton('sendAlertButton');
+              await TestSnaps.expectEnabledSnapAlert(8_000);
+            },
+            {
+              timeout: 45_000,
+              interval: 500,
+              maxRetries: 5,
+              elemDescription: 'Send Alert button / enabled Snap alert dialog',
+              description: 'Send enabled Snap alert until dialog is visible',
+            },
+          );
           await TestSnaps.tapOkButton();
         },
       );

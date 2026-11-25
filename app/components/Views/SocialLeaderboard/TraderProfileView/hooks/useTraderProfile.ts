@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type { TraderProfileResponse } from '@metamask/social-controllers';
@@ -7,6 +7,10 @@ import {
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
+import {
+  publishServerFollowerCount,
+  useDisplayedFollowerCount,
+} from '../../../../hooks/optimisticFollowerCount';
 import {
   useFollowToggle,
   type UseFollowToggleResult,
@@ -53,7 +57,26 @@ export const useTraderProfile = (
 
   const { isFollowing, toggleFollow } = useFollowToggle(addressOrId);
 
-  const profile = data ?? null;
+  // Read on tap, synchronously. An effect would still be holding the previous
+  // server count for a frame after this query data updates.
+  publishServerFollowerCount(addressOrId, data?.followerCount);
+  const displayedFollowerCount = useDisplayedFollowerCount(
+    addressOrId,
+    data?.followerCount,
+  );
+  const profile = useMemo(() => {
+    if (!data) {
+      return null;
+    }
+    if (
+      displayedFollowerCount === null ||
+      displayedFollowerCount === undefined ||
+      displayedFollowerCount === data.followerCount
+    ) {
+      return data;
+    }
+    return { ...data, followerCount: displayedFollowerCount };
+  }, [data, displayedFollowerCount]);
 
   const refresh = useCallback(async () => {
     try {

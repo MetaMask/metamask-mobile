@@ -9,8 +9,9 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE_BY_VARIANT = {
   nav: 24,
@@ -24,6 +25,11 @@ export interface TraderHeaderIdentityProps {
   traderName: string;
   traderImageUrl?: string | null;
   traderAddress?: string;
+  /** Profile id used when `traderAddress` is missing. */
+  traderProfileId?: string;
+  avatar?: React.ReactNode;
+  /** Profile API verified this trader. */
+  isVerified?: boolean;
   variant?: TraderHeaderIdentityVariant;
   onPress?: () => void;
   testID?: string;
@@ -43,6 +49,9 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
+  avatar,
+  isVerified = false,
   variant = 'nav',
   onPress,
   testID,
@@ -65,11 +74,14 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
       gap={2}
       twClassName="max-w-full"
     >
-      <TraderAvatar
-        imageUrl={traderImageUrl}
-        address={traderAddress}
-        size={avatarSize}
-      />
+      {avatar ?? (
+        <TraderAvatar
+          imageUrl={traderImageUrl}
+          address={traderAddress}
+          profileId={traderProfileId}
+          size={avatarSize}
+        />
+      )}
       <Text
         variant={textVariant}
         fontWeight={fontWeight}
@@ -79,6 +91,11 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
       >
         {traderName}
       </Text>
+      {isVerified ? (
+        <ProfileVerifiedBadge
+          testID={testID ? `${testID}-verified` : undefined}
+        />
+      ) : null}
     </Box>
   );
 

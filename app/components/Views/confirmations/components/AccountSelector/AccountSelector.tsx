@@ -9,6 +9,7 @@ import {
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,
@@ -21,7 +22,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Skeleton,
   Text,
@@ -33,12 +33,12 @@ import { AccountSection } from '../../../../../component-library/components-temp
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import {
-  selectAccountGroupsByWallet,
-  selectAccountToGroupMap,
-} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../hooks/useIsGlassHeader';
 
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
@@ -48,12 +48,13 @@ export const ACCOUNT_SELECTOR_TEST_IDS = {
 
 export interface AccountSelectorProps {
   selectedAddress?: string;
-  onAccountSelected: (address: string) => void;
+  onAccountSelected: (account: InternalAccount) => void;
   /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
   label?: string;
   /** Title in the account selection bottom sheet (header). */
   selectorTitle?: string;
   style?: StyleProp<ViewStyle>;
+  isAccountAllowed?: (account: InternalAccount) => boolean;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -62,20 +63,27 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   label = strings('confirm.label.to'),
   selectorTitle = strings('bridge.select_recipient'),
   style,
+  isAccountAllowed,
 }) => {
+  const isGlassHeader = useIsGlassHeader();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
+  const accountGroupsByWallet = useSelector(selectVisibleAccountGroupsByWallet);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getIsAccountSupported = useCallback(
-    (account: AccountId) =>
-      Boolean(internalAccountsById[account]?.scopes.includes(EthScope.Eoa)),
-    [internalAccountsById],
+    (accountId: AccountId) => {
+      const account = internalAccountsById[accountId];
+      return Boolean(
+        account?.scopes.includes(EthScope.Eoa) &&
+          (isAccountAllowed?.(account) ?? true),
+      );
+    },
+    [internalAccountsById, isAccountAllowed],
   );
 
   const openModal = useCallback(() => setIsModalVisible(true), []);
@@ -99,7 +107,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       );
       if (internalAccountId) {
         const internalAccount = internalAccountsById[internalAccountId];
-        onAccountSelected(internalAccount.address);
+        onAccountSelected(internalAccount);
         closeAccountSheet();
       }
     },
@@ -226,9 +234,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader onClose={() => closeAccountSheet()}>
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
+              onClose={() => closeAccountSheet()}
+            >
               {selectorTitle}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <View style={styles.modalSheetBody}>
               <MultichainAccountSelectorList
                 selectedAccountGroups={

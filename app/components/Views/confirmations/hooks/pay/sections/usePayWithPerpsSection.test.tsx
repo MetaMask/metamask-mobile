@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -18,6 +19,9 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  // Not a jest.fn: `resetAllMocks` would strip the implementation and silently
+  // turn this into a no-op.
+  useFocusEffect: (callback: () => void) => callback(),
 }));
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
@@ -53,6 +57,7 @@ describe('usePayWithPerpsSection', () => {
 
   const navigateMock = jest.fn();
   const goBackMock = jest.fn();
+  const depositWithOrderMock = jest.fn();
   const onPaymentTokenChangeMock = jest.fn();
   const depositWithConfirmationMock = jest.fn();
   const onRejectMock = jest.fn();
@@ -94,6 +99,9 @@ describe('usePayWithPerpsSection', () => {
 
     usePerpsTradingMock.mockReturnValue({
       depositWithConfirmation: depositWithConfirmationMock.mockResolvedValue({
+        result: Promise.resolve('ok'),
+      }),
+      depositWithOrder: depositWithOrderMock.mockResolvedValue({
         result: Promise.resolve('ok'),
       }),
     } as never);
@@ -171,6 +179,19 @@ describe('usePayWithPerpsSection', () => {
     );
   });
 
+  it('marks the row as not selected when Money Account is selected', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectPerpsAccountState) {
+        return { spendableBalance: '500' };
+      }
+      return PaymentOverride.MoneyAccount;
+    });
+
+    const { result } = renderHook(() => usePayWithPerpsSection());
+
+    expect(result.current?.rows[0].isSelected).toBe(false);
+  });
+
   it('treats a missing spendable balance as zero', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPerpsAccountState) {
@@ -195,9 +216,9 @@ describe('usePayWithPerpsSection', () => {
     expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects approval, triggers deposit confirmation, and navigates with perps header when Add is pressed', async () => {
-    const { result } = renderHook(() => usePayWithPerpsSection());
-
+  const pressAdd = async (result: {
+    current: ReturnType<typeof usePayWithPerpsSection>;
+  }) => {
     const trailing = result.current?.rows[0].trailingElement as
       | { props: { onPress: () => Promise<void> } }
       | undefined;
@@ -205,6 +226,12 @@ describe('usePayWithPerpsSection', () => {
     await act(async () => {
       await trailing?.props.onPress();
     });
+  };
+
+  it('rejects approval, triggers deposit confirmation, and navigates with perps header when Add is pressed', async () => {
+    const { result } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
 
     expect(onRejectMock).toHaveBeenCalledTimes(1);
     expect(depositWithConfirmationMock).toHaveBeenCalledTimes(1);
@@ -212,6 +239,137 @@ describe('usePayWithPerpsSection', () => {
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       { showPerpsHeader: true },
     );
+  });
+
+  it('recreates the rejected order when the sheet regains focus after Add', async () => {
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not recreate the order when the sheet is opened without pressing Add', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    const { rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).not.toHaveBeenCalled();
+  });
+
+  it('does not recreate the order while a transaction is still pending', async () => {
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).not.toHaveBeenCalled();
+  });
+
+  it('recreates the order only once across repeated focus events', async () => {
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('swallows a failure to recreate the order', async () => {
+    depositWithOrderMock.mockRejectedValueOnce(new Error('no-connection'));
+
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries on the next focus when recreating the order failed', async () => {
+    depositWithOrderMock.mockRejectedValueOnce(new Error('no-connection'));
+
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not recreate the order while the deposit is still in flight', async () => {
+    let resolveDeposit: (value: unknown) => void = () => undefined;
+    depositWithConfirmationMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveDeposit = resolve;
+      }),
+    );
+
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    const trailing = result.current?.rows[0].trailingElement as
+      | { props: { onPress: () => Promise<void> } }
+      | undefined;
+
+    act(() => {
+      trailing?.props.onPress();
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveDeposit({ result: Promise.resolve('ok') });
+    });
+  });
+
+  it('recreates the order immediately when the deposit fails', async () => {
+    depositWithConfirmationMock.mockRejectedValueOnce(new Error('user-cancel'));
+
+    const { result } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not navigate when deposit confirmation rejects', async () => {

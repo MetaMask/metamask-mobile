@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { View } from 'react-native';
 import PerpsCloseSummary from './PerpsCloseSummary';
 import { strings } from '../../../../../../locales/i18n';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
+const mockNavigate = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -12,7 +14,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
   })),
 }));
@@ -47,13 +49,13 @@ jest.mock('../../../Rewards/components/RewardPointsAnimation', () => ({
 jest.mock(
   '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
   () => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const { View: ViewActual } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: () =>
-        React.createElement(
-          View,
+        ReactActual.createElement(
+          ViewActual,
           { testID: 'add-rewards-account' },
           'Add Rewards Account',
         ),
@@ -114,6 +116,17 @@ describe('PerpsCloseSummary', () => {
     expect(strings).toHaveBeenCalledWith('perps.close_position.includes_pnl');
   });
 
+  it('labels the P&L separately from cross margin', () => {
+    const props = { ...defaultProps, marginMode: 'cross' as const };
+
+    const { getByText, queryByText } = render(<PerpsCloseSummary {...props} />);
+
+    expect(getByText('perps.close_position.pnl')).toBeOnTheScreen();
+    expect(
+      queryByText('perps.close_position.includes_pnl'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders fees section with tooltip', () => {
     // Arrange
     const testIDs = { feesTooltip: 'fees-tooltip-button' };
@@ -125,6 +138,17 @@ describe('PerpsCloseSummary', () => {
     // Assert
     expect(getByText('perps.close_position.fees')).toBeOnTheScreen();
     expect(getByTestId('fees-tooltip-button')).toBeOnTheScreen();
+  });
+
+  it('renders optional content after fees', () => {
+    const { getByTestId } = render(
+      <PerpsCloseSummary
+        {...defaultProps}
+        afterFees={<View testID="after-fees" />}
+      />,
+    );
+
+    expect(getByTestId('after-fees')).toBeOnTheScreen();
   });
 
   it('renders receive amount with tooltip', () => {

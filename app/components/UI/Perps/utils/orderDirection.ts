@@ -1,17 +1,28 @@
 import type { Order } from '@metamask/perps-controller';
 
 /**
- * Shared open/close + direction classification for perps orders, so the UI's
- * `formatOrderLabel` and the Activity adapter's `mapOrderKind` never disagree.
- * No runtime imports.
+ * Shared open/close + direction classification for perps order labels and
+ * Activity kinds. No runtime imports.
  */
 
-/** Reduce-only and trigger (TP/SL) orders both close a position. */
+/**
+ * Whether an order is restricted to reducing an existing position.
+ *
+ * Provider data with an explicit `reduceOnly` value is authoritative because
+ * trigger orders can also open or increase a position. Some provider payloads
+ * omit that value, so triggers retain the legacy closing classification only
+ * when `reduceOnly` is absent.
+ */
 export const isClosingOrder = ({
   reduceOnly,
   isTrigger,
-}: Partial<Pick<Order, 'reduceOnly' | 'isTrigger'>>): boolean =>
-  Boolean(reduceOnly || isTrigger);
+}: Partial<Pick<Order, 'reduceOnly' | 'isTrigger'>>): boolean => {
+  if (typeof reduceOnly === 'boolean') {
+    return reduceOnly;
+  }
+
+  return Boolean(isTrigger);
+};
 
 /**
  * Position direction implied by an order's side: a closing sell exits a long

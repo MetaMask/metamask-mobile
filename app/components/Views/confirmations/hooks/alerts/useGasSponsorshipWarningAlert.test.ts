@@ -14,14 +14,14 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
-jest.mock('../useConfirmActions', () => ({
-  useConfirmActions: jest.fn(),
+jest.mock('../useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../gas/useIsGasSponsored');
@@ -62,14 +62,13 @@ describe('useGasSponsorshipWarningAlert', () => {
     useTransactionMetadataRequest,
   );
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
-  const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockUseIsGasSponsored = jest.mocked(useIsGasSponsored);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseConfirmActions.mockReturnValue({
+    mockUseConfirmReject.mockReturnValue({
       onReject: jest.fn(),
-      onConfirm: jest.fn(),
     });
     mockUseRampNavigation.mockReturnValue({
       goToBuy: jest.fn(),

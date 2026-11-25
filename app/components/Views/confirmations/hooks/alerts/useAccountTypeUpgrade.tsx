@@ -4,7 +4,7 @@ import { Text, TextButton } from '@metamask/design-system-react-native';
 
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { use7702TransactionType } from '../7702/use7702TransactionType';
 import { AccountTypeUpgradeAlertTestIds } from './account-type-upgrade-alert.testIds';
@@ -14,7 +14,7 @@ export function useAccountTypeUpgrade(): Alert[] {
 
   return useMemo(() => {
     if (!isBatchedUpgrade) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

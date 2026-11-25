@@ -98,6 +98,8 @@ const arrangeMocks = () => {
 };
 
 describe('RWATokensFullView', () => {
+  let mocks: ReturnType<typeof arrangeMocks>;
+
   const renderRWAFullView = () =>
     renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
@@ -107,9 +109,12 @@ describe('RWATokensFullView', () => {
       false,
     );
 
+  // Arranged once per test so every test asserts on the same mock handles the
+  // component received; jest.resetAllMocks() is deliberately avoided because it
+  // also wipes the shared setup mocks configured at module load.
   beforeEach(() => {
     jest.clearAllMocks();
-    arrangeMocks();
+    mocks = arrangeMocks();
   });
 
   it('renders header with Stocks title', () => {
@@ -132,7 +137,6 @@ describe('RWATokensFullView', () => {
   });
 
   it('navigates back when back button is pressed', async () => {
-    const mocks = arrangeMocks();
     const { getByTestId } = renderRWAFullView();
 
     const backButton = getByTestId('rwa-tokens-header-back-button');
@@ -142,7 +146,6 @@ describe('RWATokensFullView', () => {
   });
 
   it('displays skeleton loader when loading', () => {
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: [], isLoading: true });
 
     const { getByTestId } = renderRWAFullView();
@@ -151,7 +154,6 @@ describe('RWATokensFullView', () => {
   });
 
   it('displays empty error state when results are empty', () => {
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: [] });
 
     const { getByTestId } = renderRWAFullView();
@@ -166,19 +168,19 @@ describe('RWATokensFullView', () => {
         assetId: 'eip155:1/erc20:0xstock1',
       }),
       createMockToken({
-        name: 'USDY Token',
-        assetId: 'eip155:1/erc20:0xstock2',
+        name: 'Apple',
+        symbol: 'AAPL',
+        assetId: 'eip155:4663/erc20:0xstock2',
       }),
     ];
 
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: stockTokens });
 
     const { getByText, getByTestId } = renderRWAFullView();
 
     expect(getByTestId(TEST_IDS.tokensList)).toBeOnTheScreen();
     expect(getByText('OUSG Token')).toBeOnTheScreen();
-    expect(getByText('USDY Token')).toBeOnTheScreen();
+    expect(getByText('Apple')).toBeOnTheScreen();
   });
 
   it('calls refetch when pull-to-refresh is triggered', async () => {
@@ -186,7 +188,6 @@ describe('RWATokensFullView', () => {
       createMockToken({ name: 'OUSG', assetId: 'eip155:1/erc20:0xstock1' }),
     ];
 
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: stockTokens });
 
     const { getByTestId, UNSAFE_getByType } = renderRWAFullView();
@@ -201,19 +202,16 @@ describe('RWATokensFullView', () => {
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('opens network bottom sheet when button is pressed', async () => {
+  it('includes Robinhood Chain in the network bottom sheet', async () => {
     const { getByTestId } = renderRWAFullView();
-
     const networkButton = getByTestId('all-networks-button');
+
     await userEvent.press(networkButton);
 
-    expect(
-      getByTestId('trending-token-network-bottom-sheet'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('network-select-eip155:4663')).toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: [createMockToken()] });
     const { getByTestId } = renderRWAFullView();
 

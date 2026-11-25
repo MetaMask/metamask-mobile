@@ -6,6 +6,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 import { aiVisualTest, createTestConfig } from '../../framework/ai-visual';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${Performance} ${PerformanceSwaps}`, () => {
@@ -19,6 +20,7 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
       );
 
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
 
       const swapLoadTimer = new TimerHelper(
         'Time since the user clicks on the "Swap" button until the swap page is loaded',
@@ -31,7 +33,7 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
 
       const swapTimer = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',
-        { ios: 9000, android: 7000 },
+        { ios: 9000, android: 3000 },
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');

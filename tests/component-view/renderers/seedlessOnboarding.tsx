@@ -6,20 +6,22 @@ import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import { createMockRouteMessenger } from '../../../app/util/test/mock-route-messenger';
 import AccountStatus from '../../../app/components/Views/AccountStatus';
-import SocialLoginIosUser from '../../../app/components/Views/SocialLoginIosUser';
 import ChoosePassword from '../../../app/components/Views/ChoosePassword';
 import WalletCreationError from '../../../app/components/Views/WalletCreationError';
+import MetaMetricsAndDataCollectionSection from '../../../app/components/Views/Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import type { AccountStatusParams } from '../../../app/components/Views/AccountStatus/types';
 import { AuthConnection } from '../../../app/core/OAuthService/OAuthInterface';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../app/constants/navigation';
 import { AccountType } from '../../../app/constants/onboarding';
-import {
-  initialStateSeedlessOnboarding,
-  SEEDLESS_CV_ACCESS_TOKEN,
-} from '../presets/seedlessOnboarding';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY } from '../../../app/components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import Engine from '../../../app/core/Engine';
+import {
+  initialStateSeedlessOnboarding,
+  initialStateSeedlessSecuritySettings,
+  SEEDLESS_CV_ACCESS_TOKEN,
+} from '../presets/seedlessOnboarding';
 
 const ACCOUNT_ALREADY_EXISTS_ROUTE = 'AccountAlreadyExists';
 const ACCOUNT_NOT_FOUND_ROUTE = 'AccountNotFound';
@@ -149,63 +151,22 @@ export function renderAccountNotFound(
   );
 }
 
-const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
-const SocialLoginSuccessExistingUser = () => (
-  <SocialLoginIosUser type="existing" />
-);
-
-interface SocialLoginIosUserRendererOptions {
-  overrides?: DeepPartial<RootState>;
-  routeParams?: {
-    accountName?: string;
-    oauthLoginSuccess?: boolean;
-    provider?: string;
-  };
-}
-
-export function renderSocialLoginIosNewUser(
-  options: SocialLoginIosUserRendererOptions = {},
-) {
-  syncSeedlessAccessToken();
-
-  const defaultParams = {
-    accountName: 'seedless-cv@example.com',
-    oauthLoginSuccess: true,
-    provider: AuthConnection.Google,
-  };
-
-  return renderScreenWithRoutes(
-    SocialLoginSuccessNewUser as unknown as React.ComponentType,
-    { name: Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER },
-    [{ name: Routes.ONBOARDING.CHOOSE_PASSWORD }],
-    { state: buildSeedlessOnboardingState(options) },
-    { ...defaultParams, ...options.routeParams },
-  );
-}
-
-export function renderSocialLoginIosExistingUser(
-  options: SocialLoginIosUserRendererOptions = {},
-) {
-  syncSeedlessAccessToken();
-
-  const defaultParams = {
-    accountName: 'seedless-cv@example.com',
-    oauthLoginSuccess: true,
-    provider: AuthConnection.Google,
-  };
-
-  return renderScreenWithRoutes(
-    SocialLoginSuccessExistingUser as unknown as React.ComponentType,
-    { name: Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER },
-    [{ name: Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE }],
-    { state: buildSeedlessOnboardingState(options) },
-    { ...defaultParams, ...options.routeParams },
-  );
-}
-
 interface ChoosePasswordRendererOptions {
   overrides?: DeepPartial<RootState>;
   routeParams?: Record<string, unknown>;
+}
+
+function choosePasswordProviderValues(
+  options: ChoosePasswordRendererOptions = {},
+) {
+  return {
+    state: buildSeedlessOnboardingState(options),
+    routeMessenger: createMockRouteMessenger({
+      'GeolocationController:refreshGeolocation': jest
+        .fn()
+        .mockResolvedValue('US'),
+    }),
+  };
 }
 
 export function renderChoosePasswordForSocialLogin(
@@ -226,7 +187,7 @@ export function renderChoosePasswordForSocialLogin(
       { name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE },
       { name: Routes.ONBOARDING.SUCCESS_FLOW },
     ],
-    { state: buildSeedlessOnboardingState(options) },
+    choosePasswordProviderValues(options),
     { ...defaultParams, ...options.routeParams },
   );
 }
@@ -266,7 +227,39 @@ export function renderChoosePasswordScreen(
   return renderComponentViewScreen(
     ChoosePassword as unknown as React.ComponentType,
     { name: Routes.ONBOARDING.CHOOSE_PASSWORD },
-    { state: buildSeedlessOnboardingState(options) },
+    choosePasswordProviderValues(options),
     options.routeParams,
+  );
+}
+
+interface SecuritySettingsMarketingSectionRendererOptions {
+  /** Local marketing preference before the user toggles. */
+  dataCollectionForMarketing?: boolean;
+  overrides?: DeepPartial<RootState>;
+}
+
+/**
+ * Renders the Settings > Security & privacy MetaMetrics + marketing section
+ * (MetaMetricsAndDataCollectionSection) for a social-login user. The modal
+ * flow route is registered so toggling marketing consent off can navigate to
+ * the data-collection confirmation sheet.
+ */
+export function renderSecuritySettingsMarketingSection(
+  options: SecuritySettingsMarketingSectionRendererOptions = {},
+) {
+  syncSeedlessAccessToken();
+
+  const builder = initialStateSeedlessSecuritySettings({
+    dataCollectionForMarketing: options.dataCollectionForMarketing,
+  });
+  if (options.overrides) {
+    builder.withOverrides(options.overrides);
+  }
+
+  return renderScreenWithRoutes(
+    MetaMetricsAndDataCollectionSection as unknown as React.ComponentType,
+    { name: Routes.SETTINGS.SECURITY_SETTINGS },
+    [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+    { state: builder.build() },
   );
 }

@@ -61,6 +61,7 @@ describe('useRegions', () => {
     mockUseRegistrationSettings.mockReturnValue({
       data: { countries: MOCK_COUNTRIES },
       isLoading: false,
+      isFetched: true,
     } as ReturnType<typeof useRegistrationSettings>);
   });
 
@@ -190,6 +191,20 @@ describe('useRegions', () => {
     });
   });
 
+  describe('isRegistrationSettingsFetched', () => {
+    it('returns whether registration settings have fetched', () => {
+      mockUseRegistrationSettings.mockReturnValue({
+        data: null,
+        isLoading: false,
+        isFetched: false,
+      } as ReturnType<typeof useRegistrationSettings>);
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.isRegistrationSettingsFetched).toBe(false);
+    });
+  });
+
   describe('isLoading', () => {
     it('returns isLoading from useRegistrationSettings', () => {
       mockUseRegistrationSettings.mockReturnValue({
@@ -200,6 +215,25 @@ describe('useRegions', () => {
       const { result } = renderHook(() => useRegions());
 
       expect(result.current.isLoading).toBe(true);
+    });
+  });
+
+  describe('registration settings state', () => {
+    it('returns the registration error and refetch function', () => {
+      const error = new Error('settings unavailable');
+      const fetchData = jest.fn().mockResolvedValue(null);
+      mockUseRegistrationSettings.mockReturnValue({
+        data: null,
+        isLoading: false,
+        isFetched: true,
+        error,
+        fetchData,
+      } as ReturnType<typeof useRegistrationSettings>);
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.error).toBe(error);
+      expect(result.current.refetch).toBe(fetchData);
     });
   });
 

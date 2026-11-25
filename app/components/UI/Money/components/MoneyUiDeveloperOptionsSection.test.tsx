@@ -4,10 +4,13 @@ import { MoneyUiDeveloperOptionsSection } from './MoneyUiDeveloperOptionsSection
 import { UserActionType } from '../../../../actions/user/types';
 import {
   selectMoneyEarnBannerDismissedTokens,
-  selectMoneyOnboardingSeen,
+  selectMoneySplashSeen,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  getMoneyHomeCardDevOverride,
+  setMoneyHomeCardDevOverride,
+} from '../hooks/moneyHomeCardDevOverride';
 
 const mockNavigate = jest.fn();
 
@@ -32,10 +35,6 @@ jest.mock('../../../../util/theme', () => {
   };
 });
 
-jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
-  selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
-}));
-
 const mockSetString = jest.fn((_str: string) => Promise.resolve());
 
 jest.mock('../../../../core/ClipboardManager', () => ({
@@ -48,8 +47,7 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 const MOCK_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
 
 interface SelectorMockOptions {
-  hasSeenMoneyOnboarding?: boolean;
-  isOnboardingEnabled?: boolean;
+  hasSeenMoneySplash?: boolean;
   /** Pass `null` to simulate no money account being available. */
   moneyAccount?: { address: string } | null;
   earnBannerDismissedTokens?: Record<string, boolean>;
@@ -59,12 +57,11 @@ interface SelectorMockOptions {
  * Configures the useSelector mock to return appropriate values for each selector
  * used by MoneyUiDeveloperOptionsSection.
  *
- * Default: onboarding not seen, flag enabled, primary money account present with MOCK_ADDRESS.
+ * Default: splash not seen, primary money account present with MOCK_ADDRESS.
  * Pass `moneyAccount: null` to simulate the account being unavailable.
  */
 function setupSelectorMocks(options: SelectorMockOptions = {}) {
-  const hasSeenMoneyOnboarding = options.hasSeenMoneyOnboarding ?? false;
-  const isOnboardingEnabled = options.isOnboardingEnabled ?? true;
+  const hasSeenMoneySplash = options.hasSeenMoneySplash ?? false;
   // `null` means "no account", `undefined` (omitted) means use the default.
   const moneyAccount =
     options.moneyAccount === null
@@ -74,9 +71,7 @@ function setupSelectorMocks(options: SelectorMockOptions = {}) {
   const earnBannerDismissedTokens = options.earnBannerDismissedTokens ?? {};
 
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectMoneyOnboardingSeen) return hasSeenMoneyOnboarding;
-    if (selector === selectMoneyOnboardingStepperAnimationEnabled)
-      return isOnboardingEnabled;
+    if (selector === selectMoneySplashSeen) return hasSeenMoneySplash;
     if (selector === selectPrimaryMoneyAccount) return moneyAccount;
     if (selector === selectMoneyEarnBannerDismissedTokens)
       return earnBannerDismissedTokens;
@@ -88,6 +83,11 @@ describe('MoneyUiDeveloperOptionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupSelectorMocks();
+    setMoneyHomeCardDevOverride(null);
+  });
+
+  afterEach(() => {
+    setMoneyHomeCardDevOverride(null);
   });
 
   it('renders the "Money UI" heading', () => {
@@ -96,57 +96,33 @@ describe('MoneyUiDeveloperOptionsSection', () => {
     expect(getByText('Money UI')).toBeOnTheScreen();
   });
 
-  describe('onboarding enabled state', () => {
-    it('displays onboarding enabled as true when flag is on', () => {
-      setupSelectorMocks({ isOnboardingEnabled: true });
+  describe('splash seen state', () => {
+    it('displays splash seen as false when not seen', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: false });
 
       const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
 
-      expect(getByText('Onboarding enabled: true')).toBeOnTheScreen();
+      expect(getByText('Splash seen: false')).toBeOnTheScreen();
     });
 
-    it('displays onboarding enabled as false when flag is off', () => {
-      setupSelectorMocks({ isOnboardingEnabled: false });
+    it('displays splash seen as true when seen', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: true });
 
       const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
 
-      expect(getByText('Onboarding enabled: false')).toBeOnTheScreen();
-    });
-  });
-
-  describe('onboarding seen state', () => {
-    it('displays onboarding seen as false when not seen', () => {
-      setupSelectorMocks({ hasSeenMoneyOnboarding: false });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Onboarding seen: false')).toBeOnTheScreen();
+      expect(getByText('Splash seen: true')).toBeOnTheScreen();
     });
 
-    it('displays onboarding seen as true when seen', () => {
-      setupSelectorMocks({ hasSeenMoneyOnboarding: true });
+    it('dispatches setMoneySplashSeen(false) when reset button is pressed', () => {
+      setupSelectorMocks({ hasSeenMoneySplash: true });
 
       const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
 
-      expect(getByText('Onboarding seen: true')).toBeOnTheScreen();
-    });
-
-    it('renders the reset button', () => {
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      expect(getByText('Reset onboarding screen')).toBeOnTheScreen();
-    });
-
-    it('dispatches setMoneyOnboardingSeen(false) when reset button is pressed', () => {
-      setupSelectorMocks({ hasSeenMoneyOnboarding: true });
-
-      const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
-
-      fireEvent.press(getByText('Reset onboarding screen'));
+      fireEvent.press(getByText('Reset splash screen'));
 
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+          type: UserActionType.SET_MONEY_SPLASH_SEEN,
           payload: { seen: false },
         }),
       );
@@ -213,6 +189,33 @@ describe('MoneyUiDeveloperOptionsSection', () => {
 
       expect(mockSetString).toHaveBeenCalledTimes(1);
       expect(mockSetString).toHaveBeenCalledWith(MOCK_ADDRESS);
+    });
+
+    it('forces the VBA-region Get started card from the home card menu', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      try {
+        const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+        act(() => {
+          fireEvent.press(
+            getByText('2. VBA eligible, empty wallet: Get started'),
+          );
+        });
+
+        expect(getMoneyHomeCardDevOverride()?.id).toBe('get_started');
+        expect(
+          getByText(
+            'Home card override: 2. VBA eligible, empty wallet: Get started',
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        act(() => {
+          setMoneyHomeCardDevOverride(null);
+        });
+        devGlobal.__DEV__ = originalDev;
+      }
     });
 
     it('does not copy to clipboard when the address is unavailable', async () => {

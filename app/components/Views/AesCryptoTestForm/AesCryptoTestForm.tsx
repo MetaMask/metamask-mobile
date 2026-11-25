@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -33,8 +29,11 @@ import {
 } from './AesCrypto.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AesCryptoTestForm = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { colors } = theme;
@@ -144,7 +143,9 @@ const AesCryptoTestForm = () => {
       style={styles.container}
       testID={aesCryptoFormSafeArea}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.aes_crypto_test_form_title')}
         onBack={() => navigation.goBack()}
         includesTopInset

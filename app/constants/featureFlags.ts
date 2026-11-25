@@ -1,6 +1,40 @@
 import type { Json } from '@metamask/utils';
 
 /**
+ * Build-time rollout flag for consolidated Basic Functionality. Remote flags
+ * are unavailable while Basic Functionality is off, so those wallets fall back
+ * to this flag to receive the migration notice.
+ */
+export function isBftcConsolidationBuildEnabled(): boolean {
+  return process.env.MM_BFTC_CONSOLIDATION_ENABLED === 'true';
+}
+
+/**
+ * Build-time gate for the Money MPC keyring stub. When enabled, the Money MPC
+ * keyring builders are registered with the `KeyringController`.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Registration stays fenced while no released build can hold a
+ * Money MPC keyring in its vault — see `buildMpcMoneyKeyringBuilder`.
+ */
+export function isMpcMoneyKeyringBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MPC_KEYRING_ENABLED === 'true';
+}
+
+/**
+ * Build-time gate for the Collectibles development fallback. A valid remote
+ * `collectiblesEnabled` flag always wins; this flag only decides what a
+ * development build does when the remote flag is missing or invalid.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Read it through this function so callers stay testable: an
+ * inlined `process.env` lookup cannot be changed at runtime.
+ */
+export function isCollectiblesBuildEnabled(): boolean {
+  return process.env.MM_COLLECTIBLES_ENABLED === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/
@@ -9,6 +43,7 @@ export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
+  assetsMemecoinTdpV1 = 'assetsMemecoinTdpV1',
   defiControllerV2 = 'defiControllerV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
@@ -20,6 +55,21 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
+  crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  rampsProvidersAheadOfHistory = 'rampsProvidersAheadOfHistory',
+  nativeTabBarEnabled = 'nativeTabBarEnabled',
+  predictBrandRefresh = 'predictBrandRefresh',
+  homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
+  homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
+  moneyBrandRefresh = 'moneyBrandRefresh',
+  moneyVbaPendingActivityEnabled = 'moneyVbaPendingActivityEnabled',
+  moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
+  perpsBrandRefresh = 'perpsBrandRefresh',
+  exploreBrandRefresh = 'exploreBrandRefresh',
+  glassHeaders = 'glassHeaders',
+  mfaUiKit = 'mfaUiKit',
+  slowNetworkBanner = 'slowNetworkBanner',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -32,6 +82,7 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
+  [FeatureFlagNames.assetsMemecoinTdpV1]: { enabled: false },
   [FeatureFlagNames.defiControllerV2]: { enabled: false },
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
@@ -46,4 +97,12 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.moneyVbaPendingActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
 };

@@ -3,7 +3,15 @@ import Engine from '../../../../core/Engine';
 import type { AssetType } from '../../../Views/confirmations/types/token';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import {
+  evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
+} from '../../../Views/confirmations/__mocks__/pay-token.mock';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../Views/confirmations/hooks/pay/useTransactionPayToken');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -21,6 +29,7 @@ const mockSetSelectedPaymentToken = Engine.context.PerpsController
 describe('usePerpsPaymentToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
     mockUseTransactionPayToken.mockReturnValue({
       setPayToken: jest.fn(),
     } as unknown as ReturnType<typeof useTransactionPayToken>);
@@ -75,8 +84,7 @@ describe('usePerpsPaymentToken', () => {
       chainId: '0xa4b1',
     });
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: '0xusdc',
-      chainId: '0xa4b1',
+      assetId: evmAssetId('0xusdc', '0xa4b1'),
     });
   });
 });

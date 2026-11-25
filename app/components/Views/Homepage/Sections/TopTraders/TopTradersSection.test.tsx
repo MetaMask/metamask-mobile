@@ -9,6 +9,7 @@ import { SectionRefreshHandle } from '../../types';
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
+let mockHasFetched = true;
 
 jest.mock('../../../../../util/haptics', () => ({
   playErrorNotification: () => mockPlayErrorNotification(),
@@ -60,6 +61,7 @@ const mockTraders = [
     pnlValue: 963000,
     winRatePercent: 92,
     pnlPerChain: { base: 963000 },
+    followerCount: 1200,
     isFollowing: false,
   },
 ];
@@ -74,7 +76,10 @@ const mockUseTopTraders = jest.fn((_options?: unknown) => ({
 }));
 
 jest.mock('./hooks', () => ({
-  useTopTraders: (args: unknown) => mockUseTopTraders(args),
+  useTopTraders: (args: unknown) => ({
+    hasFetched: mockHasFetched,
+    ...mockUseTopTraders(args),
+  }),
   usePrefetchTraderProfiles: jest.fn(),
 }));
 
@@ -97,6 +102,34 @@ jest.mock(
   }),
 );
 
+const mockHasSocialV1Access = jest.fn(() => false);
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
+  selectHasSocialV1Access: () => mockHasSocialV1Access(),
+}));
+
+let mockIsMasterNotificationsEnabled = true;
+jest.mock('../../../../../selectors/notifications', () => ({
+  ...jest.requireActual('../../../../../selectors/notifications'),
+  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
+}));
+
+// TSA-1042 landing A/B test. Defaults to control (leaderboard landing); the
+// treatment cases override the resolved variant per test.
+const mockUseABTest = jest.fn(
+  (_flagKey: string, variants: Record<string, unknown>) => ({
+    variant: variants.control,
+    variantName: 'control',
+    isActive: false,
+  }),
+);
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: (...args: [string, Record<string, unknown>]) =>
+    mockUseABTest(...args),
+}));
+
 const mockNavigateToSocialLeaderboard = jest.fn();
 jest.mock(
   '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
@@ -105,7 +138,6 @@ jest.mock(
       mockNavigateToSocialLeaderboard(...args),
   }),
 );
-
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -124,6 +156,17 @@ jest.mock('../../hooks/useSectionViewportVisible', () => ({
   __esModule: true,
   default: jest.fn(() => ({ isVisible: true, onLayout: jest.fn() })),
 }));
+
+jest.mock('../../hooks/useSectionPerformance', () => ({
+  useSectionPerformance: jest.fn(),
+}));
+
+const mockUseSectionViewportVisible = jest.requireMock(
+  '../../hooks/useSectionViewportVisible',
+).default as jest.Mock;
+const mockUseSectionPerformance = jest.requireMock(
+  '../../hooks/useSectionPerformance',
+).useSectionPerformance as jest.Mock;
 
 let mockNotificationPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -198,8 +241,20 @@ const channelsDisabledPreferences = {
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasSocialV1Access.mockReturnValue(false);
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.control,
+      variantName: 'control',
+      isActive: false,
+    }));
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
+    mockIsMasterNotificationsEnabled = true;
+    mockHasFetched = true;
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -222,11 +277,301 @@ describe('TopTradersSection', () => {
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         sort: 'pnl',
         timeframe: '7d',
         limit: 50,
       }),
+    );
+  });
+
+  it('queries the chains passed via the chains prop instead of the spot default', () => {
+    renderWithProvider(
+      <TopTradersSection {...defaultProps} chains={['hyperliquid']} />,
+    );
+
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        chains: ['hyperliquid'],
+        sort: 'pnl',
+        timeframe: '7d',
+        limit: 50,
+      }),
+    );
+  });
+
+  it('defers the leaderboard query while the section is offscreen', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('starts TTC demand when cached traders become visible', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    const { rerender } = renderWithProvider(
+      <TopTradersSection {...defaultProps} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: false,
+      }),
+    );
+
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
+    rerender(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+      }),
+    );
+  });
+
+  it('fetches immediately outside the homepage even though the viewport hook never reports visible', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection />);
+
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('keeps a measurable skeleton mounted before the first query', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = false;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      screen.getByTestId('homepage-top-traders-section-root'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
+  });
+
+  it('registers the idle placeholder as a rendered section for Home Viewed analytics', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockHasFetched = false;
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    const mockUseHomeViewedEvent = jest.requireMock(
+      '../../hooks/useHomeViewedEvent',
+    ).default as jest.Mock;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      mockUseHomeViewedEvent.mock.calls.at(-1)?.[0].sectionRef,
+    ).not.toBeNull();
+  });
+
+  it('keeps a cached empty result measurable until this section requests data', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      screen.getByTestId('homepage-top-traders-section-root'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('does not count disabled-query idle time as data-fetch latency', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    mockHasFetched = false;
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: false,
+        demandStarted: false,
+        enabled: true,
+        isLoading: false,
+      }),
+    );
+  });
+
+  it('starts TTC with an active leaderboard fetch', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      isFetching: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = false;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: false,
+        demandStarted: true,
+        isLoading: true,
+      }),
+    );
+  });
+
+  it('completes TTC for a settled empty leaderboard response', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+        isLoading: false,
+      }),
+    );
+  });
+
+  it('completes TTC when the leaderboard error state renders', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: 'leaderboard unavailable',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        contentStateForTrace: 'error',
+        enabled: true,
+      }),
+    );
+  });
+
+  it('keeps cached trader rows out of the error content state', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: 'leaderboard refresh failed',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        contentStateForTrace: undefined,
+      }),
+    );
+  });
+
+  it('keeps the query enabled after the section first enters the viewport', () => {
+    let isVisible = false;
+    mockUseSectionViewportVisible.mockImplementation(() => ({
+      isVisible,
+      onLayout: jest.fn(),
+    }));
+
+    const { rerender } = renderWithProvider(
+      <TopTradersSection {...defaultProps} />,
+    );
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+
+    isVisible = true;
+    rerender(<TopTradersSection {...defaultProps} />);
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+
+    isVisible = false;
+    rerender(<TopTradersSection {...defaultProps} />);
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
     );
   });
 
@@ -237,7 +582,7 @@ describe('TopTradersSection', () => {
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
       }),
     );
   });
@@ -290,7 +635,65 @@ describe('TopTradersSection', () => {
 
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
       expect.any(Function),
-      { source: 'home_carousel' },
+      {
+        source: 'home_carousel',
+        landingTab: 'leaderboard',
+        landingFeedAudience: undefined,
+      },
+    );
+  });
+
+  it('lands the section header on the Feed tab with the All audience for the treatment variant', () => {
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.treatment,
+      variantName: 'treatment',
+      isActive: true,
+    }));
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Top traders'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
+        landingTab: 'feed',
+        landingFeedAudience: 'all',
+      },
+    );
+  });
+
+  it('lands the view-more card on the Feed tab with the All audience for the treatment variant', () => {
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.treatment,
+      variantName: 'treatment',
+      isActive: true,
+    }));
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-traders-view-more-card'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
+        landingTab: 'feed',
+        landingFeedAudience: 'all',
+      },
+    );
+  });
+
+  it('opens Social Bundle V1 without TSA-1042 landing params with Social V1 access', () => {
+    mockHasSocialV1Access.mockReturnValue(true);
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Top traders'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
+      },
     );
   });
 
@@ -299,16 +702,13 @@ describe('TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'alice',
-        traderAddress: '0x0000000000000000000000000000000000000001',
-        source: 'home_carousel',
-        traderRank: 1,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'alice',
+      traderAddress: '0x0000000000000000000000000000000000000001',
+      source: 'home_carousel',
+      traderRank: 1,
+    });
   });
 
   it('calls toggleFollow with the correct analytics context when the follow button is pressed', async () => {
@@ -337,6 +737,74 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('uses the provided source for view all, profile and follow', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(
+      <TopTradersSection {...defaultProps} source="explore_perps" />,
+    );
+
+    fireEvent.press(screen.getByText('Top traders'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ source: 'explore_perps' }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE,
+      expect.objectContaining({ source: 'explore_perps' }),
+    );
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-1',
+      expect.objectContaining({ source: 'explore_perps' }),
+    );
+  });
+
+  it('uses the explore_crypto source for view all, profile and follow', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(
+      <TopTradersSection {...defaultProps} source="explore_crypto" />,
+    );
+
+    fireEvent.press(screen.getByText('Top traders'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE,
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-1',
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+  });
+
   it('navigates to the trading signals setup sheet when following with both channels off', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = {
@@ -362,13 +830,40 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
-      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: undefined }),
     );
   });
 
-  it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
+  it('navigates to the feature notifications gate when following with the master toggle off', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockIsMasterNotificationsEnabled = false;
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+      params: { feature: 'socialAI', autoDismiss: true },
+    });
+  });
+
+  it('follows when both channels are off', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -393,7 +888,7 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
   it('fires an error haptic when the follow is intercepted', async () => {
@@ -435,12 +930,12 @@ describe('TopTradersSection', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
 
-  it('defers the follow to the setup sheet via the onSetupComplete param', async () => {
+  it('does not follow again when the setup sheet completes', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = channelsDisabledPreferences;
     mockUseTopTraders.mockReturnValue({
@@ -458,10 +953,8 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
-
     const setupCall = mockNavigate.mock.calls.find(
-      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
     const { onSetupComplete } = setupCall?.[1] ?? {};
 
@@ -470,6 +963,7 @@ describe('TopTradersSection', () => {
     });
 
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(onSetupComplete).toBeUndefined();
   });
 
   it('renders the error state instead of the carousel when the fetch fails', () => {
@@ -562,6 +1056,19 @@ describe('TopTradersSection', () => {
     await expect(ref.current?.refresh()).resolves.toBeUndefined();
   });
 
+  it('preserves explicit Homepage refresh while the section is offscreen', async () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+    const ref = createRef<SectionRefreshHandle>();
+    renderWithProvider(<TopTradersSection ref={ref} {...defaultProps} />);
+
+    await expect(ref.current?.refresh()).resolves.toBeUndefined();
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
   it('invokes onLayout from useHomeViewedEvent when the section root lays out', () => {
     const mockOnLayout = jest.fn();
     const mockUseHomeViewedEvent = jest.requireMock(
@@ -576,6 +1083,17 @@ describe('TopTradersSection', () => {
     });
 
     expect(mockOnLayout).toHaveBeenCalled();
+  });
+
+  it('disables profile prefetch when prefetchProfiles is false', () => {
+    renderWithProvider(
+      <TopTradersSection source="explore_perps" prefetchProfiles={false} />,
+    );
+
+    expect(mockUsePrefetchTraderProfiles).toHaveBeenLastCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   it('wires visible trader ids into the prefetch hook from FlatList viewability', () => {

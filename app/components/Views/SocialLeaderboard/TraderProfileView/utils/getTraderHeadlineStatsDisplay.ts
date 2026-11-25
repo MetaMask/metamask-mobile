@@ -3,7 +3,7 @@ import {
   EM_DASH,
   formatPercent,
   formatSignedFullUsdNoDecimals,
-} from '../../utils/formatters';
+} from '../../../../UI/SocialFeed/utils/formatters';
 
 export interface TraderHeadlineStatsDisplay {
   winRate: string;

@@ -8,9 +8,9 @@ import {
 import {
   PaymentOverride,
   TransactionFiatPayment,
+  TransactionPaymentToken,
   TransactionPayRequiredToken,
   TransactionPayTotals,
-  TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { Hex } from '@metamask/utils';
@@ -28,6 +28,7 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
+import { isSameAssetId } from '../../../../util/transactions/payment-token';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -94,7 +95,12 @@ export function replaceAccountInNestedTransactions({
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
 ): number | undefined {
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ])
+  ) {
     return PERPS_MINIMUM_DEPOSIT;
   }
 
@@ -177,6 +183,7 @@ export function getAvailableTokens({
   return tokens
     .filter((token) => {
       if (
+        !token.address ||
         token.standard !== TokenStandard.ERC20 ||
         !token.accountType?.includes('eip155') ||
         (token.chainId && isTestNet(token.chainId))
@@ -184,9 +191,7 @@ export function getAvailableTokens({
         return false;
       }
 
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+      const isSelected = isSameAssetId(payToken?.assetId, token.caipAssetId);
 
       if (isSelected) {
         return true;
@@ -216,8 +221,7 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-          payToken?.chainId === token.chainId;
+        : isSameAssetId(payToken?.assetId, token.caipAssetId);
 
       return {
         ...token,
@@ -325,8 +329,8 @@ export function resolvePreferredPayToken({
  * Deposit-direction flows funded by the Money Account (Money Account, Perps,
  * and Predict deposits) set `refundTo: MA` so failed Relay bridges refund to
  * the MA rather than the funding EOA. Money Account deposits additionally
- * flip `atomic: false` later via `setMoneyAccountDepositMaxAtomic` when the
- * user toggles max amount.
+ * flip `atomic: false` later via `useTransactionCustomAmount`'s `setIsMax`
+ * when the user toggles max amount.
  *
  * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
  * path with no recipient override: `processTransactions` overwrites the quote
@@ -339,6 +343,7 @@ export function applyMoneyAccountOverride(
 ): void {
   const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
+    TransactionType.perpsLighterWithdraw,
     TransactionType.predictWithdraw,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
@@ -364,12 +369,6 @@ export function applyMoneyAccountOverride(
   });
 }
 
-/**
- * Toggle non-atomic mode on a Money Account deposit based on whether the user
- * has selected the max-amount option. Only max-amount deposits need the
- * post-Relay vault-deposit path; regular deposits stay atomic (EXPECTED_OUTPUT
- * with the vault deposit embedded in the Relay bundle).
- */
 export function getTotalPayFeesUsd(
   fees: TransactionPayTotals['fees'],
 ): BigNumber {
@@ -379,14 +378,48 @@ export function getTotalPayFeesUsd(
     .plus(fees.metaMask?.usd ?? 0);
 }
 
-export function setMoneyAccountDepositMaxAtomic(
-  transactionId: string,
-  isMax: boolean,
-): void {
-  Engine.context.TransactionPayController.setTransactionConfig(
-    transactionId,
-    (config) => {
-      config.atomic = isMax ? false : undefined;
-    },
-  );
+/**
+ * String form of a confirmation asset's display-currency balance.
+ *
+ * Pay-with rows format this amount with `$`. It is the number behind
+ * `balanceInSelectedCurrency`, which pay flows already price in USD.
+ * `fiat.balance` stays in the user's preferred currency. Returns `'0'` when
+ * the amount is missing.
+ */
+export function payBalanceUsd(amount: number | undefined): string {
+  if (amount === undefined || !Number.isFinite(amount)) {
+    return '0';
+  }
+
+  return String(amount);
+}
+
+/**
+ * Truncates a fiat amount to two decimals for rendering and for the keypad
+ * buffer, since the stored amount carries full precision so that Max spends
+ * the entire balance.
+ *
+ * Truncates rather than rounds because the result is re-typable: the user can
+ * read the value off the screen and enter it back through the keypad, and
+ * rounding up would produce an amount greater than the balance.
+ *
+ * Amounts already within two decimals are returned as-is, so keypad input
+ * renders exactly as typed and a mid-edit `12.` is never rewritten to `12.00`.
+ */
+export function formatAmountForDisplay(amountFiat: string): string {
+  const separatorIndex = amountFiat.search(/[.,]/u);
+
+  if (separatorIndex === -1) {
+    return amountFiat;
+  }
+
+  const decimalCount = amountFiat.length - separatorIndex - 1;
+
+  if (decimalCount <= 2) {
+    return amountFiat;
+  }
+
+  const value = new BigNumber(amountFiat.replace(',', '.'));
+
+  return value.isFinite() ? value.toFixed(2, BigNumber.ROUND_DOWN) : amountFiat;
 }

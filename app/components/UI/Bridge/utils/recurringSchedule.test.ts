@@ -1,5 +1,6 @@
 import {
   capRecurringKeypadValue,
+  getMaxRepeatCount,
   parsePositiveInteger,
   RecurringScheduleErrorCode,
   RECURRING_MAX_DURATION_MINUTES,
@@ -103,7 +104,8 @@ describe('validateRecurringSchedule', () => {
     { unit: 'minute' as const, max: '60' },
     { unit: 'hour' as const, max: '24' },
     { unit: 'day' as const, max: '7' },
-    { unit: 'week' as const, max: '25' },
+    { unit: 'week' as const, max: '4' },
+    { unit: 'month' as const, max: '6' },
   ])('accepts the max every value of $max for $unit', ({ unit, max }) => {
     const schedule = makeSchedule({
       everyValue: max,
@@ -128,6 +130,48 @@ describe('validateRecurringSchedule', () => {
     const result = validateRecurringSchedule(schedule);
 
     expect(result).toEqual({ isValid: true, errors: [] });
+  });
+
+  it('accepts 1 month repeated 6 times', () => {
+    const schedule = makeSchedule({
+      everyValue: '1',
+      everyUnit: 'month',
+      repeatCount: '6',
+    });
+
+    const result = validateRecurringSchedule(schedule);
+
+    expect(result).toEqual({ isValid: true, errors: [] });
+  });
+
+  it('returns duration_exceeds_max for 1 month repeated 7 times', () => {
+    const schedule = makeSchedule({
+      everyValue: '1',
+      everyUnit: 'month',
+      repeatCount: '7',
+    });
+
+    const result = validateRecurringSchedule(schedule);
+
+    expect(result.errors).toContain(
+      RecurringScheduleErrorCode.DurationExceedsMax,
+    );
+    expect(result.isValid).toBe(false);
+  });
+
+  it('returns every_exceeds_unit_max when months exceed 6', () => {
+    const schedule = makeSchedule({
+      everyValue: '7',
+      everyUnit: 'month',
+      repeatCount: '1',
+    });
+
+    const result = validateRecurringSchedule(schedule);
+
+    expect(result.errors).toContain(
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+    );
+    expect(result.isValid).toBe(false);
   });
 
   it('returns duration_exceeds_max for 1 day repeated 181 times', () => {
@@ -159,7 +203,7 @@ describe('validateRecurringSchedule', () => {
     );
   });
 
-  it('returns both unit max and duration errors when both limits are exceeded', () => {
+  it('skips the duration error when every exceeds the unit maximum', () => {
     const schedule = makeSchedule({
       everyValue: '61',
       everyUnit: 'minute',
@@ -170,7 +214,31 @@ describe('validateRecurringSchedule', () => {
 
     expect(result.errors).toEqual([
       RecurringScheduleErrorCode.EveryExceedsUnitMax,
-      RecurringScheduleErrorCode.DurationExceedsMax,
     ]);
+  });
+
+  it('returns independent field errors without a duration error', () => {
+    const schedule = makeSchedule({
+      everyValue: '61',
+      everyUnit: 'minute',
+      repeatCount: '0',
+    });
+
+    const result = validateRecurringSchedule(schedule);
+
+    expect(result.errors).toEqual([
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+      RecurringScheduleErrorCode.RepeatInvalid,
+    ]);
+  });
+});
+
+describe('getMaxRepeatCount', () => {
+  it('returns 180 for every 1 day', () => {
+    expect(getMaxRepeatCount(1, 'day')).toBe(180);
+  });
+
+  it('returns 90 for every 2 days', () => {
+    expect(getMaxRepeatCount(2, 'day')).toBe(90);
   });
 });

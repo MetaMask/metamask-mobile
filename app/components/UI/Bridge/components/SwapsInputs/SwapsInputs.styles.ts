@@ -10,12 +10,15 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     inputCardsWrapper: {
       position: 'relative',
+      overflow: 'visible',
+      zIndex: 0,
     },
     tokenCard: {
       backgroundColor: theme.colors.background.section,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 24,
+      zIndex: 0,
     },
     compactDestTokenCard: {
       paddingVertical: 12,

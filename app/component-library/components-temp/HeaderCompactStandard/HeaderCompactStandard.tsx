@@ -18,6 +18,12 @@ import HeaderBase from '../../components/HeaderBase';
 import { HeaderCompactStandardProps } from './HeaderCompactStandard.types';
 
 /**
+ * @deprecated Please update your code to use `HeaderStandard` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * `variant` is inherited from the deprecated mobile `HeaderBase` and is not on MMDS `HeaderStandard`. MMDS `HeaderBase` adds `childrenWrapperProps` and `textProps`.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/HeaderStandard/README.md}
+ * @since @metamask/design-system-react-native@0.14.0
+ *
  * HeaderCompactStandard is a header component with centered title and optional back/close buttons.
  * Extends HeaderBase with convenient props for common header patterns.
  *
@@ -101,6 +107,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
+              twClassName="text-center"
               {...titleProps}
             >
               {title}
@@ -114,6 +121,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
+                  twClassName="text-center"
                   {...subtitleProps}
                 >
                   {subtitle}

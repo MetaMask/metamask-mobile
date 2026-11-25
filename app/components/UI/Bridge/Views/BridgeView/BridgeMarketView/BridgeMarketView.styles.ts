@@ -16,12 +16,15 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     inputCardsWrapper: {
       position: 'relative',
+      overflow: 'visible',
+      zIndex: 0,
     },
     tokenCard: {
       backgroundColor: theme.colors.background.section,
       borderRadius: 16,
       paddingHorizontal: 12,
       paddingVertical: 24,
+      zIndex: 0,
     },
     buttonContainer: {
       width: '100%',
@@ -34,15 +37,8 @@ export const createStyles = (params: { theme: Theme }) => {
     quoteContainer: {
       justifyContent: 'flex-start',
     },
-    destinationAccountSelectorContainer: {
-      paddingBottom: 12,
-    },
     dynamicContent: {
       justifyContent: 'flex-start',
-    },
-    keypadContainerWithDestinationPicker: {
-      justifyContent: 'flex-end',
-      paddingBottom: 8,
     },
     scrollView: {
       flex: 1,
@@ -52,9 +48,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     loadingContainer: {
       paddingTop: 8,
-    },
-    disclaimerText: {
-      textAlign: 'center',
     },
     destTokenArea: {
       // marginTop: 16,

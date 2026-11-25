@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
 import {
   getCryptoSymbol,
   getVariant,
+  isMetalSymbol,
   getEventStartTime,
   RECURRENCE_TO_DURATION_SECS,
   toTimestampSeconds,
@@ -18,6 +19,7 @@ const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
 const LIVE_CHART_MAX_POINTS_PER_SEC = 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
+const LIVE_RENDER_INTERVAL_MS = 200;
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
 const TWAP_STREAM_STALE_TIMEOUT_MS = 120000;
 const CONNECTION_ERROR_TIMEOUT_MS = 12000;
@@ -33,6 +35,13 @@ const POLL_BACKOFF_60S_MS = 60000;
 const POLL_BACKOFF_30S_THRESHOLD = 3; // 3rd consecutive failure -> 30s
 const POLL_BACKOFF_60S_THRESHOLD = 5; // 5th consecutive failure -> 60s
 const POLL_DISABLE_THRESHOLD = 7; // 7th consecutive failure -> stop polling
+
+// Metals (XAU, XAG) have no price-history endpoint, so their historical
+// baseline is built from the live ticks of the open window: one point per
+// second at most, capped, and re-rendered at most once a second.
+const TICK_HISTORY_SPACING_SECS = 1;
+const TICK_HISTORY_MAX_POINTS = 3600;
+const TICK_HISTORY_RENDER_INTERVAL_MS = 1000;
 
 export const getHistoricalPollInterval = (
   fetchFailureCount: number,
@@ -66,6 +75,66 @@ const mergeLivelinePoints = (
   liveData.forEach((point) => byTime.set(point.time, point));
 
   return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+};
+
+/**
+ * Adds a tick to a market window's tick-built price series. Points outside the
+ * window are dropped. A tick in the same second as an existing point replaces
+ * the newest one and is ignored for an older one, so the series keeps one
+ * point per second. The oldest points go first past `maxPoints`.
+ *
+ * @param points - Current series, oldest first. Not mutated.
+ * @param point - Tick to add, time in seconds.
+ * @param bounds - Market window bounds in seconds; either may be absent.
+ * @param bounds.startSecs - Window start in seconds.
+ * @param bounds.endSecs - Window end in seconds.
+ * @param maxPoints - Series cap.
+ * @returns The same array when nothing changed, else a new one.
+ */
+export const appendTickHistoryPoint = (
+  points: LivelinePoint[],
+  point: LivelinePoint,
+  bounds: { startSecs?: number; endSecs?: number },
+  maxPoints = TICK_HISTORY_MAX_POINTS,
+): LivelinePoint[] => {
+  if (
+    !Number.isFinite(point.time) ||
+    !Number.isFinite(point.value) ||
+    (typeof bounds.startSecs === 'number' && point.time < bounds.startSecs) ||
+    (typeof bounds.endSecs === 'number' && point.time > bounds.endSecs)
+  ) {
+    return points;
+  }
+
+  const bucket = Math.floor(point.time / TICK_HISTORY_SPACING_SECS);
+  const lastPoint = points.at(-1);
+  if (!lastPoint || point.time > lastPoint.time) {
+    const isSameBucket =
+      lastPoint !== undefined &&
+      Math.floor(lastPoint.time / TICK_HISTORY_SPACING_SECS) === bucket;
+    const nextPoints = isSameBucket
+      ? [...points.slice(0, -1), point]
+      : [...points, point];
+    return nextPoints.length > maxPoints
+      ? nextPoints.slice(-maxPoints)
+      : nextPoints;
+  }
+
+  // An older tick, such as a snapshot replayed after a reconnect: fill a gap,
+  // never overwrite a second we already have.
+  if (
+    points.some(
+      (existing) =>
+        Math.floor(existing.time / TICK_HISTORY_SPACING_SECS) === bucket,
+    )
+  ) {
+    return points;
+  }
+
+  const nextPoints = [...points, point].sort((a, b) => a.time - b.time);
+  return nextPoints.length > maxPoints
+    ? nextPoints.slice(-maxPoints)
+    : nextPoints;
 };
 
 const trimLivePoints = (
@@ -152,7 +221,9 @@ export const useCryptoUpDownChartData = (
   const preserveHistoricalDataAcrossMarket =
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
+  const isMetal = isMetalSymbol(symbol);
   const twapWindowSeconds = market.twapWindowSeconds;
+  const priceProvider = market.cryptoPriceProvider;
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
@@ -168,6 +239,9 @@ export const useCryptoUpDownChartData = (
     enabled && typeof liveEndDateMs === 'number'
       ? Date.now() < liveEndDateMs
       : false;
+  const eventStartTimeSecs = eventStartTime
+    ? Math.floor(new Date(eventStartTime).getTime() / 1000)
+    : undefined;
 
   const [frozenMarketId, setFrozenMarketId] = useState<string>();
   const hasFrozenLiveData = frozenMarketId === market.id;
@@ -183,6 +257,11 @@ export const useCryptoUpDownChartData = (
   >(undefined);
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
+  const pendingLiveUpdateRef = useRef<CryptoPriceUpdate | undefined>(undefined);
+  const liveRenderTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const lastLiveRenderAtRef = useRef<number | undefined>(undefined);
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);
@@ -190,6 +269,29 @@ export const useCryptoUpDownChartData = (
   const marketIdRef = useRef(market.id);
   const frozenMarketIdRef = useRef(frozenMarketId);
   const enabledRef = useRef(enabled);
+  const liveUpdatesEnabledRef = useRef(liveUpdatesEnabled);
+  liveUpdatesEnabledRef.current = liveUpdatesEnabled;
+  // Tick-built history for metals, keyed by market and price source so a new
+  // window starts empty. Kept in a ref so every tick (snapshot bursts included)
+  // lands in it without a render per tick.
+  const tickHistoryKey = `${market.id}|${twapWindowSeconds ?? ''}`;
+  const tickHistoryRef = useRef<{ key: string; points: LivelinePoint[] }>({
+    key: tickHistoryKey,
+    points: EMPTY_DATA,
+  });
+  const tickHistoryWindow = {
+    key: tickHistoryKey,
+    isMetal,
+    startSecs: eventStartTimeSecs,
+    endSecs:
+      typeof liveEndDateMs === 'number' ? liveEndDateMs / 1000 : undefined,
+  };
+  const tickHistoryWindowRef = useRef(tickHistoryWindow);
+  tickHistoryWindowRef.current = tickHistoryWindow;
+  const [, setTickHistoryVersion] = useState(0);
+  const tickHistoryRenderTimerRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
   liveMarketRef.current = { id: market.id, liveEndDateMs };
   marketIdRef.current = market.id;
   frozenMarketIdRef.current = frozenMarketId;
@@ -276,6 +378,108 @@ export const useCryptoUpDownChartData = (
     );
   }, [twapWindowSeconds]);
 
+  const commitLiveUpdate = useCallback(
+    (update: CryptoPriceUpdate, shouldFreezeAfterUpdate: boolean) => {
+      lastLiveRenderAtRef.current = Date.now();
+      setLiveValue(update.price);
+      setLivePoints((points) => {
+        const lastPoint = points.at(-1);
+        const timeSecs = getLivePointTime(update.timestamp, lastPoint?.time);
+        const point: LivelinePoint = {
+          time: timeSecs,
+          value: update.price,
+        };
+        // Fast path: live ticks almost always arrive in order, so append
+        // instead of re-building (Map + sort) the whole array on every update.
+        const nextPoints =
+          !lastPoint || timeSecs > lastPoint.time
+            ? [...points, point]
+            : mergeLivelinePoints(points, [point]);
+        return trimLivePoints(nextPoints, timeSecs);
+      });
+      if (liveLoadingRef.current) {
+        liveLoadingRef.current = false;
+        setLiveLoading(false);
+      }
+      if (shouldFreezeAfterUpdate) {
+        const currentMarketId = marketIdRef.current;
+        frozenRef.current = true;
+        frozenMarketIdRef.current = currentMarketId;
+        setFrozenMarketId(currentMarketId);
+      }
+    },
+    [],
+  );
+
+  const recordTickHistory = useCallback((price: number, timeSecs: number) => {
+    const { key, startSecs, endSecs } = tickHistoryWindowRef.current;
+    const current =
+      tickHistoryRef.current.key === key
+        ? tickHistoryRef.current.points
+        : EMPTY_DATA;
+    const next = appendTickHistoryPoint(
+      current,
+      { time: timeSecs, value: price },
+      { startSecs, endSecs },
+    );
+    if (next === current && tickHistoryRef.current.key === key) {
+      return;
+    }
+    tickHistoryRef.current = { key, points: next };
+    if (tickHistoryRenderTimerRef.current) {
+      return;
+    }
+    tickHistoryRenderTimerRef.current = setTimeout(() => {
+      tickHistoryRenderTimerRef.current = undefined;
+      setTickHistoryVersion((version) => version + 1);
+    }, TICK_HISTORY_RENDER_INTERVAL_MS);
+  }, []);
+
+  const scheduleLiveUpdate = useCallback(
+    (update: CryptoPriceUpdate, shouldFreezeAfterUpdate: boolean) => {
+      pendingLiveUpdateRef.current = update;
+      const elapsedSinceRender =
+        typeof lastLiveRenderAtRef.current === 'number'
+          ? Date.now() - lastLiveRenderAtRef.current
+          : LIVE_RENDER_INTERVAL_MS;
+
+      if (
+        elapsedSinceRender >= LIVE_RENDER_INTERVAL_MS ||
+        shouldFreezeAfterUpdate
+      ) {
+        if (liveRenderTimerRef.current) {
+          clearTimeout(liveRenderTimerRef.current);
+          liveRenderTimerRef.current = undefined;
+        }
+        pendingLiveUpdateRef.current = undefined;
+        commitLiveUpdate(update, shouldFreezeAfterUpdate);
+        return;
+      }
+
+      if (liveRenderTimerRef.current) {
+        return;
+      }
+
+      liveRenderTimerRef.current = setTimeout(() => {
+        liveRenderTimerRef.current = undefined;
+        const pendingUpdate = pendingLiveUpdateRef.current;
+        pendingLiveUpdateRef.current = undefined;
+        const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
+          liveMarketRef.current;
+
+        if (!pendingUpdate || liveMarketId !== marketIdRef.current) {
+          return;
+        }
+
+        const shouldFreezePendingUpdate =
+          typeof currentLiveEndDateMs === 'number' &&
+          Date.now() >= currentLiveEndDateMs;
+        commitLiveUpdate(pendingUpdate, shouldFreezePendingUpdate);
+      }, LIVE_RENDER_INTERVAL_MS - elapsedSinceRender);
+    },
+    [commitLiveUpdate],
+  );
+
   const handleLiveUpdate = useCallback(
     (update: CryptoPriceUpdate) => {
       if (!enabledRef.current) return;
@@ -316,34 +520,24 @@ export const useCryptoUpDownChartData = (
         latestLiveObservationRef.current = observationTime;
       }
 
+      if (tickHistoryWindowRef.current.isMetal) {
+        recordTickHistory(update.price, observationTime);
+      }
+      // A history-only caller (the market card) streams metals just to build
+      // their history; it never draws the live window.
+      if (!liveUpdatesEnabledRef.current) {
+        return;
+      }
+
       markLiveStreamFresh();
-      setLiveValue(update.price);
-      setLivePoints((points) => {
-        const lastPoint = points.at(-1);
-        const timeSecs = getLivePointTime(update.timestamp, lastPoint?.time);
-        const point: LivelinePoint = {
-          time: timeSecs,
-          value: update.price,
-        };
-        // Fast path: live ticks almost always arrive in order, so append
-        // instead of re-building (Map + sort) the whole array on every tick.
-        const nextPoints =
-          !lastPoint || timeSecs > lastPoint.time
-            ? [...points, point]
-            : mergeLivelinePoints(points, [point]);
-        return trimLivePoints(nextPoints, timeSecs);
-      });
-      if (liveLoadingRef.current) {
-        liveLoadingRef.current = false;
-        setLiveLoading(false);
-      }
-      if (shouldFreezeAfterUpdate) {
-        frozenRef.current = true;
-        frozenMarketIdRef.current = currentMarketId;
-        setFrozenMarketId(currentMarketId);
-      }
+      scheduleLiveUpdate(update, shouldFreezeAfterUpdate);
     },
-    [markLiveStreamFresh, twapWindowSeconds],
+    [
+      markLiveStreamFresh,
+      recordTickHistory,
+      scheduleLiveUpdate,
+      twapWindowSeconds,
+    ],
   );
 
   useEffect(
@@ -351,15 +545,33 @@ export const useCryptoUpDownChartData = (
       if (staleTimerRef.current) {
         clearTimeout(staleTimerRef.current);
       }
+      if (liveRenderTimerRef.current) {
+        clearTimeout(liveRenderTimerRef.current);
+      }
+      if (tickHistoryRenderTimerRef.current) {
+        clearTimeout(tickHistoryRenderTimerRef.current);
+      }
     },
     [],
   );
 
+  useEffect(() => {
+    if (liveRenderTimerRef.current) {
+      clearTimeout(liveRenderTimerRef.current);
+      liveRenderTimerRef.current = undefined;
+    }
+    pendingLiveUpdateRef.current = undefined;
+    lastLiveRenderAtRef.current = undefined;
+  }, [market.id, twapWindowSeconds]);
+
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
   const shouldStreamLive = isLive && liveUpdatesEnabled;
+  // Metals build their history from ticks, so they stream while live even for
+  // a history-only caller.
+  const shouldStreamTicks = shouldStreamLive || (isMetal && isLive);
 
   const wsSymbol =
-    enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
+    enabled && shouldStreamTicks && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
   // The live-data WebSocket streams real-time ticks while healthy, so the HTTP
   // query only needs its initial historical baseline in that case. Interval
@@ -368,13 +580,24 @@ export const useCryptoUpDownChartData = (
   // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
   // flips back to true when ticks stop arriving — correctly resuming HTTP
   // polling as a fallback.
-  const liveSubscriptionArgs: [
+  let liveSubscriptionArgs: [
     string,
     typeof handleLiveUpdate,
     twapWindowSeconds?: typeof twapWindowSeconds,
-  ] = twapWindowSeconds
-    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
-    : [wsSymbol, handleLiveUpdate];
+    provider?: typeof priceProvider,
+  ];
+  if (priceProvider) {
+    liveSubscriptionArgs = [
+      wsSymbol,
+      handleLiveUpdate,
+      twapWindowSeconds,
+      priceProvider,
+    ];
+  } else if (twapWindowSeconds) {
+    liveSubscriptionArgs = [wsSymbol, handleLiveUpdate, twapWindowSeconds];
+  } else {
+    liveSubscriptionArgs = [wsSymbol, handleLiveUpdate];
+  }
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =
@@ -401,23 +624,34 @@ export const useCryptoUpDownChartData = (
     }
   }, [liveStreamStale]);
 
+  const historicalQueryOptions = predictQueries.cryptoPriceHistory.options({
+    symbol: symbol ?? '',
+    eventStartTime: historyStartDate ?? '',
+    variant,
+    endDate: historyEndDate,
+    ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+  });
+
   const historicalQuery = useQuery({
-    ...predictQueries.cryptoPriceHistory.options({
-      symbol: symbol ?? '',
-      eventStartTime: historyStartDate ?? '',
-      variant,
-      endDate: historyEndDate,
-    }),
-    enabled: enabled && !twapWindowSeconds && !!symbol && !!historyStartDate,
-    keepPreviousData: true,
+    ...historicalQueryOptions,
+    queryFn: async (context) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const result = await historicalQueryOptions.queryFn!(context);
+        consecutivePollFailuresRef.current = 0;
+        return result;
+      } catch (error) {
+        consecutivePollFailuresRef.current += 1;
+        throw error;
+      }
+    },
+    // price-history has no metals (502). Their history is built from live
+    // ticks instead (`tickHistory` below).
+    enabled:
+      enabled && !!symbol && !!historyStartDate && !isMetalSymbol(symbol),
+    placeholderData: keepPreviousData,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    onError: () => {
-      consecutivePollFailuresRef.current += 1;
-    },
-    onSuccess: () => {
-      consecutivePollFailuresRef.current = 0;
-    },
     // Only poll while streaming live AND the live stream is not currently
     // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds
     // the historical baseline once; while the socket streams real-time ticks the
@@ -431,10 +665,14 @@ export const useCryptoUpDownChartData = (
         : false,
   });
 
-  const historicalData =
-    twapWindowSeconds === undefined && !hasPriceSourceChanged
-      ? (historicalQuery.data ?? EMPTY_DATA)
+  const tickHistory =
+    tickHistoryRef.current.key === tickHistoryKey
+      ? tickHistoryRef.current.points
       : EMPTY_DATA;
+  const queryHistoricalData = !hasPriceSourceChanged
+    ? (historicalQuery.data ?? EMPTY_DATA)
+    : EMPTY_DATA;
+  const historicalData = isMetal ? tickHistory : queryHistoricalData;
   const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
     ? historicalData.length >= 2
     : historicalData.length > 0;
@@ -453,9 +691,6 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, hasUsableHistoricalData, historicalData]);
 
-  const eventStartTimeSecs = eventStartTime
-    ? Math.floor(new Date(eventStartTime).getTime() / 1000)
-    : undefined;
   const fallbackStartPoint = useMemo(
     () =>
       isLive &&

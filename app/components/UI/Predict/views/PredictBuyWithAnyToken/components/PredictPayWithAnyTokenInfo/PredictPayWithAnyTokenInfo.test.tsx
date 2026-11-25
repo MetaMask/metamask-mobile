@@ -2,6 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PredictPayWithAnyTokenInfo from './PredictPayWithAnyTokenInfo';
 import { OrderPreview, Side } from '../../../../types';
+import {
+  evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
+} from '../../../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 let mockIsPredictBalanceSelected = false;
 let mockUpdatePendingAmount = jest.fn();
@@ -14,21 +18,28 @@ let mockSelectedPaymentToken:
       chainId?: string;
     }
   | undefined;
-let mockPayToken:
-  | {
-      address: string;
-      chainId: string;
-    }
-  | undefined;
+let mockPayToken: { assetId: string } | undefined;
 let mockSetPayToken = jest.fn();
 let mockPredictBalance = 0;
+let mockIsMoneyAccountSelected = false;
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
     selectedPaymentToken: mockSelectedPaymentToken,
   }),
 }));
+
+jest.mock(
+  '../../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
 
 jest.mock('../../../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => ({
@@ -116,6 +127,7 @@ const defaultPreview = createMockPreview();
 describe('PredictPayWithAnyTokenInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
     mockIsPredictBalanceSelected = false;
     mockUpdatePendingAmount = jest.fn();
     mockAmountHuman = '';
@@ -125,6 +137,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
     mockPayToken = undefined;
     mockSetPayToken = jest.fn();
     mockPredictBalance = 0;
+    mockIsMoneyAccountSelected = false;
   });
 
   describe('render', () => {
@@ -560,6 +573,28 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('updateTokenAmountCallback effect', () => {
+    it('handles a rejected token amount update', async () => {
+      mockIsPredictBalanceSelected = false;
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100.50';
+      const updateError = new Error('update failed');
+      const updatePromise = Promise.reject(updateError);
+      const catchSpy = jest.spyOn(updatePromise, 'catch');
+      mockUpdateTokenAmountCallback = jest.fn().mockReturnValue(updatePromise);
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100.50');
+      expect(catchSpy).toHaveBeenCalledTimes(1);
+      await expect(catchSpy.mock.results[0].value).resolves.toBeUndefined();
+    });
+
     it('calls updateTokenAmountCallback with amountHuman when deposit is valid', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
@@ -745,10 +780,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         address: '0xabc123',
         chainId: '0x1',
       };
-      mockPayToken = {
-        address: '0xdef456',
-        chainId: '0x1',
-      };
+      mockPayToken = { assetId: evmAssetId('0xdef456', '0x1') };
 
       render(
         <PredictPayWithAnyTokenInfo
@@ -759,8 +791,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
       );
 
       expect(mockSetPayToken).toHaveBeenCalledWith({
-        address: '0xabc123',
-        chainId: '0x1',
+        assetId: evmAssetId('0xabc123', '0x1'),
       });
     });
 
@@ -770,10 +801,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         address: '0xAbC123',
         chainId: '0x1',
       };
-      mockPayToken = {
-        address: '0xabc123',
-        chainId: '0X1',
-      };
+      mockPayToken = { assetId: 'eip155:1/erc20:0xabc123' };
 
       render(
         <PredictPayWithAnyTokenInfo
@@ -792,6 +820,31 @@ describe('PredictPayWithAnyTokenInfo', () => {
       mockSelectedPaymentToken = {
         address: '0xabc123',
         chainId: '0x1',
+      };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite the money account pay token with the Predict selection', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockIsMoneyAccountSelected = true;
+      mockSelectedPaymentToken = {
+        address: '0xabc123',
+        chainId: '0x1',
+      };
+      mockPayToken = {
+        assetId: evmAssetId(
+          '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          '0x8f',
+        ),
       };
 
       render(

@@ -1,9 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../../../../util/theme/models';
-import {
-  fontStyles,
-  colors as importedColors,
-} from '../../../../../../../../../styles/common';
+import { colors as importedColors } from '../../../../../../../../../styles/common';
 
 const styleSheet = (theme: Theme) => {
   const { colors } = theme;
@@ -47,7 +44,7 @@ const styleSheet = (theme: Theme) => {
     valueAndAddress: {
       paddingVertical: 4,
       paddingLeft: 8,
-      columnGap: 5,
+      columnGap: 4,
       rowGap: 8,
       flexDirection: 'row',
       alignItems: 'center',
@@ -61,38 +58,6 @@ const styleSheet = (theme: Theme) => {
     valueIsDebit: {
       backgroundColor: colors.error.muted,
       color: colors.error.default,
-    },
-    valueModal: {
-      backgroundColor: theme.colors.background.elevated1,
-      borderWidth: 1,
-      borderColor: colors.border.alternative,
-      paddingTop: 24,
-      paddingBottom: 34,
-      paddingHorizontal: 16,
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
-    },
-    valueModalHeader: {
-      alignItems: 'center',
-      display: 'flex',
-      flexDirection: 'row',
-      paddingBottom: 16,
-      position: 'relative',
-      textAlign: 'center',
-      width: '100%',
-    },
-    valueModalHeaderIcon: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-    },
-    valueModalHeaderText: {
-      color: colors.text.default,
-      ...fontStyles.bold,
-      textAlign: 'center',
-      width: '100%',
-      // height of header icon
-      minHeight: 24,
     },
     valueModalText: {
       textAlign: 'center',

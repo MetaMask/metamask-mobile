@@ -1,21 +1,21 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { ImportAccountFromPrivateKeyIDs } from '../../../app/components/Views/ImportPrivateKey/ImportAccountFromPrivateKey.testIds';
 import { PlatformDetector } from '../../framework';
 
 class ImportAccountView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportAccountFromPrivateKeyIDs.CONTAINER);
   }
 
-  get importButton(): EncapsulatedElementType {
+  get importButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON,
     );
   }
 
-  get privateKeyField(): EncapsulatedElementType {
+  get privateKeyField(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX,
     );

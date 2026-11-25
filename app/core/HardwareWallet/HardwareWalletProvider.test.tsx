@@ -133,14 +133,21 @@ describe('HardwareWalletProvider', () => {
   });
 
   const TestConsumer: React.FC = () => {
-    const { walletType, connectionState, ensureDeviceReady } =
-      useHardwareWallet();
+    const {
+      walletType,
+      connectionState,
+      ensureDeviceReady,
+      cancelConnectionFlow,
+    } = useHardwareWallet();
     return (
       <>
         <Text testID="walletType">{walletType ?? 'null'}</Text>
         <Text testID="connectionStatus">{connectionState.status}</Text>
         <Text testID="hasEnsureDeviceReady">
           {String(typeof ensureDeviceReady === 'function')}
+        </Text>
+        <Text testID="hasCancelConnectionFlow">
+          {String(typeof cancelConnectionFlow === 'function')}
         </Text>
       </>
     );
@@ -174,6 +181,12 @@ describe('HardwareWalletProvider', () => {
       const { getByTestId } = renderProvider();
 
       expect(getByTestId('hasEnsureDeviceReady').children[0]).toBe('true');
+    });
+
+    it('exposes cancelConnectionFlow as a callable on the context', () => {
+      const { getByTestId } = renderProvider();
+
+      expect(getByTestId('hasCancelConnectionFlow').children[0]).toBe('true');
     });
   });
 

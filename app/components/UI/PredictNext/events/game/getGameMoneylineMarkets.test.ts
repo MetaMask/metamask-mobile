@@ -1,0 +1,46 @@
+import composedNflGame from '../../contracts/v1/fixtures/composed-nfl-game.json';
+import { parsePredictEvent } from '../../contracts/v1/marketData';
+import type { PredictEvent, PredictMarket } from '../../types';
+import { getGameMoneylineMarkets } from './getGameMoneylineMarkets';
+
+const composedGame = parsePredictEvent(composedNflGame);
+const ids = (markets: readonly PredictMarket[]) => markets.map(({ id }) => id);
+
+const withMarkets = (markets: PredictMarket[]): PredictEvent => ({
+  ...composedGame,
+  markets,
+});
+
+describe('getGameMoneylineMarkets', () => {
+  it('returns the full-game choice Markets, not period moneylines or lines', () => {
+    expect(ids(getGameMoneylineMarkets(composedGame))).toEqual([
+      'KXNFLGAME-26NOV02CHISEA-CHI',
+      'KXNFLGAME-26NOV02CHISEA-SEA',
+    ]);
+  });
+
+  it('returns no moneyline Markets for ungrouped team selections without layout', () => {
+    const markets = composedGame.markets
+      .slice(0, 2)
+      .map(({ group, layout, ...market }) => market);
+    const event = withMarkets(markets);
+
+    const result = getGameMoneylineMarkets(event);
+
+    expect(result).toEqual([]);
+  });
+
+  it('does not treat a choice group without layout as the full-game moneyline', () => {
+    const withoutLayout = composedGame.markets.map(
+      ({ layout, ...market }) => market,
+    );
+
+    expect(getGameMoneylineMarkets(withMarkets(withoutLayout))).toEqual([]);
+  });
+
+  it('returns no Markets for an Event without a moneyline', () => {
+    expect(
+      getGameMoneylineMarkets(withMarkets(composedGame.markets.slice(5))),
+    ).toEqual([]);
+  });
+});

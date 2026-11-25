@@ -17,6 +17,7 @@ function makeTimer(
     duration: number | null;
     durationInSeconds: number;
     hasThresholdVal: boolean;
+    includeInTotal: boolean;
   }> = {},
 ) {
   const {
@@ -26,11 +27,13 @@ function makeTimer(
     duration = 500,
     durationInSeconds = 0.5,
     hasThresholdVal = threshold !== null,
+    includeInTotal = true,
   } = overrides;
   return {
     id,
     threshold,
     baseThreshold,
+    includeInTotal,
     getDuration: jest.fn(() => duration),
     getDurationInSeconds: jest.fn(() => durationInSeconds),
     hasThreshold: jest.fn(() => hasThresholdVal),
@@ -141,6 +144,32 @@ describe('PerformanceTracker', () => {
         osVersion: '12',
         provider: 'browserstack',
       });
+    });
+
+    it('excludes timers with includeInTotal=false from scenario total', async () => {
+      tracker.addTimer(
+        makeTimer({
+          id: 'nav-step',
+          threshold: 1000,
+          duration: 500,
+          durationInSeconds: 0.5,
+        }),
+      );
+      tracker.addTimer(
+        makeTimer({
+          id: 'TTC [screen]: in-app',
+          threshold: 15_000,
+          duration: 40,
+          durationInSeconds: 0.04,
+          includeInTotal: false,
+        }),
+      );
+
+      const result = await tracker.attachToTest(makeTestInfo());
+
+      expect(result.steps).toHaveLength(2);
+      expect(result.total).toBe(0.5);
+      expect(result.totalThreshold).toBe(1000);
     });
 
     it('calls testInfo.attach with correct arguments', async () => {

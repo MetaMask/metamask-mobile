@@ -327,4 +327,88 @@ describe('filterAndSortMarkets', () => {
       expect(markets.map((m) => m.symbol)).toEqual(originalSymbols);
     });
   });
+
+  describe('caching', () => {
+    const createMarkets = () => [
+      createMarket({ symbol: 'A', volume: '$1M' }),
+      createMarket({ symbol: 'B', volume: PERPS_CONSTANTS.ZeroAmountDisplay }),
+      createMarket({
+        symbol: 'C',
+        volume: '$2M',
+        openInterest: PERPS_CONSTANTS.ZeroAmountDisplay,
+      }),
+    ];
+
+    it('returns the same array for repeated calls with the same input and options', () => {
+      const markets = createMarkets();
+
+      const first = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+      const second = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(second).toBe(first);
+    });
+
+    it('treats an omitted showZeroOpenInterest as equal to showZeroVolume', () => {
+      const markets = createMarkets();
+
+      const omitted = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+      const explicit = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+        showZeroOpenInterest: false,
+      });
+
+      expect(explicit).toBe(omitted);
+    });
+
+    it('returns a separate result for each filter option on the same input', () => {
+      const markets = createMarkets();
+
+      const hidesBoth = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+      const showsZeroOpenInterest = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+        showZeroOpenInterest: true,
+      });
+      const showsBoth = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: true,
+      });
+
+      expect(hidesBoth.map((m) => m.symbol)).toEqual(['A']);
+      expect(showsZeroOpenInterest.map((m) => m.symbol)).toEqual(['C', 'A']);
+      expect(showsBoth.map((m) => m.symbol)).toEqual(['C', 'A', 'B']);
+      expect(
+        filterAndSortMarkets({ marketData: markets, showZeroVolume: false }),
+      ).toBe(hidesBoth);
+    });
+
+    it('recomputes for a new input array with the same contents', () => {
+      const markets = createMarkets();
+
+      const first = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+      const second = filterAndSortMarkets({
+        marketData: [...markets],
+        showZeroVolume: false,
+      });
+
+      expect(second).not.toBe(first);
+      expect(second).toEqual(first);
+    });
+  });
 });

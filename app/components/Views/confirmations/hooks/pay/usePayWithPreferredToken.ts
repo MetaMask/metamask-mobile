@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { useSelector } from 'react-redux';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import {
   SetPayTokenRequest,
@@ -7,8 +8,13 @@ import {
 } from './useAutomaticTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
+import { isMatchingPayToken, payBalanceUsd } from '../../utils/transaction-pay';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
+import {
+  decodePaymentTokenAssetId,
+  isSameAssetId,
+} from '../../../../../util/transactions/payment-token';
 
 export interface PayWithPreferredToken {
   address: Hex;
@@ -33,6 +39,7 @@ export function usePayWithPreferredToken({
   });
 
   const { payToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const { availableTokens, hasTokens } = useTransactionPayAvailableTokens();
   const { balanceUsd: liveBalanceUsd } = usePayTokenAccountBalance();
 
@@ -41,14 +48,17 @@ export function usePayWithPreferredToken({
       return undefined;
     }
 
-    const selectedToken = payToken;
+    const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
-    if (selectedToken && isMatchingPayToken(selectedToken, automaticToken)) {
+    if (
+      payToken &&
+      payTokenAsset &&
+      isSameAssetId(payToken.assetId, encodeAssetId(automaticToken))
+    ) {
       return {
-        address: selectedToken.address,
+        ...payTokenAsset,
         balanceUsd: liveBalanceUsd,
-        chainId: selectedToken.chainId,
-        symbol: selectedToken.symbol,
+        symbol: payToken.symbol,
       };
     }
 
@@ -62,11 +72,17 @@ export function usePayWithPreferredToken({
 
     return {
       address: availableToken.address as Hex,
-      balanceUsd: `${availableToken.fiat?.balance ?? 0}`,
+      balanceUsd: payBalanceUsd(availableToken.balanceInSelectedCurrencyAmount),
       chainId: availableToken.chainId as Hex,
       symbol: availableToken.symbol,
     };
-  }, [automaticToken, availableTokens, liveBalanceUsd, payToken]);
+  }, [
+    automaticToken,
+    availableTokens,
+    liveBalanceUsd,
+    payToken,
+    encodeAssetId,
+  ]);
 
   return useMemo(
     () => ({

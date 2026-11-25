@@ -7,13 +7,10 @@ import { ButtonVariants } from '../../Buttons/Button';
 // Internal dependencies.
 import { BannerVariant, BannerProps } from './Banner.types';
 
-// Defaults
-export const DEFAULT_BANNER_VARIANT = BannerVariant.Alert;
-
 // Sample consts
-export const SAMPLE_BANNER_TITLE = 'Sample Banner Title';
-export const SAMPLE_BANNER_DESCRIPTION = 'Sample Banner Description';
-export const SAMPLE_BANNER_ACTIONBUTTONLABEL = 'Sample Action Button Label';
+export const SAMPLE_BANNER_TITLE = 'Sample banner title';
+export const SAMPLE_BANNER_DESCRIPTION = 'Sample banner description';
+export const SAMPLE_BANNER_ACTIONBUTTONLABEL = 'Sample action button label';
 
 export const SAMPLE_BANNER_PROPS: BannerProps = {
   variant: BannerVariant.Alert,

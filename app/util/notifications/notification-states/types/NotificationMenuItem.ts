@@ -41,7 +41,6 @@ export interface NotificationMenuItem {
    * A CTA Link for a notification item
    */
   cta?: {
-    content: string;
     link: string;
   };
 }

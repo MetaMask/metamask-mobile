@@ -1,6 +1,8 @@
 import { useInfiniteQuery, useQuery } from '@metamask/react-data-query';
 import { useEvent } from './useEvent';
 import { useFeed } from './useFeed';
+import { useMarketHistory } from './useMarketHistory';
+import { SEARCH_RESULT_LIMIT, useSearchEvents } from './useSearchEvents';
 import { useVenueStatus } from './useVenueStatus';
 import type { PredictEntityId, PredictFeedId, PredictVenueId } from '../types';
 
@@ -12,6 +14,7 @@ jest.mock('@metamask/react-data-query', () => ({
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event-1' as PredictEntityId;
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
+const marketId = 'market-1' as PredictEntityId;
 const mockedUseQuery = jest.mocked(useQuery);
 const mockedUseInfiniteQuery = jest.mocked(useInfiniteQuery);
 
@@ -51,6 +54,8 @@ describe('PredictNext market data hooks', () => {
         nextCursor: 'next',
       },
       [],
+      undefined,
+      [],
     );
 
     expect(options.queryKey).toEqual([
@@ -75,6 +80,8 @@ describe('PredictNext market data hooks', () => {
         nextCursor: '',
       },
       [],
+      undefined,
+      [],
     );
 
     expect(nextCursor).toBeUndefined();
@@ -86,5 +93,49 @@ describe('PredictNext market data hooks', () => {
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],
     });
+  });
+
+  it('trims the search query and disables blank searches', () => {
+    useSearchEvents(venueId, '  chiefs ');
+    useSearchEvents(venueId, '   ');
+
+    expect(mockedUseQuery).toHaveBeenNthCalledWith(1, {
+      queryKey: [
+        'PredictMarketDataService:searchEvents',
+        venueId,
+        { q: 'chiefs', limit: SEARCH_RESULT_LIMIT },
+      ],
+      enabled: true,
+    });
+    expect(mockedUseQuery).toHaveBeenNthCalledWith(2, {
+      queryKey: [
+        'PredictMarketDataService:searchEvents',
+        venueId,
+        { q: '', limit: SEARCH_RESULT_LIMIT },
+      ],
+      enabled: false,
+    });
+  });
+
+  it('uses the Market history descriptor', () => {
+    useMarketHistory(venueId, marketId, '1D');
+
+    expect(mockedUseQuery).toHaveBeenCalledWith({
+      queryKey: [
+        'PredictMarketDataService:getMarketHistory',
+        venueId,
+        marketId,
+        '1D',
+      ],
+      enabled: true,
+    });
+  });
+
+  it('skips the Market history read when disabled', () => {
+    useMarketHistory(venueId, marketId, '1D', false);
+
+    expect(mockedUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 });

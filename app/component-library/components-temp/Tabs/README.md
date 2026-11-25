@@ -153,6 +153,21 @@ import { TabsList } from '../Tabs';
 - ✅ Lazy loading for better performance
 - ✅ Better design system integration
 
+### TabViewBar
+
+Wraps the `react-native-tab-view` `TabBar` with the `TabsBar` look. Tabs size to their label and the bar scrolls when they overflow. Routes use `title` as the label. It does not use `Tab`.
+
+`TabView` gives every scene the same height, so this fits full-screen tabs. Tabs inside a scrolling page that need a height per tab still need `TabsList`.
+
+```tsx
+<TabView
+  navigationState={{ index, routes }}
+  renderScene={renderScene}
+  renderTabBar={(props) => <TabViewBar {...props} testID="my-tabs" />}
+  onIndexChange={setIndex}
+/>
+```
+
 ## Props
 
 ### TabsList Props
@@ -169,11 +184,12 @@ import { TabsList } from '../Tabs';
 
 Elements passed as children to `TabsList` should have these props:
 
-| Prop         | Type      | Default | Description                    |
-| ------------ | --------- | ------- | ------------------------------ |
-| `tabLabel`   | `string`  | -       | Label displayed in the tab     |
-| `isDisabled` | `boolean` | `false` | Whether this tab is disabled   |
-| `key`        | `string`  | -       | Unique key for React rendering |
+| Prop           | Type        | Default | Description                                             |
+| -------------- | ----------- | ------- | ------------------------------------------------------- |
+| `tabLabel`     | `string`    | -       | Label displayed in the tab                              |
+| `isDisabled`   | `boolean`   | `false` | Whether this tab is disabled                            |
+| `endAccessory` | `ReactNode` | -       | Optional content after the label (indicator, tag, icon) |
+| `key`          | `string`    | -       | Unique key for React rendering                          |
 
 ### TabsBar Props
 
@@ -189,12 +205,13 @@ Elements passed as children to `TabsList` should have these props:
 
 `Tab` extends `PressableProps` from React Native, so it accepts all Pressable props plus:
 
-| Prop         | Type       | Default | Description             |
-| ------------ | ---------- | ------- | ----------------------- |
-| `label`      | `string`   | -       | Tab label text          |
-| `isActive`   | `boolean`  | -       | Whether tab is active   |
-| `isDisabled` | `boolean`  | `false` | Whether tab is disabled |
-| `onPress`    | `function` | -       | Press callback          |
+| Prop           | Type        | Default | Description                                             |
+| -------------- | ----------- | ------- | ------------------------------------------------------- |
+| `label`        | `string`    | -       | Tab label text                                          |
+| `isActive`     | `boolean`   | -       | Whether tab is active                                   |
+| `isDisabled`   | `boolean`   | `false` | Whether tab is disabled                                 |
+| `endAccessory` | `ReactNode` | -       | Optional content after the label (indicator, tag, icon) |
+| `onPress`      | `function`  | -       | Press callback                                          |
 
 ## Ref Methods
 

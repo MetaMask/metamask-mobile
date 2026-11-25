@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketFiltersBar from './PerpsMarketFiltersBar';
 import { type MarketTypeFilter } from '@metamask/perps-controller';
+import { PerpsProviderLogosSelectorsIDs } from '../../../../Perps.testIds';
 
 jest.mock('../../../../components/PerpsMarketSortDropdowns', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -162,6 +163,10 @@ describe('PerpsMarketFiltersBar', () => {
       );
 
       expect(getByText('42 markets')).toBeTruthy();
+      expect(getByText('42 markets')).toHaveStyle({
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+      });
     });
 
     it('updates displayed count when marketCount prop changes', () => {
@@ -200,8 +205,8 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByTestId('filters-bar-market-count')).toBeTruthy();
     });
 
-    it('does not render market count when watchlist filter is active', () => {
-      const { queryByTestId } = render(
+    it('renders market count and sort when watchlist filter is active', () => {
+      const { getByTestId } = render(
         <PerpsMarketFiltersBar
           {...defaultProps}
           isWatchlistSelected
@@ -209,9 +214,8 @@ describe('PerpsMarketFiltersBar', () => {
         />,
       );
 
-      // The entire sort row (including count) is hidden when watchlist is active
-      expect(queryByTestId('filters-bar-market-count')).toBeNull();
-      expect(queryByTestId('filters-bar-sort')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+      expect(getByTestId('filters-bar-sort')).toBeTruthy();
     });
   });
 
@@ -273,6 +277,114 @@ describe('PerpsMarketFiltersBar', () => {
           getByTestId('filters-bar-categories-selected'),
         ).toHaveTextContent(category);
       });
+    });
+  });
+
+  describe('Provider logos — TAT-4511', () => {
+    it('renders no logos when providerIds is omitted', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      expect(queryByTestId('filters-bar-provider-logos')).toBeNull();
+      // The count row itself is unchanged.
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders no logos for an empty providerIds list', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} providerIds={[]} />,
+      );
+
+      expect(queryByTestId('filters-bar-provider-logos')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders the single provider logo next to the count', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          providerIds={['hyperliquid']}
+        />,
+      );
+
+      expect(getByTestId('filters-bar-provider-logos')).toBeTruthy();
+      expect(
+        getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeTruthy();
+      expect(queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders both provider logos overlapped in aggregated mode', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          providerIds={['hyperliquid', 'lighter']}
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeTruthy();
+      expect(getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeTruthy();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+  });
+
+  describe('Market-count exchange selector — TAT-4511/TAT-4518', () => {
+    const mockOnExchangeFilterPress = jest.fn();
+
+    it('renders the count as a plain row without an exchange filter press handler', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      expect(queryByTestId('filters-bar-exchange-filter')).toBeNull();
+      expect(queryByTestId('filters-bar-exchange-filter-chevron')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders the count as a tappable selector with a chevron when the handler is set', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          onExchangeFilterPress={mockOnExchangeFilterPress}
+        />,
+      );
+
+      expect(getByTestId('filters-bar-exchange-filter')).toBeTruthy();
+      expect(getByTestId('filters-bar-exchange-filter-chevron')).toBeTruthy();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('opens the exchange filter when the count selector is pressed', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          onExchangeFilterPress={mockOnExchangeFilterPress}
+        />,
+      );
+
+      fireEvent.press(getByTestId('filters-bar-exchange-filter'));
+      expect(mockOnExchangeFilterPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the selected venue logos inside the selector', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          providerIds={['lighter']}
+          onExchangeFilterPress={mockOnExchangeFilterPress}
+        />,
+      );
+
+      // Only the corresponding mark for a single selected venue.
+      expect(getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeTruthy();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeNull();
+      expect(getByTestId('filters-bar-exchange-filter')).toBeTruthy();
     });
   });
 });

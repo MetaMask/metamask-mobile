@@ -149,6 +149,7 @@ describe('usePerpsMarketFills', () => {
 
     // Default WebSocket mock - not loading, empty fills
     mockUsePerpsLiveFills.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
@@ -158,6 +159,7 @@ describe('usePerpsMarketFills', () => {
     it('returns empty fills when WebSocket has no data', () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -177,6 +179,7 @@ describe('usePerpsMarketFills', () => {
     it('returns loading true when WebSocket is loading', () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: true,
       });
@@ -210,6 +213,7 @@ describe('usePerpsMarketFills', () => {
     it('filters WebSocket fills to only include requested symbol', () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockBtcFill1, mockEthFill, mockBtcFill2],
         isInitialLoading: false,
       });
@@ -227,6 +231,7 @@ describe('usePerpsMarketFills', () => {
     it('returns empty array when no fills match symbol', () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockBtcFill1, mockEthFill],
         isInitialLoading: false,
       });
@@ -243,6 +248,7 @@ describe('usePerpsMarketFills', () => {
     it('filters REST fills to only include requested symbol', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -275,6 +281,7 @@ describe('usePerpsMarketFills', () => {
       });
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [sharedFill],
         isInitialLoading: false,
       });
@@ -309,6 +316,7 @@ describe('usePerpsMarketFills', () => {
       });
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [wsFill],
         isInitialLoading: false,
       });
@@ -348,6 +356,7 @@ describe('usePerpsMarketFills', () => {
       });
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -381,6 +390,7 @@ describe('usePerpsMarketFills', () => {
       });
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [wsFill],
         isInitialLoading: false,
       });
@@ -420,6 +430,7 @@ describe('usePerpsMarketFills', () => {
       });
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [oldFill, newFill, middleFill],
         isInitialLoading: false,
       });
@@ -443,6 +454,7 @@ describe('usePerpsMarketFills', () => {
       jest.spyOn(Date, 'now').mockReturnValue(mockNow);
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -468,6 +480,7 @@ describe('usePerpsMarketFills', () => {
       jest.spyOn(Date, 'now').mockReturnValue(mockNow);
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -495,6 +508,7 @@ describe('usePerpsMarketFills', () => {
       // Arrange
       mockLoggerError.mockClear();
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockBtcFill1],
         isInitialLoading: false,
       });
@@ -529,6 +543,7 @@ describe('usePerpsMarketFills', () => {
         >,
       );
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockBtcFill1],
         isInitialLoading: false,
       });
@@ -548,6 +563,7 @@ describe('usePerpsMarketFills', () => {
     it('marks REST history complete after a successful backfill', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -578,6 +594,7 @@ describe('usePerpsMarketFills', () => {
         resetError: jest.fn(),
       } as never);
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockBtcFill1],
         isInitialLoading: false,
       });
@@ -605,6 +622,7 @@ describe('usePerpsMarketFills', () => {
         resetError: jest.fn(),
       } as never);
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -652,6 +670,7 @@ describe('usePerpsMarketFills', () => {
         }),
       );
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -687,6 +706,7 @@ describe('usePerpsMarketFills', () => {
     it('refetches REST data on refresh', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -716,6 +736,7 @@ describe('usePerpsMarketFills', () => {
     it('sets isRefreshing during refresh', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -759,6 +780,7 @@ describe('usePerpsMarketFills', () => {
         .spyOn(console, 'error')
         .mockImplementation(jest.fn());
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -789,6 +811,7 @@ describe('usePerpsMarketFills', () => {
     it('marks history ready when refresh supersedes initial fetch', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -860,6 +883,7 @@ describe('usePerpsMarketFills', () => {
     it('updates fills when symbol prop changes', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockBtcFill1, mockEthFill],
         isInitialLoading: false,
       });
@@ -886,6 +910,7 @@ describe('usePerpsMarketFills', () => {
     it('ignores stale fetch errors when a newer fetch succeeds', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -928,6 +953,7 @@ describe('usePerpsMarketFills', () => {
     it('ignores stale fetch fills when the account changes', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -973,6 +999,7 @@ describe('usePerpsMarketFills', () => {
     it('preserves loading while a superseding fetch is in flight', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });

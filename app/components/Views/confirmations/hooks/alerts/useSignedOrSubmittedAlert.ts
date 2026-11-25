@@ -5,7 +5,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 
 import { useSelector } from 'react-redux';
@@ -14,6 +14,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
 import { isHardwareAccount } from '../../../../../util/address';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -57,12 +58,14 @@ export const useSignedOrSubmittedAlert = () => {
       hasTransactionType(existingTransaction, [payType]),
   );
 
+  const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
+
   const hasExistingTransactionOnPayChain =
-    payToken &&
-    payToken.chainId !== chainId &&
+    payTokenChainId &&
+    payTokenChainId !== chainId &&
     transactions.some(
       (t) =>
-        t.chainId === payToken.chainId &&
+        t.chainId === payTokenChainId &&
         t.txParams.from.toLowerCase() === from?.toLowerCase() &&
         PENDING_STATUSES.includes(t.status),
     );
@@ -75,7 +78,7 @@ export const useSignedOrSubmittedAlert = () => {
 
   return useMemo(() => {
     if (!showAlert || (isHardwarePayEnabled && isHardwareWallet)) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

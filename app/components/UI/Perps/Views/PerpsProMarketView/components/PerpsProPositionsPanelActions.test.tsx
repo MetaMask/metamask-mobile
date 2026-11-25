@@ -26,6 +26,9 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockNavigateToClosePosition = jest.fn();
+const mockNavigateToAdjustMargin = jest.fn();
+const mockSharePosition = jest.fn();
+const mockScreenVsBottomSheetAbTest = { useBottomSheet: true };
 const mockCancelOrder = jest.fn();
 const mockEditOrder = jest.fn();
 const mockShowToast = jest.fn();
@@ -47,7 +50,16 @@ jest.mock('../../../hooks/usePerpsEventTracking', () => ({
 jest.mock('../../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: () => ({
     navigateToClosePosition: mockNavigateToClosePosition,
+    navigateToAdjustMargin: mockNavigateToAdjustMargin,
   }),
+}));
+
+jest.mock('../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
+}));
+
+jest.mock('../../../hooks/usePerpsSharePosition', () => ({
+  usePerpsSharePosition: () => ({ sharePosition: mockSharePosition }),
 }));
 
 jest.mock('../../../hooks/usePerpsTrading', () => ({
@@ -143,6 +155,25 @@ jest.mock(
 );
 
 jest.mock(
+  '../../../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return function PerpsCancelAllOrdersView(props: {
+      orders?: { orderId: string }[];
+      isFiltered?: boolean;
+    }) {
+      return (
+        <View
+          testID="perps-cancel-all-orders-view"
+          orderIds={(props.orders ?? []).map((order) => order.orderId)}
+          isFiltered={props.isFiltered}
+        />
+      );
+    };
+  },
+);
+
+jest.mock(
   '../../../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet',
   () => {
     const { View } = jest.requireActual('react-native');
@@ -167,13 +198,18 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return function PerpsSelectAdjustMarginActionView({
       enableHaptics,
+      useBottomSheet,
     }: {
       enableHaptics?: boolean;
+      useBottomSheet?: boolean;
     }) {
       return (
         <View
           testID="perps-select-adjust-margin-action-view"
           accessibilityLabel={enableHaptics ? 'haptics-enabled' : 'haptics-off'}
+          accessibilityHint={
+            useBottomSheet ? 'bottom-sheet-treatment' : 'screen-control'
+          }
         />
       );
     };
@@ -267,17 +303,21 @@ const order: Order = {
 
 const ActionHarness = ({
   onReady,
+  renderSheetArgs,
 }: {
   onReady: (
     actions: ReturnType<typeof usePerpsProPositionsPanelActions>,
   ) => void;
+  renderSheetArgs?: Parameters<
+    ReturnType<typeof usePerpsProPositionsPanelActions>['renderActionSheets']
+  >;
 }) => {
   const actions = usePerpsProPositionsPanelActions();
   React.useEffect(() => {
     onReady(actions);
   }, [actions, onReady]);
 
-  return <>{actions.renderActionSheets()}</>;
+  return <>{actions.renderActionSheets(...(renderSheetArgs ?? []))}</>;
 };
 
 describe('usePerpsProPositionsPanelActions', () => {
@@ -367,7 +407,7 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
-  it('navigates to share PnL with derived mark price', async () => {
+  it('shares the position with its derived mark price', async () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
@@ -384,10 +424,7 @@ describe('usePerpsProPositionsPanelActions', () => {
       actions?.handleSharePosition(position);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PNL_HERO_CARD, {
-      position,
-      marketPrice: '2900',
-    });
+    expect(mockSharePosition).toHaveBeenCalledWith(position, '2900');
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
@@ -420,6 +457,47 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(mockShowToast).toHaveBeenCalled();
     expect(playImpact).toHaveBeenCalledTimes(1);
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('reports an accepted order cancellation to the panel', async () => {
+    const onOrderCanceled = jest.fn();
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await actions?.handleCancelOrder(order, onOrderCanceled);
+    });
+
+    expect(onOrderCanceled).toHaveBeenCalledWith(order);
+  });
+
+  it('does not report a rejected order cancellation to the panel', async () => {
+    const onOrderCanceled = jest.fn();
+    mockCancelOrder.mockResolvedValueOnce({ success: false });
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await actions?.handleCancelOrder(order, onOrderCanceled);
+    });
+
+    expect(onOrderCanceled).not.toHaveBeenCalled();
   });
 
   it('keeps haptics silent for a non-cancelable order', async () => {
@@ -483,9 +561,13 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(
       screen.queryByTestId('perps-limit-price-bottom-sheet'),
     ).not.toBeOnTheScreen();
-    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(order.orderId, {
-      limitPrice: '170',
-    });
+    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(
+      order.orderId,
+      {
+        limitPrice: '170',
+      },
+      order.providerId,
+    );
     expect(mockEditOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         orderId: order.orderId,
@@ -544,9 +626,13 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(
       screen.queryByTestId('perps-order-size-bottom-sheet'),
     ).not.toBeOnTheScreen();
-    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(order.orderId, {
-      size: '2',
-    });
+    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(
+      order.orderId,
+      {
+        size: '2',
+      },
+      order.providerId,
+    );
     expect(mockEditOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         orderId: order.orderId,
@@ -591,6 +677,38 @@ describe('usePerpsProPositionsPanelActions', () => {
     });
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
+
+  it('renders cancel-all sheet scoped to the passed orders when handler is invoked', async () => {
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    const filteredOrders: Order[] = [
+      { ...order, orderId: 'eth-1', symbol: 'ETH' },
+    ];
+
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+        renderSheetArgs={[undefined, undefined, filteredOrders, true]}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleCancelAllPress();
+    });
+
+    expect(mockGate).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('perps-cancel-all-orders-view'),
+      ).toBeOnTheScreen();
+    });
+    const sheet = screen.getByTestId('perps-cancel-all-orders-view');
+    expect(sheet.props.orderIds).toEqual(['eth-1']);
+    expect(sheet.props.isFiltered).toBe(true);
+  });
 });
 
 describe('PerpsProPositionsPanel action callbacks', () => {
@@ -599,6 +717,7 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     mockCancelOrder.mockResolvedValue({ success: true });
     mockEditOrder.mockResolvedValue({ success: true });
+    mockScreenVsBottomSheetAbTest.useBottomSheet = true;
   });
 
   it('invokes position action callbacks from card controls', () => {
@@ -630,7 +749,9 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     expect(onShare).toHaveBeenCalledWith(position);
   });
 
-  it('opens adjust margin sheet when edit margin is pressed', async () => {
+  it('opens the action-choice sheet when edit margin is pressed for control', async () => {
+    mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
@@ -652,6 +773,37 @@ describe('PerpsProPositionsPanel action callbacks', () => {
         screen.getByTestId('perps-select-adjust-margin-action-view'),
       ).toHaveProp('accessibilityLabel', 'haptics-enabled');
     });
+    expect(
+      screen.getByTestId('perps-select-adjust-margin-action-view'),
+    ).toHaveProp('accessibilityHint', 'screen-control');
+    expect(mockNavigateToAdjustMargin).not.toHaveBeenCalled();
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('skips the action-choice sheet when edit margin is pressed for treatment', async () => {
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleEditPositionMargin(position);
+    });
+
+    expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(position, 'add', {
+      enableHaptics: true,
+      useBottomSheet: true,
+    });
+    expect(
+      screen.queryByTestId('perps-select-adjust-margin-action-view'),
+    ).toBeNull();
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
@@ -761,18 +913,6 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     );
 
     expect(onCancel).toHaveBeenCalledWith(order);
-  });
-
-  it('invokes edit price callback from order card edit button', () => {
-    const onEditPrice = jest.fn();
-
-    render(<PerpsProOrderCard order={order} onEditPrice={onEditPrice} />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
-    );
-
-    expect(onEditPrice).toHaveBeenCalledWith(order);
   });
 
   it('invokes edit price callback from order card price control', () => {

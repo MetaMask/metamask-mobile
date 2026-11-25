@@ -1,10 +1,17 @@
 import { MoneyAccountBalanceService } from '@metamask/money-account-balance-service';
 import { MoneyAccountApiDataService } from '@metamask/money-account-api-data-service';
 
+export const MoneyQueryKeys = {
+  /**
+   * Temporary key for historical earnings fetched directly until
+   * MoneyAccountApiDataService supports this query.
+   */
+  FETCH_INTEREST_HISTORY: 'money:fetchInterestHistory',
+} as const;
+
 export const MoneyAccountBalanceServiceQueryKeys = {
   GET_MUSD_BALANCE: `${MoneyAccountBalanceService.name}:getMusdBalance`,
   GET_VMUSD_BALANCE: `${MoneyAccountBalanceService.name}:getVmusdBalance`,
-  GET_VAULT_APY: `${MoneyAccountBalanceService.name}:getVaultApy`,
   /** Internally, this helper fetches the vmUSD balance and exchange rate */
   GET_MUSD_EQUIVALENT_VALUE: `${MoneyAccountBalanceService.name}:getMusdEquivalentValue`,
   GET_EXCHANGE_RATE: `${MoneyAccountBalanceService.name}:getExchangeRate`,
@@ -32,4 +39,13 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    * Interest earned by a Money Account position for a requested time window.
    */
   FETCH_INTEREST: `${MoneyAccountApiDataService.name}:fetchInterest`,
+  /**
+   * Current Accountant exchange rate for a vault (assets per share).
+   */
+  FETCH_VAULT_RATE: `${MoneyAccountApiDataService.name}:fetchVaultRate`,
+  FETCH_VAULTS: `${MoneyAccountApiDataService.name}:fetchVaults`,
+  FETCH_RATE_HISTORY: `${MoneyAccountApiDataService.name}:fetchRateHistory`,
+  FETCH_VAULT_SHARE_VALUATIONS: `${MoneyAccountApiDataService.name}:fetchVaultShareValuations`,
+  /** Current VBA transfers for the SIWE-authenticated Money Account wallet. */
+  FETCH_VBA_TRANSFERS: `${MoneyAccountApiDataService.name}:fetchVbaTransfers`,
 } as const;

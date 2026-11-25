@@ -19,7 +19,6 @@ jest.mock('../utils/ProviderTokenVault', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      transakSetApiKey: jest.fn(),
       transakSetAccessToken: jest.fn(),
       transakClearAccessToken: jest.fn(),
       transakLogout: jest.fn().mockResolvedValue(undefined),
@@ -50,10 +49,6 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
-  selectDepositProviderApiKey: () => 'test-api-key',
 }));
 
 const mockTransakState = {
@@ -150,19 +145,6 @@ describe('useTransakController', () => {
       expect(typeof result.current.cancelOrder).toBe('function');
       expect(typeof result.current.cancelAllActiveOrders).toBe('function');
       expect(typeof result.current.getActiveOrders).toBe('function');
-    });
-  });
-
-  describe('API key initialization', () => {
-    it('sets the API key on mount when providerApiKey is available', () => {
-      const store = createMockStore();
-      renderHook(() => useTransakController(), {
-        wrapper: createWrapper(store),
-      });
-
-      expect(getRampsController().transakSetApiKey).toHaveBeenCalledWith(
-        'test-api-key',
-      );
     });
   });
 
@@ -449,8 +431,41 @@ describe('useTransakController', () => {
         'ethereum',
         'card',
         '100',
+        true,
       );
       expect(quote).toEqual(mockQuote);
+    });
+
+    it('getBuyQuote delegates fee-inclusive behavior to RampsController', async () => {
+      const mockQuote = { quoteId: 'q1', fiatAmount: 15 };
+      (getRampsController().transakGetBuyQuote as jest.Mock).mockResolvedValue(
+        mockQuote,
+      );
+
+      const store = createMockStore();
+      const { result } = renderHook(() => useTransakController(), {
+        wrapper: createWrapper(store),
+      });
+
+      await act(async () => {
+        await result.current.getBuyQuote(
+          'USD',
+          'MUSD',
+          'monad',
+          'card',
+          '15',
+          false,
+        );
+      });
+
+      expect(getRampsController().transakGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'MUSD',
+        'monad',
+        'card',
+        '15',
+        false,
+      );
     });
 
     it('createOrder delegates to RampsController', async () => {

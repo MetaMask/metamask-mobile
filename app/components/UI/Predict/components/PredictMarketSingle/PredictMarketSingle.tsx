@@ -2,6 +2,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -129,7 +130,6 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -142,7 +142,6 @@ interface PredictMarketSingleProps {
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
-  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
@@ -190,11 +189,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
-    const handledExternally =
-      onBuyButtonPress?.({ market, outcome, outcomeToken: token }) === true;
-    if (handledExternally) {
-      return;
-    }
+    onBuyButtonPress?.({ market, outcome, outcomeToken: token });
 
     executeGuardedAction(
       () => {
@@ -220,10 +215,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        if (cardPressDisabled) {
-          return;
-        }
-
         onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
@@ -263,7 +254,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
-              style={tw.style('flex-1 font-medium')}
+              fontWeight={FontWeight.Medium}
+              style={tw.style('flex-1')}
               numberOfLines={2}
             >
               {getTitle()}

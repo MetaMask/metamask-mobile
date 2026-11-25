@@ -28,21 +28,6 @@ jest.mock('../../Ledger/LedgerDmk', () => ({
   listenToLedgerDmkAvailableDevices: jest.fn(),
 }));
 
-jest.mock('../../../store', () => ({
-  store: {
-    getState: jest.fn(() => ({})),
-    dispatch: jest.fn(),
-  },
-}));
-
-jest.mock('../../../selectors/featureFlagController', () => ({
-  selectRemoteFeatureFlags: jest.fn(() => ({})),
-}));
-
-jest.mock('../../Ledger/dmk', () => ({
-  isDmkEnabled: jest.fn(() => false),
-}));
-
 // Mock Eth app
 jest.mock('@ledgerhq/hw-app-eth', () => ({
   __esModule: true,
@@ -58,7 +43,6 @@ import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
-import { isDmkEnabled } from '../../Ledger/dmk';
 
 describe('createAdapter', () => {
   const mockOptions: HardwareWalletAdapterOptions = {
@@ -68,11 +52,14 @@ describe('createAdapter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(isDmkEnabled).mockReturnValue(false);
   });
 
   it('creates LedgerBluetoothAdapter for Ledger wallet type when DMK is off', () => {
-    const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
+    const adapter = createAdapter(
+      HardwareWalletType.Ledger,
+      mockOptions,
+      false,
+    );
     expect(adapter).toBeInstanceOf(LedgerBluetoothAdapter);
     expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
   });
@@ -81,12 +68,6 @@ describe('createAdapter', () => {
     const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions, true);
     expect(adapter).toBeInstanceOf(LedgerBluetoothDMKAdapter);
     expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
-  });
-
-  it('creates LedgerBluetoothDMKAdapter when store flag enables DMK', () => {
-    jest.mocked(isDmkEnabled).mockReturnValue(true);
-    const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
-    expect(adapter).toBeInstanceOf(LedgerBluetoothDMKAdapter);
   });
 
   it('creates QRWalletAdapter for QR wallet type', () => {
@@ -119,9 +100,8 @@ describe('createAdapter', () => {
   });
 
   it('selects DMK adapter when enableDmk is true (e.g. local override enabled at call site)', () => {
-    // The call site resolves `enableDmk` via `isDmkEnabled(Engine.controllerMessenger)`,
-    // which honors local overrides. When that resolves to `true`, the factory
-    // must select the DMK adapter.
+    // `useAdapterLifecycle` passes `enableDmk` from `getLedgerDmkMode()`;
+    // when it is true the factory must select the DMK adapter.
     const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions, true);
     expect(adapter).toBeInstanceOf(LedgerBluetoothDMKAdapter);
   });

@@ -1,4 +1,5 @@
 import {
+  RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
   RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
@@ -12,6 +13,11 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
 import { RootMessenger } from '../../types';
 
 type AllowedActions = MessengerActions<RampsControllerMessenger>;
@@ -40,12 +46,13 @@ export function getRampsControllerMessenger(
   rootMessenger.delegate({
     messenger,
     actions: [
-      // The controller reads the `moneyHeadlessAllProviders` feature flag
-      // itself for quote widening.
-      'RemoteFeatureFlagController:getState',
       // Spread the package-owned required list so new service actions
-      // (e.g. getDefaultRedirectCallbackUrl) cannot be forgotten at upgrade.
+      // (e.g. getDefaultRedirectCallbackUrl / NeoBankService) cannot be
+      // forgotten at upgrade.
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
+      // The onboarding stage lookup refreshes KYC and resolves the customer
+      // before reading wallet and autoramp status.
+      ...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
     ],
     events: [],
   });
@@ -58,8 +65,10 @@ export type RampsControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the init messenger for the RampsController. Scoped to actions
- * needed during initialization (reading feature flags).
+ * Get the init messenger for the RampsController. Scoped to what is needed
+ * during initialization and by the init wiring: reading feature flags,
+ * reading the keyring lock state, and the keyring lock and unlock events that
+ * gate order polling.
  *
  * @param rootMessenger - The root messenger.
  * @returns The RampsControllerInitMessenger.
@@ -67,9 +76,11 @@ export type RampsControllerInitMessenger = ReturnType<
 export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'RampsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
+    RemoteFeatureFlagControllerGetStateAction | KeyringControllerGetStateAction,
     | RampsControllerOrderStatusChangedEvent
-    | RemoteFeatureFlagControllerStateChangeEvent,
+    | RemoteFeatureFlagControllerStateChangeEvent
+    | KeyringControllerLockEvent
+    | KeyringControllerUnlockEvent,
     RootMessenger
   >({
     namespace: 'RampsControllerInit',
@@ -77,9 +88,15 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   });
 
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'KeyringController:getState',
+    ],
     events: [
       'RampsController:orderStatusChanged',
+      // Order polling only runs while the wallet is unlocked.
+      'KeyringController:lock',
+      'KeyringController:unlock',
       'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
     ],
     messenger,

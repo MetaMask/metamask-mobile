@@ -9,14 +9,22 @@ import {
   AvatarNetworkSize,
   SelectButton,
   SelectButtonVariant,
-  ButtonIcon,
-  ButtonIconSize,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName as DsIconName,
+  IconSize,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
+import { getRegistryNetworkImagesByChainId } from '../../../../selectors/configRegistry';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
+import {
+  createTokensBottomSheetNavDetails,
+  getSortOption,
+} from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
@@ -45,10 +53,6 @@ export interface BaseControlBarProps {
    */
   onFilterPress?: () => void;
   /**
-   * Custom handler for sort controls (overrides default behavior)
-   */
-  onSortPress?: () => void;
-  /**
    * Whether to show the sort button
    */
   hideSort?: boolean;
@@ -64,19 +68,26 @@ export interface BaseControlBarProps {
    * Custom style to apply to the action bar wrapper
    */
   style?: ViewStyle;
+  /**
+   * Current search text. Only the Tokens list passes it (an empty string when
+   * not searching). It is forwarded to the network and sort sheets, which use
+   * it for analytics and skip them when it is undefined.
+   */
+  searchQuery?: string;
 }
 
 const BaseControlBar: React.FC<BaseControlBarProps> = ({
   networkFilterTestId,
   isDisabled: customIsDisabled,
   onFilterPress,
-  onSortPress,
   hideSort = false,
   additionalButtons,
   customWrapper = 'outer',
   style,
+  searchQuery,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
   const navigation = useNavigation<AppNavigationProp>();
 
   // Shared selectors
@@ -129,22 +140,29 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
-    navigateWithDetails(navigation, createNetworkManagerNavDetails({}));
-  }, [navigation]);
+    navigateWithDetails(
+      navigation,
+      createNetworkManagerNavDetails({ searchQuery }),
+    );
+  }, [navigation, searchQuery]);
 
-  const defaultShowSortControls = useCallback(() => {
-    navigateWithDetails(navigation, createTokensBottomSheetNavDetails({}));
-  }, [navigation]);
+  const handleSortControls = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createTokensBottomSheetNavDetails({ searchQuery }),
+    );
+  }, [navigation, searchQuery]);
 
   // Use custom handlers if provided, otherwise use defaults
   const handleFilterControls = onFilterPress || defaultHandleFilterControls;
-  const handleSortControls = onSortPress || defaultShowSortControls;
 
   // Shared network image logic
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
   const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
-  const networkImageSource = getNetworkImageSource({
-    chainId: firstEnabledChainId,
-  });
+  const networkImageSource = getNetworkImageSource(
+    { chainId: firstEnabledChainId },
+    networkImageUrls,
+  );
 
   const networkLabelValue = useMemo(
     () =>
@@ -182,12 +200,32 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     />
   );
 
+  const sortOption = getSortOption(tokenSortConfig);
+  const isSortAscending = tokenSortConfig.order === 'asc';
+  const sortLabel = strings(sortOption.labelKey);
+  const sortOrderLabel = strings(
+    sortOption.orderLabelKeys[isSortAscending ? 'asc' : 'dsc'],
+  );
   const sortButton = !hideSort && (
-    <ButtonIcon
+    <SelectButton
       testID={WalletViewSelectorsIDs.SORT_BUTTON}
-      size={ButtonIconSize.Md}
+      accessibilityLabel={`${strings('wallet.sort_by')}, ${sortLabel}, ${sortOrderLabel}`}
+      variant={SelectButtonVariant.Secondary}
+      placeholder={sortLabel}
+      value={sortLabel}
       onPress={handleSortControls}
-      iconName={IconName.Filter}
+      hideEndArrow
+      textProps={{
+        variant: TextVariant.BodyMd,
+        fontWeight: FontWeight.Medium,
+      }}
+      endAccessory={
+        <Icon
+          name={isSortAscending ? DsIconName.Arrow2Up : DsIconName.Arrow2Down}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      }
     />
   );
 

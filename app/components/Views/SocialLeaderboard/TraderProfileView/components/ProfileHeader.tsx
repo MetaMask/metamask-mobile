@@ -16,8 +16,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 
 const AVATAR_SIZE = 40;
 
@@ -47,6 +49,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <TraderAvatar
         imageUrl={profile.imageUrl}
         address={profile.address}
+        profileId={profile.profileId}
         size={AVATAR_SIZE}
       />
 
@@ -65,6 +68,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             {profile.name}
           </Text>
+          {isProfileVerified(profile) ? (
+            <ProfileVerifiedBadge
+              testID={TraderProfileViewSelectorsIDs.VERIFIED_BADGE}
+            />
+          ) : null}
           {twitterHandle ? (
             <Pressable
               onPress={handleTwitterPress}

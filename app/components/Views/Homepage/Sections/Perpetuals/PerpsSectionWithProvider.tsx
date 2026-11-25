@@ -4,7 +4,10 @@ import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsCon
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import { PerpsSection } from './PerpsSection';
-import type { SectionRefreshHandle } from '../../types';
+import type {
+  HomepageDeviceCapability,
+  SectionRefreshHandle,
+} from '../../types';
 
 export interface PerpsSectionProps {
   sectionIndex: number;
@@ -13,6 +16,7 @@ export interface PerpsSectionProps {
   emptyStateContent?: 'tiles' | 'pills';
   /** Override the section title only while rendering empty state content. */
   emptyStateTitleOverride?: string;
+  deviceCapability?: HomepageDeviceCapability;
 }
 
 /**
@@ -30,6 +34,7 @@ const PerpsSectionWithProvider = forwardRef<
       totalSectionsLoaded,
       emptyStateContent,
       emptyStateTitleOverride,
+      deviceCapability,
     },
     ref,
   ) => {
@@ -48,6 +53,7 @@ const PerpsSectionWithProvider = forwardRef<
             totalSectionsLoaded={totalSectionsLoaded}
             emptyStateContent={emptyStateContent}
             emptyStateTitleOverride={emptyStateTitleOverride}
+            deviceCapability={deviceCapability}
           />
         </PerpsStreamProvider>
       </PerpsConnectionProvider>

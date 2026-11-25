@@ -4,6 +4,10 @@ import {
   setupMockRequest,
   setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
+import {
+  bridgeGetTokens,
+  bridgeGetTxStatus,
+} from '../../api-mocking/api-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
@@ -16,11 +20,15 @@ import {
   GET_POPULAR_TOKENS_BASE_RESPONSE,
   toSSEResponse,
 } from './constants';
-import { setupSpotPricesMock } from './swap-mocks';
-import { toQuoteResponseV2 } from '@metamask/bridge-controller';
+import {
+  setupSpotPricesMock,
+  setupSwapSocialAndComplianceMocks,
+} from './swap-mocks';
+import { StatusTypes, toQuoteResponseV2 } from '@metamask/bridge-controller';
+import type { BridgeGetTxStatusResponse } from '../../api-mocking/api-response-types';
 
 const BRIDGE_TX_STATUS_COMPLETE = {
-  status: 'COMPLETE',
+  status: StatusTypes.COMPLETE,
   srcChain: {
     chainId: 1,
     txHash:
@@ -31,7 +39,7 @@ const BRIDGE_TX_STATUS_COMPLETE = {
     txHash:
       '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
   },
-};
+} satisfies BridgeGetTxStatusResponse;
 
 // Quote id used by the bridgeQuoteStatusManager e2e coverage below. The
 // BridgeStatusController only calls getQuoteStatus for history items that
@@ -71,6 +79,7 @@ export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
+  await setupSwapSocialAndComplianceMocks(mockServer);
 
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {
@@ -85,33 +94,24 @@ export const testSpecificMock: TestSpecificMock = async (
         { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
     },
-    stxMigrationBatchStatus: false,
-    stxMigrationCancel: false,
-    stxMigrationGetFees: false,
-    stxMigrationSubmitTransactions: false,
   });
   // Mock Ethereum token list
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getTokens.*chainId=1/i,
-    response: GET_TOKENS_MAINNET_RESPONSE,
-    responseCode: 200,
-  });
+  await bridgeGetTokens.register(
+    mockServer,
+    () => GET_TOKENS_MAINNET_RESPONSE,
+    {
+      chainId: 1,
+    },
+  );
 
   // Mock Solana token list
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getTokens.*chainId=1151111081099710/i,
-    response: GET_TOKENS_SOLANA_RESPONSE,
-    responseCode: 200,
+  await bridgeGetTokens.register(mockServer, () => GET_TOKENS_SOLANA_RESPONSE, {
+    chainId: 1151111081099710,
   });
 
   // Mock Base token list
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getTokens.*chainId=8453/i,
-    response: GET_TOKENS_BASE_RESPONSE,
-    responseCode: 200,
+  await bridgeGetTokens.register(mockServer, () => GET_TOKENS_BASE_RESPONSE, {
+    chainId: 8453,
   });
 
   // Mock Base top assets list
@@ -179,12 +179,7 @@ export const testSpecificMock: TestSpecificMock = async (
 
   // Mock getTxStatus with a full response so the BridgeStatusController
   // marks the bridge as complete (srcChain + destChain txHash present)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getTxStatus/i,
-    response: BRIDGE_TX_STATUS_COMPLETE,
-    responseCode: 200,
-  });
+  await bridgeGetTxStatus.register(mockServer, () => BRIDGE_TX_STATUS_COMPLETE);
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
@@ -271,26 +266,20 @@ export const createBridgeQuoteStatusManagerMock = (
         ],
       },
       bridgeQuoteStatusManager: { enabled: true },
-      stxMigrationBatchStatus: false,
-      stxMigrationCancel: false,
-      stxMigrationGetFees: false,
-      stxMigrationSubmitTransactions: false,
     });
 
     // Mock Ethereum token list
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: /getTokens.*chainId=1/i,
-      response: GET_TOKENS_MAINNET_RESPONSE,
-      responseCode: 200,
-    });
+    await bridgeGetTokens.register(
+      mockServer,
+      () => GET_TOKENS_MAINNET_RESPONSE,
+      {
+        chainId: 1,
+      },
+    );
 
     // Mock Base token list
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: /getTokens.*chainId=8453/i,
-      response: GET_TOKENS_BASE_RESPONSE,
-      responseCode: 200,
+    await bridgeGetTokens.register(mockServer, () => GET_TOKENS_BASE_RESPONSE, {
+      chainId: 8453,
     });
 
     // Mock Base top assets list
@@ -356,12 +345,10 @@ export const createBridgeQuoteStatusManagerMock = (
 
     // Mock getTxStatus with a full response so the fallback path (when
     // getQuoteStatus has no submittedTx yet) can also complete the bridge.
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: /getTxStatus/i,
-      response: BRIDGE_TX_STATUS_COMPLETE,
-      responseCode: 200,
-    });
+    await bridgeGetTxStatus.register(
+      mockServer,
+      () => BRIDGE_TX_STATUS_COMPLETE,
+    );
 
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',

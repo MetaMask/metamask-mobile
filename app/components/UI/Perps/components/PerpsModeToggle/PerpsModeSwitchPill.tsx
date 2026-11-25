@@ -5,9 +5,21 @@ import {
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { StyleSheet, Text, type ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import Animated, {
   Easing,
   interpolate,
@@ -17,13 +29,25 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import {
+  getPerpsProPillBorderGradientColors,
+  getPerpsProPillGradientColors,
+  getPerpsProPillShimmerColors,
+  PRO_PILL_BORDER_GRADIENT_END,
+  PRO_PILL_BORDER_GRADIENT_LOCATIONS,
+  PRO_PILL_BORDER_GRADIENT_START,
+} from '../../constants/perpsModeColors';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 
 export const GLOW_TOTAL_MS = 680;
 const GLOW_SWEEP_MS = 630;
 const GLOW_FADE_MS = 120;
 const GLOW_HOLD_MS = GLOW_TOTAL_MS - GLOW_FADE_MS * 2;
-const BORDER_WIDTH = 1.5;
+// Lite uses glass borders; Pro draws a hairline gold gradient outline.
+export const PRO_BORDER_WIDTH = 0.65;
 
 // Holds one width across the Lite/Pro label swap; CJK labels can still exceed it.
 const MIN_WIDTH = 56;
@@ -34,20 +58,6 @@ const SHIMMER_END = { x: 1, y: 0.63 };
 const SHIMMER_LOCATIONS = [0.3, 0.45, 0.55, 0.7];
 const PRO_GRADIENT_LOCATIONS = [0, 0.203, 0.406, 0.609, 0.812];
 
-// Figma TAT-2536 ModeSwitchPill gradient tokens are not shared tokens yet.
-/* eslint-disable @metamask/design-tokens/color-no-hex */
-const SHIMMER_COLORS = ['transparent', '#DDC598', '#D99D2C', 'transparent'];
-const PRO_GRADIENT_COLORS = [
-  '#D99D2C',
-  '#DDC598',
-  '#D99D2C',
-  '#DDC598',
-  '#D99D2C',
-];
-const LITE_LABEL_COLOR = '#9b9b9b';
-const BORDER_COLOR = '#858b9a33';
-/* eslint-enable @metamask/design-tokens/color-no-hex */
-
 const styles = StyleSheet.create({
   // Colors are fixed by the ModeSwitchPill Figma spec and are not tokens.
   /* eslint-disable @metamask/design-tokens/color-no-hex, react-native/no-color-literals */
@@ -55,7 +65,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
-    color: LITE_LABEL_COLOR,
   },
   maskLabel: {
     fontSize: 14,
@@ -72,6 +81,11 @@ const styles = StyleSheet.create({
   },
 });
 
+const useIsDarkTheme = () => {
+  const { themeAppearance } = useTheme();
+  return themeAppearance === AppThemeKey.dark;
+};
+
 interface ModeLabelProps {
   children: string;
   isPro: boolean;
@@ -79,8 +93,22 @@ interface ModeLabelProps {
 }
 
 const ModeLabel = ({ children, isPro, isMask = false }: ModeLabelProps) => {
+  const tw = useTailwind();
+  const isDark = useIsDarkTheme();
+  const gradientColors = useMemo(
+    () => getPerpsProPillGradientColors(isDark),
+    [isDark],
+  );
+  // `text-default` keeps the Lite label legible in both themes; for Pro this
+  // Text is only ever the MaskedView mask, where the gradient supplies the color.
   const text = (
-    <Text style={isMask ? styles.maskLabel : styles.label}>{children}</Text>
+    <Text
+      style={
+        isMask ? styles.maskLabel : [styles.label, tw.style('text-default')]
+      }
+    >
+      {children}
+    </Text>
   );
 
   if (!isPro || isMask) {
@@ -90,7 +118,7 @@ const ModeLabel = ({ children, isPro, isMask = false }: ModeLabelProps) => {
   return (
     <MaskedView maskElement={text}>
       <LinearGradient
-        colors={PRO_GRADIENT_COLORS}
+        colors={gradientColors}
         locations={PRO_GRADIENT_LOCATIONS}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -109,6 +137,7 @@ interface PerpsModeSwitchPillProps {
   accessibilityLabel: string;
   accessibilityHint: string;
   testID: string;
+  isCapsule?: boolean;
 }
 
 const PerpsModeSwitchPill = ({
@@ -119,10 +148,13 @@ const PerpsModeSwitchPill = ({
   accessibilityLabel,
   accessibilityHint,
   testID,
+  isCapsule = false,
 }: PerpsModeSwitchPillProps) => {
   const tw = useTailwind();
+  const isDark = useIsDarkTheme();
   const { playImpact } = useHaptics();
-  const [width, setWidth] = useState(0);
+  const [frame, setFrame] = useState({ width: 0, height: 0 });
+  const width = frame.width;
   const [isShimmering, setIsShimmering] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sweepProgress = useSharedValue(0);
@@ -149,6 +181,10 @@ const PerpsModeSwitchPill = ({
     opacity: overlayOpacity.value,
   }));
 
+  const shimmerColors = useMemo(
+    () => getPerpsProPillShimmerColors(isDark),
+    [isDark],
+  );
   const handleModeSwitch = useCallback(() => {
     Promise.resolve(onSwitchRequest())
       .then((applied) => {
@@ -184,9 +220,45 @@ const PerpsModeSwitchPill = ({
     handleModeSwitch();
   }, [handleModeSwitch, overlayOpacity, sweepProgress]);
 
+  // Lite draws no outline. Pro's gold is an SVG stroke so the glass shows
+  // through the pill; a view border can only be a flat color.
+  const borderWidth = isPro ? PRO_BORDER_WIDTH : 0;
+  const borderStyle = { borderWidth: 0 };
+  const borderGradientColors = useMemo(
+    () => getPerpsProPillBorderGradientColors(isDark),
+    [isDark],
+  );
+  const borderGradientId = `${testID}-border-gradient`;
+  const pillBorderRadius = (tw.style('rounded-full') as ViewStyle).borderRadius;
+  const innerBorderRadius =
+    typeof pillBorderRadius === 'number'
+      ? Math.max(0, pillBorderRadius - borderWidth)
+      : pillBorderRadius;
+
+  const button = (
+    <ButtonBase
+      size={ButtonBaseSize.Sm}
+      twClassName={(pressed) =>
+        isCapsule
+          ? 'h-10 rounded-full bg-transparent px-3'
+          : `h-8 rounded-full border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
+      }
+      style={[borderStyle, { minWidth: MIN_WIDTH }]}
+      onPress={handlePress}
+      disabled={isShimmering}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole="button"
+      testID={testID}
+    >
+      <ModeLabel isPro={isPro}>{currentModeLabel}</ModeLabel>
+    </ButtonBase>
+  );
+
+  // The sweep is identical in both directions — only the palette is theme-aware.
   const gradient = (
     <LinearGradient
-      colors={SHIMMER_COLORS}
+      colors={shimmerColors}
       locations={SHIMMER_LOCATIONS}
       start={SHIMMER_START}
       end={SHIMMER_END}
@@ -197,35 +269,65 @@ const PerpsModeSwitchPill = ({
   return (
     <Box
       accessible={false}
-      twClassName="relative h-8"
-      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+      twClassName={isCapsule ? 'relative h-10' : 'relative h-8'}
+      onLayout={(event) =>
+        setFrame({
+          width: event.nativeEvent.layout.width,
+          height: event.nativeEvent.layout.height,
+        })
+      }
+      testID={`${testID}-shell`}
     >
-      <ButtonBase
-        size={ButtonBaseSize.Sm}
-        twClassName={(pressed) =>
-          `h-8 rounded-lg border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
-        }
-        style={{
-          borderColor: BORDER_COLOR,
-          borderWidth: BORDER_WIDTH,
-          minWidth: MIN_WIDTH,
-        }}
-        onPress={handlePress}
-        disabled={isShimmering}
-        accessibilityLabel={accessibilityLabel}
-        accessibilityHint={accessibilityHint}
-        accessibilityRole="button"
-        testID={testID}
-      >
-        <ModeLabel isPro={isPro}>{currentModeLabel}</ModeLabel>
-      </ButtonBase>
+      {isCapsule ? (
+        <CapsuleGlass nonGlassClassName="border-0" testID={`${testID}-capsule`}>
+          {button}
+        </CapsuleGlass>
+      ) : (
+        button
+      )}
+
+      {isPro && frame.width > 0 && frame.height > 0 ? (
+        <Svg
+          pointerEvents="none"
+          style={tw.style('absolute inset-0')}
+          testID={`${testID}-border`}
+        >
+          <Defs>
+            <SvgLinearGradient
+              id={borderGradientId}
+              x1={PRO_PILL_BORDER_GRADIENT_START.x}
+              y1={PRO_PILL_BORDER_GRADIENT_START.y}
+              x2={PRO_PILL_BORDER_GRADIENT_END.x}
+              y2={PRO_PILL_BORDER_GRADIENT_END.y}
+            >
+              {borderGradientColors.map((color, index) => (
+                <Stop
+                  key={`${color}-${PRO_PILL_BORDER_GRADIENT_LOCATIONS[index]}`}
+                  offset={PRO_PILL_BORDER_GRADIENT_LOCATIONS[index]}
+                  stopColor={color}
+                />
+              ))}
+            </SvgLinearGradient>
+          </Defs>
+          <Rect
+            x={borderWidth / 2}
+            y={borderWidth / 2}
+            width={frame.width - borderWidth}
+            height={frame.height - borderWidth}
+            rx={frame.height / 2}
+            fill="none"
+            stroke={`url(#${borderGradientId})`}
+            strokeWidth={borderWidth}
+          />
+        </Svg>
+      ) : null}
 
       {isShimmering && width > 0 ? (
         <Animated.View
           accessible={false}
           pointerEvents="none"
           style={[
-            tw.style('absolute inset-0 overflow-hidden rounded-lg'),
+            tw.style('absolute inset-0 overflow-hidden rounded-full'),
             overlayStyle,
           ]}
         >
@@ -240,17 +342,20 @@ const PerpsModeSwitchPill = ({
             {gradient}
           </Animated.View>
 
-          <Box
-            accessible={false}
-            twClassName="absolute bg-default"
-            style={{
-              top: BORDER_WIDTH,
-              right: BORDER_WIDTH,
-              bottom: BORDER_WIDTH,
-              left: BORDER_WIDTH,
-              borderRadius: 8 - BORDER_WIDTH,
-            }}
-          />
+          {/* Masks the sweep to the outline; on glass it sweeps the whole capsule. */}
+          {!isCapsule && (
+            <Box
+              accessible={false}
+              twClassName="absolute bg-default"
+              style={{
+                top: borderWidth,
+                right: borderWidth,
+                bottom: borderWidth,
+                left: borderWidth,
+                borderRadius: innerBorderRadius,
+              }}
+            />
+          )}
 
           <Box
             twClassName="absolute inset-0 items-center justify-center"

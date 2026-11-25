@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import MoneyEarnings from './MoneyEarnings';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
+import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const ZERO_VALUE = '$0.00';
@@ -20,6 +21,22 @@ describe('MoneyEarnings', () => {
     expect(getByText(strings('money.earnings.title'))).toBeOnTheScreen();
   });
 
+  it('renders a chevron and calls onHeaderPress when the header is pressed', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyEarnings
+        last30DaysEarnings={ZERO_VALUE}
+        onHeaderPress={onHeaderPress}
+      />,
+    );
+
+    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the monthly and lifetime labels', () => {
     const { getByText } = render(
       <MoneyEarnings
@@ -34,6 +51,19 @@ describe('MoneyEarnings', () => {
     expect(
       getByText(strings('money.earnings.estimated_lifetime')),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the lifetime row when lifetime earnings are unavailable', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyEarnings last30DaysEarnings={LAST_30_DAYS_VALUE} />,
+    );
+
+    expect(
+      getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+    ).toHaveTextContent(LAST_30_DAYS_VALUE);
+    expect(
+      queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls onMonthlyInfoPress when the monthly label is pressed', () => {

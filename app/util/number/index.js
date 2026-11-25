@@ -212,7 +212,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
     throw new Error(
       '[number] while converting number ' +
         tokenValue +
-        ' to token minimal util,  too many decimal points',
+        ' to token minimal util, too many decimal points',
     );
   }
   let whole = comps[0],
@@ -532,33 +532,6 @@ export function toWei(value, unit = 'ether') {
 }
 
 /**
- * @deprecated Use toGwei instead from utils/number/bigint
- * Converts some unit to Gwei
- *
- * @param {number|string|BN4} value - Value to convert
- * @param {string} unit - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
- */
-export function toGwei(value, unit = 'ether') {
-  return fromWei(value, unit) * 1000000000;
-}
-
-/**
- * @deprecated Use renderToGwei instead from utils/number/bigint
- * Converts some unit to Gwei and return it in render format
- *
- * @param {number|string|BN4} value - Value to convert
- * @param {string} unit - Unit to convert from, ether by default
- * @returns {string} - String instance containing the renderable number
- */
-export function renderToGwei(value, unit = 'ether') {
-  const gwei = fromWei(value, unit) * 1000000000;
-  let gweiFixed = parseFloat(Math.round(gwei));
-  gweiFixed = isNaN(gweiFixed) ? 0 : gweiFixed;
-  return gweiFixed;
-}
-
-/**
  * @deprecated Use weiToFiat instead from utils/number/bigint
  * Converts wei expressed as a BN instance into a human-readable fiat string
  * TODO: wei should be a BN instance, but we're not sure if it's always the case
@@ -838,19 +811,6 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 }
 
 /**
- * @deprecated Use renderWei instead from utils/number/bigint
- * Converts BN wei value to wei units in string format
- *
- * @param {object} value - Object containing wei value in BN format
- * @returns {string} - Corresponding wei value
- */
-export function renderWei(value) {
-  if (!value) return '0';
-  const wei = fromWei(value);
-  const renderWei = wei * Math.pow(10, 18);
-  return renderWei.toString();
-}
-/**
  * @deprecated Use renderNumber instead from utils/number/bigint
  * Format a string number in an string number with at most 5 decimal places
  *
@@ -1078,14 +1038,4 @@ export const localizeLargeNumber = (i18n, number, options = {}) => {
     )}`;
   }
   return number.toFixed(decimals);
-};
-
-/**
- * @deprecated Use convertDecimalToPercentage instead from utils/number/bigint
- */
-export const convertDecimalToPercentage = (decimal) => {
-  if (typeof decimal !== 'number' || isNaN(decimal)) {
-    throw new Error('Input must be a valid number');
-  }
-  return (decimal * 100).toFixed(2) + '%';
 };

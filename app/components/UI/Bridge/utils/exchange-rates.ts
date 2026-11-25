@@ -149,7 +149,9 @@ export const calcTokenFiatRate = ({
 
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  const checksumTokenAddress = (toChecksumHexAddress(token.address) ??
+    token.address) as Hex;
+  const evmTokenMarketData = evmMultiChainExchangeRates?.[checksumTokenAddress];
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
@@ -201,7 +203,9 @@ export const calcTokenFiatValue = ({
   // EVM
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  const checksumTokenAddress = (toChecksumHexAddress(token.address) ??
+    token.address) as Hex;
+  const evmTokenMarketData = evmMultiChainExchangeRates?.[checksumTokenAddress];
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
@@ -232,6 +236,7 @@ export const calcTokenFiatValue = ({
 
 interface GetDisplayCurrencyValueParams extends CalcTokenFiatValueParams {
   currentCurrency: string;
+  tokenFiatRate?: number;
 }
 
 export const getDisplayCurrencyValue = ({
@@ -242,19 +247,23 @@ export const getDisplayCurrencyValue = ({
   evmMultiChainCurrencyRates,
   currentCurrency,
   nonEvmMultichainAssetRates,
+  tokenFiatRate,
 }: GetDisplayCurrencyValueParams): string => {
-  const currencyValue = calcTokenFiatValue({
-    token,
-    amount,
-    evmMultiChainMarketData,
-    networkConfigurationsByChainId,
-    evmMultiChainCurrencyRates,
-    nonEvmMultichainAssetRates,
-  });
-
   if (!token || !amount) {
     return formatCurrency('0', currentCurrency);
   }
+
+  const currencyValue =
+    tokenFiatRate === undefined
+      ? calcTokenFiatValue({
+          token,
+          amount,
+          evmMultiChainMarketData,
+          networkConfigurationsByChainId,
+          evmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates,
+        })
+      : Number(balanceToFiatNumber(amount, tokenFiatRate, 1));
 
   const formattedCurrencyValue = formatCurrency(currencyValue, currentCurrency);
   if (currencyValue >= 0.01 || currencyValue === 0) {

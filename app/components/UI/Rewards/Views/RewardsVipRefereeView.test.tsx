@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { buildVipPrioritySupportUrl } from '../../../../constants/urls';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
+import { selectIsVipReferee } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
@@ -35,6 +36,10 @@ const mockAccountAddress = '0xAbC0000000000000000000000000000000000123';
 let mockIsVipReferee = true;
 let mockIsVipProgramEnabled = true;
 let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
@@ -277,7 +282,6 @@ const getRewardsSelectorState = () => ({
     appTheme: 'dark',
   },
   rewards: {
-    isVipReferee: mockIsVipReferee,
     vipRefereeSplashAccepted: mockVipRefereeSplashAccepted,
   },
 });
@@ -300,6 +304,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return mockAccountAddress;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,
@@ -495,6 +500,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return undefined;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,
@@ -509,6 +515,9 @@ describe('RewardsVipRefereeView', () => {
     ).toBeDisabled();
   });
 
+  // isBetaBuild is fixed when the app is built, so a view test cannot switch
+  // the beta and release support URLs. The modal route itself is covered from
+  // the tax contact sheet and Rewards settings.
   // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
   // the priority support link opens directly rather than through the consent flow.
   it('opens the priority support webview tagged as VIP with the account address on press for a beta build', () => {
@@ -518,7 +527,7 @@ describe('RewardsVipRefereeView', () => {
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: buildVipPrioritySupportUrl(
@@ -526,6 +535,7 @@ describe('RewardsVipRefereeView', () => {
           'https://intercom.help/internal-beta-testing/en/',
         ),
         title: 'Contact support',
+        isModal: false,
       },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -578,11 +588,12 @@ describe('RewardsVipRefereeView', () => {
     const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
     openWebview(expectedUrl);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: expectedUrl,
         title: 'Contact support',
+        isModal: false,
       },
     });
   });
@@ -593,6 +604,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return undefined;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,

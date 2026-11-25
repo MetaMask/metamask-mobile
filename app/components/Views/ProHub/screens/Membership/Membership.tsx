@@ -1,16 +1,19 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  AccessibilityInfo,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  BottomSheet,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -20,215 +23,278 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { PAYMENT_TYPES } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  selectMoneyAccountPlusPricing,
+  selectMoneyAccountPlusSubscription,
+} from '../../../../../selectors/subscriptionController';
+import { useOpenMembershipInvoices } from '../../hooks/useOpenMembershipInvoices';
+import { useResumeMembership } from '../../hooks/useResumeMembership';
+import {
+  getMembershipManageAction,
+  MembershipManageAction,
+} from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
 import {
-  MOCK_MEMBERSHIP_STATS,
-  MOCK_PAYMENT_DETAILS,
-} from './Membership.constants';
+  getMembershipDetails,
+  getRenewalRowLabelKey,
+} from './Membership.utils';
+import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const SectionDivider = () => (
-  <Box twClassName="border-b border-border-muted my-6" />
+  <Box twClassName="border-b border-border-muted my-5" />
 );
 
 interface InfoRowProps {
   label: string;
   value: string;
-  hasInfo?: boolean;
-  onPress?: () => void;
   testID?: string;
 }
 
-const InfoRow = ({
-  label,
-  value,
-  hasInfo = false,
-  onPress,
-  testID,
-}: InfoRowProps) => {
-  const inner = (
-    <>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-x-1"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName={
-            hasInfo ? 'border-b-2 border-dotted border-border-default' : ''
-          }
-        >
-          {label}
-        </Text>
-      </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextDefault}
-      >
-        {value}
-      </Text>
-    </>
-  );
-
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        testID={testID}
-        accessibilityRole="button"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          {inner}
-        </Box>
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      testID={testID}
+const InfoRow = ({ label, value, testID }: InfoRowProps) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Between}
+    testID={testID}
+    twClassName="py-4"
+  >
+    <Text
+      variant={TextVariant.BodyMd}
+      color={TextColor.TextAlternative}
+      fontWeight={FontWeight.Medium}
     >
-      {inner}
-    </Box>
-  );
-};
+      {label}
+    </Text>
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {value}
+    </Text>
+  </Box>
+);
 
 interface ManageRowProps {
   label: string;
-  onPress: () => void;
+  description?: string;
+  descriptionTestID?: string;
+  onPress?: () => void;
   testID?: string;
+  isDisabled?: boolean;
+  isBusy?: boolean;
 }
 
-const ManageRow = ({ label, onPress, testID }: ManageRowProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    testID={testID}
-    accessibilityRole="button"
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+const ManageRow = ({
+  label,
+  description,
+  descriptionTestID,
+  onPress,
+  testID,
+  isDisabled,
+  isBusy,
+}: ManageRowProps): React.JSX.Element => {
+  const isInactive = Boolean(isDisabled) || !onPress;
+  // A busy row is temporarily disabled. Only a row that cannot be pressed
+  // shows the lock.
+  const showsLock = isInactive && !isBusy;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityState={{
+        disabled: isInactive,
+        busy: Boolean(isBusy),
+      }}
+      disabled={isInactive}
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </TouchableOpacity>
-);
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="gap-3 py-4"
+      >
+        <Box twClassName="flex-1 gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            color={isInactive ? TextColor.TextMuted : TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+          >
+            {label}
+          </Text>
+          {description ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextMuted}
+              testID={descriptionTestID}
+            >
+              {description}
+            </Text>
+          ) : null}
+        </Box>
+        <Icon
+          name={showsLock ? IconName.Lock : IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={isInactive ? IconColor.IconMuted : IconColor.IconAlternative}
+        />
+      </Box>
+    </TouchableOpacity>
+  );
+};
 
-// ─── Stat info bottom sheet ───────────────────────────────────────────────────
-
-interface StatInfoSheetProps {
-  title: string;
-  description: string;
-  onClose: () => void;
+interface MembershipActionRowProps {
+  action: MembershipManageAction;
+  isResuming: boolean;
+  onResume: () => void;
+  onCancel: () => void;
 }
 
-const StatInfoSheet = ({ title, description, onClose }: StatInfoSheetProps) => (
-  <BottomSheet onClose={onClose} testID={MembershipTestIds.STAT_INFO_SHEET}>
-    <Box twClassName="p-4 gap-y-4">
-      <Text
-        variant={TextVariant.HeadingMd}
-        color={TextColor.TextDefault}
-        testID={MembershipTestIds.STAT_INFO_SHEET_TITLE}
-        twClassName="text-center"
-      >
-        {title}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        testID={MembershipTestIds.STAT_INFO_SHEET_DESCRIPTION}
-      >
-        {description}
-      </Text>
-    </Box>
-  </BottomSheet>
-);
+const MembershipActionRow = ({
+  action,
+  isResuming,
+  onResume,
+  onCancel,
+}: MembershipActionRowProps) => {
+  if (action === MembershipManageAction.Resume) {
+    return (
+      <ManageRow
+        label={strings('pro_hub.membership.resume_membership')}
+        onPress={onResume}
+        testID={MembershipTestIds.RESUME_MEMBERSHIP_ROW}
+        isDisabled={isResuming}
+        isBusy={isResuming}
+      />
+    );
+  }
+
+  if (
+    action === MembershipManageAction.Cancel ||
+    action === MembershipManageAction.CancelBlocked
+  ) {
+    const isBlocked = action === MembershipManageAction.CancelBlocked;
+
+    return (
+      <ManageRow
+        label={strings('pro_hub.membership.cancel_membership')}
+        description={
+          isBlocked
+            ? strings('pro_hub.membership.cancel_not_allowed')
+            : undefined
+        }
+        descriptionTestID={
+          isBlocked ? MembershipTestIds.CANCEL_NOT_ALLOWED : undefined
+        }
+        onPress={isBlocked ? undefined : onCancel}
+        testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+        isDisabled={isBlocked}
+      />
+    );
+  }
+
+  return null;
+};
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
-
-type ActiveStatSheet = 'earned' | 'saved' | null;
-
-const STAT_SHEET_CONTENT: Record<
-  Exclude<ActiveStatSheet, null>,
-  { titleKey: string; descriptionKey: string }
-> = {
-  earned: {
-    titleKey: 'pro_hub.membership.earned_info.title',
-    descriptionKey: 'pro_hub.membership.earned_info.description',
-  },
-  saved: {
-    titleKey: 'pro_hub.membership.saved_info.title',
-    descriptionKey: 'pro_hub.membership.saved_info.description',
-  },
-};
 
 const Membership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { top } = useSafeAreaInsets();
-  const [activeSheet, setActiveSheet] = useState<ActiveStatSheet>(null);
+  const subscription = useSelector(selectMoneyAccountPlusSubscription);
+  const plusPricing = useSelector(selectMoneyAccountPlusPricing);
+  const membershipDetails = useMemo(
+    () => getMembershipDetails(subscription, plusPricing),
+    [plusPricing, subscription],
+  );
+  const {
+    resumeMembership,
+    isResuming,
+    errorMessage: resumeErrorMessage,
+  } = useResumeMembership();
+  const {
+    openInvoices,
+    isOpening: isOpeningInvoices,
+    errorMessage: invoicesErrorMessage,
+  } = useOpenMembershipInvoices();
+  const manageAction = getMembershipManageAction(subscription);
+  const showMoneyAccountIcon =
+    subscription !== undefined &&
+    subscription.paymentMethod.type !== PAYMENT_TYPES.byCard;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleCloseSheet = useCallback(() => {
-    setActiveSheet(null);
-  }, []);
-
-  const handleEarnedPress = useCallback(() => {
-    setActiveSheet('earned');
-  }, []);
-
-  const handleSavedPress = useCallback(() => {
-    setActiveSheet('saved');
-  }, []);
-
-  const handleContactSupport = useCallback(() => {
-    // TODO: navigate to support
-  }, []);
+  const handleInvoices = useCallback(() => {
+    // openInvoices reports its own failures, so the promise is intentionally not awaited.
+    // eslint-disable-next-line no-void -- openInvoices handles its own errors.
+    void openInvoices();
+  }, [openInvoices]);
 
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);
+
+  // Live regions miss users whose focus stays on the row. Announce the
+  // in-flight and failure states so VoiceOver and TalkBack hear them
+  // (WCAG 4.1.3 status messages, 3.3.1 error identification).
+  useEffect(() => {
+    if (!isResuming) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.resume_in_progress'),
+    );
+  }, [isResuming]);
+
+  useEffect(() => {
+    if (!resumeErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
+  }, [resumeErrorMessage]);
+
+  useEffect(() => {
+    if (!isOpeningInvoices) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.invoices_in_progress'),
+    );
+  }, [isOpeningInvoices]);
+
+  useEffect(() => {
+    if (!invoicesErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(invoicesErrorMessage);
+  }, [invoicesErrorMessage]);
 
   return (
     <View
       style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={MembershipTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={MembershipTestIds.BACK_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: MembershipTestIds.BACK_BUTTON,
+        }}
       />
 
       <ScrollView
@@ -237,35 +303,26 @@ const Membership = () => {
       >
         {/* Title */}
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="mb-6"
           testID={MembershipTestIds.TITLE}
+          twClassName="mb-2"
         >
           {strings('pro_hub.membership.title')}
         </Text>
 
         {/* ── Stats ─────────────────────────────────────────────────────── */}
-        <Box twClassName="gap-y-6" testID={MembershipTestIds.STATS_SECTION}>
+        <Box testID={MembershipTestIds.STATS_SECTION}>
           <InfoRow
             label={strings('pro_hub.membership.plan')}
-            value={MOCK_MEMBERSHIP_STATS.plan}
+            value={membershipDetails.plan}
             testID={MembershipTestIds.PLAN_ROW}
           />
           <InfoRow
-            label={strings('pro_hub.membership.earned_this_month')}
-            value={MOCK_MEMBERSHIP_STATS.earnedThisMonth}
-            hasInfo
-            onPress={handleEarnedPress}
-            testID={MembershipTestIds.EARNED_ROW}
-          />
-          <InfoRow
-            label={strings('pro_hub.membership.saved_this_month')}
-            value={MOCK_MEMBERSHIP_STATS.savedThisMonth}
-            hasInfo
-            onPress={handleSavedPress}
-            testID={MembershipTestIds.SAVED_ROW}
+            label={strings('pro_hub.membership.lifetime_earnings')}
+            value={membershipDetails.lifetimeEarnings}
+            testID={MembershipTestIds.LIFETIME_EARNINGS_ROW}
           />
         </Box>
 
@@ -277,21 +334,23 @@ const Membership = () => {
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            twClassName="mb-4"
+            twClassName="mb-2"
           >
             {strings('pro_hub.membership.payment_details')}
           </Text>
 
-          <Box twClassName="gap-y-4">
+          <Box>
             {/* Total row — strikethrough original + discounted price */}
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               testID={MembershipTestIds.TOTAL_ROW}
+              twClassName="py-4"
             >
               <Text
                 variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
                 {strings('pro_hub.membership.total')}
@@ -301,26 +360,30 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-1 flex-wrap"
               >
+                {membershipDetails.totalOriginal ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    twClassName="line-through"
+                  >
+                    {membershipDetails.totalOriginal}
+                  </Text>
+                ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  twClassName="line-through"
-                >
-                  {MOCK_PAYMENT_DETAILS.totalOriginal}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PAYMENT_DETAILS.totalDiscounted}
+                  {membershipDetails.total}
                 </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {`(${MOCK_PAYMENT_DETAILS.savingsNote})`}
-                </Text>
+                {membershipDetails.savingsNote ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {`(${membershipDetails.savingsNote})`}
+                  </Text>
+                ) : null}
               </Box>
             </Box>
 
@@ -330,10 +393,12 @@ const Membership = () => {
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               testID={MembershipTestIds.PAYING_WITH_ROW}
+              twClassName="py-4"
             >
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('pro_hub.membership.paying_with')}
               </Text>
@@ -342,27 +407,31 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-2"
               >
-                <Box twClassName="w-8 h-8 bg-background-section rounded-lg flex items-center justify-center">
-                  <Icon
-                    name={IconName.Wallet}
-                    size={IconSize.Sm}
-                    color={IconColor.IconDefault}
-                  />
-                </Box>
+                {showMoneyAccountIcon ? (
+                  <Box
+                    testID={MembershipTestIds.PAYING_WITH_MONEY_ICON}
+                    twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center"
+                  >
+                    <Icon
+                      name={IconName.AttachMoney}
+                      size={IconSize.Sm}
+                      twClassName="text-accent04-dark font-bold"
+                    />
+                  </Box>
+                ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PAYMENT_DETAILS.payingWith}
+                  {membershipDetails.payingWith}
                 </Text>
               </Box>
             </Box>
 
-            {/* Renews on */}
             <InfoRow
-              label={strings('pro_hub.membership.renews_on')}
-              value={MOCK_PAYMENT_DETAILS.renewsOn}
+              label={strings(getRenewalRowLabelKey(subscription))}
+              value={membershipDetails.renewsOn}
               testID={MembershipTestIds.RENEWS_ON_ROW}
             />
           </Box>
@@ -373,35 +442,53 @@ const Membership = () => {
         {/* ── Manage ───────────────────────────────────────────────────────── */}
         <Box
           testID={MembershipTestIds.MANAGE_SECTION}
-          twClassName="flex flex-col gap-y-6"
+          twClassName="flex flex-col"
         >
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
+            twClassName="mb-2"
           >
             {strings('pro_hub.membership.manage')}
           </Text>
           <ManageRow
-            label={strings('pro_hub.membership.contact_support')}
-            onPress={handleContactSupport}
-            testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
+            label={strings('pro_hub.membership.invoices')}
+            onPress={handleInvoices}
+            testID={MembershipTestIds.INVOICES_ROW}
+            isDisabled={isOpeningInvoices}
+            isBusy={isOpeningInvoices}
           />
-          <ManageRow
-            label={strings('pro_hub.membership.cancel_membership')}
-            onPress={handleCancelMembership}
-            testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+          {invoicesErrorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={MembershipTestIds.INVOICES_ERROR}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
+              {invoicesErrorMessage}
+            </Text>
+          ) : null}
+          <MembershipActionRow
+            action={manageAction}
+            isResuming={isResuming}
+            onResume={resumeMembership}
+            onCancel={handleCancelMembership}
           />
+          {resumeErrorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={MembershipTestIds.RESUME_ERROR}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
+              {resumeErrorMessage}
+            </Text>
+          ) : null}
         </Box>
       </ScrollView>
-
-      {activeSheet && (
-        <StatInfoSheet
-          title={strings(STAT_SHEET_CONTENT[activeSheet].titleKey)}
-          description={strings(STAT_SHEET_CONTENT[activeSheet].descriptionKey)}
-          onClose={handleCloseSheet}
-        />
-      )}
     </View>
   );
 };

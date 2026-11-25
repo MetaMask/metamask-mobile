@@ -6,12 +6,17 @@ import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictMarket } from '../types';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import { ensureError } from '../utils/predictErrorHandler';
+import type {
+  SearchRequestOutcome,
+  SearchRequestPerformance,
+} from '../../../../util/searchPerformance';
 
 export interface UsePredictSearchMarketDataOptions {
   q: string;
   pageSize?: number;
   refine?: (markets: PredictMarket[]) => PredictMarket[];
   enabled?: boolean;
+  performance?: SearchRequestPerformance;
 }
 
 export interface UsePredictSearchMarketDataResult {
@@ -35,6 +40,7 @@ export const usePredictSearchMarketData = ({
   pageSize = 20,
   refine,
   enabled = true,
+  performance,
 }: UsePredictSearchMarketDataOptions): UsePredictSearchMarketDataResult => {
   const trimmedQuery = q.trim();
 
@@ -46,24 +52,39 @@ export const usePredictSearchMarketData = ({
     hasNextPage,
     fetchNextPage,
     refetch: queryRefetch,
-  } = useInfiniteQuery<SearchPage, Error>({
+  } = useInfiniteQuery({
     queryKey: ['predict', 'markets', 'search', trimmedQuery, pageSize],
     enabled,
-    queryFn: async ({ pageParam = 1 }) => {
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      const requestHandle =
+        pageParam === 1 ? performance?.startRequest(trimmedQuery) : undefined;
+      let outcome: SearchRequestOutcome = 'success';
+
       if (!Engine?.context) {
+        requestHandle?.end('error');
         throw new Error('Engine not initialized');
       }
 
       const controller = Engine.context.PredictController;
       if (!controller) {
+        requestHandle?.end('error');
         throw new Error('Predict controller not available');
       }
 
-      return controller.searchMarkets({
-        q: trimmedQuery,
-        limit: pageSize,
-        page: pageParam as number,
-      });
+      try {
+        const result = await controller.searchMarkets({
+          q: trimmedQuery,
+          limit: pageSize,
+          page: pageParam as number,
+        });
+        return result;
+      } catch (requestError) {
+        outcome = 'error';
+        throw requestError;
+      } finally {
+        requestHandle?.end(outcome);
+      }
     },
     getNextPageParam: (lastPage, allPages) => {
       // Compare pages fetched × pageSize against the server total rather than

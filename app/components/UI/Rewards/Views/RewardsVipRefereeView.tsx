@@ -12,7 +12,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconColor,
   IconName,
   Skeleton,
@@ -24,8 +23,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import { exitRewardsFlow, getBetaSupportUrl } from '../utils';
+import { openContactSupportWebview } from '../utils/openContactSupportWebview';
 import {
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
@@ -58,6 +57,8 @@ import {
   formatRewardsTimeOnly,
   formatUsd,
 } from '../utils/formatUtils';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   VIEW: 'rewards-vip-referee-view',
@@ -80,6 +81,7 @@ const referredByCardStyle = {
 const referredByTextStyle = { color: VIP_GOLD_TEXT_MUTED };
 
 const RewardsVipRefereeViewContent: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -136,13 +138,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
     }
 
     const openWebview = (url: string) =>
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
+      openContactSupportWebview(navigation, url);
 
     const betaSupportUrl = getBetaSupportUrl();
 
@@ -192,7 +188,9 @@ const RewardsVipRefereeViewContent: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title=""
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

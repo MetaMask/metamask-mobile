@@ -1,9 +1,15 @@
+import type { CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
+import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import {
   MoneyAccountApiDataServiceQueryKeys,
   MoneyAccountBalanceServiceQueryKeys,
 } from '../queryKeys';
+import {
+  getMoneyAccountBalanceQueryKey,
+  type MoneyBalanceFreshOptions,
+} from './moneyAccountBalanceQueryKey';
 
 /**
  * Force-refresh Money Account balance through the facade.
@@ -47,10 +53,76 @@ export async function invalidateMoneyAccountBalanceCaches(
   ]);
 
   await ReactQueryService.queryClient.invalidateQueries({
-    queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-      address,
-    ],
+    queryKey: getMoneyAccountBalanceQueryKey(address),
     refetchType: 'all',
   });
+}
+
+/**
+ * Force a fresh Money Account balance read and write it into the UI cache.
+ *
+ * The UI query key is normally `[fetchBalanceWithFallback, address]`, so a
+ * plain refetch calls the facade with no options and can be served from the
+ * Money API response cache. This helper calls the facade directly with
+ * `{ fresh: true }`, which the API source forwards as `Cache-Control: no-cache`.
+ * When `minBlock` is set and the API `as_of_block` is still behind it, the
+ * service throws and falls back to RPC when the active policy allows it.
+ *
+ * `fresh` is ignored on the RPC path, so the RPC adapter cache is invalidated
+ * first. In-flight facade refetches are cancelled so they cannot commit a
+ * non-fresh read afterwards. The result is written onto both the plain and
+ * fresh query keys so observers update whether or not they are currently in
+ * the post-confirm fresh window (options live on the Money query key, not in
+ * generic query plumbing).
+ *
+ * @param address - Money account address (same casing as used by the UI query).
+ * @param options - Optional confirmed-block floor for the API read.
+ * @param options.minBlock - Minimum indexer block the API result must reach.
+ * @returns The canonical balance written into the UI cache.
+ */
+export async function refreshMoneyAccountBalanceFresh(
+  address: string,
+  { minBlock }: { minBlock?: number } = {},
+): Promise<CanonicalMoneyAccountBalanceResponse> {
+  // Checksummed addresses are mixed-case. `isHexAddress` only accepts
+  // lowercase, so it would reject real Money account addresses.
+  if (!isStrictHexString(address)) {
+    throw new Error('Money account address is not a hex string');
+  }
+
+  const freshOptions: MoneyBalanceFreshOptions = {
+    fresh: true,
+    ...(minBlock !== undefined && { minBlock }),
+  };
+  const plainQueryKey = getMoneyAccountBalanceQueryKey(address);
+  const freshQueryKey = getMoneyAccountBalanceQueryKey(address, freshOptions);
+
+  // Prefix match: cancels both the plain and fresh-keyed facade queries.
+  await ReactQueryService.queryClient.cancelQueries({
+    queryKey: plainQueryKey,
+  });
+
+  await Engine.controllerMessenger.call(
+    'MoneyAccountBalanceService:invalidateQueries',
+    {
+      queryKey: [
+        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+        address,
+      ],
+    },
+  );
+
+  const result = await Engine.controllerMessenger.call(
+    'MoneyAccountBalanceService:fetchBalanceWithFallback',
+    address,
+    freshOptions,
+  );
+
+  await ReactQueryService.queryClient.cancelQueries({
+    queryKey: plainQueryKey,
+  });
+  ReactQueryService.queryClient.setQueryData(plainQueryKey, result);
+  ReactQueryService.queryClient.setQueryData(freshQueryKey, result);
+
+  return result;
 }

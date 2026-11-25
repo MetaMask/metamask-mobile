@@ -4,24 +4,24 @@ import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 import {
   Assertions,
-  EncapsulatedElementType,
+  type AppiumElement,
   PlatformDetector,
 } from '../../framework';
 
 class StakeView {
-  get stakeContainer(): EncapsulatedElementType {
+  get stakeContainer(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
   }
 
-  get unstakeContainer(): EncapsulatedElementType {
+  get unstakeContainer(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
   }
 
-  get reviewButton(): EncapsulatedElementType {
+  get reviewButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 
@@ -33,7 +33,7 @@ class StakeView {
   async enterAmount(amount: string): Promise<void> {
     // Text match for "1"/"0" hits balances; use keypad testIDs.
     // iOS: accessibility-id matching for these keys is unreliable — use name XPath
-    // (same pattern as QuoteView.enterAmount / RedesignedSendView.enterAmountViaNumpad).
+    // (same pattern as QuoteView.enterAmount / SendView.enterAmountViaNumpad).
     const isAndroid = PlatformDetector.isAndroid();
     for (const digit of amount.split('')) {
       const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;

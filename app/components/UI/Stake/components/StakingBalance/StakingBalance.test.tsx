@@ -13,6 +13,21 @@ import {
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
 import StakingBalance from './StakingBalance';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+
+// The glass test needs the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -21,8 +36,12 @@ import {
   getMockUseEarnTokens,
 } from '../../../Earn/__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
+import usePooledStakes from '../../hooks/usePooledStakes';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
@@ -122,19 +141,12 @@ const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
 jest.mock('../../hooks/usePooledStakes', () => ({
   __esModule: true,
-  default: () => ({
-    pooledStakesData: mockPooledStakeData,
-    exchangeRate: mockExchangeRate,
-    loading: false,
-    error: null,
-    refreshPooledStakes: jest.fn(),
-    hasStakedPositions: true,
-    hasEthToUnstake: true,
-    hasNeverStaked: false,
-    hasRewards: true,
-    hasRewardsOnly: false,
-  }),
+  default: jest.fn(),
 }));
+
+const mockUsePooledStakes = usePooledStakes as jest.MockedFunction<
+  typeof usePooledStakes
+>;
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
@@ -197,6 +209,18 @@ describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
+    mockUsePooledStakes.mockReturnValue({
+      pooledStakesData: mockPooledStakeData,
+      exchangeRate: mockExchangeRate,
+      isLoadingPooledStakesData: false,
+      error: null,
+      refreshPooledStakes: jest.fn(),
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      hasNeverStaked: false,
+      hasRewards: true,
+      hasRewardsOnly: false,
+    });
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
       isLoadingEligibility: false,
@@ -206,6 +230,11 @@ describe('StakingBalance', () => {
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
     ).mockReturnValue(true);
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(false);
     (earnSelectors.selectEarnToken as unknown as jest.Mock).mockImplementation(
       (_token: TokenI) => {
         const experienceType =
@@ -269,6 +298,39 @@ describe('StakingBalance', () => {
       { state: mockInitialState },
     );
     expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+  });
+
+  it('renders pooled-staking maintenance banner without a staking position', () => {
+    mockUsePooledStakes.mockReturnValue({
+      pooledStakesData: mockPooledStakeData,
+      exchangeRate: mockExchangeRate,
+      isLoadingPooledStakesData: false,
+      error: null,
+      refreshPooledStakes: jest.fn(),
+      hasStakedPositions: false,
+      hasEthToUnstake: false,
+      hasNeverStaked: true,
+      hasRewards: false,
+      hasRewardsOnly: false,
+    });
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByText(
+        strings('earn.service_interruption_banner.maintenance_message', {
+          experienceName: 'Pooled Staking',
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('redirects to StakeInputView on stake button click', async () => {
@@ -386,5 +448,19 @@ describe('StakingBalance', () => {
 
     expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
+  });
+
+  it('passes glass to the stake buttons', () => {
+    const { queryAllByTestId, rerender } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+    expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+
+    rerender(<StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} isGlass />);
+
+    expect(
+      queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID).length,
+    ).toBeGreaterThan(0);
   });
 });

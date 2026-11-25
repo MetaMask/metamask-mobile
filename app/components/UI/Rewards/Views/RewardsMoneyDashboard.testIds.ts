@@ -1,0 +1,23 @@
+export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
+  CONTAINER: 'rewards-money-dashboard',
+  LOADING: 'rewards-money-dashboard-loading',
+  ERROR: 'rewards-money-dashboard-error',
+  SHARE_BUTTON: 'rewards-money-dashboard-share-button',
+  SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
+  TABS: 'rewards-money-dashboard-tabs',
+  WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
+  EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
+  WAYS_TO_EARN_TAB_DOT:
+    'rewards-money-dashboard-ways-to-earn-tab-indicator-dot',
+  CAMPAIGNS_TAB: 'rewards-money-dashboard-campaigns-tab',
+  BENEFITS_TAB: 'rewards-money-dashboard-benefits-tab',
+  WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
+  EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
+  CAMPAIGNS_BODY: 'rewards-money-dashboard-campaigns-body',
+  BENEFITS_BODY: 'rewards-money-dashboard-benefits-body',
+  SUBSCRIPTION_PENDING: 'rewards-money-dashboard-subscription-pending',
+  TITLE_SECTION: 'rewards-money-dashboard-title-section',
+  SCROLL_VIEW: 'rewards-money-dashboard-scroll-view',
+  PANEL: 'rewards-money-dashboard-panel',
+  SCROLL_CLIP_SPACER: 'rewards-money-dashboard-scroll-clip-spacer',
+} as const;

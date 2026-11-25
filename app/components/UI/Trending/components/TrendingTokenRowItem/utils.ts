@@ -1,4 +1,5 @@
-import { ImageSourcePropType } from 'react-native';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native';
+import type { ImageSourcePropType } from 'react-native';
 import {
   CaipChainId,
   isCaipChainId,
@@ -51,6 +52,12 @@ export const getNetworkBadgeSource = (
   return undefined;
 };
 
+/** Same lookup as `getNetworkBadgeSource`, typed for design-system `BadgeNetwork`. */
+export const getNetworkBadgeSrc = (
+  caipChainId: CaipChainId,
+): ImageOrSvgSrc | undefined =>
+  getNetworkBadgeSource(caipChainId) as ImageOrSvgSrc | undefined;
+
 /**
  * Formats a number as compact currency string with magnitude abbreviations
  * @param value - The number to format
@@ -93,23 +100,55 @@ export function formatCompactCurrency(
 }
 
 /**
+ * Formats market cap as a label.
+ *
+ * @param marketCap - Market capitalization value
+ * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
+ * @returns Formatted string (e.g., "$13B cap" or "- cap" for zero)
+ */
+export function formatMarketCap(
+  marketCap: number,
+  currencyCode: string = 'USD',
+): string {
+  const capStr =
+    marketCap === 0 ? '-' : formatCompactCurrency(marketCap, currencyCode);
+  return `${capStr} cap`;
+}
+
+/**
  * Formats market cap and volume as a combined string
  * Shows dash for zero values
  * @param marketCap - Market capitalization value
  * @param volume - Trading volume value
  * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
- * @returns Formatted string (e.g., "$13B cap • $34.2M vol" or "— cap • — vol" for zeros)
+ * @returns Formatted string (e.g., "$13B cap • $34.2M vol" or "- cap • - vol" for zeros)
  */
 export function formatMarketStats(
   marketCap: number,
   volume: number,
   currencyCode: string = 'USD',
 ): string {
-  const capStr =
-    marketCap === 0 ? '-' : formatCompactCurrency(marketCap, currencyCode);
   const volStr =
     volume === 0 ? '-' : formatCompactCurrency(volume, currencyCode);
-  return `${capStr} cap • ${volStr} vol`;
+  return `${formatMarketCap(marketCap, currencyCode)} • ${volStr} vol`;
+}
+
+/**
+ * Formats the search-row subtitle: token symbol and market cap.
+ *
+ * @param symbol - Token symbol
+ * @param marketCap - Market capitalization value
+ * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
+ * @returns Formatted string (e.g., "USDC · $76B cap")
+ */
+export function formatSearchStats(
+  symbol: string | undefined,
+  marketCap: number,
+  currencyCode: string = 'USD',
+): string {
+  return [symbol, formatMarketCap(marketCap, currencyCode)]
+    .filter(Boolean)
+    .join(' \u00B7 ');
 }
 
 /**

@@ -1,0 +1,1462 @@
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Routes from '../../../../constants/navigation/Routes';
+import SocialV1View from './SocialV1View';
+import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
+import { SOCIAL_V1_AB_KEY } from './abTestConfig';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
+import {
+  addPendingPost,
+  resetPendingPosts,
+} from '../pendingPosts/pendingPostsStore';
+import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
+import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
+import type { UseMyProfileResult } from '../MyProfileView/hooks';
+import type { SocialShellTab } from '../shell/types';
+import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
+import { backdropFadeOpacity } from '../../../../component-library/components-temp/HeaderGlass/test-utils';
+
+const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockOpenComposer = jest.fn();
+const mockTrack = jest.fn();
+const mockFeedInteractions = {};
+const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockOpenSystemSettings = jest.fn();
+const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
+const mockMarkSocialTabVisited = jest.fn();
+const mockSocialFeed = jest.fn();
+const mockFeedScrollToOffset = jest.fn();
+const mockFeedWindowOffsetY = jest.fn();
+const mockBottomTabPressListeners = new Set<() => void>();
+let mockIsFocused = true;
+const pressSocialBottomTab = () =>
+  act(() => {
+    mockBottomTabPressListeners.forEach((listener) => listener());
+  });
+const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
+  profile: null,
+  isLoading: false,
+  error: null,
+  refresh: mockRefreshMyProfile,
+}));
+let mockRouteParams: {
+  showNotificationsBanner?: boolean;
+  initialTab?: SocialShellTab;
+  source?: string;
+} = {};
+
+jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: new Set(),
+    blockedCommentIds: new Set(),
+  }),
+}));
+
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => mockUseMyProfile(),
+}));
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
+jest.mock('../hooks/useOpenSocialPostComposer', () => ({
+  useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+}));
+
+const mockUseQuoteTokensQuery = jest.fn();
+jest.mock('../PostTradeShareBottomSheet/useQuoteTokensQuery', () => ({
+  useQuoteTokensQuery: (enabled: boolean) => mockUseQuoteTokensQuery(enabled),
+}));
+
+jest.mock('../utils/socialTabVisit', () => ({
+  markSocialTabVisited: () => mockMarkSocialTabVisited(),
+}));
+
+// Following reads the viewer's follow graph through React Query. This suite
+// covers the V1 chrome, so stand in for that query.
+jest.mock('../NotificationPreferences/hooks/useFollowedTraders', () => ({
+  useFollowedTraders: () => ({
+    traders: [{ id: 'followed-1' }],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
+// The feed pages fetch through `useSocialFeed`, which reads keyring state and
+// React Query. This suite covers the V1 chrome, so stand in for it.
+jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
+  useSocialFeed: jest.fn(() => ({
+    posts: [],
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(async () => undefined),
+    dataUpdatedAt: undefined,
+  })),
+}));
+
+jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
+  const ReactActual = jest.requireActual('react') as typeof React;
+  const { View, ScrollView } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
+  );
+  const { SocialFeedWindowOffsetContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedWindowOffsetContext',
+  );
+
+  interface MockSocialFeedProps {
+    location?: string;
+    realtime?: boolean;
+    paused?: boolean;
+    filterPost?: (post: unknown) => boolean;
+    renderHeader?: () => React.ReactNode;
+    scrollTestID?: string;
+    testID?: string;
+    onScroll?: import('react-native').ScrollViewProps['onScroll'];
+    pageRef?: React.Ref<{
+      scrollToOffset: (offset: number, animated?: boolean) => void;
+    }>;
+  }
+
+  const MockSocialFeed = (props: MockSocialFeedProps) => {
+    mockSocialFeed(props);
+    mockFeedWindowOffsetY(
+      props.location,
+      ReactActual.useContext(SocialFeedWindowOffsetContext),
+    );
+    ReactActual.useImperativeHandle(props.pageRef, () => ({
+      scrollToOffset: (offset: number, animated?: boolean) =>
+        mockFeedScrollToOffset(props.location, offset, animated),
+    }));
+    return ReactActual.createElement(
+      View,
+      { testID: props.testID },
+      ReactActual.createElement(
+        SocialFeedRealtimeContext.Provider,
+        {
+          value: {
+            paused: props.paused ?? false,
+            pendingNewCount: 0,
+          },
+        },
+        props.renderHeader?.(),
+      ),
+      ReactActual.createElement(ScrollView, {
+        testID: props.scrollTestID,
+        onScroll: props.onScroll,
+      }),
+    );
+  };
+
+  return {
+    __esModule: true,
+    default: MockSocialFeed,
+  };
+});
+
+const mockUseABTest = jest.fn();
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => {
+    mockUseABTest(...args);
+    return {
+      variant: { useSocialV1: true },
+      variantName: 'treatment',
+      isActive: true,
+    };
+  },
+}));
+
+jest.mock('../analytics', () => {
+  const events = jest.requireActual('../analytics/socialLeaderboardEvents');
+  const socialEvents = jest.requireActual('../analytics/socialEvents');
+  return {
+    ...events,
+    ...socialEvents,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+    useSocialFeedInteractions: () => mockFeedInteractions,
+    useSocialInteraction: () => mockTrack,
+    useSocialScreenAnalytics: () => mockTrack,
+  };
+});
+
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { item: { id: string } } }) => (
+      <View testID={`social-v1-feed-card-${post.item.id}`} />
+    ),
+  };
+});
+
+// The Following tab reads the lock state. The default test store has no
+// keyring slice, so this matches its locked default and skips the prefetch.
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
+  selectIsUnlocked: () => false,
+}));
+
+jest.mock('./feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
+  };
+});
+
+jest.mock('./feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
+
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+let mockPagerProps:
+  | {
+      onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
+      onPageScrollStateChanged?: (e: {
+        nativeEvent: { pageScrollState: 'idle' | 'dragging' | 'settling' };
+      }) => void;
+    }
+  | undefined;
+
+beforeEach(() => {
+  mockPagerProps = undefined;
+});
+
+const settlePager = () => {
+  act(() => {
+    mockPagerProps?.onPageScrollStateChanged?.({
+      nativeEvent: { pageScrollState: 'idle' },
+    });
+  });
+};
+
+jest.mock('react-native-pager-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockPagerView = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
+        testID?: string;
+      },
+      _ref: React.Ref<unknown>,
+    ) => {
+      mockPagerProps = props;
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  );
+  MockPagerView.displayName = 'MockPagerView';
+  return { __esModule: true, default: MockPagerView };
+});
+
+jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
+  playSelection: () => mockPlaySelection(),
+  fireImpact: jest.fn(),
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => true,
+  selectHasSocialV1Access: () => true,
+}));
+
+jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'top-traders-view' }),
+  };
+});
+
+jest.mock('../shell/LeaderboardShellTabPage', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ isActive }: { isActive?: boolean }) =>
+      isActive
+        ? ReactActual.createElement(View, { testID: 'top-traders-view' })
+        : null,
+  };
+});
+
+jest.mock(
+  '../../../../util/notifications/services/NotificationService',
+  () => ({
+    __esModule: true,
+    default: { openSystemSettings: () => mockOpenSystemSettings() },
+  }),
+);
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setParams: mockSetParams,
+      addListener: (event: string, listener: () => void) => {
+        if (event !== 'tabPress') {
+          return () => undefined;
+        }
+        mockBottomTabPressListeners.add(listener);
+        return () => mockBottomTabPressListeners.delete(listener);
+      },
+    }),
+    useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
+    useIsFocused: () => mockIsFocused,
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => callback(), [callback]);
+    },
+  };
+});
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return {
+    ...Reanimated,
+    useReducedMotion: jest.fn(() => false),
+    interpolate: (
+      value: number,
+      input: readonly number[],
+      output: readonly number[],
+    ) => {
+      const [inMin, inMax] = input;
+      const [outMin, outMax] = output;
+      if (inMax === inMin) {
+        return outMin;
+      }
+      const clamped = Math.max(inMin, Math.min(inMax, value));
+      const ratio = (clamped - inMin) / (inMax - inMin);
+      return outMin + ratio * (outMax - outMin);
+    },
+    // The stock mock resets shared values every render, freezes derived
+    // values, and ignores scroll handlers, so a scrolled tab could never
+    // reach the scroll-driven header backdrop and tabs bar states.
+    useSharedValue: (init: unknown) => {
+      const ReactActual = jest.requireActual('react') as typeof import('react');
+      const ref = ReactActual.useRef<{ value: unknown } | null>(null);
+      if (!ref.current) {
+        ref.current = { value: init };
+      }
+      return ref.current;
+    },
+    useDerivedValue: (processor: () => unknown) => ({
+      get value() {
+        return processor();
+      },
+    }),
+    useAnimatedScrollHandler:
+      (
+        handlers:
+          | ((event: { contentOffset: { y: number } }) => void)
+          | { onScroll?: (event: { contentOffset: { y: number } }) => void },
+      ) =>
+      (event: { nativeEvent?: { contentOffset: { y: number } } }) => {
+        const scrollEvent = event.nativeEvent ?? event;
+        const onScroll =
+          typeof handlers === 'function' ? handlers : handlers.onScroll;
+        onScroll?.(scrollEvent as { contentOffset: { y: number } });
+      },
+  };
+});
+
+jest.mock('react-native-gesture-handler', () => {
+  const chainable = () => {
+    const api: Record<string, unknown> = {};
+    const returnApi = () => api;
+    [
+      'enabled',
+      'onBegin',
+      'onStart',
+      'onUpdate',
+      'onEnd',
+      'onFinalize',
+      'activeOffsetX',
+      'failOffsetY',
+      'hitSlop',
+      'minDistance',
+      'maxPointers',
+    ].forEach((method) => {
+      api[method] = jest.fn(returnApi);
+    });
+    return api;
+  };
+
+  return {
+    Gesture: {
+      Pan: jest.fn(chainable),
+    },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
+
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
+describe('SocialV1View', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
+    mockRouteParams = {};
+    mockIsFocused = true;
+    act(() => {
+      resetPendingPosts();
+    });
+    mockUseMyProfile.mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshMyProfile,
+    });
+  });
+
+  afterEach(() => {
+    act(() => {
+      resetPendingPosts();
+    });
+  });
+
+  it('renders Trending, Following, Leaderboard, and Live tabs', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0-label`),
+    ).toHaveTextContent('social_leaderboard.feed.tabs.trending');
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1-label`),
+    ).toHaveTextContent('social_leaderboard.feed.tabs.following');
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2-label`),
+    ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
+    ).toHaveTextContent('social_leaderboard.feed.tabs.live');
+  });
+
+  it('loads the quote-token list for Social V1', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
+  });
+
+  it('floats the header with a glass backdrop that fades in as the feed scrolls', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+
+    expect(
+      backdropFadeOpacity(screen.getByTestId(FLOATING_HEADER_FADE_TEST_ID)),
+    ).toBe(0);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 128, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(
+      backdropFadeOpacity(screen.getByTestId(FLOATING_HEADER_FADE_TEST_ID)),
+    ).toBe(1);
+  });
+
+  it('scrolls the tabs bar away as the active feed scrolls', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 36, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(getTranslateY()).toBe(-36);
+  });
+
+  it('pins the tabs bar at rest when the feed overscrolls negatively', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: -25, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    const translateY = StyleSheet.flatten(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+    )?.transform?.[0]?.translateY;
+    expect(Math.abs(translateY ?? 0)).toBe(0);
+  });
+
+  it('resets scroll position to the top when switching tabs by tapping', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    rerender(<SocialV1View />);
+    settlePager();
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    mockFeedScrollToOffset.mockClear();
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 80, x: 0 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+  });
+
+  it('resets scroll position to the top when switching tabs by swiping', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const getTranslateY = () =>
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_CONTAINER).props.style,
+      )?.transform?.[0]?.translateY;
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 90, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
+    });
+    rerender(<SocialV1View />);
+    settlePager();
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+
+    mockFeedScrollToOffset.mockClear();
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 80, x: 0 } } },
+    );
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 0 } });
+    });
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(Math.abs(getTranslateY() ?? 0)).toBe(0);
+  });
+
+  it('scrolls the active page to the top when its tab is tapped again', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      true,
+    );
+  });
+
+  it('does not scroll the page to the top when a different tab is tapped', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      true,
+    );
+  });
+
+  describe('when Social is tapped again in the bottom nav', () => {
+    const openFollowing = () => {
+      fireEvent.press(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      );
+      mockTrack.mockClear();
+      mockFeedScrollToOffset.mockClear();
+    };
+
+    it('scrolls a scrolled page to the top and keeps its tab', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+      fireEvent.scroll(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+        { nativeEvent: { contentOffset: { y: 400, x: 0 } } },
+      );
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+        'social_following',
+        0,
+        true,
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({ interaction_type: 'tab_changed' }),
+      );
+    });
+
+    it('returns to the first tab once the page is already at the top', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+
+      pressSocialBottomTab();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({
+          interaction_type: 'tab_changed',
+          tab: 'tab_trending',
+          tab_change_method: 'tap',
+        }),
+      );
+    });
+
+    it('keeps the scroll position when Social is opened from another tab', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+      fireEvent.scroll(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+        { nativeEvent: { contentOffset: { y: 400, x: 0 } } },
+      );
+      mockIsFocused = false;
+      screen.rerender(<SocialV1View />);
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on the first tab when it is already at the top', () => {
+      renderWithProvider(<SocialV1View />);
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({ interaction_type: 'tab_changed' }),
+      );
+    });
+  });
+
+  it('omits tab sub-navigation pills', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('social-shell-subnav')).toBeNull();
+  });
+
+  it('mounts the leaderboard list once the Leaderboard tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+    settlePager();
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
+  });
+
+  it('switches the mounted view to a newly requested initial tab and clears the request', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    mockRouteParams = { initialTab: 'leaderboard' };
+    rerender(<SocialV1View />);
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
+    expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.anything(),
+    );
+  });
+
+  it('scrolls the requested tab back to its top', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    mockFeedScrollToOffset.mockClear();
+
+    mockRouteParams = { initialTab: 'trending' };
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+  });
+
+  it('holds the pages back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockSocialFeed).not.toHaveBeenCalled();
+  });
+
+  it('renders Trending through the shared virtualized feed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    const trendingFeed = mockSocialFeed.mock.calls
+      .map(([props]) => props)
+      .filter((props) => props.location === 'social_trending')
+      .pop();
+
+    expect(trendingFeed).toEqual(
+      expect.objectContaining({
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
+        performance: expect.objectContaining({ tab: 'trending' }),
+        contentTopInset: expect.any(Number),
+        pendingPostsTopOffset: expect.objectContaining({
+          value: expect.any(Number),
+        }),
+        testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
+        scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
+      }),
+    );
+  });
+
+  describe('feed window offset', () => {
+    const safeArea = jest.requireMock('react-native-safe-area-context') as {
+      useSafeAreaInsets: () => {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+      };
+    };
+
+    beforeEach(() => {
+      jest
+        .spyOn(safeArea, 'useSafeAreaInsets')
+        .mockReturnValue({ top: 62, right: 0, bottom: 0, left: 0 });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('gives iOS pager pages the top safe area as their window offset', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(mockFeedWindowOffsetY).toHaveBeenLastCalledWith(
+        'social_trending',
+        62,
+      );
+    });
+
+    it('drops the window offset while the notifications banner is shown', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+
+      expect(mockFeedWindowOffsetY).toHaveBeenLastCalledWith(
+        'social_trending',
+        0,
+      );
+    });
+  });
+
+  it('emits TSA-1122 exposure when the v1 home opens', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      SOCIAL_V1_AB_KEY,
+      expect.anything(),
+      expect.objectContaining({ experimentName: 'Social V1' }),
+    );
+  });
+
+  it('marks Social as visited when the v1 home opens', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the account mask icon when no profile exists', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens My Profile from the avatar', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the post composer from the plus button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    const composerButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (node) => node.props.testID === SocialV1ViewSelectorsIDs.PLUS_BUTTON,
+      );
+
+    expect(composerButton?.props.iconName).toBe(IconName.FeedPost);
+    expect(composerButton?.props.size).toBe(ButtonIconSize.Md);
+    expect(composerButton?.props.iconProps).toEqual({
+      color: IconColor.IconDefault,
+    });
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the composer with the source the Social screen was opened from', () => {
+    mockRouteParams = { source: 'home_banner' };
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: 'home_banner',
+    });
+  });
+
+  it('opens the composer without a source when the screen has none', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: undefined,
+    });
+  });
+
+  it('opens Rewards from the gift button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
+  it('keeps the header action icons transparent while pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+      'pressIn',
+    );
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON),
+      'pressIn',
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+  });
+
+  describe('after posting', () => {
+    const PENDING_ITEM_ID = 'pending-item';
+
+    beforeEach(() => {
+      mockUseMyProfile.mockReturnValue({
+        profile: {
+          profileId: 'viewer-profile',
+          displayName: 'Giga Whale',
+          handle: 'giga_whale',
+        },
+        isLoading: false,
+        error: null,
+        refresh: mockRefreshMyProfile,
+      });
+      act(() => {
+        addPendingPost({
+          ownerProfileId: 'viewer-profile',
+          post: {
+            id: 'pending-comment-1',
+            commentId: 'comment-1',
+            authorHandle: 'Giga Whale',
+            timestampMs: Date.now(),
+            reactions: [],
+            item: mockOpenPerpsFeedItem({
+              id: PENDING_ITEM_ID,
+              comment: 'this is alpha',
+            }),
+          },
+        });
+      });
+    });
+
+    it('does not pin the new post on Following', () => {
+      renderWithProvider(<SocialV1View />);
+      fireEvent.press(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      );
+
+      expect(
+        within(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+        ).queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
+    });
+
+    it('stays on Trending, without the post, when no post was just written', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
+    });
+  });
+
+  it('renders the Live filter icon on the Live page', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    expect(
+      screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialFeedRealtimeSelectorsIDs.LIVE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('enables Live realtime only while the Live tab is active', () => {
+    renderWithProvider(<SocialV1View />);
+    const lastLiveCall = () =>
+      mockSocialFeed.mock.calls
+        .map(([props]) => props)
+        .filter((props) => props.location === 'social_live')
+        .at(-1);
+
+    // Pages mount lazily, so Live has not rendered yet.
+    expect(lastLiveCall()).toBeUndefined();
+
+    // A first visit activates the page right away.
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
+
+    // Going back to a visited tab turns the old page off after the animation.
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+    expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
+    settlePager();
+
+    expect(lastLiveCall()).toEqual(
+      expect.objectContaining({ realtime: false }),
+    );
+  });
+
+  it('filters Live posts with the applied Live filters', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+    const filterBeforeApply = mockSocialFeed.mock.lastCall?.[0].filterPost;
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(screen.getByTestId(getFilterChipTestId('type', 'perps')));
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
+
+    expect(filterBeforeApply).toEqual(expect.any(Function));
+    expect(mockSocialFeed.mock.lastCall?.[0].filterPost).not.toBe(
+      filterBeforeApply,
+    );
+  });
+
+  it('opens the filters bottom sheet from the Live filter button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('closes the filters bottom sheet when Apply is pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
+
+    expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('closes the filters bottom sheet when the backdrop is pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
+
+    expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('opens Trending Custom filters with Positions and without Verification', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'open')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'closed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('verification', 'verified')),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('type', 'predictions')),
+    ).toBeNull();
+  });
+
+  it('opens the filters bottom sheet from the Following filter button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('omits the header back button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('social-v1-view-back-button')).toBeNull();
+  });
+
+  it('tracks Live tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_live',
+      }),
+    );
+  });
+
+  it('tracks Following tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_following',
+        tab_change_method: 'tap',
+      }),
+    );
+  });
+
+  it('tracks Leaderboard tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_leaderboard',
+      }),
+    );
+  });
+
+  it('tracks Trending tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    mockTrack.mockClear();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_trending',
+        tab_change_method: 'tap',
+      }),
+    );
+  });
+
+  it('tracks swipe tab changes via Follow Trading Interaction', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    mockTrack.mockClear();
+
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 0 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_trending',
+        tab_change_method: 'swipe',
+      }),
+    );
+  });
+
+  it('does not mislabel a swipe as tap after tapping the already-active tab', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+    mockTrack.mockClear();
+
+    act(() => {
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_following',
+        tab_change_method: 'swipe',
+      }),
+    );
+  });
+
+  it('renders the animated header title', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.HEADER_TITLE),
+    ).toHaveTextContent('homepage.sections.top_traders');
+  });
+
+  it('marks Live filters active after applying a draft change', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    const filterButton = () =>
+      screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON);
+    const inactiveStyle = StyleSheet.flatten(filterButton().props.style);
+
+    fireEvent.press(filterButton());
+    fireEvent.press(screen.getByTestId('social-filters-type-tokens'));
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
+
+    const activeStyle = StyleSheet.flatten(filterButton().props.style);
+    expect(activeStyle?.backgroundColor).not.toBe(
+      inactiveStyle?.backgroundColor,
+    );
+  });
+
+  it('plays a selection haptic when switching to a different tab', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not play a haptic when pressing the already-active tab', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockPlaySelection).not.toHaveBeenCalled();
+  });
+
+  it('renders Following through the shared virtualized feed once that tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+    const followingFeedProps = () =>
+      mockSocialFeed.mock.calls
+        .map(([props]) => props)
+        .filter((props) => props.location === 'social_following')
+        .pop();
+    const beforeOpening = followingFeedProps();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    settlePager();
+
+    expect(beforeOpening).toBeUndefined();
+    expect(followingFeedProps()).toEqual(
+      expect.objectContaining({
+        scope: 'following_v1',
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
+        performance: expect.objectContaining({ tab: 'following' }),
+      }),
+    );
+    expect(followingFeedProps()).not.toHaveProperty('realtime');
+  });
+
+  it('insets the header avatar so it shares the 16px tab padding', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON).props.style,
+      ).marginLeft,
+    ).toBe(8);
+  });
+
+  it('uses the profile image URL for the header avatar when available', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: {
+        profileId: 'current-user',
+        displayName: 'Test User',
+        handle: 'test-user',
+        imageUrl: 'https://example.com/avatar.png',
+      },
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshMyProfile,
+    });
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeNull();
+  });
+
+  describe('notifications nudge banner', () => {
+    it('is hidden by default when the route param is unset', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(
+        screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('renders when the showNotificationsBanner route param is set', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+
+      expect(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens system settings and dismisses when the CTA is pressed', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+      fireEvent.press(
+        screen.getByText(
+          'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+        ),
+      );
+
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('dismisses when the close button is pressed', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+      fireEvent.press(screen.getByLabelText('Close banner'));
+
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('auto-dismisses after the timeout window', () => {
+      jest.useFakeTimers();
+      try {
+        mockRouteParams = { showNotificationsBanner: true };
+        renderWithProvider(<SocialV1View />);
+
+        expect(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          jest.advanceTimersByTime(20000);
+        });
+
+        expect(
+          screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+        ).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+});

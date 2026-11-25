@@ -10,6 +10,9 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 
+import { isPayTransactionResumable } from '@metamask/transaction-pay-controller';
+
+import { MM_PAY_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -32,6 +35,9 @@ import {
 } from '../../controllers/transaction-controller/event-handlers/metrics';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
 
+jest.mock('@metamask/transaction-pay-controller', () => ({
+  isPayTransactionResumable: jest.fn(),
+}));
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../selectors/smartTransactionsController');
@@ -121,6 +127,25 @@ describe('TransactionController wallet instance options', () => {
     expect(isFirstTimeInteractionEnabled?.()).toBe(true);
   });
 
+  it.each([true, false])(
+    'returns %s from isResumable when the pay controller does',
+    (resumable) => {
+      const isPayTransactionResumableMock = jest.mocked(
+        isPayTransactionResumable,
+      );
+      isPayTransactionResumableMock.mockReturnValue(resumable);
+      const transactionMeta = { id: '1' } as TransactionMeta;
+
+      const isResumable = testConstructorOption('isResumable');
+
+      expect(isResumable?.(transactionMeta)).toBe(resumable);
+      expect(isPayTransactionResumableMock).toHaveBeenCalledWith(
+        expect.anything(),
+        transactionMeta,
+      );
+    },
+  );
+
   it('determines if simulation is enabled using preferences', () => {
     const isSimulationEnabled = testConstructorOption('isSimulationEnabled', {
       preferencesState: {
@@ -130,6 +155,53 @@ describe('TransactionController wallet instance options', () => {
 
     expect(isSimulationEnabled?.()).toBe(true);
   });
+
+  it('determines if simulation is enabled using preferences for non-MM Pay transactions', () => {
+    const isSimulationEnabled = testConstructorOption('isSimulationEnabled', {
+      preferencesState: {
+        useTransactionSimulations: true,
+      },
+    });
+
+    expect(
+      isSimulationEnabled?.({
+        id: '1',
+        type: TransactionType.contractInteraction,
+        chainId: CHAIN_ID_MOCK,
+        networkClientId: 'test-network',
+        status: TransactionStatus.unapproved,
+        time: Date.now(),
+        txParams: {
+          from: '0x0000000000000000000000000000000000000000',
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it.each(MM_PAY_TRANSACTION_TYPES)(
+    'disables simulation for MM Pay transaction type %s even when preferences enable it',
+    (type) => {
+      const isSimulationEnabled = testConstructorOption('isSimulationEnabled', {
+        preferencesState: {
+          useTransactionSimulations: true,
+        },
+      });
+
+      expect(
+        isSimulationEnabled?.({
+          id: '1',
+          type,
+          chainId: CHAIN_ID_MOCK,
+          networkClientId: 'test-network',
+          status: TransactionStatus.unapproved,
+          time: Date.now(),
+          txParams: {
+            from: '0x0000000000000000000000000000000000000000',
+          },
+        }),
+      ).toBe(false);
+    },
+  );
 
   describe('isAutomaticGasFeeUpdateEnabled', () => {
     function buildTransactionMeta(

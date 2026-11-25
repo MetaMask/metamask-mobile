@@ -73,6 +73,53 @@ describe('usePerpsMarketData', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
   });
 
+  it('reads provider metadata when venue restrictions are required', async () => {
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockResolvedValueOnce([{ ...mockMarketData, onlyIsolated: true }]);
+
+    const { result } = renderHook(() =>
+      usePerpsMarketData({
+        asset: 'BTC',
+        providerId: 'hyperliquid',
+        useProviderMetadata: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(1, { symbols: ['BTC'] });
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(2, {
+      symbols: ['BTC'],
+      skipFilters: true,
+    });
+    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+    expect(result.current.marketData?.onlyIsolated).toBe(true);
+    expect(result.current.isProviderMetadataAvailable).toBe(true);
+  });
+
+  it('keeps allowed market data but marks provider metadata unavailable when its read fails', async () => {
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockRejectedValueOnce(new Error('Provider unavailable'));
+
+    const { result } = renderHook(() =>
+      usePerpsMarketData({
+        asset: 'BTC',
+        providerId: 'hyperliquid',
+        useProviderMetadata: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.marketData).toEqual(mockMarketData);
+    expect(result.current.error).toBeNull();
+    expect(result.current.isProviderMetadataAvailable).toBe(false);
+  });
+
   it('should handle asset not found', async () => {
     mockGetMarkets.mockResolvedValue([
       { name: 'ETH', szDecimals: 6, maxLeverage: 40, marginTableId: 2 },
@@ -103,14 +150,15 @@ describe('usePerpsMarketData', () => {
   it('should handle empty asset', () => {
     const { result } = renderHook(() => usePerpsMarketData(''));
 
-    // Should immediately return without loading
-    expect(result.current.isLoading).toBe(false);
+    // Deferred fetches pass '' until the first frame. Stay loading so the
+    // trade sheet does not treat that as a failed market.
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.marketData).toBe(null);
     expect(result.current.error).toBe(null);
     expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 
-  it('should refetch data when calling refetch', async () => {
+  it('refetches market data when refetch is called', async () => {
     mockGetMarkets.mockResolvedValue([mockMarketData]);
 
     const { result } = renderHook(() => usePerpsMarketData('BTC'));
@@ -119,8 +167,9 @@ describe('usePerpsMarketData', () => {
       expect(mockGetMarkets).toHaveBeenCalledTimes(1);
     });
 
-    // Call refetch
-    result.current.refetch();
+    await act(async () => {
+      await result.current.refetch();
+    });
 
     await waitFor(() => {
       expect(mockGetMarkets).toHaveBeenCalledTimes(2);
@@ -163,6 +212,50 @@ describe('usePerpsMarketData', () => {
 
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['ETH'] });
+  });
+
+  describe('providerId parameter', () => {
+    const hyperliquidBtc: MarketInfo = {
+      ...mockMarketData,
+      providerId: 'hyperliquid',
+    };
+    const lighterBtc: MarketInfo = {
+      ...mockMarketData,
+      onlyIsolated: true,
+      providerId: 'lighter',
+    };
+
+    it.each([
+      ['hyperliquid', hyperliquidBtc],
+      ['lighter', lighterBtc],
+    ] as const)(
+      'returns the %s record when several providers list the asset',
+      async (providerId, expected) => {
+        mockGetMarkets.mockResolvedValue([lighterBtc, hyperliquidBtc]);
+
+        const { result } = renderHook(() =>
+          usePerpsMarketData({ asset: 'BTC', providerId }),
+        );
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false);
+        });
+        expect(result.current.marketData).toEqual(expected);
+      },
+    );
+
+    it('matches an untagged record from a single provider', async () => {
+      mockGetMarkets.mockResolvedValue([mockMarketData]);
+
+      const { result } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', providerId: 'hyperliquid' }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      expect(result.current.marketData).toEqual(mockMarketData);
+    });
   });
 
   describe('showErrorToast parameter', () => {

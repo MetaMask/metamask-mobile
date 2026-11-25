@@ -7,9 +7,28 @@ import {
   type CampaignDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { ConfirmationLaunchSource } from '../../../../../Views/confirmations/components/confirm/confirm-component';
 import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { selectProfileControllerProfile } from '../../../../../../selectors/profileController';
 
 const mockNavigate = jest.fn();
+const mockNavigateToSocialTab = jest.fn();
+const mockUseSelector = jest.fn();
+let mockIsSocialV1Enabled = false;
+let mockProfile: { profileId?: string } | undefined;
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock(
+  '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: (...args: unknown[]) =>
+      mockNavigateToSocialTab(...args),
+  }),
+);
 let mockFocusEffectCallback: (() => void) | null;
 let mockIsGeoRestricted: boolean;
 let mockIsGeoLoading: boolean;
@@ -35,6 +54,7 @@ let latestOptInSheetProps: {
 } | null;
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
@@ -153,6 +173,17 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     mockIsParticipationLoading = false;
     mockBindingConflict = false;
     mockHasActionableAddMoneyOptions = true;
+    mockIsSocialV1Enabled = false;
+    mockProfile = undefined;
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectIsSocialV1Enabled) {
+        return mockIsSocialV1Enabled;
+      }
+      if (selector === selectProfileControllerProfile) {
+        return mockProfile;
+      }
+      return undefined;
+    });
     latestOptInSheetProps = null;
     mockEnsureOptedIn.mockResolvedValue({ success: true });
     mockEnsureBound.mockResolvedValue('bound');
@@ -220,8 +251,11 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
 
     await waitFor(() => {
       expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+      // The Rewards launch source lands the funded user on Money home pushed
+      // over this campaign, so back returns to Rewards.
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        params: { launchedFrom: ConfirmationLaunchSource.Rewards },
       });
     });
   });
@@ -243,6 +277,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        params: { launchedFrom: ConfirmationLaunchSource.Rewards },
       });
     });
     expect(mockShowToast).not.toHaveBeenCalled();
@@ -302,6 +337,39 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
       expect(mockEnsureBound).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+  });
+
+  it('opens the Social tab instead of the sheet when a profile is required and missing', () => {
+    mockIsSocialV1Enabled = true;
+    const { getByTestId, queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign({ socialProfileRequired: true })}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    expect(mockNavigateToSocialTab).toHaveBeenCalledWith(mockNavigate);
+    expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+  });
+
+  it('opens the opt-in sheet when Social V1 is on and the user already has a profile', () => {
+    mockIsSocialV1Enabled = true;
+    mockProfile = { profileId: 'profile-1' };
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign({ socialProfileRequired: true })}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
+    expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+    expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
   });
 
   it('opens the opt-in sheet when not yet opted in', () => {

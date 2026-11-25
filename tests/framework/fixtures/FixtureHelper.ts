@@ -536,8 +536,10 @@ export async function withFixtures(
     currentDeviceDetails,
     disableSynchronization: _disableSynchronization = false,
   } = options;
+  const isRemoteCloudDevice =
+    currentDeviceDetails?.isBrowserstack || currentDeviceDetails?.isRemoteCloud;
   const deviceCommands =
-    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+    currentDeviceDetails && !isRemoteCloudDevice
       ? new DeviceCommandHandler({ currentDeviceDetails, logger })
       : undefined;
 
@@ -772,7 +774,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload was Detox-only (device.reloadReactNative); Appium
-    // uses softReloadAppForFixtures / fixture bootstrap instead (MMQA-2230).
+    // uses softReloadAppForFixtures / fixture bootstrap instead.
 
     if (mockServerInstance) {
       try {

@@ -1,5 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
-import { FullWindowOverlay } from 'react-native-screens';
+import React, { useContext, useMemo } from 'react';
 import { useRoute } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -18,26 +17,25 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
+import { ALLOWED_CAPABILITIES as IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ImportFromSecretRecoveryPhrase/messenger';
+import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
+import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
+import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
+import ReviewModal from '../../UI/ReviewModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
-import Logger from '../../../util/Logger';
-import { useSelector } from 'react-redux';
-import {
-  CURRENT_APP_VERSION,
-  LAST_APP_VERSION,
-} from '../../../constants/storage';
-import { getVersion } from 'react-native-device-info';
-import { Authentication } from '../../../core';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
+  addDeviceToWalletPageOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -45,18 +43,25 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import { Toaster } from '@metamask/design-system-react-native';
 import AgentStepHud from '../../../dev-tools/AgenticService/AgentStepHud';
+import { ToasterOverlay } from './ToasterOverlay';
+import AppShellEffects from './AppShellEffects';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import {
+  usePredictDepositToastRegistrations,
+  usePredictOrderToastRegistrations,
+} from '../../UI/PredictNext/notifications';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
+import { PostTradeShareBottomSheet } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
+import ManageAccounts from '../../Views/ManageAccounts';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ActivityTypeFilterSheet from '../../Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/PerpsActivityFilterSheet';
@@ -98,8 +103,6 @@ import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import LockScreen from '../../Views/LockScreen';
-import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
@@ -114,9 +117,8 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
-import FirstPredictOnUsSplashScreen from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsSplashScreen';
-import FirstPredictOnUsOrderSheet from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsOrderSheet';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import BasicFunctionalityMigrationBottomSheet from '../../UI/BasicFunctionality/BasicFunctionalityMigrationBottomSheet/BasicFunctionalityMigrationBottomSheet';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../Views/NftOptions';
@@ -129,19 +131,14 @@ import TooltipModal from '../../Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
-import { endTrace, TraceName } from '../../../util/trace';
-import { selectExistingUser } from '../../../reducers/user/selectors';
-import { Performance } from '../../../core/Performance';
-import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
-import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
+import { getOnboardingCanvasColor } from './onboardingCanvasColor';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
 import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
-import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -156,6 +153,7 @@ import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroup
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddressQR/ShareAddressQR';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RemoveAccount from '../../Views/ManageAccounts/sheets/RemoveAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -168,43 +166,58 @@ import SupportConsentSheet from '../../UI/SupportConsentSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
-import useInterval from '../../hooks/useInterval';
-import { Duration } from '@metamask/utils';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
-import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import AgenticCliApproval from '../../Views/AgenticCliApproval';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import DesignerModeOverlay from '../../UI/DesignerMode';
 import ProSubscription from '../../Views/ProSubscription';
+import { MfaFlowHost, MfaFlowLauncher } from '../../Views/Mfa';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
+import Earned from '../../Views/ProHub/screens/Earned';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
 
 const NativeStack = createNativeStackNavigator();
 
-const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
-  presentation: 'card',
-  gestureEnabled: true,
-  fullScreenGestureEnabled: true,
-};
+const ImportFromSecretRecoveryPhraseWithMessenger = withRouteMessenger(
+  ImportFromSecretRecoveryPhrase,
+  {
+    capabilities: IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES,
+  },
+);
 
-const addWalletTransitionOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
+const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
+  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
+  capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
+  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+/**
+ * Registered on the AppFlow stack (not the nested Main stack) so pushes from
+ * the Account Selector gear icon are a same-stack push. When this screen lived
+ * in the nested Main stack, navigating from Account Selector forced React
+ * Navigation to first pop the selector — flashing the wallet screen — before
+ * pushing Manage Accounts.
+ */
+const manageAccountsTransitionOptions: NativeStackNavigationOptions = {
+  ...slideFromRightNativeOptions,
   presentation: 'card',
-  gestureEnabled: true,
-  fullScreenGestureEnabled: true,
 };
 
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
@@ -226,12 +239,6 @@ const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
 // but for migration compatibility, we cast these components to satisfy the type checker.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
-
-const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
-
-const SocialLoginSuccessExistingUser = () => (
-  <SocialLoginIosUser type="existing" />
-);
 
 const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
@@ -281,7 +288,11 @@ const OnboardingSuccessFlow = () => {
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
+  const onboardingCanvasColor = getOnboardingCanvasColor(
+    themeAppearance,
+    colors.background.default,
+  );
 
   return (
     <NativeStack.Navigator
@@ -290,15 +301,22 @@ const OnboardingNav = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <NativeStack.Screen name="Onboarding" component={Onboarding} />
       <NativeStack.Screen
-        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
-        component={SocialLoginSuccessNewUser}
-        options={{ headerShown: false }}
+        name="Onboarding"
+        component={Onboarding}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
       />
+      {/*
+        This stack owns goBack for ChoosePassword, the backup steps, and
+        OptinMetrics. OnboardingNav, SetPasswordFlow, and SettingsFlow are
+        separate stacks, so each one registers the steps that flow pushes.
+      */}
       <NativeStack.Screen
         name="ChoosePassword"
-        component={ChoosePassword}
+        component={ChoosePasswordWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -338,12 +356,7 @@ const OnboardingNav = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={ImportFromSecretRecoveryPhraseWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -367,11 +380,6 @@ const OnboardingNav = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
-        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
-        component={SocialLoginSuccessExistingUser}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
         name="AccountAlreadyExists"
         component={AccountStatus}
         initialParams={{ type: 'found' }}
@@ -387,29 +395,15 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
         component={OAuthRehydration}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
         component={WalletCreationError}
         options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH}
-        component={FirstPredictOnUsSplashScreen}
-        options={{
-          headerShown: false,
-          gestureEnabled: false,
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET}
-        component={FirstPredictOnUsOrderSheet}
-        options={{
-          headerShown: false,
-          presentation: 'transparentModal',
-          contentStyle: { backgroundColor: importedColors.transparent },
-        }}
       />
     </NativeStack.Navigator>
   );
@@ -424,33 +418,31 @@ const SimpleWebviewScreen = () => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
     />
   </NativeStack.Navigator>
 );
 
-const OnboardingRootNav = () => (
-  <NativeStack.Navigator
-    initialRouteName={Routes.ONBOARDING.NAV}
-    screenOptions={{ headerShown: false }}
-  >
-    <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <NativeStack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
-      options={{ presentation: 'modal' }}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-      component={VerificationCodeBottomSheet}
-      options={addDeviceVerificationCodeScreenOptions}
-    />
-    <NativeStack.Screen
-      name={Routes.WEBVIEW.MAIN}
-      component={SimpleWebviewScreen}
-      options={{ presentation: 'modal' }}
-    />
-  </NativeStack.Navigator>
-);
+const OnboardingRootNav = () => {
+  const { colors } = useTheme();
+
+  return (
+    <NativeStack.Navigator
+      initialRouteName={Routes.ONBOARDING.NAV}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
+      <NativeStack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
+    </NativeStack.Navigator>
+  );
+};
 
 const VaultRecoveryFlow = () => {
   const { colors } = useTheme();
@@ -475,20 +467,6 @@ const VaultRecoveryFlow = () => {
       <NativeStack.Screen
         name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
         component={WalletResetNeeded}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
-const AddNetworkFlow = () => {
-  const route = useRoute();
-
-  return (
-    <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-      <NativeStack.Screen
-        name="AddNetwork"
-        component={NetworkDetailsView}
-        initialParams={route?.params}
       />
     </NativeStack.Navigator>
   );
@@ -543,10 +521,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory as ScreenComponent}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -658,6 +632,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={BasicFunctionalityModal}
     />
     <NativeStack.Screen
+      name={Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION}
+      component={BasicFunctionalityMigrationBottomSheet}
+      options={{ gestureEnabled: false }}
+    />
+    <NativeStack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
       component={ConfirmTurnOnBackupAndSyncModal}
     />
@@ -688,11 +667,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
         component={SelectSRPBottomSheet}
       />
     }
-    <NativeStack.Screen
-      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-      component={VerificationCodeBottomSheet}
-      options={addDeviceVerificationCodeScreenOptions}
-    />
     <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
       component={SRPQuiz}
@@ -783,6 +757,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
       options={{
         presentation: 'modal',
         animation: 'slide_from_bottom',
@@ -809,10 +784,6 @@ const ImportPrivateKeyView = () => {
         name="ImportPrivateKeySuccess"
         component={ImportPrivateKeySuccess}
       />
-      <NativeStack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcher}
-      />
     </NativeStack.Navigator>
   );
 };
@@ -827,11 +798,6 @@ const ImportSRPView = () => (
     <NativeStack.Screen
       name={Routes.MULTI_SRP.IMPORT}
       component={ImportNewSecretRecoveryPhrase}
-    />
-    <NativeStack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
-      options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -1081,6 +1047,12 @@ const MultichainAccountDetailsActions = () => {
         options={commonScreenOptions}
       />
       <NativeStack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REMOVE_ACCOUNT}
+        component={RemoveAccount}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <NativeStack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
         component={SRPQuiz as ScreenComponent}
         initialParams={route?.params}
@@ -1115,7 +1087,11 @@ const ModalSwitchAccountType = () => (
 );
 
 const AppFlow = () => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
+  const onboardingCanvasColor = getOnboardingCanvasColor(
+    themeAppearance,
+    colors.background.default,
+  );
 
   return (
     <NativeStack.Navigator
@@ -1127,18 +1103,29 @@ const AppFlow = () => {
       }}
     >
       <NativeStack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
+      <NativeStack.Screen
+        name="ReviewModal"
+        component={ReviewModal}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
       <NativeStack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
       <NativeStack.Screen
         name={Routes.ONBOARDING.LOGIN}
         component={Login}
         options={{
-          contentStyle: { backgroundColor: colors.background.default },
+          contentStyle: { backgroundColor: onboardingCanvasColor },
         }}
       />
       {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.REHYDRATE}
         component={OAuthRehydration}
+        options={{
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
       />
       <NativeStack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
@@ -1147,6 +1134,13 @@ const AppFlow = () => {
       <NativeStack.Screen
         name="OnboardingRootNav"
         component={OnboardingRootNav}
+        options={{
+          // Opaque card: AppFlow defaults to transparentModal, which lets the
+          // activity window's white theme color show in the Android gesture
+          // inset under the fox ("paper cut").
+          presentation: 'card',
+          contentStyle: { backgroundColor: colors.background.default },
+        }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}
@@ -1173,29 +1167,49 @@ const AppFlow = () => {
           };
         }}
       />
-      <NativeStack.Screen
-        name={Routes.IMPORT_PRIVATE_KEY_VIEW}
-        component={ImportPrivateKeyView}
-        options={{
+      <NativeStack.Group
+        screenOptions={{
           animation: 'slide_from_right',
           presentation: 'card',
-          gestureEnabled: true,
           fullScreenGestureEnabled: true,
-          contentStyle: { backgroundColor: colors.background.default },
         }}
-      />
-      {
+      >
         <NativeStack.Screen
-          name="ImportSRPView"
-          component={ImportSRPView}
+          name={Routes.IMPORT_PRIVATE_KEY_VIEW}
+          component={ImportPrivateKeyView}
+        />
+        <NativeStack.Screen name="ImportSRPView" component={ImportSRPView} />
+        <NativeStack.Screen
+          name={Routes.HW.CONNECT}
+          component={ConnectHardwareWalletFlow}
+        />
+        <NativeStack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+          component={MultichainAccountGroupDetails}
+        />
+        {/* AppFlow owns the private-credential reveal. */}
+        <NativeStack.Screen
+          name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+          component={RevealPrivateCredential}
           options={{
+            presentation: 'fullScreenModal',
             animation: 'slide_from_right',
-            presentation: 'card',
-            gestureEnabled: true,
-            fullScreenGestureEnabled: true,
           }}
         />
-      }
+        <NativeStack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
+          component={AccountSelector}
+        />
+        <NativeStack.Screen
+          name={Routes.SHEET.ADD_WALLET}
+          component={AddWallet}
+        />
+      </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
       <NativeStack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}
@@ -1204,20 +1218,20 @@ const AppFlow = () => {
         name={Routes.HW.CONNECT_LEDGER}
         component={LedgerConnectFlow}
       />
+      {/*
+        AppFlow owns the scanner. Onboarding, import, and the logged-in shell
+        navigate here, and goBack returns to the screen that opened it.
+      */}
       <NativeStack.Screen
-        name={Routes.HW.CONNECT}
-        component={ConnectHardwareWalletFlow}
-        options={{
-          animation: 'slide_from_right',
-          presentation: 'card',
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true,
-        }}
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcherWithMessenger}
+        options={fullScreenModalSlideFromBottomNativeOptions}
       />
+      {/* AppFlow owns add-device and its verification sheet. */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
-        options={{ headerShown: false }}
+        component={AddDeviceToWalletWithMessenger}
+        options={addDeviceToWalletPageOptions}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
@@ -1226,33 +1240,12 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
+        component={ImportFromSecretRecoveryPhraseWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={MultichainAccountDetails}
-      />
-      <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-        component={MultichainAccountGroupDetails}
-        options={{
-          animation: 'slide_from_right',
-          presentation: 'card',
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true,
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
-        options={{
-          headerShown: false,
-          animation: 'slide_from_right',
-          presentation: 'card',
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true,
-        }}
       />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
@@ -1274,15 +1267,29 @@ const AppFlow = () => {
         }}
       />
       <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
-        component={AccountSelector}
-        options={accountSelectorTransitionOptions}
+        name={Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW}
+        component={SimpleWebview}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          contentStyle: { backgroundColor: colors.background.default },
+        }}
       />
-      <NativeStack.Screen
-        name={Routes.SHEET.ADD_WALLET}
-        component={AddWallet}
-        options={addWalletTransitionOptions}
-      />
+      <NativeStack.Group
+        screenOptions={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+          fullScreenGestureEnabled: true,
+        }}
+      >
+        <NativeStack.Screen
+          name={Routes.MANAGE_ACCOUNTS_VIEW}
+          component={ManageAccounts}
+          options={manageAccountsTransitionOptions}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainPrivateKeyList}
@@ -1312,37 +1319,18 @@ const AppFlow = () => {
         component={EditAccountName}
         options={{ animation: 'slide_from_right' }}
       />
-      <NativeStack.Screen
-        name={Routes.ADD_NETWORK}
-        component={AddNetworkFlow}
-        options={{
-          animation: 'slide_from_right',
-          contentStyle: {
-            flex: 1,
-            backgroundColor: importedColors.transparent,
-          },
-          gestureEnabled: true,
-        }}
-      />
-      {isNetworkUiRedesignEnabled() ? (
+      <NativeStack.Group screenOptions={{ animation: 'slide_from_right' }}>
         <NativeStack.Screen
-          name={Routes.EDIT_NETWORK}
-          component={AddNetworkFlow}
-          options={{
-            animation: 'slide_from_right',
-            contentStyle: {
-              flex: 1,
-              backgroundColor: importedColors.transparent,
-            },
-            gestureEnabled: true,
-          }}
+          name={Routes.ADD_NETWORK}
+          component={NetworkDetailsView}
         />
-      ) : null}
-      <NativeStack.Screen
-        name={Routes.LOCK_SCREEN}
-        component={LockScreen}
-        options={{ gestureEnabled: false }}
-      />
+        {isNetworkUiRedesignEnabled() ? (
+          <NativeStack.Screen
+            name={Routes.EDIT_NETWORK}
+            component={NetworkDetailsView}
+          />
+        ) : null}
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         options={{
@@ -1393,6 +1381,15 @@ const AppFlow = () => {
         component={PayWithBottomSheet}
       />
       <NativeStack.Screen
+        name={Routes.MFA.FLOW}
+        component={MfaFlowHost}
+        // A transparent modal, as the picker is a sheet over the app.
+        options={{
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
+      />
+      <NativeStack.Screen
         name={Routes.PRO_SUBSCRIPTION.ROOT}
         component={ProSubscription}
         options={{
@@ -1402,36 +1399,20 @@ const AppFlow = () => {
           animation: 'slide_from_bottom',
         }}
       />
-      <NativeStack.Screen
-        name={Routes.PRO_HUB.ROOT}
-        component={ProHub}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.PRO_HUB.MEMBERSHIP}
-        component={Membership}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.PRO_HUB.CANCEL_MEMBERSHIP}
-        component={CancelMembership}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
-      />
+      <NativeStack.Group
+        screenOptions={{ presentation: 'card', animation: 'default' }}
+      >
+        <NativeStack.Screen name={Routes.PRO_HUB.ROOT} component={ProHub} />
+        <NativeStack.Screen
+          name={Routes.PRO_HUB.MEMBERSHIP}
+          component={Membership}
+        />
+        <NativeStack.Screen name={Routes.PRO_HUB.EARNED} component={Earned} />
+        <NativeStack.Screen
+          name={Routes.PRO_HUB.CANCEL_MEMBERSHIP}
+          component={CancelMembership}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}
         component={AgenticCliDashboardWebview}
@@ -1453,96 +1434,29 @@ const DEV_JUMP_TO_ASSETS_SETTINGS = false;
 
 const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
-  const isSeedlessOnboardingLoginFlow = useSelector(
-    selectSeedlessOnboardingLoginFlow,
-  );
-
-  useOTAUpdates();
+  // Both Predict lanes register unconditionally, whatever the Active Venue:
+  // an operation started on one Venue still notifies after a switch.
   const predictRegistrations = usePredictToastRegistrations();
+  const predictOrderRegistrations = usePredictOrderToastRegistrations();
+  const predictDepositRegistrations = usePredictDepositToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
     () => [
       ...predictRegistrations,
+      ...predictOrderRegistrations,
+      ...predictDepositRegistrations,
       ...perpsWithdrawRegistrations,
       ...quickBuyRegistrations,
     ],
-    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
+    [
+      predictRegistrations,
+      predictOrderRegistrations,
+      predictDepositRegistrations,
+      perpsWithdrawRegistrations,
+      quickBuyRegistrations,
+    ],
   );
-
-  useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.UIStartup });
-  }, []);
-
-  const firstLoad = useRef(true);
-  // periodically check seedless password outdated when app UI is open
-  useInterval(
-    async () => {
-      if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated({
-          skipCache: firstLoad.current,
-          captureSentryError: false,
-        }).catch((error) => {
-          Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
-        });
-        firstLoad.current = false;
-      }
-    },
-    {
-      delay: Duration.Minute * 10,
-      immediate: true,
-    },
-  );
-  const existingUser = useSelector(selectExistingUser);
-  const isUnlocked = useSelector(selectIsUnlocked);
-  const hasQueuedColdHomepageReadyTrace = useRef(false);
-
-  useEffect(() => {
-    if (
-      hasQueuedColdHomepageReadyTrace.current ||
-      !existingUser ||
-      !isUnlocked
-    ) {
-      return;
-    }
-
-    hasQueuedColdHomepageReadyTrace.current = true;
-    queueColdHomepageReadyTrace(Performance.appLaunchTime);
-  }, [existingUser, isUnlocked]);
-
-  useEffect(() => {
-    async function startApp() {
-      try {
-        const currentVersion = getVersion();
-        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
-
-        if (currentVersion !== savedVersion) {
-          if (savedVersion)
-            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-        }
-        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
-        if (!lastVersion) {
-          if (existingUser) {
-            // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
-          } else {
-            // Setting last version to current version so that it's not treated as an update
-            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
-          }
-        }
-      } catch (error) {
-        Logger.error(error as Error);
-      }
-    }
-
-    startApp().catch((error) => {
-      Logger.error(error, 'Error starting app');
-    });
-    // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
-  }, []);
 
   return (
     <AccessRestrictedProvider>
@@ -1550,27 +1464,22 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
+        <MfaFlowLauncher />
         <Toast ref={toastRef} />
         {/*
-          FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
-          layer — including native-stack card screens — which a plain absolute View as a
-          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render
-          behind the native stack card screens and are not visible.
-          unstable_accessibilityContainerViewIsModal={false} prevents react-native-screens
-          from marking the native container as accessibilityViewIsModal=YES, which would
-          otherwise hide the entire app's AX tree from VoiceOver/XCUITest/Appium whenever
-          no toast is active. Toasts are non-blocking so non-modal AX behaviour is correct.
-          See: https://consensyssoftware.atlassian.net/browse/DSYS-931
+          ToasterOverlay mounts FullWindowOverlay only while a toast is active
+          on iOS so idle RNSFullWindowOverlay / UIWindow is not left in the
+          native hierarchy. See ToasterOverlay.tsx and DSYS-931 / #32973.
         */}
-        <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
-          <Toaster />
-        </FullWindowOverlay>
+        <ToasterOverlay />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
+        <PostTradeShareBottomSheet />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />
+        <AppShellEffects />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
   );

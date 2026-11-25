@@ -28,7 +28,7 @@ const createWrapper = () => {
     defaultOptions: {
       queries: {
         retry: false,
-        cacheTime: Infinity,
+        gcTime: Infinity,
       },
     },
   });

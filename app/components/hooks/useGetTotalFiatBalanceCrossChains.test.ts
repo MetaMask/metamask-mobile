@@ -6,38 +6,55 @@ import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { useGetTotalFiatBalanceCrossChains } from './useGetTotalFiatBalanceCrossChains';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+
+const TEST_ADDRESS = '0x2990079bcdee240329a520d2444386fc119da21a';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  TEST_ADDRESS,
+]);
+const MOCK_ACCOUNT_ID =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount;
+
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const LINEA_NATIVE_ASSET_ID = 'eip155:59144/slip44:60';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountTrackerController: {
-        accountsByChainId: {
-          '0x1': {
-            '0x2990079bcdEe240329a520d2444386FC119da21a': {
-              balance: '0x514709b083007',
-            },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AssetsController: {
+        selectedCurrency: 'usd' as const,
+        assetsInfo: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
           },
-          '0xe708': {
-            '0x2990079bcdEe240329a520d2444386FC119da21a': {
-              balance: '0x445ad0c72ea74',
-            },
+          [LINEA_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
           },
         },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        currencyRates: {
-          ETH: {
-            conversionDate: 1732887955.694,
-            conversionRate: 3596.25,
-            usdConversionRate: 3596.25,
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID]: {
+            // hex 0x514709b083007 @ 18 decimals
+            [MAINNET_NATIVE_ASSET_ID]: { amount: '0.001429848753451015' },
+            // hex 0x445ad0c72ea74 @ 18 decimals
+            [LINEA_NATIVE_ASSET_ID]: { amount: '0.001202509447359092' },
           },
-          LineaETH: {
-            conversionDate: 1732887955.694,
-            conversionRate: 3596.25,
-            usdConversionRate: 3596.25,
+        },
+        assetsPrice: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            assetPriceType: 'fungible' as const,
+            price: 3596.25,
+            usdPrice: 3596.25,
+            lastUpdated: 1732887955694,
           },
         },
       },
@@ -55,7 +72,7 @@ jest.mock('react-redux', () => ({
 describe('useGetTotalFiatBalanceCrossChains', () => {
   it('should return cross chain fiat balance aggregated successfully', async () => {
     const testAccount = {
-      address: '0x2990079bcdee240329a520d2444386fc119da21a',
+      address: TEST_ADDRESS,
     };
     const testFormattedTokens = {
       [testAccount.address]: [

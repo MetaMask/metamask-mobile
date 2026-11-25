@@ -27,6 +27,8 @@ let mockAvailableTokens: {
 
 let mockPredictBalance = 0;
 let mockQuotes: unknown[] = [];
+let mockIsPaySubmitReady = false;
+let mockTransactionMeta: { id: string } | undefined;
 const mockResetSelectedPaymentToken = jest.fn();
 const mockNavigationListeners: Record<string, Set<() => void>> = {};
 const mockAddListener = jest.fn((eventName: string, callback: () => void) => {
@@ -92,8 +94,16 @@ jest.mock(
     useTransactionPayTotals: () => mockPayTotals,
     useIsTransactionPayLoading: () => mockIsPayTotalsLoading,
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
+    useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
     useTransactionPayRequiredTokens: () => mockRequiredTokens,
     useTransactionPayQuotes: () => mockQuotes,
+  }),
+);
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: () => mockTransactionMeta,
   }),
 );
 
@@ -141,6 +151,8 @@ describe('usePredictBuyConditions', () => {
     mockAvailableTokens = [];
     mockPredictBalance = 0;
     mockQuotes = [];
+    mockIsPaySubmitReady = false;
+    mockTransactionMeta = undefined;
   });
 
   afterEach(() => {
@@ -430,6 +442,54 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.canPlaceBet).toBe(false);
+    });
+
+    it('returns false when the pay deposit transaction is not submit-ready', () => {
+      mockIsPredictBalanceSelected = false;
+      mockTransactionMeta = { id: 'tx-1' };
+      mockIsPaySubmitReady = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
+    it('returns true when the pay deposit transaction is submit-ready', () => {
+      mockIsPredictBalanceSelected = false;
+      mockTransactionMeta = { id: 'tx-1' };
+      mockIsPaySubmitReady = true;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('does not block when paying from Predict balance, even if not submit-ready', () => {
+      mockIsPredictBalanceSelected = true;
+      mockTransactionMeta = { id: 'tx-1' };
+      mockIsPaySubmitReady = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('does not block when no pay deposit transaction exists', () => {
+      mockIsPredictBalanceSelected = false;
+      mockTransactionMeta = undefined;
+      mockIsPaySubmitReady = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(true);
     });
   });
 

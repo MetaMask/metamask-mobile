@@ -8,6 +8,7 @@ import type {
 import { sleep } from '../../framework/Utilities.ts';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
 import { safeGetBodyText } from '../MockServerE2E.ts';
+import { accountsSupportedNetworksV2 } from '../api-mocks.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
 // Change this to DEBUG as needed (required to see `waitForProxiedRequestsMatching` dumps)
@@ -217,6 +218,32 @@ export async function setupMockRequest(
       response.response as object,
     );
   }
+}
+
+/**
+ * Default answer for `GET /v1/profiles/{profileId}` when a test does not mock
+ * the profile itself: the profile does not exist.
+ *
+ * Only the single-segment profile route is matched. Sub-resources such as
+ * `profiles/username/availability` or `profiles/x/account` are left to their
+ * own mocks or to the proxy passthrough, so a 404 never leaks into them.
+ *
+ * Priority 2 beats the `/proxy` passthrough (mockttp `RulePriority.DEFAULT`
+ * is 1) and stays below test-specific mocks (999).
+ *
+ * @param server - The mockttp server instance
+ */
+export async function setupDefaultProfileNotFoundMock(server: Mockttp) {
+  await setupMockRequest(
+    server,
+    {
+      requestMethod: 'GET',
+      url: /^https:\/\/profile(\.dev-api|\.uat-api|\.api)?\.cx\.metamask\.io\/v1\/profiles\/[^/?#]+$/,
+      responseCode: 404,
+      response: { code: 'PROFILE_NOT_FOUND', message: 'Profile not found' },
+    },
+    2,
+  );
 }
 
 /**
@@ -454,11 +481,8 @@ export async function setupAccountsV2SupportedNetworksMock(
 ): Promise<void> {
   await setupMockRequest(server, {
     requestMethod: 'GET',
-    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
-    response: {
-      fullSupport: [1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329],
-      partialSupport: { balances: [42220, 43114] },
-    },
+    url: accountsSupportedNetworksV2.url,
+    response: accountsSupportedNetworksV2.response(),
     responseCode: 200,
   });
 }

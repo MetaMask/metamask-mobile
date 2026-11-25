@@ -68,6 +68,7 @@
 let mockDelegateController: Record<string, unknown> | null = null;
 const mockRewardsController = {
   getPerpsDiscountForAccount: jest.fn().mockResolvedValue(undefined),
+  getPerpsTradingFeeGrant: jest.fn().mockResolvedValue(null),
   estimatePoints: jest.fn().mockResolvedValue({
     pointsEstimate: 0,
     bonusBips: 0,
@@ -347,6 +348,14 @@ export function buildPerpsFlowHarness(
         context: buildServiceContext('closePosition'),
         reportOrderToDataLake,
       }),
+    closePositions: (
+      params: Parameters<typeof harness.provider.closePositions>[0],
+    ) =>
+      tradingService.closePositions({
+        provider: harness.provider,
+        params,
+        context: buildServiceContext('closePositions'),
+      }),
     flipPosition: (params: FlipPositionParams) =>
       tradingService.flipPosition({
         provider: harness.provider,
@@ -364,6 +373,8 @@ export function buildPerpsFlowHarness(
     ) => harness.provider.getAccountState(params),
     getOrders: (params?: Parameters<typeof harness.provider.getOrders>[0]) =>
       harness.provider.getOrders(params),
+    getChaseOrders: () => harness.provider.getChaseOrders(),
+    suspendChaseOrders: () => harness.provider.suspendChaseOrders(),
     calculateFees: (
       params: Parameters<typeof harness.provider.calculateFees>[0],
     ) => harness.provider.calculateFees(params),
@@ -373,6 +384,9 @@ export function buildPerpsFlowHarness(
     subscribeToPrices: (
       params: Parameters<typeof harness.provider.subscribeToPrices>[0],
     ) => harness.provider.subscribeToPrices(params),
+    subscribeToOrderBook: (
+      params: Parameters<typeof harness.provider.subscribeToOrderBook>[0],
+    ) => harness.provider.subscribeToOrderBook(params),
     updatePositionTPSL: (
       params: Parameters<typeof harness.provider.updatePositionTPSL>[0],
     ) =>
@@ -384,6 +398,9 @@ export function buildPerpsFlowHarness(
     setSelectedPaymentToken: jest.fn(),
     savePendingTradeConfiguration: jest.fn(),
     clearPendingTradeConfiguration: jest.fn(),
+    setSelectedOrderType: jest.fn(),
+    setOrderBookPreferences: jest.fn(),
+    saveTradeConfiguration: jest.fn(),
   };
   installMockEngineContext();
 

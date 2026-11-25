@@ -156,17 +156,24 @@ describe('parseStandardTokenTransactionData', () => {
       const mockValidateRequest = jest
         .spyOn(ppomUtil, 'validateRequest')
         .mockImplementation(() => Promise.resolve());
-      const transactionMeta = await addMMOriginatedTransaction(
+      const transactionResult = await addMMOriginatedTransaction(
         upgradeAccountConfirmation.txParams,
         {
           networkClientId: 'sepolia',
+          requireApproval: false,
           type: TransactionType.batch,
         },
       );
-      expect(transactionMeta.id).toBe('123');
+      expect(transactionResult.transactionMeta.id).toBe('123');
       expect(
         Engine.context.TransactionController.addTransaction,
       ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(
+        upgradeAccountConfirmation.txParams,
+        expect.objectContaining({ requireApproval: false }),
+      );
       expect(mockValidateRequest).toHaveBeenCalledTimes(1);
     });
   });

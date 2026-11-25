@@ -1,4 +1,5 @@
 import {
+  CommonActions,
   StackActions,
   type NavigationProp,
   type ParamListBase,
@@ -31,12 +32,39 @@ export function navigateToActivityAfterConfirmation(
 
   // `replace` only resolves when Activity is a root-stack screen (Money-account
   // enabled — the case with the bug). Otherwise fall back to plain `navigate`.
+  const rootState = rootNavigation?.getState();
   if (
-    rootNavigation?.getState().routeNames.includes(Routes.TRANSACTIONS_VIEW)
+    !rootNavigation ||
+    !rootState?.routeNames.includes(Routes.TRANSACTIONS_VIEW)
   ) {
-    rootNavigation.dispatch(StackActions.replace(Routes.TRANSACTIONS_VIEW));
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
     return;
   }
 
-  navigation.navigate(Routes.TRANSACTIONS_VIEW);
+  const currentRoute = rootState.routes?.[rootState.index];
+  const previousRoute = rootState.routes?.[rootState.index - 1];
+
+  // NFT details is a root-level route, so replacing Send alone leaves the
+  // consumed NFT underneath Activity. Remove both routes from the stack.
+  if (
+    currentRoute?.name === Routes.SEND.DEFAULT &&
+    previousRoute?.name === Routes.NFT_DETAILS
+  ) {
+    rootNavigation.dispatch(
+      CommonActions.reset({
+        ...rootState,
+        index: rootState.index - 1,
+        routes: [
+          ...rootState.routes.slice(0, rootState.index - 1),
+          {
+            key: `${rootState.key}-${Routes.TRANSACTIONS_VIEW}`,
+            name: Routes.TRANSACTIONS_VIEW,
+          },
+        ],
+      }),
+    );
+    return;
+  }
+
+  rootNavigation.dispatch(StackActions.replace(Routes.TRANSACTIONS_VIEW));
 }

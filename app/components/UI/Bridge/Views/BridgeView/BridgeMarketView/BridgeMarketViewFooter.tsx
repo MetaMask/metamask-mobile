@@ -1,9 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Box } from '../../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../../Box/box.types';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSourceToken,
@@ -22,28 +19,38 @@ import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOr
 import { useStyles } from '../../../../../../component-library/hooks/useStyles.ts';
 import { createStyles } from './BridgeMarketView.styles.ts';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxFlexWrap,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
+import RebateBanner from '../../../../shared/RebateBanner';
+import { SWAPS_REBATE_BANNER_TEST_ID } from '../../../components/SwapsRebateBanner';
+import { useTheme } from '../../../../../../util/theme/index.ts';
 
 interface Props {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  rebatePercent?: number | null;
 }
 
 export const BridgeMarketViewFooter = ({
-  latestSourceBalance,
   location,
   transactionActiveAbTests,
+  rebatePercent,
 }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -53,24 +60,25 @@ export const BridgeMarketViewFooter = ({
   const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
 
+  const isRewardsTierBadge =
+    discountBadge?.type === DiscountType.VIP ||
+    discountBadge?.type === DiscountType.SUBSCRIPTION;
+
+  const isFreeBadge = discountBadge?.type === 'free';
+
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
-
-  if (isLoading && !activeQuote && !needsNewQuote) {
-    return null;
-  }
 
   const footerContainerStyle = [
     styles.buttonContainer,
     { paddingBottom: bottomInset },
   ];
 
-  if (needsNewQuote) {
+  if (needsNewQuote || (isLoading && !activeQuote)) {
     return (
       <Box style={footerContainerStyle}>
         <SwapsMarketOrderConfirmButton
           location={location}
-          latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
@@ -88,52 +96,75 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <HardwareWalletSolanaSignUnsupportedBanner />
         <BlockaidErrorBanner />
+        {rebatePercent ? (
+          <RebateBanner
+            rebatePercent={rebatePercent}
+            testID={SWAPS_REBATE_BANNER_TEST_ID}
+          />
+        ) : null}
         <SwapsMarketOrderConfirmButton
           location={location}
-          latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-        <Box flexDirection={FlexDirection.Column} gap={2}>
+        <Box flexDirection={BoxFlexDirection.Column} gap={2}>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            flexWrap={BoxFlexWrap.Wrap}
             gap={2}
             testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
           >
-            {discountBadge?.type === DiscountType.VIP ? (
-              <RewardsVipBadge />
+            {discountBadge && !isFreeBadge ? (
+              isRewardsTierBadge ? (
+                <MembershipVipBadge
+                  hasProEntitlement={
+                    discountBadge.type === DiscountType.SUBSCRIPTION
+                  }
+                />
+              ) : (
+                <RewardsDiscountBadge label={discountBadge.label} />
+              )
             ) : null}
 
-            {discountBadge && discountBadge.type !== DiscountType.VIP ? (
-              <RewardsDiscountBadge label={discountBadge.label} />
-            ) : null}
+            <Box flexDirection={BoxFlexDirection.Row} gap={1}>
+              {infoText ? (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  twClassName={isFreeBadge ? 'line-through' : ''}
+                >
+                  {infoText}
+                </Text>
+              ) : null}
 
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {infoText}
-            </Text>
+              {baseFeePercentage && (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  twClassName="line-through"
+                >
+                  {baseFeePercentage}
+                </Text>
+              )}
 
-            {baseFeePercentage && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                // eslint-disable-next-line react-native/no-inline-styles
-                style={{ textDecorationLine: 'line-through' }}
-              >
-                {baseFeePercentage}
-              </Text>
-            )}
+              {infoSuffix && (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                >
+                  {infoSuffix}
+                </Text>
+              )}
 
-            {infoSuffix && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {infoSuffix}
-              </Text>
-            )}
+              {discountBadge && isFreeBadge ? (
+                <Tag
+                  severity={TagSeverity.Success}
+                  testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER_FREE_BADGE}
+                >
+                  {discountBadge.label}
+                </Tag>
+              ) : null}
+            </Box>
           </Box>
         </Box>
       </Box>

@@ -14,6 +14,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getDeviceIdForAddress } from '../../../../../core/HardwareWallet/helpers';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
@@ -31,17 +32,16 @@ import {
   MetaMetricsSwapsEventSource,
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType, BridgeViewMode } from '../../types';
+import { SecurityDataType, BridgeToken } from '../../types';
+import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
-import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
 import {
-  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-  SwapsCtaButtonColorVariant,
-} from './abTestConfig';
-import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
+  STOCK_MARKET_STATUS_POLL_MS,
+  __resetStockMarketHoursClockForTest,
+} from '../../hooks/useStockMarketHours';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -95,6 +95,22 @@ jest.mock('../../../../../selectors/bridge', () => ({
 // compareVersions (which requires a real app version string unavailable in tests).
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
+// The submit path reads the social post-trade prompt and the social flag. Their
+// selectors need the version-gated flag helper, which this suite does not
+// exercise.
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({
+    usePostTradePromptResolver: () => () => ({ kind: 'none' }),
+  }),
+);
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
+  selectIsSocialV1Enabled: () => false,
 }));
 
 jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
@@ -151,25 +167,27 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock useLatestBalance hook
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
-    if (!address || !chainId) return undefined;
-
-    const actualEthers = jest.requireActual('ethers');
-
-    return {
-      displayBalance: '2.0',
-      atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
-    };
-  }),
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
 }));
 
-// Create mock latestSourceBalance to pass as prop
 const mockLatestSourceBalance = {
   displayBalance: '2.0',
   atomicBalance: BigNumber.from('2000000000000000000'), // 2 ETH
 };
+
+const createMockBridgeSession = (
+  overrides: Partial<ReturnType<typeof useBridgeSession>> = {},
+) => ({
+  selectedTab: BridgeTabKey.Market,
+  renderedTab: BridgeTabKey.Market,
+  setSelectedTab: jest.fn(),
+  setRenderedTab: jest.fn(),
+  latestSourceBalance: mockLatestSourceBalance,
+  quoteParams: {},
+  setQuoteParams: jest.fn(),
+  ...overrides,
+});
 
 // Override srcTokenAmount so it matches sourceAmount='1.0' with 18 decimals,
 // preventing the quote from being detected as stale in default test scenarios.
@@ -339,33 +357,6 @@ const mockState: DeepPartial<RootState> = {
   },
 };
 
-function createAbTestState(
-  variantName?: SwapsCtaButtonColorVariant,
-  bridgeViewMode = BridgeViewMode.Unified,
-): DeepPartial<RootState> {
-  return {
-    ...mockState,
-    engine: {
-      ...mockState.engine,
-      backgroundState: {
-        ...mockState.engine?.backgroundState,
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            bridgeConfigV2: defaultBridgeConfigV2,
-            ...(variantName && {
-              [SWAPS_CTA_BUTTON_COLOR_AB_KEY]: { name: variantName },
-            }),
-          },
-        },
-      },
-    },
-    bridge: {
-      ...mockState.bridge,
-      bridgeViewMode,
-    },
-  };
-}
-
 describe('SwapsMarketOrderConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -384,6 +375,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
     mockEnsureDeviceReady.mockResolvedValue(true);
     jest.mocked(getDeviceIdForAddress).mockResolvedValue('mock-device-id');
+    jest.mocked(useBridgeSession).mockReturnValue(createMockBridgeSession());
     mockSubmitBridgeTx.mockResolvedValue({
       id: 'tx-meta-id',
       hash: '0xabc',
@@ -392,125 +384,15 @@ describe('SwapsMarketOrderConfirmButton', () => {
   });
 
   afterEach(() => {
+    __resetStockMarketHoursClockForTest();
+    jest.useRealTimers();
     jest.restoreAllMocks();
-  });
-
-  describe('CTA color A/B test', () => {
-    it('uses Primary when the CTA experiment is unresolved', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        { state: createAbTestState() },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.variant).toBe(ButtonVariant.Primary);
-      expect(button.props.twClassName).toBeUndefined();
-      expect(button.props.textProps).toBeUndefined();
-    });
-
-    it('uses Primary for the control assignment', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: createAbTestState(SwapsCtaButtonColorVariant.Control),
-        },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.variant).toBe(ButtonVariant.Primary);
-      expect(button.props.twClassName).toBeUndefined();
-      expect(button.props.textProps).toBeUndefined();
-    });
-
-    it('uses the success color for the treatment assignment', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
-        },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
-      expect(button.props.textProps).toEqual({
-        color: TextColor.SuccessInverse,
-      });
-    });
-
-    it('uses the success color outside Unified mode for treatment', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: createAbTestState(
-            SwapsCtaButtonColorVariant.Treatment,
-            BridgeViewMode.Swap,
-          ),
-        },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
-    });
-
-    it('preserves existing transaction attribution when submitting treatment', async () => {
-      const existingAssignment = createActiveABTestAssignment(
-        'existingExperiment',
-        'control',
-      );
-      const { getByTestId } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-          transactionActiveAbTests={[existingAssignment]}
-        />,
-        {
-          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
-        },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
-      });
-
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockActiveQuote,
-          location: MetaMetricsSwapsEventSource.MainView,
-          transactionActiveAbTests: [existingAssignment],
-        });
-      });
-    });
   });
 
   describe('Button Label', () => {
     it('displays "Confirm swap" label by default', () => {
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -526,7 +408,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -542,7 +423,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -563,7 +443,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -588,7 +467,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -614,7 +492,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -631,7 +508,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -654,7 +530,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -686,7 +561,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -708,7 +582,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -725,7 +598,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -742,7 +614,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -752,6 +623,327 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('disables button when dest stock market is fully closed', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-02T12:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const closedStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 12 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 20 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const closedMarketState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: closedStock,
+        },
+      };
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: closedMarketState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(
+        getByText(strings('bridge.market_closed.title')),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(button);
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('keeps button enabled when dest stock is in off-hours', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const offHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 12 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 20 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs - hourMs).toISOString(),
+            nextClose: new Date(nowMs + 2 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const offHoursState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: offHoursStock,
+        },
+      };
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
+      expect(
+        queryByText(strings('bridge.market_closed.title')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('blocks submit when off-hours ends after the button has already rendered', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const offHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 15 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 23 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs - hourMs).toISOString(),
+            nextClose: new Date(nowMs + 2 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const offHoursState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: offHoursStock,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
+
+      act(() => {
+        jest.setSystemTime(nowMs + 3 * hourMs);
+      });
+
+      fireEvent.press(button);
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
+    });
+
+    it('updates label to market closed when the poll fires after off-hours ends', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const offHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 15 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 23 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs - hourMs).toISOString(),
+            nextClose: new Date(nowMs + 2 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const offHoursState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: offHoursStock,
+        },
+      };
+
+      const { getByTestId, queryByText, getByText } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
+
+      expect(
+        queryByText(strings('bridge.market_closed.title')),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        jest.setSystemTime(nowMs + 3 * hourMs);
+        jest.advanceTimersByTime(STOCK_MARKET_STATUS_POLL_MS);
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(
+        getByText(strings('bridge.market_closed.title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('clears market-closed label when the poll fires after off-hours starts', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T12:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const closedThenOffHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 12 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 20 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs + 5 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 8 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const closedMarketState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: closedThenOffHoursStock,
+        },
+      };
+
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: closedMarketState,
+        },
+      );
+
+      expect(
+        getByText(strings('bridge.market_closed.title')),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        jest.setSystemTime(nowMs + 6 * hourMs);
+        jest.advanceTimersByTime(STOCK_MARKET_STATUS_POLL_MS);
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
+      expect(
+        queryByText(strings('bridge.market_closed.title')),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -767,7 +959,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -792,7 +983,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -816,7 +1006,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -844,7 +1033,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -875,7 +1063,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -908,7 +1095,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
         const { getByText } = renderWithProvider(
           <SwapsMarketOrderConfirmButton
-            latestSourceBalance={mockLatestSourceBalance}
             location={MetaMetricsSwapsEventSource.MainView}
           />,
           {
@@ -932,7 +1118,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -952,7 +1137,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -976,7 +1160,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -997,7 +1180,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1021,7 +1203,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1041,7 +1222,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
       const { getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1064,7 +1244,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
       const { getByText, getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1089,7 +1268,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // sourceAmount='1.0' matches the mock quote's srcTokenAmount
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1105,7 +1283,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('shows loading when user slippage changes before quote refresh starts', () => {
       const { getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1123,6 +1300,13 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('enables confirmation after the custom-slippage quote settles', () => {
+      const initialSlippageQuote = {
+        ...mockActiveQuote,
+        quote: {
+          ...mockActiveQuote.quote,
+          slippage: 2,
+        },
+      };
       const customSlippageQuote = {
         ...mockActiveQuote,
         quote: {
@@ -1132,7 +1316,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
       };
       let quoteData = {
         ...mockUseBridgeQuoteData,
-        activeQuote: mockActiveQuote,
+        activeQuote: initialSlippageQuote,
         isLoading: false,
       };
       jest
@@ -1142,24 +1326,25 @@ describe('SwapsMarketOrderConfirmButton', () => {
         ...mockState,
         bridge: {
           ...mockState.bridge,
-          slippage: '3.5',
+          slippage: '2',
           isSlippageUserOverride: true,
         },
       };
-      const { getByTestId, rerender } = renderWithProvider(
+      const { getByTestId, rerender, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state },
       );
+      act(() => {
+        store.dispatch(setSlippageUserOverride('3.5'));
+      });
       quoteData = {
         ...quoteData,
         isLoading: true,
       };
       rerender(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
       );
@@ -1171,7 +1356,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       rerender(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
       );
@@ -1185,7 +1369,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('keeps confirmation enabled when the backend hydrates slippage', () => {
       const { getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1216,7 +1399,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1241,7 +1423,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1267,7 +1448,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1290,7 +1470,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1321,7 +1500,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1350,7 +1528,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1383,7 +1560,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1402,7 +1578,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('submits transaction and opens the post-trade bottom sheet', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1466,7 +1641,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1495,7 +1669,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1535,7 +1708,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1556,7 +1728,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1615,7 +1786,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('navigates to TokenWarningModal when a token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1639,7 +1809,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('does not submit the transaction when a token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1655,7 +1824,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('passes Malicious type through to TokenWarningModal params', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1699,7 +1867,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithEmptyFeatures },
@@ -1734,7 +1901,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1770,7 +1936,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1793,7 +1958,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('proceeds to normal flow when no token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState }, // no destToken securityData
@@ -1830,7 +1994,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -1864,7 +2027,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -1895,11 +2057,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -1913,7 +2075,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -1935,11 +2096,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -1969,11 +2130,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -1987,7 +2148,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2014,7 +2174,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2049,7 +2208,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2089,7 +2247,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2120,11 +2277,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2144,10 +2301,8 @@ describe('SwapsMarketOrderConfirmButton', () => {
       );
     });
 
-    it('reads the danger threshold from bridge feature flags state', async () => {
-      // priceImpact raw value 0.25 exactly meets the danger threshold configured
-      // in mockState (defaultBridgeConfigV2.priceImpactThreshold.error = 0.25),
-      // confirming the component reads bridgeFeatureFlags from the Redux store.
+    it('navigates to PriceImpactModal when shouldShowPriceImpactError is true', async () => {
+      // 0.25 >= 0.25, so the modal IS shown and the transaction is not submitted
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -2156,18 +2311,18 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: { amount: '0.25' } }, // 0.25 >= 0.25 → modal shown
+              priceData: { priceImpact: { amount: '0.25' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2181,7 +2336,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2228,7 +2382,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithoutDangerThreshold },

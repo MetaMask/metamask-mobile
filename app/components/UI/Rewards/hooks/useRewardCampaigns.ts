@@ -6,6 +6,7 @@ import {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignsFetching,
 } from '../../../../reducers/rewards';
 import {
   selectCampaigns,
@@ -66,6 +67,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       dispatch(setCampaigns([]));
       dispatch(setCampaignsLoading(false));
       dispatch(setCampaignsError(false));
+      dispatch(setCampaignsFetching(false));
       return;
     }
 
@@ -75,10 +77,13 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
+      dispatch(setCampaignsFetching(true));
       if (!hasLoadedRef.current) {
         dispatch(setCampaignsLoading(true));
       }
-      dispatch(setCampaignsError(false));
+      // The stored error is left alone here. `setCampaigns` clears it when a
+      // read succeeds, so a failure stays visible through the next attempt
+      // instead of giving way to the empty state while it is in flight.
       const campaignsData = await Engine.controllerMessenger.call(
         'RewardsController:getCampaigns',
         subscriptionId,
@@ -89,6 +94,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     } finally {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
+      dispatch(setCampaignsFetching(false));
     }
   }, [dispatch, subscriptionId]);
 
@@ -141,7 +147,8 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchCampaigns();
+      // Fire and forget: fetchCampaigns handles its own failures.
+      void fetchCampaigns();
     }, [fetchCampaigns]),
   );
 

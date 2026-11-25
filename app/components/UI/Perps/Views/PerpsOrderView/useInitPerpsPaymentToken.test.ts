@@ -1,12 +1,25 @@
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
+import { useIsMoneyAccountPaymentOverride } from '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
+} from '../../../../Views/confirmations/__mocks__/pay-token.mock';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../../Views/confirmations/hooks/pay/useTransactionPayToken');
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+);
 jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
   usePerpsPayWithToken: jest.fn(),
 }));
@@ -33,6 +46,9 @@ const mockUseDefaultPayToken =
 const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
   typeof usePerpsSelector
 >;
+const mockUseIsMoneyAccountPaymentOverride = jest.mocked(
+  useIsMoneyAccountPaymentOverride,
+);
 const mockSetSelectedPaymentToken = Engine.context.PerpsController
   ?.setSelectedPaymentToken as jest.Mock;
 
@@ -41,6 +57,7 @@ function setupDefaults({
   selectedPaymentToken = null,
   defaultPayToken = null,
   pendingConfig = undefined,
+  isMoneyAccountSelected = false,
 }: {
   payToken?: ReturnType<typeof useTransactionPayToken>['payToken'];
   selectedPaymentToken?: ReturnType<typeof usePerpsPayWithToken>;
@@ -54,6 +71,7 @@ function setupDefaults({
         };
       }
     | undefined;
+  isMoneyAccountSelected?: boolean;
 } = {}) {
   mockUseTransactionPayToken.mockReturnValue({
     payToken,
@@ -62,11 +80,13 @@ function setupDefaults({
   mockUsePerpsPayWithToken.mockReturnValue(selectedPaymentToken);
   mockUseDefaultPayToken.mockReturnValue(defaultPayToken);
   mockUsePerpsSelector.mockReturnValue(pendingConfig);
+  mockUseIsMoneyAccountPaymentOverride.mockReturnValue(isMoneyAccountSelected);
 }
 
 describe('useInitPerpsPaymentToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
     setupDefaults();
   });
 
@@ -91,8 +111,7 @@ describe('useInitPerpsPaymentToken', () => {
     renderHook(() => useInitPerpsPaymentToken('BTC'));
 
     expect(mockSetPayToken).toHaveBeenCalledWith({
-      address: '0xusdc',
-      chainId: '0xa4b1',
+      assetId: evmAssetId('0xusdc', '0xa4b1'),
     });
     expect(mockSetSelectedPaymentToken).toHaveBeenCalledWith({
       description: 'USDC',
@@ -142,8 +161,7 @@ describe('useInitPerpsPaymentToken', () => {
     renderHook(() => useInitPerpsPaymentToken('BTC'));
 
     expect(mockSetPayToken).toHaveBeenCalledWith({
-      address: '0xdai',
-      chainId: '0x1',
+      assetId: evmAssetId('0xdai', '0x1'),
     });
     expect(mockSetSelectedPaymentToken).toHaveBeenCalledWith({
       description: 'DAI',
@@ -159,9 +177,10 @@ describe('useInitPerpsPaymentToken', () => {
       description: 'DAI',
     };
     setupDefaults({
-      payToken: { address: '0xdai', chainId: '0x1' } as unknown as ReturnType<
-        typeof useTransactionPayToken
-      >['payToken'],
+      payToken: buildPaymentTokenMock({
+        address: '0xdai',
+        chainId: '0x1',
+      }) as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
       selectedPaymentToken: { address: '0xdai', chainId: '0x1' },
       pendingConfig: { selectedPaymentToken: pendingToken },
     });
@@ -202,8 +221,7 @@ describe('useInitPerpsPaymentToken', () => {
     rerender({ asset: 'ETH' });
 
     expect(mockSetPayToken).toHaveBeenCalledWith({
-      address: '0xdai',
-      chainId: '0x1',
+      assetId: evmAssetId('0xdai', '0x1'),
     });
   });
 
@@ -224,5 +242,40 @@ describe('useInitPerpsPaymentToken', () => {
     renderHook(() => useInitPerpsPaymentToken('BTC'));
 
     expect(mockSetPayToken).not.toHaveBeenCalled();
+  });
+
+  describe('when paying from the Money Account', () => {
+    it('does not overwrite the money account pay token with the allowlist default', () => {
+      setupDefaults({
+        defaultPayToken: {
+          address: '0xdai',
+          chainId: '0x1',
+          description: 'DAI',
+        },
+        isMoneyAccountSelected: true,
+      });
+
+      renderHook(() => useInitPerpsPaymentToken('BTC'));
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
+      expect(mockSetSelectedPaymentToken).not.toHaveBeenCalled();
+    });
+
+    it('does not re-apply the pending config token', () => {
+      setupDefaults({
+        pendingConfig: {
+          selectedPaymentToken: {
+            address: '0xusdc',
+            chainId: '0xa4b1',
+            description: 'USDC',
+          },
+        },
+        isMoneyAccountSelected: true,
+      });
+
+      renderHook(() => useInitPerpsPaymentToken('BTC'));
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
+    });
   });
 });

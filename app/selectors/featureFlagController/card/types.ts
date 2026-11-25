@@ -1,3 +1,5 @@
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
+
 /**
  * Shape of a version-gated remote flag. LaunchDarkly may additionally wrap this
  * in a progressive-rollout envelope (`{ name, value }`), which
@@ -6,6 +8,46 @@
 export interface GateVersionedFeatureFlag {
   enabled: boolean;
   minimumVersion: string;
+}
+
+export type ProvisioningPlatform = 'ios' | 'android';
+export type ProvisioningWallet =
+  | 'apple_wallet'
+  | 'google_wallet'
+  | 'samsung_pay';
+export type ProvisioningDevice = 'phone' | 'watch';
+
+export interface CardProvisioningFacts {
+  platform: ProvisioningPlatform;
+  countryCode?: string;
+  cardProcessor?: string;
+}
+
+export interface ResolvedProvisioningWallet {
+  wallet: ProvisioningWallet;
+  devices?: ProvisioningDevice[];
+}
+
+export type CardUkMigrationPhase = 'off' | 'soft' | 'forced';
+
+/** Remote `cardUkMigration` flag — version gate plus migration schedule.
+ * Both `startDate` and `endDate` are required for any active phase; missing,
+ * invalid, or inverted (`startDate >= endDate`) dates resolve to off
+ * (same as `enabled: false`). Eligibility is fixed to GB (UK) Baanx users.
+ */
+export interface CardUkMigrationFlag {
+  enabled: boolean;
+  minimumVersion: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface CardUkMigrationState {
+  phase: CardUkMigrationPhase;
+  /** `soft` or `forced` — migration prompts may show. */
+  isActive: boolean;
+  /** Parsed from `endDate` for sheet / blocking copy. */
+  deadline: Date | null;
 }
 
 export interface SupportedToken {
@@ -18,7 +60,6 @@ export interface SupportedToken {
 
 export interface SupportedChain {
   enabled?: boolean | null;
-  balanceScannerAddress?: `0x${string}` | null;
   foxConnectAddresses?: {
     global?: `0x${string}` | null;
     us?: `0x${string}` | null;
@@ -44,8 +85,50 @@ export interface CardProgramIdOption {
 }
 
 /**
+ * Where an Immersve card draws its balance: the user's own wallet (an EOA
+ * allowance) or the primary Money account.
+ */
+export type ImmersveFundingSourceType = 'wallet' | 'moneyAccount';
+
+/**
+ * One entry of `cardImmersveConfig.fundingChannels`, keyed by a channel name
+ * such as `usdcBase`, `usdcLinea`, or `moneyAccount`. Chain, token, RPC, and
+ * Immersve network name are not stored here — they are resolved from
+ * `assetId` through `cardImmersveChains`.
+ */
+export interface ImmersveFundingChannelConfig {
+  source: ImmersveFundingSourceType;
+  /** Immersve funding channel id sent to the funding-sources API. */
+  fundingChannelId: string;
+  /** CAIP-19 asset the channel spends. */
+  assetId: CaipAssetType;
+  /** Spender used for allowance reads, revoke, and re-approve. */
+  spenderAddress: string;
+  /** Falls back to the top-level `cardProgramId` when omitted. */
+  cardProgramId?: string;
+}
+
+/**
+ * A funding channel joined with its chain and token from `cardImmersveChains`.
+ */
+export interface ImmersveFundingChannel extends ImmersveFundingChannelConfig {
+  caipChainId: CaipChainId;
+  /** Immersve network name, e.g. `base-mainnet` or `monad-mainnet`. */
+  network: string;
+  tokenAddress: string;
+  decimals: number;
+  symbol?: string;
+  rpcUrl?: string;
+  fallbackRpcUrl?: string;
+}
+
+/**
  * Immersve provider config — the `cardImmersveConfig` flag. The on/off switch
  * is the separate `cardImmersve` flag, not a field in here.
+ *
+ * `network`, `fundingChannelId`, and `spenderAddress` are the USDC wallet
+ * channel that released builds read. New builds use them when
+ * `cardImmersveCountries` is a legacy string array or is absent.
  */
 export interface ImmersveProgramConfig {
   network?: string;
@@ -60,6 +143,9 @@ export interface ImmersveProgramConfig {
   /** Separate Immersve secure host used for set-PIN (and similar) calls. */
   secureApiBaseUrl?: string;
   appUrl?: string;
+  reportTransactionUrl?: string;
+  /** Channel name -> channel. See {@link ImmersveFundingChannelConfig}. */
+  fundingChannels?: Record<string, ImmersveFundingChannelConfig>;
 }
 
 // -- Generic per-provider shapes --
@@ -90,7 +176,7 @@ export interface CardProviderChain {
 /** CAIP-2 chain ID -> chain config. */
 export type CardProviderChains = Record<string, CardProviderChain>;
 
-/** The four remote-flag keys that make up one provider's contract. */
+/** The remote-flag keys that make up one provider's contract. */
 export interface CardProviderFlagKeys {
   gate: string;
   config: string;

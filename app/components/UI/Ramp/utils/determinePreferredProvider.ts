@@ -1,9 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import {
-  type Provider,
-  type RampsOrder,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -64,60 +60,4 @@ export function completedOrdersFromRampsOrders(
       }
       return acc;
     }, []);
-}
-
-export interface PreferredProviderResult {
-  provider: Provider;
-  autoSelected: boolean;
-}
-
-/**
- * Determines the preferred provider based on user's completed order history.
- *
- * Fallback order:
- * 1. Provider from most recent completed order (autoSelected: false)
- * 2. Transak (autoSelected: false)
- * 3. null — no preselection; wait for the user to pick a token, then
- * choose the first provider that supports it.
- *
- * @param completedOrders - Completed orders from any source (legacy + controller)
- * @param availableProviders - Available providers from RampsController
- * @returns The preferred provider with its selection source, or null if no
- * providers are available or no signal exists to pick one.
- */
-export function determinePreferredProvider(
-  completedOrders: CompletedOrderInfo[],
-  availableProviders: Provider[],
-): PreferredProviderResult | null {
-  if (availableProviders.length === 0) {
-    return null;
-  }
-
-  if (completedOrders.length > 0) {
-    const [mostRecent] = [...completedOrders].sort(
-      (a, b) => b.completedAt - a.completedAt,
-    );
-
-    const foundProvider = availableProviders.find(
-      (provider) =>
-        provider.id?.toLowerCase() === mostRecent.providerId.toLowerCase() ||
-        provider.name?.toLowerCase() === mostRecent.providerId.toLowerCase(),
-    );
-
-    if (foundProvider) {
-      return { provider: foundProvider, autoSelected: false };
-    }
-  }
-
-  const transakProvider = availableProviders.find(
-    (provider) =>
-      provider.id?.toLowerCase().includes('transak') ||
-      provider.name?.toLowerCase().includes('transak'),
-  );
-
-  if (transakProvider) {
-    return { provider: transakProvider, autoSelected: false };
-  }
-
-  return null;
 }

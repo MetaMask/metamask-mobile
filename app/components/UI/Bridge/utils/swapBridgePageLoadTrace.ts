@@ -1,6 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  SwapFeatureTag,
+} from '@metamask/bridge-controller';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import type { DeeplinkPerfAppStartType } from '../../../../core/Performance/DeeplinkPerformance';
 import type { BridgeToken, BridgeViewMode } from '../types';
 
 export interface SwapBridgePageLoadTraceRoute {
@@ -11,10 +15,15 @@ export interface SwapBridgePageLoadTraceRoute {
   sourceAmount?: string;
 }
 
+/**
+ * @param options.appStartType - Deeplink callers pass the Deeplink Processed
+ * span's value; in-app navigation is `warm`.
+ */
 export const startSwapBridgePageLoadTrace = <
   T extends SwapBridgePageLoadTraceRoute,
 >(
   route: T,
+  { appStartType = 'warm' }: { appStartType?: DeeplinkPerfAppStartType } = {},
 ): T & { swapViewTraceId: string } => {
   const id = uuidv4();
   const srcChainId = route.sourceToken?.chainId
@@ -32,10 +41,12 @@ export const startSwapBridgePageLoadTrace = <
       entry_point: route.sourcePage,
       view_mode: route.bridgeViewMode,
       prefilled_amount: Boolean(route.sourceAmount),
+      app_start_type: appStartType,
       ...(srcChainId && { src_chain_id: srcChainId }),
       ...(destChainId && { dest_chain_id: destChainId }),
     },
     startTime: Date.now(),
+    tags: { feature: SwapFeatureTag.SWAP },
   });
 
   return { ...route, swapViewTraceId: id };

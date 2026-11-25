@@ -10,7 +10,6 @@ import {
   Button,
   ButtonVariant,
   ButtonIconSize,
-  BottomSheetHeader,
   FontWeight,
   Text as DSText,
   TextVariant as DSTextVariant,
@@ -31,6 +30,10 @@ import {
 import type { TokenSecurityFeature } from '../../SecurityTrust/types';
 import { SecurityBanner } from './SecurityBanner';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export interface SecurityBadgeBottomSheetParams {
   icon: IconName;
@@ -44,6 +47,12 @@ export interface SecurityBadgeBottomSheetParams {
   tokenSymbol?: string;
   chainId?: string;
   features?: TokenSecurityFeature[];
+  /**
+   * Token Details page analytics version (`'v3'` for the new page, `'v2'` for
+   * legacy). Attached to the bottom-sheet events so the PRD §10.4 Malicious
+   * proceed-rate guardrail can be split per TDP version. Defaults to `'v2'`.
+   */
+  tdpVersion?: TdpVersion;
 }
 
 type SecurityBadgeBottomSheetRouteProp = RouteProp<
@@ -52,6 +61,7 @@ type SecurityBadgeBottomSheetRouteProp = RouteProp<
 >;
 
 const SecurityBadgeBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<SecurityBadgeBottomSheetRouteProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -68,6 +78,7 @@ const SecurityBadgeBottomSheet = () => {
     tokenSymbol,
     chainId,
     features,
+    tdpVersion = 'v2',
   } = route.params;
 
   // Get feature tags for Malicious, Warning, and Spam types only (max 5)
@@ -103,6 +114,7 @@ const SecurityBadgeBottomSheet = () => {
           token_address: tokenAddress,
           token_symbol: tokenSymbol,
           chain_id: chainId,
+          tdp_version: tdpVersion,
         })
         .build(),
     );
@@ -113,6 +125,7 @@ const SecurityBadgeBottomSheet = () => {
     source,
     tokenAddress,
     tokenSymbol,
+    tdpVersion,
     trackEvent,
   ]);
 
@@ -130,6 +143,7 @@ const SecurityBadgeBottomSheet = () => {
             token_address: tokenAddress,
             token_symbol: tokenSymbol,
             chain_id: chainId,
+            tdp_version: tdpVersion,
           })
           .build(),
       );
@@ -142,6 +156,7 @@ const SecurityBadgeBottomSheet = () => {
       source,
       tokenAddress,
       tokenSymbol,
+      tdpVersion,
       trackEvent,
     ],
   );
@@ -159,7 +174,8 @@ const SecurityBadgeBottomSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ size: ButtonIconSize.Sm }}
       />

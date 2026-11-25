@@ -604,7 +604,6 @@ describe('Browser - Function Coverage Tests', () => {
       // Should navigate to Explore because activeTab 1 is not in the tabs list
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.TRENDING_VIEW,
-        { screen: Routes.TRENDING_FEED },
       );
     });
   });

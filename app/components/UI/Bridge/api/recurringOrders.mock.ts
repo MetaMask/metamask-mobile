@@ -1,0 +1,301 @@
+import {
+  type PrepareRecurringDelegationQuery,
+  type PrepareRecurringDelegationResponse,
+  type RecurringOrder,
+  type RecurringOrderAsset,
+  RecurringOrderState,
+} from './recurringOrders.types';
+import {
+  isCaipAccountId,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+  parseCaipAssetType,
+  toCaipAccountId,
+} from '@metamask/utils';
+
+export const MOCK_RECURRING_WALLET_ADDRESS =
+  '0x1234567890123456789012345678901234567890';
+export const MOCK_RECURRING_ACCOUNT = toCaipAccountId(
+  KnownCaipNamespace.Eip155,
+  '1',
+  MOCK_RECURRING_WALLET_ADDRESS,
+);
+export const MOCK_RECURRING_PROFILE_ID = 'f2a1c0de-0000-4000-8000-000000000001';
+
+export function createMockPrepareRecurringDelegationResponse(
+  query: PrepareRecurringDelegationQuery,
+): PrepareRecurringDelegationResponse {
+  if (!isCaipAccountId(query.accountAddress)) {
+    throw new Error('Mock recurring account must be a CAIP account ID');
+  }
+
+  const { chainId, chain } = parseCaipAssetType(query.srcAssetId);
+  const { address } = parseCaipAccountId(query.accountAddress);
+  const delegationManager = '0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3';
+  const delegate = '0x0000000000000000000000000000000000000a11';
+
+  return {
+    chainId,
+    delegationManager,
+    swapRouter: '0x962287c9d5B8a682389E61edAE90ec882325d08b',
+    approvalRequired: false,
+    order: {
+      clientOrderId: query.clientOrderId,
+      account: query.accountAddress,
+      src: {
+        assetId: query.srcAssetId,
+        amount: query.srcAmount,
+      },
+      dest: {
+        assetId: query.destAssetId,
+        amount: '0',
+      },
+      priceTolerance: 0,
+      expiresAt: 1800000000,
+    },
+    delegations: [
+      {
+        purpose: 'swap',
+        delegation: {
+          delegate,
+          delegator: address,
+          authority:
+            '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+          caveats: [],
+          salt: '0x6572bcee6cc79e0b70128c9dd1f65f0075ebcac9b8aa38e8b6af0fa4757f2050',
+          signature: '0x',
+        },
+        typedData: {
+          domain: {
+            name: 'DelegationManager',
+            version: '1',
+            chainId: Number(chain.reference),
+            verifyingContract: delegationManager,
+          },
+          primaryType: 'Delegation',
+          types: {
+            Delegation: [{ name: 'delegate', type: 'address' }],
+          },
+          message: { delegate },
+        },
+      },
+    ],
+  };
+}
+
+const ETHEREUM_ETH = {
+  chainId: 1,
+  assetId: 'eip155:1/slip44:60',
+  symbol: 'ETH',
+  name: 'Ethereum',
+  address: '0x0000000000000000000000000000000000000000',
+  decimals: 18,
+  aggregators: [],
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+} satisfies RecurringOrderAsset;
+
+const ETHEREUM_USDC = {
+  chainId: 1,
+  assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  symbol: 'USDC',
+  name: 'USD Coin',
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  decimals: 6,
+  aggregators: [],
+  iconUrl:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+} satisfies RecurringOrderAsset;
+
+const BNB_CHAIN_BNB = {
+  chainId: 56,
+  assetId: 'eip155:56/slip44:714',
+  symbol: 'BNB',
+  name: 'BNB',
+  address: '0x0000000000000000000000000000000000000000',
+  decimals: 18,
+  aggregators: [],
+  iconUrl: 'https://static.cx.metamask.io/api/v1/tokenIcons/56/0x0.png',
+} satisfies RecurringOrderAsset;
+
+const BNB_CHAIN_USDT = {
+  chainId: 56,
+  assetId: 'eip155:56/erc20:0x55d398326f99059fF775485246999027B3197955',
+  symbol: 'BSC-USD',
+  name: 'Tether USD',
+  address: '0x55d398326f99059fF775485246999027B3197955',
+  decimals: 18,
+  aggregators: [],
+  iconUrl:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/56/0x55d398326f99059ff775485246999027b3197955.png',
+} satisfies RecurringOrderAsset;
+
+const SOURCE_AMOUNT = 1_500_000_000_000_000n;
+const REPEAT_COUNT = 5;
+
+interface CreateMockRecurringOrderOptions {
+  id: string;
+  state: RecurringOrder['state'];
+  filledSwapsCount: number;
+  createdAt: string;
+  endsAt: string;
+  srcAsset?: RecurringOrderAsset;
+  destAsset?: RecurringOrderAsset;
+  priceRange?: RecurringOrder['priceRange'];
+  hasAttemptIssue?: boolean;
+  account?: RecurringOrder['account'];
+  cancelReason?: RecurringOrder['cancelReason'];
+}
+
+function createMockRecurringOrder({
+  id,
+  state,
+  filledSwapsCount,
+  createdAt,
+  endsAt,
+  srcAsset = ETHEREUM_ETH,
+  destAsset = ETHEREUM_USDC,
+  priceRange,
+  hasAttemptIssue = false,
+  account = MOCK_RECURRING_ACCOUNT,
+  cancelReason,
+}: CreateMockRecurringOrderOptions): RecurringOrder {
+  const destinationAmount = 3n * 10n ** BigInt(destAsset.decimals);
+
+  return {
+    id,
+    clientOrderId: `client-${id}`,
+    profileId: MOCK_RECURRING_PROFILE_ID,
+    account,
+    state,
+    src: {
+      amount: SOURCE_AMOUNT.toString(),
+      asset: srcAsset,
+    },
+    dest: {
+      asset: destAsset,
+    },
+    totalAmount: (SOURCE_AMOUNT * BigInt(REPEAT_COUNT)).toString(),
+    fillData: {
+      src: {
+        amount: (SOURCE_AMOUNT * BigInt(filledSwapsCount)).toString(),
+      },
+      dest: {
+        amount: (destinationAmount * BigInt(filledSwapsCount)).toString(),
+      },
+      count: filledSwapsCount,
+      skippedCount: hasAttemptIssue ? 1 : 0,
+      failedCount: 0,
+      ...(filledSwapsCount > 0 ? { averageExecutionPriceUsd: '2000.00' } : {}),
+    },
+    schedule: {
+      every: 1,
+      unit: 'day',
+      repeatCount: REPEAT_COUNT,
+    },
+    priceRange,
+    priceTolerance: 0.5,
+    timingData: {
+      createdAt,
+      startsAt: createdAt,
+      endsAt,
+      expiresAt: '2027-02-28T12:00:00.000Z',
+      ...(state === RecurringOrderState.Open ? {} : { closedAt: endsAt }),
+    },
+    warnings: hasAttemptIssue ? ['insufficient_balance'] : [],
+    isCancellable: state === RecurringOrderState.Open,
+    ...(cancelReason ? { cancelReason } : {}),
+  };
+}
+
+export const MOCK_RECURRING_OPEN_ORDER = createMockRecurringOrder({
+  id: 'mock-recurring-order-open',
+  state: RecurringOrderState.Open,
+  filledSwapsCount: 2,
+  createdAt: '2026-09-01T12:00:00.000Z',
+  endsAt: '2026-09-05T12:00:00.000Z',
+  priceRange: {
+    side: 'dest',
+    currency: 'USD',
+    min: '1800',
+    max: '2200',
+  },
+  hasAttemptIssue: true,
+});
+
+export const MOCK_RECURRING_PREPARE_QUERY: PrepareRecurringDelegationQuery = {
+  clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
+  accountAddress: MOCK_RECURRING_ACCOUNT,
+  srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+  srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
+  destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+  schedule: {
+    every: 2,
+    unit: 'day',
+    repeatCount: 4,
+  },
+};
+
+export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({
+  id: 'mock-recurring-order-open-secondary',
+  state: RecurringOrderState.Open,
+  filledSwapsCount: 0,
+  createdAt: '2026-09-02T12:00:00.000Z',
+  endsAt: '2026-09-06T12:00:00.000Z',
+  srcAsset: BNB_CHAIN_BNB,
+  destAsset: BNB_CHAIN_USDT,
+  account: toCaipAccountId(
+    KnownCaipNamespace.Eip155,
+    '56',
+    MOCK_RECURRING_WALLET_ADDRESS,
+  ),
+});
+
+export const MOCK_RECURRING_OPEN_ORDER_3 = createMockRecurringOrder({
+  id: 'mock-recurring-order-open-tertiary',
+  state: RecurringOrderState.Open,
+  filledSwapsCount: 3,
+  createdAt: '2026-09-03T12:00:00.000Z',
+  endsAt: '2026-09-07T12:00:00.000Z',
+});
+
+export const MOCK_RECURRING_COMPLETED_ORDER = createMockRecurringOrder({
+  id: 'mock-recurring-order-completed',
+  state: RecurringOrderState.Completed,
+  filledSwapsCount: 5,
+  createdAt: '2026-08-27T12:00:00.000Z',
+  endsAt: '2026-08-31T12:00:00.000Z',
+  priceRange: {
+    side: 'src',
+    currency: 'USD',
+    min: '1800',
+    max: '2200',
+  },
+});
+
+export const MOCK_RECURRING_CANCELLED_ORDER = createMockRecurringOrder({
+  id: 'mock-recurring-order-cancelled',
+  state: RecurringOrderState.Cancelled,
+  filledSwapsCount: 2,
+  createdAt: '2026-08-26T12:00:00.000Z',
+  endsAt: '2026-08-30T12:00:00.000Z',
+  cancelReason: 'user',
+});
+
+export const MOCK_RECURRING_EXPIRED_ORDER = createMockRecurringOrder({
+  id: 'mock-recurring-order-expired',
+  state: RecurringOrderState.Cancelled,
+  filledSwapsCount: 1,
+  createdAt: '2026-08-25T12:00:00.000Z',
+  endsAt: '2026-08-29T12:00:00.000Z',
+  cancelReason: 'delegation_expired',
+});
+
+export const MOCK_RECURRING_ORDERS: RecurringOrder[] = [
+  MOCK_RECURRING_OPEN_ORDER,
+  MOCK_RECURRING_OPEN_ORDER_2,
+  MOCK_RECURRING_OPEN_ORDER_3,
+  MOCK_RECURRING_COMPLETED_ORDER,
+  MOCK_RECURRING_CANCELLED_ORDER,
+  MOCK_RECURRING_EXPIRED_ORDER,
+];

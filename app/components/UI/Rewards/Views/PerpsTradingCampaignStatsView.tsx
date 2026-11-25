@@ -18,9 +18,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import PerpsTradingCampaignStatsHeader from '../components/Campaigns/PerpsTradingCampaignStatsHeader';
 import { StatCell } from '../components/Campaigns/OndoCampaignStatsSummary';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
@@ -28,7 +28,6 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
-import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../utils/perpsCampaignConstants';
 import {
   formatRewardsTimeOnly,
@@ -143,20 +142,12 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <CampaignViewHeader
           title={strings('rewards.perps_trading_campaign.stats_title')}
-          titleProps={{ variant: TextVariant.HeadingSm }}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'perps-stats-back-button' }}
-          endButtonIconProps={getCampaignMechanicsButtonProps(
-            campaign != null,
-            () =>
-              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                campaignId,
-              }),
-            'perps-stats-mechanics-button',
-          )}
-          includesTopInset
+          backButtonTestID="perps-stats-back-button"
+          mechanicsButtonTestID="perps-stats-mechanics-button"
+          hasCampaign={campaign != null}
+          campaignId={campaignId}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}

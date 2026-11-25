@@ -2,10 +2,9 @@ import { ApprovalType } from '@metamask/controller-utils';
 import enContent from '../../../../locales/languages/en.json';
 
 export const ConfirmationTopSheetSelectorsIDs = {
-  SECURITY_ALERT_BANNER: 'security-alert-banner',
   SECURITY_ALERT_RESPONSE_FAILED_BANNER:
     'security-alert-response-failed-banner',
-  SECURITY_ALERT_BANNER_REDESIGNED: 'security-alert-banner-0',
+  SECURITY_ALERT_BANNER: 'security-alert-banner-0',
 } as const;
 
 export const ConfirmationTopSheetSelectorsText = {
@@ -32,10 +31,12 @@ export const ConfirmationRowComponentIDs = {
   ADVANCED_DETAILS: 'advanced-details',
   APPROVE_ROW: 'approve-row',
   BRIDGE_TIME: 'bridge-time',
+  DEPOSIT_TO: 'deposit-to',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
   GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
   MESSAGE: 'message',
+  MONEY_DEPOSIT_TO: 'money-deposit-to',
   NETWORK: 'network',
   ORIGIN_INFO: 'origin-info',
   PAID_BY_METAMASK: 'paid-by-metamask',
@@ -46,7 +47,9 @@ export const ConfirmationRowComponentIDs = {
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
   RECEIVE: 'receive',
+  RECEIVE_PRESSABLE: 'receive-pressable',
   TRANSACTION_FEE: 'transaction-fee',
+  TRANSACTION_FEE_PRESSABLE: 'transaction-fee-pressable',
   AMOUNT: 'amount',
 } as const;
 
@@ -112,6 +115,18 @@ export const PerpsAccountPickerSelectorsIDs = {
   ACCOUNT_ITEM: 'perps-account-picker-item',
 } as const;
 
+export const PerpsReceiveToSelectorsIDs = {
+  ROW: 'perps-receive-to-row',
+  SHEET: 'perps-receive-to-sheet',
+  OPTION: 'perps-receive-to-option',
+} as const;
+
+export const PerpsWithdrawFromSelectorsIDs = {
+  ROW: 'perps-withdraw-from-row',
+  SHEET: 'perps-withdraw-from-sheet',
+  OPTION: 'perps-withdraw-from-option',
+} as const;
+
 export const PredictAccountPickerSelectorsIDs = {
   ROW: 'predict-account-picker-row',
   SHEET: 'predict-account-picker-sheet',
@@ -127,7 +142,9 @@ export const TransactionPayComponentIDs = {
   PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
   PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
+  PAY_WITH_TOKEN_LIST_SKELETON: 'pay-with-token-list-skeleton',
   KEYBOARD_CONTAINER: 'custom-amount-input',
+  AMOUNT_VALUE: 'custom-amount-input-value',
 };
 
 export const PayWithBottomSheetIDs = {

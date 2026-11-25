@@ -1,18 +1,14 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import {
-  PlatformDetector,
-  sleep,
-  type EncapsulatedElementType,
-} from '../../framework';
+import { PlatformDetector, sleep, type AppiumElement } from '../../framework';
 
 class UniswapDapp {
-  private getByXPath(xpath: string): EncapsulatedElementType {
+  private getByXPath(xpath: string): Promise<AppiumElement> {
     return Matchers.getLazyElementByNativeXPath(xpath);
   }
 
-  get connectButton(): EncapsulatedElementType {
+  get connectButton(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getLazyElementByNativeXPath(
         '//*[@data-testid="navbar-connect-wallet"]',
@@ -21,7 +17,7 @@ class UniswapDapp {
     return Matchers.getElementByID('Connect');
   }
 
-  get walletConnect(): EncapsulatedElementType {
+  get walletConnect(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         '//*[contains(normalize-space(.), "WalletConnect")]',
@@ -32,7 +28,7 @@ class UniswapDapp {
     );
   }
 
-  get metaMaskWalletOption(): EncapsulatedElementType {
+  get metaMaskWalletOption(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getLazyElementByNativeXPath(
         '//android.widget.Button[@text="MetaMask MetaMask"]',
@@ -41,7 +37,7 @@ class UniswapDapp {
     return Matchers.getElementByID('MetaMaskMetaMask');
   }
 
-  get metaMaskDeeplinkButton(): EncapsulatedElementType {
+  get metaMaskDeeplinkButton(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getLazyElementByNativeXPath(
         '//android.widget.TextView[@text="MetaMask"]',
@@ -52,19 +48,19 @@ class UniswapDapp {
     );
   }
 
-  get uniswapDialog(): EncapsulatedElementType {
+  get uniswapDialog(): Promise<AppiumElement> {
     return this.getByXPath('//android.app.AlertDialog');
   }
 
-  get uniswapIcon(): EncapsulatedElementType {
+  get uniswapIcon(): Promise<AppiumElement> {
     return Matchers.getElementByID('account-icon');
   }
 
-  get solanaPopup(): EncapsulatedElementType {
+  get solanaPopup(): Promise<AppiumElement> {
     return Matchers.getElementByText('Use Solana on Uniswap');
   }
 
-  get SolanaPopup(): EncapsulatedElementType {
+  get SolanaPopup(): Promise<AppiumElement> {
     return this.solanaPopup;
   }
 
@@ -167,7 +163,7 @@ class UniswapDapp {
   }
 
   private async waitForElementVisible(
-    targetElement: EncapsulatedElementType,
+    targetElement: Promise<AppiumElement>,
     timeoutMs: number,
     timeoutMsg: string,
   ): Promise<void> {
@@ -178,7 +174,7 @@ class UniswapDapp {
   }
 
   private async isElementVisible(
-    targetElement: EncapsulatedElementType,
+    targetElement: Promise<AppiumElement>,
     timeoutMs: number,
   ): Promise<boolean> {
     try {

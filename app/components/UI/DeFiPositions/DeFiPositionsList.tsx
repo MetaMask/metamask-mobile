@@ -47,12 +47,10 @@ import DeFiPositionsListV2 from '../Assets/DeFiPositions/components/DeFiPosition
 export interface DeFiPositionsListProps {
   tabLabel: string;
   isFullView?: boolean;
-  analyticsSource?: string;
 }
 
 const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
   isFullView = false,
-  analyticsSource,
 }) => {
   const { styles } = useStyles(styleSheet, undefined);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -105,11 +103,9 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
 
   const handleDeFiRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await Engine.context.DeFiPositionsController._executePoll();
-    } finally {
-      setRefreshing(false);
-    }
+    await Engine.context.DeFiPositionsController._executePoll().finally(() =>
+      setRefreshing(false),
+    );
   }, []);
 
   const scrollViewProps = useMemo((): ScrollViewProps => {
@@ -159,17 +155,10 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
           location: 'homepage',
           is_empty: formattedDeFiPositions.length === 0,
           screen_type: 'defi',
-          ...(analyticsSource ? { source: analyticsSource } : {}),
         })
         .build(),
     );
-  }, [
-    isFullView,
-    formattedDeFiPositions,
-    analyticsSource,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [isFullView, formattedDeFiPositions, trackEvent, createEventBuilder]);
 
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
@@ -250,10 +239,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = (props) => {
   const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
 
   return isV2Enabled ? (
-    <DeFiPositionsListV2
-      isFullView={props.isFullView ?? false}
-      analyticsSource={props.analyticsSource}
-    />
+    <DeFiPositionsListV2 isFullView={props.isFullView ?? false} />
   ) : (
     <DeFiPositionsListV1 {...props} />
   );

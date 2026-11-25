@@ -1,9 +1,12 @@
+import type { RegistryNetworkConfig } from '@metamask/config-registry-controller';
+import type { StateWithPartialEngine } from './featureFlagController/types';
 import {
   getConfigRegistryState,
   getConfigRegistryNetworks,
   isConfigRegistryNetworksLoading,
   getIsConfigRegistryApiEnabled,
   getAdditionalNetworksList,
+  getRegistryNetworkImagesByChainId,
   CONFIG_REGISTRY_API_ENABLED_FLAG_KEY,
 } from './configRegistry';
 
@@ -29,11 +32,12 @@ describe('configRegistry selectors', () => {
 
     it('returns default state when ConfigRegistryController is missing', () => {
       const state = { engine: { backgroundState: {} } };
-      const result = getConfigRegistryState(state as never);
-      expect(result.configs).toEqual({ networks: {} });
+      const result = getConfigRegistryState(state);
+      expect(result.configs).toEqual({ networks: {}, eventsConfig: null });
       expect(result.version).toBeNull();
       expect(result.lastFetched).toBeNull();
       expect(result.etag).toBeNull();
+      expect(result.eventsConfigEtag).toBeNull();
     });
   });
 
@@ -357,6 +361,110 @@ describe('configRegistry selectors', () => {
       const result = getAdditionalNetworksList(state as never);
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(0);
+    });
+  });
+  describe('getRegistryNetworkImagesByChainId', () => {
+    const buildState = (
+      networks: Record<string, RegistryNetworkConfig | never>,
+      enabled = true,
+    ): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          ConfigRegistryController: {
+            configs: { networks },
+            version: '1.0',
+            lastFetched: 123,
+            etag: null,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              configRegistryApiEnabled: enabled,
+            },
+            cacheTimestamp: 123,
+          },
+        },
+      },
+    });
+
+    it('returns an empty map when the feature flag is off', () => {
+      const state = buildState(
+        {
+          'eip155:99901': {
+            chainId: 'eip155:99901',
+            imageUrl: 'https://x.png',
+          } as never,
+        },
+        false,
+      );
+      expect(getRegistryNetworkImagesByChainId(state as never)).toEqual({});
+    });
+
+    it('keys EVM registry images by hex chain ID', () => {
+      const state = buildState({
+        'eip155:99901': {
+          chainId: 'eip155:99901',
+          imageUrl: 'https://example.com/elysium.svg',
+        } as never,
+      });
+      expect(getRegistryNetworkImagesByChainId(state)['0x1863d']).toEqual({
+        uri: 'https://example.com/elysium.svg',
+      });
+    });
+
+    it('keys registry images by CAIP-2 chain ID', () => {
+      const state = buildState({
+        'eip155:99901': {
+          chainId: 'eip155:99901',
+          imageUrl: 'https://example.com/elysium.svg',
+        } as never,
+      });
+      expect(getRegistryNetworkImagesByChainId(state)['eip155:99901']).toEqual({
+        uri: 'https://example.com/elysium.svg',
+      });
+    });
+
+    it('keys non-EVM registry images by CAIP-2 chain ID', () => {
+      const state = buildState({
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          imageUrl: 'https://example.com/solana.svg',
+        } as never,
+      });
+      const result = getRegistryNetworkImagesByChainId(state);
+      expect(result['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']).toEqual({
+        uri: 'https://example.com/solana.svg',
+      });
+    });
+
+    it('skips networks with non-https image URLs', () => {
+      const state = buildState({
+        'eip155:9999': {
+          chainId: 'eip155:9999',
+          imageUrl: 'http://insecure.example.com/x.svg',
+        } as never,
+      });
+      const result = getRegistryNetworkImagesByChainId(state);
+      expect(result['0x270f']).toBeUndefined();
+      expect(result['eip155:9999']).toBeUndefined();
+    });
+
+    it('skips networks without an imageUrl', () => {
+      const state = buildState({
+        'eip155:9998': {
+          chainId: 'eip155:9998',
+        } as never,
+        'eip155:9997': {
+          chainId: 'eip155:9997',
+          imageUrl: undefined,
+        } as never,
+      });
+      const result = getRegistryNetworkImagesByChainId(state);
+      expect(result['0x270e']).toBeUndefined();
+      expect(result['eip155:9997']).toBeUndefined();
+    });
+
+    it('returns an empty map when the registry has no networks', () => {
+      expect(getRegistryNetworkImagesByChainId(buildState({}))).toEqual({});
     });
   });
 });

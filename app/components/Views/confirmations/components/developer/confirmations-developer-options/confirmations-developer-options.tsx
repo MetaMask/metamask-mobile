@@ -4,6 +4,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
 import {
+  Box,
   Text,
   TextVariant,
   TextColor,
@@ -19,6 +20,9 @@ import { addTransactionBatch } from '../../../../../../util/transaction-controll
 import { useSelector, useDispatch } from 'react-redux';
 import { StyleSheet, Switch, View } from 'react-native';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { v1 as random } from 'uuid';
+import Engine from '../../../../../../core/Engine';
+import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../confirm/confirm-component';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
@@ -33,6 +37,9 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
+import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
+import { useMoneyAccountDeposit } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import Logger from '../../../../../../util/Logger';
 import { selectMmPayDebugEnabled } from '../../../../../../reducers/experimentalSettings/selectors';
 import { setMmPayDebugEnabled } from '../../../../../../actions/experimental';
 import { isRc, isTestEnvironment } from '../../../../../../util/test/utils';
@@ -62,13 +69,34 @@ export function ConfirmationsDeveloperOptions() {
   const dispatch = useDispatch();
 
   const showMmPayDebugToggle = isRc || isTestEnvironment;
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
 
   return (
     <>
-      <PredictDeposit />
-      <PredictClaim />
-      <PredictWithdraw />
-      <PerpsWithdraw />
+      <Text
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
+        style={styles.heading}
+      >
+        Confirmations
+      </Text>
+      <Box twClassName="mt-4 gap-2">
+        {isMoneyAccountDepositEnabled && (
+          <>
+            <ConfirmMembership />
+            <ConfirmMembershipTrial />
+            <MembershipSubscription />
+            <MoneyAccountDeposit />
+          </>
+        )}
+        {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
+        <PerpsDeposit />
+        <PerpsWithdraw />
+        <PredictClaim />
+        <PredictDeposit />
+        <PredictWithdraw />
+      </Box>
       {showMmPayDebugToggle && (
         <MmPayDebugToggle
           value={isMmPayDebugEnabled}
@@ -77,8 +105,68 @@ export function ConfirmationsDeveloperOptions() {
           }
         />
       )}
-      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
-      {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
+    </>
+  );
+}
+
+function usePerpsDepositConfirmation() {
+  const { depositWithConfirmation: controllerDeposit } = usePerpsTrading();
+  const { navigateToConfirmation } = useConfirmNavigation();
+
+  const depositWithConfirmation = useCallback(
+    async ({
+      forceBottomSheet = false,
+      bottomSheetHeightPercentage,
+    }: {
+      forceBottomSheet?: boolean;
+      bottomSheetHeightPercentage?: number;
+    } = {}) => {
+      navigateToConfirmation({
+        stack: Routes.PERPS.ROOT,
+        forceBottomSheet,
+        bottomSheetHeightPercentage,
+      });
+
+      try {
+        await controllerDeposit();
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'usePerpsDepositConfirmation: deposit initiation failed',
+        );
+      }
+    },
+    [controllerDeposit, navigateToConfirmation],
+  );
+
+  return { depositWithConfirmation };
+}
+
+function PerpsDeposit() {
+  const { depositWithConfirmation } = usePerpsDepositConfirmation();
+
+  const handleDeposit = useCallback(() => {
+    depositWithConfirmation();
+  }, [depositWithConfirmation]);
+
+  const handleDepositBottomSheet = useCallback(() => {
+    depositWithConfirmation({ forceBottomSheet: true });
+  }, [depositWithConfirmation]);
+
+  return (
+    <>
+      <DeveloperButton
+        label="Perps Deposit"
+        onPress={handleDeposit}
+        testID={ConfirmationsDeveloperOptionsTestIds.PERPS_DEPOSIT_BUTTON}
+      />
+      <DeveloperButton
+        label="Perps Deposit (Bottom Sheet)"
+        onPress={handleDepositBottomSheet}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.PERPS_DEPOSIT_BOTTOM_SHEET_BUTTON
+        }
+      />
     </>
   );
 }
@@ -92,9 +180,7 @@ function PerpsWithdraw() {
 
   return (
     <DeveloperButton
-      title="Perps Withdraw"
-      description="Trigger a Perps withdraw confirmation."
-      buttonLabel="Withdraw"
+      label="Perps Withdraw"
       onPress={handleWithdraw}
       testID={ConfirmationsDeveloperOptionsTestIds.PERPS_WITHDRAW_BUTTON}
     />
@@ -111,14 +197,7 @@ function PredictWithdraw() {
     });
   }, [addTransactionBatchAndNavigate]);
 
-  return (
-    <DeveloperButton
-      title="Predict Withdraw"
-      description="Trigger a Predict withdraw confirmation."
-      buttonLabel="Withdraw"
-      onPress={handleWithdraw}
-    />
-  );
+  return <DeveloperButton label="Predict Withdraw" onPress={handleWithdraw} />;
 }
 
 function PredictClaim() {
@@ -132,14 +211,7 @@ function PredictClaim() {
     });
   }, [addTransactionBatchAndNavigate]);
 
-  return (
-    <DeveloperButton
-      title="Predict Claim"
-      description="Trigger a Predict claim confirmation."
-      buttonLabel="Claim"
-      onPress={handleClaim}
-    />
-  );
+  return <DeveloperButton label="Predict Claim" onPress={handleClaim} />;
 }
 
 function PredictDeposit() {
@@ -152,33 +224,148 @@ function PredictDeposit() {
     });
   }, [addTransactionBatchAndNavigate]);
 
+  return <DeveloperButton label="Predict Deposit" onPress={handleDeposit} />;
+}
+
+function MoneyAccountDeposit() {
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const handleDeposit = useCallback(() => {
+    initiateDeposit().catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
+    });
+  }, [initiateDeposit]);
+
+  const handleDepositBottomSheet = useCallback(() => {
+    initiateDeposit({ forceBottomSheet: true }).catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
+    });
+  }, [initiateDeposit]);
+
+  const handleDepositFiveDollars = useCallback(() => {
+    initiateDeposit({ forceBottomSheet: true, amount: '5' }).catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
+    });
+  }, [initiateDeposit]);
+
+  return (
+    <>
+      <DeveloperButton
+        label="Money Account Deposit"
+        onPress={handleDeposit}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON
+        }
+      />
+      <DeveloperButton
+        label="Money Account Deposit (Bottom Sheet)"
+        onPress={handleDepositBottomSheet}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BOTTOM_SHEET_BUTTON
+        }
+      />
+      <DeveloperButton
+        label="Money Account Deposit (Prefilled)"
+        onPress={handleDepositFiveDollars}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_FIVE_DOLLARS_BUTTON
+        }
+      />
+    </>
+  );
+}
+
+function MembershipSubscription() {
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const handleMembershipSubscription = useCallback(() => {
+    initiateDeposit({
+      forceBottomSheet: true,
+      amount: '1',
+      transactionType: TransactionType.membershipSubscription,
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        'Developer Options: Membership subscription failed',
+      );
+    });
+  }, [initiateDeposit]);
+
   return (
     <DeveloperButton
-      title="Predict Deposit"
-      description="Trigger a Predict deposit confirmation."
-      buttonLabel="Deposit"
-      onPress={handleDeposit}
+      label="Membership Subscription"
+      onPress={handleMembershipSubscription}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON
+      }
     />
   );
 }
 
-function MoneyAccountDeposit() {
-  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
-
-  const handleDeposit = useCallback(() => {
-    addTransactionBatchAndNavigate({
-      loader: ConfirmationLoader.CustomAmount,
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-  }, [addTransactionBatchAndNavigate]);
+function ConfirmMembership() {
+  const handleConfirmMembership = useCallback(() => {
+    Engine.context.ApprovalController.add({
+      id: random(),
+      origin: ORIGIN_METAMASK,
+      type: ApprovalTypes.CONFIRM_MEMBERSHIP,
+      requestData: {
+        monthlyAmount: '4.99',
+        totalAmount: '49.99',
+        renewDate: 'Nov 5, 2026',
+      },
+    })
+      .then(() => {
+        Logger.log('Developer Options: Confirm membership approved');
+      })
+      .catch((error) => {
+        Logger.log(
+          error as Error,
+          'Developer Options: Confirm membership rejected',
+        );
+      });
+  }, []);
 
   return (
     <DeveloperButton
-      title="Money Account Deposit"
-      description="Trigger a Money Account deposit confirmation."
-      buttonLabel="Deposit"
-      onPress={handleDeposit}
-      testID={ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON}
+      label="Confirm Membership"
+      onPress={handleConfirmMembership}
+      testID={ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_BUTTON}
+    />
+  );
+}
+
+function ConfirmMembershipTrial() {
+  const handleConfirmMembershipTrial = useCallback(() => {
+    Engine.context.ApprovalController.add({
+      id: random(),
+      origin: ORIGIN_METAMASK,
+      type: ApprovalTypes.CONFIRM_MEMBERSHIP,
+      requestData: {
+        monthlyAmount: '4.99',
+        totalAmount: '49.99',
+        renewDate: 'Nov 5, 2026',
+        isTrial: true,
+        billedOn: '05.10.2026',
+      },
+    })
+      .then(() => {
+        Logger.log('Developer Options: Confirm membership (trial) approved');
+      })
+      .catch((error) => {
+        Logger.log(
+          error as Error,
+          'Developer Options: Confirm membership (trial) rejected',
+        );
+      });
+  }, []);
+
+  return (
+    <DeveloperButton
+      label="Confirm Membership (Trial)"
+      onPress={handleConfirmMembershipTrial}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_TRIAL_BUTTON
+      }
     />
   );
 }
@@ -195,9 +382,7 @@ function MoneyAccountWithdraw() {
 
   return (
     <DeveloperButton
-      title="Money Account Withdraw"
-      description="Trigger a Money Account withdraw confirmation."
-      buttonLabel="Withdraw"
+      label="Money Account Withdraw"
       onPress={handleWithdraw}
       testID={
         ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_WITHDRAW_BUTTON
@@ -236,12 +421,19 @@ function useAddTransactionBatch() {
         stack: Routes.PREDICT.ROOT,
       });
 
+      const overwriteUpgrade =
+        transactionType === TransactionType.predictDeposit ||
+        transactionType === TransactionType.predictDepositAndOrder ||
+        transactionType === TransactionType.predictClaim ||
+        transactionType === TransactionType.predictWithdraw;
+
       addTransactionBatch({
         from: selectedAccount as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        ...(overwriteUpgrade ? { overwriteUpgrade: true } : {}),
         transactions: [
           {
             params: {
@@ -315,47 +507,23 @@ function MmPayDebugToggle({
 }
 
 function DeveloperButton({
-  buttonLabel,
-  description,
+  label,
   onPress,
   testID,
-  title,
 }: {
-  buttonLabel: string;
-  description: string;
+  label: string;
   onPress: () => void;
   testID?: string;
-  title: string;
 }) {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
-
   return (
-    <>
-      <Text
-        color={TextColor.TextDefault}
-        variant={TextVariant.HeadingLg}
-        style={styles.heading}
-      >
-        {title}
-      </Text>
-      <Text
-        color={TextColor.TextAlternative}
-        variant={TextVariant.BodyMd}
-        style={styles.desc}
-      >
-        {description}
-      </Text>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={onPress}
-        testID={testID}
-        isFullWidth
-        style={styles.accessory}
-      >
-        {buttonLabel}
-      </Button>
-    </>
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      onPress={onPress}
+      testID={testID}
+      isFullWidth
+    >
+      {label}
+    </Button>
   );
 }

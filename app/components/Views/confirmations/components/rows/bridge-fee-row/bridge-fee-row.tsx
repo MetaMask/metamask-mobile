@@ -1,9 +1,12 @@
-import React, { ReactNode, useMemo } from 'react';
+import React, { ReactNode, useCallback, useMemo, useState } from 'react';
+import { Pressable } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -27,10 +30,11 @@ import { BigNumber } from 'bignumber.js';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
+import { TooltipModal } from '../../UI/Tooltip/Tooltip';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { Json } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import Icon, {
   IconColor,
@@ -43,6 +47,11 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import DottedUnderline from '../../../../../UI/DottedUnderline';
+import { useTheme } from '../../../../../../util/theme';
+import { decodeEvmAssetId } from '../../../../../../util/transactions/payment-token';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -97,8 +106,23 @@ function TransactionFeeRow({
   isDisabled?: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const [isFeeTooltipOpen, setIsFeeTooltipOpen] = useState(false);
 
   const hasQuotes = Boolean(quotes?.length);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const hasFeeTooltip = Boolean(!paidByMetaMask && hasQuotes && totals);
+  const useDottedFeeTooltip = isMoneyAccountDeposit && hasFeeTooltip;
+
+  const handleOpenFeeTooltip = useCallback(() => {
+    if (tooltipDisabled) {
+      return;
+    }
+    setIsFeeTooltipOpen(true);
+  }, [tooltipDisabled]);
 
   const feeTotalUsd = useMemo(() => {
     if (
@@ -139,34 +163,76 @@ function TransactionFeeRow({
       ? TextColor.ErrorDefault
       : TextColor.TextAlternative;
 
+  const underlineColor = isDisabled
+    ? colors.text.muted
+    : hasAlert
+      ? colors.error.default
+      : colors.text.alternative;
+  const tooltipTitle = strings('confirm.tooltip.title.transaction_fee');
+  const tooltipContent =
+    hasFeeTooltip && totals ? (
+      <Tooltip
+        quotes={quotes}
+        transactionMeta={transactionMeta}
+        totals={totals}
+      />
+    ) : undefined;
+
   return (
-    <AlertRow
-      testID="bridge-fee-row"
-      alertField={RowAlertKey.PayWithFee}
-      label={strings('confirm.label.transaction_fees')}
-      tooltip={
-        !paidByMetaMask && hasQuotes && totals ? (
-          <Tooltip transactionMeta={transactionMeta} totals={totals} />
-        ) : undefined
-      }
-      tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
-      tooltipDisabled={tooltipDisabled}
-      tooltipColor={isDisabled ? IconColor.Muted : undefined}
-      rowVariant={InfoRowVariant.Small}
-      variant={labelColor}
-    >
-      {paidByMetaMask ? (
-        <PaidByLabel />
-      ) : (
-        <Text
-          variant={TextVariant.BodyMd}
-          color={valueColor}
-          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-        >
-          {feeTotalUsd}
-        </Text>
-      )}
-    </AlertRow>
+    <>
+      <AlertRow
+        testID="bridge-fee-row"
+        alertField={RowAlertKey.PayWithFee}
+        label={strings('confirm.label.transaction_fees')}
+        tooltip={useDottedFeeTooltip ? undefined : tooltipContent}
+        tooltipTitle={tooltipTitle}
+        tooltipDisabled={tooltipDisabled}
+        tooltipColor={isDisabled ? IconColor.Muted : undefined}
+        rowVariant={InfoRowVariant.Small}
+        variant={labelColor}
+      >
+        {paidByMetaMask ? (
+          <PaidByLabel />
+        ) : useDottedFeeTooltip ? (
+          <Pressable
+            onPress={handleOpenFeeTooltip}
+            disabled={tooltipDisabled}
+            accessibilityRole="button"
+            accessibilityLabel={`${tooltipTitle} ${feeTotalUsd}`}
+            hitSlop={8}
+            style={({ pressed }) => tw.style('pb-px', pressed && 'opacity-50')}
+            testID={ConfirmationRowComponentIDs.TRANSACTION_FEE_PRESSABLE}
+          >
+            <DottedUnderline color={underlineColor}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={valueColor}
+                testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+              >
+                {feeTotalUsd}
+              </Text>
+            </DottedUnderline>
+          </Pressable>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={valueColor}
+            testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+          >
+            {feeTotalUsd}
+          </Text>
+        )}
+      </AlertRow>
+      {useDottedFeeTooltip && tooltipContent ? (
+        <TooltipModal
+          open={isFeeTooltipOpen}
+          setOpen={setIsFeeTooltipOpen}
+          content={tooltipContent}
+          title={tooltipTitle}
+          tooltipTestId="info-row-tooltip"
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -205,25 +271,29 @@ function getNetworkFeeUsdBN({
 
 const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
   [TransactionType.perpsWithdraw]:
-    'confirm.tooltip.perps_withdraw.transaction_fee',
+    'confirm.tooltip.perps_withdraw.swap_to_token',
   [TransactionType.predictWithdraw]:
-    'confirm.tooltip.predict_withdraw.transaction_fee',
+    'confirm.tooltip.predict_withdraw.swap_to_token',
   [TransactionType.predictDeposit]:
     'confirm.tooltip.predict_deposit.transaction_fee',
-  [TransactionType.musdConversion]:
-    'confirm.tooltip.musd_conversion.transaction_fee',
   [TransactionType.moneyAccountWithdraw]:
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:
     'confirm.tooltip.money_account_deposit.transaction_fee',
   [TransactionType.perpsDeposit]:
     'confirm.tooltip.perps_deposit.transaction_fee',
+  [TransactionType.perpsLighterDeposit]:
+    'confirm.tooltip.perps_deposit.transaction_fee',
+  [TransactionType.perpsLighterWithdraw]:
+    'confirm.tooltip.perps_withdraw.swap_to_token',
 };
 
 function Tooltip({
+  quotes,
   transactionMeta,
   totals,
 }: {
+  quotes?: TransactionPayQuote<Json>[];
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
@@ -239,22 +309,76 @@ function Tooltip({
 
   if (!key) return null;
 
-  return <FeesTooltip message={strings(key)} totals={totals} />;
+  return (
+    <FeesTooltip
+      message={strings(key)}
+      quotes={quotes}
+      totals={totals}
+      transactionMeta={transactionMeta}
+    />
+  );
+}
+
+/**
+ * Resolve the token that pays the source network fee.
+ *
+ * The source is read from the quote request rather than the payment token,
+ * since post-quote flows (withdrawals) treat the payment token as the
+ * destination. Defaults to the native token of the source chain, unless a gas
+ * fee token is used, which the gas station always prices in the source token.
+ */
+function getNetworkFeeToken({
+  quotes,
+  totals,
+  transactionMeta,
+}: {
+  quotes?: TransactionPayQuote<Json>[];
+  totals: TransactionPayTotals;
+  transactionMeta: TransactionMeta;
+}): { address: Hex; chainId: Hex } {
+  const request = quotes?.[0]?.request;
+  const sourceAsset = request && decodeEvmAssetId(request.sourceAssetId);
+  const chainId = sourceAsset?.chainId ?? transactionMeta.chainId;
+
+  const address =
+    totals.fees.isSourceGasFeeToken && sourceAsset
+      ? sourceAsset.address
+      : getNativeTokenAddress(chainId);
+
+  return { address, chainId };
 }
 
 function FeesTooltip({
   message,
+  quotes,
   totals,
+  transactionMeta,
 }: {
   message: string;
+  quotes?: TransactionPayQuote<Json>[];
   totals: TransactionPayTotals;
+  transactionMeta: TransactionMeta;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
-  const networkFeeUsd = useMemo(() => {
-    const networkFeeUsdBN = getNetworkFeeUsdBN({ totals });
-    return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
-  }, [totals, formatFiat]);
+  const networkFeeToken = getNetworkFeeToken({
+    quotes,
+    totals,
+    transactionMeta,
+  });
+
+  const networkFeeUsdBN = useMemo(
+    () => getNetworkFeeUsdBN({ totals }),
+    [totals],
+  );
+
+  const networkFeeUsd = useMemo(
+    () => (networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : ''),
+    [networkFeeUsdBN, formatFiat],
+  );
+
+  // No token is paid when there is no fee, so the icon would be misleading.
+  const showNetworkFeeToken = Boolean(networkFeeUsdBN?.isGreaterThan(0));
 
   const providerFeeUsd = useMemo(
     () => formatFiat(new BigNumber(totals.fees.provider.usd)),
@@ -272,11 +396,25 @@ function FeesTooltip({
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
+        alignItems={AlignItems.center}
       >
         <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.network_fee')}
         </Text>
-        <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={6}
+        >
+          {showNetworkFeeToken && (
+            <TokenIcon
+              address={networkFeeToken.address}
+              chainId={networkFeeToken.chainId}
+              variant={TokenIconVariant.Row}
+            />
+          )}
+          <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
+        </Box>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}

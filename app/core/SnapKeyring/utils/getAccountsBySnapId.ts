@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
 import { SnapId } from '@metamask/snaps-sdk';
 import Engine from '../../../core/Engine';
@@ -16,7 +15,10 @@ export const getAccountsBySnapId = async (
     return (await Engine.context.KeyringController.withKeyringV2(
       {
         filter: (keyring) =>
-          isSnapKeyring(keyring) && keyring.snapId === snapId,
+          // Compare as strings: the keyring's `SnapId` brand comes from a
+          // separate copy of `@metamask/snaps-sdk`, which TypeScript treats
+          // as a distinct opaque type.
+          isSnapKeyring(keyring) && (keyring.snapId as string) === snapId,
       },
       async ({ keyring }) => {
         if (!isSnapKeyring(keyring)) {
@@ -31,4 +33,3 @@ export const getAccountsBySnapId = async (
     return [];
   }
 };
-///: END:ONLY_INCLUDE_IF

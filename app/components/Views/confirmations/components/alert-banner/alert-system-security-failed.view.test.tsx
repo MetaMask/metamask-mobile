@@ -40,7 +40,7 @@ function BlockaidAlertBannerHarness() {
 
 describeForPlatforms('Alert system (signatures)', () => {
   /**
-   * Smoke `alert-system`: security validation API error shows the redesigned banner
+   * Smoke `alert-system`: security validation API error shows the security alert banner
    * and failed-state copy (no signing success path).
    */
   it('shows security alert when validation request fails', async () => {
@@ -65,8 +65,7 @@ describeForPlatforms('Alert system (signatures)', () => {
       { state },
     );
 
-    const bannerTestId =
-      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED;
+    const bannerTestId = ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER;
 
     await waitFor(() => {
       expect(getByTestId(bannerTestId)).toBeOnTheScreen();

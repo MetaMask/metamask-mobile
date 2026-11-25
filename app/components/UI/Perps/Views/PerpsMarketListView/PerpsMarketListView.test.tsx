@@ -7,6 +7,7 @@ import {
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
 import {
+  PerpsMode,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
@@ -53,6 +54,18 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+// TAT-4511: the market-count exchange logos come from this module. The unit
+// suite covers the flag-off path (empty list) with the hook mocked; the
+// pure ordering helper stays real so the wiring tests exercise it. The
+// component-view suite covers the flag-on paths with real selector state.
+jest.mock('../../hooks/usePerpsProviderLogoIds', () => {
+  const actual = jest.requireActual('../../hooks/usePerpsProviderLogoIds');
+  return {
+    ...actual,
+    usePerpsProviderLogoIds: jest.fn(() => []),
+  };
+});
+
 jest.mock('../../hooks/usePerpsOrderFees', () => ({
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0,
@@ -96,6 +109,11 @@ const mockClearSearch = jest.fn(() => {
   mockSearchQuery = '';
 });
 const mockNavigateToMarketDetails = jest.fn();
+const mockNavigateBack = jest.fn();
+const mockNavigateToHome = jest.fn();
+const mockResetToHome = jest.fn();
+const mockNavigateToWallet = jest.fn();
+let mockPerpsCanGoBack = true;
 
 jest.mock('../../hooks', () => ({
   useColorPulseAnimation: jest.fn(() => ({
@@ -121,16 +139,19 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   usePerpsNavigation: jest.fn(() => ({
-    navigateToWallet: jest.fn(),
+    navigateToWallet: mockNavigateToWallet,
     navigateToBrowser: jest.fn(),
     navigateToActions: jest.fn(),
     navigateToActivity: jest.fn(),
     navigateToRewards: jest.fn(),
     navigateToMarketDetails: mockNavigateToMarketDetails,
-    navigateToHome: jest.fn(),
+    navigateToHome: mockNavigateToHome,
+    resetToHome: mockResetToHome,
     navigateToMarketList: jest.fn(),
-    navigateBack: jest.fn(),
-    canGoBack: true,
+    navigateBack: mockNavigateBack,
+    get canGoBack() {
+      return mockPerpsCanGoBack;
+    },
   })),
   usePerpsMeasurement: jest.fn(),
   usePerpsMarketListView: jest.fn(() => {
@@ -173,6 +194,12 @@ jest.mock('../../hooks', () => ({
       },
       recentlyViewedState: {
         recentlyViewedMarketObjects: [],
+      },
+      exchangeFilterState: {
+        isVisible: false,
+        selectedProviderIds: ['hyperliquid'],
+        onSave: jest.fn(),
+        availableProviderIds: ['hyperliquid'],
       },
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
@@ -326,6 +353,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showWatchlistBadge,
     onWatchlistToggle,
     onCategorySelect,
+    providerIds,
     showCategoryRow = true,
     showSortRow = true,
     testID,
@@ -342,6 +370,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     isWatchlistSelected?: boolean;
     onWatchlistToggle?: () => void;
     onCategorySelect?: (category: string) => void;
+    providerIds?: readonly string[];
     showCategoryRow?: boolean;
     showSortRow?: boolean;
     testID?: string;
@@ -349,8 +378,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     // Map sort option IDs to display labels
     const getSortLabel = (optionId: string) => {
       const translations: Record<string, string> = {
-        volume: 'Volume',
-        priceChange: 'Price change',
+        volume: 'Volume (24h)',
+        priceChange: 'Price change (24h)',
         fundingRate: 'Funding rate',
         openInterest: 'Open interest',
       };
@@ -374,6 +403,13 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     return MockReact.createElement(
       View,
       { testID },
+      // TAT-4511: surface the provider-logo prop so tests can assert what
+      // the view passes to the filters bar.
+      MockReact.createElement(
+        Text,
+        { testID: testID ? `${testID}-provider-logos` : undefined },
+        providerIds && providerIds.length > 0 ? providerIds.join(',') : 'none',
+      ),
       showCategoryRow &&
         showMarketTypeDropdown &&
         onMarketTypePress &&
@@ -456,6 +492,7 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 // new array/object identity on every call when nothing has actually changed.
 const mockEmptyWatchlistMarkets: string[] = [];
 const mockEmptyRecentlyViewedMarkets: string[] = [];
+let mockPerpsMode = PerpsMode.Lite;
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => mockEmptyWatchlistMarkets),
@@ -466,6 +503,7 @@ jest.mock('../../selectors/perpsController', () => ({
     optionId: 'volume',
     direction: 'desc',
   })),
+  selectPerpsMode: jest.fn(() => mockPerpsMode),
 }));
 
 let mockWatchlistFlagEnabled = false;
@@ -665,7 +703,15 @@ describe('PerpsMarketListView', () => {
     navigate: jest.fn(),
     reset: jest.fn(),
     isFocused: jest.fn(),
-    addListener: jest.fn(),
+    addListener: jest.fn(
+      (
+        _event: string,
+        _listener?: (event: {
+          preventDefault: () => void;
+          data: { action: { type: string } };
+        }) => void,
+      ) => jest.fn(),
+    ),
     removeListener: jest.fn(),
     getState: jest.fn(),
     getId: jest.fn(),
@@ -752,6 +798,13 @@ describe('PerpsMarketListView', () => {
     mockSetSearchQuery.mockClear();
     mockClearSearch.mockClear();
     mockNavigateToMarketDetails.mockClear();
+    mockNavigateBack.mockClear();
+    mockNavigateToHome.mockClear();
+    mockResetToHome.mockClear();
+    mockNavigateToWallet.mockClear();
+    mockPerpsCanGoBack = true;
+    mockPerpsMode = PerpsMode.Lite;
+    mockNavigation.getState.mockReturnValue(undefined);
 
     // Suppress console warnings for Animated during tests
     originalConsoleError = console.error;
@@ -804,7 +857,7 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
 
       await waitFor(() => {
-        expect(screen.getByText('Volume')).toBeOnTheScreen();
+        expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
       });
     });
 
@@ -900,6 +953,19 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Watchlist Filtering', () => {
+    it('forces watchlist-only off while the Watchlist V2 flag is disabled', () => {
+      mockUseRoute.mockReturnValue({
+        name: 'PerpsMarketListView',
+        params: { showWatchlistOnly: true },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(mockUsePerpsMarketListView).toHaveBeenCalledWith(
+        expect.objectContaining({ showWatchlistOnly: false }),
+      );
+    });
+
     it('shows all markets when showWatchlistOnly is false', () => {
       // Mock watchlistMarkets to only include BTC
       const { selectPerpsWatchlistMarkets } = jest.requireMock(
@@ -1611,6 +1677,101 @@ describe('PerpsMarketListView', () => {
                 params: expect.objectContaining({
                   market: mockMarketData[1],
                   source: 'perp_markets',
+                  detailGenerationTrigger: 'market_switch',
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
+    it('copies homeDroppedFromHistory onto a pushed market when Home was dropped', () => {
+      mockNavigation.getState.mockReturnValue({
+        index: 0,
+        routes: [
+          {
+            key: 'list',
+            name: 'PerpsTrendingView',
+            params: { homeDroppedFromHistory: true },
+          },
+        ],
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'PUSH',
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              market: mockMarketData[1],
+              homeDroppedFromHistory: true,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('copies homeDroppedFromHistory onto the replacement market when Home was dropped', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      const stackReducer = mockNavigation.dispatch.mock.calls[0][0] as (state: {
+        key: string;
+        index: number;
+        routeNames: string[];
+        routes: { key: string; name: string; params?: object }[];
+        type: string;
+        stale: boolean;
+      }) => unknown;
+
+      expect(
+        stackReducer({
+          key: 'stack',
+          index: 1,
+          routeNames: ['PerpsMarketDetails', 'PerpsMarketListView'],
+          routes: [
+            {
+              key: 'details-btc',
+              name: 'PerpsMarketDetails',
+              params: {
+                market: mockMarketData[0],
+                homeDroppedFromHistory: true,
+              },
+            },
+            {
+              key: 'picker',
+              name: 'PerpsMarketListView',
+              params: { replaceOnSelect: true },
+            },
+          ],
+          type: 'stack',
+          stale: false,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          type: 'RESET',
+          payload: expect.objectContaining({
+            index: 0,
+            routes: [
+              expect.objectContaining({
+                name: 'PerpsMarketDetails',
+                params: expect.objectContaining({
+                  market: mockMarketData[1],
+                  homeDroppedFromHistory: true,
                 }),
               }),
             ],
@@ -1689,16 +1850,113 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Navigation', () => {
+    const pressListBack = () => {
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+        ),
+      );
+    };
+
     it('does not navigate back when canGoBack returns false', () => {
+      mockPerpsCanGoBack = false;
       mockNavigation.canGoBack.mockReturnValue(false);
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      const backButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
-      );
-      fireEvent.press(backButton);
+      pressListBack();
 
+      expect(mockNavigateBack).not.toHaveBeenCalled();
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('pops the Perps stack when the list has history beneath it', () => {
+      mockNavigation.getState.mockReturnValue({
+        index: 1,
+        routes: [
+          { key: 'home', name: 'PerpsMarketListView', params: {} },
+          { key: 'list', name: 'PerpsTrendingView', params: {} },
+        ],
+      });
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      pressListBack();
+
+      expect(mockNavigateBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToHome).not.toHaveBeenCalled();
+      expect(mockResetToHome).not.toHaveBeenCalled();
+      expect(mockNavigateToWallet).not.toHaveBeenCalled();
+    });
+
+    it('returns to Perps Home when the list is the remaining dropped-Home route', () => {
+      mockNavigation.getState.mockReturnValue({
+        index: 0,
+        routes: [
+          {
+            key: 'list',
+            name: 'PerpsTrendingView',
+            params: { homeDroppedFromHistory: true },
+          },
+        ],
+      });
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      pressListBack();
+
+      expect(mockResetToHome).toHaveBeenCalledWith('perp_markets');
+      expect(mockNavigateToHome).not.toHaveBeenCalled();
+      expect(mockNavigateBack).not.toHaveBeenCalled();
+      expect(mockNavigateToWallet).not.toHaveBeenCalled();
+    });
+
+    it('leaves Perps when the remaining dropped-Home list is in Pro mode', () => {
+      mockPerpsMode = PerpsMode.Pro;
+      mockNavigation.getState.mockReturnValue({
+        index: 0,
+        routes: [
+          {
+            key: 'list',
+            name: 'PerpsTrendingView',
+            params: { homeDroppedFromHistory: true },
+          },
+        ],
+      });
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      pressListBack();
+
+      expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
+      expect(mockNavigateBack).not.toHaveBeenCalled();
+      expect(mockNavigateToHome).not.toHaveBeenCalled();
+      expect(mockResetToHome).not.toHaveBeenCalled();
+    });
+
+    it('intercepts hardware back after Home was dropped', () => {
+      mockNavigation.getState.mockReturnValue({
+        index: 0,
+        routes: [
+          {
+            key: 'list',
+            name: 'PerpsTrendingView',
+            params: { homeDroppedFromHistory: true },
+          },
+        ],
+      });
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      const listener = mockNavigation.addListener.mock.calls.find(
+        (call) => call[0] === 'beforeRemove',
+      )?.[1];
+      const event = {
+        preventDefault: jest.fn(),
+        data: { action: { type: 'GO_BACK' } },
+      };
+
+      listener?.(event);
+
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
+      expect(mockResetToHome).toHaveBeenCalledWith('perp_markets');
+      expect(mockNavigateToHome).not.toHaveBeenCalled();
+      expect(mockNavigateBack).not.toHaveBeenCalled();
     });
   });
 
@@ -1766,6 +2024,12 @@ describe('PerpsMarketListView', () => {
       },
       recentlyViewedState: {
         recentlyViewedMarketObjects: [],
+      },
+      exchangeFilterState: {
+        isVisible: false,
+        selectedProviderIds: ['hyperliquid'],
+        onSave: jest.fn(),
+        availableProviderIds: ['hyperliquid'],
       },
       marketCounts: {
         crypto: 0,
@@ -2767,10 +3031,56 @@ describe('PerpsMarketListView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the rail while the watchlist filter is active', () => {
+    it('renders the rail when the watchlist filter is active', () => {
       mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['ETH']);
       mockUsePerpsMarketListView.mockReturnValueOnce(
         buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('recently-viewed-row-ETH')).toBeOnTheScreen();
+    });
+
+    it('keeps only watchlisted markets on the recently viewed rail when the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({
+          showFavoritesOnly: true,
+          recentlyViewedMarketObjects: [mockMarketData[1], mockMarketData[0]],
+        }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(screen.getByTestId('recently-viewed-row-BTC')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('recently-viewed-row-ETH'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the rail on the watchlist tab when recently viewed markets are not watchlisted', () => {
+      mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({
+          showFavoritesOnly: true,
+          recentlyViewedMarketObjects: [mockMarketData[1]],
+        }),
       );
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
@@ -2798,7 +3108,7 @@ describe('PerpsMarketListView', () => {
       );
     });
 
-    it('keeps the search bar and both fixed filter rows above the rail', () => {
+    it('places the recently viewed rail above the sticky sort row', () => {
       mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
@@ -2810,10 +3120,101 @@ describe('PerpsMarketListView', () => {
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SORT_FILTERS),
       ).toBeOnTheScreen();
       expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-sort`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
         screen.getByTestId(
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
         ),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the market count and sort control visible when the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('passes no provider logos to the filters bar while the Lighter flag is off (TAT-4511)', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Both sort bars receive an empty provider list: the mock surfaces the
+      // joined ids, or 'none' when the view passes undefined.
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-provider-logos`,
+        ),
+      ).toHaveTextContent('none');
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary-provider-logos`,
+        ),
+      ).toHaveTextContent('none');
+    });
+
+    it('passes the selected venue logos to the filters bar when the exchange filter is visible (TAT-4511)', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        ...buildHookReturn(),
+        exchangeFilterState: {
+          isVisible: true,
+          // One venue selected: only its mark shows next to the count.
+          selectedProviderIds: ['lighter'],
+          onSave: jest.fn(),
+          availableProviderIds: ['hyperliquid', 'lighter'],
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-provider-logos`,
+        ),
+      ).toHaveTextContent('lighter');
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary-provider-logos`,
+        ),
+      ).toHaveTextContent('lighter');
+    });
+
+    it('orders the count logos in the canonical stack order regardless of the saved order (TAT-4511)', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        ...buildHookReturn(),
+        exchangeFilterState: {
+          isVisible: true,
+          // A saved both-venue selection keeps the sheet's display order
+          // (Lighter first); the marks must still stack Hyperliquid first
+          // with Lighter on top, matching Perps Home.
+          selectedProviderIds: ['lighter', 'hyperliquid'],
+          onSave: jest.fn(),
+          availableProviderIds: ['hyperliquid', 'lighter'],
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-provider-logos`,
+        ),
+      ).toHaveTextContent('hyperliquid,lighter');
     });
   });
 

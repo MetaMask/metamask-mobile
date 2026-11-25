@@ -16,6 +16,7 @@ import {
   GAS_FEE_SPONSORED,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
+  isSpendingCapUnlimited,
   toMarketRateLookupToken,
   type ActivityFee,
   type ActivityListItem,
@@ -83,7 +84,7 @@ function tokenToFiatNumber(
     | undefined,
   multichainAssetRates: MultichainAssetRates | undefined,
 ): number | undefined {
-  if (!token || token.isUnlimitedApproval) {
+  if (!token || isSpendingCapUnlimited(token.amount, token.decimals)) {
     return undefined;
   }
   const human = getHumanReadableTokenAmount(token);

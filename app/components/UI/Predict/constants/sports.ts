@@ -1,6 +1,20 @@
 import type { PredictMarketGame, PredictSportsLeague } from '../types';
 
 /**
+ * How long a received WebSocket game update stays trusted over newer REST
+ * data. Both layers that hold live state enforce this same window so they
+ * expire together:
+ * - `GameCache.overlayOnMarket` stops overlaying the last WebSocket update
+ * onto REST-fetched markets once it ages past this window.
+ * - `usePredictGame`'s `mergeCachedGame` stops preferring the cached live
+ * state over incoming REST snapshots at the same point.
+ * When the sports socket dies, both layers stop masking REST at the same
+ * time, so the scoreboard recovers on the next market refetch instead of
+ * staying frozen until the app restarts (PRED-1334).
+ */
+export const LIVE_GAME_CACHE_TTL_MS = 60_000;
+
+/**
  * Leagues with live game data support.
  *
  * To add a new league:
@@ -190,6 +204,12 @@ const ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN = new RegExp(
   `^(?:kill_over_under_game|${ROUND_OVER_UNDER_GAME_SOURCE})$`,
   'u',
 );
+const ADDITIONAL_LINE_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'team_totals_home',
+  'team_totals_away',
+  'rushing_yards',
+  'receiving_yards',
+]);
 
 export const isEsportsRoundHandicapMarketType = (type?: string): boolean =>
   type !== undefined &&
@@ -213,6 +233,7 @@ export const isLineMarketType = (type?: string): boolean => {
     isSpreadLikeMarketType(normalizedType) ||
     normalizedType === 'totals' ||
     normalizedType.endsWith('_totals') ||
+    ADDITIONAL_LINE_MARKET_TYPES.has(normalizedType) ||
     ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN.test(normalizedType) ||
     normalizedType === 'map_participant_win_total'
   );

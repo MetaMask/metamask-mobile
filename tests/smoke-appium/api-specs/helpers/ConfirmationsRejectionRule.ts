@@ -10,8 +10,8 @@ import type Rule from '@open-rpc/test-coverage/build/rules/rule';
 import Assertions from '../../../framework/Assertions.js';
 import Gestures from '../../../framework/Gestures.js';
 import Matchers from '../../../framework/Matchers.js';
-import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers.js';
-import { getDriver } from '../../../framework/PlaywrightUtilities.js';
+import AppiumContextHelpers from '../../../framework/AppiumContextHelpers.js';
+import { getDriver } from '../../../framework/AppiumUtilities.js';
 import { sleep } from '../../../framework/Utilities.js';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
@@ -164,7 +164,7 @@ export default class ConfirmationsRejectRule implements Rule {
         task: async () => {
           await sleep(3000);
           const driver = getDriver();
-          await PlaywrightContextHelpers.switchToNativeContext();
+          await AppiumContextHelpers.switchToNativeContext();
           const image = await driver.takeScreenshot();
           call.attachments = call.attachments ?? [];
           call.attachments.push({
@@ -179,7 +179,7 @@ export default class ConfirmationsRejectRule implements Rule {
             await BrowserView.tapLocalHostDefaultAvatar();
             await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
           } else {
-            await PlaywrightContextHelpers.switchToNativeContext();
+            await AppiumContextHelpers.switchToNativeContext();
             const cancelButton = Matchers.getElementByText('Cancel');
             await Gestures.waitAndTap(cancelButton, {
               elemDescription: 'Cancel confirmation',

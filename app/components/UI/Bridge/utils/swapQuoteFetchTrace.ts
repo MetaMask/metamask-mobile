@@ -1,12 +1,28 @@
 import { v4 as uuidv4 } from 'uuid';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import type { Hex } from '@metamask/utils';
 import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+  SwapFeatureTag,
+  type GenericQuoteRequest,
+  type QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
+import {
+  annotateTraceByRequest,
   endTrace,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import type { BridgeToken } from '../types';
+import ReduxService from '../../../../core/redux';
+import type { RootState } from '../../../../reducers';
+import {
+  FIRST_QUOTE_FLUSH_AB_KEY,
+  IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
+  YIELD_AFTER_FIRST_QUOTE_AB_KEY,
+  selectFirstQuoteAbTestVariant,
+} from './firstQuoteFlushAbTestConfig';
+import { normalizeTokenAddress } from './tokenUtils';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -15,16 +31,80 @@ export type SwapQuoteFetchTraceResult =
   | 'error';
 
 interface StartSwapQuoteFetchTraceParams {
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
+  srcChainId?: GenericQuoteRequest['srcChainId'];
+  destChainId?: GenericQuoteRequest['destChainId'];
+  srcTokenAddress?: GenericQuoteRequest['srcTokenAddress'];
+  destTokenAddress?: GenericQuoteRequest['destTokenAddress'];
   isRefresh: boolean;
 }
 
+const toAssetId = (
+  address?: string,
+  chainId?: GenericQuoteRequest['srcChainId'],
+): ReturnType<typeof formatAddressToAssetId> => {
+  try {
+    return address === undefined
+      ? undefined
+      : formatAddressToAssetId(
+          normalizeTokenAddress(address, chainId as Hex),
+          chainId,
+        );
+  } catch {
+    return undefined;
+  }
+};
+
 let activeTraceId: string | undefined;
+let stopWatchingQuotes: (() => void) | undefined;
+
+const unwatchQuotes = (): void => {
+  try {
+    stopWatchingQuotes?.();
+  } catch {
+    // Telemetry only.
+  }
+  stopWatchingQuotes = undefined;
+};
+
+// Reads phase times from Redux after each dispatch, so nothing runs inside the
+// controller's quote processing. quotesLastFetched is set by the controller
+// just before it fetches; quotes present at span start are stale.
+const watchQuotePhases = (id: string, startTime: number): void => {
+  try {
+    const { store } = ReduxService;
+    const getBridgeState = () =>
+      (store.getState() as RootState).engine.backgroundState.BridgeController;
+    const staleQuotes = getBridgeState().quotes;
+    let requestSentMarked = false;
+    stopWatchingQuotes = store.subscribe(() => {
+      try {
+        const { quotes, quotesLastFetched } = getBridgeState();
+        const span = { name: TraceName.SwapQuoteFetch, id };
+        if (!requestSentMarked && (quotesLastFetched ?? 0) >= startTime) {
+          requestSentMarked = true;
+          annotateTraceByRequest(span, {
+            request_sent_ms: (quotesLastFetched ?? 0) - startTime,
+          });
+        }
+        if (quotes.length > 0 && quotes !== staleQuotes) {
+          annotateTraceByRequest(span, {
+            first_quote_in_state_ms: Date.now() - startTime,
+          });
+          unwatchQuotes();
+        }
+      } catch {
+        unwatchQuotes();
+      }
+    });
+  } catch {
+    stopWatchingQuotes = undefined;
+  }
+};
 
 const finishTrace = (
   result: SwapQuoteFetchTraceResult,
   id: string | undefined = activeTraceId,
+  reason?: QuoteStreamCompleteReason,
 ): void => {
   if (!id || activeTraceId !== id) {
     return;
@@ -34,15 +114,23 @@ const finishTrace = (
     name: TraceName.SwapQuoteFetch,
     id,
     timestamp: Date.now(),
-    data: { result },
+    data: {
+      result,
+      ...(result === 'no_quotes' || result === 'error'
+        ? { no_quote_reason: reason ?? 'generic_error' }
+        : {}),
+    },
   });
   activeTraceId = undefined;
+  unwatchQuotes();
 };
 
 export const swapQuoteFetchTrace = {
   start({
-    sourceToken,
-    destToken,
+    srcChainId,
+    destChainId,
+    srcTokenAddress,
+    destTokenAddress,
     isRefresh,
   }: StartSwapQuoteFetchTraceParams): string {
     if (activeTraceId) {
@@ -50,16 +138,18 @@ export const swapQuoteFetchTrace = {
     }
 
     const id = uuidv4();
-    const srcChainId = sourceToken?.chainId
-      ? formatChainIdToCaip(sourceToken.chainId)
+    const srcChainIdInCaip = srcChainId
+      ? formatChainIdToCaip(srcChainId)
       : undefined;
-    const destChainId = destToken?.chainId
-      ? formatChainIdToCaip(destToken.chainId)
+    const destChainIdInCaip = destChainId
+      ? formatChainIdToCaip(destChainId)
       : undefined;
     let swapType: 'single_chain' | 'crosschain' | undefined;
-    if (srcChainId && destChainId) {
-      swapType = srcChainId === destChainId ? 'single_chain' : 'crosschain';
+    if (srcChainIdInCaip && destChainIdInCaip) {
+      swapType =
+        srcChainIdInCaip === destChainIdInCaip ? 'single_chain' : 'crosschain';
     }
+    const startTime = Date.now();
     trace({
       name: TraceName.SwapQuoteFetch,
       op: TraceOperation.BridgeDataFetch,
@@ -68,20 +158,54 @@ export const swapQuoteFetchTrace = {
         request_id: id,
         isRefresh,
         ...(swapType && { swap_type: swapType }),
-        ...(sourceToken?.chainId && {
-          src_chain_id: formatChainIdToCaip(sourceToken.chainId),
+        ...(srcChainIdInCaip && {
+          src_chain_id: srcChainIdInCaip,
         }),
-        ...(destToken?.chainId && {
-          dest_chain_id: formatChainIdToCaip(destToken.chainId),
+        ...(destChainIdInCaip && {
+          dest_chain_id: destChainIdInCaip,
         }),
       },
-      startTime: Date.now(),
+      startTime,
+      tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
+    try {
+      const state = ReduxService.store.getState();
+      const srcToken = toAssetId(srcTokenAddress, srcChainId);
+      const destToken = toAssetId(destTokenAddress, destChainId);
+      annotateTraceByRequest(
+        { name: TraceName.SwapQuoteFetch, id },
+        {
+          first_quote_flush_variant: selectFirstQuoteAbTestVariant(
+            state,
+            FIRST_QUOTE_FLUSH_AB_KEY,
+          ),
+          immediate_first_quote_fetch_variant: selectFirstQuoteAbTestVariant(
+            state,
+            IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
+          ),
+          yield_after_first_quote_variant: selectFirstQuoteAbTestVariant(
+            state,
+            YIELD_AFTER_FIRST_QUOTE_AB_KEY,
+          ),
+          ...(srcToken && { src_token: srcToken }),
+          ...(destToken && { dest_token: destToken }),
+          ...(srcToken &&
+            destToken && { token_pair: `${srcToken}>${destToken}` }),
+        },
+      );
+    } catch {
+      // Telemetry only.
+    }
+    watchQuotePhases(id, startTime);
     return id;
   },
 
-  finish(result: SwapQuoteFetchTraceResult, id?: string): void {
-    finishTrace(result, id);
+  finish(
+    result: SwapQuoteFetchTraceResult,
+    id?: string,
+    reason?: QuoteStreamCompleteReason,
+  ): void {
+    finishTrace(result, id, reason);
   },
 };

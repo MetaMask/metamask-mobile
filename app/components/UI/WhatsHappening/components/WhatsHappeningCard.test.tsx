@@ -1,31 +1,20 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import WhatsHappeningCard from './WhatsHappeningCard';
 import type { WhatsHappeningItem } from '../types';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn((eventName: string) => ({
-  addProperties: jest.fn((properties: Record<string, unknown>) => ({
-    build: jest.fn(() => ({ category: eventName, properties })),
-  })),
-  build: jest.fn(() => ({ category: eventName })),
-}));
+const mockEndTrace = jest.fn();
 
-let capturedOnVisible: (() => void) | null = null;
-jest.mock('../../MarketInsights/hooks/useViewportTracking', () => ({
-  useViewportTracking: (onVisible: () => void) => {
-    capturedOnVisible = onVisible;
-    return { ref: { current: null }, onLayout: jest.fn() };
-  },
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock(
@@ -99,7 +88,7 @@ const baseItem: WhatsHappeningItem = {
 describe('WhatsHappeningCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedOnVisible = null;
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
   it('renders title and description', () => {
@@ -286,27 +275,37 @@ describe('WhatsHappeningCard', () => {
     ).not.toThrow();
   });
 
-  it('tracks Whats Happening Card Scrolled to View when card becomes visible', () => {
+  it('ends carousel time to content when the first card commits', () => {
     renderWithProvider(
-      <WhatsHappeningCard item={baseItem} cardIndex={2} source="homepage" />,
+      <WhatsHappeningCard
+        item={baseItem}
+        cardIndex={0}
+        source="explore"
+        carouselTraceId="explore:carousel"
+      />,
     );
-    expect(capturedOnVisible).not.toBeNull();
-    capturedOnVisible?.();
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      id: 'explore:carousel',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
+  });
+
+  it('does not end carousel time to content for later cards', () => {
+    renderWithProvider(
+      <WhatsHappeningCard
+        item={baseItem}
+        cardIndex={1}
+        source="explore"
+        carouselTraceId="explore:carousel"
+      />,
     );
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
-        properties: expect.objectContaining({
-          trend_id: 'trend-0',
-          card_index: 2,
-          trend_category: 'macro',
-          trend_impact: 'positive',
-          asset_symbols: ['BTC'],
-          source: 'homepage',
-        }),
-      }),
-    );
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
   });
 });

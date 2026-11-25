@@ -18,7 +18,7 @@ export const TESTID_ACCORDIONHEADER_ARROWICON_ANIMATION =
   'accordionheader-arrow-icon-animation';
 
 // Sample consts
-export const SAMPLE_ACCORDIONHEADER_TITLE = 'Sample Accordion Header Title';
+export const SAMPLE_ACCORDIONHEADER_TITLE = 'Sample accordion header title';
 export const SAMPLE_ACCORDIONHEADER_PROPS: AccordionHeaderProps = {
   title: SAMPLE_ACCORDIONHEADER_TITLE,
   onPress: () => {

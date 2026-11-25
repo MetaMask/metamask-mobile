@@ -11,6 +11,7 @@ import {
   selectPaymentOverrideByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
+import { LIGHTER_PAYMENT_OVERRIDE } from '../../../temp-lighter/perps-lighter-transactions';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 /**
@@ -18,10 +19,13 @@ import { useTransactionMetadataRequest } from '../../transactions/useTransaction
  * Call from every non-money-account section's press handler so that
  * switching away from money account correctly resets the override.
  *
+ * The Lighter override is kept. It sets the destination of the deposit, not
+ * the pay-with method, so changing the pay token must not clear it.
+ *
  * `atomic` is re-derived rather than blindly cleared: a max-amount Money
  * Account deposit sets `atomic: false` independently of the pay-with
- * selection (via `setMoneyAccountDepositMaxAtomic`), so it must survive a
- * payment-method switch while `isMaxAmount` remains on.
+ * selection (via `useTransactionCustomAmount`'s `setIsMax`), so it must survive
+ * a payment-method switch while `isMaxAmount` remains on.
  */
 export function useClearPaymentOverride() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -37,7 +41,11 @@ export function useClearPaymentOverride() {
   ]);
 
   return useCallback(() => {
-    if (transactionId && paymentOverride) {
+    if (
+      transactionId &&
+      paymentOverride &&
+      paymentOverride !== LIGHTER_PAYMENT_OVERRIDE
+    ) {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {

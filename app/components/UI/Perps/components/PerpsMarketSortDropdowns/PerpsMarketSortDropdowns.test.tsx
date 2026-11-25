@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
 import { type SortOptionId } from '@metamask/perps-controller';
+import { IconName } from '@metamask/design-system-react-native';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -29,8 +30,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'perps.sort.volume': 'Volume',
-      'perps.sort.price_change': 'Price change',
+      'perps.sort.volume': 'Volume (24h)',
+      'perps.sort.price_change': 'Price change (24h)',
       'perps.sort.funding_rate': 'Funding rate',
       'perps.sort.open_interest': 'Open interest',
     };
@@ -98,7 +99,11 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Volume (24h)')).toHaveStyle({
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+      });
       expect(
         screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();
@@ -112,7 +117,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Price change')).toBeOnTheScreen();
+      expect(screen.getByText('Price change (24h)')).toBeOnTheScreen();
     });
 
     it('displays funding rate label when selectedOptionId is fundingRate', () => {
@@ -124,6 +129,49 @@ describe('PerpsMarketSortDropdowns', () => {
       );
 
       expect(screen.getByText('Funding rate')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Sort Direction Icon', () => {
+    it('shows a down arrow when sortDirection is desc', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="volume"
+          onSortPress={mockOnSortPress}
+          sortDirection="desc"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
+      ).toHaveProp('name', IconName.Arrow2Down);
+    });
+
+    it('shows an up arrow when sortDirection is asc', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="volume"
+          onSortPress={mockOnSortPress}
+          sortDirection="asc"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
+      ).toHaveProp('name', IconName.Arrow2Up);
+    });
+
+    it('shows a down arrow when sortDirection is omitted', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="volume"
+          onSortPress={mockOnSortPress}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
+      ).toHaveProp('name', IconName.Arrow2Down);
     });
   });
 
@@ -172,7 +220,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
 
       const newOnSortPress = jest.fn();
 
@@ -183,7 +231,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Price change')).toBeOnTheScreen();
+      expect(screen.getByText('Price change (24h)')).toBeOnTheScreen();
 
       const sortButton = screen.getByTestId(
         'perps-market-sort-dropdowns-sort-field',
@@ -240,7 +288,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(getByText('Volume')).toBeOnTheScreen();
+      expect(getByText('Volume (24h)')).toBeOnTheScreen();
 
       rerender(
         <PerpsMarketSortDropdowns
@@ -249,8 +297,8 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(queryByText('Volume')).toBeNull();
-      expect(getByText('Price change')).toBeOnTheScreen();
+      expect(queryByText('Volume (24h)')).toBeNull();
+      expect(getByText('Price change (24h)')).toBeOnTheScreen();
 
       expect(() => unmount()).not.toThrow();
     });

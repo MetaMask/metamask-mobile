@@ -2,12 +2,11 @@ import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notifi
 import { strings } from '../../../../../locales/i18n';
 import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
 import {
-  getAmount,
-  getNetworkImageByChainId,
-  getNotificationBadge,
-} from '../../methods/common';
+  createTemplateMenuItem,
+  NotificationState,
+} from '../types/NotificationState';
+import { getNetworkImageByChainId } from '../../methods/common';
 import { getTokenAmount } from '../token-amounts';
 
 type LidoWithdrawalRequestedNotification =
@@ -22,37 +21,16 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
     isLidoWithdrawalRequestedNotification,
     (notification) => !!notification.payload.chain_id,
   ],
-  createMenuItem: (notification) => {
-    const amount = getAmount(
-      notification.payload.data.stake_in.amount,
-      notification.payload.data.stake_in.decimals,
-      { shouldEllipse: true },
-    );
-    const symbol = notification.payload.data.stake_in.symbol;
-    return {
-      title: strings(`notifications.menu_item_title.${notification.type}`),
-
-      description: {
-        start: strings(
-          `notifications.menu_item_description.${notification.type}`,
-          { amount, symbol },
-        ),
-      },
-
-      image: {
-        url: notification.payload.data.stake_in.image,
-      },
-
-      badgeIcon: getNotificationBadge(notification.type),
-
-      createdAt: notification.createdAt.toString(),
-    };
-  },
+  createMenuItem: (notification) =>
+    createTemplateMenuItem(
+      notification,
+      notification.payload.data.stake_in.image,
+    ),
   createModalDetails: (notification) => {
     const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 
     return {
-      title: strings('notifications.modal.title_unstake_requested'),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {

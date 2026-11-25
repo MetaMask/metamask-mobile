@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../../providers/venueKeys';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLivePrices } from './index';
@@ -265,6 +266,86 @@ describe('usePerpsLivePrices', () => {
     });
   });
 
+  it('keeps other symbols when a tick carries only the changed symbol', async () => {
+    let capturedCallback: (prices: Record<string, PriceUpdate>) => void =
+      jest.fn();
+    mockSubscribeToSymbols.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({ symbols: ['BTC-PERP', 'ETH-PERP'] }),
+    );
+
+    const btcUpdate: PriceUpdate = {
+      symbol: 'BTC-PERP',
+      price: '50000',
+      timestamp: Date.now(),
+      isTradable: true,
+    };
+    const ethUpdate: PriceUpdate = {
+      symbol: 'ETH-PERP',
+      price: '3000',
+      timestamp: Date.now(),
+      isTradable: true,
+    };
+
+    act(() => {
+      capturedCallback({ 'BTC-PERP': btcUpdate, 'ETH-PERP': ethUpdate });
+    });
+    await waitFor(() => {
+      expect(Object.keys(result.current)).toHaveLength(2);
+    });
+
+    // Live WebSocket ticks deliver only the symbols that changed. BTC must
+    // survive an ETH-only tick instead of being wiped from the map.
+    const ethUpdate2: PriceUpdate = { ...ethUpdate, price: '3100' };
+    act(() => {
+      capturedCallback({ 'ETH-PERP': ethUpdate2 });
+    });
+
+    await waitFor(() => {
+      expect(result.current['ETH-PERP']).toEqual(ethUpdate2);
+      expect(result.current['BTC-PERP']).toEqual(btcUpdate);
+    });
+  });
+
+  it('clears prices on the channel cache-clear payload', async () => {
+    let capturedCallback: (prices: Record<string, PriceUpdate>) => void =
+      jest.fn();
+    mockSubscribeToSymbols.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({ symbols: ['BTC-PERP'] }),
+    );
+
+    act(() => {
+      capturedCallback({
+        'BTC-PERP': {
+          symbol: 'BTC-PERP',
+          price: '50000',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(result.current['BTC-PERP']).toBeDefined();
+    });
+
+    act(() => {
+      capturedCallback({});
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual({});
+    });
+  });
+
   it('should handle rapid symbol changes', () => {
     const unsubscribes = [jest.fn(), jest.fn(), jest.fn(), jest.fn()];
     let index = 0;
@@ -371,9 +452,39 @@ describe('usePerpsLivePrices', () => {
     // Change to completely different symbols
     rerender({ symbols: ['SOL-PERP', 'AVAX-PERP'] });
 
-    // Prices should be reset (implementation may vary)
-    // This test assumes prices are maintained across symbol changes
-    // Update if the implementation clears prices on symbol change
-    expect(result.current['BTC-PERP']).toBeDefined();
+    expect(result.current).toEqual({});
+  });
+
+  it('keeps shared BTC prices separate and delivers a Lighter-only symbol', () => {
+    mockSubscribeToSymbols.mockReturnValue(jest.fn());
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({
+        symbols: [
+          buildVenueSymbolKey('BTC', 'hyperliquid'),
+          buildVenueSymbolKey('BTC', 'lighter'),
+          buildVenueSymbolKey('kPEPE', 'lighter'),
+        ],
+      }),
+    );
+    const [hyper, lighter] = mockSubscribeToSymbols.mock.calls.map(
+      ([subscription]) => subscription,
+    );
+    expect(hyper).toMatchObject({
+      providerId: 'hyperliquid',
+      symbols: ['BTC'],
+    });
+    expect(lighter).toMatchObject({
+      providerId: 'lighter',
+      symbols: ['BTC', 'kPEPE'],
+    });
+    act(() => {
+      hyper.callback({ BTC: { price: '100' } });
+      lighter.callback({ BTC: { price: '101' }, kPEPE: { price: '2' } });
+    });
+    expect(result.current).toMatchObject({
+      [buildVenueSymbolKey('BTC', 'hyperliquid')]: { price: '100' },
+      [buildVenueSymbolKey('BTC', 'lighter')]: { price: '101' },
+      [buildVenueSymbolKey('kPEPE', 'lighter')]: { price: '2' },
+    });
   });
 });

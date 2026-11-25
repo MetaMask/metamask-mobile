@@ -99,9 +99,27 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       visibilityOnLayout();
     }, [homeViewedOnLayout, visibilityOnLayout]);
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'unknown';
+    if (isLoading) {
+      cacheState = 'cold';
+    } else if (displayedPositions.length > 0) {
+      cacheState = 'warm';
+    }
+
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
-      contentReady: !isLoading,
+      // The idle placeholder is mounted before the viewport-gated request.
+      // Only a settled fetch represents resolved DeFi content.
+      contentReady: hasFetched && !isLoading,
+      // Cached positions can render without a loading transition. Count them
+      // only when the section enters the viewport so offscreen cache dwell is
+      // not reported as user-demanded time.
+      demandStarted:
+        hasFetched ||
+        isLoading ||
+        isError ||
+        (isVisible && displayedPositions.length > 0),
+      cacheState,
       isEmpty: isEmpty && !isError,
       contentStateForTrace: isError ? 'error' : undefined,
       isLoading,
@@ -125,7 +143,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
           />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
+              section: title,
             })}
             onRetry={refresh}
           />

@@ -35,7 +35,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -59,6 +59,7 @@ import type { PredictEntryPoint } from '../../types/navigation';
 import {
   getEventStartTime,
   getCryptoSymbol,
+  isMetalSymbol,
   getVariant,
   resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
@@ -101,8 +102,8 @@ const REST_POLLING_INTERVAL_MS = 2000;
 const CHART_HISTORY_WINDOW_MIN_BUCKET_MS = 60 * 1000;
 const CHART_HISTORY_WINDOW_BUCKET_DIVISOR = 12;
 const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
-  '5m': 10 * 60 * 1000,
-  '15m': 30 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
   '1h': 60 * 60 * 1000,
   '4h': 4 * 60 * 60 * 1000,
   daily: 24 * 60 * 60 * 1000,
@@ -112,17 +113,18 @@ const getChartHistoryBucketMs = (displayDurationMs: number) =>
     CHART_HISTORY_WINDOW_MIN_BUCKET_MS,
     Math.floor(displayDurationMs / CHART_HISTORY_WINDOW_BUCKET_DIVISOR),
   );
+// Polymarket starts each payload at eventStartTime and caps it to the variant's
+// duration. Older lookbacks therefore return complete but stale chart data.
 const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
-  '5m': 2 * 60 * 60 * 1000,
-  '15m': 2 * 60 * 60 * 1000,
-  '1h': 4 * 60 * 60 * 1000,
-  '4h': 12 * 60 * 60 * 1000,
-  daily: 7 * 24 * 60 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  hourly: 60 * 60 * 1000,
+  '4h': 4 * 60 * 60 * 1000,
+  daily: 24 * 60 * 60 * 1000,
 };
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
-const COMPACT_PROGRESS_RING_SIZE = 40;
-const COMPACT_PROGRESS_RING_STROKE_WIDTH = 2;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -173,7 +175,6 @@ interface PredictCryptoUpDownMarketCardProps {
    * output isn't displayed.
    */
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -811,19 +812,15 @@ const ProgressLogo = React.memo(
     progress,
     color,
     trackColor,
-    compact,
   }: {
     imageUrl?: string;
     progress: number;
     color: string;
     trackColor: string;
-    compact?: boolean;
   }) => {
     const tw = useTailwind();
-    const ringSize = compact ? COMPACT_PROGRESS_RING_SIZE : PROGRESS_RING_SIZE;
-    const strokeWidth = compact
-      ? COMPACT_PROGRESS_RING_STROKE_WIDTH
-      : PROGRESS_RING_STROKE_WIDTH;
+    const ringSize = PROGRESS_RING_SIZE;
+    const strokeWidth = PROGRESS_RING_STROKE_WIDTH;
     const radius = (ringSize - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference * (1 - progress);
@@ -862,11 +859,7 @@ const ProgressLogo = React.memo(
             />
           </Svg>
         </Box>
-        <Box
-          twClassName={`${
-            compact ? 'h-8 w-8' : 'h-10 w-10'
-          } overflow-hidden rounded-full bg-default`}
-        >
+        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
@@ -915,7 +908,6 @@ const LiveStatus = React.memo(
         progress={progressRemaining}
         color={accentColor}
         trackColor={trackColor}
-        compact={compact}
       />
     );
 
@@ -997,13 +989,25 @@ const OutcomeButtons = React.memo(
       }));
     }, [marketId, outcomeId, tokenIds]);
     const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
-    const { getPrice } = useLiveMarketPrices(tokenIds, {
-      enabled: isMarketOpen,
+    // Pause the socket and REST polling while another screen covers this one
+    // (PRED-1535). The last live quote stays on the card meanwhile, since it is
+    // newer than the market snapshot. Re-focusing runs one REST refresh and
+    // subscribes only the tokens that are current at that moment.
+    const isScreenFocused = useIsFocused();
+    const shouldFetchPrices =
+      isScreenFocused && isMarketOpen && priceQueries.length > 0;
+    const { getPrice, isConnected } = useLiveMarketPrices(tokenIds, {
+      enabled: shouldFetchPrices,
     });
+    // WebSocket prices win once the socket is up. REST still loads once for
+    // the gap before that, and keeps polling only while the socket is down.
     const { prices: restPrices } = usePredictPrices({
       queries: priceQueries,
-      enabled: isMarketOpen && priceQueries.length > 0,
-      pollingInterval: REST_POLLING_INTERVAL_MS,
+      enabled: shouldFetchPrices,
+      pollingInterval:
+        shouldFetchPrices && !isConnected
+          ? REST_POLLING_INTERVAL_MS
+          : undefined,
     });
     const upPrice = getPredictBuyPrice(
       upToken,
@@ -1021,7 +1025,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-success-muted"
+          twClassName="h-10 flex-1 bg-success-muted"
           disabled={!upToken || !isMarketOpen}
         >
           <Text
@@ -1035,7 +1039,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-error-muted"
+          twClassName="h-10 flex-1 bg-error-muted"
           disabled={!downToken || !isMarketOpen}
         >
           <Text
@@ -1112,7 +1116,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
-  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -1240,14 +1243,13 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const imageUrl = selectedMarket.image || market.image;
   const displayTargetPrice =
     typeof validatedTargetPrice === 'number'
-      ? formatPrice(validatedTargetPrice, { maximumDecimals: 0 })
+      ? formatPrice(validatedTargetPrice, {
+          // Whole dollars would hide a gold window's move ($4,030 → $4,030).
+          maximumDecimals: isMetalSymbol(symbol) ? 2 : 0,
+        })
       : undefined;
 
   const handleCardPress = useCallback(() => {
-    if (cardPressDisabled) {
-      return;
-    }
-
     onCardPress?.();
     navigateToMarketDetails(
       {
@@ -1263,7 +1265,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
       { throughRoot: true },
     );
   }, [
-    cardPressDisabled,
     cardTitle,
     imageUrl,
     navigateToMarketDetails,
@@ -1286,15 +1287,11 @@ const PredictCryptoUpDownMarketCard: React.FC<
         return;
       }
 
-      const handledExternally =
-        onBuyButtonPress?.({
-          market: selectedMarket,
-          outcome: selectedOutcome,
-          outcomeToken: token,
-        }) === true;
-      if (handledExternally) {
-        return;
-      }
+      onBuyButtonPress?.({
+        market: selectedMarket,
+        outcome: selectedOutcome,
+        outcomeToken: token,
+      });
 
       executeGuardedAction(
         () => {

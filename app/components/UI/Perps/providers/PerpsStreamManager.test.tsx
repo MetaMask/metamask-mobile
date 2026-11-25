@@ -15,6 +15,7 @@ import {
   type PerpsMarketData,
   type Position,
   type Order,
+  type OrderFill,
   type AccountState,
 } from '@metamask/perps-controller';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
@@ -24,7 +25,15 @@ import {
   resetPerpsLifecycleContextForTests,
 } from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
-import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectHip3ConfigVersion,
+  selectPerpsTerminalBackendEnabledFlag,
+} from '../selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
@@ -44,7 +53,15 @@ jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
 jest.mock('../selectors/featureFlags', () => ({
+  selectHip3ConfigVersion: jest.fn(() => 0),
   selectPerpsTerminalBackendEnabledFlag: jest.fn(() => true),
+}));
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsNetwork: jest.fn(() => 'mainnet'),
+  selectPerpsProvider: jest.fn(() => 'hyperliquid'),
+}));
+jest.mock('../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: jest.fn(() => '0x123456789'),
 }));
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -66,6 +83,12 @@ const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
 const mockTrace = trace as jest.Mock;
 const mockSelectPerpsTerminalBackendEnabledFlag =
   selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
+const mockSelectHip3ConfigVersion =
+  selectHip3ConfigVersion as unknown as jest.Mock;
+const mockSelectPerpsNetwork = selectPerpsNetwork as unknown as jest.Mock;
+const mockSelectPerpsProvider = selectPerpsProvider as unknown as jest.Mock;
+const mockSelectPerpsSelectedAccountAddress =
+  selectPerpsSelectedAccountAddress as unknown as jest.Mock;
 
 // Test component that uses the stream hook
 const TestPriceComponent = ({
@@ -92,97 +115,113 @@ const TestPriceComponent = ({
   return <Text testID="price-display">Test Component</Text>;
 };
 
-describe('PerpsStreamManager', () => {
-  let mockSubscribeToPrices: jest.Mock;
-  let mockUnsubscribeFromPrices: jest.Mock;
-  let mockSubscribeToOrders: jest.Mock;
-  let mockSubscribeToPositions: jest.Mock;
-  let mockSubscribeToAccount: jest.Mock;
-  let testStreamManager: PerpsStreamManager;
+// Shared mocks for both stream-manager suites; the setup helper below
+// keeps the copies from drifting (the first multi-venue copy had already
+// dropped waitForConnection, StorageWrapper and DevLogger).
+let mockSubscribeToPrices: jest.Mock;
+let mockUnsubscribeFromPrices: jest.Mock;
+let mockSubscribeToOrders: jest.Mock;
+let mockSubscribeToPositions: jest.Mock;
+let mockSubscribeToAccount: jest.Mock;
+let testStreamManager: PerpsStreamManager;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
-    resetPerpsLifecycleContextForTests();
+/**
+ * Per-test setup shared by the single-venue and multi-venue suites. The
+ * only difference between them is the routing provider handed to the
+ * selector.
+ */
+const setupStreamManagerMocks = ({ provider }: { provider: string }): void => {
+  jest.clearAllMocks();
+  jest.clearAllTimers();
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
+  resetPerpsLifecycleContextForTests();
 
-    // Restore the default Terminal flag state (enabled) after any per-test override.
-    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+  // Restore the default Terminal flag state (enabled) after any per-test override.
+  mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+  mockSelectHip3ConfigVersion.mockReturnValue(0);
+  mockSelectPerpsNetwork.mockReturnValue('mainnet');
+  mockSelectPerpsProvider.mockReturnValue(provider);
+  mockSelectPerpsSelectedAccountAddress.mockReturnValue('0x123456789');
 
-    // Create a fresh stream manager for each test
-    testStreamManager = new PerpsStreamManager();
+  // Create a fresh stream manager for each test
+  testStreamManager = new PerpsStreamManager();
 
-    // Setup default mocks
-    mockSubscribeToPrices = jest.fn();
-    mockUnsubscribeFromPrices = jest.fn();
-    mockSubscribeToOrders = jest.fn();
-    mockSubscribeToPositions = jest.fn();
-    mockSubscribeToAccount = jest.fn();
+  // Setup default mocks
+  mockSubscribeToPrices = jest.fn().mockReturnValue(jest.fn());
+  mockUnsubscribeFromPrices = jest.fn();
+  mockSubscribeToOrders = jest.fn();
+  mockSubscribeToPositions = jest.fn();
+  mockSubscribeToAccount = jest.fn();
 
-    // Setup mock return values for all subscription methods
-    mockSubscribeToOrders.mockReturnValue(jest.fn());
-    mockSubscribeToPositions.mockReturnValue(jest.fn());
-    mockSubscribeToAccount.mockReturnValue(jest.fn());
+  // Setup mock return values for all subscription methods
+  mockSubscribeToOrders.mockReturnValue(jest.fn());
+  mockSubscribeToPositions.mockReturnValue(jest.fn());
+  mockSubscribeToAccount.mockReturnValue(jest.fn());
 
-    mockEngine.context.PerpsController = {
-      subscribeToPrices: mockSubscribeToPrices,
-      unsubscribeFromPrices: mockUnsubscribeFromPrices,
-      subscribeToOrders: mockSubscribeToOrders,
-      subscribeToPositions: mockSubscribeToPositions,
-      subscribeToAccount: mockSubscribeToAccount,
-      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
-      getMarkets: jest
-        .fn()
-        .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
-      getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
-      getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
-      state: {
-        cachedMarketDataByProvider: {},
-        cachedUserDataByProvider: {},
-      },
-    } as unknown as typeof mockEngine.context.PerpsController;
-
-    // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
-    mockEngine.context.AccountTreeController = {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x123456789',
-          id: 'account-1',
-          type: 'eip155:eoa',
-          metadata: {
-            name: 'Test Account',
-            importTime: 0,
-            keyring: { type: 'HD Key Tree' },
-          },
-          methods: [],
-          options: {},
-          scopes: [],
-        },
-      ]),
-    } as unknown as typeof mockEngine.context.AccountTreeController;
-
-    mockDevLogger.log = jest.fn();
-
-    // Mock PerpsConnectionManager.getConnectionState for channel connect guards
-    mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
-      isInitialized: true,
-      isConnected: true,
-      isConnecting: false,
-      error: null,
-    });
-    mockPerpsConnectionManager.isCurrentlyConnecting = jest
+  mockEngine.context.PerpsController = {
+    subscribeToPrices: mockSubscribeToPrices,
+    unsubscribeFromPrices: mockUnsubscribeFromPrices,
+    subscribeToOrders: mockSubscribeToOrders,
+    subscribeToPositions: mockSubscribeToPositions,
+    subscribeToAccount: mockSubscribeToAccount,
+    isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+    getMarkets: jest
       .fn()
-      .mockReturnValue(false);
-    mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
-      new Promise((_resolve) => {
-        /* never resolves */
-      }),
-    );
-    mockStorageWrapper.getItem.mockResolvedValue(null);
-    mockStorageWrapper.getItemSync.mockReturnValue(null);
-    mockStorageWrapper.setItem.mockResolvedValue(undefined);
-    mockStorageWrapper.removeItem.mockResolvedValue(undefined);
+      .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
+    getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
+    getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
+    state: {
+      cachedMarketDataByProvider: {},
+      cachedUserDataByProvider: {},
+    },
+  } as unknown as typeof mockEngine.context.PerpsController;
+
+  // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
+  mockEngine.context.AccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x123456789',
+        id: 'account-1',
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Test Account',
+          importTime: 0,
+          keyring: { type: 'HD Key Tree' },
+        },
+        methods: [],
+        options: {},
+        scopes: [],
+      },
+    ]),
+  } as unknown as typeof mockEngine.context.AccountTreeController;
+
+  mockDevLogger.log = jest.fn();
+
+  // Mock PerpsConnectionManager.getConnectionState for channel connect guards
+  mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
+    isInitialized: true,
+    isConnected: true,
+    isConnecting: false,
+    error: null,
+  });
+  mockPerpsConnectionManager.isCurrentlyConnecting = jest
+    .fn()
+    .mockReturnValue(false);
+  mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+    new Promise((_resolve) => {
+      /* never resolves */
+    }),
+  );
+  mockStorageWrapper.getItem.mockResolvedValue(null);
+  mockStorageWrapper.getItemSync.mockReturnValue(null);
+  mockStorageWrapper.setItem.mockResolvedValue(undefined);
+  mockStorageWrapper.removeItem.mockResolvedValue(undefined);
+};
+
+describe('PerpsStreamManager', () => {
+  beforeEach(() => {
+    setupStreamManagerMocks({ provider: 'hyperliquid' });
   });
 
   afterEach(() => {
@@ -239,10 +278,10 @@ describe('PerpsStreamManager', () => {
         providerId: 'hyperliquid',
       } as PerpsMarketData,
       {
-        symbol: 'MYX',
-        name: 'MYX',
+        symbol: 'LIGHTER',
+        name: 'Lighter',
         price: '1',
-        providerId: 'myx',
+        providerId: 'lighter',
       } as PerpsMarketData,
     ]);
 
@@ -258,7 +297,7 @@ describe('PerpsStreamManager', () => {
       entries: { providerNetworkKey: string; data: PerpsMarketData[] }[];
     };
     expect(payload.entries.map((entry) => entry.providerNetworkKey)).toEqual(
-      expect.arrayContaining(['hyperliquid:mainnet', 'myx:mainnet']),
+      expect.arrayContaining(['hyperliquid:mainnet', 'lighter:mainnet']),
     );
   });
 
@@ -277,9 +316,9 @@ describe('PerpsStreamManager', () => {
         providerId: 'hyperliquid',
       } as Position,
       {
-        symbol: 'MYX',
+        symbol: 'LIGHTER',
         size: '2.0',
-        providerId: 'myx',
+        providerId: 'lighter',
       } as Position,
     ]);
     jest.spyOn(testStreamManager.orders, 'getSnapshot').mockReturnValue([
@@ -289,9 +328,9 @@ describe('PerpsStreamManager', () => {
         providerId: 'hyperliquid',
       } as Order,
       {
-        orderId: 'order-myx',
-        symbol: 'MYX',
-        providerId: 'myx',
+        orderId: 'order-lighter',
+        symbol: 'LIGHTER',
+        providerId: 'lighter',
       } as Order,
     ]);
     jest.spyOn(testStreamManager.account, 'getSnapshot').mockReturnValue({
@@ -321,7 +360,7 @@ describe('PerpsStreamManager', () => {
       }[];
     };
     expect(payload.entries.map((entry) => entry.providerNetworkKey)).toEqual(
-      expect.arrayContaining(['hyperliquid:mainnet', 'myx:mainnet']),
+      expect.arrayContaining(['hyperliquid:mainnet', 'lighter:mainnet']),
     );
   });
 
@@ -375,6 +414,48 @@ describe('PerpsStreamManager', () => {
         },
       });
     });
+  });
+
+  it('forwards every controller price field, including oraclePrice', async () => {
+    const controllerUpdate: PriceUpdate = {
+      symbol: 'BTC-PERP',
+      price: '50000',
+      percentChange24h: '5',
+      timestamp: 1,
+      bestBid: '49900',
+      bestAsk: '50100',
+      spread: '200',
+      markPrice: '50050',
+      oraclePrice: '49980',
+      funding: 0.0001,
+      openInterest: 1_000_000,
+      volume24h: 5_000_000,
+      isTradable: false,
+    };
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        params.callback([controllerUpdate]);
+        return jest.fn();
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalled();
+    });
+    const received = onUpdate.mock.calls[0][0]['BTC-PERP'];
+    expect(received).toStrictEqual({
+      ...controllerUpdate,
+      timestamp: expect.any(Number),
+    });
+    expect(received.timestamp).not.toBe(controllerUpdate.timestamp);
   });
 
   it('throttles updates after first immediate update', async () => {
@@ -947,11 +1028,591 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenLastCalledWith(null);
     });
 
+    it('delivers queued data while retaining the authentication error', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback,
+        onError,
+        throttleMs: 1000,
+      });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      source.callback([]);
+      source.callback([]);
+      callback.mockClear();
+      const error = new Error('Trading key rejected');
+
+      source.onError(error);
+      jest.advanceTimersByTime(1000);
+      testStreamManager.orders.publish([], 'cache');
+      testStreamManager.orders.publish([], 'optimistic');
+
+      expect(onError).toHaveBeenCalledWith(error);
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(testStreamManager.orders.getError()).toBe(error);
+      callback.mockClear();
+
+      source.callback([]);
+      jest.advanceTimersByTime(1000);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([]);
+    });
+
+    it('preserves a newer authentication error when resuming a cached snapshot', () => {
+      const callback = jest.fn();
+      const onDelivery = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback,
+        onDelivery,
+        throttleMs: 0,
+      });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const error = new Error('Trading key rejected');
+      testStreamManager.orders.pause();
+      source.callback([]);
+      source.onError(error);
+      callback.mockClear();
+      onDelivery.mockClear();
+
+      testStreamManager.orders.resume();
+
+      expect(callback).toHaveBeenCalledWith([]);
+      expect(onDelivery).toHaveBeenLastCalledWith('cache');
+      expect(testStreamManager.orders.getError()).toBe(error);
+
+      source.callback([]);
+
+      expect(onDelivery).toHaveBeenLastCalledWith('fresh');
+      expect(testStreamManager.orders.getError()).toBeNull();
+    });
+
+    it.each([false, true])(
+      'supersedes pre-pause throttled orders on resume with authentication error %s',
+      (hasError) => {
+        const callback = jest.fn();
+        const onDelivery = jest.fn();
+        testStreamManager.orders.subscribe({
+          callback,
+          onDelivery,
+          throttleMs: 1000,
+        });
+        const source = mockSubscribeToOrders.mock.calls[0][0];
+        const queuedOrders: Order[] = [
+          {
+            orderId: 'cancelled-order',
+            symbol: 'ETH',
+            side: 'buy',
+            originalSize: '0.01',
+            size: '0.01',
+            remainingSize: '0.01',
+            filledSize: '0',
+            price: '2000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp: Date.now(),
+            providerId: 'lighter',
+          },
+        ];
+        const error = hasError ? new Error('Trading key rejected') : null;
+        source.callback([]);
+        source.callback(queuedOrders);
+        testStreamManager.orders.pause();
+        source.callback([]);
+        if (error) source.onError(error);
+        callback.mockClear();
+        onDelivery.mockClear();
+
+        testStreamManager.orders.resume();
+
+        expect(callback.mock.calls).toEqual([[[]]]);
+        expect(onDelivery.mock.calls).toEqual([['cache']]);
+        expect(testStreamManager.orders.getError()).toBe(error);
+
+        jest.advanceTimersByTime(1000);
+
+        expect(callback.mock.calls).toEqual([[[]]]);
+        expect(onDelivery.mock.calls).toEqual([['cache']]);
+        expect(testStreamManager.orders.getError()).toBe(error);
+      },
+    );
+
+    it('retains a throttled healthy-provider delivery when Lighter fails', () => {
+      const callback = jest.fn();
+      const failure = new Error('Lighter authentication failed');
+      testStreamManager.orders.subscribe({ callback, throttleMs: 1000 });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const healthy: Order[] = [
+        {
+          orderId: 'queued-hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          originalSize: '1',
+          size: '1',
+          remainingSize: '1',
+          filledSize: '0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp: Date.now(),
+          providerId: 'hyperliquid',
+        },
+      ];
+      source.callback([], 'hyperliquid');
+      source.callback(healthy, 'hyperliquid');
+      callback.mockClear();
+
+      source.onError(failure, 'lighter');
+      jest.advanceTimersByTime(1000);
+
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+    });
+
+    it('delivers healthy Hyperliquid orders and cache while retaining a Lighter error', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      testStreamManager.orders.subscribe({ callback, onError, throttleMs: 0 });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const failure = new Error('Lighter authentication failed');
+      const healthy: Order[] = [
+        {
+          orderId: 'hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          originalSize: '1',
+          size: '1',
+          remainingSize: '1',
+          filledSize: '0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp: Date.now(),
+          providerId: 'hyperliquid',
+        },
+      ];
+
+      callback.mockClear();
+      source.onError(failure, 'lighter');
+      source.callback(healthy, 'hyperliquid');
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+      const late = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback: late,
+        onError,
+        throttleMs: 0,
+      });
+      expect(late).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+
+      source.callback([], 'lighter');
+      expect(testStreamManager.orders.getError()).toBeNull();
+    });
+
+    it('delivers healthy Hyperliquid fills while retaining a Lighter error', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+      testStreamManager.fills.subscribe({ callback, onError, throttleMs: 0 });
+      const source = subscribe.mock.calls[0][0] as {
+        onError: (error: Error, provider?: string) => void;
+        callback: (
+          fills: OrderFill[],
+          snapshot?: boolean,
+          provider?: string,
+        ) => void;
+      };
+      const failure = new Error('Lighter authentication failed');
+      const healthy: OrderFill[] = [
+        {
+          orderId: 'hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1',
+          price: '50000',
+          timestamp: Date.now(),
+          fee: '0',
+          feeToken: 'USDC',
+          direction: 'Open Long',
+          providerId: 'hyperliquid',
+        },
+      ];
+
+      callback.mockClear();
+      source.onError(failure, 'lighter');
+      source.callback(healthy, true, 'hyperliquid');
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.fills.getError()).toBe(failure);
+      source.callback([], true, 'lighter');
+      expect(testStreamManager.fills.getError()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toEqual(healthy);
+      expect(callback).toHaveBeenLastCalledWith(healthy);
+    });
+
+    it.each([
+      ['hyperliquid', 'lighter'],
+      ['lighter', 'hyperliquid'],
+    ] as const)(
+      'replaces only %s fills after a %s snapshot',
+      (firstProvider, secondProvider) => {
+        const callback = jest.fn();
+        const subscribe = jest.fn((_params: unknown) => jest.fn());
+        mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+        testStreamManager.fills.subscribe({ callback, throttleMs: 0 });
+        const source = subscribe.mock.calls[0][0] as {
+          callback: (
+            fills: OrderFill[],
+            snapshot?: boolean,
+            provider?: string,
+          ) => void;
+        };
+        const createFill = (orderId: string, timestamp: number): OrderFill => ({
+          orderId,
+          symbol: 'ETH',
+          side: 'buy',
+          size: '0.01',
+          price: '2500',
+          timestamp,
+          fee: '0',
+          feeToken: 'USDC',
+          direction: 'Open Long',
+        });
+        // Direct providers may omit per-fill IDs. The callback source owns them.
+        const first = createFill('first', 1);
+        const second = createFill('second', 2);
+        const replacement = createFill('replacement', 3);
+
+        source.callback([first], true, firstProvider);
+        source.callback([second], true, secondProvider);
+
+        const taggedSecond = { ...second, providerId: secondProvider };
+        expect(testStreamManager.fills.getSnapshot()).toEqual([
+          taggedSecond,
+          { ...first, providerId: firstProvider },
+        ]);
+
+        source.callback([replacement], true, firstProvider);
+
+        const expected = [
+          { ...replacement, providerId: firstProvider },
+          taggedSecond,
+        ];
+        expect(testStreamManager.fills.getSnapshot()).toEqual(expected);
+        expect(callback).toHaveBeenLastCalledWith(expected);
+
+        source.callback([], true, firstProvider);
+
+        expect(testStreamManager.fills.getSnapshot()).toEqual([taggedSecond]);
+        expect(callback).toHaveBeenLastCalledWith([taggedSecond]);
+      },
+    );
+
+    it('keeps full replacement semantics for fill snapshots without a source provider', () => {
+      const callback = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+      testStreamManager.fills.subscribe({ callback, throttleMs: 0 });
+      const source = subscribe.mock.calls[0][0] as {
+        callback: (
+          fills: OrderFill[],
+          snapshot?: boolean,
+          provider?: string,
+        ) => void;
+      };
+      const fill: OrderFill = {
+        orderId: 'hl-legacy',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '0.01',
+        price: '2500',
+        timestamp: 1,
+        fee: '0',
+        feeToken: 'USDC',
+        direction: 'Open Long',
+      };
+      source.callback([fill], false, 'hyperliquid');
+
+      source.callback([], true);
+
+      expect(testStreamManager.fills.getSnapshot()).toEqual([]);
+      expect(callback).toHaveBeenLastCalledWith([]);
+    });
+
     it('notifies position subscriber with null when clearCache is called (account switch)', () => {
       const callback = jest.fn();
       testStreamManager.positions.subscribe({ callback, throttleMs: 0 });
       testStreamManager.positions.clearCache();
       expect(callback).toHaveBeenLastCalledWith(null);
+    });
+
+    it('rejects old user callbacks after clear and accepts replacement subscriptions', () => {
+      const orderCallbacks: ((orders: Order[]) => void)[] = [];
+      const positionCallbacks: ((positions: Position[]) => void)[] = [];
+      const accountCallbacks: ((account: AccountState | null) => void)[] = [];
+      const fillCallbacks: ((
+        fills: OrderFill[],
+        isSnapshot?: boolean,
+      ) => void)[] = [];
+      mockSubscribeToOrders.mockImplementation(({ callback }) => {
+        orderCallbacks.push(callback);
+        return jest.fn();
+      });
+      mockSubscribeToPositions.mockImplementation(({ callback }) => {
+        positionCallbacks.push(callback);
+        return jest.fn();
+      });
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallbacks.push(callback);
+        return jest.fn();
+      });
+      const mockSubscribeToOrderFills = jest.fn(({ callback }) => {
+        fillCallbacks.push(callback);
+        return jest.fn();
+      });
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+      } as unknown as typeof mockEngine.context.PerpsController;
+      const order = { orderId: 'old-order' } as Order;
+      const position = { symbol: 'BTC', size: '1' } as Position;
+      const account = { totalBalance: '1' } as AccountState;
+      const fill = {
+        orderId: 'old-order',
+        symbol: 'BTC',
+        side: 'buy',
+        size: '1',
+        price: '1',
+        pnl: '0',
+        direction: 'Open Long',
+        fee: '0',
+        feeToken: 'USDC',
+        timestamp: 1,
+      } as OrderFill;
+
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.positions.subscribe({ callback: jest.fn() });
+      testStreamManager.account.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      testStreamManager.orders.clearCache();
+      testStreamManager.positions.clearCache();
+      testStreamManager.account.clearCache();
+      testStreamManager.fills.clearCache();
+
+      orderCallbacks[0]?.([order]);
+      positionCallbacks[0]?.([position]);
+      accountCallbacks[0]?.(account);
+      fillCallbacks[0]?.([fill], true);
+
+      expect(testStreamManager.orders.getSnapshot()).toBeNull();
+      expect(testStreamManager.positions.getSnapshot()).toBeNull();
+      expect(testStreamManager.account.getSnapshot()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toBeNull();
+
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.positions.subscribe({ callback: jest.fn() });
+      testStreamManager.account.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      orderCallbacks[1]?.([order]);
+      positionCallbacks[1]?.([position]);
+      accountCallbacks[1]?.(account);
+      fillCallbacks[1]?.([fill], true);
+
+      expect(testStreamManager.orders.getSnapshot()).toEqual([order]);
+      expect(testStreamManager.positions.getSnapshot()).toEqual([position]);
+      expect(testStreamManager.account.getSnapshot()).toEqual(account);
+      expect(testStreamManager.fills.getSnapshot()).toEqual([fill]);
+    });
+
+    it('rejects user callbacks when the selected address changes', () => {
+      const orderCallback = jest.fn();
+      const positionCallback = jest.fn();
+      const accountCallback = jest.fn();
+      const fillCallback = jest.fn();
+      mockSubscribeToOrders.mockImplementation(({ callback }) => {
+        orderCallback.mockImplementation(callback);
+        return jest.fn();
+      });
+      mockSubscribeToPositions.mockImplementation(({ callback }) => {
+        positionCallback.mockImplementation(callback);
+        return jest.fn();
+      });
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation(callback);
+        return jest.fn();
+      });
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: jest.fn(({ callback }) => {
+          fillCallback.mockImplementation(callback);
+          return jest.fn();
+        }),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.positions.subscribe({ callback: jest.fn() });
+      testStreamManager.account.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      (
+        mockEngine.context.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([{ address: '0x987654321' }]);
+
+      orderCallback([]);
+      positionCallback([]);
+      accountCallback({ totalBalance: '1' } as AccountState);
+      fillCallback([], true);
+
+      expect(testStreamManager.orders.getSnapshot()).toBeNull();
+      expect(testStreamManager.positions.getSnapshot()).toBeNull();
+      expect(testStreamManager.account.getSnapshot()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toBeNull();
+    });
+
+    describe('order subscription context isolation', () => {
+      const createOrder = (orderId: string): Order => ({
+        orderId,
+        symbol: 'BTC',
+        side: 'buy',
+        originalSize: '1',
+        size: '1',
+        remainingSize: '1',
+        filledSize: '0',
+        price: '50000',
+        orderType: 'limit',
+        status: 'open',
+        timestamp: 1,
+        providerId: 'lighter',
+      });
+
+      const selectAccount = (address: string) => {
+        const getAccounts = jest.mocked(
+          mockEngine.context.AccountTreeController
+            .getAccountsFromSelectedAccountGroup,
+        );
+        getAccounts.mockReturnValue([{ ...getAccounts()[0], address }]);
+        mockSelectPerpsSelectedAccountAddress.mockReturnValue(address);
+      };
+
+      const getSubscription = (index: number) => {
+        const subscription = mockSubscribeToOrders.mock.calls[
+          index
+        ][0] as Parameters<
+          typeof Engine.context.PerpsController.subscribeToOrders
+        >[0];
+        if (!subscription.onError) {
+          throw new Error('Order subscription must expose its error callback');
+        }
+        return { ...subscription, onError: subscription.onError };
+      };
+
+      it.each(['account change', 'cache clear'])(
+        'rejects stale order errors after %s',
+        (transition) => {
+          const callback = jest.fn();
+          const onError = jest.fn();
+          const onDelivery = jest.fn();
+          const orders = testStreamManager.orders;
+          orders.subscribe({ callback, onError, onDelivery, throttleMs: 0 });
+          const original = getSubscription(0);
+          original.callback([createOrder('original')], 'lighter');
+          if (transition === 'account change') {
+            selectAccount('0x987654321');
+          } else {
+            orders.clearCache();
+          }
+          const revision = orders.getDeliveryRevision();
+          callback.mockClear();
+          onError.mockClear();
+          onDelivery.mockClear();
+
+          original.onError(
+            new Error('Old account authentication failed'),
+            'lighter',
+          );
+
+          expect(orders.getSnapshot()).toBeNull();
+          expect(orders.getError()).toBeNull();
+          expect(orders.getDeliveryRevision()).toBe(revision);
+          expect(callback).not.toHaveBeenCalled();
+          expect(onError).not.toHaveBeenCalled();
+          expect(onDelivery).not.toHaveBeenCalled();
+        },
+      );
+
+      it('rejects the first account generation after switching away and back', () => {
+        const callback = jest.fn();
+        const onError = jest.fn();
+        const onDelivery = jest.fn();
+        const orders = testStreamManager.orders;
+        orders.subscribe({ callback, onError, onDelivery, throttleMs: 0 });
+        const original = getSubscription(0);
+        original.callback([createOrder('first-account-old')], 'lighter');
+        selectAccount('0x987654321');
+        orders.clearCache();
+        orders.reconnect();
+        getSubscription(1).callback([createOrder('second-account')], 'lighter');
+        selectAccount('0x123456789');
+        orders.clearCache();
+        orders.reconnect();
+        const current = getSubscription(2);
+        const currentOrders = [createOrder('first-account-current')];
+        const currentError = new Error('Current subscription failed');
+        current.callback(currentOrders, 'lighter');
+        current.onError(currentError, 'lighter');
+        expect(callback).toHaveBeenLastCalledWith(currentOrders);
+        expect(onError).toHaveBeenLastCalledWith(currentError);
+        const revision = orders.getDeliveryRevision();
+        callback.mockClear();
+        onError.mockClear();
+        onDelivery.mockClear();
+
+        original.callback([createOrder('first-account-late')], 'lighter');
+        original.onError(new Error('First generation failed'), 'lighter');
+
+        expect(orders.getSnapshot()).toEqual(currentOrders);
+        expect(orders.getError()).toBe(currentError);
+        expect(orders.getDeliveryRevision()).toBe(revision);
+        expect(callback).not.toHaveBeenCalled();
+        expect(onError).not.toHaveBeenCalled();
+        expect(onDelivery).not.toHaveBeenCalled();
+      });
+
+      it.each(['clearCache', 'disconnect'] as const)(
+        'cancels queued order delivery after %s with the same selected account',
+        (reset) => {
+          const callback = jest.fn();
+          const onError = jest.fn();
+          const onDelivery = jest.fn();
+          const orders = testStreamManager.orders;
+          orders.subscribe({ callback, onError, onDelivery, throttleMs: 1000 });
+          const original = getSubscription(0);
+          original.callback([createOrder('original')], 'lighter');
+          original.callback([createOrder('queued-old')], 'lighter');
+          expect(callback).toHaveBeenCalledTimes(1);
+          orders[reset]();
+          orders.reconnect();
+          const current = getSubscription(1);
+          const currentOrders = [createOrder('current')];
+          current.callback(currentOrders, 'lighter');
+          expect(callback).toHaveBeenLastCalledWith(currentOrders);
+          const revision = orders.getDeliveryRevision();
+          callback.mockClear();
+          onError.mockClear();
+          onDelivery.mockClear();
+
+          original.callback([createOrder('late-old')], 'lighter');
+          original.onError(new Error('Old subscription failed'), 'lighter');
+          jest.advanceTimersByTime(1000);
+
+          expect(orders.getSnapshot()).toEqual(currentOrders);
+          expect(orders.getError()).toBeNull();
+          expect(orders.getDeliveryRevision()).toBe(revision);
+          expect(callback).not.toHaveBeenCalled();
+          expect(onError).not.toHaveBeenCalled();
+          expect(onDelivery).not.toHaveBeenCalled();
+        },
+      );
     });
 
     it('cleans up prewarm subscription when clearing account cache', () => {
@@ -1242,6 +1903,151 @@ describe('PerpsStreamManager', () => {
   });
 
   describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
+    it('hydrates a symbol subscriber without traversing the warm price cache', async () => {
+      const symbols = Array.from({ length: 336 }, (_, index) =>
+        index === 0 ? 'ETH' : `MARKET-${index}`,
+      );
+      const updates = symbols.map((symbol, index) => ({
+        symbol,
+        price: String(1000 + index),
+        timestamp: Date.now(),
+        isTradable: true,
+      }));
+      let prewarmCallback: ((prices: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation((params) => {
+        prewarmCallback = params.callback;
+        return jest.fn();
+      });
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      act(() => {
+        prewarmCallback?.(updates);
+      });
+      const priceChannel = testStreamManager.prices as unknown as {
+        getCachedData: () => Record<string, PriceUpdate> | null;
+      };
+      const fullCacheHydrationSpy = jest.spyOn(priceChannel, 'getCachedData');
+      const callback = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH'],
+        callback,
+      });
+
+      expect(fullCacheHydrationSpy).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        ETH: expect.objectContaining({ symbol: 'ETH', price: '1000' }),
+      });
+    });
+
+    it('skips cache delivery when the requested symbol is not cached', async () => {
+      let prewarmCallback: ((prices: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation((params) => {
+        prewarmCallback = params.callback;
+        return jest.fn();
+      });
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      act(() => {
+        prewarmCallback?.([
+          {
+            symbol: 'BTC',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        ]);
+      });
+      const callback = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH'],
+        callback,
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('drops a late direct-price callback after prewarm takes ownership', async () => {
+      const makePrice = (price: string): PriceUpdate => ({
+        symbol: 'BTC',
+        price,
+        timestamp: Date.now(),
+        isTradable: true,
+      });
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+      const directCall = mockSubscribeToPrices.mock.calls.at(-1);
+      if (!directCall) throw new Error('Direct subscription did not start');
+      const directCallback = directCall[0].callback;
+
+      await testStreamManager.prices.prewarm();
+      await waitFor(() =>
+        expect(mockSubscribeToPrices.mock.calls.length).toBeGreaterThan(1),
+      );
+      const prewarmCall = mockSubscribeToPrices.mock.calls.at(-1);
+      if (!prewarmCall) throw new Error('Prewarm subscription did not start');
+      const prewarmCallback = prewarmCall[0].callback;
+      directCallback([makePrice('1')]);
+      prewarmCallback([makePrice('2')]);
+
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          BTC: expect.objectContaining({ price: '1' }),
+        }),
+      );
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          BTC: expect.objectContaining({ price: '2' }),
+        }),
+      );
+    });
+
+    it('routes prewarmed shared and Lighter-only symbols to the requested venue', async () => {
+      let deliver: ((updates: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        deliver = callback;
+        return jest.fn();
+      });
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      const listener = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC', 'kPEPE'],
+        providerId: 'lighter',
+        throttleMs: 0,
+        callback: listener,
+      });
+      const tick = { timestamp: 123, isTradable: true };
+      act(() =>
+        deliver?.([
+          { ...tick, symbol: 'BTC', providerId: 'lighter', price: '101' },
+          { ...tick, symbol: 'BTC', providerId: 'hyperliquid', price: '100' },
+          { ...tick, symbol: 'kPEPE', providerId: 'lighter', price: '2' },
+        ]),
+      );
+      expect(listener).toHaveBeenLastCalledWith({
+        BTC: expect.objectContaining({ price: '101' }),
+        kPEPE: expect.objectContaining({ price: '2' }),
+      });
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'hyperliquid')
+          ?.price,
+      ).toBe('100');
+    });
+
     it('keeps the first live price update immediate after cached prewarm data', async () => {
       let prewarmCallback: ((updates: PriceUpdate[]) => void) | undefined;
       const makePrice = (price: string): PriceUpdate => ({
@@ -1818,6 +2624,28 @@ describe('PerpsStreamManager', () => {
       expect(btcCb).toHaveBeenCalledTimes(1);
     });
 
+    it('drops a late callback from the previous subscription generation', () => {
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback,
+      });
+      const staleCallback = priceCallback;
+
+      testStreamManager.prices.reconnect();
+      const currentCallback = priceCallback;
+
+      staleCallback([makePrice('BTC-PERP', '50000')]);
+      expect(callback).not.toHaveBeenCalled();
+
+      currentCallback([makePrice('BTC-PERP', '50001')]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'BTC-PERP': expect.objectContaining({ price: '50001' }),
+        }),
+      );
+    });
+
     it('preserves first-update and throttle semantics for scoped dispatch', () => {
       const cb = jest.fn();
 
@@ -1958,6 +2786,7 @@ describe('PerpsStreamManager', () => {
       // Account switch clears caches and notifies every subscriber with cleared data
       act(() => {
         testStreamManager.prices.clearCache();
+        testStreamManager.prices.reconnect();
       });
       expect(btcCb).toHaveBeenCalledWith({});
       expect(ethCb).toHaveBeenCalledWith({});
@@ -1973,6 +2802,32 @@ describe('PerpsStreamManager', () => {
         'BTC-PERP': expect.objectContaining({ price: '60000' }),
       });
       expect(ethCb).not.toHaveBeenCalled();
+    });
+
+    it('returns the cached update for one symbol without the rest of the map', () => {
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC-PERP')).toBe(
+        null,
+      );
+
+      act(() => {
+        priceCallback([
+          makePrice('BTC-PERP', '50000'),
+          makePrice('ETH-PERP', '3000'),
+        ]);
+      });
+
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC-PERP')).toEqual(
+        expect.objectContaining({ symbol: 'BTC-PERP', price: '50000' }),
+      );
+      expect(testStreamManager.prices.getSnapshotForSymbol('SOL-PERP')).toBe(
+        null,
+      );
     });
   });
 
@@ -2617,7 +3472,7 @@ describe('PerpsStreamManager', () => {
       mockPerpsConnectionManager.isCurrentlyConnecting.mockReturnValue(true);
       const callback = jest.fn();
       const streamManager = new PerpsStreamManager(
-        'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        'http://127.0.0.1:9332/v4/perpetuals',
       );
 
       const unsubscribe = streamManager.marketData.subscribe({ callback });
@@ -2632,23 +3487,30 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('does not use the Hyperliquid snapshot path for MYX', () => {
+    it('uses the Terminal snapshot for Lighter after TAT-4395/TAT-4407', () => {
+      // The snapshot gate is no longer tied to `activeProvider ===
+      // 'hyperliquid'`: with a snapshot URL configured, the standalone fetch
+      // runs for every venue core can read from the snapshot (TAT-4407).
       mockEngine.context.PerpsController.state = {
-        activeProvider: 'myx',
+        activeProvider: 'lighter',
         isTestnet: false,
       } as typeof mockEngine.context.PerpsController.state;
       mockPerpsConnectionManager.getConnectionState.mockReturnValue({
         isInitialized: false,
       } as never);
+      mockPerpsConnectionManager.isCurrentlyConnecting.mockReturnValue(true);
       const streamManager = new PerpsStreamManager(
-        'https://terminal.api.cx.metamask.io/v2/perpetuals',
+        'https://terminal.api.cx.metamask.io/v4/perpetuals',
       );
 
       const unsubscribe = streamManager.marketData.subscribe({
         callback: jest.fn(),
       });
 
-      expect(mockGetMarketDataWithPrices).not.toHaveBeenCalled();
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+        standalone: true,
+        useTerminalApi: true,
+      });
       unsubscribe();
     });
 
@@ -2816,8 +3678,8 @@ describe('PerpsStreamManager', () => {
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA:mainnet:terminal',
-          current: 'providerB:mainnet:terminal',
+          fetchedFor: 'providerA:mainnet:0:terminal',
+          current: 'providerB:mainnet:0:terminal',
         }),
       );
 
@@ -2870,6 +3732,116 @@ describe('PerpsStreamManager', () => {
       });
 
       unsubscribe();
+    });
+
+    it('drops a late OI-cap callback after reconnect', async () => {
+      const callbacks: ((caps: string[]) => void)[] = [];
+      mockSubscribeToOICaps.mockImplementation(
+        (params: { callback: (caps: string[]) => void }) => {
+          callbacks.push(params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const callback = jest.fn();
+      testStreamManager.oiCaps.subscribe({ callback, throttleMs: 0 });
+      await waitFor(() => expect(callbacks).toHaveLength(1));
+
+      testStreamManager.oiCaps.reconnect();
+      await waitFor(() => expect(callbacks).toHaveLength(2));
+      act(() => callbacks[0](['STALE']));
+      act(() => callbacks[1](['BTC']));
+
+      expect(callback).not.toHaveBeenCalledWith(['STALE']);
+      expect(callback).toHaveBeenCalledWith(['BTC']);
+    });
+
+    it("never delivers one venue's caps to another venue's subscriber", () => {
+      const venueCallbacks = new Map<string, (caps: string[]) => void>();
+      mockSubscribeToOICaps.mockImplementation(
+        (params: {
+          providerId?: string;
+          callback: (caps: string[]) => void;
+        }) => {
+          venueCallbacks.set(params.providerId ?? 'default', params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const lighterCallback = jest.fn();
+      const defaultCallback = jest.fn();
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: lighterCallback,
+        throttleMs: 0,
+      });
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: defaultCallback,
+        throttleMs: 0,
+      });
+
+      act(() => venueCallbacks.get('default')?.(['BTC']));
+      act(() => venueCallbacks.get('lighter')?.(['ETH']));
+
+      expect(lighterCallback).not.toHaveBeenCalledWith(
+        expect.arrayContaining(['BTC']),
+      );
+      expect(lighterCallback).toHaveBeenLastCalledWith(['ETH']);
+      expect(defaultCallback).not.toHaveBeenCalledWith(
+        expect.arrayContaining(['ETH']),
+      );
+      expect(defaultCallback).toHaveBeenLastCalledWith(['BTC']);
+    });
+
+    it("does not hand another venue's tick to an untagged subscriber before the default venue reports", () => {
+      const venueCallbacks = new Map<string, (caps: string[]) => void>();
+      mockSubscribeToOICaps.mockImplementation(
+        (params: {
+          providerId?: string;
+          callback: (caps: string[]) => void;
+        }) => {
+          venueCallbacks.set(params.providerId ?? 'default', params.callback);
+          return mockUnsubscribeFromOICaps;
+        },
+      );
+      const defaultCallback = jest.fn();
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: defaultCallback,
+        throttleMs: 0,
+      });
+
+      act(() => venueCallbacks.get('lighter')?.(['BTC']));
+
+      expect(defaultCallback).not.toHaveBeenCalled();
+
+      act(() => venueCallbacks.get('default')?.([]));
+
+      expect(defaultCallback).toHaveBeenCalledTimes(1);
+      expect(defaultCallback).toHaveBeenLastCalledWith([]);
+    });
+
+    it('restores every venue stream on reconnect', () => {
+      mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+      testStreamManager.oiCaps.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      mockSubscribeToOICaps.mockClear();
+
+      testStreamManager.oiCaps.reconnect();
+
+      expect(mockSubscribeToOICaps).toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
     });
 
     it('notifies subscribers when markets reach OI cap', async () => {
@@ -3305,10 +4277,18 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).not.toHaveBeenCalled();
 
-      // Resume channel
+      // Resume channel — the update suppressed while paused is flushed now, so
+      // subscribers never keep rendering data the venue has already replaced.
       act(() => {
         testStreamManager.orders.resume();
       });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([
+          expect.objectContaining({ orderId: '2', symbol: 'ETH' }),
+        ]);
+      });
+      callback.mockClear();
 
       // Send another update (should be received)
       act(() => {
@@ -3428,10 +4408,18 @@ describe('PerpsStreamManager', () => {
       });
       expect(callback).not.toHaveBeenCalled();
 
-      // Caller B releases — count drops to 0, emission resumes
+      // Caller B releases — count drops to 0, emission resumes and the last
+      // update suppressed during the pause is flushed to subscribers.
       act(() => {
         testStreamManager.orders.resume();
       }); // caller B: controller
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ orderId: '3' })]),
+        );
+      });
+      callback.mockClear();
+
       act(() => {
         orderCallback?.([{ ...SAMPLE_ORDER, orderId: '4' }]);
       });
@@ -3497,6 +4485,128 @@ describe('PerpsStreamManager', () => {
           ]),
         );
       });
+
+      unsubscribe();
+    });
+
+    it('flushes the cancelled-order snapshot that arrived while paused', async () => {
+      // Regression: a bulk cancel pauses the orders channel, the venue pushes the
+      // now-empty book while paused, and resume() used to only decrement the
+      // counter. Subscribers kept rendering cancelled orders until an unrelated
+      // later tick or a reload — stale state a trader could act on.
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      // Controller pauses the channel for the duration of the bulk cancel.
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+
+      // The venue confirms every order is gone while emission is paused.
+      act(() => {
+        orderCallback?.([]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      // Controller's finally block releases the pause.
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      // The empty book must reach subscribers without another venue tick.
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith([]);
+      });
+
+      unsubscribe();
+    });
+
+    it('flushes the cancelled-order snapshot to a throttled subscriber without waiting out the throttle', async () => {
+      // Regression: the Pro orders panel subscribes with throttleMs: 1000. A
+      // resume flush delivered as a normal 'fresh' update would sit in
+      // pendingUpdate behind that timer, leaving cancelled orders on screen for
+      // up to a second after the venue already reported an empty book.
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 1000,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      // First fresh update is delivered immediately, then throttling applies.
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+      act(() => {
+        orderCallback?.([]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      // Delivered synchronously by resume, NOT parked behind the 1000ms throttle
+      // timer. Asserted without waitFor on purpose: waitFor polls on real timers
+      // and would simply outlast the throttle window, passing either way.
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([]);
+
+      unsubscribe();
+    });
+
+    it('does not re-deliver on resume when nothing was suppressed', async () => {
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      // A pause window with no venue update in it leaves nothing to flush.
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
 
       unsubscribe();
     });
@@ -3588,6 +4698,27 @@ describe('PerpsStreamManager', () => {
       });
     });
 
+    it('drops a late top-of-book callback after reconnect', () => {
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const staleCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      testStreamManager.topOfBook.reconnect();
+      const currentCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      staleCallback([{ symbol: 'BTC', bestBid: '1', bestAsk: '2' }]);
+      currentCallback([{ symbol: 'BTC', bestBid: '3', bestAsk: '4' }]);
+
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '1' }),
+      );
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '3' }),
+      );
+    });
+
     it('does not subscribe when symbol is empty', () => {
       const callback = jest.fn();
 
@@ -3597,6 +4728,20 @@ describe('PerpsStreamManager', () => {
       });
 
       expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      testStreamManager.topOfBook.clearCache();
+      testStreamManager.topOfBook.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
     });
 
     it('clears top of book cache when clearCache called', () => {
@@ -3613,6 +4758,79 @@ describe('PerpsStreamManager', () => {
       testStreamManager.topOfBook.clearCache();
 
       expect(callback).toHaveBeenCalledWith(undefined);
+    });
+
+    it('restores the mounted symbol after cache clear and reconnect', () => {
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      testStreamManager.topOfBook.clearCache();
+      testStreamManager.topOfBook.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+    });
+
+    it('restores the active symbol when another symbol remains mounted', () => {
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      testStreamManager.topOfBook.clearCache();
+      testStreamManager.topOfBook.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['ETH'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+
+      const currentCallback = mockSubscribeToPrices.mock.lastCall?.[0].callback;
+      currentCallback([{ symbol: 'ETH', bestBid: '3', bestAsk: '4' }]);
+      expect(ethCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '3' }),
+      );
+      expect(btcCallback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '3' }),
+      );
+    });
+
+    it('refocuses to a surviving symbol after the active subscriber leaves', () => {
+      const btcCallback = jest.fn();
+      const unsubscribeBtc = testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+      const unsubscribeEth = testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: jest.fn(),
+      });
+
+      unsubscribeEth();
+
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+
+      unsubscribeBtc();
     });
   });
 
@@ -3734,6 +4952,32 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
       expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
         expect.objectContaining({ symbols: ['ETH'] }),
+      );
+    });
+
+    it('restores the focused symbol and rejects the prior callback on reconnect', () => {
+      const callback = jest.fn();
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const staleCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      testStreamManager.focusedPrice.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['BTC'] }),
+      );
+      expect(callback).toHaveBeenCalledWith(undefined);
+      callback.mockClear();
+      staleCallback([{ symbol: 'BTC', price: '50000' }]);
+      expect(callback).not.toHaveBeenCalled();
+
+      const currentCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      currentCallback([{ symbol: 'BTC', price: '50001' }]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC', price: '50001' }),
       );
     });
 
@@ -4561,6 +5805,30 @@ describe('PerpsStreamManager', () => {
       candlesDisconnect.mockRestore();
     });
 
+    it('retries orders and fills together after one authenticated channel fails', () => {
+      const ordersReconnect = jest.spyOn(testStreamManager.orders, 'reconnect');
+      const fillsReconnect = jest.spyOn(testStreamManager.fills, 'reconnect');
+      const fillsSubscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = fillsSubscribe;
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      const orderSource = mockSubscribeToOrders.mock.calls[0][0];
+      const fillSource = fillsSubscribe.mock.calls[0][0] as {
+        onError: (error: Error, provider?: string) => void;
+      };
+      orderSource.onError(new Error('Trading key rejected'), 'lighter');
+      fillSource.onError(new Error('Trading key rejected'), 'lighter');
+
+      testStreamManager.retryOrderStreams();
+
+      expect(ordersReconnect).toHaveBeenCalledTimes(1);
+      expect(fillsReconnect).toHaveBeenCalledTimes(1);
+      expect(testStreamManager.orders.getError()).toBeNull();
+      expect(testStreamManager.fills.getError()).toBeNull();
+      ordersReconnect.mockRestore();
+      fillsReconnect.mockRestore();
+    });
+
     it('clears WebSocket subscriptions from all channels', () => {
       // Arrange - set up subscriptions on multiple channels
       const priceCallback = jest.fn();
@@ -5176,7 +6444,7 @@ describe('PerpsStreamManager', () => {
     it('does not request an atomic user snapshot outside Hyperliquid mode', async () => {
       const getUserDataSnapshot = jest.fn();
       mockEngine.context.PerpsController.state = {
-        activeProvider: 'myx',
+        activeProvider: 'lighter',
         isTestnet: false,
       } as typeof mockEngine.context.PerpsController.state;
       (
@@ -5212,6 +6480,53 @@ describe('PerpsStreamManager', () => {
       expect(positionsCallback).not.toHaveBeenCalled();
       expect(ordersCallback).not.toHaveBeenCalled();
       expect(accountCallback).not.toHaveBeenCalled();
+    });
+
+    it('does not report a context-changed user snapshot to Logger.error', async () => {
+      const getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('User data snapshot context changed'));
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = getUserDataSnapshot;
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(getUserDataSnapshot).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsStreamManager: User data snapshot aborted because the context changed',
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports other user snapshot rejections with Logger.error', async () => {
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('snapshot rejected'));
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'snapshot rejected' }),
+        { context: 'PerpsStreamManager.getUserDataSnapshot' },
+      );
     });
 
     it('discards an in-flight snapshot after account caches are cleared', async () => {
@@ -5531,6 +6846,435 @@ describe('PerpsStreamManager', () => {
 
       // Now it should have been called
       expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
+  beforeEach(() => {
+    setupStreamManagerMocks({ provider: 'aggregated' });
+    // The channels read the routing mode from the controller state as
+    // well as the selector, so aggregated mode must be set on both.
+    mockEngine.context.PerpsController.state.activeProvider = 'aggregated';
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  describe('PriceStreamChannel venue keying', () => {
+    it('keeps updates for the same symbol from two venues separate', () => {
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: (prices) => callback(prices),
+        throttleMs: 0,
+      });
+
+      // Both venues report BTC through the single controller subscription,
+      // each row stamped with its providerId.
+      const [priceCallback] = callbacks;
+      expect(priceCallback).toBeDefined();
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+        ]);
+      });
+
+      // Cache holds both rows under their composite keys.
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'hyperliquid')
+          ?.price,
+      ).toBe('50000');
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'lighter')?.price,
+      ).toBe('50050');
+    });
+
+    it('delivers only the requested venue to a providerId subscriber', () => {
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        providerId: 'lighter',
+        callback: (prices) => callback(prices),
+        throttleMs: 0,
+      });
+
+      const [priceCallback] = callbacks;
+      expect(priceCallback).toBeDefined();
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+        ]);
+      });
+      expect(callback).toHaveBeenCalledWith({
+        BTC: expect.objectContaining({ price: '50050' }),
+      });
+
+      // The other venue's tick must not reach the lighter subscriber: its
+      // dispatch key is `hyperliquid:BTC`, the subscriber is indexed under
+      // `lighter:BTC`.
+      const callback2 = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        providerId: 'lighter',
+        callback: (prices) => callback2(prices),
+        throttleMs: 0,
+      });
+      // Subscribe() delivers the cached lighter row once; clear it so the
+      // assertion below only covers the hyperliquid tick.
+      callback2.mockClear();
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC',
+            price: '99000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+      });
+      expect(callback2).not.toHaveBeenCalled();
+    });
+
+    it('routes untagged subscribers to the default venue in aggregated mode', () => {
+      mockEngine.context.PerpsController.state = {
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
+      } as unknown as typeof mockEngine.context.PerpsController.state;
+      const callbacks: ((updates: PriceUpdate[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        callbacks[0]([
+          {
+            symbol: 'BTC',
+            price: '50050',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'lighter',
+          },
+          {
+            symbol: 'BTC',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: true,
+            providerId: 'hyperliquid',
+          },
+        ]);
+      });
+
+      expect(callback).toHaveBeenLastCalledWith({
+        BTC: expect.objectContaining({ price: '50000' }),
+      });
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC')?.price).toBe(
+        '50000',
+      );
+    });
+
+    it('keeps an untagged top-of-book subscriber on the default venue', () => {
+      mockEngine.context.PerpsController.state = {
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
+      } as unknown as typeof mockEngine.context.PerpsController.state;
+      const callback = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      priceCallback([
+        {
+          symbol: 'BTC',
+          bestBid: '1',
+          bestAsk: '2',
+          providerId: 'lighter',
+        },
+      ]);
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '1' }),
+      );
+
+      priceCallback([
+        {
+          symbol: 'BTC',
+          bestBid: '50000',
+          bestAsk: '50001',
+          providerId: 'hyperliquid',
+        },
+      ]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '50000', bestAsk: '50001' }),
+      );
+    });
+  });
+
+  describe('AccountStreamChannel per-venue view', () => {
+    it('captures the aggregate metadata second argument', () => {
+      const accountCallback = jest.fn();
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+
+      const callback = jest.fn();
+      testStreamManager.account.subscribe({ callback, throttleMs: 0 });
+
+      const aggregate = {
+        status: 'partial' as const,
+        availableProviders: ['hyperliquid' as const],
+        unavailableProviders: ['lighter' as const],
+        pendingProviders: [],
+      };
+      const state = { totalBalance: '100', unrealizedPnl: '0' };
+      act(() => {
+        accountCallback(state, aggregate);
+      });
+
+      expect(testStreamManager.account.getAggregateMetadata()).toEqual(
+        aggregate,
+      );
+    });
+
+    it('exposes per-venue states from providerStates', () => {
+      const accountCallback = jest.fn();
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+
+      testStreamManager.account.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      const hyperState = { totalBalance: '100', unrealizedPnl: '0' };
+      const state = {
+        totalBalance: '100',
+        unrealizedPnl: '0',
+        providerStates: {
+          hyperliquid: {
+            status: 'available' as const,
+            providerId: 'hyperliquid' as const,
+            state: hyperState,
+          },
+          lighter: {
+            status: 'pending' as const,
+            providerId: 'lighter' as const,
+          },
+        },
+      };
+      act(() => {
+        accountCallback(state);
+      });
+
+      const venues = testStreamManager.account.getVenueAccountStates();
+      expect(venues).toHaveLength(2);
+      expect(venues[0]).toMatchObject({
+        providerId: 'hyperliquid',
+        status: 'available',
+      });
+      // A pending venue is never a zero balance — it has no state at all.
+      expect(venues[1]).toMatchObject({
+        providerId: 'lighter',
+        status: 'pending',
+      });
+      expect('state' in venues[1]).toBe(false);
+    });
+
+    it('reports the single direct-mode state as the active venue', () => {
+      const accountCallback = jest.fn();
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+
+      testStreamManager.account.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      const state = { totalBalance: '100', unrealizedPnl: '0' };
+      act(() => {
+        accountCallback(state);
+      });
+
+      const venues = testStreamManager.account.getVenueAccountStates();
+      expect(venues).toHaveLength(1);
+      expect(venues[0].status).toBe('available');
+      if (venues[0].status === 'available') {
+        expect(venues[0].state).toEqual(state);
+      }
+    });
+  });
+
+  describe('optimistic updates scoped to the edited venue', () => {
+    it('applies a TP/SL optimistic edit only to that venue position', () => {
+      const positionsCallback = jest.fn();
+      const venuePositionsSubscriber = jest.fn(({ callback }) => {
+        positionsCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).subscribeToPositions = venuePositionsSubscriber;
+
+      testStreamManager.positions.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      const positions = [
+        {
+          symbol: 'BTC',
+          unrealizedPnl: '1',
+          takeProfitPrice: null,
+          stopLossPrice: null,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+          providerId: 'hyperliquid',
+        },
+        {
+          symbol: 'BTC',
+          unrealizedPnl: '2',
+          takeProfitPrice: null,
+          stopLossPrice: null,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+          providerId: 'lighter',
+        },
+      ];
+      act(() => {
+        positionsCallback(positions);
+      });
+
+      testStreamManager.positions.updatePositionTPSLOptimistic(
+        'BTC',
+        '55000',
+        '45000',
+        'lighter',
+      );
+
+      const updated = testStreamManager.positions.getSnapshot() ?? [];
+      const byVenue = Object.fromEntries(updated.map((p) => [p.providerId, p]));
+      // Only the edited venue's position shows the optimistic TP/SL.
+      expect(byVenue.lighter.takeProfitPrice).toBe('55000');
+      expect(byVenue.lighter.takeProfitCount).toBe(1);
+      expect(byVenue.hyperliquid.takeProfitPrice).toBeNull();
+      expect(byVenue.hyperliquid.takeProfitCount).toBe(0);
+    });
+
+    it('applies an optimistic order edit only to that venue order', () => {
+      const ordersCallback = jest.fn();
+      const venueOrdersSubscriber = jest.fn(({ callback }) => {
+        ordersCallback.mockImplementation((...args: unknown[]) =>
+          callback(...(args as [])),
+        );
+        return jest.fn();
+      });
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).subscribeToOrders = venueOrdersSubscriber;
+
+      testStreamManager.orders.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      // Both venues can use the same order id.
+      const orders = [
+        {
+          orderId: 'order-1',
+          symbol: 'BTC',
+          price: '50000',
+          size: '1',
+          originalSize: '1',
+          remainingSize: '1',
+          providerId: 'hyperliquid',
+        },
+        {
+          orderId: 'order-1',
+          symbol: 'BTC',
+          price: '50000',
+          size: '1',
+          originalSize: '1',
+          remainingSize: '1',
+          providerId: 'lighter',
+        },
+      ];
+      act(() => {
+        ordersCallback(orders);
+      });
+
+      testStreamManager.orders.updateOrderOptimistic(
+        'order-1',
+        { limitPrice: '51000' },
+        'hyperliquid',
+      );
+
+      const updated = testStreamManager.orders.getSnapshot() ?? [];
+      const byVenue = Object.fromEntries(updated.map((o) => [o.providerId, o]));
+      expect(byVenue.hyperliquid.price).toBe('51000');
+      expect(byVenue.lighter.price).toBe('50000');
     });
   });
 });

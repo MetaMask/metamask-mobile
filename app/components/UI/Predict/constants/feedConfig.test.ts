@@ -1,7 +1,15 @@
+import { DEFAULT_PREDICT_HOME_CATEGORIES_FLAG } from './flags';
+import {
+  GOLD_UP_DOWN_15M_SERIES_ID,
+  SILVER_UP_DOWN_15M_SERIES_ID,
+} from './liveNowCryptoSeries';
+import type { PredictHomeCategoriesConfig } from '../types/flags';
 import {
   PREDICT_FEED_IDS,
   PREDICT_FEED_REGISTRY,
+  createPredictCategoryFeedConfig,
   createPredictSportsFeedConfig,
+  findPredictHomeCategory,
   isPredictFeedId,
   resolvePredictFeedConfig,
   resolvePredictFeedDefaultFilter,
@@ -632,5 +640,245 @@ describe('feedConfig', () => {
         Object.keys(params).every((key) => allowedParamKeys.has(key)),
       ).toBe(true);
     });
+  });
+});
+
+describe('feedConfig home category feeds (PRED-1226)', () => {
+  const remoteCategories: PredictHomeCategoriesConfig = {
+    enabled: true,
+    minimumVersion: '',
+    categories: [
+      { id: 'politics', tagSlug: 'politics', label: 'Politics' },
+      { id: 'sports', tagSlug: 'sports', label: 'Sports' },
+      { id: 'weather', tagSlug: 'weather', label: 'Weather', enabled: true },
+      { id: 'hidden', tagSlug: 'hidden-tag', label: 'Hidden', enabled: false },
+    ],
+  };
+
+  it.each(['esports', 'culture', 'finance', 'tech'])(
+    'resolves bundled category %s without an explicit config',
+    (feedId) => {
+      const config = resolvePredictFeedConfig(feedId);
+
+      expect(isPredictFeedId(feedId)).toBe(false);
+      expect(config?.id).toBe(feedId);
+      expect(config?.titleKey).toBe(`predict.category.${feedId}`);
+      expect(config?.header).toEqual({
+        showBackButton: true,
+        showSearchButton: true,
+      });
+      expect(config?.tabs).toHaveLength(1);
+    },
+  );
+
+  it('maps Culture onto the Gamma pop-culture tag slug', () => {
+    const config = resolvePredictFeedConfig('culture');
+    const [tab] = config?.tabs ?? [];
+
+    expect(findPredictHomeCategory('culture')?.tagSlug).toBe('pop-culture');
+    expect(tab.filters.static[0].params).toEqual({
+      tagSlugs: ['pop-culture'],
+      status: 'open',
+      order: 'volume24hr',
+    });
+    expect(tab.filters.dynamic).toEqual({
+      source: 'related-tags',
+      baseTagSlug: 'pop-culture',
+      baseParams: {
+        tagSlugs: ['pop-culture'],
+        status: 'open',
+        order: 'volume24hr',
+      },
+    });
+  });
+
+  it('builds category feeds that match the Politics / Crypto pattern', () => {
+    const politics = PREDICT_FEED_REGISTRY.politics;
+    const finance = resolvePredictFeedConfig('finance');
+
+    expect(finance?.showFilterBar).toBe(politics.showFilterBar);
+    expect(finance?.header).toEqual(politics.header);
+    expect(finance?.tabs[0].defaultFilterId).toBe(
+      politics.tabs[0].defaultFilterId,
+    );
+    expect(finance?.tabs[0].filters.static[0].params.order).toBe(
+      politics.tabs[0].filters.static[0].params.order,
+    );
+    expect(finance?.tabs[0].filters.static[0].params.status).toBe('open');
+  });
+
+  it('resolves a remotely defined category into a working feed with its label', () => {
+    const config = resolvePredictFeedConfig(
+      'weather',
+      undefined,
+      remoteCategories,
+    );
+
+    expect(config).toEqual(
+      createPredictCategoryFeedConfig({
+        id: 'weather',
+        tagSlug: 'weather',
+        label: 'Weather',
+      }),
+    );
+    expect(config?.label).toBe('Weather');
+    expect(config?.titleKey).toBeUndefined();
+    expect(config?.tabs[0].label).toBe('Weather');
+    expect(config?.tabs[0].filters.static[0].params.tagSlugs).toEqual([
+      'weather',
+    ]);
+  });
+
+  it('still resolves a category that is disabled on the home rail', () => {
+    expect(
+      resolvePredictFeedConfig('hidden', undefined, remoteCategories)?.tabs[0]
+        .filters.static[0].params.tagSlugs,
+    ).toEqual(['hidden-tag']);
+  });
+
+  it('falls back to the bundled category when the remote config omits it', () => {
+    const config = resolvePredictFeedConfig(
+      'esports',
+      undefined,
+      remoteCategories,
+    );
+
+    expect(config?.id).toBe('esports');
+    expect(config?.tabs[0].filters.static[0].params.tagSlugs).toEqual([
+      'esports',
+    ]);
+  });
+
+  it('localizes shipped category feeds from predict.category.* when LD omits copy', () => {
+    const remote = {
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'politics', tagSlug: 'politics' },
+        { id: 'crypto', tagSlug: 'crypto' },
+        { id: 'esports', tagSlug: 'esports' },
+        { id: 'culture', tagSlug: 'pop-culture' },
+        { id: 'weather', tagSlug: 'weather' },
+      ],
+    };
+
+    for (const id of ['politics', 'crypto', 'esports', 'culture'] as const) {
+      const config = resolvePredictFeedConfig(id, undefined, remote);
+      expect(config?.label).toBeUndefined();
+      expect(config?.titleKey).toBe(`predict.category.${id}`);
+      expect(config?.tabs[0].titleKey).toBe(`predict.category.${id}`);
+    }
+
+    const weather = resolvePredictFeedConfig('weather', undefined, remote);
+    expect(weather?.label).toBe('weather');
+    expect(weather?.titleKey).toBeUndefined();
+  });
+
+  it('lets a remote category override a bundled built-in feed', () => {
+    const config = resolvePredictFeedConfig('politics', undefined, {
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'politics', tagSlug: 'us-politics', label: 'US Politics' },
+      ],
+    });
+
+    expect(config).not.toBe(PREDICT_FEED_REGISTRY.politics);
+    expect(config?.label).toBe('US Politics');
+    expect(config?.tabs[0].filters.static[0].params.tagSlugs).toEqual([
+      'us-politics',
+    ]);
+  });
+
+  it('uses the registry config for built-in feeds without a remote config', () => {
+    expect(resolvePredictFeedConfig('politics')).toBe(
+      PREDICT_FEED_REGISTRY.politics,
+    );
+  });
+
+  it('keeps sports on the dedicated sports feed even when listed as a category', () => {
+    expect(
+      resolvePredictFeedConfig('sports', undefined, remoteCategories),
+    ).toBe(PREDICT_FEED_REGISTRY.sports);
+    expect(
+      resolvePredictFeedConfig('sports', undefined, remoteCategories)?.tabs
+        .length,
+    ).toBeGreaterThan(1);
+  });
+
+  it('keeps live and trending on their registry configs even when LD adds those ids', () => {
+    const colliding = {
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'live', tagSlug: 'live', label: 'Live' },
+        { id: 'trending', tagSlug: 'trending', label: 'Trending' },
+      ],
+    };
+
+    expect(resolvePredictFeedConfig('live', undefined, colliding)).toBe(
+      PREDICT_FEED_REGISTRY.live,
+    );
+    expect(resolvePredictFeedConfig('trending', undefined, colliding)).toBe(
+      PREDICT_FEED_REGISTRY.trending,
+    );
+    expect(resolvePredictFeedConfig('live', undefined, colliding)?.label).toBe(
+      undefined,
+    );
+    expect(
+      resolvePredictFeedConfig('trending', undefined, colliding)?.titleKey,
+    ).toBe('predict.category.trending');
+  });
+
+  it('exposes every bundled category as a resolvable feed', () => {
+    DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.categories.forEach((category) => {
+      expect(resolvePredictFeedConfig(category.id)?.id).toBe(category.id);
+    });
+  });
+
+  it('adds the 15 Min metals chip after all on the finance feed only', () => {
+    const finance = resolvePredictFeedConfig('finance');
+    const staticFilters = finance?.tabs[0].filters.static;
+
+    expect(staticFilters?.map((filter) => filter.id)).toEqual(['all', '15m']);
+    expect(staticFilters?.[1]?.label).toBe('15 Min');
+    expect(staticFilters?.[1]).toEqual({
+      id: '15m',
+      label: '15 Min',
+      params: {
+        series: [GOLD_UP_DOWN_15M_SERIES_ID, SILVER_UP_DOWN_15M_SERIES_ID],
+        status: 'open',
+        order: 'ending_soon',
+      },
+    });
+
+    const remoteFinance = resolvePredictFeedConfig('finance', undefined, {
+      enabled: true,
+      minimumVersion: '',
+      categories: [{ id: 'finance', tagSlug: 'finance', label: 'Finance' }],
+    });
+    expect(
+      remoteFinance?.tabs[0].filters.static.map((filter) => filter.id),
+    ).toEqual(['all', '15m']);
+    expect(remoteFinance?.tabs[0].filters.static[1]).toEqual(
+      staticFilters?.[1],
+    );
+
+    (['politics', 'crypto', 'esports', 'culture', 'tech'] as const).forEach(
+      (feedId) => {
+        expect(
+          resolvePredictFeedConfig(feedId)?.tabs[0].filters.static.map(
+            (filter) => filter.id,
+          ),
+        ).toEqual(['all']);
+      },
+    );
+    expect(
+      resolvePredictFeedConfig(
+        'weather',
+        undefined,
+        remoteCategories,
+      )?.tabs[0].filters.static.map((filter) => filter.id),
+    ).toEqual(['all']);
   });
 });

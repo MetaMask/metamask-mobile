@@ -54,6 +54,29 @@ describe('ActivityDetailsPendingBanner', () => {
     expect(h.onCancelAction).toHaveBeenCalledWith(true, submittedTx);
   });
 
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const { queryByTestId, unmount } = render(
+        <ActivityDetailsPendingBanner
+          tx={{ ...submittedTx, type }}
+          isQRHardwareAccount={false}
+          isLedgerAccount={false}
+          {...handlers()}
+        />,
+      );
+
+      expect(
+        queryByTestId(ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON),
+      ).toBeNull();
+      unmount();
+    }
+  });
+
   it('renders nothing when no action is applicable (e.g. bridge)', () => {
     const { queryByTestId } = render(
       <ActivityDetailsPendingBanner

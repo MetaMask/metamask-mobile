@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ListItemSelect,
   type BottomSheetRef,
@@ -14,69 +12,81 @@ import {
 } from '../../utils/recurringSchedule';
 import { RecurringIntervalSheetSelectorsIDs } from './RecurringIntervalSheet.testIds';
 import type { RecurringIntervalSheetProps } from './RecurringIntervalSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+
+/** Matches the limit-order expiration sheet, so the new check is visible before close. */
+const RECURRING_INTERVAL_CLOSE_DELAY_MS = 250;
 
 const RecurringIntervalSheet = ({
-  isVisible,
   currentUnit,
-  onClose,
-  onConfirm,
+  onSelect,
+  goBack,
 }: RecurringIntervalSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [pendingUnit, setPendingUnit] =
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [selectedUnit, setSelectedUnit] =
     useState<RecurringIntervalUnit>(currentUnit);
-
-  useEffect(() => {
-    if (isVisible) {
-      setPendingUnit(currentUnit);
-    }
-  }, [currentUnit, isVisible]);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleConfirm = useCallback(() => {
-    onConfirm(pendingUnit);
-    closeSheet();
-  }, [closeSheet, onConfirm, pendingUnit]);
+  useEffect(
+    () => () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
-  if (!isVisible) {
-    return null;
-  }
+  const handleSelect = useCallback(
+    (unit: RecurringIntervalUnit) => {
+      setSelectedUnit(unit);
+      if (unit !== currentUnit) {
+        onSelect(unit);
+      }
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      closeTimeoutRef.current = setTimeout(
+        closeSheet,
+        RECURRING_INTERVAL_CLOSE_DELAY_MS,
+      );
+    },
+    [closeSheet, currentUnit, onSelect],
+  );
 
   return (
     <BottomSheet
       ref={sheetRef}
       testID={RecurringIntervalSheetSelectorsIDs.SHEET}
-      onClose={onClose}
+      goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: RecurringIntervalSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.every')}
-      </BottomSheetHeader>
-      <Box paddingHorizontal={4} paddingBottom={2}>
+      </BottomSheetHeaderGlass>
+      <Box paddingBottom={2}>
         {RECURRING_INTERVAL_UNITS.map((unit) => (
           <ListItemSelect
             key={unit}
             title={strings(`bridge.recurring.unit_option.${unit}`)}
-            isSelected={pendingUnit === unit}
+            isSelected={selectedUnit === unit}
             showSelectedIcon
-            onPress={() => setPendingUnit(unit)}
+            onPress={() => handleSelect(unit)}
             testID={RecurringIntervalSheetSelectorsIDs.OPTION(unit)}
           />
         ))}
       </Box>
-      <BottomSheetFooter
-        primaryButtonProps={{
-          children: strings('bridge.recurring.confirm'),
-          onPress: handleConfirm,
-          testID: RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
-        }}
-      />
     </BottomSheet>
   );
 };

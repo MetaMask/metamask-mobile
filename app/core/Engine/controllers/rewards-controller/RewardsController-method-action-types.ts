@@ -199,6 +199,16 @@ export type RewardsControllerGetPerpsDiscountForAccountAction = {
 };
 
 /**
+ * Fetch a trading-fee grant for the requested Perps route.
+ * Grant lookup respects Basic Functionality while remaining independent of
+ * Rewards opt-in, VIP feature state, and Rewards subscription state.
+ */
+export type RewardsControllerGetPerpsTradingFeeGrantAction = {
+  type: `RewardsController:getPerpsTradingFeeGrant`;
+  handler: RewardsController['getPerpsTradingFeeGrant'];
+};
+
+/**
  * Get points events for a given season
  * @param params - The request parameters
  * @returns Promise<PaginatedPointsEventsDto> - The points events data
@@ -338,7 +348,6 @@ export type RewardsControllerGetReferralDetailsAction = {
 /**
  * Perform the complete opt-in process for rewards
  * @param accounts - Array of internal accounts to opt in
- * @param referralCode - Optional referral code
  */
 export type RewardsControllerOptInAction = {
   type: `RewardsController:optIn`;
@@ -360,25 +369,6 @@ export type RewardsControllerResetAllAction = {
 export type RewardsControllerLogoutAction = {
   type: `RewardsController:logout`;
   handler: RewardsController['logout'];
-};
-
-/**
- * Get geo rewards metadata including location and support status
- * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
- */
-export type RewardsControllerGetGeoRewardsMetadataAction = {
-  type: `RewardsController:getGeoRewardsMetadata`;
-  handler: RewardsController['getGeoRewardsMetadata'];
-};
-
-/**
- * Validate a referral code
- * @param code - The referral code to validate
- * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
- */
-export type RewardsControllerValidateReferralCodeAction = {
-  type: `RewardsController:validateReferralCode`;
-  handler: RewardsController['validateReferralCode'];
 };
 
 /**
@@ -476,6 +466,7 @@ export type RewardsControllerGetCampaignsAction = {
  * Opt a subscription into a campaign.
  * @param campaignId - The campaign ID to opt into.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one.
  * @returns The participant status after opting in.
  */
 export type RewardsControllerOptInToCampaignAction = {
@@ -493,6 +484,7 @@ export type RewardsControllerOptInToCampaignAction = {
  * post-event status fetches hit cache instead of the network.
  * @param campaignIds - Campaign IDs to opt into, in call order.
  * @param subscriptionId - The subscription ID for authentication.
+ * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
  * @returns Per-campaign participant statuses after opting in.
  */
 export type RewardsControllerOptInToCampaignsAction = {
@@ -502,6 +494,7 @@ export type RewardsControllerOptInToCampaignsAction = {
 
 /**
  * Register (or re-assert) the Money Account holder address for a subscription.
+ * The request carries a personal_sign signature from the Money Account.
  * Results are memoized in-session so repeated re-asserts do not re-POST, and
  * a discovered conflict is returned synchronously on subsequent calls.
  * @param moneyAccountAddress - The Money Account holder address to bind.
@@ -744,18 +737,6 @@ export type RewardsControllerPostBenefitImpressionAction = {
 };
 
 /**
- * Apply a referral code to an existing subscription.
- * @param referralCode - The referral code to apply.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns Promise that resolves when the referral code is applied successfully.
- * @throws Error with the error message from the API response.
- */
-export type RewardsControllerApplyReferralCodeAction = {
-  type: `RewardsController:applyReferralCode`;
-  handler: RewardsController['applyReferralCode'];
-};
-
-/**
  * Apply a bonus code to a subscription.
  * @param bonusCode - The bonus code to apply.
  * @param subscriptionId - The subscription ID to apply the bonus code to.
@@ -776,25 +757,6 @@ export type RewardsControllerApplyBonusCodeAction = {
 export type RewardsControllerGetClientVersionRequirementsAction = {
   type: `RewardsController:getClientVersionRequirements`;
   handler: RewardsController['getClientVersionRequirements'];
-};
-
-/**
- * Fetch the visible first predict on us content from the public API.
- * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
- */
-export type RewardsControllerGetFirstPredictOnUsAction = {
-  type: `RewardsController:getFirstPredictOnUs`;
-  handler: RewardsController['getFirstPredictOnUs'];
-};
-
-/**
- * Invalidate referral details cache for a subscription
- * @param subscriptionId - The subscription ID to invalidate cache for
- */
-export type RewardsControllerInvalidateReferralDetailsCacheAction = {
-  type: `RewardsController:invalidateReferralDetailsCache`;
-  handler: RewardsController['invalidateReferralDetailsCache'];
 };
 
 /**
@@ -860,6 +822,17 @@ export type RewardsControllerGetMoneyAccountSweepstakesStatsMeAction = {
 export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
   type: `RewardsController:getMoneyAccountSweepstakesPrizePool`;
   handler: RewardsController['getMoneyAccountSweepstakesPrizePool'];
+};
+
+/**
+ * Fetch the Money Account Sweepstakes aggregate volume stats.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The volume stats DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsController['getMoneyAccountSweepstakesVolumeStats'];
 };
 
 /**
@@ -930,6 +903,18 @@ export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
 };
 
 /**
+ * Get the perps trading campaign prize ladder and currently unlocked pool.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ * @param campaignId - The campaign ID to get the prize pool for.
+ * @returns The prize pool schedule and unlocked amount for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignPrizePoolAction = {
+  type: `RewardsController:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsController['getPerpsTradingCampaignPrizePool'];
+};
+
+/**
  * Union of all RewardsController action types.
  */
 export type RewardsControllerMethodActions =
@@ -954,6 +939,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOptInStatusAction
   | RewardsControllerGetVipTierForAccountAction
   | RewardsControllerGetPerpsDiscountForAccountAction
+  | RewardsControllerGetPerpsTradingFeeGrantAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerGetPointsEventsIfChangedAction
   | RewardsControllerGetPointsEventsLastUpdatedAction
@@ -970,8 +956,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInAction
   | RewardsControllerResetAllAction
   | RewardsControllerLogoutAction
-  | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateReferralCodeAction
   | RewardsControllerValidateBonusCodeAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionCandidateAction
@@ -1007,11 +991,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
-  | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerGetFirstPredictOnUsAction
-  | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
   | RewardsControllerGetPredictThePitchLeaderboardPositionAction
@@ -1020,8 +1001,10 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPrizePoolAction
   | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
   | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsControllerGetPerpsTradingCampaignVolumeAction;
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction
+  | RewardsControllerGetPerpsTradingCampaignPrizePoolAction;

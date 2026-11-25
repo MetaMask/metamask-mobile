@@ -1,9 +1,11 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
+import { hmacSha256 } from '@metamask/cryptography/hmac';
 import EthQuery from '@metamask/eth-query';
-import { Hex, numberToHex } from '@metamask/utils';
+import { Hex, numberToHex, stringToBytes } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
+import { captureMessage } from '@sentry/react-native';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -20,7 +22,10 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictMarketGame,
+  type PredictFeePolicy,
+  type CryptoPriceProvider,
 } from '../../types';
+import { getCryptoSymbol, isCryptoUpDown } from '../../utils/cryptoUpDown';
 import { getRecurrence } from '../../utils/format';
 import {
   buildGameData,
@@ -65,6 +70,7 @@ import {
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -81,6 +87,8 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  PolymarketPositionV2,
+  PolymarketActivityV2,
   RoundConfig,
   TickSize,
   OrderBook,
@@ -99,7 +107,6 @@ import {
   normalizeEnabledSportsMarketTypes,
   sortGameMarkets,
 } from './outcomeGrouping';
-
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 export { buildOutcomeGroups, sortGameMarkets } from './outcomeGrouping';
 
@@ -136,7 +143,8 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
-  CHAINLINK_CANDLES_ENDPOINT: 'https://polymarket.com/api/chainlink-candles',
+  CRYPTO_PRICE_HISTORY_ENDPOINT:
+    'https://polymarket.com/api/crypto/price-history',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -219,8 +227,11 @@ export const buildPolyHmacSignature = async (
     message += body;
   }
   const base64Secret = Buffer.from(secret, 'base64');
-  const hmac = global.crypto.createHmac('sha256', base64Secret);
-  const sig = hmac.update(message).digest('base64');
+  // The secret is issued by Polymarket, so its length is not ours to enforce.
+  const hmac = await hmacSha256(base64Secret, stringToBytes(message), {
+    unsafeKeyLength: true,
+  });
+  const sig = Buffer.from(hmac).toString('base64');
 
   // NOTE: Must be url safe base64 encoding, but keep base64 "=" suffix
   // Convert '+' to '-'
@@ -856,9 +867,7 @@ const parsePolymarketMarketOutcomes = (
   event: PolymarketApiEvent,
   game?: PredictMarketGame,
 ): PredictOutcomeToken[] => {
-  const outcomeTokensIds = market.clobTokenIds
-    ? JSON.parse(market.clobTokenIds)
-    : [];
+  const outcomeTokensIds = parseMarketOutcomeTokenIds(market);
   const outcomes = formatOutcomeTitles(market);
   const shortTitles = game ? formatOutcomeShortTitles(market, game) : [];
   const outcomePrices = market.outcomePrices
@@ -977,13 +986,103 @@ const getPredictMarketStatus = (
   return PredictMarketStatus.OPEN;
 };
 
-const parseEventPriceToBeat = (
-  event: PolymarketApiEvent,
-): number | undefined => {
-  const priceToBeat = Number(event.eventMetadata?.priceToBeat);
-  return Number.isFinite(priceToBeat) && priceToBeat > 0
-    ? priceToBeat
-    : undefined;
+const toPositivePrice = (raw: unknown): number | undefined => {
+  const price = Number(raw);
+  return Number.isFinite(price) && price > 0 ? price : undefined;
+};
+
+/**
+ * Gamma exposes the target price under two names and which one is populated
+ * depends on the endpoint. `GET /events/:id` (the details screen) returns only
+ * `pendingPriceToBeat` for a window that is live, while the list endpoints
+ * (`/events`, `/events/keyset`) also return `priceToBeat`. Both carry the same
+ * value, so either is a valid source.
+ */
+const parseEventPriceToBeat = (event: PolymarketApiEvent): number | undefined =>
+  toPositivePrice(event.eventMetadata?.priceToBeat) ??
+  toPositivePrice(event.eventMetadata?.pendingPriceToBeat);
+
+const RESOLUTION_SOURCE_HOST = /^https?:\/\/([^/?#:]+)/iu;
+
+const isHostOf = (host: string, domain: string): boolean =>
+  host === domain || host.endsWith(`.${domain}`);
+
+const getResolutionSource = (
+  event: Pick<PolymarketApiEvent, 'resolutionSource'>,
+  markets: Pick<PolymarketApiMarket, 'resolutionSource'>[],
+): string | null | undefined =>
+  markets.find((market) => market.resolutionSource)?.resolutionSource ??
+  event.resolutionSource;
+
+/**
+ * Reads the vendor a market settles against from its Gamma resolution source.
+ * Settlement, not the series length, decides the vendor: 5m, 15m and 4h markets
+ * resolve on data.chain.link streams, and the hourly and daily series moved from
+ * binance.com USDT pairs to Chainlink on 2026-11-18, so one series can hold
+ * markets on both.
+ *
+ * @param event - Gamma event.
+ * @param markets - The event's markets. Their own source wins over the event's.
+ * @returns The settlement vendor, or undefined when it is neither of the two.
+ */
+export const parseCryptoPriceProvider = (
+  event: Pick<PolymarketApiEvent, 'resolutionSource'>,
+  markets: Pick<PolymarketApiMarket, 'resolutionSource'>[],
+): CryptoPriceProvider | undefined => {
+  const source = getResolutionSource(event, markets);
+  const host = source?.trim().match(RESOLUTION_SOURCE_HOST)?.[1]?.toLowerCase();
+  if (!host) {
+    return undefined;
+  }
+
+  if (isHostOf(host, 'binance.com')) {
+    return 'binance';
+  }
+
+  return isHostOf(host, 'chain.link') ? 'chainlink' : undefined;
+};
+
+const MAX_WARNED_DEFAULT_PROVIDER_MARKETS = 500;
+const warnedDefaultProviderMarkets = new Set<string>();
+
+/**
+ * Warns Sentry once per market when a crypto up/down market's resolution
+ * source is missing or names neither vendor. Its price streams then default
+ * to Chainlink, which may not be the vendor it settles on.
+ *
+ * @param market - The parsed market.
+ * @param resolutionSource - The Gamma source the vendor was read from.
+ */
+const warnDefaultCryptoPriceProvider = (
+  market: PredictMarket,
+  resolutionSource: string | null | undefined,
+): void => {
+  if (!isCryptoUpDown(market) || warnedDefaultProviderMarkets.has(market.id)) {
+    return;
+  }
+
+  if (
+    warnedDefaultProviderMarkets.size >= MAX_WARNED_DEFAULT_PROVIDER_MARKETS
+  ) {
+    warnedDefaultProviderMarkets.clear();
+  }
+  warnedDefaultProviderMarkets.add(market.id);
+  captureMessage('Polymarket: crypto market settles on an unknown vendor', {
+    level: 'warning',
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: POLYMARKET_PROVIDER_ID,
+    },
+    contexts: {
+      parsePolymarketEvents: {
+        marketId: market.id,
+        slug: market.slug,
+        symbol: getCryptoSymbol(market),
+        resolutionSource: resolutionSource ?? null,
+        defaultProvider: 'chainlink',
+      },
+    },
+  });
 };
 
 const parseTwapWindowSeconds = (
@@ -1026,7 +1125,12 @@ export const parsePolymarketMarket = (
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
-  resolutionStatus: market.umaResolutionStatus,
+  // Protocol V2 markets report resolution in `resolutionStatus`; CTF markets
+  // keep their UMA status.
+  resolutionStatus: isV2Market(market)
+    ? (market.resolutionStatus ?? undefined)
+    : market.umaResolutionStatus,
+  version: market.version,
 });
 
 export type PolymarketTeamLookupFn = (
@@ -1034,12 +1138,65 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
+function isV2Market(market?: PolymarketApiMarket): boolean {
+  return market?.version === V2_MARKET_VERSION;
+}
+
+/**
+ * The Gamma market version decides which field holds the outcome token ids —
+ * never the ids themselves (both id fields can be present on a market). A v2
+ * market without `positionIds` yields no ids rather than falling back to
+ * `clobTokenIds`, so CTF ids can never leak into the Protocol V2 path.
+ */
+export function parseMarketOutcomeTokenIds(
+  market: PolymarketApiMarket,
+): string[] {
+  if (isV2Market(market)) {
+    // The v2 wire returns `positionIds` as a native JSON array; the
+    // JSON-encoded string form is accepted for compatibility.
+    if (Array.isArray(market.positionIds)) {
+      return market.positionIds;
+    }
+    return market.positionIds ? JSON.parse(market.positionIds) : [];
+  }
+  const rawTokenIds = market.clobTokenIds;
+  return rawTokenIds ? JSON.parse(rawTokenIds) : [];
+}
+
+function isVisiblePolymarketMarket(
+  market: PolymarketApiMarket,
+  hideV2Markets: boolean,
+): boolean {
+  if (market?.active === false) {
+    return false;
+  }
+
+  return !hideV2Markets || !isV2Market(market);
+}
+
+function isHiddenV2Event(
+  event: PolymarketApiEvent,
+  visibleMarkets: PolymarketApiMarket[],
+): boolean {
+  if (visibleMarkets.length > 0) {
+    return false;
+  }
+
+  return event.markets?.some(isV2Market) === true;
+}
+
 export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
   enabledSportsMarketTypes?: string[];
+  /**
+   * Drops Protocol V2 markets, and events left empty because every market
+   * was v2. Set from the `predictDisablePolymarketV2Markets` kill switch on
+   * listing paths only. Defaults to false: v2 markets are shown.
+   */
+  hideV2Markets?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1057,6 +1214,7 @@ export const parsePolymarketEvents = (
     teamLookup,
     extendedSportsMarketsLeagues,
     enabledSportsMarketTypes,
+    hideV2Markets = false,
   } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
@@ -1081,7 +1239,11 @@ export const parsePolymarketEvents = (
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter((market: PolymarketApiMarket) => market?.active !== false);
+      }).filter((market) => isVisiblePolymarketMarket(market, hideV2Markets));
+
+      if (hideV2Markets && isHiddenV2Event(event, markets)) {
+        return [];
+      }
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not
@@ -1124,36 +1286,46 @@ export const parsePolymarketEvents = (
 
       const priceToBeat = parseEventPriceToBeat(event);
       const twapWindowSeconds = parseTwapWindowSeconds(markets);
+      const cryptoPriceProvider = parseCryptoPriceProvider(event, markets);
+      const startTime = event.startTime ?? event.markets?.[0]?.eventStartTime;
 
-      return [
-        {
-          id: event.id,
-          slug: event.slug,
-          providerId: POLYMARKET_PROVIDER_ID,
-          title: event.title,
-          description,
-          image: event.icon,
-          status: event.closed
-            ? PredictMarketStatus.CLOSED
-            : PredictMarketStatus.OPEN,
-          active: event.active,
-          recurrence: getRecurrence(event.series),
-          endDate: event.endDate,
-          category,
-          tags: tags.map((t) => t.slug),
-          outcomes,
-          ...(outcomeGroups && { outcomeGroups }),
-          liquidity: event.liquidity,
-          volume: event.volume,
-          game,
-          ...(priceToBeat !== undefined && { priceToBeat }),
-          ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
-          ...(seriesData && { series: seriesData }),
-          ...(event.parentEventId !== undefined && {
-            parentMarketId: event.parentEventId,
-          }),
-        } as PredictMarket,
-      ];
+      const parsedMarket = {
+        id: event.id,
+        slug: event.slug,
+        providerId: POLYMARKET_PROVIDER_ID,
+        title: event.title,
+        description,
+        image: event.icon,
+        status: event.closed
+          ? PredictMarketStatus.CLOSED
+          : PredictMarketStatus.OPEN,
+        active: event.active,
+        recurrence: getRecurrence(event.series),
+        ...(startTime && { startTime }),
+        endDate: event.endDate,
+        category,
+        tags: tags.map((t) => t.slug),
+        outcomes,
+        ...(outcomeGroups && { outcomeGroups }),
+        liquidity: event.liquidity,
+        volume: event.volume,
+        game,
+        ...(priceToBeat !== undefined && { priceToBeat }),
+        ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+        ...(cryptoPriceProvider && { cryptoPriceProvider }),
+        ...(seriesData && { series: seriesData }),
+        ...(event.parentEventId !== undefined && {
+          parentMarketId: event.parentEventId,
+        }),
+      } as PredictMarket;
+      if (!cryptoPriceProvider) {
+        warnDefaultCryptoPriceProvider(
+          parsedMarket,
+          getResolutionSource(event, markets),
+        );
+      }
+
+      return [parsedMarket];
     } catch (err) {
       Logger.error(err instanceof Error ? err : new Error(String(err)), {
         feature: 'predict',
@@ -1877,12 +2049,33 @@ export const mergeChildEventsIntoParent = (
   };
 };
 
+/**
+ * Per-share prices Polymarket's UMA adapter settles a market at: 1 for the
+ * winning outcome, 0 for a loser, 0.5 for each side of a 50/50 push. Any other
+ * `curPrice` on a `redeemable` position is a stale last-traded price.
+ */
+const SETTLED_PAYOUT_PRICES: readonly number[] = [0.5, 1];
+
+/**
+ * Polymarket marks every position in a resolved market `redeemable`, losers
+ * included (they redeem for nothing), and flips that flag before it re-pins
+ * `curPrice` to the payout. For a few minutes a loser can still carry its last
+ * traded price (0.0005 and 0.005 observed in the wild) and a small positive
+ * `currentValue`. P&L decides WON. Below break-even, only a settled payout
+ * price proves there is something to claim: that makes a push bought above
+ * 50c REDEEMABLE rather than LOST without handing a claim CTA to a loser whose
+ * price has not settled yet.
+ */
 export const getPredictPositionStatus = ({
   claimable,
   cashPnl,
+  currentValue,
+  curPrice,
 }: {
   claimable: boolean;
   cashPnl: number;
+  currentValue: number;
+  curPrice: number;
 }) => {
   if (!claimable) {
     return PredictPositionStatus.OPEN;
@@ -1890,7 +2083,7 @@ export const getPredictPositionStatus = ({
   if (cashPnl > 0) {
     return PredictPositionStatus.WON;
   }
-  if (cashPnl === 0) {
+  if (currentValue > 0 && SETTLED_PAYOUT_PRICES.includes(curPrice)) {
     return PredictPositionStatus.REDEEMABLE;
   }
   return PredictPositionStatus.LOST;
@@ -1956,6 +2149,8 @@ export const parsePolymarketPositions = async ({
       status: getPredictPositionStatus({
         claimable: position.redeemable,
         cashPnl: position.cashPnl,
+        currentValue: position.currentValue,
+        curPrice: position.curPrice,
       }),
       realizedPnl: position.realizedPnl,
       percentPnl: position.percentPnl,
@@ -1973,6 +2168,75 @@ export const parsePolymarketPositions = async ({
 
   return parsedPositions;
 };
+
+/**
+ * Maps Polymarket Data API v2 position rows (snake_case) to the v1-shaped
+ * `PolymarketPosition` DTO consumed by `parsePolymarketPositions`.
+ *
+ * v2 rows carry no percent P&L, so it is derived from the row's own values
+ * using the same formula as the portfolio header (`getPositionsPnl`).
+ */
+export const mapPolymarketPositionsV2 = (
+  rows: PolymarketPositionV2[],
+): PolymarketPosition[] =>
+  rows.map((row) => {
+    const initialValue = row.entry_cost_usdc ?? 0;
+    const currentValue = row.current_value ?? 0;
+    return {
+      conditionId: row.condition_id,
+      eventId: row.event_id,
+      icon: row.icon,
+      title: row.title,
+      slug: row.slug,
+      eventSlug: row.event_slug,
+      size: row.current_size ?? 0,
+      outcome: row.outcome,
+      outcomeIndex: row.outcome_index,
+      cashPnl: row.unrealized_pnl ?? 0,
+      curPrice: row.current_price ?? 0,
+      currentValue,
+      percentPnl:
+        initialValue > 0
+          ? ((currentValue - initialValue) / initialValue) * 100
+          : 0,
+      initialValue,
+      avgPrice: row.avg_price,
+      redeemable: row.redeemable,
+      negativeRisk: row.negative_risk,
+      realizedPnl: row.realized_pnl,
+      endDate: row.end_date,
+      asset: row.token_id,
+    };
+  });
+
+/**
+ * Maps Polymarket Data API v2 activity rows (snake_case) to the v1-shaped
+ * `PolymarketApiActivity` DTO consumed by `parsePolymarketActivity`.
+ *
+ * v2 has no server-side equivalent of v1's `excludeLostRedeems` filter, so
+ * lost redeems (REDEEM rows with no payout) are dropped here.
+ */
+export const mapPolymarketActivityV2 = (
+  rows: PolymarketActivityV2[],
+): PolymarketApiActivity[] =>
+  rows
+    .filter((row) => !(row.type === 'REDEEM' && (row.usdc_size ?? 0) === 0))
+    .map((row) => ({
+      type: row.type as PolymarketApiActivity['type'],
+      side: row.side,
+      size: row.size,
+      price: row.price,
+      usdcSize: row.usdc_size,
+      timestamp: row.timestamp,
+      transactionHash: row.transaction_hash,
+      conditionId: row.condition_id,
+      outcomeIndex: row.outcome_index,
+      title: row.title,
+      outcome: row.outcome as PolymarketApiActivity['outcome'],
+      icon: row.icon,
+      slug: row.slug,
+      eventSlug: row.event_slug,
+    }));
 
 export const encodeRedeemPositions = ({
   collateralToken,
@@ -2033,61 +2297,228 @@ export function encodeClaim(
   });
 }
 
+const BYTES31_HEX_PATTERN = /^0x[a-fA-F0-9]{62}$/u;
+const BYTES32_HEX_PATTERN = /^0x[a-fA-F0-9]{64}$/u;
+
+/**
+ * Narrows a condition id to the `bytes31` shape the Protocol V2 Router
+ * expects. A padded `bytes32` value is accepted only when its final byte is
+ * zero; anything else is rejected rather than silently truncated.
+ */
+export function toBytes31ConditionId(conditionId: string): Hex {
+  if (BYTES31_HEX_PATTERN.test(conditionId)) {
+    return conditionId as Hex;
+  }
+
+  if (
+    BYTES32_HEX_PATTERN.test(conditionId) &&
+    conditionId.slice(-2).toLowerCase() === '00'
+  ) {
+    return conditionId.slice(0, -2) as Hex;
+  }
+
+  throw new Error(
+    `Cannot narrow condition id to bytes31 — expected a bytes31 value or a bytes32 value with a zero final byte, got: ${conditionId}`,
+  );
+}
+
+/**
+ * Encodes the Protocol V2 Router claim call:
+ * `redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)`.
+ * The Router pulls the position from the caller and returns pUSD in the same
+ * transaction, so no pre-transfer is needed. The amount is in 6-decimal base
+ * units and the outcome index is 0 for YES or 1 for NO.
+ */
+export function encodeRouterRedeem({
+  conditionId,
+  outcomeIndex,
+  amount,
+}: {
+  conditionId: string;
+  outcomeIndex: number;
+  amount: bigint | string | number;
+}): Hex {
+  return new Interface([
+    'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+  ]).encodeFunctionData('redeem', [
+    toBytes31ConditionId(conditionId),
+    outcomeIndex,
+    amount,
+  ]) as Hex;
+}
+
+// Buy previews poll every second; a market's tags do not change between ticks.
+const marketTagSlugsCache = new Map<string, Promise<string[]>>();
+
+export const clearMarketTagSlugsCache = () => {
+  marketTagSlugsCache.clear();
+};
+
+const getMarketTagSlugs = (marketId: string): Promise<string[]> => {
+  const cached = marketTagSlugsCache.get(marketId);
+  if (cached) {
+    return cached;
+  }
+  const slugs = getMarketDetailsFromGammaApi({ marketId }).then(
+    (market) => market.tags?.map((t) => t.slug) ?? [],
+  );
+  marketTagSlugsCache.set(marketId, slugs);
+  slugs.catch(() => marketTagSlugsCache.delete(marketId));
+  return slugs;
+};
+
 async function waiveFees({
   marketId,
   waiveList,
 }: {
   marketId: string;
   waiveList: string[];
-}) {
-  const market = await getMarketDetailsFromGammaApi({ marketId });
-  const { tags } = market;
-  const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+}): Promise<boolean> {
+  try {
+    const slugs = await getMarketTagSlugs(marketId);
+    return slugs.some((slug) => waiveList?.includes(slug));
+  } catch (error) {
+    // A fee-waiver lookup failure must never fail the preview — degrade
+    // to standard (non-waived) fees instead.
+    DevLogger.log(
+      'Polymarket: fee-waiver lookup failed, applying standard fees',
+      {
+        marketId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+    return false;
+  }
 }
 
+const isMarketFeeWaived = async ({
+  marketId,
+  feeCollection,
+}: {
+  marketId: string;
+  feeCollection?: PredictFeeCollection;
+}): Promise<boolean> => {
+  if (!feeCollection?.enabled) {
+    return false;
+  }
+
+  return waiveFees({
+    marketId,
+    waiveList: feeCollection.waiveList,
+  });
+};
+
+const calculateFeesForCollection = ({
+  feeCollection,
+  marketFeeWaived,
+  userBetAmount,
+  waiveMetamaskServiceFee,
+}: {
+  feeCollection?: PredictFeeCollection;
+  marketFeeWaived: boolean;
+  userBetAmount: number;
+  waiveMetamaskServiceFee: boolean;
+}): {
+  fees: PredictFees;
+  originalFees?: PredictFees;
+} => {
+  if (!feeCollection?.enabled || marketFeeWaived) {
+    return {
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0,
+        totalFee: 0,
+        totalFeePercentage: 0,
+        collector: '0x0',
+        executors: [],
+        permit2Enabled: false,
+      },
+    };
+  }
+
+  const {
+    metamaskFee: metamaskFeeRate,
+    providerFee: providerFeeRate,
+    collector,
+    executors,
+    permit2Enabled,
+  } = feeCollection;
+
+  const originalMetamaskFee = userBetAmount * metamaskFeeRate;
+  const providerFee = userBetAmount * providerFeeRate;
+  let metamaskFee = originalMetamaskFee;
+  let totalFeePercentage = (metamaskFeeRate + providerFeeRate) * 100;
+
+  if (waiveMetamaskServiceFee) {
+    metamaskFee = 0;
+    totalFeePercentage = providerFeeRate * 100;
+  }
+
+  const fees: PredictFees = {
+    metamaskFee,
+    providerFee,
+    // Rounded to 6 decimals
+    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+    totalFeePercentage,
+    collector,
+    executors: executors ?? [],
+    permit2Enabled: permit2Enabled ?? false,
+  };
+
+  if (!waiveMetamaskServiceFee) {
+    return { fees };
+  }
+
+  return {
+    fees,
+    originalFees: {
+      ...fees,
+      metamaskFee: originalMetamaskFee,
+      // Rounded to 6 decimals
+      totalFee:
+        Math.round((originalMetamaskFee + providerFee) * 1000000) / 1000000,
+      totalFeePercentage: (metamaskFeeRate + providerFeeRate) * 100,
+    },
+  };
+};
+
+/**
+ * Calculates the fees charged for an order. A subscription policy waives only
+ * the MetaMask fee in `fees` and keeps the unwaived rates in `originalFees`.
+ * The market-fee waiver is resolved once and applied to both results.
+ *
+ * @param feeCollection - Feature-flagged fee configuration.
+ * @param feePolicy - Current per-order Predict fee policy.
+ * @param marketId - Market used to resolve a waived market fee.
+ * @param userBetAmount - Stake or proceeds the service fees apply to.
+ * @returns Effective fees, plus the standard fees when a subscription policy applies.
+ */
 export async function calculateFees({
   feeCollection,
+  feePolicy,
   marketId,
   userBetAmount,
 }: {
   feeCollection?: PredictFeeCollection;
+  feePolicy?: PredictFeePolicy;
   marketId: string;
   userBetAmount: number;
-}): Promise<PredictFees> {
-  if (
-    !feeCollection?.enabled ||
-    (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
-  ) {
-    return {
-      metamaskFee: 0,
-      providerFee: 0,
-      totalFee: 0,
-      totalFeePercentage: 0,
-      collector: '0x0',
-      executors: [],
-      permit2Enabled: false,
-    };
-  }
+}): Promise<{
+  fees: PredictFees;
+  /** Standard fees before the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
+}> {
+  const marketFeeWaived = await isMarketFeeWaived({
+    marketId,
+    feeCollection,
+  });
 
-  const totalFeePercentage =
-    (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
-
-  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  const providerFee = userBetAmount * feeCollection.providerFee;
-
-  // Rounded to 6 decimals
-  const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
-
-  return {
-    metamaskFee,
-    providerFee,
-    totalFee,
-    totalFeePercentage,
-    collector: feeCollection.collector,
-    executors: feeCollection.executors ?? [],
-    permit2Enabled: feeCollection.permit2Enabled ?? false,
-  };
+  return calculateFeesForCollection({
+    feeCollection,
+    marketFeeWaived,
+    userBetAmount,
+    waiveMetamaskServiceFee: Boolean(feePolicy),
+  });
 }
 
 export const getAllowanceCalls = (params: { address: string }) => {
@@ -2251,27 +2682,6 @@ export const getIsApprovedForAll = async ({
   return isApproved;
 };
 
-export const getMarketPositions = async ({
-  marketId,
-  address,
-}: {
-  marketId: string;
-  address: string;
-}) => {
-  const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetchWithTimeout(
-    `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
-  );
-  if (!response.ok) {
-    throw new Error('Failed to get market positions');
-  }
-  const responseData = await response.json();
-  const parsedPositions = await parsePolymarketPositions({
-    positions: responseData,
-  });
-  return parsedPositions;
-};
-
 export const getRawBalance = async ({
   address,
   tokenAddress,
@@ -2379,7 +2789,7 @@ const matchSellOrder = ({
 }: {
   bids: OrderSummary[];
   shareAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number; worstPrice: number } => {
   if (!bids.length) {
     throw new Error('no order match');
   }
@@ -2388,6 +2798,8 @@ const matchSellOrder = ({
 
   let dollarAmount = 0;
   let sharesMatched = 0;
+  // Lowest bid level that contributed shares to the fill.
+  let worstPrice = sharePrice;
 
   for (let i = bids.length - 1; i >= 0; i--) {
     const e = bids[i];
@@ -2397,10 +2809,16 @@ const matchSellOrder = ({
     if (sharesMatched + entrySize <= shareAmount) {
       sharesMatched += entrySize;
       dollarAmount += entrySize * entryPrice;
+      if (entrySize > 0) {
+        worstPrice = entryPrice;
+      }
     } else {
       const remainingShares = shareAmount - sharesMatched;
       dollarAmount += remainingShares * entryPrice;
-      return { price: sharePrice, size: dollarAmount };
+      if (remainingShares > 0) {
+        worstPrice = entryPrice;
+      }
+      return { price: sharePrice, size: dollarAmount, worstPrice };
     }
   }
 
@@ -2408,6 +2826,7 @@ const matchSellOrder = ({
     return {
       price: sharePrice,
       size: dollarAmount,
+      worstPrice,
     };
   }
 
@@ -2549,6 +2968,7 @@ export const previewOrder = async (
     side,
     size,
     feeCollection,
+    feePolicy,
     isV2,
     clobBaseUrl,
   } = params;
@@ -2559,6 +2979,7 @@ export const previewOrder = async (
       outcomeId,
       outcomeTokenId,
       feeCollection,
+      feePolicy,
       isV2,
       clobBaseUrl,
     });
@@ -2604,7 +3025,11 @@ export const previewOrder = async (
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
   }
-  const { price: bestPrice, size: dollarAmount } = matchSellOrder({
+  const {
+    price: bestPrice,
+    size: dollarAmount,
+    worstPrice: worstFillPrice,
+  } = matchSellOrder({
     bids,
     shareAmount: size,
   });
@@ -2613,11 +3038,7 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
-  const serviceFees = await calculateFees({
-    feeCollection,
-    marketId,
-    userBetAmount: takerAmount,
-  });
+
   const preview: OrderPreview = {
     marketId,
     outcomeId,
@@ -2626,6 +3047,7 @@ export const previewOrder = async (
     side: Side.SELL,
     positionId: params.positionId,
     sharePrice: bestPrice,
+    worstFillPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
@@ -2639,19 +3061,37 @@ export const previewOrder = async (
     marketInfo,
   });
 
-  return {
+  const { fees: serviceFees, originalFees: originalServiceFees } =
+    await calculateFees({
+      feeCollection,
+      feePolicy,
+      marketId,
+      userBetAmount: takerAmount,
+    });
+
+  const orderPreview: OrderPreview = {
     ...preview,
     fees: {
       ...serviceFees,
       marketFee,
     },
   };
+
+  if (feePolicy && originalServiceFees) {
+    orderPreview.originalFees = {
+      ...originalServiceFees,
+      marketFee,
+    };
+  }
+
+  return orderPreview;
 };
 
 interface BuyPreviewContext {
   book: OrderBook;
   marketInfo?: ClobMarketInfo;
-  serviceFeesPerDollar: PredictFees;
+  effectiveFeesPerDollar: PredictFees;
+  originalFeesPerDollar?: PredictFees;
 }
 
 async function getBuyPreviewContext({
@@ -2659,6 +3099,7 @@ async function getBuyPreviewContext({
   outcomeId,
   outcomeTokenId,
   feeCollection,
+  feePolicy,
   isV2,
   clobBaseUrl,
 }: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
@@ -2686,13 +3127,22 @@ async function getBuyPreviewContext({
     return null;
   }
 
-  const serviceFeesPerDollar = await calculateFees({
+  const calculatedFees = await calculateFees({
     feeCollection,
+    feePolicy,
     marketId,
     userBetAmount: 1,
   });
 
-  return { book, marketInfo, serviceFeesPerDollar };
+  const { fees: effectiveFeesPerDollar, originalFees: originalFeesPerDollar } =
+    calculatedFees;
+
+  return {
+    book,
+    marketInfo,
+    effectiveFeesPerDollar,
+    originalFeesPerDollar,
+  };
 }
 
 function buildBuyPreviewFromContext({
@@ -2704,7 +3154,8 @@ function buildBuyPreviewFromContext({
 }: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
   context: BuyPreviewContext;
 }): OrderPreview | null {
-  const { book, marketInfo, serviceFeesPerDollar } = context;
+  const { book, marketInfo, effectiveFeesPerDollar, originalFeesPerDollar } =
+    context;
   const { tickSize, roundConfig } = getTickSizeRoundConfig({
     tickSize: book.tick_size,
   });
@@ -2717,8 +3168,6 @@ function buildBuyPreviewFromContext({
   }
   const { price: bestPrice, size: shareAmount } = match;
   const makerAmount = roundDown(size, roundConfig.size);
-  const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
-  const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
   const preview: OrderPreview = {
     marketId,
     outcomeId,
@@ -2737,16 +3186,33 @@ function buildBuyPreviewFromContext({
     negRisk: book.neg_risk,
     feeRateBps: '0',
   };
+  const marketFee = calculateConservativeBuyMarketFee({ preview, marketInfo });
+  const metamaskFee = makerAmount * effectiveFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * effectiveFeesPerDollar.providerFee;
+  const fees = {
+    ...effectiveFeesPerDollar,
+    metamaskFee,
+    providerFee,
+    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+    marketFee,
+  };
+  const originalFees = originalFeesPerDollar
+    ? {
+        ...fees,
+        metamaskFee: makerAmount * originalFeesPerDollar.metamaskFee,
+        totalFee:
+          Math.round(
+            (makerAmount * originalFeesPerDollar.metamaskFee + providerFee) *
+              1000000,
+          ) / 1000000,
+        totalFeePercentage: originalFeesPerDollar.totalFeePercentage,
+      }
+    : undefined;
 
   return {
     ...preview,
-    fees: {
-      ...serviceFeesPerDollar,
-      metamaskFee,
-      providerFee,
-      totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
-      marketFee: calculateConservativeBuyMarketFee({ preview, marketInfo }),
-    },
+    fees,
+    ...(originalFees ? { originalFees } : {}),
   };
 }
 

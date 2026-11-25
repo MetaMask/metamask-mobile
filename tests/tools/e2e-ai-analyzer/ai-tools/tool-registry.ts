@@ -137,64 +137,6 @@ export function getToolDefinitions(): LLMTool[] {
       },
     },
     {
-      name: 'finalize_tag_selection',
-      description:
-        'Submit final tag selection decision for both E2E tests and performance tests',
-      input_schema: {
-        type: 'object',
-        properties: {
-          selected_tags: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'E2E test tags to run',
-          },
-          risk_level: {
-            type: 'string',
-            enum: ['low', 'medium', 'high'],
-          },
-          confidence: {
-            type: 'number',
-            description: 'Confidence 0-100',
-          },
-          reasoning: {
-            type: 'string',
-            description: 'Detailed reasoning for E2E test selection',
-          },
-          areas: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Impacted areas',
-          },
-          performance_tests: {
-            type: 'object',
-            description:
-              'Performance test selection based on performance impact (empty selected_tags means no performance tests)',
-            properties: {
-              selected_tags: {
-                type: 'array',
-                items: { type: 'string' },
-                description:
-                  'Performance test tags to run (empty array if no performance tests needed)',
-              },
-              reasoning: {
-                type: 'string',
-                description: 'Reasoning for performance test selection',
-              },
-            },
-            required: ['selected_tags', 'reasoning'],
-          },
-        },
-        required: [
-          'selected_tags',
-          'risk_level',
-          'confidence',
-          'reasoning',
-          'areas',
-          'performance_tests',
-        ],
-      },
-    },
-    {
       name: 'finalize_test_plan_generation',
       description: 'Submit the final exploratory test plan for the release',
       input_schema: {

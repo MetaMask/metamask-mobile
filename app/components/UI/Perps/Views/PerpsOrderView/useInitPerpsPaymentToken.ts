@@ -1,17 +1,26 @@
 import { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { selectPendingTradeConfiguration } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { useIsMoneyAccountPaymentOverride } from '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 export function useInitPerpsPaymentToken(initialAsset: string) {
   const { payToken, setPayToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const selectedPaymentToken = usePerpsPayWithToken();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
+  // Paying from the Money Account owns the pay token (mUSD on Monad). Letting
+  // the allowlist default run would overwrite it and silently switch the
+  // funding source back to the EOA.
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
@@ -36,6 +45,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
 
   useEffect(() => {
     if (
+      isMoneyAccountSelected ||
       pendingConfigSelectedPaymentToken != null ||
       appliedPendingTokenRef.current != null
     )
@@ -48,8 +58,10 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
         chainId: defaultToken.chainId,
       };
       setPayToken({
-        address: defaultToken.address as Hex,
-        chainId: defaultToken.chainId as Hex,
+        assetId: encodeAssetId({
+          address: defaultToken.address as Hex,
+          chainId: defaultToken.chainId as Hex,
+        }),
       });
       Engine.context.PerpsController?.setSelectedPaymentToken?.({
         description: defaultToken.description,
@@ -64,13 +76,15 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     appliedPendingTokenRef.current = null;
     Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
   }, [
+    isMoneyAccountSelected,
     pendingConfigSelectedPaymentToken,
     defaultPayTokenWhenNoPerpsBalance,
+    encodeAssetId,
     setPayToken,
   ]);
 
   useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken) return;
+    if (isMoneyAccountSelected || !pendingConfigSelectedPaymentToken) return;
 
     const pendingAddr = pendingConfigSelectedPaymentToken.address;
     const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
@@ -87,16 +101,17 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
       chainId: pendingChainId,
     };
 
+    const pendingAssetId = encodeAssetId({
+      address: pendingAddr as Hex,
+      chainId: pendingChainId as Hex,
+    });
+
     if (
-      payToken?.address !== pendingAddr ||
-      payToken?.chainId !== pendingChainId ||
+      !isSameAssetId(payToken?.assetId, pendingAssetId) ||
       selectedPaymentToken?.address !== pendingAddr ||
       selectedPaymentToken?.chainId !== pendingChainId
     ) {
-      setPayToken({
-        address: pendingAddr as Hex,
-        chainId: pendingChainId as Hex,
-      });
+      setPayToken({ assetId: pendingAssetId });
 
       Engine.context.PerpsController?.setSelectedPaymentToken?.({
         description: pendingConfigSelectedPaymentToken.description,
@@ -106,8 +121,10 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     }
   }, [
     initialAsset,
+    isMoneyAccountSelected,
     payToken,
     pendingConfigSelectedPaymentToken,
+    encodeAssetId,
     setPayToken,
     selectedPaymentToken,
   ]);

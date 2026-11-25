@@ -6,10 +6,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
 import {
   selectIsCardAuthenticated,
-  selectCardholderAccounts,
+  selectHasCard,
 } from '../../../../selectors/cardController';
+import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
 /**
  * Card home deeplink handler
@@ -22,9 +22,9 @@ import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
  *
  * Behavior:
  * - User is logged in: Navigate directly to Card Home for the currently selected account
- * - User is not logged in but has a card-linked account: Auto-switch to first card-linked
- * account and navigate to Card Home
- * - User is not logged in and has no card-linked account: Remain in current account and
+ * - User is not logged in but has a stored card link: Switch to the linked
+ * account and navigate to Card login
+ * - User is not logged in and has no card link: Remain in current account and
  * navigate to Card Welcome/onboarding screen
  *
  * Error fallback:
@@ -40,43 +40,21 @@ export const handleCardHome = () => {
 
   try {
     const state = ReduxService.store.getState();
-    const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsCardAuthenticated(state);
-    const hasCardLinkedAccount = cardholderAccounts.length > 0;
+    const hasCard = selectHasCard(state);
 
-    if (isAuthenticated || hasCardLinkedAccount) {
-      if (hasCardLinkedAccount && !isAuthenticated) {
-        const firstCardholderAddress = cardholderAccounts
-          .map((id) =>
-            isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
-          )
-          .find(Boolean);
-        DevLogger.log(
-          '[handleCardHome] Switching to first cardholder account:',
-          firstCardholderAddress,
-        );
-
-        try {
-          if (firstCardholderAddress) {
-            Engine.setSelectedAddress(firstCardholderAddress);
-            DevLogger.log(
-              '[handleCardHome] Successfully switched to cardholder account',
-            );
-          }
-        } catch (switchError) {
-          DevLogger.log(
-            '[handleCardHome] Error switching account:',
-            switchError,
-          );
-          Logger.error(
-            switchError as Error,
-            '[handleCardHome] Failed to switch to cardholder account',
-          );
-        }
+    if (isAuthenticated || hasCard) {
+      DevLogger.log(
+        isAuthenticated
+          ? '[handleCardHome] Navigating to Card Home'
+          : '[handleCardHome] Navigating to Card login',
+      );
+      const openCard = () => navigateToCardEntry(isAuthenticated);
+      if (!isAuthenticated && hasCard) {
+        switchToLinkedCardAccount().then(openCard, openCard);
+      } else {
+        openCard();
       }
-
-      DevLogger.log('[handleCardHome] Navigating to Card Home');
-      navigateToCardHome();
     } else {
       DevLogger.log(
         '[handleCardHome] User not authenticated and no card-linked account, navigating to Card Welcome',
@@ -125,12 +103,12 @@ export const handleCardHome = () => {
   }
 };
 
-function navigateToCardHome(): void {
+function navigateToCardEntry(isAuthenticated: boolean): void {
   setTimeout(() => {
     NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: {
-        screen: Routes.CARD.HOME,
+        screen: isAuthenticated ? Routes.CARD.HOME : Routes.CARD.AUTHENTICATION,
       },
     });
   }, 500);

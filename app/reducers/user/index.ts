@@ -30,7 +30,7 @@ export const userInitialState: UserState = {
   multichainAccountsIntroModalSeen: false,
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
-  moneyOnboardingSeen: false,
+  moneySplashSeen: false,
   moneyEarnBannerDismissedTokens: {},
   tokenOverviewChartType: ChartType.Line,
   tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
@@ -38,6 +38,8 @@ export const userInitialState: UserState = {
   onboardingStepperProgress: {},
   appInstallEventFired: false,
   pendingAppInstall: null,
+  bridgeLimitTabSeen: false,
+  bridgeRecurringTabSeen: false,
 };
 
 /**
@@ -163,10 +165,10 @@ const userReducer = (
         ...state,
         musdConversionAssetDetailCtasSeen: {},
       };
-    case UserActionType.SET_MONEY_ONBOARDING_SEEN:
+    case UserActionType.SET_MONEY_SPLASH_SEEN:
       return {
         ...state,
-        moneyOnboardingSeen: action.payload.seen,
+        moneySplashSeen: action.payload.seen,
       };
     case UserActionType.SET_MONEY_EARN_BANNER_DISMISSED:
       return {
@@ -220,6 +222,16 @@ const userReducer = (
       return state.pendingAppInstall === null
         ? state
         : { ...state, pendingAppInstall: null };
+    case UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN:
+      return {
+        ...state,
+        bridgeLimitTabSeen: true,
+      };
+    case UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN:
+      return {
+        ...state,
+        bridgeRecurringTabSeen: true,
+      };
     default:
       return state;
   }

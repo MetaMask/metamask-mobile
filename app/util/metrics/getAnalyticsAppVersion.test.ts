@@ -30,8 +30,14 @@ describe('formatAnalyticsAppVersion', () => {
     expect(result).toBe('8.6.0');
   });
 
-  it('appends release-candidate for rc', () => {
+  it('appends rc-unofficial for rc without official attribution', () => {
     const result = formatAnalyticsAppVersion(baseVersion, 'rc');
+
+    expect(result).toBe('8.6.0-rc-unofficial');
+  });
+
+  it('appends release-candidate for rc with official attribution', () => {
+    const result = formatAnalyticsAppVersion(baseVersion, 'rc', 'official');
 
     expect(result).toBe('8.6.0-release-candidate');
   });
@@ -53,6 +59,61 @@ describe('formatAnalyticsAppVersion', () => {
     expect(formatAnalyticsAppVersion(baseVersion, 'test')).toBe('8.6.0-test');
     expect(formatAnalyticsAppVersion(baseVersion, 'e2e')).toBe('8.6.0-e2e');
   });
+
+  it('keeps the raw environment code and appends nightly for rc', () => {
+    const result = formatAnalyticsAppVersion(baseVersion, 'rc', 'nightly');
+
+    expect(result).toBe('8.6.0-rc-nightly');
+  });
+
+  it('keeps the raw environment code and appends nightly for exp', () => {
+    const result = formatAnalyticsAppVersion(baseVersion, 'exp', 'nightly');
+
+    expect(result).toBe('8.6.0-exp-nightly');
+  });
+
+  it('appends only nightly for production', () => {
+    const result = formatAnalyticsAppVersion(
+      baseVersion,
+      'production',
+      'nightly',
+    );
+
+    expect(result).toBe('8.6.0-nightly');
+  });
+
+  it('keeps non-rc friendly suffixes when build attribution is omitted or empty', () => {
+    expect(formatAnalyticsAppVersion(baseVersion, 'exp')).toBe(
+      '8.6.0-experimental',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'exp', '')).toBe(
+      '8.6.0-experimental',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'dev', '')).toBe(
+      '8.6.0-development',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'beta', '')).toBe(
+      '8.6.0-beta',
+    );
+  });
+
+  it('appends rc-unofficial when rc attribution is omitted or empty', () => {
+    expect(formatAnalyticsAppVersion(baseVersion, 'rc')).toBe(
+      '8.6.0-rc-unofficial',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'rc', '')).toBe(
+      '8.6.0-rc-unofficial',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'rc', '  ')).toBe(
+      '8.6.0-rc-unofficial',
+    );
+  });
+
+  it('appends rc-unofficial for unrecognized rc attribution', () => {
+    const result = formatAnalyticsAppVersion(baseVersion, 'rc', 'runway');
+
+    expect(result).toBe('8.6.0-rc-unofficial');
+  });
 });
 
 describe('getAnalyticsAppVersion', () => {
@@ -60,16 +121,20 @@ describe('getAnalyticsAppVersion', () => {
     jest.clearAllMocks();
   });
 
-  // METAMASK_ENVIRONMENT is inlined by babel at transform time, so runtime
-  // mutation is ignored here. Env→suffix mapping is covered by
-  // formatAnalyticsAppVersion tests above.
-  it('formats native getVersion with the build METAMASK_ENVIRONMENT', () => {
+  // METAMASK_ENVIRONMENT and METAMASK_BUILD_ATTRIBUTION are inlined by babel at
+  // transform time, so runtime mutation is ignored here. Env→suffix mapping and
+  // nightly handling are covered by formatAnalyticsAppVersion tests above.
+  it('formats native getVersion with METAMASK_ENVIRONMENT and METAMASK_BUILD_ATTRIBUTION', () => {
     mockGetVersion.mockReturnValue('8.6.0');
 
     const result = getAnalyticsAppVersion();
 
     expect(result).toBe(
-      formatAnalyticsAppVersion('8.6.0', process.env.METAMASK_ENVIRONMENT),
+      formatAnalyticsAppVersion(
+        '8.6.0',
+        process.env.METAMASK_ENVIRONMENT,
+        process.env.METAMASK_BUILD_ATTRIBUTION,
+      ),
     );
     expect(mockGetVersion).toHaveBeenCalledTimes(1);
   });

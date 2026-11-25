@@ -16,23 +16,12 @@ import {
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import type { GaslessFeeAsset } from '../../utils/getGaslessFeeAsset';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
   () => 'mocked-riv-file',
 );
-
-// Mock rive-react-native
-jest.mock('rive-react-native', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockRive = () => <View testID={'mock-rive-animation'} />;
-
-  return {
-    __esModule: true,
-    ...jest.requireActual('rive-react-native'),
-    default: MockRive,
-  };
-});
 
 jest.mock('react-native-fade-in-image', () => {
   const ReactMock = jest.requireActual('react');
@@ -282,10 +271,15 @@ const testState = createBridgeTestState({
   },
 });
 
-const QuoteDetailsCardTestScreen = () => (
+const QuoteDetailsCardTestScreen = ({
+  gaslessFeeAsset,
+}: {
+  gaslessFeeAsset?: GaslessFeeAsset;
+}) => (
   <QuoteDetailsCard
     location={MetaMetricsSwapsEventSource.MainView}
     hasInsufficientBalance={false}
+    gaslessFeeAsset={gaslessFeeAsset}
   />
 );
 
@@ -321,11 +315,58 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText(strings('bridge.rate'))).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.QUOTE_KEYPAD_DISMISS_TARGET),
+    ).toBeOnTheScreen();
     expect(getByText('1 ETH = 24.4 USDC')).toBeOnTheScreen();
     expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.slippage'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.price_impact'))).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
+  });
+
+  it('renders the relayer fee when the selected quote includes one', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      ...originalImpl(),
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          feeData: {
+            relayer: [
+              {
+                amount: '1000000',
+                valueInCurrency: '1.23',
+                asset: mockQuotes[0].quote.feeData.metabridge[0].asset,
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(getByText(strings('bridge.relayer_fee'))).toBeOnTheScreen();
+    expect(getByText('$1.23')).toBeOnTheScreen();
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('does not render the relayer fee when the selected quote omits it', () => {
+    const { queryByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(queryByText(strings('bridge.relayer_fee'))).toBeNull();
   });
 
   it('displays fee amount', () => {
@@ -398,14 +439,10 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
   });
 
-  it('displays "Included" fee when gasIncluded7702 is true', () => {
-    // Temporarily replace the mock with one that has gasIncluded7702 = true
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
-
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
-      quoteFetchError: null,
-      activeQuote: {
+  it.each([
+    [
+      'gasIncluded7702',
+      {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
@@ -413,42 +450,15 @@ describe('QuoteDetailsCard', () => {
           gasIncluded7702: true,
         },
       },
-      destTokenAmount: '24.44',
-      isLoading: false,
-      formattedQuoteData: {
-        networkFee: '0.01',
-        estimatedTime: '1 min',
-        rate: '1 ETH = 24.4 USDC',
-        priceImpact: '-0.06%',
-        slippage: '0.5%',
-      },
-    }));
-
-    const { getByText, getByTestId } = renderScreen(
-      QuoteDetailsCardTestScreen,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Verify "Included" text is displayed
-    expect(getByText(strings('bridge.included'))).toBeOnTheScreen();
-    expect(getByText('Price impact')).toBeOnTheScreen();
-    expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
-
-    // Restore original implementation
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
-  });
-
-  it('displays "Included" fee when gasIncluded is true', () => {
-    // Temporarily replace the mock with one that has gasIncluded = true
+    ],
+    ['gasIncluded', toQuoteResponseV2(mockQuotesGasIncluded[0])],
+  ])('displays the network fee when %s is true', (_, activeQuote) => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
 
     mockModule.useBridgeQuoteData.mockImplementation(() => ({
       quoteFetchError: null,
-      activeQuote: toQuoteResponseV2(mockQuotesGasIncluded[0]),
+      activeQuote,
       destTokenAmount: '24.44',
       isLoading: false,
       formattedQuoteData: {
@@ -460,7 +470,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, getByTestId } = renderScreen(
+    const { getByText, queryByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -468,12 +478,54 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    // Verify "Included" text is displayed
-    expect(getByText(strings('bridge.included'))).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE),
+    ).toBeOnTheScreen();
+    expect(getByText('0.01')).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.included'))).not.toBeOnTheScreen();
     expect(getByText('Price impact')).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
-    // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('displays the gasless fee with its fee asset', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const feeAsset = mockQuotes[0].quote.feeData.metabridge[0].asset;
+
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      ...originalImpl(),
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+          feeData: {
+            txFee: [
+              {
+                amount: '1000000',
+                valueInCurrency: '1.23',
+                asset: feeAsset,
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      () => <QuoteDetailsCardTestScreen gaslessFeeAsset={feeAsset} />,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(getByText('0.01')).toBeOnTheScreen();
+    expect(getByText(feeAsset.symbol)).toBeOnTheScreen();
+    expect(
+      getByText(strings('bridge.network_fee_info_title')),
+    ).toBeOnTheScreen();
+
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
@@ -686,6 +738,7 @@ describe('QuoteDetailsCard', () => {
         priceImpact: '15.0%',
         slippage: '0.5%',
       },
+      shouldShowPriceImpactWarning: true,
     }));
 
     const { getByTestId } = renderScreen(
@@ -701,13 +754,6 @@ describe('QuoteDetailsCard', () => {
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
         type: PriceImpactModalType.Info,
-        token: {
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          symbol: 'SOL',
-          decimals: 9,
-          name: 'Solana',
-        },
         location: MetaMetricsSwapsEventSource.MainView,
       },
     });

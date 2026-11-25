@@ -26,6 +26,7 @@ export const ActivityDetailsSelectorsIDs = {
   FEES_ROW: 'activity-details-fees-row',
   PNL_ROW: 'activity-details-pnl-row',
   LIMIT_PRICE_ROW: 'activity-details-limit-price-row',
+  TRIGGER_PRICE_ROW: 'activity-details-trigger-price-row',
   FILLED_ROW: 'activity-details-filled-row',
   TOTAL_FEE_ROW: 'activity-details-total-fee-row',
   RATE_ROW: 'activity-details-rate-row',

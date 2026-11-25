@@ -1,7 +1,11 @@
+import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
 import { analytics } from '../../util/analytics/analytics';
 import { newPrivacyPolicyDate } from '../../reducers/legalNotices';
 import { selectCompletedOnboarding } from '../onboarding';
+import { getTokenBalancesControllerTokenBalances } from '../assets/assets-migration';
+import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
+import { hexToBigInt } from '../../util/number/bigint';
 
 const currentDate = new Date(Date.now());
 
@@ -64,3 +68,17 @@ export const selectShouldShowPna25Notice = (state: RootState): boolean => {
 
   return true;
 };
+
+const selectArcUsageNoticeShown = (state: RootState): boolean =>
+  state.legalNotices.arcUsageNoticeShown;
+
+export const selectShouldShowArcUsageNotice = createSelector(
+  [getTokenBalancesControllerTokenBalances, selectArcUsageNoticeShown],
+  (tokenBalances, arcUsageNoticeShown): boolean =>
+    !arcUsageNoticeShown &&
+    Object.values(tokenBalances).some((chains) =>
+      Object.values(chains?.[NETWORK_CHAIN_ID.ARC] ?? {}).some(
+        (balance) => hexToBigInt(balance) !== 0n,
+      ),
+    ),
+);

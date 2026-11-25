@@ -3,7 +3,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
-import SendView from '../../../page-objects/Send/RedesignedSendView.js';
+import SendView from '../../../page-objects/Send/SendView.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import { DappVariants } from '../../../framework/Constants.js';
 import { SmokeConfirmations } from '../../../tags.js';
@@ -14,7 +14,17 @@ import { LocalNodeType } from '../../../framework/types.js';
 import { AnvilManager } from '../../../seeder/anvil-manager.js';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.js';
+import {
+  accountsBalancesV2,
+  accountsMultiaccountBalancesV4,
+  accountsMultiaccountBalancesV5,
+  accountsMultiaccountBalancesV6,
+  priceSpotPricesV3,
+  tokenSupportedNetworksV2,
+  tokensAssetsV3,
+} from '../../../api-mocking/api-mocks.js';
 import { getDecodedProxiedURL } from '../../notifications/utils/helpers.js';
+import type { AccountsMultiaccountBalancesV5Response } from '../../../api-mocking/api-response-types.js';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
@@ -34,214 +44,195 @@ const LOCAL_NATIVE_ASSET_ID = 'eip155:1337/slip44:60';
  * Without these mocks, USDC does not appear in the token picker.
  */
 async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
-  await setupMockRequest(
+  await tokenSupportedNetworksV2.register(
     mockServer,
-    {
-      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
-      response: {
-        fullSupport: ['eip155:1', 'eip155:1337'],
-        partialSupport: [],
+    { fullSupport: ['eip155:1', 'eip155:1337'], partialSupport: [] },
+    undefined,
+    { priority: 1000 },
+  );
+
+  await tokensAssetsV3.register(
+    mockServer,
+    () => [
+      {
+        assetId: USDC_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
       },
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
-  );
-
-  await setupMockRequest(
-    mockServer,
-    {
-      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/,
-      response: [
-        {
-          assetId: USDC_ASSET_ID,
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-        },
-        {
-          assetId: LOCAL_USDC_ASSET_ID,
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-        },
-      ],
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
-  );
-
-  await setupMockRequest(
-    mockServer,
-    {
-      url: /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
-      response: {
-        [USDC_ASSET_ID]: {
-          price: 1,
-          pricePercentChange1d: 0,
-          marketCap: 1000000000,
-          totalVolume: 1000000,
-          usd: 1,
-        },
-        [LOCAL_USDC_ASSET_ID]: {
-          price: 1,
-          pricePercentChange1d: 0,
-          marketCap: 1000000000,
-          totalVolume: 1000000,
-          usd: 1,
-        },
+      {
+        assetId: LOCAL_USDC_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
       },
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
-  );
-
-  await setupMockRequest(mockServer, {
-    url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-    response: {
-      balances: [
-        {
-          object: 'token',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'ETH',
-          name: 'Ether',
-          type: 'native',
-          decimals: 18,
-          chainId: 1,
-          balance: '10.000000000000000000',
-          accountAddress: `eip155:1:${TEST_ACCOUNT}`,
-        },
-        {
-          object: 'token',
-          address: USDC_ADDRESS,
-          symbol: 'USDC',
-          name: 'USD Coin',
-          type: 'erc20',
-          decimals: 6,
-          chainId: 1,
-          balance: '10000.000000',
-          accountAddress: `eip155:1:${TEST_ACCOUNT}`,
-        },
-        {
-          object: 'token',
-          address: DAI_ADDRESS,
-          symbol: 'DAI',
-          name: 'Dai Stablecoin',
-          type: 'erc20',
-          decimals: 18,
-          chainId: 1,
-          balance: '5000.000000000000000000',
-          accountAddress: `eip155:1:${TEST_ACCOUNT}`,
-        },
-      ],
-      unprocessedNetworks: [],
-    },
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
-
-  await setupMockRequest(
-    mockServer,
+    ],
+    undefined,
     {
-      url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
-      response: {
-        count: 4,
-        balances: [
-          {
-            object: 'token',
-            assetId: 'eip155:1/slip44:60',
-            symbol: 'ETH',
-            name: 'Ether',
-            type: 'native',
-            decimals: 18,
-            balance: '10.000000000000000000',
-            accountId: `eip155:1:${TEST_ACCOUNT}`,
-          },
-          {
-            object: 'token',
-            assetId: USDC_ASSET_ID,
-            symbol: 'USDC',
-            name: 'USD Coin',
-            type: 'erc20',
-            decimals: 6,
-            balance: '10000.000000',
-            accountId: `eip155:1:${TEST_ACCOUNT}`,
-          },
-          {
-            object: 'token',
-            assetId: LOCAL_USDC_ASSET_ID,
-            symbol: 'USDC',
-            name: 'USD Coin',
-            type: 'erc20',
-            decimals: 6,
-            balance: '10000.000000',
-            accountId: `eip155:1337:${TEST_ACCOUNT}`,
-          },
-          {
-            object: 'token',
-            assetId: `eip155:1/erc20:${DAI_ADDRESS.toLowerCase()}`,
-            symbol: 'DAI',
-            name: 'Dai Stablecoin',
-            type: 'erc20',
-            decimals: 18,
-            balance: '5000.000000000000000000',
-            accountId: `eip155:1:${TEST_ACCOUNT}`,
-          },
-        ],
-        unprocessedNetworks: [],
-      },
-      requestMethod: 'GET',
-      responseCode: 200,
+      priority: 1000,
     },
-    1000,
   );
 
-  await setupMockRequest(mockServer, {
-    url: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances/,
-    response: {
-      count: 3,
-      balances: [
-        {
-          object: 'token',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'ETH',
-          name: 'Ether',
-          type: 'native',
-          timestamp: '2015-07-30T15:26:13.000Z',
-          decimals: 18,
-          chainId: 1,
-          balance: '10.0',
-        },
-        {
-          object: 'token',
-          address: USDC_ADDRESS,
-          symbol: 'USDC',
-          name: 'USD Coin',
-          type: 'erc20',
-          timestamp: '2018-05-28T00:00:00.000Z',
-          decimals: 6,
-          chainId: 1,
-          balance: '10000.0',
-        },
-        {
-          object: 'token',
-          address: DAI_ADDRESS,
-          symbol: 'DAI',
-          name: 'Dai Stablecoin',
-          type: 'erc20',
-          timestamp: '2017-12-18T00:00:00.000Z',
-          decimals: 18,
-          chainId: 1,
-          balance: '5000.0',
-        },
-      ],
-      unprocessedNetworks: [],
-    },
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  const usdcSpotPrice = {
+    price: 1,
+    pricePercentChange1d: 0,
+    marketCap: 1000000000,
+    totalVolume: 1000000,
+  };
+  await priceSpotPricesV3.register(
+    mockServer,
+    () => ({
+      [USDC_ASSET_ID]: { id: USDC_ASSET_ID, ...usdcSpotPrice },
+      [LOCAL_USDC_ASSET_ID]: { id: LOCAL_USDC_ASSET_ID, ...usdcSpotPrice },
+    }),
+    undefined,
+    { priority: 1000 },
+  );
+
+  await accountsMultiaccountBalancesV4.register(mockServer, () => ({
+    count: 3,
+    balances: [
+      {
+        object: 'token',
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        type: 'native',
+        decimals: 18,
+        chainId: 1,
+        balance: '10.000000000000000000',
+        accountAddress: `eip155:1:${TEST_ACCOUNT}`,
+      },
+      {
+        object: 'token',
+        address: USDC_ADDRESS,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        type: 'erc20',
+        decimals: 6,
+        chainId: 1,
+        balance: '10000.000000',
+        accountAddress: `eip155:1:${TEST_ACCOUNT}`,
+      },
+      {
+        object: 'token',
+        address: DAI_ADDRESS,
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        type: 'erc20',
+        decimals: 18,
+        chainId: 1,
+        balance: '5000.000000000000000000',
+        accountAddress: `eip155:1:${TEST_ACCOUNT}`,
+      },
+    ],
+    unprocessedNetworks: [],
+  }));
+
+  const accountsApiV5OrV6BalancesResponse = {
+    count: 4,
+    balances: [
+      {
+        object: 'token',
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ether',
+        type: 'native',
+        decimals: 18,
+        balance: '10.000000000000000000',
+        accountId: `eip155:1:${TEST_ACCOUNT}`,
+      },
+      {
+        object: 'token',
+        assetId: USDC_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        type: 'erc20',
+        decimals: 6,
+        balance: '10000.000000',
+        accountId: `eip155:1:${TEST_ACCOUNT}`,
+      },
+      {
+        object: 'token',
+        assetId: LOCAL_USDC_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        type: 'erc20',
+        decimals: 6,
+        balance: '10000.000000',
+        accountId: `eip155:1337:${TEST_ACCOUNT}`,
+      },
+      {
+        object: 'token',
+        assetId: `eip155:1/erc20:${DAI_ADDRESS.toLowerCase()}`,
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        type: 'erc20',
+        decimals: 18,
+        balance: '5000.000000000000000000',
+        accountId: `eip155:1:${TEST_ACCOUNT}`,
+      },
+    ],
+    unprocessedNetworks: [],
+  } satisfies AccountsMultiaccountBalancesV5Response;
+
+  await accountsMultiaccountBalancesV5.register(
+    mockServer,
+    () => accountsApiV5OrV6BalancesResponse,
+    undefined,
+    { priority: 1000 },
+  );
+  await accountsMultiaccountBalancesV6.register(
+    mockServer,
+    () => ({
+      balances: accountsApiV5OrV6BalancesResponse.balances,
+      unprocessedNetworks:
+        accountsApiV5OrV6BalancesResponse.unprocessedNetworks,
+      unprocessedIncludeAssetIds: [],
+    }),
+    undefined,
+    { priority: 1000 },
+  );
+
+  await accountsBalancesV2.register(mockServer, () => ({
+    count: 3,
+    balances: [
+      {
+        object: 'token',
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        type: 'native',
+        timestamp: '2015-07-30T15:26:13.000Z',
+        decimals: 18,
+        chainId: 1,
+        balance: '10.0',
+      },
+      {
+        object: 'token',
+        address: USDC_ADDRESS,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        type: 'erc20',
+        timestamp: '2018-05-28T00:00:00.000Z',
+        decimals: 6,
+        chainId: 1,
+        balance: '10000.0',
+      },
+      {
+        object: 'token',
+        address: DAI_ADDRESS,
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        type: 'erc20',
+        timestamp: '2017-12-18T00:00:00.000Z',
+        decimals: 18,
+        chainId: 1,
+        balance: '5000.0',
+      },
+    ],
+    unprocessedNetworks: [],
+  }));
 
   await setupMockRequest(mockServer, {
     url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/getFees/,

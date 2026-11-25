@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -44,6 +44,8 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface OrderDetailsParams {
   orderId?: string;
@@ -54,6 +56,7 @@ export const createOrderDetailsNavDetails =
   createNavigationDetails<OrderDetailsParams>(Routes.RAMP.ORDER_DETAILS);
 
 const OrderDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const trackEvent = useAnalytics();
   const params = useParams<OrderDetailsParams>();
   const order = useSelector((state: RootState) =>
@@ -219,7 +222,9 @@ const OrderDetails = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -231,7 +236,9 @@ const OrderDetails = () => {
   if (isLoading) {
     return (
       <ScreenLayout>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -248,7 +255,9 @@ const OrderDetails = () => {
   if (error) {
     return (
       <ScreenLayout>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -266,7 +275,9 @@ const OrderDetails = () => {
 
   return (
     <ScreenLayout>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
         onBack={() => navigation.goBack()}

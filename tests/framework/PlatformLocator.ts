@@ -1,4 +1,7 @@
-import { getPlatform as getCachedPlatform } from './DeviceInfoCache.ts';
+import {
+  getPlatform as getCachedPlatform,
+  getPlatformVersion as getCachedPlatformVersion,
+} from './DeviceInfoCache.ts';
 
 /**
  * Platform detector for Appium sessions.
@@ -24,6 +27,14 @@ export class PlatformDetector {
    */
   static isIOS(): boolean {
     return PlatformDetector.getPlatform() === 'ios';
+  }
+
+  static isIOSAtLeast(majorVersion: number): boolean {
+    if (!PlatformDetector.isIOS()) {
+      return false;
+    }
+    const major = Number.parseInt(getCachedPlatformVersion(), 10);
+    return Number.isFinite(major) && major >= majorVersion;
   }
 
   /** Appium session on Android. */

@@ -1,8 +1,10 @@
 import '../../../../tests/component-view/mocks';
 import { renderTokenList } from '../../../../tests/component-view/renderers/networkManager';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { act, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { strings } from '../../../../locales/i18n';
 
 /** Flushes Tokens' InteractionManager callback so its list replaces loading skeleton. */
 const waitForTokenListLoad = async () => {
@@ -71,5 +73,106 @@ describeForPlatforms('Tokens — network filtering', () => {
 
     const usdcToken = getByTestId(getAssetTestId('USDC'));
     expect(usdcToken).toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('Tokens — search', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const renderSearchableList = async () => {
+    const result = renderTokenList({
+      enabledNetworks: { eip155: { '0x1': true } },
+      activeEvmChainId: '0x1',
+    });
+    await waitForTokenListLoad();
+    return result;
+  };
+
+  it('renders the search input in full view', async () => {
+    const { getByTestId } = await renderSearchableList();
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the skeleton until the search debounce settles', async () => {
+    const { getByTestId, queryByTestId } = await renderSearchableList();
+
+    fireEvent.changeText(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      'usdc',
+    );
+
+    expect(getByTestId('token-list-skeleton')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(queryByTestId('token-list-skeleton')).not.toBeOnTheScreen();
+    });
+    expect(getByTestId(getAssetTestId('USDC'))).toBeOnTheScreen();
+  });
+
+  it('filters tokens by symbol', async () => {
+    const { getByTestId, queryByTestId } = await renderSearchableList();
+
+    fireEvent.changeText(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      'usdc',
+    );
+
+    await waitFor(() => {
+      expect(getByTestId(getAssetTestId('USDC'))).toBeOnTheScreen();
+      expect(queryByTestId(getAssetTestId('ETH'))).not.toBeOnTheScreen();
+    });
+  });
+
+  it('filters tokens by name', async () => {
+    const { getByTestId, queryByTestId } = await renderSearchableList();
+
+    fireEvent.changeText(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      'ethereum',
+    );
+
+    await waitFor(() => {
+      expect(getByTestId(getAssetTestId('ETH'))).toBeOnTheScreen();
+      expect(queryByTestId(getAssetTestId('USDC'))).not.toBeOnTheScreen();
+    });
+  });
+
+  it('shows the no-results state when nothing matches', async () => {
+    const { getByTestId, getByText, queryByTestId } =
+      await renderSearchableList();
+
+    fireEvent.changeText(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      'zzzz',
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(strings('wallet.no_tokens_match_search')),
+      ).toBeOnTheScreen();
+    });
+    expect(queryByTestId(getAssetTestId('ETH'))).not.toBeOnTheScreen();
+  });
+
+  it('restores the list when the no-results state is cleared', async () => {
+    const { getByTestId, getByText } = await renderSearchableList();
+    fireEvent.changeText(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      'zzzz',
+    );
+
+    await waitFor(() => {
+      expect(getByText(strings('wallet.clear_search'))).toBeOnTheScreen();
+    });
+    fireEvent.press(getByText(strings('wallet.clear_search')));
+
+    await waitFor(() => {
+      expect(getByTestId(getAssetTestId('ETH'))).toBeOnTheScreen();
+      expect(getByTestId(getAssetTestId('USDC'))).toBeOnTheScreen();
+    });
   });
 });

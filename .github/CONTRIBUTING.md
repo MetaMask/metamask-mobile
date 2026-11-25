@@ -45,13 +45,15 @@ Resolution order, highest priority first:
 3. `NAMESPACE_RUNNER_PROVIDER`.
 4. `current`.
 
+The `build.yml` build job only applies step 1 to builds that are unsigned or use a dev or UAT signer (`*-dev-signer*` or `*-uat-signer*` in `builds.yml`). For every other signer, including production, RC and any signer added later, only the repo variables pick the runner. The Runway workflows (`runway-production-builds.yml`, `runway-rc-builds.yml`) have no `runner_provider` input.
+
 Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, so the variables are the only way to steer them. That is why the input default is empty rather than a concrete provider.
 
-The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) are on the switch. BrowserStack native builds go through `build.yml` and follow the fleet. OTA (`eas-update-platform.yml`) and iOS BrowserStack upload follow `NAMESPACE_RUNNER_LINUX` (`ci-linux` vs `ubuntu-latest`). Android BrowserStack upload/repack follows `NAMESPACE_RUNNER_ANDROID` (`metamask-android-build`, which has JDK and `/opt/android-sdk`) and keeps Cirrus / `ubuntu-latest` only for `current` rollback. Do not put that job on `ci-linux`.
+The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) are on the switch. BrowserStack native builds go through `build.yml` and follow the fleet. OTA (`eas-update-platform.yml`) and iOS BrowserStack upload follow `NAMESPACE_RUNNER_LINUX` (`ci-linux` vs `ubuntu-latest`). On Namespace the OTA push label is `namespace-profile-metamask-ci-linux;job.priority=1`, so a queued update is scheduled ahead of other Namespace jobs that set no priority. That ordering applies only when the workspace is at its concurrency limit, and it does not preempt a job that is already running. The `ubuntu-latest` rollback has no priority. Android BrowserStack upload/repack follows `NAMESPACE_RUNNER_ANDROID` (`metamask-android-build`, which has JDK and `/opt/android-sdk`) and keeps Cirrus / `ubuntu-latest` only for `current` rollback. Do not put that job on `ci-linux`.
 
 The scheduled arm64 E2E APK build (`build-android-arm64-scheduled.yml`) previously stayed on Cirrus for artifact-store parity, but now uses `inherit`. When resolved to Namespace, it dual-uploads the release APK to both GitHub Actions and Namespace artifact stores; on a `current` rollback it uploads to GitHub only. That keeps the local-repro `gh run download` path working while the build itself runs on Namespace. Appium jobs and fixture validation already follow the same resolution chain as the PR build jobs (converted in #35002).
 
-A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, `ios-tests-ready`, and `cleanup-ci-js-deps`.
+A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, and `cleanup-ci-js-deps`.
 
 #### Rolling back
 
@@ -59,7 +61,7 @@ A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not fol
 - Android only, leaving iOS and Linux on Namespace: set `NAMESPACE_RUNNER_ANDROID=current`.
 - iOS only: set `NAMESPACE_RUNNER_IOS=current`.
 - Generic Linux CI jobs back to `ubuntu-latest`: set `NAMESPACE_RUNNER_LINUX=current`.
-- A single run, without touching any variable: dispatch the workflow with `runner_provider=current`.
+- A single run, without touching any variable: dispatch the workflow with `runner_provider=current`. This only applies to unsigned, dev-signed and UAT-signed builds. Production- and RC-signed builds only follow the variables.
 
 In-flight runs are unaffected; the next run picks up the new value.
 

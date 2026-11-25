@@ -57,13 +57,138 @@ export function getCampaignStatus(campaign: CampaignDto): CampaignStatus {
 }
 
 /**
+ * Resolves the campaign of a given type that a navigation entry point (deeplink,
+ * details view reached without an id) should target: the most recently started
+ * `active` campaign.
+ *
+ * Navigation callers must not fall back to "first campaign of this type in API
+ * order" — once a second campaign of the same type exists, that silently
+ * resolves to a past one. They also must not fall back to an `upcoming`
+ * campaign: a campaign that has not started has no leaderboard, volume or prize
+ * standing to show, so its details page would be empty. Entry points stay where
+ * they are until the campaign starts, matching `CampaignTile`, which renders
+ * upcoming campaigns as non-interactive.
+ *
+ * @param campaigns - The full campaign list.
+ * @param type - The campaign type to resolve.
+ * @returns The active campaign, or null when none of this type is running.
+ */
+export function getLatestActiveCampaignOfType(
+  campaigns: CampaignDto[],
+  type: CampaignType,
+): CampaignDto | null {
+  const active = campaigns.filter(
+    (campaign) =>
+      campaign.type === type && getCampaignStatus(campaign) === 'active',
+  );
+  if (active.length === 0) {
+    return null;
+  }
+
+  return active.reduce(
+    (latest, campaign) =>
+      new Date(campaign.startDate) > new Date(latest.startDate)
+        ? campaign
+        : latest,
+    active[0],
+  );
+}
+
+/**
+ * Resolves the campaign of a given type that a campaign deeplink should open:
+ * the most recently started `active` campaign, or when none is running, the
+ * most recently ended `complete` campaign (latest `endDate`, latest `startDate`
+ * on a tie).
+ *
+ * Upcoming campaigns are never returned. Their details page has nothing to show
+ * until the campaign starts, so the deeplink stays on the Rewards home instead.
+ *
+ * @param campaigns - The full campaign list.
+ * @param type - The campaign type to resolve.
+ * @returns The campaign to open, or null when none of this type is active or ended.
+ */
+export function getLatestActiveOrLastCompletedCampaignOfType(
+  campaigns: CampaignDto[],
+  type: CampaignType,
+): CampaignDto | null {
+  const active = getLatestActiveCampaignOfType(campaigns, type);
+  if (active) {
+    return active;
+  }
+
+  const completed = campaigns.filter(
+    (campaign) =>
+      campaign.type === type && getCampaignStatus(campaign) === 'complete',
+  );
+  if (completed.length === 0) {
+    return null;
+  }
+
+  return completed.reduce((latest, campaign) => {
+    const endDelta =
+      new Date(campaign.endDate).getTime() - new Date(latest.endDate).getTime();
+    if (endDelta !== 0) {
+      return endDelta > 0 ? campaign : latest;
+    }
+    return new Date(campaign.startDate) > new Date(latest.startDate)
+      ? campaign
+      : latest;
+  }, completed[0]);
+}
+
+/**
+ * Resolves the campaign of a given type that a type-scoped entry point should
+ * target when a not-yet-started campaign is still a meaningful answer: the most
+ * recently started `active` campaign, or the soonest-starting `upcoming` one
+ * when none is running.
+ *
+ * Only for callers that identify a campaign without navigating to it — the
+ * perps competition banner keys its dismissal by the resolved id, and needs the
+ * upcoming campaign so a dismissal made before the start date still holds once
+ * the campaign goes live. Navigation callers want
+ * {@link getLatestActiveCampaignOfType}.
+ *
+ * @param campaigns - The full campaign list.
+ * @param type - The campaign type to resolve.
+ * @returns The resolved campaign, or null when only complete campaigns exist.
+ */
+export function getLatestActiveOrUpcomingCampaignOfType(
+  campaigns: CampaignDto[],
+  type: CampaignType,
+): CampaignDto | null {
+  const active = getLatestActiveCampaignOfType(campaigns, type);
+  if (active) {
+    return active;
+  }
+
+  const upcoming = campaigns.filter(
+    (campaign) =>
+      campaign.type === type && getCampaignStatus(campaign) === 'upcoming',
+  );
+  if (upcoming.length > 0) {
+    return upcoming.reduce(
+      (soonest, campaign) =>
+        new Date(campaign.startDate) < new Date(soonest.startDate)
+          ? campaign
+          : soonest,
+      upcoming[0],
+    );
+  }
+
+  return null;
+}
+
+/**
  * Formats a date for display in campaign tiles (localized month and day).
  *
  * @param date - The date to format
  * @param locale - BCP 47 locale; defaults to the app locale
  * @returns Formatted date string (e.g., "March 15" in en-US)
  */
-function formatCampaignDate(date: Date, locale: string = I18n.locale): string {
+export function formatCampaignDate(
+  date: Date,
+  locale: string = I18n.locale,
+): string {
   return getIntlDateTimeFormatter(locale, {
     month: 'long',
     day: 'numeric',

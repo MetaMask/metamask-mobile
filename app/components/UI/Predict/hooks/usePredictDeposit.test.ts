@@ -1,5 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
+import { toast } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -35,28 +37,10 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return {
-    useAppThemeFromContext: () => mockTheme,
-  };
-});
-
-jest.mock('../../../../component-library/components/Toast', () => {
-  const actualReact = jest.requireActual('react');
-  return {
-    ToastContext: actualReact.createContext({
-      toastRef: {
-        current: {
-          showToast: jest.fn(),
-        },
-      },
-    }),
-    ToastVariants: {
-      Icon: 'icon',
-    },
-  };
-});
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  toast: jest.fn(),
+}));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: () => ({
@@ -254,6 +238,13 @@ describe('usePredictDeposit', () => {
     // Assert
     await waitFor(() => {
       expect(Logger.error).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('predict.deposit.error_title'),
+          description: strings('predict.deposit.error_description'),
+          actionButtonLabel: strings('predict.deposit.try_again'),
+        }),
+      );
     });
   });
 

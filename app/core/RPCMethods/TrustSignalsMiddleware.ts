@@ -2,11 +2,13 @@ import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import type { Hex, Json, JsonRpcRequest } from '@metamask/utils';
 import type { PhishingController } from '@metamask/phishing-controller';
 import type { NetworkController } from '@metamask/network-controller';
+import type { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 import {
   parseTypedDataMessage,
   extractSpenderFromApprovalData,
   extractSpenderFromPermitMessage,
+  getOriginScanFlow,
   hasValidTransactionParams,
   hasValidTypedDataParams,
   isEthSendTransaction,
@@ -30,6 +32,7 @@ interface TrustSignalsRequest extends JsonRpcRequest {
 interface TrustSignalsMiddlewareConfig {
   phishingController: PhishingController;
   networkController: NetworkController;
+  preferencesController: PreferencesController;
 }
 
 /**
@@ -144,11 +147,20 @@ async function handleEthSignTypedData(
 export function createTrustSignalsMiddleware({
   phishingController,
   networkController,
+  preferencesController,
 }: TrustSignalsMiddlewareConfig) {
   return createAsyncMiddleware(async (req: TrustSignalsRequest, _res, next) => {
     try {
+      // Read per request rather than at construction time, so toggling the
+      // preference takes effect without rebuilding the RPC pipeline.
+      if (!preferencesController.state.securityAlertsEnabled) {
+        return;
+      }
+
       if (req.origin) {
-        scanUrl(phishingController, req.origin);
+        // Run the scan without blocking RPC processing; scanUrl handles failures.
+        // eslint-disable-next-line no-void
+        void scanUrl(phishingController, req.origin, getOriginScanFlow(req));
       }
 
       const chainId = getChainIdForRequest(req, networkController);

@@ -6,10 +6,6 @@ import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
 import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  TokenSelectorBalanceLayoutVariant,
-} from './TokenSelectorItem.abTestConfig';
-import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
@@ -21,8 +17,8 @@ jest.mock('../../shared/StockBadge', () => {
 
   return {
     __esModule: true,
-    default: ({ token }: { token: { symbol: string } }) =>
-      createElement(Text, { testID: `stock-badge-${token.symbol}` }, 'Stock'),
+    default: ({ token, label }: { token: { symbol: string }; label: string }) =>
+      createElement(Text, { testID: `stock-badge-${token.symbol}` }, label),
   };
 });
 
@@ -44,7 +40,6 @@ jest.mock('../../../../component-library/hooks', () => {
       itemWrapper: {},
       balance: {},
       skeleton: {},
-      secondaryBalance: {},
       badgeWrapper: {},
       noFeeBadge: {},
       selectedItemWrapperReset: {},
@@ -181,15 +176,6 @@ jest.mock('../../../../component-library/base-components/TagBase', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/Tags/Tag', () => {
-  const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ label }: { label: string }) => createElement(Text, null, label),
-  };
-});
-
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
 
@@ -228,7 +214,7 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('$500')).toBeTruthy();
-      expect(getByText('50 USDC')).toBeTruthy();
+      expect(getByText('50')).toBeTruthy();
     });
 
     it('hides balance when shouldShowBalance is false', () => {
@@ -301,6 +287,32 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('No MM Fee')).toBeTruthy();
+    });
+
+    it('renders the badge with badgeLabel when provided', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          badgeLabel="Stock"
+        />,
+      );
+
+      expect(getByTestId(`stock-badge-${token.symbol}`)).toHaveTextContent(
+        'Stock',
+      );
+    });
+
+    it('does not render the badge when badgeLabel is not provided', () => {
+      const token = createMockTokenWithBalance();
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByTestId(`stock-badge-${token.symbol}`)).toBeNull();
     });
 
     it('renders verified icon when token is verified', () => {
@@ -472,8 +484,8 @@ describe('TokenSelectorItem', () => {
 
   describe('balance formatting', () => {
     it.each([
-      ['zero balance', '0', '0 TOKEN'],
-      ['small balance', '0.000001', '< 0.00001 TOKEN'],
+      ['zero balance', '0', '0'],
+      ['small balance', '0.000001', '< 0.00001'],
     ])('formats %s correctly', (_, balance, expected) => {
       const token = createMockTokenWithBalance({ balance, symbol: 'TOKEN' });
 
@@ -610,7 +622,7 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
 
-      const tokenBalanceElement = getByText('50 TOKEN');
+      const tokenBalanceElement = getByText('50');
 
       expect(tokenBalanceElement.props.numberOfLines).toBe(1);
     });
@@ -721,36 +733,8 @@ describe('TokenSelectorItem', () => {
     });
   });
 
-  describe('A/B variants', () => {
-    it('keeps fiat above token balance in the control layout', () => {
-      const token = createMockTokenWithBalance({
-        balance: '50.0',
-        balanceFiat: '$500',
-        symbol: 'USDC',
-      });
-
-      const controlRender = render(
-        <TokenSelectorItem
-          token={token}
-          onPress={mockOnPress}
-          balanceLayoutConfigOverride={
-            TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-              TokenSelectorBalanceLayoutVariant.Control
-            ]
-          }
-        />,
-      );
-      expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
-
-      const controlTextOrder = controlRender
-        .UNSAFE_getAllByType(RNText)
-        .map((textNode) => String(textNode.props.children));
-      expect(controlTextOrder.indexOf('$500')).toBeLessThan(
-        controlTextOrder.indexOf('50 USDC'),
-      );
-    });
-
-    it('shows token balance first without the ticker in the treatment layout', () => {
+  describe('balance layout', () => {
+    it('keeps token balance above fiat without the ticker', () => {
       const token = createMockTokenWithBalance({
         balance: '50.0',
         balanceFiat: '$500',
@@ -758,15 +742,7 @@ describe('TokenSelectorItem', () => {
       });
 
       const treatmentRender = render(
-        <TokenSelectorItem
-          token={token}
-          onPress={mockOnPress}
-          balanceLayoutConfigOverride={
-            TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-              TokenSelectorBalanceLayoutVariant.Treatment
-            ]
-          }
-        />,
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
       expect(treatmentRender.getByText('50')).toBeOnTheScreen();
       expect(treatmentRender.queryByText('50 USDC')).not.toBeOnTheScreen();

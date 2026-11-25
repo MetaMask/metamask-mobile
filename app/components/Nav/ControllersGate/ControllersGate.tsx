@@ -6,7 +6,7 @@ import { selectAppServicesReady } from '../../../reducers/user/selectors';
 import FoxLoader from '../../UI/FoxLoader';
 /**
  * A higher order component that gate keeps the children until the app services are finished loaded
- * and the splash animation has completed.
+ * and the splash loader has dismissed.
  *
  * @param props - The props for the ControllersGate component
  * @param props.children - The children to render
@@ -28,14 +28,12 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
     }).start(() => setLoaderDone(true));
   }, [loaderOpacity]);
 
-  // Only fade out once BOTH the animation is done AND app services are ready.
-  // This prevents a blank screen when Rive fails or times out before services finish.
+  // Fade out once the loader has dismissed and app services are ready.
+  // Dismissing early, before services finish, would reveal a blank screen.
   useEffect(() => {
     if (animationDone && appServicesReady) {
-      const timer = setTimeout(fadeOutLoader, 250);
-      return () => clearTimeout(timer);
+      fadeOutLoader();
     }
-    return undefined;
   }, [animationDone, appServicesReady, fadeOutLoader]);
 
   const handleAnimationComplete = useCallback(() => {

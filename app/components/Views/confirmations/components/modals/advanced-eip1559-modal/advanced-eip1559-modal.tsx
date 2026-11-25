@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Modal, View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import {
   TransactionMeta,
@@ -9,6 +9,9 @@ import { pickBy } from 'lodash';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
+  BottomSheet,
+  BottomSheetRef,
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -16,13 +19,13 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { useAdvancedGasFeeModal } from '../../../hooks/gas/useAdvancedGasFeeModal';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import BottomModal from '../../UI/bottom-modal';
-import { GasModalHeader } from '../../../components/gas/gas-modal-header';
 import { GasModalType } from '../../../constants/gas';
 import { GasInput } from '../../../components/gas/gas-input';
 import { MaxBaseFeeInput } from '../../../components/gas/max-base-fee-input';
 import { PriorityFeeInput } from '../../../components/gas/priority-fee-input';
 import styleSheet from './advanced-eip1559-modal.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const AdvancedEIP1559Modal = ({
   setActiveModal,
@@ -31,7 +34,9 @@ export const AdvancedEIP1559Modal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
 
   const { gas, maxFeePerGas, maxPriorityFeePerGas } =
@@ -77,6 +82,14 @@ export const AdvancedEIP1559Modal = ({
     setActiveModal(GasModalType.ESTIMATES);
   }, [setActiveModal]);
 
+  const handleSheetClosed = useCallback(() => {
+    navigateToEstimatesModal();
+  }, [navigateToEstimatesModal]);
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const createChangeHandler = useCallback(
     (key: 'gas' | 'maxFeePerGas' | 'maxPriorityFeePerGas') => (value: Hex) =>
       setGasParams((prev) => ({ ...prev, [key]: value })),
@@ -115,43 +128,52 @@ export const AdvancedEIP1559Modal = ({
   );
 
   return (
-    <BottomModal
-      avoidKeyboard
-      onBackdropPress={navigateToEstimatesModal}
-      onBackButtonPress={navigateToEstimatesModal}
-      onSwipeComplete={navigateToEstimatesModal}
+    <Modal
+      visible
+      animationType="none"
+      transparent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleRequestClose}
     >
-      <View style={styles.container}>
-        <GasModalHeader
-          onBackButtonClick={navigateToEstimatesModal}
-          title={strings('transactions.gas_modal.advanced_gas_fee')}
-        />
-        <View style={styles.inputsContainer}>
-          <MaxBaseFeeInput
-            onChange={handleMaxFeePerGasChange}
-            maxPriorityFeePerGas={gasParams.maxPriorityFeePerGas}
-            onErrorChange={handleMaxFeePerGasError}
-          />
-          <PriorityFeeInput
-            onChange={handleMaxPriorityFeePerGasChange}
-            maxFeePerGas={gasParams.maxFeePerGas}
-            onErrorChange={handleMaxPriorityFeePerGasError}
-          />
-          <GasInput
-            onChange={handleGasLimitChange}
-            onErrorChange={handleGasError}
-          />
-        </View>
-        <Button
-          isDisabled={hasError}
-          onPress={handleSaveClick}
-          size={ButtonSize.Lg}
-          style={styles.button}
-          variant={ButtonVariant.Primary}
+      <BottomSheet
+        ref={bottomSheetRef}
+        keyboardAvoidingViewEnabled
+        onClose={handleSheetClosed}
+      >
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
+          onClose={handleRequestClose}
         >
-          {strings('transactions.gas_modal.save')}
-        </Button>
-      </View>
-    </BottomModal>
+          {strings('transactions.gas_modal.advanced_gas_fee')}
+        </BottomSheetHeaderGlass>
+        <Box twClassName="flex flex-col p-4 pt-0">
+          <View style={styles.inputsContainer}>
+            <MaxBaseFeeInput
+              onChange={handleMaxFeePerGasChange}
+              maxPriorityFeePerGas={gasParams.maxPriorityFeePerGas}
+              onErrorChange={handleMaxFeePerGasError}
+            />
+            <PriorityFeeInput
+              onChange={handleMaxPriorityFeePerGasChange}
+              maxFeePerGas={gasParams.maxFeePerGas}
+              onErrorChange={handleMaxPriorityFeePerGasError}
+            />
+            <GasInput
+              onChange={handleGasLimitChange}
+              onErrorChange={handleGasError}
+            />
+          </View>
+          <Button
+            isDisabled={hasError}
+            onPress={handleSaveClick}
+            size={ButtonSize.Lg}
+            style={styles.button}
+            variant={ButtonVariant.Primary}
+          >
+            {strings('transactions.gas_modal.save')}
+          </Button>
+        </Box>
+      </BottomSheet>
+    </Modal>
   );
 };

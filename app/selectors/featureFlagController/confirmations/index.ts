@@ -2,9 +2,15 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   getRelayFixedSpreadFromConfig,
+  hasRelayFixedSpreadAliasRoute,
+  PERPS_MONEY_ACCOUNT_NO_FEE_ROUTE,
   RelayFixedSpreadConfig,
 } from '../../../components/Views/confirmations/utils/relayFixedSpread';
 
@@ -223,6 +229,20 @@ export function selectDepositLimits(state: RootState): Record<string, number> {
   );
 }
 
+/**
+ * True when `confirmations_relay_fixed_spread` lists the Monad mUSD →
+ * Hyperliquid perps route. That route gates the Money account "No fee" tag
+ * on perps deposits.
+ */
+export const selectPerpsMoneyAccountNoFeeRouteEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): boolean =>
+    hasRelayFixedSpreadAliasRoute(
+      featureFlags?.confirmations_relay_fixed_spread,
+      PERPS_MONEY_ACCOUNT_NO_FEE_ROUTE,
+    ),
+);
+
 export const selectMetaMaskPayTokensFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayTokensFlags => {
@@ -399,3 +419,34 @@ export const selectRelayFixedSpread = createSelector(
       'confirmations_relay_fixed_spread',
     ),
 );
+
+/** Resolves the Core atomic-max gate, including nested transaction overrides. */
+export function selectRelayAtomicMaxEnabled(
+  state: RootState,
+  transaction?: TransactionMeta,
+): boolean {
+  const featureFlags = selectRemoteFeatureFlags(state);
+  const extended = featureFlags?.confirmations_pay_extended as
+    | {
+        payStrategies?: {
+          relay?: {
+            atomicMaxEnabled?: {
+              default?: boolean;
+              transactionTypes?: Partial<Record<TransactionType, boolean>>;
+            };
+          };
+        };
+      }
+    | undefined;
+  const config = extended?.payStrategies?.relay?.atomicMaxEnabled;
+
+  for (const [type, enabled] of Object.entries(
+    config?.transactionTypes ?? {},
+  )) {
+    if (hasTransactionType(transaction, [type as TransactionType])) {
+      return enabled;
+    }
+  }
+
+  return config?.default ?? false;
+}

@@ -10,6 +10,7 @@ import {
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { isEqual } from 'lodash';
+import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 
 const useStableReference = <T>(value: T) => {
   const [stableValue, setStableValue] = useState(value);
@@ -41,6 +42,7 @@ export const useTrendingSearch = (opts?: {
   includeMarketData?: boolean;
   includeStocks?: boolean;
   filterLowQuality?: boolean;
+  performance?: SearchRequestPerformance;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
@@ -55,6 +57,7 @@ export const useTrendingSearch = (opts?: {
     includeMarketData = true,
     includeStocks = false,
     filterLowQuality = false,
+    performance,
     sortTrendingTokensOptions = {
       option: PriceChangeOption.PriceChange,
       direction: SortDirection.Descending,
@@ -62,6 +65,7 @@ export const useTrendingSearch = (opts?: {
   } = useStableReference(opts ?? {});
 
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  const searchRequestQuery = debouncedQuery?.trim().replace(/^\$/, '') ?? '';
 
   // Debounce the search query
   useEffect(() => {
@@ -82,10 +86,11 @@ export const useTrendingSearch = (opts?: {
     hasNextPage,
     totalCount,
   } = useSearchRequest({
-    query: debouncedQuery || '',
+    query: searchRequestQuery,
     limit: 20,
     chainIds: chainIds ?? undefined,
     includeMarketData,
+    performance,
   });
 
   const {
@@ -99,7 +104,7 @@ export const useTrendingSearch = (opts?: {
   });
 
   const data = useMemo(() => {
-    if (!debouncedQuery?.trim()) {
+    if (!searchRequestQuery) {
       return sortTrendingTokens(
         trendingResults,
         sortTrendingTokensOptions.option,
@@ -108,45 +113,35 @@ export const useTrendingSearch = (opts?: {
       );
     }
 
-    const query = debouncedQuery.toLowerCase().trim();
-    const filteredTrendingResults = trendingResults.filter(
-      (item) =>
-        item.symbol?.toLowerCase().includes(query) ||
-        item.name?.toLowerCase().includes(query),
-    );
-
-    const resultMap = new Map(
-      filteredTrendingResults.map((result) => [result.assetId, result]),
-    );
-
-    searchResults
-      .filter((item) => includeStocks || !item.rwaData)
-      .forEach((asset) => {
-        if (!resultMap.has(asset.assetId)) {
-          resultMap.set(asset.assetId, {
-            assetId: asset.assetId,
-            symbol: asset.symbol,
-            name: asset.name,
-            decimals: asset.decimals,
-            price: asset.price,
-            aggregatedUsdVolume: asset.aggregatedUsdVolume,
-            marketCap: asset.marketCap,
-            priceChangePct: {
-              h24: asset.pricePercentChange1d,
-            },
-            rwaData: asset.rwaData as unknown as
-              | TrendingAsset['rwaData']
-              | undefined,
-            securityData: asset.securityData,
-          });
+    const seen = new Set<string>();
+    return searchResults
+      .filter((item) => {
+        if (seen.has(item.assetId)) {
+          return false;
         }
-      });
-
-    return Array.from(resultMap.values());
+        seen.add(item.assetId);
+        return includeStocks || !item.rwaData;
+      })
+      .map((asset) => ({
+        assetId: asset.assetId,
+        symbol: asset.symbol,
+        name: asset.name,
+        decimals: asset.decimals,
+        price: asset.price,
+        aggregatedUsdVolume: asset.aggregatedUsdVolume,
+        marketCap: asset.marketCap,
+        priceChangePct: {
+          h24: asset.pricePercentChange1d,
+        },
+        rwaData: asset.rwaData as unknown as
+          | TrendingAsset['rwaData']
+          | undefined,
+        securityData: asset.securityData,
+      }));
   }, [
-    debouncedQuery,
-    trendingResults,
+    searchRequestQuery,
     searchResults,
+    trendingResults,
     sortTrendingTokensOptions,
     includeStocks,
   ]);
@@ -157,7 +152,7 @@ export const useTrendingSearch = (opts?: {
     prevDebouncedQuery.current = debouncedQuery;
   });
 
-  const isLoading = debouncedQuery?.trim()
+  const isLoading = searchRequestQuery
     ? searchQuery !== debouncedQuery ||
       prevDebouncedQuery.current !== debouncedQuery ||
       isSearchLoading
@@ -170,6 +165,6 @@ export const useTrendingSearch = (opts?: {
     loadMore,
     isLoadingMore,
     hasNextPage,
-    totalCount: debouncedQuery?.trim() ? totalCount : undefined,
+    totalCount: searchRequestQuery ? totalCount : undefined,
   };
 };

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useTheme } from '../../../../../util/theme';
 import { useTokensSlice } from './slices/useTokensSlice';
 import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
@@ -8,20 +7,22 @@ import { useDefiSlice } from './slices/useDefiSlice';
 import { useFiatNormalizer } from './useFiatNormalizer';
 import { SLICE_ORDER } from '../constants';
 import { computeAggregateHero24hDelta } from '../utils/aggregateHero24hDelta';
-import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
-import type {
-  BalanceSlice,
-  BreakdownData,
-  HeroData,
-  SliceData,
-  SliceKey,
+import {
+  hasSliceValue,
+  type BalanceSlice,
+  type BreakdownData,
+  type HeroData,
+  type SliceData,
+  type SliceKey,
 } from '../types';
 
-function computePercentages(slices: Record<SliceKey, SliceData>): {
+function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
   slices: Record<SliceKey, SliceData>;
   totalFiat: number;
 } {
-  const ready = SLICE_ORDER.filter((k) => slices[k].status === 'ready');
+  // A `partial` slice still contributes real money to the total; only its
+  // completeness claim is degraded (TAT-4407).
+  const ready = SLICE_ORDER.filter((k) => hasSliceValue[slices[k].status]);
   // Money vault accounts are not part of AccountsController/account groups, so
   // the Money and Tokens slice sources are disjoint and can be summed directly.
   const totalFiat = ready.reduce((s, k) => s + slices[k].valueFiat, 0);
@@ -32,13 +33,13 @@ function computePercentages(slices: Record<SliceKey, SliceData>): {
     0,
   );
 
-  const updated = { ...slices };
+  const updated = {} as Record<SliceKey, SliceData>;
   for (const key of SLICE_ORDER) {
     updated[key] = {
       ...slices[key],
       percentOfTotal:
         allocationTotalFiat > 0 &&
-        slices[key].status === 'ready' &&
+        hasSliceValue[slices[key].status] &&
         slices[key].valueFiat > 0
           ? slices[key].valueFiat / allocationTotalFiat
           : 0,
@@ -55,7 +56,7 @@ function aggregateStatus(
     (k) => slices[k].status !== 'ineligible',
   );
   const hasReadySlice = eligibleSlices.some(
-    (k) => slices[k].status === 'ready',
+    (k) => hasSliceValue[slices[k].status],
   );
   const hasLoadingSlice = eligibleSlices.some(
     (k) => slices[k].status === 'loading',
@@ -64,7 +65,9 @@ function aggregateStatus(
   // A zero-valued ready slice is not enough to conclude the portfolio is empty
   // while another eligible balance is still loading.
   if (hasReadySlice && (totalFiat !== 0 || !hasLoadingSlice)) {
-    return 'ready';
+    return eligibleSlices.some((key) => slices[key].status === 'partial')
+      ? 'partial'
+      : 'ready';
   }
 
   if (hasLoadingSlice) {
@@ -79,7 +82,6 @@ function aggregateStatus(
 }
 
 export function useBalanceBreakdown(): BreakdownData {
-  const { themeAppearance } = useTheme();
   const { toUserCurrency, userCurrency } = useFiatNormalizer();
   const tokensSlice = useTokensSlice();
   const moneySlice = useMoneySlice(toUserCurrency);
@@ -98,29 +100,9 @@ export function useBalanceBreakdown(): BreakdownData {
     [tokensSlice, moneySlice, perpsSlice, predictSlice, defiSlice],
   );
 
-  const sliceStrokeColors = useMemo(
-    () => getBalanceBreakdownSliceColors(themeAppearance),
-    [themeAppearance],
-  );
-
-  const slicesWithThemeColors: Record<SliceKey, SliceData> = useMemo(
-    () =>
-      Object.fromEntries(
-        SLICE_ORDER.map((key) => [
-          key,
-          {
-            ...slicesRaw[key],
-            color: sliceStrokeColors[key],
-            percentOfTotal: 0,
-          },
-        ]),
-      ) as Record<SliceKey, SliceData>,
-    [slicesRaw, sliceStrokeColors],
-  );
-
   const { slices, totalFiat } = useMemo(
-    () => computePercentages(slicesWithThemeColors),
-    [slicesWithThemeColors],
+    () => computePercentages(slicesRaw),
+    [slicesRaw],
   );
 
   const heroStatus = useMemo(
@@ -129,13 +111,13 @@ export function useBalanceBreakdown(): BreakdownData {
   );
   const isHeroPartiallyLoaded = useMemo(
     () =>
-      heroStatus === 'ready' &&
+      hasSliceValue[heroStatus] &&
       SLICE_ORDER.some((key) => slices[key].status === 'loading'),
     [heroStatus, slices],
   );
   const hasHeroErroredSlice = useMemo(
     () =>
-      heroStatus === 'ready' &&
+      hasSliceValue[heroStatus] &&
       SLICE_ORDER.some((key) => slices[key].status === 'error'),
     [heroStatus, slices],
   );

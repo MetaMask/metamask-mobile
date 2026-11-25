@@ -228,6 +228,7 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+  MARKET_BREAK: 'predict-crypto-up-down-details-market-break',
   TWAP_INFO_BUTTON: 'predict-crypto-up-down-details-twap-info-button',
   TWAP_INFO_SHEET: 'predict-crypto-up-down-details-twap-info-sheet',
 } as const;
@@ -327,6 +328,7 @@ export const PredictCashOutSelectorsIDs = {
 export const PredictOrderRetrySheetSelectorsIDs = {
   CONTAINER: 'predict-order-retry-sheet-container',
   RETRY_BUTTON: 'predict-order-retry-sheet-retry-button',
+  TRY_LATER_BUTTON: 'predict-order-retry-sheet-try-later-button',
   CLOSE_BUTTON: 'predict-order-retry-sheet-close-button',
 } as const;
 
@@ -353,6 +355,12 @@ export const PredictUnavailableSelectorsIDs = {
   BUTTON_TEXT: enContent.predict.unavailable.button,
 } as const;
 
+export const PredictConnectionErrorSelectorsIDs = {
+  TITLE_TEXT: enContent.predict.error.title,
+  DESCRIPTION_TEXT: enContent.predict.error.description,
+  RETRY_TEXT: enContent.predict.error.retry,
+} as const;
+
 // ========================================
 // PREDICT ACTIVITY DETAILS SELECTORS
 // ========================================
@@ -361,7 +369,14 @@ export const PredictActivityDetailsSelectorsIDs = {
   BACK_BUTTON: 'predict-activity-details-back-button',
   CONTAINER: 'predict-activity-details-container',
   TITLE_TEXT: 'predict-activity-details-title',
+  AMOUNT_SECTION: 'predict-activity-details-amount-section',
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
+  MARKET_SECTION: 'predict-activity-details-market-section',
+  SECTION_DIVIDER: 'predict-activity-details-section-divider',
+  TRANSACTION_SECTION: 'predict-activity-details-transaction-section',
+  NET_PNL_DIVIDER: 'predict-activity-details-net-pnl-divider',
+  MARKET_LABEL: 'predict-activity-details-market-label',
+  MARKET_VALUE: 'predict-activity-details-market-value',
 } as const;
 
 // ========================================

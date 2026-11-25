@@ -146,9 +146,14 @@ class NotificationsService {
       });
     });
 
-  async requestPushNotificationsPermission(): Promise<void> {
+  /**
+   * Shows the alert that sends the user to the system notification settings.
+   *
+   * @returns Whether the user chose to open the system settings.
+   */
+  async requestPushNotificationsPermission(): Promise<boolean> {
     try {
-      await this.asyncAlert(
+      return await this.asyncAlert(
         strings('notifications.prompt_title'),
         strings('notifications.prompt_desc'),
       );
@@ -157,6 +162,7 @@ class NotificationsService {
         e as Error,
         strings('notifications.error_checking_permission'),
       );
+      return false;
     }
   }
   openSystemSettings() {
@@ -266,6 +272,7 @@ class NotificationsService {
     body,
     data,
     id,
+    throwOnError = false,
   }: {
     channelId?: ChannelId;
     pressActionId?: PressActionId;
@@ -273,6 +280,7 @@ class NotificationsService {
     body?: string;
     data?: unknown;
     id?: string;
+    throwOnError?: boolean;
   }): Promise<void> => {
     try {
       const channel = notificationChannels.find((c) => c.id === channelId);
@@ -285,7 +293,9 @@ class NotificationsService {
         title,
         body,
         // Notifee can only store and handle data strings
-        data: { dataStr: JSON.stringify(data) },
+        ...(data === undefined
+          ? {}
+          : { data: { dataStr: JSON.stringify(data) } }),
         android: {
           // Omit largeIcon — same fox as smallIcon caused a duplicate on Android.
           smallIcon: 'ic_notification_small',
@@ -311,6 +321,9 @@ class NotificationsService {
       });
     } catch (error) {
       Logger.log('Error displaying notification ', error);
+      if (throwOnError) {
+        throw error;
+      }
     }
   };
 }
@@ -377,8 +390,8 @@ export async function isPushPermissionGranted(): Promise<boolean> {
 /**
  * Returns true when requesting push permission may show the OS dialog.
  * iOS exposes a NOT_DETERMINED state, but Notifee only exposes AUTHORIZED/DENIED
- * on Android. Treat Android's not-granted state as promptable and let
- * requestPermission determine whether the OS can show a dialog.
+ * on Android. Treat Android's not-granted state as promptable; on Android < 13
+ * there is still no dialog — check `canOsPromptForPushPermission` before requesting.
  */
 export async function isPushPermissionPromptable(): Promise<boolean> {
   if (Platform.OS === 'android') {
@@ -386,4 +399,24 @@ export async function isPushPermissionPromptable(): Promise<boolean> {
   }
 
   return (await getPushPermissionStatus()) === 'promptable';
+}
+
+/** Android API level that introduced the `POST_NOTIFICATIONS` runtime permission. */
+export const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
+
+/**
+ * Whether the OS can show a push-permission dialog.
+ *
+ * Android added `POST_NOTIFICATIONS` in API 33. Below that there is no runtime
+ * permission: `requestPermission()` never shows a dialog and just returns the
+ * current enabled/disabled state. `isPushPermissionPromptable` still treats
+ * Android's not-granted state as promptable, so callers must check this first
+ * and send Android < 13 users to system settings instead of requesting.
+ */
+export function canOsPromptForPushPermission(): boolean {
+  if (Platform.OS !== 'android') {
+    return true;
+  }
+
+  return Number(Platform.Version) >= ANDROID_POST_NOTIFICATIONS_API_LEVEL;
 }

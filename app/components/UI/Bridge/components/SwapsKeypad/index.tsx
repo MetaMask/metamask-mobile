@@ -6,6 +6,7 @@ import React, {
   useState,
   PropsWithChildren,
 } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import {
   BottomSheetDialog,
   type BottomSheetDialogRef,
@@ -23,6 +24,14 @@ interface SwapsKeypadProps {
   decimals: number;
   onChange: (data: KeypadChangeData) => void;
   periodButtonProps?: KeypadComponentProps['periodButtonProps'];
+  isInteractable?: boolean;
+  onClose?: () => void;
+  /**
+   * Fired with the keypad's layout, relative to the view it is rendered in.
+   * `layout.y` is therefore the top edge of the keypad, which lets a parent
+   * keep content above it visible.
+   */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 export const SwapsKeypad = forwardRef<
@@ -30,7 +39,17 @@ export const SwapsKeypad = forwardRef<
   PropsWithChildren<SwapsKeypadProps>
 >(
   (
-    { value, currency, decimals, onChange, periodButtonProps, children },
+    {
+      value,
+      currency,
+      decimals,
+      onChange,
+      periodButtonProps,
+      children,
+      isInteractable = false,
+      onClose,
+      onLayout,
+    },
     ref,
   ) => {
     const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
@@ -40,7 +59,8 @@ export const SwapsKeypad = forwardRef<
     const handleClose = useCallback(() => {
       isOpenRef.current = false;
       setIsRendered(false);
-    }, []);
+      onClose?.();
+    }, [onClose]);
 
     useImperativeHandle(ref, () => ({
       open: () => {
@@ -64,16 +84,9 @@ export const SwapsKeypad = forwardRef<
     return (
       <BottomSheetDialog
         ref={bottomSheetRef}
-        isInteractable={false}
+        isInteractable={isInteractable}
         onClose={handleClose}
-        onStartShouldSetResponder={() =>
-          // Prevents the native gesture system from bubbling up
-          // the event to BottomSheetDialog, causing keypad to close
-          // when user click anywhere inside the keypad area that is
-          // not a pressable component.
-          // This is required because
-          true
-        }
+        onLayout={onLayout}
       >
         <Box twClassName="content-end px-4 gap-4 pt-4">
           {children}

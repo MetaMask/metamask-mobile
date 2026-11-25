@@ -6,13 +6,18 @@ import {
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
-import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
-import { shouldHandleMetroDevLauncherLocally } from '../../Constants.ts';
+import AppiumUtilities from '../../AppiumUtilities.ts';
+import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  shouldHandleMetroDevLauncherLocally,
+} from '../../Constants.ts';
+import { PlatformDetector } from '../../PlatformLocator.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
 import {
   consumeSharedSessionRecreate,
   resetSharedSessionRecreateState,
+  setSharedSessionRecreateHandler,
 } from './sessionRecovery.ts';
 
 jest.mock('../../AndroidWebViewCdpHelpers.ts', () => ({
@@ -29,7 +34,7 @@ jest.mock('../../ChromeCdpHelpers.ts', () => ({
   },
 }));
 
-jest.mock('../../PlaywrightUtilities.ts', () => ({
+jest.mock('../../AppiumUtilities.ts', () => ({
   __esModule: true,
   default: {
     launchApp: jest.fn().mockResolvedValue(undefined),
@@ -42,6 +47,13 @@ jest.mock('../../Constants.ts', () => ({
   shouldHandleMetroDevLauncherLocally: jest.fn(() => false),
 }));
 
+jest.mock('../../PlatformLocator.ts', () => ({
+  PlatformDetector: {
+    isAndroid: jest.fn(() => true),
+    isIOS: jest.fn(() => false),
+  },
+}));
+
 jest.mock('./sessionHealth.ts', () => ({
   switchToNativeContext: jest.fn().mockResolvedValue(true),
 }));
@@ -52,8 +64,8 @@ jest.mock('../../../flows/general.flow', () => ({
     .mockResolvedValue(undefined),
 }));
 
-const launchAppMock = PlaywrightUtilities.launchApp as jest.MockedFunction<
-  typeof PlaywrightUtilities.launchApp
+const launchAppMock = AppiumUtilities.launchApp as jest.MockedFunction<
+  typeof AppiumUtilities.launchApp
 >;
 const switchToNativeContextMock = switchToNativeContext as jest.MockedFunction<
   typeof switchToNativeContext
@@ -66,6 +78,33 @@ const dismissMetroMock =
   dismissDevelopmentServerPickerPlaywright as jest.MockedFunction<
     typeof dismissDevelopmentServerPickerPlaywright
   >;
+const isAndroidMock = PlatformDetector.isAndroid as jest.MockedFunction<
+  typeof PlatformDetector.isAndroid
+>;
+const isIOSMock = jest.mocked(PlatformDetector.isIOS);
+
+const createDrv = (
+  overrides: Partial<{
+    isExisting: jest.Mock;
+    setTimeout: jest.Mock;
+    execute: jest.Mock;
+    activateApp: jest.Mock;
+  }> = {},
+): WebdriverIO.Browser => {
+  const isExisting = overrides.isExisting ?? jest.fn().mockResolvedValue(false);
+  const setTimeoutMock =
+    overrides.setTimeout ?? jest.fn().mockResolvedValue(undefined);
+  const execute = overrides.execute ?? jest.fn().mockResolvedValue(4);
+  const activateApp =
+    overrides.activateApp ?? jest.fn().mockResolvedValue(undefined);
+  return {
+    sessionId: 's1',
+    $: jest.fn().mockReturnValue({ isExisting }),
+    setTimeout: setTimeoutMock,
+    execute,
+    activateApp,
+  } as unknown as WebdriverIO.Browser;
+};
 
 describe('softReloadAppForFixtures', () => {
   const currentDeviceDetails: CurrentDeviceDetails = {
@@ -88,6 +127,8 @@ describe('softReloadAppForFixtures', () => {
     fixtureServer = { waitForNextStateRequest };
     deviceCommands = { clearAppData };
     shouldHandleMetroMock.mockReturnValue(false);
+    isAndroidMock.mockReturnValue(true);
+    isIOSMock.mockReturnValue(false);
     switchToNativeContextMock.mockResolvedValue(true);
     launchAppMock.mockResolvedValue(undefined);
     dismissMetroMock.mockResolvedValue(undefined);
@@ -100,7 +141,7 @@ describe('softReloadAppForFixtures', () => {
   });
 
   it('clears app data, resets NATIVE_APP context, launches, and waits for bootstrap', async () => {
-    const drv = { sessionId: 's1' } as unknown as WebdriverIO.Browser;
+    const drv = createDrv();
     const launchArgs = { fixtureServerPort: '1234' };
 
     const result = await softReloadAppForFixtures({
@@ -119,6 +160,7 @@ describe('softReloadAppForFixtures', () => {
     expect(launchAppMock).toHaveBeenCalledWith(currentDeviceDetails, {
       launchArgs,
     });
+    expect(drv.$).toHaveBeenCalled();
     expect(result.attemptedMetroDevLauncherDismissal).toBe(false);
     expect(result.clearAppDataMs).toBeGreaterThanOrEqual(0);
     expect(result.contextResetMs).toBeGreaterThanOrEqual(0);
@@ -131,7 +173,7 @@ describe('softReloadAppForFixtures', () => {
       currentDeviceDetails,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(clearAppData).not.toHaveBeenCalled();
@@ -152,7 +194,7 @@ describe('softReloadAppForFixtures', () => {
       deviceCommands,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(callOrder.indexOf('wait')).toBeLessThan(callOrder.indexOf('launch'));
@@ -166,7 +208,7 @@ describe('softReloadAppForFixtures', () => {
       deviceCommands,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(result.attemptedMetroDevLauncherDismissal).toBe(true);
@@ -183,7 +225,7 @@ describe('softReloadAppForFixtures', () => {
       deviceCommands,
       launchArgs: {},
       fixtureServer,
-      drv: {} as WebdriverIO.Browser,
+      drv: createDrv(),
     });
 
     expect(clearAppData).toHaveBeenCalledTimes(2);
@@ -201,11 +243,219 @@ describe('softReloadAppForFixtures', () => {
         deviceCommands,
         launchArgs: {},
         fixtureServer,
-        drv: {} as WebdriverIO.Browser,
+        drv: createDrv(),
       }),
     ).rejects.toThrow(/pm clear/);
 
     expect(clearAppData).toHaveBeenCalledTimes(2);
     expect(consumeSharedSessionRecreate()).toBe(true);
+  });
+
+  it('zeros the implicit wait for the health probe and restores it after', async () => {
+    const drv = createDrv();
+
+    await softReloadAppForFixtures({
+      currentDeviceDetails,
+      deviceCommands,
+      launchArgs: {},
+      fixtureServer,
+      drv,
+    });
+
+    const setTimeoutMock = drv.setTimeout as jest.Mock;
+    expect(setTimeoutMock).toHaveBeenCalledTimes(2);
+    expect(setTimeoutMock).toHaveBeenNthCalledWith(1, { implicit: 0 });
+    expect(setTimeoutMock).toHaveBeenNthCalledWith(2, {
+      implicit: DEFAULT_IMPLICIT_WAIT_MS,
+    });
+    const probeOrder = (drv.$ as jest.Mock).mock.invocationCallOrder[0];
+    expect(setTimeoutMock.mock.invocationCallOrder[0]).toBeLessThan(probeOrder);
+    expect(setTimeoutMock.mock.invocationCallOrder[1]).toBeGreaterThan(
+      probeOrder,
+    );
+  });
+
+  it('restores the implicit wait when the health probe throws', async () => {
+    const drv = createDrv({
+      isExisting: jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+          ),
+        ),
+    });
+
+    await expect(
+      softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: {},
+        fixtureServer,
+        drv,
+      }),
+    ).rejects.toThrow(/instrumentation process is not running/);
+
+    expect(drv.setTimeout).toHaveBeenLastCalledWith({
+      implicit: DEFAULT_IMPLICIT_WAIT_MS,
+    });
+  });
+
+  it('fails fast and requests recreate when UiAutomator2 is dead and no in-process handler is set', async () => {
+    const drv = createDrv({
+      isExisting: jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+          ),
+        ),
+    });
+
+    await expect(
+      softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: {},
+        fixtureServer,
+        drv,
+      }),
+    ).rejects.toThrow(/instrumentation process is not running/);
+
+    expect(consumeSharedSessionRecreate()).toBe(true);
+  });
+
+  it('retries soft reload once after in-process session recreate when UiAutomator2 is dead', async () => {
+    const deadDrv = createDrv({
+      isExisting: jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+          ),
+        ),
+    });
+    const healthyDrv = createDrv({
+      isExisting: jest.fn().mockResolvedValue(false),
+    });
+    const recreateHandler = jest.fn().mockResolvedValue(healthyDrv);
+    setSharedSessionRecreateHandler(recreateHandler);
+
+    const result = await softReloadAppForFixtures({
+      currentDeviceDetails,
+      deviceCommands,
+      launchArgs: {},
+      fixtureServer,
+      drv: deadDrv,
+    });
+
+    expect(recreateHandler).toHaveBeenCalledTimes(1);
+    expect(launchAppMock).toHaveBeenCalledTimes(2);
+    expect(clearAppData).toHaveBeenCalledTimes(2);
+    expect(switchToNativeContextMock).toHaveBeenCalledWith(healthyDrv);
+    expect(result.attemptedMetroDevLauncherDismissal).toBe(false);
+    expect(consumeSharedSessionRecreate()).toBe(false);
+  });
+
+  describe('iOS foreground ensure', () => {
+    const iosDeviceDetails: CurrentDeviceDetails = {
+      platform: 'ios',
+      deviceName: 'iPhone 16',
+      udid: 'sim-udid',
+      appId: 'io.metamask.MetaMask',
+      isBrowserstack: false,
+    };
+
+    const runIosSoftReload = async (
+      drv: WebdriverIO.Browser,
+    ): Promise<void> => {
+      await softReloadAppForFixtures({
+        currentDeviceDetails: iosDeviceDetails,
+        deviceCommands,
+        launchArgs: {},
+        fixtureServer,
+        drv,
+      });
+    };
+
+    beforeEach(() => {
+      isAndroidMock.mockReturnValue(false);
+      isIOSMock.mockReturnValue(true);
+    });
+
+    it('queries app state after launch and after bootstrap without activating a foreground app', async () => {
+      const execute = jest.fn().mockResolvedValue(4);
+      const activateApp = jest.fn().mockResolvedValue(undefined);
+      const drv = createDrv({ execute, activateApp });
+
+      await runIosSoftReload(drv);
+
+      expect(execute).toHaveBeenCalledTimes(2);
+      expect(execute).toHaveBeenCalledWith('mobile: queryAppState', {
+        bundleId: 'io.metamask.MetaMask',
+      });
+      expect(activateApp).not.toHaveBeenCalled();
+      expect(consumeSharedSessionRecreate()).toBe(false);
+    });
+
+    it('activates a backgrounded app once and continues when it reaches foreground', async () => {
+      const execute = jest
+        .fn()
+        .mockResolvedValueOnce(3) // post-launch: running in background
+        .mockResolvedValueOnce(4) // after activate
+        .mockResolvedValueOnce(4); // post-bootstrap
+      const activateApp = jest.fn().mockResolvedValue(undefined);
+      const drv = createDrv({ execute, activateApp });
+
+      await runIosSoftReload(drv);
+
+      expect(activateApp).toHaveBeenCalledTimes(1);
+      expect(activateApp).toHaveBeenCalledWith('io.metamask.MetaMask');
+      expect(waitForNextStateRequest).toHaveBeenCalledTimes(1);
+      expect(consumeSharedSessionRecreate()).toBe(false);
+    });
+
+    it('fails fast without activateApp when the app is not running after launch', async () => {
+      const execute = jest.fn().mockResolvedValue(1);
+      const activateApp = jest.fn().mockResolvedValue(undefined);
+      const drv = createDrv({ execute, activateApp });
+
+      await expect(runIosSoftReload(drv)).rejects.toThrow(
+        /not in foreground after soft-reload post-launch \(queryAppState=1\)/,
+      );
+
+      expect(activateApp).not.toHaveBeenCalled();
+      expect(launchAppMock).toHaveBeenCalledTimes(1);
+      expect(consumeSharedSessionRecreate()).toBe(true);
+    });
+
+    it('fails fast when activateApp leaves a backgrounded app out of foreground', async () => {
+      const execute = jest.fn().mockResolvedValue(3);
+      const activateApp = jest.fn().mockResolvedValue(undefined);
+      const drv = createDrv({ execute, activateApp });
+
+      await expect(runIosSoftReload(drv)).rejects.toThrow(
+        /not in foreground after soft-reload post-launch \(queryAppState=3\)/,
+      );
+
+      expect(activateApp).toHaveBeenCalledTimes(1);
+      expect(consumeSharedSessionRecreate()).toBe(true);
+    });
+
+    it('fails fast when the app stops running after bootstrap', async () => {
+      const execute = jest
+        .fn()
+        .mockResolvedValueOnce(4) // post-launch
+        .mockResolvedValueOnce(1); // post-bootstrap: not running
+      const activateApp = jest.fn().mockResolvedValue(undefined);
+      const drv = createDrv({ execute, activateApp });
+
+      await expect(runIosSoftReload(drv)).rejects.toThrow(
+        /not in foreground after soft-reload post-bootstrap \(queryAppState=1\)/,
+      );
+
+      expect(activateApp).not.toHaveBeenCalled();
+      expect(consumeSharedSessionRecreate()).toBe(true);
+    });
   });
 });

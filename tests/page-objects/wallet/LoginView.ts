@@ -2,15 +2,20 @@ import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginVie
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import {
+  isTestIdDisplayed,
+  isWalletHomeReadyOnAppium,
+} from '../../flows/wallet-home-readiness';
+import { sleep } from '../../framework/Utilities';
 
 class LoginView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
   }
 
-  get passwordInput(): EncapsulatedElementType {
+  get passwordInput(): Promise<AppiumElement> {
     // Android: match the inner EditText via content-desc (UiAutomator).
     // iOS: testID resolves via Matchers.getElementByID.
     if (PlatformDetector.isAndroid()) {
@@ -21,19 +26,19 @@ class LoginView {
     return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
-  get forgotPasswordButton(): EncapsulatedElementType {
+  get forgotPasswordButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): EncapsulatedElementType {
+  get rememberMeSwitch(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
-  get loginButton(): EncapsulatedElementType {
+  get loginButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByID(LoginViewSelectors.TITLE_ID);
   }
 
@@ -57,6 +62,19 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
+    await Gestures.hideKeyboard();
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+      if (await isWalletHomeReadyOnAppium()) return;
+      if (await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID)) break;
+      await sleep(250);
+    }
+    if (await isWalletHomeReadyOnAppium()) return;
+    if (!(await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID))) return;
+    if (PlatformDetector.isIOS()) {
+      await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID, true);
+      return;
+    }
     await Gestures.waitAndTap(this.loginButton, {
       elemDescription: 'Login Button',
       checkForDisplayed: true,

@@ -9,12 +9,20 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
+  PerpsLeverageBottomSheetSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
-import { EncapsulatedElementType, PlatformDetector } from '../../framework';
+import { type AppiumElement, PlatformDetector } from '../../framework';
+
+/**
+ * Order entry surface. `screen` is the full-page PerpsOrderView (A/B control);
+ * `sheet` is the PerpsTradeScreen bottom sheet (A/B treatment).
+ */
+export type PerpsOrderSurface = 'screen' | 'sheet';
 
 class PerpsOrderView {
   /** Place order button - wdio uses 'perps-order-view-place-order-button' */
-  get placeOrderButton(): EncapsulatedElementType {
+  get placeOrderButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
     );
@@ -24,7 +32,7 @@ class PerpsOrderView {
    * Fees row value — only mounted after fee loading finishes
    * Useful readiness signal before tapping Long/Short on Appium.
    */
-  get feesValue(): EncapsulatedElementType {
+  get feesValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.FEES_VALUE);
   }
 
@@ -39,7 +47,7 @@ class PerpsOrderView {
    * Opens Auto close / TPSL from the order form. The row is labeled TP/SL in UI;
    * production uses STOP_LOSS_BUTTON testID on that touchable (see PerpsOrderView.tsx).
    */
-  get takeProfitButton(): EncapsulatedElementType {
+  get takeProfitButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON);
   }
 
@@ -49,22 +57,22 @@ class PerpsOrderView {
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('keypad-delete-button');
   }
 
   // Leverage chip by visible text, e.g., "3x", "10x", "20x"
-  leverageOption(leverageX: number, index = 0): EncapsulatedElementType {
+  leverageOption(leverageX: number, index = 0): Promise<AppiumElement> {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
-  /** Row label to open the leverage modal - wdio uses getElementByText('Leverage') */
-  get leverageRowLabel(): EncapsulatedElementType {
-    return Matchers.getElementByText('Leverage');
+  /** Row label to open the leverage modal */
+  get leverageRowLabel(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.LEVERAGE_ROW);
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
-  get leverageModalTitle(): EncapsulatedElementType {
+  get leverageModalTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Set Leverage');
   }
 
@@ -152,26 +160,52 @@ class PerpsOrderView {
   }
 
   // Amount handling
-  get amountDisplay(): EncapsulatedElementType {
+  get amountDisplay(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER);
   }
 
-  get amountValue(): EncapsulatedElementType {
+  get amountValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
-  getKeypadKey(key: string): EncapsulatedElementType {
+  /** Pressable wrapper that opens the amount keypad (`onPress` path). */
+  get amountTouchable(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
+  }
+
+  /**
+   * Opens the amount keypad via the touchable press target.
+   *
+   * Prefer `TOUCHABLE` over `AMOUNT_LABEL`: on the full-screen order surface the
+   * label sits under an accessible parent and iOS Appium intermittently reports
+   * `~perps-amount-display-amount` as not displayed after slider/amount updates.
+   */
+  async openAmountKeypad(): Promise<void> {
+    await Assertions.expectElementToExist(this.amountTouchable, {
+      description: 'Perps amount display touchable is present',
+      timeout: 30_000,
+    });
+    await Gestures.waitAndTap(this.amountTouchable, {
+      elemDescription: 'Open amount keypad by tapping amount touchable',
+      checkEnabled: true,
+      // iOS can report the pressable as mounted but not displayed after amount
+      // animation; existence + enabled is enough to open the keypad.
+      checkForDisplayed: false,
+    });
+  }
+
+  getKeypadKey(key: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(`keypad-key-${key}`);
     }
     return Matchers.getElementByText(key);
   }
 
-  getDoneButton(): EncapsulatedElementType {
+  getDoneButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Done');
   }
 
-  getTpslDoneButton(): EncapsulatedElementType {
+  getTpslDoneButton(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.DONE_BUTTON);
     }
@@ -180,7 +214,7 @@ class PerpsOrderView {
     );
   }
 
-  getTpslKeypadKey(key: string): EncapsulatedElementType {
+  getTpslKeypadKey(key: string): Promise<AppiumElement> {
     const testId = key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
     return Matchers.getElementByID(testId);
   }
@@ -189,28 +223,162 @@ class PerpsOrderView {
     inputTestId:
       | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(inputTestId);
   }
 
-  private get tpslSetButton(): EncapsulatedElementType {
+  private get tpslSetButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
   }
 
-  private get tpslAutoCloseTitle(): EncapsulatedElementType {
+  private get tpslAutoCloseTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Auto close');
+  }
+
+  // Amount slider and keypad, per order surface
+
+  amountSlider(surface: PerpsOrderSurface): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      surface === 'sheet'
+        ? PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER
+        : PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER,
+    );
+  }
+
+  amountKeypadDoneButton(surface: PerpsOrderSurface): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      surface === 'sheet'
+        ? PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON
+        : PerpsOrderViewSelectorsIDs.KEYPAD_DONE,
+    );
+  }
+
+  /** Percentage label under the amount slider (only rendered while the keypad is closed). */
+  amountSliderLabel(
+    label: '25%' | '50%' | '75%' | '100%',
+  ): Promise<AppiumElement> {
+    return Matchers.getElementByText(label);
+  }
+
+  /** First text glyph of the amount display, e.g. "$10". */
+  private get amountValueText(): Promise<AppiumElement> {
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@resource-id='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//android.widget.TextView`,
+      );
+    }
+    // The amount container itself has no text on iOS; read its static text.
+    return Matchers.getElementByNativeXPath(
+      `//*[@name='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//XCUIElementTypeStaticText`,
+    );
+  }
+
+  /** Amount keypad key by testID (the text matcher is ambiguous on iOS). */
+  private amountKeypadKey(key: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(`keypad-key-${key}`);
+  }
+
+  async waitForAmountSlider(surface: PerpsOrderSurface): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.amountSlider(surface), {
+      description: `Perps ${surface} amount slider is visible`,
+      timeout: 30_000,
+    });
+  }
+
+  async tapAmountSliderLabel(
+    label: '25%' | '50%' | '75%' | '100%',
+  ): Promise<void> {
+    await Gestures.waitAndTap(this.amountSliderLabel(label), {
+      elemDescription: `Amount slider ${label} label`,
+      checkForDisplayed: true,
+    });
+  }
+
+  /** Opens the amount keypad, clears the current amount and types `amount`. */
+  async typeAmountOnKeypad(
+    surface: PerpsOrderSurface,
+    amount: string,
+  ): Promise<void> {
+    await this.openAmountKeypad();
+    await Assertions.expectElementToBeVisible(
+      this.amountKeypadDoneButton(surface),
+      { description: 'Amount keypad Done button is visible' },
+    );
+    const current = (await this.getAmountUsdText()).replace(/[^0-9.]/g, '');
+    for (const digit of current) {
+      await Gestures.waitAndTap(this.keypadDeleteButton, {
+        checkForDisplayed: true,
+        elemDescription: `Keypad: delete ${digit}`,
+      });
+    }
+    for (const ch of amount) {
+      await Gestures.waitAndTap(this.amountKeypadKey(ch), {
+        checkForDisplayed: true,
+        elemDescription: `Keypad: ${ch}`,
+      });
+    }
+    await this.expectAmountUsd(
+      amount || '0',
+      `Keypad shows $${amount || '0'} before Done`,
+    );
+  }
+
+  /** Real driver tap on the amount keypad Done button. */
+  async tapAmountKeypadDone(surface: PerpsOrderSurface): Promise<void> {
+    await Gestures.waitAndTap(this.amountKeypadDoneButton(surface), {
+      elemDescription: 'Amount keypad Done',
+      checkForDisplayed: true,
+    });
+  }
+
+  /** Current USD amount without thousands separators, e.g. "$5970". */
+  async getAmountUsdText(): Promise<string> {
+    const amountElement = await this.amountValueText;
+    return ((await amountElement.textContent()) ?? '').trim().replace(/,/g, '');
+  }
+
+  /**
+   * Slider position in percent, read from the accessibility value the slider
+   * exposes ("25%" on the screen, "Order amount, 25%" on the sheet).
+   */
+  async getAmountSliderPercent(surface: PerpsOrderSurface): Promise<number> {
+    const slider = await this.amountSlider(surface);
+    const raw =
+      (await slider.getAttribute(
+        PlatformDetector.isAndroid() ? 'content-desc' : 'value',
+      )) ?? '';
+    const match = raw.match(/(\d+(?:\.\d+)?)%/);
+    if (!match) {
+      throw new Error(`Could not read amount slider percent from "${raw}"`);
+    }
+    return Number(match[1]);
+  }
+
+  /** Asserts the USD amount, ignoring thousands separators ("$5,000"). */
+  async expectAmountUsd(amount: string, description: string): Promise<void> {
+    const expected = `$${amount}`;
+    await Utilities.executeWithRetry(
+      async () => {
+        const actual = await this.getAmountUsdText();
+        if (actual !== expected) {
+          throw new Error(`Expected amount "${expected}" but got "${actual}"`);
+        }
+      },
+      { description: `Assert ${description}` },
+    );
+  }
+
+  async expectAmountSliderNotAtZero(surface: PerpsOrderSurface): Promise<void> {
+    await this.waitForAmountSlider(surface);
+    const percent = await this.getAmountSliderPercent(surface);
+    if (!(percent > 0)) {
+      throw new Error(`Amount slider is at ${percent}% after keypad Done`);
+    }
   }
 
   // Required for next test
   async setAmountUSD(amount: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.amountValue, {
-      description: 'Amount value is visible',
-    });
-    await Gestures.waitAndTap(this.amountValue, {
-      elemDescription: 'Open amount keypad by tapping amount label',
-      checkEnabled: true,
-      checkVisibility: true,
-    });
+    await this.openAmountKeypad();
     await Gestures.waitAndTap(this.keypadDeleteButton, {
       checkForDisplayed: true,
       checkEnabled: true,
@@ -233,16 +401,16 @@ class PerpsOrderView {
   }
 
   // Order type / Limit Price helpers
-  private get orderTypeMarket(): EncapsulatedElementType {
+  private get orderTypeMarket(): Promise<AppiumElement> {
     return Matchers.getElementByText('Market');
   }
 
-  private get orderTypeSelector(): EncapsulatedElementType {
+  private get orderTypeSelector(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
     );
   }
-  private get orderTypeLimit(): EncapsulatedElementType {
+  private get orderTypeLimit(): Promise<AppiumElement> {
     return Matchers.getElementByText('Limit');
   }
 
@@ -417,26 +585,37 @@ class PerpsOrderView {
   }
 
   /**
-   * Set leverage for appium context — opens modal, selects option, confirms.
+   * Set leverage — opens the modal, scrolls the horizontal picker to the
+   * target value, taps it, then confirms with the Set button.
+   *
+   * The picker is a snapping horizontal ScrollView; items outside the visible
+   * window must be scrolled into view before they can be tapped.
    */
   async setLeverageAppium(leverageX: number): Promise<void> {
     await Gestures.waitAndTap(this.leverageRowLabel, {
       elemDescription: 'Open leverage modal',
     });
 
-    const leverageSelector = `${leverageX}x`;
-    const optionEl = PlatformDetector.isAndroid()
-      ? Matchers.getElementByNativeXPath(
-          `//*[@content-desc="${leverageSelector}"]`,
-        )
-      : Matchers.getElementByID(`quick-select-button-${leverageSelector}`);
-    await Gestures.waitAndTap(optionEl, {
-      elemDescription: `Select leverage ${leverageSelector}`,
+    const pickerItem = Matchers.getElementByID(
+      `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverageX}`,
+    );
+    const picker = await Matchers.getElementByID(
+      PerpsLeverageBottomSheetSelectorsIDs.PICKER,
+    );
+
+    for (let attempt = 0; attempt < 15; attempt++) {
+      if (await Utilities.isElementVisible(pickerItem, 500)) break;
+      await Gestures.swipe(picker, 'left');
+    }
+
+    await Gestures.waitAndTap(pickerItem, {
+      elemDescription: `Select leverage ${leverageX}x`,
     });
 
-    await Gestures.waitAndTap(Matchers.getElementByText(`Set ${leverageX}x`), {
-      elemDescription: `Confirm leverage ${leverageX}x`,
-    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      { elemDescription: `Confirm leverage ${leverageX}x` },
+    );
   }
 
   async tapPlaceOrder(): Promise<void> {

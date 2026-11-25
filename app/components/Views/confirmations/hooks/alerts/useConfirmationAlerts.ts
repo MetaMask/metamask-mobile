@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasLimitBelowMinimumAlert } from './useGasLimitBelowMinimumAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
@@ -11,10 +12,8 @@ import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
-import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
-import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -25,6 +24,8 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
+import { useLighterAccountLookupAlert } from './useLighterAccountLookupAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -34,6 +35,7 @@ function useSignatureAlerts(): Alert[] {
 
 function useTransactionAlerts(): Alert[] {
   const gasEstimateFailedAlert = useGasEstimateFailedAlert();
+  const gasLimitBelowMinimumAlert = useGasLimitBelowMinimumAlert();
   const gasSponsorshipWarningAlert = useGasSponsorshipWarningAlert();
   const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
@@ -42,11 +44,11 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
-  const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
-  const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
-  const insufficientMoneyAccountBalanceAlert =
-    useInsufficientMoneyAccountBalanceAlert();
   const fiatBuyLimitAlert = useFiatBuyLimitAlert();
+  // Reads the pending keypad amount from confirmation context, so the max
+  // deposit cap is captured in alert metrics even when the user backs out
+  // without ever committing the over-cap amount.
+  const depositLimitAlert = useTransactionDepositLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -55,21 +57,23 @@ function useTransactionAlerts(): Alert[] {
   const tokenContractAlert = useTokenContractAlert();
   const accountNoFundsAlert = useAccountNoFundsAlert();
   const mmPayHardwareAccountAlert = useMMPayHardwareAccountAlert();
+  const suggestedGasFeeHighAlert = useSuggestedGasFeeHighAlert();
+  const lighterAccountLookupAlert = useLighterAccountLookupAlert();
 
   return useMemo(
     () => [
       ...gasEstimateFailedAlert,
+      ...gasLimitBelowMinimumAlert,
       ...gasSponsorshipWarningAlert,
+      ...suggestedGasFeeHighAlert,
       ...insufficientBalanceAlert,
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
       ...signedOrSubmittedAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
-      ...insufficientPredictBalanceAlert,
-      ...insufficientPerpsBalanceAlert,
-      ...insufficientMoneyAccountBalanceAlert,
       ...fiatBuyLimitAlert,
+      ...depositLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -78,20 +82,21 @@ function useTransactionAlerts(): Alert[] {
       ...tokenContractAlert,
       ...accountNoFundsAlert,
       ...mmPayHardwareAccountAlert,
+      ...lighterAccountLookupAlert,
     ],
     [
       gasEstimateFailedAlert,
+      gasLimitBelowMinimumAlert,
       gasSponsorshipWarningAlert,
+      suggestedGasFeeHighAlert,
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
       signedOrSubmittedAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
-      insufficientPredictBalanceAlert,
-      insufficientPerpsBalanceAlert,
-      insufficientMoneyAccountBalanceAlert,
       fiatBuyLimitAlert,
+      depositLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,
@@ -100,6 +105,7 @@ function useTransactionAlerts(): Alert[] {
       tokenContractAlert,
       accountNoFundsAlert,
       mmPayHardwareAccountAlert,
+      lighterAccountLookupAlert,
     ],
   );
 }

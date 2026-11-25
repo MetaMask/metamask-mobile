@@ -33,6 +33,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
+    CARD_VIEWED: 'CARD_VIEWED',
   },
 }));
 
@@ -192,7 +193,7 @@ jest.mock('../../hooks/useRedeemableWallet', () => ({
 }));
 
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import Cashback from './Cashback';
@@ -658,7 +659,7 @@ describe('Cashback Component', () => {
       expect(mockWithdraw).not.toHaveBeenCalled();
     });
 
-    it('allows withdrawal when the Money Account destination is delegated', () => {
+    it('allows withdrawal when the Money Account destination is delegated', async () => {
       setWithdrawableWallet();
 
       render({
@@ -674,7 +675,9 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      await waitFor(() => {
+        expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      });
     });
   });
 
@@ -694,7 +697,7 @@ describe('Cashback Component', () => {
       };
     };
 
-    it('allows withdrawal when the funding destination is approved', () => {
+    it('allows withdrawal when the funding destination is approved', async () => {
       setWithdrawableWallet();
 
       render({
@@ -710,7 +713,9 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      await waitFor(() => {
+        expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      });
     });
 
     it('shows the funding warning and redirects to Spending Limit when no destination is configured', () => {
@@ -742,7 +747,7 @@ describe('Cashback Component', () => {
   });
 
   describe('withdraw action', () => {
-    it('calls withdraw with full balance on button press', () => {
+    it('calls withdraw with full balance on button press', async () => {
       mockHookReturn.wallet = {
         id: 'w1',
         balance: '10.00',
@@ -760,10 +765,12 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      await waitFor(() => {
+        expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      });
     });
 
-    it('submits the full cashback balance for dust-sized claims', () => {
+    it('submits the full cashback balance for dust-sized claims', async () => {
       mockHookReturn.wallet = {
         id: 'w1',
         balance: '0.0007',
@@ -781,7 +788,55 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('0.0007');
+      await waitFor(() => {
+        expect(mockWithdraw).toHaveBeenCalledWith('0.0007');
+      });
+    });
+
+    it('caps excess-precision balances before claiming and displaying', async () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '17.96660759',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render();
+
+      expect(screen.getByText(/17\.9666/)).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      await waitFor(() => {
+        expect(mockWithdraw).toHaveBeenCalledWith('17.9666');
+      });
+    });
+
+    it('disables withdraw when the capped balance is dust below 4 decimals', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '0.00009',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0',
+      };
+
+      render();
+
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+      expect(mockWithdraw).not.toHaveBeenCalled();
     });
 
     it('tracks analytics event on withdraw', () => {
@@ -810,6 +865,96 @@ describe('Cashback Component', () => {
         action: 'CASHBACK_BUTTON',
         type: 'withdraw',
         provider: 'baanx',
+      });
+    });
+  });
+
+  describe('funnel analytics', () => {
+    const withdrawableWallet = {
+      id: 'w1',
+      balance: '10.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    };
+    const settledEstimation = {
+      wei: '100000',
+      eth: '0.0001',
+      price: '0.50',
+      network: 'linea',
+    };
+
+    const viewedCalls = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([name]) => name === 'CARD_VIEWED',
+      );
+
+    it('reports the view once the estimation settles', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimation = settledEstimation;
+
+      render();
+
+      expect(viewedCalls()).toHaveLength(1);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: 'CASHBACK',
+        destination: 'wallet',
+        is_withdrawable: true,
+        needs_setup: false,
+        has_insufficient_balance: false,
+        has_loading_error: false,
+      });
+    });
+
+    it('holds the view until the estimation settles', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+
+      render();
+
+      expect(viewedCalls()).toHaveLength(0);
+    });
+
+    it('reports the view with an unresolved destination when the estimation fails', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimationError = new Error('estimation unavailable');
+
+      render({ destination: { isResolved: false } });
+
+      expect(viewedCalls()).toHaveLength(1);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen: 'CASHBACK',
+          destination: 'unresolved',
+        }),
+      );
+    });
+
+    it('reports the view as blocked when funding setup is missing', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimation = settledEstimation;
+
+      render({ destination: { hasApprovedDestination: false } });
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen: 'CASHBACK',
+          needs_setup: true,
+        }),
+      );
+    });
+
+    it('tracks the setup CTA press', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimation = settledEstimation;
+
+      render({ destination: { hasApprovedDestination: false } });
+      fireEvent.press(screen.getByText('Set up funding'));
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'CASHBACK_BUTTON',
+        type: 'setup',
       });
     });
   });
@@ -864,6 +1009,29 @@ describe('Cashback Component', () => {
       render();
 
       expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('keeps the withdraw button disabled while success toast/navigation is pending', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+        network: 'linea',
+      };
+      mockHookReturn.monitoringStatus = 'success';
+
+      render();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
     });
 
     it('does not navigate back when monitoring fails', () => {
@@ -956,6 +1124,47 @@ describe('Cashback Component', () => {
         }),
       );
     });
+
+    it('does not show failure toast when a duplicate submit is rejected mid-withdrawal', () => {
+      const { CardRedeemWithdrawalInProgressError } = jest.requireActual(
+        '../../../../../core/Engine/controllers/card-controller/provider-types',
+      );
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'monitoring';
+      mockHookReturn.isWithdrawing = true;
+      mockHookReturn.withdrawError = new CardRedeemWithdrawalInProgressError();
+
+      render();
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does not show failure toast when another mode redeem is already in flight', () => {
+      const { CardRedeemWithdrawalInProgressError } = jest.requireActual(
+        '../../../../../core/Engine/controllers/card-controller/provider-types',
+      );
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      // Other-mode withdraw: this screen stays idle but isWithdrawing is true.
+      mockHookReturn.monitoringStatus = 'idle';
+      mockHookReturn.isWithdrawing = true;
+      mockHookReturn.withdrawError = new CardRedeemWithdrawalInProgressError();
+
+      render();
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
   });
 
   describe('estimation fetch', () => {
@@ -969,6 +1178,26 @@ describe('Cashback Component', () => {
       };
 
       render();
+
+      expect(mockFetchEstimation).toHaveBeenCalled();
+    });
+
+    it('fetches estimation when wallet becomes available after mount', () => {
+      mockHookReturn.wallet = null;
+
+      const { rerender } = render();
+
+      expect(mockFetchEstimation).not.toHaveBeenCalled();
+
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+
+      rerender(<CashbackWithToast />);
 
       expect(mockFetchEstimation).toHaveBeenCalled();
     });
@@ -1019,10 +1248,99 @@ describe('Cashback Component', () => {
 
       expect(screen.getByText('Money account')).toBeOnTheScreen();
     });
+
+    it('renders the To row while the estimation is loading', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.isEstimating = true;
+      mockHookReturn.estimation = {
+        wei: '1',
+        eth: '0',
+        price: '0.50',
+        network: 'linea',
+      };
+
+      render({
+        cardHomeDataStatus: 'success',
+        destination: {
+          isResolved: true,
+          receivingAddress: undefined,
+          isMoneyAccountDestination: false,
+          hasApprovedDestination: false,
+        },
+      });
+
+      expect(screen.getByTestId(CashbackSelectors.TO_ROW)).toBeOnTheScreen();
+    });
+
+    it('hides the To row when no receiving address resolves', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '1',
+        eth: '0',
+        price: '0.50',
+        network: 'linea',
+      };
+
+      render({
+        cardHomeDataStatus: 'success',
+        destination: {
+          isResolved: true,
+          receivingAddress: undefined,
+          isMoneyAccountDestination: false,
+          hasApprovedDestination: false,
+        },
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.TO_ROW),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('prompts linking a funding source when no receiving address resolves', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '1',
+        eth: '0',
+        price: '0.50',
+        network: 'linea',
+      };
+
+      render({
+        cardHomeDataStatus: 'success',
+        destination: {
+          isResolved: true,
+          receivingAddress: undefined,
+          isMoneyAccountDestination: false,
+          hasApprovedDestination: false,
+        },
+      });
+
+      expect(
+        screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('cleanup', () => {
-    it('calls resetWithdraw on unmount', () => {
+    it('does not reset withdraw on unmount so controller monitoring survives navigation', () => {
       mockHookReturn.wallet = {
         id: 'w1',
         balance: '10.00',
@@ -1035,7 +1353,7 @@ describe('Cashback Component', () => {
 
       unmount();
 
-      expect(mockResetWithdraw).toHaveBeenCalled();
+      expect(mockResetWithdraw).not.toHaveBeenCalled();
     });
   });
 });

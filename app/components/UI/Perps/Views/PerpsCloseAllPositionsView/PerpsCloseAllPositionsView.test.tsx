@@ -6,13 +6,16 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 // Mock all dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: jest.fn() })),
 }));
@@ -26,7 +29,6 @@ jest.mock('../../hooks', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsCloseAllCalculations: jest.fn(),
   usePerpsCloseAllPositions: jest.fn(),
-  usePerpsRewardAccountOptedIn: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -49,7 +51,21 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../components/PerpsCloseSummary', () => 'PerpsCloseSummary');
+const mockPerpsCloseTotals = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock(
+  '../PerpsClosePositionBottomSheet/components/PerpsCloseTotals',
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) => mockPerpsCloseTotals(props),
+  }),
+);
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
   typeof usePerpsLivePositions
@@ -61,10 +77,6 @@ const mockUsePerpsCloseAllCalculations =
 const mockUsePerpsCloseAllPositions =
   usePerpsCloseAllPositions as jest.MockedFunction<
     typeof usePerpsCloseAllPositions
-  >;
-const mockUsePerpsRewardAccountOptedIn =
-  usePerpsRewardAccountOptedIn as jest.MockedFunction<
-    typeof usePerpsRewardAccountOptedIn
   >;
 
 describe('PerpsCloseAllPositionsView', () => {
@@ -99,9 +111,12 @@ describe('PerpsCloseAllPositionsView', () => {
     totalMargin: 1000,
     totalPnl: 100,
     totalFees: 10,
+    originalTotalFees: 12,
     receiveAmount: 1090,
     totalEstimatedPoints: 50,
     avgFeeDiscountPercentage: 5,
+    feeSource: undefined,
+    feeDiscountKind: 'vip' as const,
     avgBonusBips: 10,
     avgMetamaskFeeRate: 0.01,
     avgProtocolFeeRate: 0.00045,
@@ -120,21 +135,6 @@ describe('PerpsCloseAllPositionsView', () => {
     error: null,
   };
 
-  const mockRewardAccountOptedIn = {
-    accountOptedIn: true,
-    account: {
-      id: 'test-account-id',
-      address: '0x1234567890123456789012345678901234567890',
-      name: 'Test Account',
-      metadata: {
-        name: 'Test Account',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLivePositions.mockReturnValue({
@@ -143,10 +143,6 @@ describe('PerpsCloseAllPositionsView', () => {
     });
     mockUsePerpsCloseAllCalculations.mockReturnValue(mockCalculations);
     mockUsePerpsCloseAllPositions.mockReturnValue(mockCloseAllHook);
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: true,
-      account: mockRewardAccountOptedIn as unknown as InternalAccount,
-    });
   });
 
   it('keeps close-all confirmation haptics off by default', () => {
@@ -338,7 +334,7 @@ describe('PerpsCloseAllPositionsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders PerpsCloseSummary when not closing', () => {
+  it('renders the close totals when not closing', () => {
     // Arrange & Act
     const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
@@ -346,74 +342,20 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(
       getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
     ).toBeOnTheScreen();
-  });
-
-  it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {
-    // Arrange & Act
-    render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalledWith(
-      mockCalculations.totalEstimatedPoints,
+    expect(mockPerpsCloseTotals).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pnl: mockCalculations.totalPnl,
+        receiveAmount: mockCalculations.receiveAmount,
+        margin: mockCalculations.totalMargin,
+      }),
     );
   });
 
-  it('passes accountOptedIn and rewardsAccount to PerpsCloseSummary', () => {
-    // Arrange
-    const mockAccount = {
-      id: 'test-account-id',
-      address: '0x1234567890123456789012345678901234567890',
-      name: 'Test Account',
-      metadata: {
-        name: 'Test Account',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-    };
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: true,
-      account: mockAccount as unknown as InternalAccount,
-    });
-
-    // Act
+  it('renders the close-all rebate banner', () => {
     render(<PerpsCloseAllPositionsView />);
 
-    // Assert
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
-  });
-
-  it('handles null accountOptedIn value', () => {
-    // Arrange
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: null,
-      account: null,
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+      containerTwClassName: 'px-4 mb-3',
     });
-
-    // Act
-    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(
-      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
-    ).toBeOnTheScreen();
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
-  });
-
-  it('handles false accountOptedIn value', () => {
-    // Arrange
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: false,
-      account: null,
-    });
-
-    // Act
-    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(
-      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
-    ).toBeOnTheScreen();
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
   });
 });

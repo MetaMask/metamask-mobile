@@ -5,6 +5,7 @@ import PredictPortfolioAction from './PredictPortfolioAction';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 export interface PredictPortfolioActionsProps {
+  isGlass?: boolean;
   isWithdrawDisabled?: boolean;
   onAddFundsPress: () => void;
   onPositionsPress: () => void;
@@ -18,9 +19,11 @@ const PredictPortfolioActions: React.FC<PredictPortfolioActionsProps> = ({
   onPositionsPress,
   onWithdrawPress,
   positionsBadgeCount = 0,
+  isGlass = false,
 }) => (
   <Box testID={PREDICT_PORTFOLIO_TEST_IDS.ACTIONS} twClassName="flex-row gap-3">
     <PredictPortfolioAction
+      isGlass={isGlass}
       badgeCount={positionsBadgeCount}
       iconName={IconName.Book}
       label={strings('predict.tabs.positions')}
@@ -28,12 +31,14 @@ const PredictPortfolioActions: React.FC<PredictPortfolioActionsProps> = ({
       testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_POSITIONS}
     />
     <PredictPortfolioAction
+      isGlass={isGlass}
       iconName={IconName.Add}
       label={strings('predict.deposit.add_funds')}
       onPress={onAddFundsPress}
       testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_ADD_FUNDS}
     />
     <PredictPortfolioAction
+      isGlass={isGlass}
       disabled={isWithdrawDisabled}
       iconName={IconName.Arrow2Down}
       label={strings('predict.deposit.withdraw')}

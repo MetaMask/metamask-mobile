@@ -3,9 +3,11 @@ import {
   getTransactionPayFiatTestOptions,
   isProduction,
 } from './environment';
+import { testConfig } from './test/utils';
 
 const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 const originalMetamaskBuildType = process.env.METAMASK_BUILD_TYPE;
+const originalHasTestOverrides = process.env.HAS_TEST_OVERRIDES;
 
 describe('isProduction', () => {
   afterAll(() => {
@@ -125,6 +127,8 @@ describe('getTransactionPayFiatTestOptions', () => {
     process.env.TRANSACTION_PAY_FIAT_TEST_AMOUNT_OVERRIDE;
 
   afterEach(() => {
+    delete testConfig.transactionPayFiatTestFundingSource;
+    delete testConfig.transactionPayFiatTestAmountOverride;
     Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
       value: originalMetamaskEnvironment,
       writable: true,
@@ -133,6 +137,12 @@ describe('getTransactionPayFiatTestOptions', () => {
     });
     Object.defineProperty(process.env, 'METAMASK_BUILD_TYPE', {
       value: originalMetamaskBuildType,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+    Object.defineProperty(process.env, 'HAS_TEST_OVERRIDES', {
+      value: originalHasTestOverrides,
       writable: true,
       enumerable: true,
       configurable: true,
@@ -179,6 +189,34 @@ describe('getTransactionPayFiatTestOptions', () => {
 
     expect(getTransactionPayFiatTestOptions()).toStrictEqual({
       testAmountOverride: undefined,
+      testFundingSource: '0x1234567890123456789012345678901234567890',
+    });
+  });
+
+  it('returns runtime options in E2E builds with test overrides', () => {
+    Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
+      value: 'e2e',
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+    Object.defineProperty(process.env, 'HAS_TEST_OVERRIDES', {
+      value: 'true',
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+    jest.resetModules();
+    const { testConfig: reloadedTestConfig } =
+      jest.requireActual('./test/utils');
+    reloadedTestConfig.transactionPayFiatTestFundingSource =
+      '0x1234567890123456789012345678901234567890';
+    reloadedTestConfig.transactionPayFiatTestAmountOverride = '0.02';
+    const { getTransactionPayFiatTestOptions: getReloadedOptions } =
+      jest.requireActual('./environment');
+
+    expect(getReloadedOptions()).toStrictEqual({
+      testAmountOverride: '0.02',
       testFundingSource: '0x1234567890123456789012345678901234567890',
     });
   });

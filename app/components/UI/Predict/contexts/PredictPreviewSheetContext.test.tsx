@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
   shouldSuppressLegacyOrderFailureToast,
@@ -47,10 +48,12 @@ jest.mock('@react-navigation/native', () => ({
 let mockBottomSheetEnabled = true;
 let mockPayWithAnyTokenEnabled = false;
 let mockNonRegTimeSportsMarketTypes: string[] = [];
+let mockV2MarketsDisabled = false;
 
 const mockSelectPredictBottomSheetEnabledFlag = jest.fn();
 const mockSelectPredictWithAnyTokenEnabledFlag = jest.fn();
 const mockSelectNonRegTimeSportsMarketTypes = jest.fn();
+const mockSelectPredictDisablePolymarketV2MarketsFlag = jest.fn();
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: (...args: unknown[]) =>
@@ -59,6 +62,8 @@ jest.mock('../selectors/featureFlags', () => ({
     mockSelectPredictWithAnyTokenEnabledFlag(...args),
   selectNonRegTimeSportsMarketTypes: (...args: unknown[]) =>
     mockSelectNonRegTimeSportsMarketTypes(...args),
+  selectPredictDisablePolymarketV2MarketsFlag: (...args: unknown[]) =>
+    mockSelectPredictDisablePolymarketV2MarketsFlag(...args),
 }));
 
 jest.mock('react-redux', () => ({
@@ -254,7 +259,8 @@ const sellParams: PredictSellPreviewParams = {
 
 const TestConsumer: React.FC<{
   buyParamsOverride?: PredictBuyPreviewParams;
-}> = ({ buyParamsOverride = buyParams }) => {
+  sellParamsOverride?: PredictSellPreviewParams;
+}> = ({ buyParamsOverride = buyParams, sellParamsOverride = sellParams }) => {
   const { openBuySheet, openSellSheet, isBuySheetOpen } =
     usePredictPreviewSheet();
 
@@ -269,7 +275,7 @@ const TestConsumer: React.FC<{
       </TouchableOpacity>
       <TouchableOpacity
         testID="open-sell"
-        onPress={() => openSellSheet(sellParams)}
+        onPress={() => openSellSheet(sellParamsOverride)}
       >
         <Text>Open Sell</Text>
       </TouchableOpacity>
@@ -285,6 +291,10 @@ describe('PredictPreviewSheetContext', () => {
     mockActiveOrder = null;
     predictBuyPreviewOrderInitiatedRef.current = false;
     mockNonRegTimeSportsMarketTypes = [];
+    mockV2MarketsDisabled = false;
+    mockSelectPredictDisablePolymarketV2MarketsFlag.mockImplementation(
+      () => mockV2MarketsDisabled,
+    );
     mockSelectPredictBottomSheetEnabledFlag.mockImplementation(
       () => mockBottomSheetEnabled,
     );
@@ -713,6 +723,156 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
     expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
+  });
+
+  describe('Protocol V2 markets kill switch', () => {
+    const marketUnavailableRoute = [
+      Routes.PREDICT.MODALS.ROOT,
+      { screen: Routes.PREDICT.MODALS.MARKET_UNAVAILABLE },
+    ];
+    const withVersion = <T extends { outcome: object }>(
+      params: T,
+      version: string | undefined,
+    ): T => ({
+      ...params,
+      outcome: { ...params.outcome, version },
+    });
+    const v2BuyParams = withVersion(buyParams, 'v2');
+    const v2SellParams = withVersion(sellParams, 'v2');
+
+    describe('when the kill switch is on', () => {
+      beforeEach(() => {
+        mockV2MarketsDisabled = true;
+      });
+
+      it('opens the Market unavailable sheet instead of the buy preview for a v2 outcome', () => {
+        render(
+          <PredictPreviewSheetProvider>
+            <TestConsumer buyParamsOverride={v2BuyParams} />
+          </PredictPreviewSheetProvider>,
+        );
+
+        fireEvent.press(screen.getByTestId('open-buy'));
+
+        expect(mockNavigate).toHaveBeenCalledWith(...marketUnavailableRoute);
+        expect(
+          screen.queryByTestId('predict-buy-preview-sheet'),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('opens the Market unavailable sheet instead of the sell preview for a v2 outcome', () => {
+        render(
+          <PredictPreviewSheetProvider>
+            <TestConsumer sellParamsOverride={v2SellParams} />
+          </PredictPreviewSheetProvider>,
+        );
+
+        fireEvent.press(screen.getByTestId('open-sell'));
+
+        expect(mockNavigate).toHaveBeenCalledWith(...marketUnavailableRoute);
+        expect(
+          screen.queryByTestId('predict-sell-preview-sheet'),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('opens the Market unavailable sheet for a v2 outcome outside the provider', () => {
+        render(
+          <TestConsumer
+            buyParamsOverride={v2BuyParams}
+            sellParamsOverride={v2SellParams}
+          />,
+        );
+
+        fireEvent.press(screen.getByTestId('open-buy'));
+        fireEvent.press(screen.getByTestId('open-sell'));
+
+        expect(mockNavigate).toHaveBeenCalledTimes(2);
+        expect(mockNavigate).toHaveBeenNthCalledWith(
+          1,
+          ...marketUnavailableRoute,
+        );
+        expect(mockNavigate).toHaveBeenNthCalledWith(
+          2,
+          ...marketUnavailableRoute,
+        );
+      });
+
+      it.each([
+        ['v1', 'v1'],
+        ['missing', undefined],
+        ['unknown', 'v3'],
+      ])(
+        'opens the buy and sell previews when the version is %s',
+        (_label, version) => {
+          render(
+            <PredictPreviewSheetProvider>
+              <TestConsumer
+                buyParamsOverride={withVersion(buyParams, version)}
+                sellParamsOverride={withVersion(sellParams, version)}
+              />
+            </PredictPreviewSheetProvider>,
+          );
+
+          fireEvent.press(screen.getByTestId('open-buy'));
+          fireEvent.press(screen.getByTestId('open-sell'));
+
+          expect(
+            screen.getByTestId('predict-buy-preview-sheet'),
+          ).toBeOnTheScreen();
+          expect(
+            screen.getByTestId('predict-sell-preview-sheet'),
+          ).toBeOnTheScreen();
+          expect(mockNavigate).not.toHaveBeenCalled();
+        },
+      );
+    });
+
+    it('opens the buy and sell previews for a v2 outcome when the kill switch is off', () => {
+      render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer
+            buyParamsOverride={v2BuyParams}
+            sellParamsOverride={v2SellParams}
+          />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('open-sell'));
+
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-sell-preview-sheet'),
+      ).toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])(
+      'keeps the returned value stable across re-renders when the kill switch is %s',
+      (isDisabled) => {
+        mockV2MarketsDisabled = isDisabled;
+        // The real navigation object is stable across renders.
+        const navigation = {
+          navigate: mockNavigate,
+          addListener: jest.fn(() => jest.fn()),
+        };
+        jest
+          .mocked(useNavigation)
+          .mockReturnValueOnce(navigation)
+          .mockReturnValueOnce(navigation);
+        const values: unknown[] = [];
+        const Capture = () => {
+          values.push(usePredictPreviewSheet());
+          return null;
+        };
+
+        const { rerender } = render(<Capture />);
+        rerender(<Capture />);
+
+        expect(values).toHaveLength(2);
+        expect(values[1]).toBe(values[0]);
+      },
+    );
   });
 
   describe('failure toast (state-based trigger)', () => {

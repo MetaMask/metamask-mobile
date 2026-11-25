@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import type { BigNumber } from 'ethers';
+import type { BoxProps } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../types';
 
 export interface SwapsBannersProps {
@@ -9,10 +9,10 @@ export interface SwapsBannersProps {
    */
   children: ReactNode;
   /**
-   * Source token balance in atomic units, used to work out whether the entered
-   * amount would eat into the native balance kept in reserve for gas.
+   * Space between stacked banners. Defaults to 12px so market and limit
+   * quotes keep their current rhythm.
    */
-  latestSourceAtomicBalance?: BigNumber;
+  gap?: BoxProps['gap'];
   /**
    * Entry point reported to analytics when a banner opens a modal.
    */
@@ -38,7 +38,6 @@ export interface SwapsBannersContextValue {
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   walletAddress?: string;
-  latestSourceAtomicBalance?: BigNumber;
   location: MetaMetricsSwapsEventSource;
   onAdjustSourceAmount: (amount: string) => void;
 }

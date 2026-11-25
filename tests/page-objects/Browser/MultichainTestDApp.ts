@@ -14,17 +14,18 @@ import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/con
 import {
   applyNetworkSelection,
   clearSessionResult,
+  getMultichainTestDappBaseUrl,
+  MULTICHAIN_DAPP_DEVICE_PORT,
   readAllCheckboxStates,
   readConnectionState,
   type ConnectionState,
-  MULTICHAIN_TEST_DAPP_BASE_URL,
 } from './MultichainTestDAppNetworkSelection.js';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',
 });
 
-export const MULTICHAIN_DAPP_PORT = 8093;
+export const MULTICHAIN_DAPP_PORT = MULTICHAIN_DAPP_DEVICE_PORT;
 
 interface SessionResponse {
   success: boolean;
@@ -37,7 +38,6 @@ interface SessionResponse {
 }
 
 const SELECTORS = MultichainTestDappViewSelectorsIDs;
-const BASE_URL = MULTICHAIN_TEST_DAPP_BASE_URL;
 const DEFAULT_URL_PARAMS = '?autoMode=true';
 
 /**
@@ -70,41 +70,136 @@ class MultichainTestDApp {
     // already dismissed it once. Dismiss it again before touching the browser.
     await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(BASE_URL + urlParams);
+    await BrowserView.navigateToURL(getMultichainTestDappBaseUrl() + urlParams);
   }
 
   async scrollToPageTop(): Promise<void> {
     await ChromeCdpHelpers.evaluateInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       'window.scrollTo(0, 0)',
     ).catch(() => undefined);
   }
 
+  /**
+   * True when `#auto-connect-postmessage-button` exists and is DOM-enabled.
+   */
+  private async isAutoConnectButtonEnabled(): Promise<boolean> {
+    const ready = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+      getMultichainTestDappBaseUrl(),
+      `(() => {
+        const el = document.getElementById(${JSON.stringify(
+          SELECTORS.AUTO_CONNECT_BUTTON,
+        )});
+        if (!el) return false;
+        if ('disabled' in el && Boolean(el.disabled)) return false;
+        if (el.getAttribute('aria-disabled') === 'true') return false;
+        return true;
+      })()`,
+    );
+    return ready === true;
+  }
+
+  private async waitForAutoConnectButtonEnabled(): Promise<boolean> {
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      if (await this.isAutoConnectButtonEnabled()) {
+        return true;
+      }
+      await wait(POLL_INTERVAL_MS);
+    }
+    return false;
+  }
+
+  private async reloadMultichainDapp(): Promise<void> {
+    await ChromeCdpHelpers.evaluateInWebView(
+      getMultichainTestDappBaseUrl(),
+      '(() => { location.reload(); return true; })()',
+    );
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      const loaded = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+        getMultichainTestDappBaseUrl(),
+        `(() => {
+          const navigation = performance.getEntriesByType('navigation')[0];
+          return document.readyState === 'complete' &&
+            navigation?.type === 'reload' &&
+            Boolean(document.getElementById(${JSON.stringify(
+              SELECTORS.AUTO_CONNECT_BUTTON,
+            )}));
+        })()`,
+      );
+      if (loaded) {
+        return;
+      }
+      await wait(POLL_INTERVAL_MS);
+    }
+
+    throw new Error(
+      `Multichain test dapp did not finish reloading within ${CONNECT_TIMEOUT_MS}ms`,
+    );
+  }
+
+  /**
+   * Click `#auto-connect-postmessage-button` once the postMessage handshake
+   * enables it. On Android CI the provider can register after the first enable
+   * wait — reload once and retry (same recovery shape as BitcoinTestDapp).
+   */
   async useAutoConnectButton(): Promise<boolean> {
     if (this.connected) return true;
-    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-      BASE_URL,
-      SELECTORS.AUTO_CONNECT_BUTTON,
-    );
-    if (!clicked) {
-      logger.warn(`could not click #${SELECTORS.AUTO_CONNECT_BUTTON}`);
-      return false;
+
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        logger.warn(
+          `auto-connect attempt ${attempt}/${maxAttempts}: reloading dapp after enable/connect miss`,
+        );
+        await this.reloadMultichainDapp();
+      }
+
+      const enabled = await this.waitForAutoConnectButtonEnabled();
+      if (!enabled) {
+        logger.warn(
+          `#${SELECTORS.AUTO_CONNECT_BUTTON} not enabled within ${CONNECT_TIMEOUT_MS}ms (attempt ${attempt})`,
+        );
+        continue;
+      }
+
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        getMultichainTestDappBaseUrl(),
+        SELECTORS.AUTO_CONNECT_BUTTON,
+        5_000,
+      );
+      if (!clicked) {
+        logger.warn(
+          `could not click #${SELECTORS.AUTO_CONNECT_BUTTON} (attempt ${attempt})`,
+        );
+        continue;
+      }
+
+      this.connected = await this.waitForDappConnected();
+      if (this.connected) {
+        return true;
+      }
     }
-    this.connected = await this.waitForDappConnected();
-    return this.connected;
+
+    return false;
   }
 
   async createSessionWithNetworks(chainIds: string[]): Promise<void> {
     await this.scrollToPageTop();
     const connected = await this.useAutoConnectButton();
     if (!connected)
-      throw new Error('createSessionWithNetworks: auto-connect failed');
+      throw new Error(
+        `createSessionWithNetworks: auto-connect failed (dapp URL ${getMultichainTestDappBaseUrl()})`,
+      );
 
     await applyNetworkSelection(chainIds);
 
     await clearSessionResult();
     await ChromeCdpHelpers.clickByIdInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       SELECTORS.CREATE_SESSION_BUTTON,
     );
 
@@ -115,7 +210,7 @@ class MultichainTestDApp {
     }
 
     const result = await ChromeCdpHelpers.waitForElementTextInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `${SELECTORS.SESSION_METHOD_RESULT}0`,
       30_000,
     );
@@ -157,7 +252,7 @@ class MultichainTestDApp {
   async tapGetSessionButton(): Promise<void> {
     await clearSessionResult();
     await ChromeCdpHelpers.clickByIdInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       SELECTORS.GET_SESSION_BUTTON,
     );
   }
@@ -165,7 +260,7 @@ class MultichainTestDApp {
   async tapRevokeSessionButton(): Promise<void> {
     await clearSessionResult();
     await ChromeCdpHelpers.clickByIdInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       SELECTORS.REVOKE_SESSION_BUTTON,
     );
   }
@@ -173,7 +268,7 @@ class MultichainTestDApp {
   async getSessionData(resultIndex = 0): Promise<SessionResponse> {
     const resultId = `${SELECTORS.SESSION_METHOD_RESULT}${resultIndex}`;
     const text = await ChromeCdpHelpers.waitForElementTextInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       resultId,
       30_000,
     );
@@ -195,7 +290,7 @@ class MultichainTestDApp {
     timeoutMs = 10_000,
   ): Promise<string | null> {
     return ChromeCdpHelpers.waitForElementTextInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `${SELECTORS.WALLET_SESSION_CHANGED_RESULT}${index}`,
       timeoutMs,
     );
@@ -210,7 +305,7 @@ class MultichainTestDApp {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-        BASE_URL,
+        getMultichainTestDappBaseUrl(),
         elementId,
       );
       if (clicked) return true;
@@ -231,7 +326,7 @@ class MultichainTestDApp {
    */
   private async readRenderedScopes(): Promise<string[]> {
     const raw = await ChromeCdpHelpers.evaluateInWebView<string>(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `JSON.stringify(
         Array.from(document.querySelectorAll('[id^="direct-methods-"]')).map(
           (el) => el.id.replace('direct-methods-', ''),
@@ -253,7 +348,7 @@ class MultichainTestDApp {
   ): Promise<string | null> {
     const elementId = `${SELECTORS.INVOKE_METHOD_RESULT_PREFIX}eip155-${chainId}-${method}-result-${index}`;
     return ChromeCdpHelpers.waitForElementTextInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       elementId,
       10_000,
     );
@@ -268,7 +363,7 @@ class MultichainTestDApp {
 
     if (!params) {
       await ChromeCdpHelpers.clickByIdInWebView(
-        BASE_URL,
+        getMultichainTestDappBaseUrl(),
         `${SELECTORS.DIRECT_INVOKE_PREFIX}${scopeId}-${method}`,
       );
       return;
@@ -285,7 +380,7 @@ class MultichainTestDApp {
     );
 
     await ChromeCdpHelpers.evaluateInWebView<boolean>(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `(function(){
         const sel = document.getElementById('method-select-${scopeId}');
         if (!sel) return false;
@@ -296,13 +391,13 @@ class MultichainTestDApp {
     );
 
     await ChromeCdpHelpers.waitForElementTextInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `invoke-method-request-${scopeId}`,
       5_000,
     );
 
     await ChromeCdpHelpers.evaluateInWebView<boolean>(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `(function(){
         const ta = document.getElementById('invoke-method-request-${scopeId}');
         if (!ta) return false;
@@ -318,20 +413,24 @@ class MultichainTestDApp {
     const deadline = Date.now() + 5_000;
     while (Date.now() < deadline) {
       const disabled = await ChromeCdpHelpers.evaluateInWebView<boolean>(
-        BASE_URL,
+        getMultichainTestDappBaseUrl(),
         `Boolean(document.getElementById(${JSON.stringify(buttonId)})?.disabled)`,
       );
       if (!disabled) break;
       await new Promise<void>((r) => setTimeout(r, 100));
     }
 
-    await ChromeCdpHelpers.clickByIdInWebView(BASE_URL, buttonId);
+    await ChromeCdpHelpers.clickByIdInWebView(
+      getMultichainTestDappBaseUrl(),
+      buttonId,
+    );
   }
 
   async tapConfirmButton(): Promise<void> {
     await Gestures.waitAndTap(
       Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       {
+        timeout: 30_000,
         checkForDisplayed: true,
         checkEnabled: true,
         elemDescription: 'MultichainTestDApp confirm button',
@@ -352,13 +451,13 @@ class MultichainTestDApp {
 
   async subscribeToChainEvents(chainId: string): Promise<boolean> {
     const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       `${SELECTORS.DIRECT_INVOKE_PREFIX}eip155-${chainId}-eth_subscribe`,
     );
     if (!clicked) return false;
     const resultId = `${SELECTORS.INVOKE_METHOD_RESULT_PREFIX}eip155-${chainId}-eth_subscribe-result-0`;
     const text = await ChromeCdpHelpers.waitForElementTextInWebView(
-      BASE_URL,
+      getMultichainTestDappBaseUrl(),
       resultId,
       10_000,
     );
@@ -368,7 +467,7 @@ class MultichainTestDApp {
   async isNotificationContainerEmpty(): Promise<boolean> {
     return (
       (await ChromeCdpHelpers.readTextByIdInWebView(
-        BASE_URL,
+        getMultichainTestDappBaseUrl(),
         SELECTORS.WALLET_NOTIFY_EMPTY,
       )) !== null
     );
@@ -377,7 +476,7 @@ class MultichainTestDApp {
   async hasNotifications(): Promise<boolean> {
     return (
       (await ChromeCdpHelpers.waitForElementTextInWebView(
-        BASE_URL,
+        getMultichainTestDappBaseUrl(),
         `${SELECTORS.WALLET_NOTIFY_DETAILS}0`,
         50_000,
       )) !== null

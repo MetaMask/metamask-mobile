@@ -1,4 +1,10 @@
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -30,7 +36,9 @@ import {
   defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import PerpsClosePositionView from './PerpsClosePositionView';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -38,8 +46,12 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useIsFocused: jest.fn(),
 }));
 jest.mock('../../../../../util/haptics');
+jest.mock('../../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
 
 // Mock React Native Linking specifically for this test to prevent NavigationContainer errors
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -60,6 +72,25 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+}));
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../../hooks/usePerpsClosePosition', () => ({
+  usePerpsCloseInFlight: jest.fn(() => false),
+}));
+
+const mockResolvePostTradePrompt = jest.fn();
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+);
+let mockIsPerpsProModeActive = false;
+jest.mock('../../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../../utils/perpsModeSwitch'),
+  useIsPerpsProModeActive: () => mockIsPerpsProModeActive,
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -164,7 +195,7 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   default: 'PerpsBottomSheetTooltip',
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const MockReact = jest.requireActual('react');
   const { View: MockView } = jest.requireActual('react-native');
   return {
@@ -182,6 +213,7 @@ const defaultPerpsToastsMock = {
   PerpsToastOptions: {
     positionManagement: {
       closePosition: {
+        positionAlreadyClosed: { label: 'already-closed' },
         limitClose: {
           partial: {
             switchToMarketOrderMissingLimitPrice: {},
@@ -210,6 +242,9 @@ describe('PerpsClosePositionView', () => {
   );
   const useRouteMock = jest.mocked(
     jest.requireMock('@react-navigation/native').useRoute,
+  );
+  const useIsFocusedMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useIsFocused,
   );
   const usePerpsLivePositionsMock = jest.mocked(
     jest.requireMock('../../hooks/stream').usePerpsLivePositions,
@@ -250,6 +285,7 @@ describe('PerpsClosePositionView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLastCloseOrderType();
     mockLimitPriceConfirmValue = '0';
 
     // Setup navigation mocks
@@ -257,6 +293,8 @@ describe('PerpsClosePositionView', () => {
       goBack: mockGoBack,
       addListener: jest.fn(() => jest.fn()),
     });
+
+    useIsFocusedMock.mockReturnValue(true);
 
     // Setup default route params
     useRouteMock.mockReturnValue({
@@ -273,7 +311,11 @@ describe('PerpsClosePositionView', () => {
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsLiveFocusedPriceMock.mockReturnValue(undefined);
-    usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
+    // A quoted 1% rate: 1.5 ETH at 3,000 gives the default mock's $45 fee.
+    usePerpsOrderFeesMock.mockReturnValue({
+      ...defaultPerpsOrderFeesMock,
+      totalFeeRate: 0.01,
+    });
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
     );
@@ -432,6 +474,150 @@ describe('PerpsClosePositionView', () => {
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
+    it('dismisses the sheet with already-closed toast when live position is gone', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'positions',
+      );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'accountState',
+      );
+      expect(handleClosePosition).not.toHaveBeenCalled();
+    });
+
+    it('does not dismiss a second time when the stream drops the position after a confirmed close', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+    });
+
+    it('keeps the sheet open while positions are still loading', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
+    });
+
+    it('defers the already-closed dismissal while the sheet is not focused', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      useIsFocusedMock.mockReturnValue(false);
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
+
+      useIsFocusedMock.mockReturnValue(true);
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+    });
+
     it('disables confirm button when closing is in progress', () => {
       // Arrange
       const handleClosePosition = jest.fn();
@@ -559,14 +745,13 @@ describe('PerpsClosePositionView', () => {
     it('calculates and displays correct fees', () => {
       // Arrange
       const mockFees = {
-        totalFee: 10.5,
-        metamaskFeeRate: 0.5,
-        protocolFeeRate: 0.5,
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: 0.007,
       };
       usePerpsOrderFeesMock.mockReturnValue(mockFees);
 
       // Act
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -574,8 +759,10 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert
-      expect(getByText(/10\.5/)).toBeDefined();
+      // Assert - Core fee: 1.5 ETH × 3,000 × 0.7% = 31.5
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.FEES_VALUE),
+      ).toHaveTextContent('$31.50');
     });
 
     it('updates fees when close percentage changes', async () => {
@@ -607,9 +794,8 @@ describe('PerpsClosePositionView', () => {
         size: '1', // 1 token long position
       };
       const mockFees = {
-        totalFee: 50, // $50 fees
-        metamaskFeeRate: 0.5,
-        protocolFeeRate: 0.5,
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: 0.2, // 1 token × $150 × 20% = $30 fee
       };
 
       // Set current price to $150 for reference
@@ -627,7 +813,7 @@ describe('PerpsClosePositionView', () => {
       });
 
       // Act
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -635,18 +821,16 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - receiveAmount = marginUsed - fees
-      // HyperLiquid's marginUsed already includes PnL
-      // receiveAmount = 1200 - 50 = 1150
-      const receiveText = getByText(
-        strings('perps.close_position.you_receive'),
-      );
-      expect(receiveText).toBeDefined();
+      // Assert - Core estimateCloseReceive for an isolated position: margin
+      // without its unrealized PnL (1200 - 200) plus the PnL at the close
+      // price ((150 - 100) × 1 = 50), less the fee: 1050 - 30 = 1020
       // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
-      expect(getByText('$1,150')).toBeDefined();
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE),
+      ).toHaveTextContent('$1,020');
     });
 
-    it('calculates receive amount correctly for partial close percentages', () => {
+    it('calculates receive amount for a losing isolated close', () => {
       // Arrange
       const mockPosition = {
         ...defaultPerpsPositionMock,
@@ -656,9 +840,8 @@ describe('PerpsClosePositionView', () => {
         size: '2', // 2 tokens long
       };
       const mockFees = {
-        totalFee: 25, // $25 fees for 100% close
-        metamaskFeeRate: 0.5,
-        protocolFeeRate: 0.5,
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: 0.1, // 2 tokens × $75 × 10% = $15 fee
       };
 
       // Set current price lower than entry for loss scenario
@@ -676,7 +859,7 @@ describe('PerpsClosePositionView', () => {
       });
 
       // Act
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -684,15 +867,12 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // For 100% close (default):
-      // HyperLiquid's marginUsed already includes PnL
-      // receiveAmount = 1700 - 25 = 1675
-      const receiveText = getByText(
-        strings('perps.close_position.you_receive'),
-      );
-      expect(receiveText).toBeDefined();
-      // Look for 1675 in the display
-      expect(getByText(/1,675/)).toBeDefined();
+      // For 100% close (default): margin without its unrealized loss
+      // (1700 + 300) plus the PnL at the close price ((75 - 100) × 2 = -50),
+      // less the fee: 1950 - 15 = 1935
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE),
+      ).toHaveTextContent('$1,935');
     });
   });
 
@@ -768,6 +948,10 @@ describe('PerpsClosePositionView', () => {
       useRouteMock.mockReturnValue({
         params: { position: positionWithProfit },
       });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [positionWithProfit],
+        isInitialLoading: false,
+      });
 
       // Act
       const { getByText } = renderWithProvider(
@@ -816,10 +1000,8 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Now uses actual unrealizedPnl from position
-      // Look for negative P&L display (with - sign) - should show 150 (absolute value)
-      const pnlElement = getByText(/-.*150/);
-      expect(pnlElement).toBeDefined();
+      // Assert - PnL realized at the close price: (100 - 150) × 1 = -50
+      expect(getByText('-$50')).toBeOnTheScreen();
     });
   });
 
@@ -880,6 +1062,28 @@ describe('PerpsClosePositionView', () => {
           symbols: expect.arrayContaining([defaultPerpsPositionMock.symbol]),
           throttleMs: 1000,
         }),
+      );
+    });
+
+    it('validates the limit price band against the oracle price, not the mark price', () => {
+      usePerpsLivePricesMock.mockReturnValue({
+        [defaultPerpsPositionMock.symbol]: {
+          price: '50000',
+          markPrice: '50100',
+          oraclePrice: '49900',
+        },
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(usePerpsClosePositionValidationMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 50000, referencePrice: 49900 }),
       );
     });
 
@@ -1253,7 +1457,7 @@ describe('PerpsClosePositionView', () => {
         position: typeof defaultPerpsPositionMock;
         markPrice: string;
         limitPrice?: string;
-        fees?: typeof defaultPerpsOrderFeesMock;
+        fees?: typeof defaultPerpsOrderFeesMock & { totalFeeRate?: number };
         handleClosePosition: jest.Mock;
       }) => {
         selectLimitFlagMock.mockReturnValue(true);
@@ -1321,7 +1525,12 @@ describe('PerpsClosePositionView', () => {
           position,
           markPrice: '120',
           limitPrice: '130',
-          fees: { ...defaultPerpsOrderFeesMock, totalFee: 26 },
+          // 2 × 130 × 10% = the $26 fee
+          fees: {
+            ...defaultPerpsOrderFeesMock,
+            totalFee: 26,
+            totalFeeRate: 0.1,
+          },
           handleClosePosition,
         });
         fireEvent.press(
@@ -1362,7 +1571,11 @@ describe('PerpsClosePositionView', () => {
           position,
           markPrice: '120',
           limitPrice: '80',
-          fees: { ...defaultPerpsOrderFeesMock, totalFee: 0 },
+          fees: {
+            ...defaultPerpsOrderFeesMock,
+            totalFee: 0,
+            totalFeeRate: 0,
+          },
           handleClosePosition,
         });
         fireEvent.press(
@@ -1474,6 +1687,68 @@ describe('PerpsClosePositionView', () => {
         expect(handleClosePosition).not.toHaveBeenCalled();
       });
       selectLimitFlagMock.mockReturnValue(false);
+    });
+
+    it('keeps the form open while another close for the market is in flight', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      const closeInFlightMock = jest.mocked(
+        jest.requireMock('../../hooks/usePerpsClosePosition')
+          .usePerpsCloseInFlight,
+      );
+      closeInFlightMock.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+
+      // Act
+      fireEvent.press(confirmButton);
+
+      // Assert
+      expect(confirmButton).toBeDisabled();
+      expect(handleClosePosition).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      closeInFlightMock.mockReturnValue(false);
+    });
+
+    it('dismisses once when confirm is double-tapped', async () => {
+      // Arrange - the view renderer mounts this screen as the initial route, so
+      // a single goBack is only observable here. isClosing stays false, as it
+      // does for a second tap that lands before the first re-render.
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+
+      // Act
+      fireEvent.press(confirmButton);
+      fireEvent.press(confirmButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -2252,6 +2527,86 @@ describe('PerpsClosePositionView', () => {
             maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
           },
         }),
+      );
+    });
+  });
+
+  describe('post-trade prompt', () => {
+    const countKey = { address: '0xlinked', product: 'perps' };
+
+    const confirmClose = async () => {
+      const handleClosePosition = jest.fn().mockResolvedValue(undefined);
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      return handleClosePosition;
+    };
+
+    beforeEach(() => {
+      mockIsPerpsProModeActive = false;
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+    });
+
+    it('passes the resolved prompt and a close preview for a full market close', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const handleClosePosition = await confirmClose();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          postTradeShare: {
+            prompt: { kind: 'share_sheet', countKey },
+            providerId: 'hyperliquid',
+            preview: expect.objectContaining({
+              action: 'close',
+              product: 'perps',
+              tradeSymbol: 'ETH',
+              direction: 'long',
+              leverageLabel: '3x',
+            }),
+          },
+        }),
+      );
+      const { preview } = handleClosePosition.mock.calls[0][0].postTradeShare;
+      expect(preview.pnlValueLabel).toBeUndefined();
+      expect(preview.exitPriceLabel).toBeUndefined();
+    });
+
+    it('passes no post-trade share when the resolver returns none', async () => {
+      const handleClosePosition = await confirmClose();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ postTradeShare: undefined }),
+      );
+    });
+
+    it('skips the prompt in Pro mode', async () => {
+      mockIsPerpsProModeActive = true;
+
+      const handleClosePosition = await confirmClose();
+
+      expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ postTradeShare: undefined }),
       );
     });
   });

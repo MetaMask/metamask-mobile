@@ -7,19 +7,30 @@ import {
   PERFORMANCE_CONFIG,
   isAbortError,
   type CandleData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { buildVenueSymbolKey, parseVenueSymbolKey } from '../venueKeys';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // Generic subscription parameters
+type CandleDeliverySource =
+  | 'cache'
+  | 'fresh'
+  | 'historical'
+  | 'prewarm'
+  | 'cleared';
+
 interface StreamSubscription<T> {
   id: string;
   cacheKey: string; // Associated cacheKey (symbol-interval) for filtering
   callback: (data: T) => void;
+  onDelivery?: (source: CandleDeliverySource) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
+  pendingSource?: CandleDeliverySource;
   hasReceivedFirstUpdate?: boolean;
   onError?: (error: Error) => void;
 }
@@ -40,7 +51,11 @@ abstract class StreamChannel<T> {
     this.#onDataPersist?.();
   }
 
-  protected notifySubscribers(cacheKey: string, updates: T) {
+  protected notifySubscribers(
+    cacheKey: string,
+    updates: T,
+    source: CandleDeliverySource = 'fresh',
+  ) {
     if (this.isPaused) {
       return;
     }
@@ -54,6 +69,7 @@ abstract class StreamChannel<T> {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
         subscriber.callback(updates);
+        subscriber.onDelivery?.(source);
         subscriber.hasReceivedFirstUpdate = true;
         return;
       }
@@ -61,18 +77,23 @@ abstract class StreamChannel<T> {
       // If no throttling, notify immediately
       if (!subscriber.throttleMs) {
         subscriber.callback(updates);
+        subscriber.onDelivery?.(source);
         return;
       }
 
       // Store pending update
       subscriber.pendingUpdate = updates;
+      subscriber.pendingSource = source;
 
       // Throttle pattern
       if (!subscriber.timer) {
         subscriber.timer = setTimeout(() => {
           if (subscriber.pendingUpdate) {
+            const pendingSource = subscriber.pendingSource ?? 'fresh';
             subscriber.callback(subscriber.pendingUpdate);
+            subscriber.onDelivery?.(pendingSource);
             subscriber.pendingUpdate = undefined;
+            subscriber.pendingSource = undefined;
           }
           subscriber.timer = undefined;
         }, subscriber.throttleMs);
@@ -95,6 +116,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.pendingSource = undefined;
     });
 
     // Disconnect all WebSocket subscriptions
@@ -108,6 +130,7 @@ abstract class StreamChannel<T> {
     // Notify subscribers with cleared data
     this.subscribers.forEach((subscriber) => {
       subscriber.callback(this.getClearedData());
+      subscriber.onDelivery?.('cleared');
     });
   }
 
@@ -125,8 +148,14 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     ReturnType<typeof setTimeout>
   >();
   private connectRetryCounts = new Map<string, number>();
-  private readonly prewarmRequests = new Set<string>();
+  private readonly prewarmRequests = new Map<
+    string,
+    { force: boolean; promise: Promise<void> }
+  >();
   private prewarmGeneration = 0;
+  private generation = 0;
+  private contextGeneration = 0;
+  private readonly activeSubscriptionGenerations = new Map<string, number>();
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
   // so merge-on-update can't cause unbounded memory growth.
@@ -211,6 +240,17 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
+   * Whether a cached candle series is still the live chart price.
+   * Allows one missed candle plus transport jitter before treating it as stale.
+   *
+   * Intervals without an `INTERVAL_MS` entry (currently `1M`) have no fixed
+   * duration, so they are never fresh and callers fall back to the live mid.
+   */
+  public isChartCacheFresh(data: CandleData, nowMs = Date.now()): boolean {
+    return CandleStreamChannel.isCacheFresh(data, nowMs);
+  }
+
+  /**
    * @param getIsInitialized - Getter for connection initialized state.
    * Injected to avoid circular dependency:
    * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
@@ -221,6 +261,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   public override clearCache(): void {
+    this.contextGeneration = ++this.generation;
+    this.activeSubscriptionGenerations.clear();
     this.prewarmGeneration += 1;
     this.deferConnectTimers.forEach((timer) => {
       clearTimeout(timer);
@@ -260,6 +302,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     interval: CandlePeriod,
     cacheKey: string,
     delayMs: number,
+    providerId?: PerpsProviderType,
   ): void {
     const hasActiveSubscribers = Array.from(this.subscribers.values()).some(
       (sub) => sub.cacheKey === cacheKey,
@@ -288,7 +331,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       cacheKey,
       setTimeout(() => {
         this.deferConnectTimers.delete(cacheKey);
-        this.connectNow(symbol, interval, cacheKey);
+        this.connectNow(symbol, interval, cacheKey, providerId);
       }, delayMs),
     );
   }
@@ -296,8 +339,14 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   /**
    * Get cache key for a specific symbol and interval
    */
-  private getCacheKey(symbol: string, interval: CandlePeriod): string {
-    return `${symbol}-${interval}`;
+  private getCacheKey(
+    symbol: string,
+    interval: CandlePeriod,
+    providerId?: PerpsProviderType,
+  ): string {
+    // Venue-scoped cache key (TAT-4407): candles for the same symbol from two
+    // venues are different data. Untagged keys keep the legacy format.
+    return `${buildVenueSymbolKey(symbol, providerId)}-${interval}`;
   }
 
   /**
@@ -309,18 +358,29 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string;
     interval: CandlePeriod;
     duration: TimeDuration;
+    providerId?: PerpsProviderType;
     callback: (data: CandleData) => void;
+    onDelivery?: (source: CandleDeliverySource) => void;
     throttleMs?: number;
     onError?: (error: Error) => void;
   }): () => void {
-    const { symbol, interval, callback, throttleMs, onError } = params;
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const {
+      symbol,
+      interval,
+      providerId,
+      callback,
+      onDelivery,
+      throttleMs,
+      onError,
+    } = params;
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     const id = Math.random().toString(36);
 
     const subscription: StreamSubscription<CandleData> = {
       id,
       cacheKey,
       callback,
+      onDelivery,
       throttleMs,
       hasReceivedFirstUpdate: false,
       onError,
@@ -341,9 +401,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const cached = this.cache.get(cacheKey);
     if (cached && CandleStreamChannel.isCacheFresh(cached)) {
       callback(cached);
+      onDelivery?.('cache');
       subscription.hasReceivedFirstUpdate = true;
     } else if (cached) {
-      this.prewarmCandles(symbol, interval, params.duration).catch((error) => {
+      this.prewarmCandles(
+        symbol,
+        interval,
+        params.duration,
+        false,
+        providerId,
+      ).catch((error) => {
         DevLogger.log('CandleStreamChannel: Failed to refresh stale cache', {
           symbol,
           interval,
@@ -353,7 +420,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     }
 
     // Ensure WebSocket connected for this symbol+interval
-    this.connect(symbol, interval, cacheKey);
+    this.connect(symbol, interval, cacheKey, providerId);
 
     // Return unsubscribe function
     return () => {
@@ -407,6 +474,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     cacheKey: string,
+    providerId?: PerpsProviderType,
   ): void {
     // Skip if already connected for this symbol+interval
     if (this.wsSubscriptions.has(cacheKey)) {
@@ -420,7 +488,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       delay = PERFORMANCE_CONFIG.NavigationParamsDelayMs;
     }
 
-    this.deferConnect(symbol, interval, cacheKey, delay);
+    this.deferConnect(symbol, interval, cacheKey, delay, providerId);
   }
 
   /**
@@ -431,6 +499,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     cacheKey: string,
+    providerId?: PerpsProviderType,
   ): void {
     // Re-check guards: state may have changed during the debounce window
     if (this.wsSubscriptions.has(cacheKey)) {
@@ -446,6 +515,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         interval,
         cacheKey,
         PERPS_CONSTANTS.ConnectRetryDelayMs,
+        providerId,
       );
       return;
     }
@@ -462,12 +532,24 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const subscribedNetwork = Engine.context.PerpsController.state?.isTestnet
       ? 'testnet'
       : 'mainnet';
+    const subscriptionGeneration = ++this.generation;
+    this.activeSubscriptionGenerations.set(cacheKey, subscriptionGeneration);
 
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
       duration,
+      // Pin an explicit route to its venue (TAT-4407): without this the stream
+      // follows the default provider and rebinds if it changes.
+      ...(providerId ? { providerId } : {}),
       callback: (candleData: CandleData) => {
+        if (
+          this.activeSubscriptionGenerations.get(cacheKey) !==
+          subscriptionGeneration
+        ) {
+          return;
+        }
+
         if (__DEV__) {
           deliveryCount += 1;
           if (deliveryCount === 2) {
@@ -492,6 +574,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         this.notifySubscribers(cacheKey, merged);
       },
       onError: (error: Error) => {
+        if (
+          this.activeSubscriptionGenerations.get(cacheKey) !==
+          subscriptionGeneration
+        ) {
+          return;
+        }
+
         // Log initialization failure
         DevLogger.log(
           'CandleStreamChannel: Subscription initialization failed',
@@ -512,6 +601,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         });
 
         // Clean up failed subscription
+        this.activeSubscriptionGenerations.delete(cacheKey);
         this.wsSubscriptions.delete(cacheKey);
       },
     });
@@ -537,6 +627,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.disconnectAll();
       return;
     }
+    this.activeSubscriptionGenerations.delete(cacheKey);
     // Cancel any pending deferred connect for this cacheKey
     const timer = this.deferConnectTimers.get(cacheKey);
     if (timer) {
@@ -560,8 +651,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   public getCachedData(
     symbol: string,
     interval: CandlePeriod,
+    providerId?: PerpsProviderType,
   ): CandleData | null {
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     return this.cache.get(cacheKey) || null;
   }
 
@@ -589,9 +681,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     duration: TimeDuration,
+    providerId?: PerpsProviderType,
   ): Promise<void> {
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     const cachedData = this.cache.get(cacheKey);
+    const contextGeneration = this.contextGeneration;
 
     // If no cached data or no candles, nothing to extend
     if (!cachedData || cachedData.candles.length === 0) {
@@ -646,7 +740,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
           interval,
           limit,
           endTime,
+          ...(providerId ? { providerId } : {}),
         });
+
+      if (contextGeneration !== this.contextGeneration) {
+        return;
+      }
 
       if (!newCandleData || newCandleData.candles.length === 0) {
         DevLogger.log(
@@ -686,7 +785,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.cache.set(cacheKey, updatedData);
 
       // Notify all subscribers of the updated data
-      this.notifySubscribers(cacheKey, updatedData);
+      this.notifySubscribers(cacheKey, updatedData, 'historical');
 
       DevLogger.log(
         'CandleStreamChannel: Successfully fetched and merged historical candles',
@@ -741,15 +840,38 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     duration: TimeDuration,
+    force = false,
+    providerId?: PerpsProviderType,
   ): Promise<void> {
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     const cachedData = this.cache.get(cacheKey);
     const generation = this.prewarmGeneration;
     const requestKey = `${generation}:${cacheKey}`;
-    if (cachedData && CandleStreamChannel.isCacheFresh(cachedData)) {
+    if (!force && cachedData && CandleStreamChannel.isCacheFresh(cachedData)) {
       return;
     }
-    if (this.prewarmRequests.has(requestKey)) {
+    const pendingRequest = this.prewarmRequests.get(requestKey);
+    if (pendingRequest) {
+      try {
+        await pendingRequest.promise;
+      } catch (error) {
+        if (!force || generation !== this.prewarmGeneration) {
+          return;
+        }
+        if (pendingRequest.force) {
+          throw error;
+        }
+      }
+      if (
+        force &&
+        !pendingRequest.force &&
+        generation === this.prewarmGeneration
+      ) {
+        if (this.prewarmRequests.get(requestKey) === pendingRequest) {
+          this.prewarmRequests.delete(requestKey);
+        }
+        await this.prewarmCandles(symbol, interval, duration, true);
+      }
       return;
     }
 
@@ -757,43 +879,52 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const limit = Math.min(Math.max(dynamicLimit, 50), 500);
     const endTime = Date.now();
 
-    this.prewarmRequests.add(requestKey);
-    try {
-      const candleData =
-        await Engine.context.PerpsController.fetchHistoricalCandles({
+    const request = (async () => {
+      try {
+        const candleData =
+          await Engine.context.PerpsController.fetchHistoricalCandles({
+            symbol,
+            interval,
+            limit,
+            endTime,
+            ...(providerId ? { providerId } : {}),
+          });
+
+        if (generation !== this.prewarmGeneration) {
+          return;
+        }
+
+        if (!candleData?.candles.length) {
+          return;
+        }
+
+        const warmedData = CandleStreamChannel.mergeCandleData(
+          cachedData,
+          candleData,
+        );
+
+        this.cache.set(cacheKey, warmedData);
+        this.notifySubscribers(cacheKey, warmedData, 'prewarm');
+      } catch (error) {
+        if (isAbortError(error)) {
+          throw error;
+        }
+
+        DevLogger.log('CandleStreamChannel: Failed to prewarm candles', {
           symbol,
           interval,
-          limit,
-          endTime,
+          error: error instanceof Error ? error.message : String(error),
         });
-
-      if (generation !== this.prewarmGeneration) {
-        return;
       }
-
-      if (!candleData?.candles.length) {
-        return;
-      }
-
-      const warmedData = CandleStreamChannel.mergeCandleData(
-        cachedData,
-        candleData,
-      );
-
-      this.cache.set(cacheKey, warmedData);
-      this.notifySubscribers(cacheKey, warmedData);
-    } catch (error) {
-      if (isAbortError(error)) {
-        throw error;
-      }
-
-      DevLogger.log('CandleStreamChannel: Failed to prewarm candles', {
-        symbol,
-        interval,
-        error: error instanceof Error ? error.message : String(error),
-      });
+    })();
+    const requestEntry = { force, promise: request };
+    this.prewarmRequests.set(requestKey, requestEntry);
+    try {
+      await request;
     } finally {
-      this.prewarmRequests.delete(requestKey);
+      if (this.prewarmRequests.get(requestKey) === requestEntry) {
+        this.prewarmRequests.delete(requestKey);
+      }
     }
   }
 
@@ -801,6 +932,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {
+    this.activeSubscriptionGenerations.clear();
     // Cancel all deferred connect timers
     this.deferConnectTimers.forEach((timer) => {
       clearTimeout(timer);
@@ -820,6 +952,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.pendingSource = undefined;
     });
 
     this.wsSubscriptions.forEach((unsubscribe) => {
@@ -844,18 +977,22 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
     // Re-establish connections for each active cache key
     activeCacheKeys.forEach((cacheKey) => {
-      // Parse coin and interval from cacheKey (format: "coin-interval")
-      // Since coin symbols can contain hyphens (e.g., "ETH-USD"), we need to
-      // split from the right. The interval is always the last segment after the final hyphen.
-      const lastHyphenIndex = cacheKey.lastIndexOf('-');
+      // Strip the optional venue prefix (TAT-4407, format
+      // "venue-scoped symbol + interval"), then parse coin and interval from the
+      // remainder (format: "coin-interval"). Coin symbols can contain hyphens
+      // (e.g., "ETH-USD"), so split from the right — the interval is always
+      // the last segment after the final hyphen.
+      const { symbol: scopedSymbol, providerId } =
+        parseVenueSymbolKey(cacheKey);
+      const lastHyphenIndex = scopedSymbol.lastIndexOf('-');
       if (lastHyphenIndex === -1 || lastHyphenIndex === 0) {
         // Invalid cache key format - skip
         return;
       }
-      const coin = cacheKey.substring(0, lastHyphenIndex);
-      const interval = cacheKey.substring(lastHyphenIndex + 1);
+      const coin = scopedSymbol.substring(0, lastHyphenIndex);
+      const interval = scopedSymbol.substring(lastHyphenIndex + 1);
       if (coin && interval) {
-        this.connect(coin, interval as CandlePeriod, cacheKey);
+        this.connect(coin, interval as CandlePeriod, cacheKey, providerId);
       }
     });
   }

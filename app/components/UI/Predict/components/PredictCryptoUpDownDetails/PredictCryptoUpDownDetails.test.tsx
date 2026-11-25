@@ -19,6 +19,8 @@ import {
 import usePredictShare from '../../hooks/usePredictShare';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
+import { formatTime } from '../TimeSlotPicker/TimeSlotPicker.utils';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 const mockUsePredictShare = usePredictShare as jest.Mock;
 const mockUsePredictSeries = usePredictSeries as jest.Mock;
@@ -37,6 +39,7 @@ interface TimeSlotPickerMockProps {
   onMarketSelected: (market: PredictMarket) => void;
   markets: PredictMarket[];
   selectedMarketId?: string;
+  hideLiveIndicator?: boolean;
 }
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -87,6 +90,33 @@ jest.mock('react-native-reanimated', () => {
     useAnimatedScrollHandler: jest.fn(() => jest.fn()),
   };
 });
+
+let mockPredictBrandRefreshEnabled = false;
+jest.mock('react-redux', () => {
+  const { selectPredictBrandRefreshEnabled } = jest.requireActual(
+    '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  );
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: unknown) =>
+      selector === selectPredictBrandRefreshEnabled
+        ? mockPredictBrandRefreshEnabled
+        : undefined,
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
 
 jest.mock(
   '../../../../../component-library/components-temp/HeaderCompactStandard',
@@ -162,10 +192,11 @@ jest.mock('../TimeSlotPicker', () => {
         onMarketSelected,
         markets,
         selectedMarketId,
+        hideLiveIndicator,
       }: TimeSlotPickerMockProps) => (
         <View
           testID="mock-time-slot-picker"
-          accessibilityLabel={`selected:${selectedMarketId ?? 'none'}`}
+          accessibilityLabel={`selected:${selectedMarketId ?? 'none'};hideLive:${String(Boolean(hideLiveIndicator))}`}
         >
           {markets.map((m) => (
             <TouchableOpacity
@@ -301,7 +332,13 @@ const getChartColor = () => {
 const getSelectedTimeSlotMarketId = () => {
   const picker = screen.getByTestId('mock-time-slot-picker');
   const label = picker.props.accessibilityLabel as string | undefined;
-  return label?.match(/^selected:(.+)$/)?.[1];
+  return label?.match(/^selected:([^;]+)/)?.[1];
+};
+
+const getTimeSlotHideLiveIndicator = (): boolean => {
+  const picker = screen.getByTestId('mock-time-slot-picker');
+  const label = picker.props.accessibilityLabel as string | undefined;
+  return label?.match(/;hideLive:(true|false)$/)?.[1] === 'true';
 };
 
 const getPositionsRowIds = () => {
@@ -333,6 +370,7 @@ describe('PredictCryptoUpDownDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPredictBrandRefreshEnabled = false;
     mockChartCurrentPrice = undefined;
     mockUsePredictSeries.mockReturnValue({
       data: [
@@ -404,7 +442,7 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: true,
-        twapWindowSeconds: 30,
+        twapWindowSeconds: 60,
       }),
     );
 
@@ -422,7 +460,7 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(screen.getByText('How this market settles')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "This market settles on BTC's average price over 30 seconds, not the price at the exact moment it closes.",
+        "This market settles on BTC's average price over 60 seconds, not the price at the exact moment it closes.",
       ),
     ).toBeOnTheScreen();
   });
@@ -450,6 +488,43 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the current header without glass capsules when the brand refresh is off', () => {
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('capsule')).toBeNull();
+  });
+
+  it('renders back and share in glass capsules when the brand refresh is on', () => {
+    mockPredictBrandRefreshEnabled = true;
+
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByTestId('capsule')).toHaveLength(2);
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
   it('calls usePredictShare with market id and slug', () => {
@@ -556,6 +631,237 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId('mock-predict-crypto-up-down-chart'),
     ).toBeOnTheScreen();
+  });
+
+  describe('gold market', () => {
+    const goldSeries: PredictSeries = {
+      id: '12967',
+      slug: 'gold-up-or-down-15m',
+      title: 'Gold Up or Down 15m',
+      recurrence: '15m',
+    };
+    const createGoldMarket = (
+      endDate: string,
+      overrides: Partial<PredictMarket> = {},
+    ): PredictMarket & { series: PredictSeries } =>
+      createMockMarket({
+        slug: 'xau-updown-15m-1794338100',
+        tags: ['finance', 'gold', 'up-or-down'],
+        series: goldSeries,
+        priceToBeat: 4031.35,
+        endDate,
+        ...overrides,
+      });
+
+    it('shows the chart and the price to beat while a window is live', () => {
+      const now = Date.UTC(2026, 10, 10, 19, 20, 0);
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const market = createGoldMarket(
+          new Date(now + 10 * 60 * 1000).toISOString(),
+        );
+        mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+        render(
+          <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+        );
+
+        expect(getChartMarketId()).toBe('market-1');
+        expect(getTimeSlotHideLiveIndicator()).toBe(false);
+        expect(
+          screen.queryByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK,
+          ),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY,
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('hides the chart and shows the market-break state during a daily break with a queued reopen slot', () => {
+      const now = Date.UTC(2026, 10, 10, 22, 33, 0);
+      const reopenStartTime = '2026-11-10T23:15:00.000Z';
+      const reopenEndDate = '2026-11-10T23:30:00.000Z';
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const postBreakMarket = createGoldMarket(reopenEndDate, {
+          id: 'gold-post-break',
+          startTime: reopenStartTime,
+          priceToBeat: undefined,
+        });
+        mockUseCryptoTargetPrice.mockReturnValue({
+          data: undefined,
+          isFetching: false,
+        });
+        mockUsePredictSeries.mockReturnValue({ data: [postBreakMarket] });
+
+        const { UNSAFE_queryAllByType: queryAllByType } = render(
+          <PredictCryptoUpDownDetails
+            market={postBreakMarket}
+            onBack={mockOnBack}
+            onBetPress={jest.fn()}
+          />,
+        );
+
+        expect(
+          screen.queryByTestId('mock-predict-crypto-up-down-chart'),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK,
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            `Market is on a break. Live chart resumes at ${formatTime(reopenStartTime)}.`,
+          ),
+        ).toBeOnTheScreen();
+        expect(getTimeSlotHideLiveIndicator()).toBe(true);
+        expect(queryAllByType(Skeleton)).toHaveLength(0);
+        expect(screen.getAllByText('--').length).toBeGreaterThanOrEqual(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('shows the market-break state immediately before series loads when selected slot starts in the future, then mounts chart at reopen boundary', () => {
+      const now = Date.UTC(2026, 10, 10, 23, 10, 0);
+      const reopenStartTime = '2026-11-10T23:15:00.000Z';
+      const reopenEndDate = '2026-11-10T23:30:00.000Z';
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const postBreakMarket = createGoldMarket(reopenEndDate, {
+          id: 'gold-post-break',
+          startTime: reopenStartTime,
+          priceToBeat: undefined,
+        });
+        mockUseCryptoTargetPrice.mockReturnValue({ data: undefined });
+        mockUsePredictSeries.mockReturnValue({ data: undefined });
+
+        const { rerender } = render(
+          <PredictCryptoUpDownDetails
+            market={postBreakMarket}
+            onBack={mockOnBack}
+          />,
+        );
+
+        expect(
+          screen.queryByTestId('mock-predict-crypto-up-down-chart'),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK,
+          ),
+        ).toBeOnTheScreen();
+
+        mockUsePredictSeries.mockReturnValue({ data: [postBreakMarket] });
+        rerender(
+          <PredictCryptoUpDownDetails
+            market={postBreakMarket}
+            onBack={mockOnBack}
+          />,
+        );
+
+        act(() => {
+          jest.advanceTimersByTime(5 * 60 * 1000);
+        });
+
+        expect(getChartMarketId()).toBe('gold-post-break');
+        expect(
+          screen.queryByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK,
+          ),
+        ).not.toBeOnTheScreen();
+        expect(getTimeSlotHideLiveIndicator()).toBe(false);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('shows the weekend closed fallback when no window is live and the series is empty', () => {
+      const now = Date.UTC(2026, 10, 14, 15, 0, 0);
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const market = createGoldMarket(
+          new Date(now - 18 * 60 * 60 * 1000).toISOString(),
+          { priceToBeat: undefined },
+        );
+        mockUseCryptoTargetPrice.mockReturnValue({ data: undefined });
+        mockUsePredictSeries.mockReturnValue({ data: [] });
+
+        const { UNSAFE_queryAllByType: queryAllByType } = render(
+          <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+        );
+
+        expect(
+          screen.queryByTestId('mock-predict-crypto-up-down-chart'),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK,
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'Market is closed. Live chart resumes when trading reopens.',
+          ),
+        ).toBeOnTheScreen();
+        expect(getTimeSlotHideLiveIndicator()).toBe(true);
+        expect(queryAllByType(Skeleton)).toHaveLength(0);
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY,
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps BTC markets unchanged even when a future startTime is present', () => {
+      const now = Date.UTC(2026, 10, 10, 22, 33, 0);
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const btcMarket = createMockMarket({
+          id: 'btc-future',
+          slug: 'btc-up-or-down-15m',
+          tags: ['crypto', 'bitcoin', 'up-or-down'],
+          startTime: '2026-11-10T23:15:00.000Z',
+          endDate: '2026-11-10T23:30:00.000Z',
+          series: {
+            id: 'btc-15m',
+            slug: 'btc-up-or-down-15m',
+            title: 'BTC Up or Down 15m',
+            recurrence: '15m',
+          },
+        });
+        mockUsePredictSeries.mockReturnValue({ data: [btcMarket] });
+
+        render(
+          <PredictCryptoUpDownDetails market={btcMarket} onBack={mockOnBack} />,
+        );
+
+        expect(getChartMarketId()).toBe('btc-future');
+        expect(getTimeSlotHideLiveIndicator()).toBe(false);
+        expect(
+          screen.queryByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK,
+          ),
+        ).not.toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 
   it('uses the Bitcoin accent color for BTC markets', () => {

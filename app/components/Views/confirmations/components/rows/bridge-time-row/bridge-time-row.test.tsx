@@ -14,10 +14,11 @@ import {
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
-import { Hex, Json } from '@metamask/utils';
+import { Json } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { type PaymentMethod } from '@metamask/ramps-controller';
+import { buildPaymentTokenMock } from '../../../__mocks__/pay-token.mock';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -94,7 +95,10 @@ describe('BridgeTimeRow', () => {
       estimatedDuration: 120,
     } as TransactionPayTotals);
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { chainId: '0x1' as Hex },
+      payToken: buildPaymentTokenMock({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByText } = render();
@@ -108,7 +112,10 @@ describe('BridgeTimeRow', () => {
       estimatedDuration: 0,
     } as TransactionPayTotals);
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { chainId: '0x1' as Hex },
+      payToken: buildPaymentTokenMock({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByText } = render();
@@ -124,24 +131,6 @@ describe('BridgeTimeRow', () => {
     expect(getByTestId(`bridge-time-row-skeleton`)).toBeDefined();
   });
 
-  it('does not render skeleton when transaction type is in HIDE_TYPES', () => {
-    useIsTransactionPayLoadingMock.mockReturnValue(true);
-
-    const { queryByTestId } = render({ type: TransactionType.musdConversion });
-
-    expect(queryByTestId('bridge-time-row-skeleton')).toBeNull();
-  });
-
-  it('does not render when transaction type is in HIDE_TYPES', () => {
-    useTransactionPayTotalsMock.mockReturnValue({
-      estimatedDuration: 60,
-    } as TransactionPayTotals);
-
-    const { queryByText } = render({ type: TransactionType.musdConversion });
-
-    expect(queryByText('1 min')).toBeNull();
-  });
-
   it('does not render when fiat payment method is selected', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       estimatedDuration: 60,
@@ -154,5 +143,15 @@ describe('BridgeTimeRow', () => {
     const { queryByText } = render();
 
     expect(queryByText('1 min')).toBeNull();
+  });
+
+  it('renders "Less than 1 min" for moneyAccountDeposit when duration is up to 30 seconds or same-chain', () => {
+    useTransactionPayTotalsMock.mockReturnValue({
+      estimatedDuration: 20,
+    } as TransactionPayTotals);
+
+    const { getByText } = render({ type: TransactionType.moneyAccountDeposit });
+
+    expect(getByText('Less than 1 min')).toBeOnTheScreen();
   });
 });

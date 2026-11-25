@@ -4,12 +4,8 @@ import {
   BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
-import { hasMissingPriceData } from '../../../utils/hasMissingPriceData';
-import { hasMissingTokenFiatRate } from '../../../utils/hasMissingTokenFiatRate';
+import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
-import { useSwapsBannersContext } from '../SwapsBannersContext';
 
 /**
  * Tells the user the quote came back without the market price data needed to
@@ -21,27 +17,9 @@ import { useSwapsBannersContext } from '../SwapsBannersContext';
  * a fiat figure to set that order against.
  */
 export const MissingQuoteAndAssetsPriceDataBanner = () => {
-  const { sourceAmount, sourceToken, destToken } = useSwapsBannersContext();
-  const { activeQuote, isActiveQuoteForCurrentTokenPair } =
-    useBridgeQuoteDataContext();
-  const sourceFiatRate = useTokenFiatRate(sourceToken);
-  const destFiatRate = useTokenFiatRate(destToken);
+  const isMissingPrice = useHasMissingQuoteAndAssetsPriceData();
 
-  const hasEnteredAmount = Boolean(sourceAmount) && Number(sourceAmount) > 0;
-  // Rates are only fetched for the selected pair, so waiting for a quote that
-  // matches that pair keeps an in-flight fetch (or a stale quote after a
-  // token-selector change) from being mistaken for a token that has no price.
-  const isMissingPrice =
-    hasMissingPriceData(activeQuote) ||
-    hasMissingTokenFiatRate(sourceToken, sourceFiatRate) ||
-    hasMissingTokenFiatRate(destToken, destFiatRate);
-
-  if (
-    !hasEnteredAmount ||
-    !activeQuote ||
-    !isActiveQuoteForCurrentTokenPair ||
-    !isMissingPrice
-  ) {
+  if (!isMissingPrice) {
     return null;
   }
 

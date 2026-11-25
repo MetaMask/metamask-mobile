@@ -13,9 +13,6 @@ export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE =
 /** Trigger on {@link WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE} to enter the main (post-intro) pose. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER = 'Main';
 
-/** Linear animation used as the Android fallback while v07 has no `Main` trigger input. */
-export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION = 'Main';
-
 /** Trigger on {@link WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE} before leaving the step. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER = 'Outro';
 
@@ -27,12 +24,6 @@ export const WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS = 920;
  * before running the outro and advancing.
  */
 export const WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS = 550;
-
-/**
- * After returning from on-ramp without an updated balance yet, wait this long before
- * clearing deferred-nav state so balance selectors can settle (avoids a false “still zero”).
- */
-export const WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS = 600;
 
 /** Slide current step off to the left. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS = 300;

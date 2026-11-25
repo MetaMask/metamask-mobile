@@ -1,6 +1,9 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -15,18 +18,31 @@ import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectIsSocialLoginBasicFunctionalityLocked } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const GeneralSettings = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
+  const isSocialLoginBasicFunctionalityLocked = useSelector(
+    selectIsSocialLoginBasicFunctionalityLocked,
+  );
 
   const handleSwitchToggle = () => {
+    if (isSocialLoginBasicFunctionalityLocked) {
+      return;
+    }
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
@@ -58,13 +74,20 @@ const GeneralSettings = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
         title={strings('default_settings.drawer_general_title')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
-        <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
+      <ScrollView
+        style={[tw.style('flex-1 pt-4 px-4'), { marginTop: headerInset }]}
+      >
+        <BasicFunctionalityComponent
+          disabled={isSocialLoginBasicFunctionalityLocked}
+          handleSwitchToggle={handleSwitchToggle}
+        />
         <BackupAndSyncToggle
           trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}
         />

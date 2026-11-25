@@ -124,22 +124,22 @@ export function mapSeriesStatusToCampaignStatus(
 
 export type MoneyAccountSweepstakesEntryRoute =
   | { kind: 'dashboard' }
-  | { kind: 'tour'; campaignId: string }
   | { kind: 'details'; campaignId: string };
 
 /**
- * Resolve where a Money Account Sweepstakes entry point (deeplink / tile) should land.
+ * Resolve where a Money Account Sweepstakes deeplink should land.
  *
  * - upcoming / empty → stay on dashboard
  * - previous → details for the last campaign in the series
- * - active → tour when eligible, otherwise details for the current active campaign
+ * - active → details for the current active campaign (never the tour)
+ * - between weeks (series running, no week active) → details for the most recently ended week
  */
 export function resolveMoneyAccountSweepstakesEntryRoute({
   series,
-  optedInAny,
+  now = new Date(),
 }: {
   series: MoneyAccountSweepstakesSeries;
-  optedInAny: boolean;
+  now?: Date;
 }): MoneyAccountSweepstakesEntryRoute {
   if (!series.seriesStatus || series.campaigns.length === 0) {
     return { kind: 'dashboard' };
@@ -158,15 +158,22 @@ export function resolveMoneyAccountSweepstakesEntryRoute({
   }
 
   const activeCampaign = series.activeCampaign;
-  if (!activeCampaign) {
+  if (activeCampaign) {
+    return { kind: 'details', campaignId: activeCampaign.id };
+  }
+
+  const lastEnded = series.campaigns
+    .filter((campaign) => new Date(campaign.endDate) <= now)
+    .reduce<CampaignDto | null>(
+      (latest, campaign) =>
+        !latest || new Date(campaign.endDate) > new Date(latest.endDate)
+          ? campaign
+          : latest,
+      null,
+    );
+  if (!lastEnded) {
     return { kind: 'dashboard' };
   }
 
-  const hasTour = (activeCampaign.details?.howItWorks?.tour?.length ?? 0) > 0;
-
-  if (hasTour && !optedInAny) {
-    return { kind: 'tour', campaignId: activeCampaign.id };
-  }
-
-  return { kind: 'details', campaignId: activeCampaign.id };
+  return { kind: 'details', campaignId: lastEnded.id };
 }

@@ -17,13 +17,9 @@ import Utilities from '../../framework/Utilities';
 import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import PerpsMarketListView from './PerpsMarketListView';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
-import {
-  EncapsulatedElementType,
-  PlatformDetector,
-  sleep,
-} from '../../framework';
+import { type AppiumElement, PlatformDetector, sleep } from '../../framework';
 
-/** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
+/** Portfolio: limit order primary (`formatOrderLabel`) + position direction badge (`{n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
   symbol: string;
   direction: 'long' | 'short';
@@ -43,7 +39,7 @@ class PerpsView {
     leverageX: number,
     direction: 'long' | 'short',
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       new RegExp(
         `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
@@ -59,7 +55,7 @@ class PerpsView {
     symbol: string,
     direction: 'long' | 'short',
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return Matchers.getElementByID(
       new RegExp(
@@ -75,11 +71,11 @@ class PerpsView {
   }
 
   // "Edit TP/SL" button visible on position details
-  get editTpslButton(): EncapsulatedElementType {
+  get editTpslButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Edit TP/SL');
   }
 
-  get closePositionBottomSheetButton(): EncapsulatedElementType {
+  get closePositionBottomSheetButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
@@ -113,51 +109,45 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  get anchor(): EncapsulatedElementType {
+  get anchor(): Promise<AppiumElement> {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
 
   /** Perps home header — use as swipe target when {@link anchor} is absent. */
-  get perpsHomeHeader(): EncapsulatedElementType {
+  get perpsHomeHeader(): Promise<AppiumElement> {
     return Matchers.getElementByID('perps-home');
   }
 
-  get perpsHomeAddFunds(): EncapsulatedElementType {
+  get perpsHomeAddFunds(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON);
   }
 
-  private getPortfolioPositionCard(index = 0): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`,
-    );
-  }
-
-  private getPortfolioOrderCard(index = 0): EncapsulatedElementType {
+  private getPortfolioOrderCard(index = 0): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`,
     );
   }
 
-  private getWalletHomePositionRow(symbol: string): EncapsulatedElementType {
-    return Matchers.getElementByID(`perps-position-row-${symbol}`);
+  private getPortfolioPositionDirectionTag(index = 0): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}-direction-tag`,
+    );
   }
 
-  private getPositionPrimaryLine(
+  private getWalletHomePositionDirectionTag(
     symbol: string,
-    direction: 'long' | 'short',
-  ): EncapsulatedElementType {
-    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return Matchers.getElementByText(
-      new RegExp(`${escapedSymbol} \\d+x ${direction}`),
+  ): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `perps-position-row-${symbol}-direction-tag`,
     );
   }
 
   // Orders section on the Perps main tab
-  get ordersSectionTitle(): EncapsulatedElementType {
+  get ordersSectionTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Orders');
   }
 
-  get anyOrderCardOnTab(): EncapsulatedElementType {
+  get anyOrderCardOnTab(): Promise<AppiumElement> {
     // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
     return Matchers.getElementByText('Limit');
   }
@@ -260,17 +250,17 @@ class PerpsView {
   }
 
   /**
-   * After fill: order label gone and position row matches `{symbol} {n}x {direction}` (PerpsCard).
+   * After fill: order label gone and the position row or its `{n}x {direction}` badge is visible.
    */
   async expectPositionRowAfterLimitOrderFilled(
     options: PerpsPortfolioLimitFlowExpectOptions,
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
-    const positionLocators: EncapsulatedElementType[] = [
-      this.getPortfolioPositionCard(0),
-      this.getWalletHomePositionRow(symbol),
-      this.getPositionPrimaryLine(symbol, direction),
+    const directionLabel = direction === 'long' ? 'Long' : 'Short';
+    const positionLocators: Promise<AppiumElement>[] = [
+      this.getPortfolioPositionDirectionTag(0),
+      this.getWalletHomePositionDirectionTag(symbol),
     ];
     await Utilities.executeWithRetry(
       async () => {
@@ -286,6 +276,14 @@ class PerpsView {
               description: `${symbol} position row visible (${direction})`,
               timeout: 3000,
             });
+            await Assertions.expectElementToContainText(
+              locator,
+              directionLabel,
+              {
+                description: `${symbol} position direction is ${direction}`,
+                timeout: 3000,
+              },
+            );
             positionVisible = true;
             break;
           } catch {

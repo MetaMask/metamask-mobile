@@ -8,14 +8,19 @@ import {
 } from '../../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import type { CurrentDeviceDetails } from './types.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
+import type { CurrentDeviceDetails, WorkerLevelFixtures } from './types.ts';
 
-const logger = createPlaywrightLogger('currentDeviceDetails');
+const logger = createAppiumLogger('currentDeviceDetails');
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (
-    {}, // eslint-disable-line no-empty-pattern
+    {
+      // Dependency only. `deviceProvider` writes this worker's pool simulator
+      // into `project.use.device.udid`; without it a fresh worker can resolve
+      // pool slot 0 and drive another worker's simulator.
+      deviceProvider: _deviceProvider,
+    }: Pick<WorkerLevelFixtures, 'deviceProvider'>,
     use: (deviceDetails: CurrentDeviceDetails) => Promise<void>,
     testInfo: TestInfo,
   ) => {
@@ -34,6 +39,8 @@ export const currentDeviceDetailsFixture = {
     const launchableActivity = project.use.app?.launchableActivity;
     const deviceConfig = project.use.device as DeviceConfig | undefined;
     const isBrowserstack = deviceConfig?.provider === ProviderName.BROWSERSTACK;
+    const isRemoteCloud =
+      isBrowserstack || deviceConfig?.provider === ProviderName.TESTMU;
 
     const hasLocalDeviceId =
       Boolean(deviceNameField) ||
@@ -80,9 +87,7 @@ export const currentDeviceDetailsFixture = {
     }
 
     const displayName = deviceNameField ?? deviceUdid ?? 'unknown';
-    const providerLabel = isBrowserstack
-      ? 'browserstack'
-      : (deviceConfig?.provider ?? 'unknown');
+    const providerLabel = deviceConfig?.provider ?? 'unknown';
     const deviceDetails: CurrentDeviceDetails = {
       platform: platform as 'android' | 'ios',
       deviceName: displayName,
@@ -91,6 +96,7 @@ export const currentDeviceDetailsFixture = {
       appId,
       launchableActivity,
       isBrowserstack,
+      isRemoteCloud,
     };
 
     logger.info(

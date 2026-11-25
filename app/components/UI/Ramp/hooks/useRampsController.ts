@@ -31,9 +31,12 @@ export interface UseRampsControllerResult {
   selectedProvider: UseRampsProvidersResult['selectedProvider'];
   setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
   setSelectedProviderForAsset: UseRampsProvidersResult['setSelectedProviderForAsset'];
+  selectProviderForAsset: UseRampsProvidersResult['selectProviderForAsset'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
+  controllerProviders: UseRampsProvidersResult['controllerProviders'];
+  previouslyUsedProviderIds: UseRampsProvidersResult['previouslyUsedProviderIds'];
   providersLoading: UseRampsProvidersResult['isLoading'];
   providersError: UseRampsProvidersResult['error'];
 
@@ -123,9 +126,12 @@ export function useRampsController(): UseRampsControllerResult {
 
   const {
     providers,
+    controllerProviders,
+    previouslyUsedProviderIds,
     selectedProvider,
     setSelectedProvider,
     setSelectedProviderForAsset,
+    selectProviderForAsset,
     isLoading: providersLoading,
     error: providersError,
   } = useRampsProviders();
@@ -152,7 +158,7 @@ export function useRampsController(): UseRampsControllerResult {
     isFetching: paymentMethodsFetching,
     status: paymentMethodsStatus,
     error: paymentMethodsError,
-  } = useRampsPaymentMethods();
+  } = useRampsPaymentMethods({ catalog: 'buy' });
 
   const { getQuotes, getBuyWidgetData } = useRampsQuotes();
 
@@ -173,8 +179,11 @@ export function useRampsController(): UseRampsControllerResult {
     selectedProvider,
     setSelectedProvider,
     setSelectedProviderForAsset,
+    selectProviderForAsset,
 
     providers,
+    controllerProviders,
+    previouslyUsedProviderIds,
     providersLoading,
     providersError,
 

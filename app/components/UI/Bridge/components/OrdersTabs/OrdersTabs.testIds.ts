@@ -6,7 +6,12 @@ export const OrdersTabsSelectorsIDs = {
   NETWORK_FILTER_BUTTON: 'bridge-orders-network-filter-button',
   NETWORK_FILTER_AVATAR: 'bridge-orders-network-filter-avatar',
   EMPTY_STATE: 'bridge-orders-empty-state',
+  ERROR_STATE: 'bridge-orders-error-state',
+  RETRY_BUTTON: 'bridge-orders-retry-button',
+  LOADING: 'bridge-orders-loading',
+  NEXT_PAGE_LOADING: 'bridge-orders-next-page-loading',
   CONTENT: 'bridge-orders-content',
+  DATE_SECTION_HEADER: 'bridge-orders-date-section-header',
 } as const;
 
 export type OrdersTabsSelectorsIDsType = typeof OrdersTabsSelectorsIDs;

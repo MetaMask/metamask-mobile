@@ -57,6 +57,7 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
   getVersion: () => '99.0.0',
+  getTotalMemorySync: () => 4 * 1024 ** 3,
 }));
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => Date.now()),
@@ -104,7 +105,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { type PriceUpdate } from '@metamask/perps-controller';
+import {
+  type AccountState,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 
 import { buildPerpsFlowHarness, type PerpsFlowHarness } from './perps-flow';
 import type { PerpsHarnessOptions } from './perps';
@@ -143,7 +147,7 @@ interface PerpsComponentRenderOptions {
     >;
     topOfBook?: { bestBid?: string; bestAsk?: string; spread?: string };
     positions?: unknown[];
-    account?: unknown;
+    account?: AccountState;
   };
 }
 
@@ -217,6 +221,7 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   setTargetWalletType: (): void => undefined,
   setPendingOperationAddress: (): void => undefined,
   showHardwareWalletError: (): void => undefined,
+  cancelConnectionFlow: (): void => undefined,
   showAwaitingConfirmation: (): void => undefined,
   hideAwaitingConfirmation: (): void => undefined,
   qr: {
@@ -229,12 +234,16 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
 };
 
 function channelWithInitialValue<T>(initialValue: T) {
+  let lastDeliveredAt: number | null = null;
   return {
     subscribe: (params: { callback: (data: T) => void }): (() => void) => {
+      lastDeliveredAt = Date.now();
       params.callback(initialValue);
       return noopUnsubscribe;
     },
     getSnapshot: () => initialValue,
+    getError: (): Error | null => null,
+    getLastDeliveredAt: () => lastDeliveredAt,
   };
 }
 
@@ -308,16 +317,24 @@ function createTestStreamManager(
     returnOnEquity: '0',
   };
 
+  const accountChannel = {
+    ...channelWithInitialValue(account),
+    getAggregateMetadata: (): null => null,
+  } satisfies Pick<
+    PerpsStreamManager['account'],
+    'getSnapshot' | 'subscribe' | 'getAggregateMetadata'
+  >;
+  const oiCaps = channelWithInitialValue<string[]>([]);
   return {
     prices: pricesChannel(prices),
     topOfBook: topOfBookChannel(topOfBook),
     focusedPrice: focusedPriceChannel(),
     positions: channelWithInitialValue(streamOverrides.positions ?? []),
-    account: channelWithInitialValue(account),
+    account: accountChannel,
     orders: channelWithInitialValue([]),
     fills: channelWithInitialValue([]),
     marketData: channelWithInitialValue([]),
-    oiCaps: channelWithInitialValue([]),
+    oiCaps: { ...oiCaps, subscribeToSymbol: oiCaps.subscribe },
     candles: channelWithInitialValue([]),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;

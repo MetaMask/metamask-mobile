@@ -1,0 +1,281 @@
+import {
+  BannerAlertSeverity,
+  IconColor,
+} from '@metamask/design-system-react-native';
+import {
+  INVOICE_PAYMENT_STATUSES,
+  SUBSCRIPTION_STATUSES,
+  type Subscription,
+} from '@metamask/subscription-controller';
+import { isMoneyAccountPlusFreeTrial } from '../../../../../selectors/subscriptionController';
+import {
+  isActiveSubscriptionStatus,
+  isDeactivatedSubscriptionStatus,
+} from '../../../../../util/subscription/moneyAccountPlusStatus';
+import {
+  canResumeMembership,
+  formatSubscriptionPeriodEnd,
+} from '../../ProHub.utils';
+
+export const MembershipStatusKind = {
+  Active: 'active',
+  FreeTrial: 'freeTrial',
+  Overdue: 'overdue',
+  Deactivated: 'deactivated',
+  Cancelled: 'cancelled',
+  Unavailable: 'unavailable',
+} as const;
+
+export type MembershipStatusKind =
+  (typeof MembershipStatusKind)[keyof typeof MembershipStatusKind];
+
+export const MembershipAlertAction = {
+  AddFunds: 'addFunds',
+  Renew: 'renew',
+  /** Uncancel a period-end cancellation that is still inside its resume window. */
+  Resume: 'resume',
+} as const;
+
+export type MembershipAlertAction =
+  (typeof MembershipAlertAction)[keyof typeof MembershipAlertAction];
+
+export interface MembershipAlert {
+  severity: BannerAlertSeverity;
+  titleKey: string;
+  /** Omitted when there is no second line, so the title is not repeated. */
+  descriptionKey?: string;
+  /** Shared by the title and description. Either string may use `{{date}}`. */
+  descriptionValues?: Record<string, string>;
+  actionKey: string;
+  action: MembershipAlertAction;
+}
+
+export interface MembershipBannerModel {
+  statusKind: MembershipStatusKind;
+  statusKey: string;
+  /** Present with the alert. Active has neither, so the icon is hidden. */
+  iconColor?: IconColor;
+  /** Present for Overdue, Deactivated, and Cancelled. Active has no alert. */
+  alert?: MembershipAlert;
+}
+
+const ACTIVE_MODEL: MembershipBannerModel = {
+  statusKind: MembershipStatusKind.Active,
+  statusKey: 'pro_hub.membership_status.active',
+};
+
+const FREE_TRIAL_MODEL: MembershipBannerModel = {
+  statusKind: MembershipStatusKind.FreeTrial,
+  statusKey: 'pro_hub.membership_status.free_trial',
+};
+
+const UNAVAILABLE_MODEL: MembershipBannerModel = {
+  statusKind: MembershipStatusKind.Unavailable,
+  statusKey: 'pro_hub.membership_status.unavailable',
+};
+
+const overdueAlert = (): MembershipAlert => ({
+  severity: BannerAlertSeverity.Danger,
+  titleKey: 'pro_hub.membership_alert.payment_failed.title',
+  descriptionKey: 'pro_hub.membership_alert.payment_failed.description',
+  actionKey: 'pro_hub.membership_alert.payment_failed.action',
+  action: MembershipAlertAction.AddFunds,
+});
+
+const deactivatedAlert = (): MembershipAlert => ({
+  severity: BannerAlertSeverity.Danger,
+  titleKey: 'pro_hub.membership_alert.inactive.title',
+  descriptionKey: 'pro_hub.membership_alert.inactive.description',
+  actionKey: 'pro_hub.membership_alert.inactive.action',
+  action: MembershipAlertAction.AddFunds,
+});
+
+const cancelledAlert = (
+  date: string | undefined,
+  exclusivePeriodEnd = true,
+): MembershipAlert => {
+  const formattedDate = formatSubscriptionPeriodEnd(date, {
+    exclusivePeriodEnd,
+  });
+
+  return {
+    severity: BannerAlertSeverity.Warning,
+    titleKey: 'pro_hub.membership_alert.cancelled.title',
+    descriptionKey: formattedDate
+      ? 'pro_hub.membership_alert.cancelled.description'
+      : undefined,
+    descriptionValues: formattedDate ? { date: formattedDate } : undefined,
+    actionKey: 'pro_hub.membership_alert.cancelled.action',
+    action: MembershipAlertAction.Renew,
+  };
+};
+
+const addFundsAlert = (
+  date: string | undefined,
+  exclusivePeriodEnd = true,
+): MembershipAlert => {
+  const formattedDate = formatSubscriptionPeriodEnd(date, {
+    exclusivePeriodEnd,
+  });
+
+  return {
+    severity: BannerAlertSeverity.Info,
+    titleKey: formattedDate
+      ? 'pro_hub.membership_alert.low_balance.title'
+      : 'pro_hub.membership_alert.low_balance.description',
+    descriptionKey: formattedDate
+      ? 'pro_hub.membership_alert.low_balance.description'
+      : undefined,
+    descriptionValues: formattedDate ? { date: formattedDate } : undefined,
+    actionKey: 'pro_hub.membership_alert.low_balance.action',
+    action: MembershipAlertAction.AddFunds,
+  };
+};
+
+const renewalFailedAlert = (): MembershipAlert => ({
+  severity: BannerAlertSeverity.Warning,
+  titleKey: 'pro_hub.membership_alert.renewal_failed.title',
+  descriptionKey: 'pro_hub.membership_alert.renewal_failed.description',
+  actionKey: 'pro_hub.membership_alert.renewal_failed.action',
+  action: MembershipAlertAction.AddFunds,
+});
+
+const activeModel = (subscription: Subscription): MembershipBannerModel => {
+  if (subscription.status === SUBSCRIPTION_STATUSES.awaitingFunds) {
+    return {
+      ...ACTIVE_MODEL,
+      iconColor: IconColor.PrimaryDefault,
+      alert: addFundsAlert(
+        subscription.currentPeriodEnd || subscription.endDate,
+        Boolean(subscription.currentPeriodEnd),
+      ),
+    };
+  }
+
+  if (
+    isActiveSubscriptionStatus(subscription.status) &&
+    subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED
+  ) {
+    return {
+      ...ACTIVE_MODEL,
+      iconColor: IconColor.WarningDefault,
+      alert: renewalFailedAlert(),
+    };
+  }
+
+  return ACTIVE_MODEL;
+};
+
+/**
+ * Cancelled title, with resume copy instead of the renew description.
+ *
+ * Renew opens the subscription screen. A period-end cancel is still active,
+ * so that screen sends the user back here. Resume uncancels in place.
+ */
+const pendingCancellationAlert = (
+  date: string | undefined,
+): MembershipAlert => {
+  const alert = cancelledAlert(date);
+
+  return {
+    ...alert,
+    descriptionKey: alert.descriptionKey
+      ? 'pro_hub.membership_alert.pending_cancel.description'
+      : undefined,
+    actionKey: 'pro_hub.membership.resume_membership',
+    action: MembershipAlertAction.Resume,
+  };
+};
+
+/**
+ * Active status plus the cancelled alert while a period-end cancel can still
+ * be reversed. The membership has not ended, so the label stays Active.
+ */
+const pendingCancellationModel = (
+  subscription: Subscription,
+): MembershipBannerModel => ({
+  ...ACTIVE_MODEL,
+  iconColor: IconColor.WarningDefault,
+  alert: pendingCancellationAlert(
+    subscription.currentPeriodEnd || subscription.canceledAt,
+  ),
+});
+
+/**
+ * Maps a Money Account Plus subscription onto the Pro Hub status labels.
+ *
+ * Payment state is resolved before a scheduled cancel. `past_due` shows
+ * Overdue. `paused` and `unpaid` show Deactivated. A plan waiting for funds,
+ * or an active plan whose latest invoice failed, shows the add-funds or
+ * renewal-failed alert. A period-end cancellation keeps the label Active and
+ * shows the cancelled alert only after those states, while resume is still
+ * available. That alert's action is Resume, which uncancels the plan. An
+ * ended `canceled` plan keeps Renew, which opens the subscription screen.
+ * `trialing` shows Free trial. A `provisional` plan shows Free trial only
+ * while `trialPeriodDays` is greater than zero, because a free trial stays
+ * provisional until CHOMP moves it to `trialing`. A provisional plan with no
+ * trial shows Active, as do `active` and `awaiting_funds`. A missing plan,
+ * or a status this screen does not map, shows Unavailable.
+ *
+ * @param subscription - The displayed Plus subscription. Current wins over the last one.
+ * @returns The status label, icon color, and alert for that status.
+ */
+export const getMembershipBannerModel = (
+  subscription?: Subscription,
+): MembershipBannerModel => {
+  if (!subscription) {
+    return UNAVAILABLE_MODEL;
+  }
+
+  if (subscription.status === SUBSCRIPTION_STATUSES.canceled) {
+    return {
+      statusKind: MembershipStatusKind.Cancelled,
+      statusKey: 'pro_hub.membership_status.cancelled',
+      iconColor: IconColor.WarningDefault,
+      alert: cancelledAlert(
+        subscription.currentPeriodEnd || subscription.canceledAt,
+        Boolean(subscription.currentPeriodEnd),
+      ),
+    };
+  }
+
+  if (subscription.status === SUBSCRIPTION_STATUSES.pastDue) {
+    return {
+      statusKind: MembershipStatusKind.Overdue,
+      statusKey: 'pro_hub.membership_status.overdue',
+      iconColor: IconColor.ErrorDefault,
+      alert: overdueAlert(),
+    };
+  }
+
+  if (isDeactivatedSubscriptionStatus(subscription.status)) {
+    return {
+      statusKind: MembershipStatusKind.Deactivated,
+      statusKey: 'pro_hub.membership_status.deactivated',
+      iconColor: IconColor.ErrorDefault,
+      alert: deactivatedAlert(),
+    };
+  }
+
+  if (
+    subscription.status === SUBSCRIPTION_STATUSES.awaitingFunds ||
+    (subscription.status === SUBSCRIPTION_STATUSES.active &&
+      subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED)
+  ) {
+    return activeModel(subscription);
+  }
+
+  if (canResumeMembership(subscription)) {
+    return pendingCancellationModel(subscription);
+  }
+
+  if (isMoneyAccountPlusFreeTrial(subscription)) {
+    return FREE_TRIAL_MODEL;
+  }
+
+  if (isActiveSubscriptionStatus(subscription.status)) {
+    return activeModel(subscription);
+  }
+
+  return UNAVAILABLE_MODEL;
+};

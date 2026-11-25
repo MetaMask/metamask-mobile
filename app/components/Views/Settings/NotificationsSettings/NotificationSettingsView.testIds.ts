@@ -12,6 +12,8 @@ export const NotificationSettingsViewSelectorsIDs = {
     'notification-settings-feature-announcements-toggle',
   FEATURE_ANNOUNCEMENT_SEPARATOR:
     'notification-settings-feature-announcements-separator',
+  SECTION_SCROLL_VIEW: 'notification-settings-section-scroll-view',
+  WALLET_ACTIVITY_LIST: 'notification-settings-wallet-activity-list',
   PERPS_NOTIFICATIONS_TOGGLE:
     'notification-settings-perps-notifications-toggle',
   ACCOUNT_NOTIFICATIONS_SELECT_ALL:

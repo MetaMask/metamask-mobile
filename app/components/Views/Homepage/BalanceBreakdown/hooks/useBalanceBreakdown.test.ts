@@ -5,8 +5,6 @@ import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
-import { mockTheme } from '../../../../../util/theme';
-import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
 
 const mockUseTokensSlice = jest.mocked(useTokensSlice);
 const mockUseMoneySlice = jest.mocked(useMoneySlice);
@@ -36,25 +34,13 @@ jest.mock('./useFiatNormalizer', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => {
-  const themeModule = jest.requireActual<
-    typeof import('../../../../../util/theme')
-  >('../../../../../util/theme');
-  return {
-    ...themeModule,
-    useTheme: () => themeModule.mockTheme,
-  };
-});
-
 function makeSlice(
   key: 'tokens' | 'money' | 'perps' | 'predict' | 'defi',
   valueFiat: number,
-  status: 'ready' | 'loading' | 'error' | 'ineligible' = 'ready',
+  status: import('../types').SliceStatus = 'ready',
 ) {
-  const colors = getBalanceBreakdownSliceColors(mockTheme.themeAppearance);
   return {
     key,
-    color: colors[key],
     isVisible: true,
     valueFiat,
     percentOfTotal: 0,
@@ -87,6 +73,16 @@ describe('useBalanceBreakdown', () => {
     // 50000 + 30000 + 20000 + 10000 = 110000
     expect(result.current.hero.totalFiat).toBe(110000);
     expect(result.current.hero.isPartiallyLoaded).toBe(false);
+  });
+
+  it('includes a reported subtotal without marking it as complete or still loading', () => {
+    mockUsePerpsSlice.mockReturnValue(makeSlice('perps', 1500, 'partial'));
+    const { result } = renderHook(() => useBalanceBreakdown());
+    expect(result.current.hero).toMatchObject({
+      totalFiat: 81500,
+      status: 'partial',
+      isPartiallyLoaded: false,
+    });
   });
 
   it('computes percentOfTotal for each slice', () => {

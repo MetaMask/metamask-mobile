@@ -356,6 +356,11 @@ export type GetBarsErrorCallback = (reason: string) => void;
 
 export type RealtimeTickCallback = (tick: TVBar) => void;
 
+export interface RealtimeListener {
+  resolution: TVResolution;
+  onTick: RealtimeTickCallback;
+}
+
 export interface TVDatafeed {
   onReady(callback: (config: Record<string, unknown>) => void): void;
   searchSymbols(

@@ -14,7 +14,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuoteError,
@@ -24,12 +23,26 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import {
+  CRYPTO_PAY_SECTION_ID,
+  usePaySectionSourceMetrics,
+} from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { OnboardingCompletedAccountType } from '../../../../../util/analytics/onboardingCompletedAnalytics';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
+
+const CRYPTO_ACCOUNT_TYPES = new Set<string>(
+  Object.values(OnboardingCompletedAccountType),
+);
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -45,8 +58,11 @@ export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const highestBalanceChainId = useHighestBalanceCaipChainId();
-  const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
+  const automaticPayToken = useRef<
+    { chainId: Hex; symbol: string } | undefined
+  >(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quoteErrorsRef = useRef<Json[]>([]);
   const wasQuoteLoadingRef = useRef(false);
@@ -67,10 +83,14 @@ export function useTransactionPayMetrics() {
   );
 
   const accountOverride = useTransactionAccountOverride();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
-  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+  const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
+    ? CRYPTO_PAY_SECTION_ID
+    : source.selected;
+  const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
 
   const isQuoteRequested =
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
@@ -150,8 +170,8 @@ export function useTransactionPayMetrics() {
       {
         pay_token: {
           symbol: payToken?.symbol ?? null,
-          chainId: payToken?.chainId ?? null,
-          address: payToken?.address ?? null,
+          chainId: payTokenAsset?.chainId ?? null,
+          address: payTokenAsset?.address ?? null,
         },
         amount: sendingValue,
         amount_input_type: inputType ?? null,
@@ -163,8 +183,11 @@ export function useTransactionPayMetrics() {
   }
   wasQuoteLoadingRef.current = isQuoteLoading;
 
-  if (!automaticPayToken.current && payToken) {
-    automaticPayToken.current = payToken;
+  if (!automaticPayToken.current && payToken && payTokenAsset) {
+    automaticPayToken.current = {
+      chainId: payTokenAsset.chainId,
+      symbol: payToken.symbol,
+    };
   }
 
   const needsAccountSelect = hasTransactionType(transactionMeta, [
@@ -174,31 +197,19 @@ export function useTransactionPayMetrics() {
   const isInfoLoaded =
     hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
 
+  // Anchors the *start* of "time to load info". `confirmation_time_to_open_ms`
+  // is owned by `useConfirmationLoadMetrics`, which anchors it at the
+  // confirmation body's first paint rather than at this hook's mount.
   const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
-
-  const didDispatchTimeToOpen = useRef(false);
   useEffect(() => {
     if (
-      didDispatchTimeToOpen.current ||
+      confirmationOpenedAtMs.current !== undefined ||
       typeof transactionMeta?.time !== 'number' ||
       transactionMeta.time <= 0
     )
       return;
     confirmationOpenedAtMs.current = Date.now();
-    didDispatchTimeToOpen.current = true;
-    dispatch(
-      updateConfirmationMetric({
-        id: transactionId,
-        params: {
-          properties: {
-            confirmation_time_to_open_ms: Math.round(
-              confirmationOpenedAtMs.current - transactionMeta.time,
-            ),
-          },
-        },
-      }),
-    );
-  }, [transactionMeta?.time, dispatch, transactionId]);
+  }, [transactionMeta?.time]);
 
   const didDispatchTimeToLoadInfo = useRef(false);
   useEffect(() => {
@@ -270,7 +281,8 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_account_type_recipient_selected = recipient.selected;
     properties.mm_pay_recipient_mm_account_switch_count = recipient.switchCount;
 
-    properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
+    properties.mm_pay_entry_point =
+      getEntryPoint(transactionMeta, payWithOption) ?? null;
   }
 
   properties.mm_pay_payment_method_available = availablePaymentMethods;
@@ -379,12 +391,19 @@ const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
     [TransactionType.moneyAccountDeposit, TransactionType.moneyAccountWithdraw],
     'money_account',
   ],
-  [[TransactionType.musdConversion], 'money_hub'],
 ];
 
 function getEntryPoint(
   transactionMeta: Parameters<typeof hasTransactionType>[0],
+  payWithOption: PayWithOption | undefined,
 ): MmPayEntryPoint | undefined {
+  // The transaction type describes the destination, so a perps / predict
+  // deposit started from the Money account UI would otherwise report the
+  // destination as its entry point. Only the Money UI passes this nav param.
+  if (payWithOption === PayWithOption.MoneyAccount) {
+    return 'money_account';
+  }
+
   for (const [types, entryPoint] of ENTRY_POINT_MAP) {
     if (hasTransactionType(transactionMeta, types)) {
       return entryPoint;

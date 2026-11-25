@@ -1,5 +1,5 @@
 import React from 'react';
-import { act } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiPositionsList from './DeFiPositionsList';
@@ -636,26 +636,6 @@ describe('DeFiPositionsList', () => {
       );
     });
 
-    it('attributes Position Screen Viewed to the homepage balance breakdown', async () => {
-      const { findByTestId } = renderWithProvider(
-        <DeFiPositionsList
-          tabLabel="DeFi"
-          isFullView
-          analyticsSource="homescreen_balance_breakdown"
-        />,
-        { state: mockInitialState },
-      );
-
-      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          screen_type: 'defi',
-          source: 'homescreen_balance_breakdown',
-        }),
-      );
-    });
-
     it('tracks Position Screen Viewed with is_empty true when no positions are present', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
@@ -725,7 +705,7 @@ describe('DeFiPositionsList', () => {
     });
 
     it('calls DeFiPositionsController._executePoll when refresh control fires', async () => {
-      const { findByTestId } = renderWithProvider(
+      const { findByTestId, getByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" isFullView />,
         { state: mockInitialState },
       );
@@ -741,6 +721,45 @@ describe('DeFiPositionsList', () => {
       });
 
       expect(mockDeFiExecutePoll).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW).props
+            .refreshControl.props.refreshing,
+        ).toBe(false);
+      });
+    });
+
+    it('clears the refresh spinner and rethrows when the poll rejects', async () => {
+      const refreshError = new Error('refresh failed');
+      mockDeFiExecutePoll.mockRejectedValueOnce(refreshError);
+
+      const { findByTestId, getByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      const onRefresh = scrollView.props.refreshControl.props.onRefresh;
+
+      let caught: unknown;
+      await act(async () => {
+        try {
+          await onRefresh();
+        } catch (error) {
+          caught = error;
+        }
+      });
+
+      expect(caught).toBe(refreshError);
+      expect(mockDeFiExecutePoll).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW).props
+            .refreshControl.props.refreshing,
+        ).toBe(false);
+      });
     });
   });
 

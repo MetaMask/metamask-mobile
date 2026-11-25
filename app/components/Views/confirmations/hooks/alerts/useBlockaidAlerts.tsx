@@ -5,7 +5,7 @@ import {
   SecurityAlertResponse,
 } from '../../components/blockaid-banner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, AlertSeverity, Severity } from '../../types/alerts';
+import { Alert, AlertSeverity, NO_ALERTS, Severity } from '../../types/alerts';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 // TODO: Remove legacy import
@@ -49,7 +49,7 @@ export default function useBlockaidAlerts(): Alert[] {
 
   const alerts = useMemo(() => {
     if (!securityAlertResponse || isResultTypeIgnored) {
-      return [];
+      return NO_ALERTS;
     }
 
     const { result_type, reason, features } = securityAlertResponse;

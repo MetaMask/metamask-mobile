@@ -1,16 +1,20 @@
 import BigNumber from 'bignumber.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { PREDICT_CURRENCY } from '../../../../../../Views/confirmations/constants/predict';
 import { useTransactionCustomAmount } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
+import { useIsMoneyAccountPaymentOverride } from '../../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { MINIMUM_BET } from '../../../../constants/transactions';
 import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
 import EngineService from '../../../../../../../core/EngineService';
 import { getPredictBuyAllInCost } from '../../../../utils/orders';
+import { selectEvmAssetIdEncoder } from '../../../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../../../util/transactions/payment-token';
 
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
@@ -55,7 +59,9 @@ function PredictPayWithAnyTokenInfoInner({
 
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
   const { setPayToken, payToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -153,7 +159,8 @@ function PredictPayWithAnyTokenInfoInner({
       key: emissionKey,
       value: amountHuman,
     };
-    updateTokenAmountCallback(amountHuman);
+    // useUpdateTokenAmount logs a failed update before rethrowing it.
+    updateTokenAmountCallback(amountHuman)?.catch(() => undefined);
     EngineService.flushState();
   }, [
     amountHuman,
@@ -164,34 +171,40 @@ function PredictPayWithAnyTokenInfoInner({
   ]);
 
   useEffect(() => {
-    if (!transactionMeta || isPredictBalanceSelected || !selectedPaymentToken) {
+    // While paying from the Money Account the pay token is mUSD on Monad, which
+    // deliberately diverges from PredictController's selected payment token.
+    // Re-applying that token here would switch funding back to the EOA.
+    if (
+      !transactionMeta ||
+      isMoneyAccountSelected ||
+      isPredictBalanceSelected ||
+      !selectedPaymentToken
+    ) {
       return;
     }
 
-    const selectedTokenAddress = selectedPaymentToken.address?.toLowerCase();
-    const selectedTokenChainId = selectedPaymentToken.chainId?.toLowerCase();
+    const { address, chainId } = selectedPaymentToken;
 
-    if (!selectedTokenAddress || !selectedTokenChainId) {
+    if (!address || !chainId) {
       return;
     }
 
-    const hasSelectedTokenApplied =
-      payToken?.address?.toLowerCase() === selectedTokenAddress &&
-      payToken?.chainId?.toLowerCase() === selectedTokenChainId;
+    const selectedAssetId = encodeAssetId({
+      address: address as Hex,
+      chainId: chainId as Hex,
+    });
 
-    if (!hasSelectedTokenApplied) {
-      setPayToken({
-        address: selectedPaymentToken.address as Hex,
-        chainId: selectedPaymentToken.chainId as Hex,
-      });
+    if (!isSameAssetId(payToken?.assetId, selectedAssetId)) {
+      setPayToken({ assetId: selectedAssetId });
       EngineService.flushState();
     }
   }, [
     transactionMeta,
+    isMoneyAccountSelected,
     isPredictBalanceSelected,
     selectedPaymentToken,
-    payToken?.address,
-    payToken?.chainId,
+    payToken?.assetId,
+    encodeAssetId,
     setPayToken,
   ]);
 

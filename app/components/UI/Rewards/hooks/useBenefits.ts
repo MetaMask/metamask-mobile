@@ -22,15 +22,6 @@ export const useBenefits = (): {
 
   const getAllBenefits = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
-      dispatch(
-        setBenefits({
-          benefits: [],
-          limit: GET_ALL_BENEFITS_LIMIT,
-          lastFetched: Date.now(),
-        }),
-      );
-      dispatch(setBenefitsError(false));
-      dispatch(setBenefitsLoading(false));
       return;
     }
     if (isLoadingRef.current) {
@@ -39,8 +30,9 @@ export const useBenefits = (): {
     isLoadingRef.current = true;
 
     try {
-      dispatch(setBenefitsLoading(true));
-      dispatch(setBenefitsError(false));
+      // The stored error is left alone here. `setBenefits` clears it when a
+      // read succeeds, so a failure stays visible through the next attempt.
+      dispatch(setBenefitsLoading({ subscriptionId, loading: true }));
 
       const benefitsState: SubscriptionBenefitsState =
         await Engine.controllerMessenger.call(
@@ -49,18 +41,19 @@ export const useBenefits = (): {
           GET_ALL_BENEFITS_LIMIT,
         );
 
-      dispatch(setBenefits(benefitsState));
+      dispatch(setBenefits({ subscriptionId, benefits: benefitsState }));
     } catch (error) {
-      dispatch(setBenefitsError(true));
+      dispatch(setBenefitsError({ subscriptionId, error: true }));
     } finally {
       isLoadingRef.current = false;
-      dispatch(setBenefitsLoading(false));
+      dispatch(setBenefitsLoading({ subscriptionId, loading: false }));
     }
   }, [dispatch, subscriptionId]);
 
   useFocusEffect(
     useCallback(() => {
-      getAllBenefits().then();
+      // Fire and forget: getAllBenefits handles its own failures.
+      void getAllBenefits();
     }, [getAllBenefits]),
   );
 

@@ -8,6 +8,8 @@ export const SampleFeatureSelectorsText = {
 export const SampleFeatureSelectorsIDs = {
   // Sample Feature Screen
   SAMPLE_FEATURE_CONTAINER: 'sample-feature-container',
+  SAMPLE_FEATURE_HEADER: 'sample-feature-header',
+  SAMPLE_FEATURE_HEADER_BACK_BUTTON: 'sample-feature-header-back-button',
   SAMPLE_COUNTER_PANE_TITLE: 'sample-counter-pane-title',
   SAMPLE_COUNTER_PANE_VALUE: 'sample-counter-pane-value',
   SAMPLE_COUNTER_PANE_INCREMENT_BUTTON: 'sample-counter-pane-increment-button',

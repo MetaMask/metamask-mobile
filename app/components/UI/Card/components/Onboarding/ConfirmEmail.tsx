@@ -1,15 +1,18 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextButton,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
+  IconName,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -28,14 +31,16 @@ import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import useRegions from '../../hooks/useRegions';
+import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 const CODE_LENGTH = 6;
 
 const ConfirmEmail = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
+  const codeInputRef = useRef<TextInput>(null);
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
   const { getRegionByCode } = useRegions();
@@ -242,6 +247,13 @@ const ConfirmEmail = () => {
     selectedCountry,
   ]);
 
+  useEffect(() => {
+    if (!isScreenTransitionComplete) {
+      return;
+    }
+    codeInputRef.current?.focus();
+  }, [isScreenTransitionComplete]);
+
   const isDisabled =
     verifyLoading ||
     verifyIsError ||
@@ -253,38 +265,40 @@ const ConfirmEmail = () => {
 
   const renderFormFields = () => (
     <>
-      <Box>
+      <Box gap={2}>
         <TextField
-          autoCapitalize={'none'}
+          inputRef={codeInputRef}
           onChangeText={handleConfirmCodeChange}
-          numberOfLines={1}
           value={confirmCode}
-          keyboardType="number-pad"
-          autoComplete="one-time-code"
-          maxLength={CODE_LENGTH}
-          accessibilityLabel={strings(
-            'card.card_onboarding.confirm_email.code_label',
-          )}
           isError={verifyIsError}
-          testID="confirm-email-code-field"
-          autoFocus
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            keyboardType: 'number-pad',
+            textContentType: 'oneTimeCode',
+            autoComplete: 'one-time-code',
+            maxLength: CODE_LENGTH,
+            accessibilityLabel: strings(
+              'card.card_onboarding.confirm_email.code_label',
+            ),
+            testID: 'confirm-email-code-field',
+          }}
         />
         {verifyIsError && (
-          <Text
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID="confirm-email-error-text"
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
           >
             {verifyError}
-          </Text>
+          </HelpText>
         )}
-      </Box>
 
-      {/* Resend verification */}
-      <Box twClassName="mt-2">
+        {/* Resend verification */}
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-text-alternative"
+          color={TextColor.TextAlternative}
           testID="confirm-email-resend-verification"
         >
           {resendCooldown > 0 ? (
@@ -294,9 +308,8 @@ const ConfirmEmail = () => {
           ) : (
             <>
               {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
-              <Text
+              <TextButton
                 variant={TextVariant.BodySm}
-                twClassName="text-text-alternative underline"
                 onPress={
                   resendCooldown > 0 ? undefined : handleResendVerification
                 }
@@ -310,44 +323,22 @@ const ConfirmEmail = () => {
                 {strings(
                   'card.card_onboarding.confirm_email.resend_verification',
                 )}
-              </Text>
+              </TextButton>
             </>
           )}
         </Text>
         {emailVerificationIsError && (
-          <Text
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID="confirm-email-error-text"
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
           >
             {emailVerificationError}
-          </Text>
+          </HelpText>
         )}
       </Box>
     </>
-  );
-
-  const renderActions = () => (
-    <Box twClassName="flex flex-col items-center justify-center gap-2">
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        isFullWidth
-        isDisabled={isDisabled}
-        isLoading={verifyLoading}
-        testID="confirm-email-continue-button"
-      >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
-      <Text
-        variant={TextVariant.BodySm}
-        testID="confirm-email-legal-terms"
-        twClassName="text-text-alternative text-center"
-      >
-        {strings('card.card_onboarding.confirm_email.legal_terms')}
-      </Text>
-    </Box>
   );
 
   return (
@@ -357,8 +348,23 @@ const ConfirmEmail = () => {
         email,
       })}
       formFields={renderFormFields()}
-      actions={renderActions()}
-      stickyActions
+      footerContent={
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID="confirm-email-legal-terms"
+        >
+          {strings('card.card_onboarding.confirm_email.legal_terms')}
+        </Text>
+      }
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: verifyLoading,
+        testID: 'confirm-email-continue-button',
+      }}
       headerMode="back"
     />
   );

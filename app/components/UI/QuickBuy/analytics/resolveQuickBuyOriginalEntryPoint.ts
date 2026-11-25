@@ -7,9 +7,13 @@ const PROFILE_SOURCE_TO_ENTRY_POINT: Record<
 > = {
   leaderboard: 'leaderboard',
   home_carousel: 'home_carousel',
+  trending_carousel: 'trader_feed',
+  profiles_to_follow: 'trader_feed',
   notification: 'notification',
   deep_link: 'trader_profile',
   trader_feed: 'trader_feed',
+  explore_perps: 'trader_profile',
+  explore_crypto: 'trader_profile',
 };
 
 const POSITION_SOURCE_TO_ENTRY_POINT: Partial<

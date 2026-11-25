@@ -18,7 +18,6 @@ const SwapsBannersContext = createContext<SwapsBannersContextValue | null>(
 
 export function SwapsBannersProvider({
   children,
-  latestSourceAtomicBalance,
   location = MetaMetricsSwapsEventSource.MainView,
   onAdjustSourceAmount,
 }: SwapsBannersProviderProps) {
@@ -33,7 +32,6 @@ export function SwapsBannersProvider({
       sourceToken,
       destToken,
       walletAddress,
-      latestSourceAtomicBalance,
       location,
       onAdjustSourceAmount,
     }),
@@ -42,7 +40,6 @@ export function SwapsBannersProvider({
       sourceToken,
       destToken,
       walletAddress,
-      latestSourceAtomicBalance,
       location,
       onAdjustSourceAmount,
     ],

@@ -994,6 +994,7 @@ describe('hyperLiquidAdapter', () => {
         szDecimals: 5,
         maxLeverage: 50,
         marginTableId: 1,
+        marginTiers: [{ lowerBound: 0, maxLeverage: 50 }],
         onlyIsolated: true,
         isDelisted: true,
       });
@@ -1014,6 +1015,7 @@ describe('hyperLiquidAdapter', () => {
         szDecimals: 4,
         maxLeverage: 25,
         marginTableId: 2,
+        marginTiers: [{ lowerBound: 0, maxLeverage: 25 }],
         onlyIsolated: undefined,
         isDelisted: undefined,
       });
@@ -1083,6 +1085,12 @@ describe('hyperLiquidAdapter', () => {
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '7.991673605328893', // Calculated from weighted return and margin
         totalBalance: '1000.5', // Perps only (no spot balance provided)
+        crossMarginSummary: {
+          accountValue: '1000.50',
+          maintenanceMargin: '100.0',
+          marginUsed: '300.25',
+          notional: '1000.50',
+        },
       });
     });
 

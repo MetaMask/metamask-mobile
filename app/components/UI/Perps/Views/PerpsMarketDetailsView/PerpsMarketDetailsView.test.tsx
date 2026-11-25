@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -13,15 +13,22 @@ import {
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchPill';
+import type { OhlcData } from '../../components/TradingViewChart';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsPriceAlertsEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   CandlePeriod,
@@ -29,17 +36,25 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   TimeDuration,
+  type PerpsActiveProviderMode,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
   PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
 const mockTradingViewResetToDefault = jest.fn();
+const mockTradingViewRender = jest.fn();
+let mockMarketContextKey = 'testnet|hyperliquid|1';
+let mockMarketContextReady = true;
+let mockConnectionInitialized = true;
+let mockActiveProvider: PerpsActiveProviderMode | undefined;
 
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 jest.mock('../../../../../util/haptics');
 
 jest.mock('react-native-modal', () => {
@@ -84,6 +99,7 @@ jest.mock('../../components/TradingViewChart', () => {
   return {
     __esModule: true,
     default: ReactActual.forwardRef((props: object, ref: unknown) => {
+      mockTradingViewRender(props);
       ReactActual.useImperativeHandle(ref, () => ({
         resetToDefault: mockTradingViewResetToDefault,
         zoomToLatestCandle: jest.fn(),
@@ -102,6 +118,27 @@ jest.mock('../../../Ramp/types/legacyDeposit', () => ({
   },
 }));
 
+jest.mock('../../hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: mockMarketContextKey,
+    isReady: mockMarketContextReady,
+    isUserReady: mockConnectionInitialized,
+    isConnectionInitialized: mockConnectionInitialized,
+  }),
+}));
+
+const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
+  generationTrigger: 'initial',
+  isActive: true,
+  isLiveDeliveryFresh: true,
+  liveResetKey: 'detail-session',
+}));
+jest.mock('../../hooks/usePerpsMarketDetailSession', () => ({
+  ...jest.requireActual('../../hooks/usePerpsMarketDetailSession'),
+  usePerpsMarketDetailSession: (params: unknown) =>
+    mockUsePerpsMarketDetailSession(params),
+}));
+
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
@@ -109,31 +146,39 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
       subscribeToSymbols: jest.fn(() => jest.fn()),
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      subscribeToSymbol: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     focusedPrice: {
       subscribeToSymbol: jest.fn(() => jest.fn()),
@@ -215,6 +260,7 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockGetState = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn());
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -230,6 +276,9 @@ const mockNavigateToHome = jest.fn();
 const mockNavigateToActivity = jest.fn();
 const mockNavigateToOrder = jest.fn();
 const mockNavigateToTutorial = jest.fn();
+const mockNavigateToAdjustMargin = jest.fn();
+const mockOpenAdjustMarginSheet = jest.fn();
+const mockScreenVsBottomSheetAbTest = { useBottomSheet: false };
 const mockNavigateToMarketList = jest.fn();
 const mockNavigateToMarketListFromHeader = jest.fn();
 const mockNavigateBack = jest.fn();
@@ -244,7 +293,12 @@ const mockRouteParams: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
   };
+  source?: string;
   source_section?: string;
+  analyticsContext?: {
+    id: string;
+    attribution: 'homescreen_balance_breakdown';
+  };
   transactionActiveAbTests?: {
     key: string;
     value: string;
@@ -273,6 +327,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
       getState: mockGetState,
+      addListener: mockAddListener,
       reset: mockReset,
     }),
     useRoute: () => ({
@@ -281,6 +336,13 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: (cb: () => void | (() => void)) => cb(),
   };
 });
+
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
 
 jest.mock('../../hooks/useHasExistingPosition', () => ({
   useHasExistingPosition: () => mockUseHasExistingPosition(),
@@ -299,6 +361,7 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  selectPerpsProvider: jest.fn(),
   createSelectIsWatchlistMarket: jest.fn(() => jest.fn(() => false)),
 }));
 
@@ -407,6 +470,7 @@ const mockUsePerpsLiveFillsImpl = jest.fn<
   >,
   []
 >(() => ({
+  retry: jest.fn(),
   fills: [],
   isInitialLoading: false,
 }));
@@ -440,6 +504,20 @@ const mockUsePerpsMarketsImpl = jest.fn<
   isRefreshing: false,
 }));
 
+jest.mock('../../hooks/usePerpsSharePosition', () => ({
+  usePerpsSharePosition: () => ({
+    sharePosition: jest.fn(),
+    findSocialPosition: () => undefined,
+  }),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: (
@@ -462,27 +540,30 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
   }),
 }));
 
+const mockUsePerpsLiveCandles = jest.fn();
 jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
-  usePerpsLiveCandles: () => ({
-    candleData: {
-      symbol: 'BTC',
-      interval: '1h',
-      candles: [
-        {
-          time: 1234567890,
-          open: '45000',
-          high: '45500',
-          low: '44500',
-          close: '45200',
-          volume: '1000',
-        },
-      ],
-    },
-    isLoading: false,
-    hasHistoricalData: true,
-    error: null,
-  }),
+  usePerpsLiveCandles: (params: unknown) => mockUsePerpsLiveCandles(params),
 }));
+
+const defaultLiveCandles = () => ({
+  candleData: {
+    symbol: 'BTC',
+    interval: '15m',
+    candles: [
+      {
+        time: 1234567890,
+        open: '45000',
+        high: '45500',
+        low: '44500',
+        close: '45200',
+        volume: '1000',
+      },
+    ],
+  },
+  isLoading: false,
+  hasHistoricalData: true,
+  error: null,
+});
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
@@ -493,15 +574,33 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 const mockUseMarketInsights = jest.fn(
   (_assetId?: string | null, _isEnabled?: boolean) => ({
     report: null as Record<string, unknown> | null,
+    reportAssetId: null as string | null,
     isLoading: false,
     error: null,
     timeAgo: '',
+    cacheState: 'cold',
   }),
 );
 
 jest.mock('../../../MarketInsights', () => ({
   useMarketInsights: (assetId: string | null | undefined, isEnabled: boolean) =>
     mockUseMarketInsights(assetId, isEnabled),
+  useMarketInsightsEntryTrace: () => 'perps:entry_card:BTC',
+  getMarketInsightsTraceId: (
+    assetIdentifier: string,
+    source: string,
+    stage: string,
+  ) => `${source}:${stage}:${assetIdentifier}`,
+  getMarketInsightsTraceTags: (
+    context: { source: string; stage: string; assetType: string },
+    cacheState: string,
+  ) => ({
+    feature: 'market_insights',
+    source: context.source,
+    stage: context.stage,
+    asset_type: context.assetType,
+    cache_state: cacheState,
+  }),
   MarketInsightsDisclaimerBottomSheet: ({
     onClose,
   }: {
@@ -602,9 +701,11 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockNavigateToHome,
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
+    navigateToAdjustMargin: mockNavigateToAdjustMargin,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     navigateBack: mockNavigateBack,
@@ -619,7 +720,7 @@ jest.mock('../../hooks', () => ({
     reversePositionSheetRef: { current: null },
     openModifySheet: jest.fn(),
     closeModifySheet: jest.fn(),
-    openAdjustMarginSheet: jest.fn(),
+    openAdjustMarginSheet: mockOpenAdjustMarginSheet,
     closeAdjustMarginSheet: jest.fn(),
     openReversePositionSheet: jest.fn(),
     closeReversePositionSheet: jest.fn(),
@@ -639,9 +740,11 @@ jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
 jest.mock('../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockNavigateToHome,
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
+    navigateToAdjustMargin: mockNavigateToAdjustMargin,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     navigateBack: mockNavigateBack,
@@ -656,20 +759,20 @@ jest.mock('../../hooks/usePerpsMode', () => ({
   })),
 }));
 
-// Mock useABTest to return default (control/white) variant
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variantName: 'control',
-    isActive: false,
-  }),
+jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
 // Mock usePerpsOICap to return not at cap by default
+const mockUsePerpsOICap = jest.fn();
 jest.mock('../../hooks/usePerpsOICap', () => ({
-  usePerpsOICap: () => ({
-    isAtCap: false,
-    capPercentage: 50,
-  }),
+  usePerpsOICap: (...args: unknown[]) => {
+    mockUsePerpsOICap(...args);
+    return {
+      isAtCap: false,
+      capPercentage: 50,
+    };
+  },
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test
@@ -848,14 +951,23 @@ jest.mock('../../hooks/useStopLossPrompt', () => ({
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
+const mockComplianceState = { isBlocked: false };
 
 jest.mock('../../../Compliance', () => ({
   useComplianceGate: () => ({
     gate: mockComplianceGate,
-    isBlocked: false,
+    isBlocked: mockComplianceState.isBlocked,
     isComplianceEnabled: false,
     checkCompliance: jest.fn(),
   }),
+}));
+
+const mockUsePerpsPrewarmDepositOrder = jest.fn();
+
+jest.mock('../../hooks/usePerpsPrewarmDepositOrder', () => ({
+  usePerpsPrewarmDepositOrder: (
+    params: import('../../hooks/usePerpsPrewarmDepositOrder').UsePerpsPrewarmDepositOrderParams,
+  ) => mockUsePerpsPrewarmDepositOrder(params),
 }));
 
 const initialState = {
@@ -868,7 +980,12 @@ describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     mockPerpsModeValue = 'lite';
+    mockMarketContextKey = 'testnet|hyperliquid|1';
+    mockMarketContextReady = true;
+    mockConnectionInitialized = true;
+    mockUsePerpsLiveCandles.mockReturnValue(defaultLiveCandles());
     jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
 
     mockUsePerpsAccount.mockReturnValue({
@@ -937,9 +1054,18 @@ describe('PerpsMarketDetailsView', () => {
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
     ).selectPerpsEligibility;
+    const mockSelectPerpsProvider = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsProvider;
+    const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+      '../../selectors/chartPreferences',
+    ).selectPerpsChartPreferredCandlePeriod;
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
+      }
+      if (selector === mockSelectPerpsProvider) {
+        return mockActiveProvider;
       }
       if (selector === selectPerpsRelatedMarketsEnabledFlag) {
         return false;
@@ -947,8 +1073,15 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === selectPerpsAdvancedChartEnabledFlag) {
         return false;
       }
+      if (selector === selectPerpsPriceAlertsEnabledFlag) {
+        return false;
+      }
+      if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+        return CandlePeriod.FifteenMinutes;
+      }
       return undefined;
     });
+    mockActiveProvider = undefined;
 
     // Reset notification feature flag to default
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
@@ -963,11 +1096,16 @@ describe('PerpsMarketDetailsView', () => {
       volume: '$1.23B',
       maxLeverage: '40x',
     };
+    mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+    mockComplianceState.isBlocked = false;
     mockRouteParams.transactionActiveAbTests = undefined;
+    mockRouteParams.source = undefined;
     mockRouteParams.source_section = undefined;
+    mockRouteParams.analyticsContext = undefined;
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
@@ -990,6 +1128,30 @@ describe('PerpsMarketDetailsView', () => {
     jest.useRealTimers();
   });
 
+  it('delegates source attribution to Perps event tracking', () => {
+    mockRouteParams.analyticsContext = {
+      id: 'balance-breakdown-navigation',
+      attribution: 'homescreen_balance_breakdown',
+    };
+
+    renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      { state: initialState },
+    );
+
+    expect(jest.mocked(usePerpsEventTracking)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        navigationAnalyticsContext: mockRouteParams.analyticsContext,
+        properties: expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        }),
+      }),
+    );
+  });
+
   it('renders correctly', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsConnectionProvider>
@@ -1003,9 +1165,138 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
-    ).toBeOnTheScreen();
+  });
+
+  describe('service interruption banner', () => {
+    it('does not render the outage banner when the flag is off', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+    });
+
+    it('pins the outage banner above the header when the flag is on', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const baseSelectorImpl = useSelector.getMockImplementation();
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
+          return true;
+        }
+        return baseSelectorImpl?.(selector);
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeOnTheScreen();
+      // Pinned above the fixed header rather than scrolling with the content.
+      expect(
+        within(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+        ).queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+      expect(jest.mocked(usePerpsEventTracking)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          properties: expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]: true,
+          }),
+        }),
+      );
+    });
+  });
+
+  it('navigates to Perps price alerts with szDecimals from the market', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const { usePerpsMarketData } = jest.requireMock('../../hooks');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+      '../../selectors/chartPreferences',
+    ).selectPerpsChartPreferredCandlePeriod;
+
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsPriceAlertsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return false;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+        return CandlePeriod.FifteenMinutes;
+      }
+      return undefined;
+    });
+    mockRouteParams.market = {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: '$45,000.00',
+      change24h: '+$1,125.00',
+      change24hPercent: '+2.50%',
+      volume: '$1.23B',
+      maxLeverage: '40x',
+      providerId: 'hyperliquid',
+    };
+    usePerpsMarketData.mockReturnValue({
+      marketData: { szDecimals: 5, maxLeverage: 40 },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    try {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.PRICE_ALERTS_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PRICE_ALERTS,
+        expect.objectContaining({
+          mode: 'perps',
+          szDecimals: 5,
+          assetId: 'BTC',
+        }),
+      );
+    } finally {
+      usePerpsMarketData.mockReturnValue({
+        marketData: null,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+    }
   });
 
   describe('chart edge guard', () => {
@@ -1203,6 +1494,23 @@ describe('PerpsMarketDetailsView', () => {
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
   });
 
+  it('holds the statistics card back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H),
+    ).toBeNull();
+  });
+
   it('renders statistics items', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <PerpsConnectionProvider>
@@ -1394,6 +1702,7 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith({
+      fullCatalog: true,
       skipInitialFetch: false,
     });
     expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();
@@ -1747,16 +2056,26 @@ describe('PerpsMarketDetailsView', () => {
       const addFundsButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
       );
-      await act(async () => {
-        fireEvent.press(addFundsButton);
-      });
+      jest.useFakeTimers();
+      try {
+        await act(async () => {
+          fireEvent.press(addFundsButton);
+        });
 
-      await waitFor(() => {
         expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: 'customAmount',
           stack: 'Perps',
         });
+        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
-      });
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
@@ -1888,6 +2207,145 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('market context chart isolation', () => {
+    it('keeps account-owned sections loading while context reconnects', () => {
+      mockMarketContextReady = false;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({
+            account: 'loading',
+            positions_orders: 'loading',
+          }),
+        }),
+      );
+    });
+
+    it('keeps account-owned sections loading during an account reconnect', () => {
+      mockConnectionInitialized = false;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({
+            account: 'loading',
+            positions_orders: 'loading',
+          }),
+        }),
+      );
+    });
+
+    it('renders and resolves an empty Lightweight chart', () => {
+      mockUsePerpsLiveCandles.mockImplementation(
+        (params: { symbol: string; interval: CandlePeriod }) => ({
+          candleData: {
+            symbol: params.symbol,
+            interval: params.interval,
+            candles: [],
+          },
+          isLoading: false,
+          hasHistoricalData: false,
+          error: null,
+          fetchMoreHistory: jest.fn(),
+        }),
+      );
+
+      const view = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({ chart: 'empty' }),
+        }),
+      );
+    });
+
+    it('hides prior candles and OHLC while the new context reconnects', () => {
+      const view = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+      const tradingViewProps = mockTradingViewRender.mock.calls.at(-1)?.[0] as
+        | { onOhlcDataChange?: (data: OhlcData) => void }
+        | undefined;
+
+      act(() => {
+        tradingViewProps?.onOhlcDataChange?.({
+          open: '1',
+          high: '2',
+          low: '0.5',
+          close: '1.5',
+          volume: '10',
+          time: 1,
+        });
+      });
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        view.getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      );
+      expect(
+        view.getByTestId('perps-chart-fullscreen-close-button'),
+      ).toBeOnTheScreen();
+
+      mockMarketContextKey = 'mainnet|hyperliquid|1';
+      mockMarketContextReady = false;
+      view.rerender(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+      );
+
+      expect(
+        view.queryByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId('perps-chart-fullscreen-close-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -2732,6 +3190,10 @@ describe('PerpsMarketDetailsView', () => {
         }
         return undefined;
       });
+      mockRouteParams.market = {
+        ...mockRouteParams.market,
+        providerId: 'lighter',
+      } as PerpsMarketData;
 
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -2754,10 +3216,66 @@ describe('PerpsMarketDetailsView', () => {
         expect.objectContaining({
           direction: 'long',
           asset: 'BTC',
+          providerId: 'lighter',
           source: 'perp_asset_screen',
         }),
       );
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
+
+    it('checks the open interest cap on the market venue', () => {
+      mockRouteParams.market = {
+        ...mockRouteParams.market,
+        providerId: 'lighter',
+      } as PerpsMarketData;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(mockUsePerpsOICap).toHaveBeenLastCalledWith('BTC', 'lighter');
+    });
+
+    it.each(['notification', 'deep_link'] as const)(
+      'keeps a %s origin on the order instead of the asset screen',
+      async (origin) => {
+        mockRouteParams.source = origin;
+        const { useSelector } = jest.requireMock('react-redux');
+        const mockSelectPerpsEligibility = jest.requireMock(
+          '../../selectors/perpsController',
+        ).selectPerpsEligibility;
+        useSelector.mockImplementation((selector: unknown) => {
+          if (selector === mockSelectPerpsEligibility) {
+            return true;
+          }
+          return undefined;
+        });
+
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          { state: initialState },
+        );
+
+        await act(async () => {
+          fireEvent.press(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+          );
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ source: origin }),
+        );
+      },
+    );
 
     it('passes marketData defaults to order screen when available', async () => {
       const { useSelector } = jest.requireMock('react-redux');
@@ -2867,7 +3385,10 @@ describe('PerpsMarketDetailsView', () => {
       }
     });
 
-    it('forwards route source_section into navigateToOrder params', async () => {
+    // Kept synchronous: an async act() resolves via setImmediate, so if the
+    // worker stalls past 5s the overdue Jest timeout timer fires first.
+    // navigateToOrder runs synchronously inside the press handler.
+    it('forwards route source_section into navigateToOrder params', () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
@@ -2890,12 +3411,9 @@ describe('PerpsMarketDetailsView', () => {
           },
         );
 
-        const longButton = getByTestId(
-          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
         );
-        await act(async () => {
-          fireEvent.press(longButton);
-        });
 
         expect(mockNavigateToOrder).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -2946,6 +3464,9 @@ describe('PerpsMarketDetailsView', () => {
           source: 'perp_asset_screen',
         }),
       );
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
@@ -3098,6 +3619,9 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when modify button is pressed and user is not eligible', () => {
@@ -3208,6 +3732,17 @@ describe('PerpsMarketDetailsView', () => {
       );
     });
 
+    const marginTestPosition = {
+      symbol: 'BTC',
+      size: '0.5',
+      entryPrice: '50000',
+      leverage: { value: 10, type: 'isolated' },
+      marginUsed: '5000',
+      unrealizedPnl: '100',
+      returnOnEquity: '0.02',
+      liquidationPrice: '45000',
+    };
+
     it('shows geo block modal when margin button is pressed and user is not eligible', () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
@@ -3253,6 +3788,99 @@ describe('PerpsMarketDetailsView', () => {
       fireEvent.press(marginButton);
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
+    });
+
+    it('opens the action-choice sheet from the margin button for control', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === mockSelectPerpsEligibility ? true : undefined,
+      );
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: marginTestPosition,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('perps-position-card-margin-button'));
+
+      await waitFor(() => {
+        expect(mockOpenAdjustMarginSheet).toHaveBeenCalled();
+      });
+      expect(mockNavigateToAdjustMargin).not.toHaveBeenCalled();
+    });
+
+    it('skips the action-choice sheet and opens the margin bottom sheet for treatment', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === mockSelectPerpsEligibility ? true : undefined,
+      );
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: marginTestPosition,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('perps-position-card-margin-button'));
+
+      await waitFor(() => {
+        expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
+          marginTestPosition,
+          'add',
+          { useBottomSheet: true },
+        );
+      });
+      expect(mockOpenAdjustMarginSheet).not.toHaveBeenCalled();
+    });
+
+    it('gives the stop loss prompt the venue mark price, not the oracle price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '45000', markPrice: '45100', oraclePrice: '44900' },
+      });
+      const { useStopLossPrompt } = jest.requireMock(
+        '../../hooks/useStopLossPrompt',
+      );
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(useStopLossPrompt).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 45100 }),
+      );
     });
 
     it('shows geo block modal when add margin from banner is pressed and user is not eligible', () => {
@@ -3588,7 +4216,7 @@ describe('PerpsMarketDetailsView', () => {
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.ERROR),
       ).toBeOnTheScreen();
       expect(
-        getByText('Market data not found. Please go back and try again.'),
+        getByText('Market data not found. Go back and try again.'),
       ).toBeOnTheScreen();
     });
 
@@ -4710,7 +5338,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(getByTestId('compact-order-standalone-tpsl')).toBeOnTheScreen();
-      expect(getByText('Take profit limit close long')).toBeOnTheScreen();
+      expect(getByText('Take limit close long')).toBeOnTheScreen();
     });
 
     it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
@@ -4946,6 +5574,122 @@ describe('PerpsMarketDetailsView', () => {
       expect(getAllByText('ETH-USD perp').length).toBeGreaterThanOrEqual(1);
     });
 
+    it.each([
+      {
+        name: 'explicit route provider',
+        activeProvider: 'hyperliquid' as const,
+        routeProvider: 'lighter' as const,
+        expectedProvider: 'lighter' as const,
+      },
+      {
+        name: 'concrete active provider',
+        activeProvider: 'lighter' as const,
+        routeProvider: undefined,
+        expectedProvider: 'lighter' as const,
+      },
+      {
+        name: 'default provider in aggregated mode',
+        activeProvider: 'aggregated' as const,
+        routeProvider: undefined,
+        expectedProvider: 'hyperliquid' as const,
+      },
+    ])(
+      'selects the $name from duplicate symbols',
+      async ({ activeProvider, routeProvider, expectedProvider }) => {
+        mockActiveProvider = activeProvider;
+        mockRouteParams.market = {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$45,000.00',
+          change24h: '+$1,125.00',
+          change24hPercent: '+2.50%',
+          volume: '$1.23B',
+          maxLeverage: '50',
+          ...(routeProvider ? { providerId: routeProvider } : {}),
+        };
+        const hyperliquidMarket = {
+          ...mockRouteParams.market,
+          providerId: 'hyperliquid' as const,
+          maxLeverage: '50x',
+          volumeNumber: 100,
+        };
+        const lighterMarket = {
+          ...mockRouteParams.market,
+          providerId: 'lighter' as const,
+          maxLeverage: '25x',
+          volumeNumber: 200,
+        };
+        mockUsePerpsMarketsImpl.mockReturnValue({
+          markets:
+            expectedProvider === 'lighter'
+              ? [hyperliquidMarket, lighterMarket]
+              : [lighterMarket, hyperliquidMarket],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          { state: initialState },
+        );
+
+        await act(async () => {
+          fireEvent.press(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+          );
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ providerId: expectedProvider }),
+        );
+      },
+    );
+
+    it('uses a providerless candidate as the concrete active provider', async () => {
+      mockActiveProvider = 'lighter';
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$45,000.00',
+        change24h: '+$1,125.00',
+        change24hPercent: '+2.50%',
+        volume: '$1.23B',
+        maxLeverage: '50',
+      };
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [
+          {
+            ...mockRouteParams.market,
+            providerId: 'hyperliquid',
+            maxLeverage: '50x',
+            volumeNumber: 100,
+          },
+          {
+            ...mockRouteParams.market,
+            maxLeverage: '25x',
+            volumeNumber: 200,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      await waitFor(() => expect(getByText('25x')).toBeOnTheScreen());
+    });
+
     it('enriches market data when route maxLeverage is unformatted', async () => {
       mockRouteParams.market = {
         symbol: 'xyz:SPCX',
@@ -4961,6 +5705,7 @@ describe('PerpsMarketDetailsView', () => {
         markets: [
           {
             symbol: 'xyz:SPCX',
+            providerId: 'hyperliquid',
             name: 'SPCX',
             price: '$0.00',
             change24h: '+$0.00',
@@ -4991,6 +5736,50 @@ describe('PerpsMarketDetailsView', () => {
       expect(queryByText('100')).toBeNull();
     });
 
+    it('enriches a route symbol that differs from the market only in case', async () => {
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      mockRouteParams.market = {
+        symbol: 'KPEPE',
+        name: 'KPEPE',
+        price: '0',
+        change24h: '0',
+        change24hPercent: '0',
+        volume: '0',
+        maxLeverage: '100',
+      };
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'kPEPE',
+            providerId: 'hyperliquid',
+            name: 'kPEPE',
+            price: '$0.01',
+            change24h: '+$0.00',
+            change24hPercent: '+1.00%',
+            volume: '$1M',
+            maxLeverage: '10x',
+            volumeNumber: 1_000_000,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(getByText('10x')).toBeOnTheScreen();
+      });
+      expect(usePerpsMarketData).toHaveBeenLastCalledWith({ asset: 'kPEPE' });
+    });
+
     it('passes enriched SPCX leverage defaults to order screen', async () => {
       const { usePerpsMarketData } = jest.requireMock('../../hooks');
       mockRouteParams.market = {
@@ -5007,6 +5796,7 @@ describe('PerpsMarketDetailsView', () => {
         markets: [
           {
             symbol: 'xyz:SPCX',
+            providerId: 'hyperliquid',
             name: 'SPCX',
             price: '$0.00',
             change24h: '+$0.00',
@@ -5078,6 +5868,7 @@ describe('PerpsMarketDetailsView', () => {
         markets: [
           {
             symbol: 'SPCX',
+            providerId: 'hyperliquid',
             name: 'SPCX',
             price: '$0.00',
             change24h: '+$0.00',
@@ -5120,6 +5911,7 @@ describe('PerpsMarketDetailsView', () => {
         markets: [
           {
             symbol: 'BTC',
+            providerId: 'hyperliquid',
             name: 'Bitcoin',
             price: '$45,000.00',
             change24h: '+$1,125.00',
@@ -5226,9 +6018,11 @@ describe('PerpsMarketDetailsView', () => {
       // Default: a report is available and loading is complete
       mockUseMarketInsights.mockReturnValue({
         report: mockReport,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '5m ago',
+        cacheState: 'cold',
       });
     });
 
@@ -5301,9 +6095,11 @@ describe('PerpsMarketDetailsView', () => {
     it('passes market_insights_displayed: false to PERPS_SCREEN_VIEWED when no report is returned', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '',
+        cacheState: 'cold',
       });
 
       renderWithProvider(
@@ -5329,9 +6125,11 @@ describe('PerpsMarketDetailsView', () => {
     it('shows skeleton when loading and no report is available', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: true,
         error: null,
         timeAgo: '',
+        cacheState: 'cold',
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -5362,9 +6160,11 @@ describe('PerpsMarketDetailsView', () => {
     it('hides market insights section entirely when not loading and no report', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '',
+        cacheState: 'cold',
       });
 
       const { queryByTestId } = renderWithProvider(
@@ -5429,6 +6229,196 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Deposit-with-order prewarm', () => {
+    const setEligibility = (isEligible: boolean) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === mockSelectPerpsEligibility ? isEligible : undefined,
+      );
+    };
+
+    const renderView = () =>
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+    it('enables prewarming for an eligible, unblocked bottom-sheet treatment user', () => {
+      setEligibility(true);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+      mockRouteParams.market = {
+        ...(mockRouteParams.market as PerpsMarketData),
+        providerId: 'hyperliquid',
+      };
+      mockRouteParams.transactionActiveAbTests = [
+        { key: 'experiment', value: 'treatment' },
+      ];
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith({
+        enabled: true,
+        marketProviderId: 'hyperliquid',
+        transactionActiveAbTests: mockRouteParams.transactionActiveAbTests,
+      });
+    });
+
+    it('does not prewarm for the screen control group', () => {
+      setEligibility(true);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('does not prewarm for a compliance-blocked user', () => {
+      setEligibility(true);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+      mockComplianceState.isBlocked = true;
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('does not prewarm for an ineligible user', () => {
+      setEligibility(false);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+  });
+
+  describe('brand refresh insets', () => {
+    const edgeInsets = { top: 47, bottom: 34 };
+    const headerGlassTestID = `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-glass`;
+
+    const withSelectors = (overrides: Map<unknown, unknown>) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const baseSelectorImpl = useSelector.getMockImplementation();
+      useSelector.mockImplementation((selector: unknown) =>
+        overrides.has(selector)
+          ? overrides.get(selector)
+          : baseSelectorImpl?.(selector),
+      );
+    };
+
+    const renderLite = (props: { edgeInsets?: typeof edgeInsets } = {}) =>
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView {...props} />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+    // A reused iOS scroll view drops its contentInset, which left the content under the header on reopen.
+    it('reserves the header height with a spacer on iOS, not a contentInset', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+
+      // Status bar (47) plus the 64px header.
+      expect(
+        within(scrollView).getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER,
+        ),
+      ).toHaveStyle({ height: 111 });
+      expect(scrollView).not.toHaveProp('contentInset');
+      expect(scrollView).not.toHaveProp('contentOffset');
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    // iOS drops a progressViewOffset set before the refresh control attaches to the scroll view.
+    it('offsets the refresh spinner below the header once the scroll view is laid out', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
+      const getOffset = () =>
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW).props
+          .refreshControl.props.progressViewOffset;
+
+      expect(getOffset()).toBe(0);
+
+      fireEvent(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+        'layout',
+        { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 800 } } },
+      );
+
+      expect(getOffset()).toBe(111);
+    });
+
+    it('reserves the header height with a spacer on Android', () => {
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      try {
+        const { getByTestId } = renderLite({ edgeInsets });
+
+        expect(
+          within(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+          ).getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
+        ).toHaveStyle({ height: 111 });
+      } finally {
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('clears the home indicator at the bottom', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
+      ).toHaveStyle({ height: 34 });
+    });
+
+    it('lets the service banner pad the status bar instead of the header', () => {
+      withSelectors(
+        new Map<unknown, unknown>([
+          [selectPerpsBrandRefreshEnabled, true],
+          [selectPerpsServiceInterruptionBannerEnabledFlag, true],
+        ]),
+      );
+
+      const { getByTestId } = renderLite({ edgeInsets });
+
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 0 });
+    });
+
+    it('adds no spacers with the flag off', () => {
+      const { queryByTestId } = renderLite();
+
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
+      ).toBeNull();
+      expect(queryByTestId(headerGlassTestID)).toBeNull();
     });
   });
 });

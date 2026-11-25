@@ -38,6 +38,11 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
             currentCurrency: 'USD',
             currencyRates: {},
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            // Settled so home balance/token skeletons clear in CV fixtures.
+            assetsLoadingStatus: { 'acc-1': 'loaded' },
+          },
           AccountTrackerController: {
             accountsByChainId: {
               '0x1': {
@@ -73,6 +78,7 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           NftController: {
             allNfts: {},
@@ -95,6 +101,26 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
               ETH: { conversionRate: 2000 },
             },
             conversionRate: 2000,
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
           },
           TokenRatesController: {
             marketData: {

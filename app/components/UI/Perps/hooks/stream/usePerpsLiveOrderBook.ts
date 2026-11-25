@@ -4,8 +4,10 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   type OrderBookData,
   type OrderBookConnectionStatus,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 
 // Re-export types from controllers/types for backwards compatibility
 export {
@@ -17,6 +19,11 @@ export type { OrderBookConnectionStatus } from '@metamask/perps-controller';
 export interface UsePerpsLiveOrderBookOptions {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
   symbol: string;
+  /**
+   * Venue to route the order book to (TAT-4407): the book the user will trade
+   * against. Without one the stream follows the default provider.
+   */
+  providerId?: PerpsProviderType;
   /** Number of levels to display (default: 10) */
   levels?: number;
   /** Price aggregation significant figures (2-5, default: 5). Higher = finer granularity */
@@ -27,6 +34,8 @@ export interface UsePerpsLiveOrderBookOptions {
   throttleMs?: number;
   /** Whether to enable the subscription (default: true) */
   enabled?: boolean;
+  /** Resubscribes when the provider/network connection generation changes. */
+  resetKey?: string;
   /**
    * Enable Hyperliquid's fast order book stream (5 levels @ ~0.5s cadence).
    * When omitted, uses the default cadence (20 levels @ ~2s).
@@ -50,6 +59,8 @@ export interface UsePerpsLiveOrderBookOptions {
 export interface UsePerpsLiveOrderBookReturn {
   /** Order book data */
   orderBook: OrderBookData | null;
+  /** Symbol associated with the current data or terminal subscription state. */
+  dataSymbol: string | null;
   /** Whether the initial data is still loading */
   isLoading: boolean;
   /** Error if subscription failed */
@@ -85,18 +96,24 @@ export function usePerpsLiveOrderBook(
 ): UsePerpsLiveOrderBookReturn {
   const {
     symbol,
+    providerId,
     levels = 10,
     nSigFigs = 5,
     mantissa,
     throttleMs = 100,
     enabled = true,
+    resetKey,
     fast = false,
     channel = 'orderBook',
   } = options;
 
-  const isAggregated = channel === 'orderBookAggregated';
-
+  // The server-aggregated socket only speaks Hyperliquid. Another venue's
+  // ladder comes from its own routed book through the controller.
+  const usesAggregatedSocket =
+    channel === 'orderBookAggregated' &&
+    (!providerId || providerId === PROVIDER_CONFIG.AggregatedOrderBookProvider);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
+  const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [connectionStatus, setConnectionStatus] =
@@ -109,27 +126,32 @@ export function usePerpsLiveOrderBook(
 
   // Use refs for throttling
   const lastUpdateRef = useRef<number>(0);
-  const pendingUpdateRef = useRef<OrderBookData | null>(null);
+  const pendingUpdateRef = useRef<{
+    data: OrderBookData;
+    symbol: string;
+  } | null>(null);
   const throttleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Throttled update function
   const applyUpdate = useCallback(
-    (data: OrderBookData) => {
+    (data: OrderBookData, updateSymbol: string) => {
       const now = Date.now();
       const timeSinceLastUpdate = now - lastUpdateRef.current;
 
       if (timeSinceLastUpdate >= throttleMs) {
         setOrderBook(data);
+        setDataSymbol(updateSymbol);
         lastUpdateRef.current = now;
         setIsLoading(false);
       } else {
-        pendingUpdateRef.current = data;
+        pendingUpdateRef.current = { data, symbol: updateSymbol };
 
         if (!throttleTimerRef.current) {
           const remainingTime = throttleMs - timeSinceLastUpdate;
           throttleTimerRef.current = setTimeout(() => {
             if (pendingUpdateRef.current) {
-              setOrderBook(pendingUpdateRef.current);
+              setOrderBook(pendingUpdateRef.current.data);
+              setDataSymbol(pendingUpdateRef.current.symbol);
               lastUpdateRef.current = Date.now();
               pendingUpdateRef.current = null;
               setIsLoading(false);
@@ -145,15 +167,17 @@ export function usePerpsLiveOrderBook(
   useEffect(() => {
     if (!symbol || !enabled) {
       setOrderBook(null);
+      setDataSymbol(null);
       setIsLoading(false);
-      setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+      setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
       return;
     }
 
     setOrderBook(null);
+    setDataSymbol(null);
     setIsLoading(true);
     setError(null);
-    setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+    setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
 
     DevLogger.log(
       `usePerpsLiveOrderBook: Subscribing to ${symbol} (${channel})`,
@@ -168,9 +192,21 @@ export function usePerpsLiveOrderBook(
     );
 
     let unsubscribe: (() => void) | null = null;
+    let isActive = true;
+
+    // The throttle clock belongs to the previous subscription. Keeping it
+    // queues this generation's first snapshot, and a follow-up resubscribe
+    // clears that timer, so the UI keeps the stale book (order CTA stays
+    // disabled after depth recovers).
+    lastUpdateRef.current = 0;
+    pendingUpdateRef.current = null;
+    if (throttleTimerRef.current) {
+      clearTimeout(throttleTimerRef.current);
+      throttleTimerRef.current = null;
+    }
 
     try {
-      if (isAggregated) {
+      if (usesAggregatedSocket) {
         const connection = getAggregatedOrderBookConnection();
         unsubscribe = connection.subscribe({
           symbol,
@@ -178,10 +214,15 @@ export function usePerpsLiveOrderBook(
           nSigFigs,
           mantissa,
           callback: (data: OrderBookData) => {
-            applyUpdate(data);
+            if (!isActive) return;
+            applyUpdate(data, symbol);
           },
           onStatusChange: (status) => {
+            if (!isActive) return;
             setConnectionStatus(status);
+            if (status === 'error') {
+              setDataSymbol(symbol);
+            }
           },
         });
       } else {
@@ -189,14 +230,18 @@ export function usePerpsLiveOrderBook(
         unsubscribe = controller.subscribeToOrderBook({
           symbol,
           levels,
+          ...(providerId ? { providerId } : {}),
           nSigFigs,
           mantissa,
           fast,
           callback: (data: OrderBookData) => {
-            applyUpdate(data);
+            if (!isActive) return;
+            applyUpdate(data, symbol);
           },
           onError: (err: Error) => {
+            if (!isActive) return;
             DevLogger.log('usePerpsLiveOrderBook: Subscription error', err);
+            setDataSymbol(symbol);
             setError(err);
             setIsLoading(false);
           },
@@ -209,14 +254,16 @@ export function usePerpsLiveOrderBook(
     } catch (err) {
       const catchError = err instanceof Error ? err : new Error(String(err));
       DevLogger.log('usePerpsLiveOrderBook: Setup error', catchError);
+      setDataSymbol(symbol);
       setError(catchError);
       setIsLoading(false);
-      if (isAggregated) {
+      if (usesAggregatedSocket) {
         setConnectionStatus('error');
       }
     }
 
     return () => {
+      isActive = false;
       DevLogger.log(
         `usePerpsLiveOrderBook: Unsubscribing from ${symbol} (${channel})`,
       );
@@ -233,27 +280,38 @@ export function usePerpsLiveOrderBook(
     };
   }, [
     symbol,
+    providerId,
     levels,
     nSigFigs,
     mantissa,
     enabled,
+    resetKey,
     applyUpdate,
     throttleMs,
     fast,
     channel,
-    isAggregated,
+    usesAggregatedSocket,
     reconnectNonce,
   ]);
 
   return useMemo(
     () => ({
       orderBook,
+      dataSymbol,
       isLoading,
       error,
-      connectionStatus: isAggregated ? connectionStatus : 'connected',
+      connectionStatus: usesAggregatedSocket ? connectionStatus : 'connected',
       reconnect,
     }),
-    [orderBook, isLoading, error, connectionStatus, isAggregated, reconnect],
+    [
+      orderBook,
+      dataSymbol,
+      isLoading,
+      error,
+      connectionStatus,
+      usesAggregatedSocket,
+      reconnect,
+    ],
   );
 }
 

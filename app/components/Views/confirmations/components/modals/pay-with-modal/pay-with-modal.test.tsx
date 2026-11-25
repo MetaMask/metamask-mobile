@@ -35,24 +35,20 @@ import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/pe
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+} from '../../../__mocks__/pay-token.mock';
 
-const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockRenderNoFeeTag = jest.fn(() => null);
 const mockEnsurePayToken = jest.fn().mockResolvedValue(undefined);
+const mockClearPaymentOverride = jest.fn();
 const mockFindNetworkClientIdByChainId = jest
   .fn()
   .mockReturnValue('network-client-1');
 
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      addTokens: (...args: unknown[]) => mockAddTokens(...args),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: (...args: unknown[]) =>
-        mockFindNetworkClientIdByChainId(...args),
-    },
-  },
+jest.mock('../../../hooks/tokens/useEnsurePayToken', () => ({
+  useEnsurePayToken: () => mockEnsurePayToken,
 }));
 
 jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
@@ -62,6 +58,9 @@ jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
     renderNoFeeTag: mockRenderNoFeeTag,
     renderNoFeeTagForToken: () => null,
   }),
+}));
+jest.mock('../../../hooks/pay/sections/useClearPaymentOverride', () => ({
+  useClearPaymentOverride: () => mockClearPaymentOverride,
 }));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -257,9 +256,12 @@ describe('PayWithModal', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { address: NATIVE_TOKEN_ADDRESS, chainId: CHAIN_ID_1_MOCK },
+      payToken: buildPaymentTokenMock({
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+      }),
       setPayToken: setPayTokenMock,
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -271,11 +273,11 @@ describe('PayWithModal', () => {
         from: EMPTY_ADDRESS,
       },
       type: TransactionType.simpleSend,
-    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
 
     usePerpsPaymentTokenMock.mockReturnValue({
       onPaymentTokenChange: onPerpsPaymentTokenChangeMock,
-    } as unknown as ReturnType<typeof usePerpsPaymentToken>);
+    });
 
     usePerpsBalanceTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
@@ -286,7 +288,7 @@ describe('PayWithModal', () => {
       isPredictBalanceSelected: true,
       selectedPaymentToken: null,
       resetSelectedPaymentToken: jest.fn(),
-    } as ReturnType<typeof usePredictPaymentToken>);
+    });
 
     usePredictBalanceTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
@@ -312,8 +314,7 @@ describe('PayWithModal', () => {
       fireEvent.press(await findByText('Test Token 1'));
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKENS_MOCK[1].address,
-        chainId: TOKENS_MOCK[1].chainId,
+        assetId: evmAssetId(TOKENS_MOCK[1].address, CHAIN_ID_1_MOCK),
       });
     });
 
@@ -325,6 +326,34 @@ describe('PayWithModal', () => {
       expect(setPayTokenMock).not.toHaveBeenCalled();
     });
 
+    it('clears paymentOverride when a new token is selected', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Test Token 1'));
+
+      await waitFor(() => {
+        expect(mockClearPaymentOverride).toHaveBeenCalled();
+      });
+    });
+
+    it('clears paymentOverride when the selected token matches the current payToken', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Native Token 1'));
+
+      await waitFor(() => {
+        expect(mockClearPaymentOverride).toHaveBeenCalled();
+      });
+    });
+
+    it('does not clear paymentOverride until a token is selected', async () => {
+      const { findByText } = render();
+
+      await findByText('Test Token 1');
+
+      expect(mockClearPaymentOverride).not.toHaveBeenCalled();
+    });
+
     it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -334,7 +363,7 @@ describe('PayWithModal', () => {
         time: 0,
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.perpsDepositAndOrder,
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
 
       const { findByText } = render();
 
@@ -360,7 +389,7 @@ describe('PayWithModal', () => {
         time: 0,
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.predictDepositAndOrder,
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
 
       const { findByText } = render();
 
@@ -388,7 +417,7 @@ describe('PayWithModal', () => {
       time: 0,
       txParams: { from: EMPTY_ADDRESS },
       type: TransactionType.perpsDepositAndOrder,
-    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
 
     render();
 
@@ -407,7 +436,7 @@ describe('PayWithModal', () => {
       time: 0,
       txParams: { from: EMPTY_ADDRESS },
       type: TransactionType.predictDepositAndOrder,
-    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
 
     render();
 
@@ -430,7 +459,7 @@ describe('PayWithModal', () => {
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.predictWithdraw,
         nestedTransactions: [{ type: TransactionType.predictWithdraw }],
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
     });
 
     it('shows "Select a token" title for withdrawal transactions', () => {
@@ -487,7 +516,7 @@ describe('PayWithModal', () => {
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.moneyAccountWithdraw,
         nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
 
       const withdrawToken = {
         accountType: EthAccountType.Eoa,
@@ -510,14 +539,14 @@ describe('PayWithModal', () => {
       expect(mockRenderNoFeeTag).toHaveBeenCalled();
     });
 
-    it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
+    it('awaits ensurePayToken before calling setPayToken for zero-balance withdraw token', async () => {
       const callOrder: string[] = [];
 
-      mockAddTokens.mockImplementation(
-        () =>
+      mockEnsurePayToken.mockImplementation(
+        async () =>
           new Promise<void>((resolve) => {
             setTimeout(() => {
-              callOrder.push('addTokens');
+              callOrder.push('ensurePayToken');
               resolve();
             }, 0);
           }),
@@ -551,13 +580,11 @@ describe('PayWithModal', () => {
         expect(setPayTokenMock).toHaveBeenCalled();
       });
 
-      expect(mockAddTokens).toHaveBeenCalled();
-      expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
+      expect(mockEnsurePayToken).toHaveBeenCalled();
+      expect(callOrder).toStrictEqual(['ensurePayToken', 'setPayToken']);
     });
 
-    it('passes image to addTokens when available on zero-balance token', async () => {
-      mockFindNetworkClientIdByChainId.mockReturnValue('network-client-1');
-
+    it('passes token metadata to ensurePayToken for zero-balance token', async () => {
       const zeroBalanceToken = {
         accountType: EthAccountType.Eoa,
         address: '0xZeroBalanceToken',
@@ -579,16 +606,13 @@ describe('PayWithModal', () => {
 
       fireEvent.press(await findByText('Zero Token'));
 
-      expect(mockAddTokens).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            address: '0xZeroBalanceToken',
-            symbol: 'ZERO',
-            decimals: 6,
-            image: 'https://example.com/token.png',
-          }),
-        ],
-        'network-client-1',
+      expect(mockEnsurePayToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0xZeroBalanceToken',
+          symbol: 'ZERO',
+          decimals: 6,
+          name: 'Zero Token',
+        }),
       );
     });
   });
@@ -604,7 +628,7 @@ describe('PayWithModal', () => {
         txParams: { from: EMPTY_ADDRESS },
         type,
         nestedTransactions: [{ type }],
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
     };
 
     it('renders no-fee tags for Money Account deposits', async () => {

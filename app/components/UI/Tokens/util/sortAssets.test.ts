@@ -169,6 +169,19 @@ describe('sortAssets function - nested value handling with dates and numeric sor
     expect(sortedByName[1].name).toBe('Asset B');
   });
 
+  test('keeps the original order when both values are null', () => {
+    const firstNull = { ...mockAssets[0], name: null as unknown as string };
+    const secondNull = { ...mockAssets[1], name: null as unknown as string };
+
+    const sorted = sortAssets([firstNull, secondNull], {
+      key: 'name',
+      sortCallback: 'alphaNumeric',
+      order: 'asc',
+    });
+
+    expect(sorted).toEqual([firstNull, secondNull]);
+  });
+
   test('handles null values in descending order', () => {
     const assetWithNull = {
       name: null as unknown as string,

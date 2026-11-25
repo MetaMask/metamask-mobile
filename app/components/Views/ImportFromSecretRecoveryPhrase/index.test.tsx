@@ -7,12 +7,18 @@ import type { ReduxStore } from '../../../core/redux/types';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  waitFor,
+  type RenderAPI,
+} from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
+import { PasswordResetWarningSheetSelectorsIDs } from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
@@ -33,20 +39,38 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
-import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { SRP_LENGTHS } from './constant';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockQrSyncResetState = jest.fn();
+
+jest.mock('@metamask/keyring-sdk', () => ({
+  encodeMnemonicWords: jest.fn(
+    () =>
+      'say devote wasp video cool lunch brief add fever uncover novel offer',
+  ),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
-      QrSyncController: {
-        resetState: () => mockQrSyncResetState(),
-      },
+      QrSyncController: {},
     },
   },
 }));
+
+jest.mock('../QRTabSwitcher', () => ({
+  QRTabSwitcherScreens: { Scanner: 'Scanner' },
+}));
+
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
@@ -73,6 +97,8 @@ jest.mock('react-native-keyboard-controller', () => {
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn().mockResolvedValue(''),
+  hasString: jest.fn().mockResolvedValue(true),
+  addListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 
 // Mock the Keyboard to prevent Jest environment teardown errors
@@ -142,13 +168,50 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
 function renderWithProvider(
   ...args: Parameters<typeof baseRenderWithProvider>
 ) {
-  const result = baseRenderWithProvider(...args);
+  const [component, providerValues, ...rest] = args;
+  const routeMessenger =
+    providerValues?.routeMessenger ??
+    createMockRouteMessenger({
+      'QrSyncController:resetState': mockQrSyncResetState,
+    });
+  const result = baseRenderWithProvider(
+    component,
+    { ...providerValues, routeMessenger },
+    ...rest,
+  );
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }
 
+async function submitPasswordAndConfirmWarning(
+  getByTestId: RenderAPI['getByTestId'],
+) {
+  fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+  await waitFor(() => {
+    expect(
+      getByTestId(PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON),
+    ).toBeOnTheScreen();
+  });
+  await act(async () => {
+    fireEvent.press(
+      getByTestId(PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON),
+    );
+  });
+}
+
 function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
-  const result = baseRenderScreen(...args);
+  const [component, options, providerValues, ...rest] = args;
+  const routeMessenger =
+    providerValues?.routeMessenger ??
+    createMockRouteMessenger({
+      'QrSyncController:resetState': mockQrSyncResetState,
+    });
+  const result = baseRenderScreen(
+    component,
+    options,
+    { ...providerValues, routeMessenger },
+    ...rest,
+  );
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }
@@ -217,7 +280,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(continueButton).toBeDisabled();
     });
 
-    it('renders paste button when no seed phrase is entered', () => {
+    it('renders paste button when no seed phrase is entered', async () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -225,21 +288,24 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       jest.mocked(Clipboard.getString).mockResolvedValue('test');
+      await waitFor(() => {
+        expect(getByText(strings('import_from_seed.paste'))).toBeOnTheScreen();
+      });
       const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
       fireEvent.press(pasteButton);
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', () => {
+    it('renders show all and Paste button when no seed phrase is entered', async () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getByText(strings('import_from_seed.paste'))).toBeOnTheScreen();
+      });
     });
 
     it('enter 12 length seed phrase and check the input fields are rendered', async () => {
@@ -336,13 +402,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on submit editing, keyboard dismisses without creating new input', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
+      const { getByPlaceholderText, queryByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a word
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
@@ -351,29 +416,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(input, 'say');
       });
 
-      // Wait for the first grid input to be created
-      await waitFor(() => {
-        const firstGridInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-        );
-        expect(firstGridInput).toBeOnTheScreen();
-      });
-
-      // Get the first grid input
-      const firstGridInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-
       await act(async () => {
-        fireEvent(firstGridInput, 'onSubmitEditing');
+        fireEvent(input, 'onSubmitEditing');
       });
 
-      // Verify no new input was created (keyboard just dismisses)
-      await waitFor(() => {
-        expect(
-          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeNull();
-      });
+      expect(
+        queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
+      ).toBeNull();
     });
 
     it('creates a 13th input when space follows a valid 12-word prefix of a longer SRP', async () => {
@@ -434,6 +483,83 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         },
         { timeout: 3000 },
       );
+    });
+
+    it('shows length error toast when seed phrase length is not supported', async () => {
+      const { getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      // Enter a valid-length phrase so Continue enables, then force the length check to fail.
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      const includesSpy = jest
+        .spyOn(SRP_LENGTHS, 'includes')
+        .mockReturnValue(false);
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('import_from_seed.seed_phrase_length_error'),
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
+
+      includesSpy.mockRestore();
+    });
+
+    it('shows invalid seed phrase error when Continue is pressed with a checksum-invalid mnemonic', async () => {
+      const { getByPlaceholderText, getByTestId, getByText, getByRole } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+        );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      // 12 BIP39 words with an invalid checksum.
+      fireEvent.changeText(
+        input,
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.invalid_seed_phrase')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID),
+      ).toBeOnTheScreen();
     });
 
     it('keeps continue enabled after entering a 24-word SRP whose first 12 words are also valid', async () => {
@@ -970,8 +1096,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially should show "Paste" button
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getByText(strings('import_from_seed.paste'))).toBeOnTheScreen();
+      });
 
       // Type something to trigger hasStartedTyping
       const textArea = getByPlaceholderText(
@@ -1304,49 +1431,34 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            pendingSecretImports: [
-              {
-                index: 0,
-                value: qrSyncMnemonic,
-                type: QrSyncSecretTypes.MNEMONIC,
-                isPrimary: true,
-              },
-            ],
+            pendingSecretImports: {
+              version: 1 as const,
+              wallets: [
+                {
+                  id: 'wallet:test-primary' as `wallet:${string}`,
+                  type: 'mnemonic' as const,
+                  value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+                  metadata: { name: 'Extension Wallet' },
+                  groups: [
+                    {
+                      id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
+                      groupIndex: 0,
+                      metadata: {
+                        name: 'Account 1',
+                        pinned: false,
+                        hidden: false,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
           },
         },
       },
     };
 
-    it('renders the import-from-extension link when add-device sync is enabled', () => {
-      const stateWithAddDeviceSync = {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                addDeviceSyncEnabled: true,
-              },
-            },
-          },
-        },
-      };
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: stateWithAddDeviceSync },
-      );
-
-      expect(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('import_from_seed.import_wallet_from_extension')),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to AddDeviceToWallet when import-from-extension link is pressed', () => {
+    it('opens the QR scanner when the scan button is pressed and add-device sync is enabled', () => {
       const mockNavigate = jest.fn();
       const Stack = createNativeStackNavigator();
       const stateWithAddDeviceSync = {
@@ -1363,7 +1475,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, queryByText } = renderWithProvider(
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name="TestScreen">
@@ -1381,12 +1493,21 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       fireEvent.press(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+        getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
+        initialScreen: QRTabSwitcherScreens.Scanner,
+        disableTabber: true,
+        onScanSuccess: expect.any(Function),
+        onScanError: expect.any(Function),
+      });
+      expect(
+        queryByText(strings('import_from_seed.import_menu_title')),
+      ).toBeNull();
+      expect(
+        queryByText(strings('import_from_seed.import_from_extension_menu')),
+      ).toBeNull();
     });
 
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
@@ -1438,8 +1559,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {
@@ -1489,8 +1612,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
         'StrongPass123!',
       );
-      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
-      fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
@@ -1501,12 +1623,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   const renderCreatePasswordUI = async () => {
-    const { getByText, getByPlaceholderText, getByRole, getByTestId } =
-      renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
+    const {
+      getByText,
+      getByPlaceholderText,
+      getByRole,
+      getByTestId,
+      queryByTestId,
+    } = renderScreen(
+      ImportFromSecretRecoveryPhrase,
+      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+      { state: initialState },
+    );
 
     // Enter valid seed phrase and continue to step 2
     const input = getByPlaceholderText(
@@ -1523,7 +1650,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     const continueButton = getByRole('button', { name: 'Continue' });
     fireEvent.press(continueButton);
 
-    return { getByText, getByPlaceholderText, getByRole, getByTestId };
+    return {
+      getByText,
+      getByPlaceholderText,
+      getByRole,
+      getByTestId,
+      queryByTestId,
+    };
   };
 
   describe('Create password UI', () => {
@@ -1824,13 +1957,73 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('renders learn more checkbox', async () => {
+    it('does not render the password recovery acknowledgement row', async () => {
+      const { getByTestId, queryByTestId } = await renderCreatePasswordUI();
+
+      expect(
+        queryByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
+      ).toBeNull();
+      expect(
+        getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the password reset warning sheet instead of importing', async () => {
+      const newWalletAndRestoreSpy = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
       const { getByTestId } = await renderCreatePasswordUI();
 
-      const learnMoreCheckbox = getByTestId(
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        'StrongPass123!',
       );
-      expect(learnMoreCheckbox).toBeOnTheScreen();
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
+        ).toBeOnTheScreen();
+      });
+      expect(newWalletAndRestoreSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not import when the password reset warning sheet is dismissed', async () => {
+      const newWalletAndRestoreSpy = jest.spyOn(
+        Authentication,
+        'newWalletAndRestore',
+      );
+      const { getByTestId, queryByTestId } = await renderCreatePasswordUI();
+
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      expect(newWalletAndRestoreSpy).not.toHaveBeenCalled();
+      expect(
+        queryByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
+      ).toBeNull();
     });
 
     it('error message is shown when passcode is not set', async () => {
@@ -1851,11 +2044,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
@@ -1867,11 +2055,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockRejectedValueOnce(new Error('Passcode not set.'));
 
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-        );
-      });
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockAlert).toHaveBeenCalledWith(
@@ -1903,7 +2087,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           'StrongPass123!',
         );
       });
-      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
 
       const newWalletAndRestoreSpy = jest.spyOn(
         Authentication,
@@ -1933,7 +2116,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           'StrongPass123!',
         );
       });
-      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
 
       const validators = jest.requireActual('../../../util/validators') as {
         failedSeedPhraseRequirements: (seed: string) => boolean;
@@ -1975,7 +2157,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           'StrongPass123!',
         );
       });
-      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
 
       const validators = jest.requireActual('../../../util/validators') as {
         failedSeedPhraseRequirements: (seed: string) => boolean;
@@ -2013,11 +2194,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
@@ -2027,11 +2203,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Mock Authentication.newWalletAndRestore
       jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
-      // Try to import
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
     });
 
     it('reports to Sentry when wallet import fails with metrics enabled', async () => {
@@ -2058,17 +2230,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-      fireEvent.press(confirmButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockCaptureException).toHaveBeenCalledWith(importError, {
@@ -2104,17 +2269,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-      fireEvent.press(confirmButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
@@ -2313,18 +2471,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(
         () => {
@@ -2368,18 +2517,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockTrace).not.toHaveBeenCalledWith(
@@ -2413,18 +2553,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockCaptureException).not.toHaveBeenCalled();
@@ -2641,16 +2772,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockTrace).toHaveBeenCalledWith(
@@ -2690,16 +2812,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(confirmButton);
+      await submitPasswordAndConfirmWarning(getByTestId);
 
       await waitFor(() => {
         expect(mockTrace).toHaveBeenCalledWith(

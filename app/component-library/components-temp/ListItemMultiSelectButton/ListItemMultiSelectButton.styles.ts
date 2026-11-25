@@ -27,12 +27,6 @@ const styleSheet = (params: {
       flex: 1,
       padding: 16,
     } as ViewStyle,
-    listItem: {
-      paddingRight: 0,
-      paddingTop: 0,
-      paddingBottom: 0,
-      paddingLeft: 0,
-    },
     containerColumn: {
       flexDirection: 'column',
       alignItems: 'flex-start',
@@ -40,12 +34,6 @@ const styleSheet = (params: {
       paddingLeft: 0,
       paddingTop: 0,
       paddingBottom: 0,
-    },
-    containerRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginBottom: 0,
-      marginLeft: 40,
     },
     container: Object.assign(
       {
@@ -56,16 +44,6 @@ const styleSheet = (params: {
       style,
       isSelected ? { backgroundColor: colors.background.muted } : {},
     ) as ViewStyle,
-    itemColumn: {
-      display: 'flex',
-      marginTop: 0,
-      marginBottom: 0,
-      color: colors.text.alternative,
-    },
-    arrowStyle: {
-      paddingLeft: 8,
-      paddingTop: 32,
-    },
     buttonIcon: {
       paddingRight: 8,
     },

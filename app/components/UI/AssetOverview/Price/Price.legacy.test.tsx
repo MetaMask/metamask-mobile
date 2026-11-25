@@ -181,17 +181,17 @@ describe('PriceLegacy', () => {
         ),
       );
 
-    const fourPrices: TokenPrice[] = Array.from({ length: 4 }, (_, i) => [
+    const twoPrices: TokenPrice[] = Array.from({ length: 2 }, (_, i) => [
       String(1736761237983 + i),
       100 + i,
     ]);
     const { getByTestId } = renderWithProvider(
-      <PriceLegacy {...baseProps} prices={fourPrices} />,
+      <PriceLegacy {...baseProps} prices={twoPrices} />,
     );
 
     expect(PriceChart).toHaveBeenCalledWith(
       expect.objectContaining({
-        prices: distributeDataPoints(fourPrices),
+        prices: distributeDataPoints(twoPrices),
       }),
       undefined,
     );

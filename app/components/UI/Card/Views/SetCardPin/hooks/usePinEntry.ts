@@ -17,7 +17,10 @@ export function usePinEntry({ disabled = false }: UsePinEntryOptions = {}) {
   const unmaskTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const valueRef = useRef(value);
-  valueRef.current = value;
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   const clearTimers = useCallback(() => {
     if (unmaskTimerRef.current) {

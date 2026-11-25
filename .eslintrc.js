@@ -3,6 +3,16 @@
 const {
   routeIsolationZones,
 } = require('./scripts/eslint-route-isolation-zones');
+// Predict boundary fence (PRED-1399): outside Predict, import only
+// `app/components/UI/PredictNext/index.ts`. The zones carry both allowlists
+// (permanent composition wiring and the shrink-only burn-down list) in their
+// `target`, so every override below that sets `import-x/no-restricted-paths`
+// spreads `predictBoundaryZones` verbatim. PRED-1340 migration PRs delete
+// their files from `predictImportBurndownFiles` in
+// scripts/eslint-predict-boundary-zones.js.
+const {
+  predictBoundaryZones,
+} = require('./scripts/eslint-predict-boundary-zones');
 
 // Existing BN.js migration zone, kept in a named const so it can be
 // re-declared by the route-isolation overrides below without duplicating
@@ -25,8 +35,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
-  'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
-  'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
   'app/components/UI/Bridge/hooks/useFormattedBalanceWithThreshold/index.ts',
   'app/components/UI/Bridge/hooks/useHasSufficientGas/index.ts',
   'app/components/UI/Bridge/hooks/useInsufficientBalance/index.ts',
@@ -36,11 +44,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Bridge/utils/formatNetworkFee.test.ts',
   'app/components/UI/Bridge/utils/formatNetworkFee.ts',
   'app/components/UI/Bridge/utils/transaction-history.ts',
-  'app/components/UI/Card/hooks/useAssetBalances.tsx',
-  'app/components/UI/Card/hooks/useCardDelegation.test.ts',
-  'app/components/UI/Card/hooks/useCardDelegation.ts',
-  'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
-  'app/components/UI/Card/sdk/CardSDK.ts',
   'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
@@ -63,14 +66,12 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Money/constants/activityStyles.ts',
   'app/components/UI/Money/hooks/useMoneyAccountBalance.ts',
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
-  'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
-  'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts',
@@ -93,7 +94,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
@@ -109,12 +109,63 @@ const utilNumberImportBurndownFiles = [
   'app/util/transactions/index.test.ts',
 ];
 
+// Shared by the *.view.test.* and tests/component-view/** overrides so the
+// fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
+// variants included.
+// no-restricted-syntax is one severity per override, so the error bans stay
+// here and the warn-level flake checks are a later block in eslint.config.mjs.
+// A second override for the same files would replace this list.
+const CV_SKILL_URL =
+  'https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md';
+
+const cvFakeTimerBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
+  message:
+    'Component-view tests must not use fake timers. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state. See the mobile-testing skill: ' +
+    CV_SKILL_URL,
+};
+
+const cvViewMockMessage =
+  'Arbitrary jest.mock() is not allowed in a component-view test. Drive behaviour through Redux state, presets, and renderers, or intercept HTTP with tests/component-view/api-mocking (nock). Only Engine (core/Engine or core/Engine/Engine) and react-native-device-info may be mocked. See the mobile-testing skill: ' +
+  CV_SKILL_URL;
+
+const cvHelperMockMessage =
+  'Arbitrary jest.mock() is not allowed in component-view helpers. Add a framework mock only in tests/component-view/mocks.ts, and only for Engine, react-native-device-info, expo-web-browser, generateDeviceAnalyticsMetaData, or react-native/Libraries/Animated/Easing. See the mobile-testing skill: ' +
+  CV_SKILL_URL;
+
+// Exact module specifiers already passed to jest.mock in tests/component-view/mocks.ts.
+const cvHelperMockModules = [
+  'expo-web-browser',
+  '../../app/core/Engine',
+  '../../app/core/Engine/Engine.ts',
+  'react-native-device-info',
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  'react-native/Libraries/Animated/Easing',
+];
+
+const cvViewMockBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
+  message: cvViewMockMessage,
+};
+
+const cvHelperMockBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal']" +
+    cvHelperMockModules.map((mod) => `[arguments.0.value!='${mod}']`).join(''),
+  message: cvHelperMockMessage,
+};
+
+const cvDynamicMockBan = (message) => ({
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name='mock']:not([arguments.0.type='Literal'])",
+  message,
+});
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   extends: [
     '@react-native',
     'eslint:recommended',
@@ -145,7 +196,10 @@ module.exports = {
         'app/components/hooks/useAsyncResult.ts',
         'app/components/hooks/useOTAUpdates.ts',
         'app/components/Nav/Main/index.js',
-        'app/components/Nav/App/App.tsx',
+        'app/components/Nav/App/AppShellEffects/AppShellEffects.tsx',
+        // Card: capabilities are re-read from Engine when providerId/location
+        // change; Engine.context is a module singleton, not a reactive dep.
+        'app/components/UI/Card/hooks/useCardCapabilities.ts',
       ],
       rules: {
         'react-hooks/exhaustive-deps': 'off',
@@ -172,7 +226,18 @@ module.exports = {
         // ratchet to 'error' once the BN.js → BigInt migration is complete).
         // Pairs with the `import-x/no-restricted-paths` fence on
         // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
+        // Oxlint owns this rule. It is a warning in .oxlintrc.json and runs
+        // in type-aware mode (oxlint-tsgolint), so it is off here.
+        '@typescript-eslint/no-deprecated': 'off',
+        // Oxlint owns these five too, as errors. The shared config turns
+        // them on and they need type information. ESLint no longer loads the
+        // TypeScript project (no parserOptions.project), so a rule that needs
+        // type information throws if it is turned on here.
+        '@typescript-eslint/no-array-delete': 'off',
+        '@typescript-eslint/no-for-in-array': 'off',
+        '@typescript-eslint/no-meaningless-void-operator': 'off',
+        '@typescript-eslint/no-unnecessary-qualifier': 'off',
+        '@typescript-eslint/no-unsafe-unary-minus': 'off',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
@@ -183,32 +248,99 @@ module.exports = {
           },
         ],
 
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
-        //
-        // TODO: Remove these modifications after the ESLint v9 update
-        '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
-        '@typescript-eslint/consistent-type-exports': 'off',
+        // Fast check. Warn, rather than error, so new hits from main do not
+        // fail CI. The options match the shared config. Oxlint 1.93 has no
+        // equivalent, so this stays on ESLint.
+        '@typescript-eslint/naming-convention': [
+          'warn',
+          {
+            selector: 'default',
+            format: ['camelCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'forbid',
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'import',
+            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          },
+          {
+            selector: 'interface',
+            format: ['PascalCase'],
+            custom: {
+              regex: '^I[A-Z]',
+              match: false,
+            },
+          },
+          {
+            selector: 'objectLiteralMethod',
+            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          },
+          {
+            selector: 'objectLiteralProperty',
+            format: null,
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'typeParameter',
+            format: ['PascalCase'],
+            custom: { regex: '^.{3,}', match: true },
+          },
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'parameter',
+            format: ['camelCase', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: [
+              'classProperty',
+              'objectLiteralProperty',
+              'typeProperty',
+              'classMethod',
+              'objectLiteralMethod',
+              'typeMethod',
+              'accessor',
+              'enumMember',
+            ],
+            format: null,
+            modifiers: ['requiresQuotes'],
+          },
+        ],
+        // Oxlint owns these. explicit-function-return-type, no-empty-object-type,
+        // and no-unused-vars are warnings there. no-wrapper-object-types and
+        // prefer-enum-initializers are errors there, and their existing hits
+        // are in oxlint-suppressions.json. The shared config turns all five
+        // on, so they are set to off here.
         '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/naming-convention': 'off',
-        '@typescript-eslint/no-base-to-string': 'off',
-        '@typescript-eslint/no-duplicate-type-constituents': 'off',
         '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        // Slow type checks. The shared config turns these on and they need type
+        // information. Oxlint owns them, as errors, for TypeScript files, with
+        // the shared config's options. Existing hits are in
+        // oxlint-suppressions.json. unbound-method is off in *.test and *.spec
+        // files, where asserting on a method reference is the usual pattern.
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/consistent-type-exports': 'off',
+        '@typescript-eslint/no-base-to-string': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/no-redundant-type-constituents': 'off',
-        '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
@@ -221,6 +353,13 @@ module.exports = {
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
         '@typescript-eslint/unbound-method': 'off',
+        // The shared config leaves these off, so they are off in Oxlint too.
+        '@typescript-eslint/consistent-type-imports': 'off',
+        '@typescript-eslint/no-duplicate-type-constituents': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        '@typescript-eslint/no-throw-literal': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         'no-restricted-syntax': [
           'error',
           {
@@ -264,10 +403,6 @@ module.exports = {
             message: 'Sequence expressions are not allowed',
           },
           {
-            selector: "Identifier[name='UnifiedGestures']",
-            message: 'Use Gestures instead of UnifiedGestures.',
-          },
-          {
             selector: "Identifier[name='FrameworkDetector']",
             message:
               'Do not use FrameworkDetector in POs/flows. Use Gestures/Assertions/Matchers.',
@@ -288,10 +423,6 @@ module.exports = {
           {
             selector: 'SequenceExpression',
             message: 'Sequence expressions are not allowed',
-          },
-          {
-            selector: "Identifier[name='UnifiedGestures']",
-            message: 'Use Gestures instead of UnifiedGestures.',
           },
           {
             selector: "Identifier[name='FrameworkDetector']",
@@ -419,8 +550,24 @@ module.exports = {
         tailwindcss: {
           callees: ['twClassName', 'tw'],
           config: './tailwind.config.js',
+          // React Native has no CSS files. Without this, no-custom-classname
+          // searches the whole repo for *.css every 5 seconds.
+          cssFiles: [],
           tags: ['tw'], // Enable template literal support for tw`classnames`
         },
+      },
+    },
+    {
+      // The React Compiler does not run under Jest (see
+      // scripts/react-compiler.js), so it never compiles these files.
+      files: [
+        '**/*.test.{js,jsx,ts,tsx}',
+        '**/__mocks__/**',
+        '**/*.mock.{js,ts,tsx}',
+        'tests/**',
+      ],
+      rules: {
+        'react-compiler/react-compiler': 'off',
       },
     },
     {
@@ -428,12 +575,30 @@ module.exports = {
       rules: {
         'no-restricted-syntax': [
           'error',
+          cvViewMockBan,
+          cvDynamicMockBan(cvViewMockMessage),
+          cvFakeTimerBan,
+        ],
+      },
+    },
+    {
+      // Helpers keep the base bans and the fake-timer ban. jest.mock is
+      // limited to the modules tests/component-view/mocks.ts already mocks.
+      files: ['tests/component-view/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
           {
-            selector:
-              "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-            message:
-              'Only Engine and react-native-device-info can be mocked in component-view tests.',
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
           },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          cvFakeTimerBan,
+          cvHelperMockBan,
+          cvDynamicMockBan(cvHelperMockMessage),
         ],
       },
     },
@@ -473,8 +638,6 @@ module.exports = {
     //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
     //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
     //     handles any formatting delta.
-    //
-    // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
       files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
@@ -565,6 +728,7 @@ module.exports = {
         '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
         '@typescript-eslint/prefer-nullish-coalescing': 'error',
         '@typescript-eslint/prefer-readonly': 'error',
+        // Oxlint ignores these generated files, so this stays an error here.
         '@typescript-eslint/explicit-function-return-type': 'error',
         '@typescript-eslint/naming-convention': [
           'error',
@@ -721,9 +885,13 @@ module.exports = {
         // burn-down allowlist from this override's `excludedFiles`; the
         // burn-down override below intentionally does not re-declare this
         // rule, so allow-listed files remain exempt.
+        //
+        // ESLint replaces this rule per override instead of merging it, so
+        // every override that sets it must spread `predictBoundaryZones`
+        // (scripts/eslint-predict-boundary-zones.test.ts checks that).
         'import-x/no-restricted-paths': [
           'error',
-          { zones: [utilNumberDeprecationZone] },
+          { zones: [utilNumberDeprecationZone, ...predictBoundaryZones] },
         ],
       },
     },
@@ -770,7 +938,11 @@ module.exports = {
         'import-x/no-restricted-paths': [
           'error',
           {
-            zones: [utilNumberDeprecationZone, ...routeIsolationZones],
+            zones: [
+              utilNumberDeprecationZone,
+              ...routeIsolationZones,
+              ...predictBoundaryZones,
+            ],
           },
         ],
       },
@@ -781,12 +953,29 @@ module.exports = {
       // those files complete their BigInt migration; route isolation must
       // still apply so new cross-route imports added to a burn-down file
       // are caught. Route-isolation zones target only `Views/<route>`
-      // paths, so this override is a no-op for non-Views burn-down files.
+      // paths, so they are a no-op for non-Views burn-down files; the
+      // Predict boundary zones apply to every burn-down file.
       files: utilNumberImportBurndownFiles,
       rules: {
         'import-x/no-restricted-paths': [
           'error',
-          { zones: routeIsolationZones },
+          { zones: [...routeIsolationZones, ...predictBoundaryZones] },
+        ],
+      },
+    },
+    {
+      // The default import-fence override excludes these trees (for
+      // expo-haptics and the legacy number utils), which also drops its
+      // `import-x/no-restricted-paths` zones. Give them the Predict boundary
+      // so no file under `app/` falls outside it.
+      files: [
+        'app/util/haptics/**/*.{ts,tsx,js,jsx}',
+        'app/util/number/**/*.{ts,tsx,js,jsx}',
+      ],
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          { zones: predictBoundaryZones },
         ],
       },
     },
@@ -796,6 +985,7 @@ module.exports = {
     process: true,
     beforeAll: true,
     afterAll: true,
+    afterEach: true,
     describe: true,
     expect: true,
     it: true,
@@ -824,6 +1014,15 @@ module.exports = {
     'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    // Code fencing was removed: nothing strips fence-marker blocks any more, so
+    // fenced code would ship in every build. Gate features at runtime instead.
+    'no-warning-comments': [
+      'error',
+      {
+        terms: ['BEGIN:ONLY_INCLUDE_IF', 'END:ONLY_INCLUDE_IF'],
+        location: 'anywhere',
+      },
+    ],
     quotes: [
       'error',
       'single',
@@ -932,11 +1131,7 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
+    // Oxlint owns these. Existing hits are in oxlint-suppressions.json.
     'react-hooks/rules-of-hooks': 'off',
     'no-loss-of-precision': 'off',
   },

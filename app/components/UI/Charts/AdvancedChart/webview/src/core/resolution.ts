@@ -54,3 +54,26 @@ export function detectResolution(data: { time: number }[]): TVResolution {
   }
   return best;
 }
+
+/**
+ * Reverse of {@link INTERVAL_MS_TO_TV}: TradingView resolution code → bar
+ * interval in milliseconds. Unknown resolutions return undefined.
+ */
+export function resolutionToIntervalMs(resolution: string): number | undefined {
+  for (const [ms, tv] of Object.entries(INTERVAL_MS_TO_TV)) {
+    if (tv === resolution) {
+      return Number(ms);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Compares TradingView resolution codes. TradingView may omit a unit's `1`
+ * multiplier ("D" for "1D"), so both spellings name the same resolution.
+ */
+export function isSameResolution(a: string, b: string): boolean {
+  const canonical = (resolution: string): string =>
+    /^[SDWM]$/.test(resolution) ? `1${resolution}` : resolution;
+  return canonical(a) === canonical(b);
+}

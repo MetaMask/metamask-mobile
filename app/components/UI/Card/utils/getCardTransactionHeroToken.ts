@@ -11,6 +11,7 @@ import {
 export interface CardTransactionHeroToken {
   symbol: string;
   iconSource: ImageSourcePropType;
+  isMoneyAccount?: boolean;
 }
 
 const MONEY_ACCOUNT_CURRENCIES = new Set([
@@ -18,6 +19,12 @@ const MONEY_ACCOUNT_CURRENCIES = new Set([
   'musd',
   MONEY_ACCOUNT_DISPLAY_SYMBOL.toLowerCase(),
 ]);
+
+function asMoneyAccountHero(
+  display: ReturnType<typeof getCardTokenDisplay>,
+): CardTransactionHeroToken {
+  return { ...display, isMoneyAccount: true };
+}
 
 export function getCardTransactionHeroToken(
   transaction?: CardTransaction,
@@ -27,7 +34,10 @@ export function getCardTransactionHeroToken(
 
   if (!source) {
     if (fallbackToken) {
-      return getCardTokenDisplay(fallbackToken);
+      const display = getCardTokenDisplay(fallbackToken);
+      return fallbackToken.isMoneyAccountEntry
+        ? asMoneyAccountHero(display)
+        : display;
     }
     return {
       symbol: MUSD_TOKEN.symbol,
@@ -37,14 +47,19 @@ export function getCardTransactionHeroToken(
 
   const currency = source.currency?.toLowerCase() ?? '';
   if (MONEY_ACCOUNT_CURRENCIES.has(currency)) {
-    return getCardTokenDisplay({
-      displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
-      isMoneyAccountEntry: true,
-    });
+    return asMoneyAccountHero(
+      getCardTokenDisplay({
+        displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+        isMoneyAccountEntry: true,
+      }),
+    );
   }
 
   if (fallbackToken) {
-    return getCardTokenDisplay(fallbackToken);
+    const display = getCardTokenDisplay(fallbackToken);
+    return fallbackToken.isMoneyAccountEntry
+      ? asMoneyAccountHero(display)
+      : display;
   }
 
   return {

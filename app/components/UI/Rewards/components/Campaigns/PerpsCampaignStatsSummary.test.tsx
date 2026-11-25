@@ -8,6 +8,7 @@ import type {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { formatUsd } from '../../utils/formatUtils';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -27,7 +28,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: { pnlGap?: string; place?: string }) => {
+    if (params?.pnlGap) return `${key}:${params.pnlGap}`;
+    if (params?.place) return `${key}:${params.place}`;
+    return key;
+  },
 }));
 
 jest.mock('./CampaignOutcomeBanners', () => {
@@ -177,7 +182,7 @@ describe('PerpsCampaignStatsSummary', () => {
   });
 
   it("shows You're qualified card when campaign is active and user is qualified", () => {
-    const { getByTestId, queryByTestId } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <PerpsCampaignStatsSummary
         isCampaignComplete={false}
         leaderboardPosition={basePosition}
@@ -185,7 +190,72 @@ describe('PerpsCampaignStatsSummary', () => {
       />,
     );
     expect(getByTestId(TEST_IDS.QUALIFIED_CARD)).toBeDefined();
+    expect(
+      getByText('rewards.perps_trading_campaign.stats_qualified_title'),
+    ).toBeDefined();
     expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
+  });
+
+  it('replaces the qualified title with the PnL gap when rank is past the last prize rank', () => {
+    const cutoffPnl = 5_000;
+    const userPnl = 1_200;
+
+    const { getByText, queryByText } = render(
+      <PerpsCampaignStatsSummary
+        isCampaignComplete={false}
+        leaderboardPosition={{
+          ...basePosition,
+          rank: 42,
+          pnl: userPnl,
+          eligible: true,
+        }}
+        leaderboard={{
+          ...mockLeaderboard,
+          numberOfWinners: 30,
+          entries: [
+            {
+              rank: 30,
+              referralCode: 'CUTOFF',
+              pnl: cutoffPnl,
+              volume: 40_000,
+            },
+          ],
+        }}
+      />,
+    );
+
+    const amount = getByText(
+      `rewards.perps_trading_campaign.stats_pnl_gap_amount:${formatUsd(cutoffPnl - userPnl)}`,
+    );
+    expect(amount.props.color).toBe(TextColor.SuccessDefault);
+    expect(
+      getByText(
+        'rewards.perps_trading_campaign.stats_pnl_gap_to_prize_suffix:30th',
+        { exact: false },
+      ),
+    ).toBeDefined();
+    expect(
+      queryByText('rewards.perps_trading_campaign.stats_qualified_title'),
+    ).toBeNull();
+  });
+
+  it("keeps You're qualified when the last prize rank has no PnL to compare", () => {
+    const { getByText, queryByText } = render(
+      <PerpsCampaignStatsSummary
+        isCampaignComplete={false}
+        leaderboardPosition={{ ...basePosition, rank: 42, eligible: true }}
+        leaderboard={{ ...mockLeaderboard, numberOfWinners: 30, entries: [] }}
+      />,
+    );
+
+    expect(
+      getByText('rewards.perps_trading_campaign.stats_qualified_title'),
+    ).toBeDefined();
+    expect(
+      queryByText('rewards.perps_trading_campaign.stats_pnl_gap_amount', {
+        exact: false,
+      }),
+    ).toBeNull();
   });
 
   it('hides volume StatCell when campaign is complete (only rank and PnL remain)', () => {

@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
 import {
@@ -17,8 +18,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   getRecipientRowTestId,
   getSelectedRecipientTestId,
-  RedesignedSendViewSelectorsIDs,
-} from './RedesignedSendView.testIds';
+  SendViewSelectorsIDs,
+} from './SendView.testIds';
 import { Send } from './send';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import {
@@ -155,19 +156,13 @@ describeForPlatforms('Send (Non-EVM)', () => {
       { screen: Routes.SEND.AMOUNT, params: { asset: tronAsset } },
     );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-    fireEvent.press(
-      getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
-    );
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
     fireEvent.press(getByRole('button', { name: 'Continue' }));
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const recipientItem = await findByTestId(
@@ -214,9 +209,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
     );
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const evmContactRow = queryByTestId(
@@ -248,9 +241,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
     );
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const evmContactRow = queryByTestId(
@@ -273,9 +264,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
       { screen: Routes.SEND.AMOUNT, params: { asset: SOLANA_NATIVE_ASSET } },
     );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
     // Title and/or other copy may repeat "Send" — mirror E2E "text displayed" checks
     expect(screen.getAllByText('Send').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('SOL').length).toBeGreaterThanOrEqual(1);
@@ -300,9 +289,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -313,14 +300,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, VALID_SOLANA_RECIPIENT);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
@@ -347,23 +334,29 @@ describeForPlatforms('Send (Non-EVM)', () => {
       .withOverrides(NON_EVM_NETWORK_OVERRIDE)
       .build();
 
-    const { getByTestId, getByText, findByRole } = renderScreenWithRoutes(
-      Send as unknown as React.ComponentType,
-      { name: Routes.SEND.DEFAULT },
-      [],
-      { state },
-      {
-        screen: Routes.SEND.AMOUNT,
-        params: { asset: MINIMAL_BTC_BALANCE_ASSET },
-      },
-    );
+    const { getByTestId, getByText, getByRole, findByRole } =
+      renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        {
+          screen: Routes.SEND.AMOUNT,
+          params: { asset: MINIMAL_BTC_BALANCE_ASSET },
+        },
+      );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-    // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance
+    // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance.
+    // Non-EVM validation is deferred until the first Continue press.
     fireEvent.press(getByText('1'));
+
+    const continueButton = getByRole('button', { name: 'Continue' });
+    await waitFor(() => expect(continueButton).toBeEnabled(), {
+      timeout: 5000,
+    });
+    fireEvent.press(continueButton);
 
     expect(
       await findByRole(
@@ -393,9 +386,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -406,14 +397,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, VALID_BTC_RECIPIENT);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
@@ -450,9 +441,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -463,14 +452,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
@@ -491,6 +480,98 @@ describeForPlatforms('Send (Non-EVM)', () => {
     expect(await findByTestId('route-TransactionsView')).toBeOnTheScreen();
   }, 20000);
 
+  it('sends TRX from the Tron account when other accounts have zero TRX entries', async () => {
+    const { tronOverrides, recipientAddresses } = buildTronSendFixture();
+    const assetId = `${TRON_MAINNET_CHAIN_ID}/slip44:195` as const;
+    const state = initialStateWallet()
+      .withOverrides(tronOverrides)
+      .withOverrides(buildNonEvmSendAccountsOverrides())
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'entropy:wallet1': {
+                    groups: {
+                      'entropy:wallet1/0': {
+                        accounts: [
+                          NON_EVM_SOLANA_ACCOUNT_ID,
+                          NON_EVM_BTC_ACCOUNT_ID,
+                          'tron-acc-1',
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            AssetsController: {
+              assetsInfo: {
+                [assetId]: {
+                  type: 'native',
+                  name: 'TRON',
+                  symbol: 'TRX',
+                  decimals: 6,
+                },
+              },
+              // Reproduce persisted corrupted state: zero TRX entries on Solana
+              // and Bitcoin accounts precede the compatible Tron account.
+              assetsBalance: {
+                [NON_EVM_SOLANA_ACCOUNT_ID]: { [assetId]: { amount: '0' } },
+                [NON_EVM_BTC_ACCOUNT_ID]: { [assetId]: { amount: '0' } },
+                'tron-acc-1': { [assetId]: { amount: '10' } },
+              },
+            },
+          },
+        },
+      })
+      .build();
+    const { getByText, getByRole, findByTestId } = renderScreenWithRoutes(
+      SendFlowWithHardwareWalletProvider as unknown as React.ComponentType,
+      { name: Routes.SEND.DEFAULT },
+      [{ name: Routes.TRANSACTIONS_VIEW }],
+      { state },
+      {
+        screen: Routes.SEND.AMOUNT,
+        params: {
+          asset: {
+            address: assetId,
+            chainId: TRON_MAINNET_CHAIN_ID,
+            symbol: 'TRX',
+            decimals: 6,
+          },
+        },
+      },
+    );
+
+    fireEvent.press(getByText('5'));
+    const continueButton = getByRole('button', {
+      name: strings('send.continue'),
+    });
+    await waitFor(() => expect(continueButton).toBeEnabled());
+    fireEvent.press(continueButton);
+    const recipientInput = await findByTestId(
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+    );
+    fireEvent.changeText(recipientInput, recipientAddresses[0]);
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
+    await waitFor(() => expect(reviewButton).toBeEnabled());
+    fireEvent.press(reviewButton);
+
+    await waitFor(() => {
+      expect(snapHandleRequestSpy).toHaveBeenCalledWith(
+        'SnapController:handleRequest',
+        expect.objectContaining({
+          request: expect.objectContaining({
+            method: 'confirmSend',
+            params: expect.objectContaining({ fromAccountId: 'tron-acc-1' }),
+          }),
+        }),
+      );
+    });
+  }, 20000);
+
   it('STELLAR native: digit 5 submits and opens transfer confirmation route', async () => {
     const { stellarOverrides, recipientAddresses } = buildStellarSendFixture();
     const state = initialStateWallet().withOverrides(stellarOverrides).build();
@@ -507,9 +588,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -520,14 +599,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
