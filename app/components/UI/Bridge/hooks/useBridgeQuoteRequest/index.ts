@@ -252,7 +252,7 @@ export const useBridgeQuoteRequest = (
 
       cancelOwnedTrace();
 
-      debounced(requestOptions);
+      void debounced(requestOptions);
     }) as DebouncedFunc<typeof updateQuoteParams>;
 
     debouncedWithTrace.cancel = () => {
