@@ -27,6 +27,8 @@ const operations = [
   '_signUpdateLeverage',
   '_signUpdateMargin',
   '_signWithdraw',
+  '_getTransferTransaction',
+  '_signTransfer',
   '_createAuthToken',
 ];
 
@@ -299,6 +301,113 @@ describe('Lighter WASM page', () => {
       type: 'executeResult',
       executeId: 'cancel',
       result: { txInfo: 'signed' },
+    });
+  });
+
+  describe('transfers', () => {
+    const memo = Array.from({ length: 32 }, () => 171);
+    const transfer = [723071, 3, 0, 0, 1000000, 3000000, memo];
+    const signature = `0x${'cd'.repeat(65)}`;
+
+    it('dispatches the transfer plaintext and signing operations', async () => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_getTransferTransaction',
+        params: [64, 7, 2, ...transfer],
+        executeId: 'prepare',
+      });
+      await page.send({
+        type: 'execute',
+        function: '_signTransfer',
+        params: [64, signature, 7, 2, ...transfer],
+        executeId: 'sign',
+      });
+
+      expect(page.context._getTransferTransaction).toHaveBeenCalledWith(
+        64,
+        7,
+        2,
+        ...transfer,
+      );
+      expect(page.context._signTransfer).toHaveBeenCalledWith(
+        64,
+        signature,
+        7,
+        2,
+        ...transfer,
+      );
+      expect(page.messages.slice(-2)).toEqual([
+        {
+          type: 'executeResult',
+          executeId: 'prepare',
+          result: { txInfo: 'signed' },
+        },
+        {
+          type: 'executeResult',
+          executeId: 'sign',
+          result: { txInfo: 'signed' },
+        },
+      ]);
+    });
+
+    it.each([
+      ['a short memo', [723071, 3, 0, 0, 1, 1, memo.slice(1)]],
+      ['a memo byte above 255', [723071, 3, 0, 0, 1, 1, [...memo.slice(1), 256]]],
+      ['a string amount', [723071, 3, 0, 0, '1', 1, memo]],
+      ['a negative fee', [723071, 3, 0, 0, 1, -1, memo]],
+      ['a missing memo', [723071, 3, 0, 0, 1, 1]],
+    ])('rejects %s before invoking the signer', async (_name, params) => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_getTransferTransaction',
+        params: [64, 7, 2, ...params],
+        executeId: 'bad-transfer',
+      });
+
+      expect(page.context._getTransferTransaction).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'bad-transfer',
+        message: 'Invalid signer parameters',
+      });
+    });
+
+    it('rejects a transfer signature that is not a 65 byte hex string', async () => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signTransfer',
+        params: [64, '0xabcd', 7, 2, ...transfer],
+        executeId: 'bad-signature',
+      });
+
+      expect(page.context._signTransfer).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)?.type).toBe('executeError');
+    });
+
+    it('refuses readiness when the transfer signer export is missing', async () => {
+      const page = createPage(async (context) => {
+        installOperations(context);
+        delete context._signTransfer;
+        return await new Promise<void>(() => undefined);
+      });
+
+      await page.load();
+
+      expect(page.messages).toEqual([
+        {
+          type: 'initError',
+          message: 'Lighter signer runtime did not initialize its operations',
+        },
+      ]);
     });
   });
 

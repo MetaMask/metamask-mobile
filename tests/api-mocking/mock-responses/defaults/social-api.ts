@@ -3,6 +3,7 @@ import type {
   BlockedProfilesResponse,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
+import { FEED_CAIP2_CHAINS } from '../../../../app/components/UI/SocialFeed/data/feed-constants';
 import { MockEventsObject } from '../../../framework';
 
 /**
@@ -79,8 +80,25 @@ const NO_BLOCKED_PROFILES: BlockedProfilesResponse = {
 };
 const NO_BLOCKED_CONTENT: BlockedContentResponse = { items: [], cursor: null };
 
+/**
+ * Chains social-api serves (`GET /v1/supportedNetworks`, CAIP-2). Mirrors the
+ * built-in `FEED_CAIP2_CHAINS` fallback so the open-position gate behaves the
+ * same as when the request fails.
+ */
+const SUPPORTED_NETWORKS = {
+  fullSupport: [...FEED_CAIP2_CHAINS],
+  partialSupport: [],
+};
+
 export const SOCIAL_API_MOCKS: MockEventsObject = {
   GET: [
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v1\\/supportedNetworks(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: SUPPORTED_NETWORKS,
+    },
     {
       urlEndpoint: new RegExp(
         `^${SOCIAL_HOST}\\/api\\/v1\\/leaderboard(?:\\?.*)?$`,

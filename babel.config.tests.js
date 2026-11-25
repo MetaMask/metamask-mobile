@@ -40,6 +40,8 @@ const newOverrides = [
       // wipe, and later runs silently execute the wrong platform's tests no
       // matter what TEST_OS they export.
       'tests/component-view/platform.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.test.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',
