@@ -8,7 +8,7 @@ const tileKeys = ['t1', 't2', 't3', 't4'];
 
 export function PacksScreenSkeleton() {
   return (
-    <View className="gap-4" testID={collectiblesTestIds.packsSkeleton}>
+    <View className="gap-4 pt-2" testID={collectiblesTestIds.packsSkeleton}>
       <View className="flex-row gap-2 overflow-hidden px-4">
         {chipKeys.map((key) => (
           <Skeleton key={key} className="h-8 w-20 rounded-full" />
