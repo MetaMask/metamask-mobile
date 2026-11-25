@@ -189,26 +189,14 @@ describe('ChoosePassword — passwordless recovery reset', () => {
     mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
   });
 
-  it('shows the marketing opt-in checked by default for USA users', () => {
-    renderScreen();
-
-    const optIn = screen.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-    expect(optIn).toBeOnTheScreen();
-    expect(optIn.props.accessibilityState).toEqual(
-      expect.objectContaining({ checked: true }),
-    );
-  });
-
-  it('shows the marketing opt-in unchecked by default outside the USA', () => {
-    store = createStore('GB');
+  it('does not show a marketing opt-in checkbox', () => {
     renderScreen();
 
     expect(
-      screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID)
-        .props.accessibilityState,
-    ).toEqual(expect.objectContaining({ checked: false }));
+      screen.queryByText(
+        strings('choose_password.marketing_opt_in_description'),
+      ),
+    ).toBeNull();
   });
 
   it('resets the password without showing the warning sheet', async () => {
@@ -263,7 +251,7 @@ describe('ChoosePassword — passwordless recovery reset', () => {
     expect(Alert.alert).not.toHaveBeenCalled();
   });
 
-  it('applies the default marketing opt-in after a successful unlock', async () => {
+  it('auto-applies marketing opt-in true after a successful unlock (no checkbox)', async () => {
     runBeforeNavigate();
     renderScreen();
     await fillForm();
@@ -276,25 +264,6 @@ describe('ChoosePassword — passwordless recovery reset', () => {
       setDataCollectionForMarketing(true),
     );
     expect(store.getActions()).toContainEqual(passwordSet());
-  });
-
-  it('applies the opt-in value the user chose', async () => {
-    runBeforeNavigate();
-    renderScreen();
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
-      );
-    });
-    await fillForm();
-    await submit();
-
-    await waitFor(() =>
-      expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(false),
-    );
-    expect(store.getActions()).toContainEqual(
-      setDataCollectionForMarketing(false),
-    );
   });
 
   it.each([

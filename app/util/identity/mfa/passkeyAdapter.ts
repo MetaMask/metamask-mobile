@@ -5,7 +5,7 @@ import type { MfaFlowErrorCode, PasskeyAdapter } from './engine/types';
 
 /**
  * Whether the user dismissed the passkey sheet: iOS reports it with the code
- * `ERR_USER_CANCELLED`, Android with the message `UserCancelled`.
+ * `ERR_USER_CANCELLED`, Android with `UserCancelled` (and close variants).
  *
  * @param error - The error the passkey library rejected with.
  * @returns `true` for a dismissed sheet.
@@ -15,7 +15,16 @@ const isCancellation = (error: unknown): boolean => {
     code?: unknown;
     message?: unknown;
   };
-  return code === 'ERR_USER_CANCELLED' || message === 'UserCancelled';
+  const codeText = typeof code === 'string' ? code : '';
+  const messageText = typeof message === 'string' ? message : '';
+  return (
+    codeText === 'ERR_USER_CANCELLED' ||
+    codeText === 'ERR_CANCELLED' ||
+    messageText === 'UserCancelled' ||
+    /user cancel/i.test(messageText) ||
+    /cancelled/i.test(messageText) ||
+    /canceled/i.test(messageText)
+  );
 };
 
 /**

@@ -6,16 +6,16 @@ import Engine from '../../../../core/Engine';
 import { Authentication } from '../../../../core';
 import AppConstants from '../../../../core/AppConstants';
 import { createPasswordlessRecoveryService } from '../../../../core/MfaRecovery/engineBindings';
+import OAuthLoginService from '../../../../core/OAuthService/OAuthService';
 import { passwordSet as passwordSetAction } from '../../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../../actions/settings';
+import { setDataCollectionForMarketing } from '../../../../actions/security';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { PREVIOUS_SCREEN } from '../../../../constants/navigation';
 import Logger from '../../../../util/Logger';
 import { TraceName, endTrace } from '../../../../util/trace';
 import ChoosePasswordForm from '../ChoosePasswordForm';
-import ChoosePasswordMarketingOptIn from '../ChoosePasswordMarketingOptIn';
 import { usePasswordFields } from '../hooks/usePasswordFields';
-import { useMarketingOptIn } from '../hooks/useMarketingOptIn';
 import { usePasswordSetupTracking } from '../hooks/usePasswordSetupTracking';
 import type { OnboardingFoxLoaderRef } from '../../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
 import type { ChoosePasswordFlowProps } from './types';
@@ -26,18 +26,15 @@ type RecoveryStep = 'reset_global_password' | 'fetch_secrets' | 'unlock_wallet';
  * Forgot-password MFA recovery. The seedless controller already recovered the
  * vault keys and holds AAL2, so the new password is set directly, then the
  * wallet is unlocked from the secrets fetched with it.
+ *
+ * MFA-1012: no marketing checkbox — auto opt-in true. Plain new + confirm
+ * password only (no social-login marketing framing).
  */
 const RecoveryResetPassword = ({ params }: ChoosePasswordFlowProps) => {
   const provider = params?.provider;
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const foxRiveLoaderRef = useRef<OnboardingFoxLoaderRef>(null);
-  const {
-    marketingOptInChecked,
-    setSelection,
-    isAwaitingGeolocation,
-    applyMarketingOptIn,
-  } = useMarketingOptIn();
   const fields = usePasswordFields({ provider });
   const { password, validatePasswordSubmission } = fields;
 
@@ -46,6 +43,13 @@ const RecoveryResetPassword = ({ params }: ChoosePasswordFlowProps) => {
     provider,
     previousScreen: params?.[PREVIOUS_SCREEN],
   });
+
+  const applyMarketingOptInTrue = useCallback(() => {
+    dispatch(setDataCollectionForMarketing(true));
+    OAuthLoginService.updateMarketingOptInStatus(true).catch((err) => {
+      Logger.error(err);
+    });
+  }, [dispatch]);
 
   const resetPassword = useCallback(async () => {
     setLoading(true);
@@ -68,7 +72,7 @@ const RecoveryResetPassword = ({ params }: ChoosePasswordFlowProps) => {
           dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
           endTrace({ name: TraceName.OnboardingExistingSocialLogin });
           endTrace({ name: TraceName.OnboardingJourneyOverall });
-          applyMarketingOptIn(marketingOptInChecked);
+          applyMarketingOptInTrue();
         },
       });
     } catch (err) {
@@ -85,22 +89,17 @@ const RecoveryResetPassword = ({ params }: ChoosePasswordFlowProps) => {
       foxRiveLoaderRef.current?.stop();
       setLoading(false);
     }
-  }, [password, dispatch, applyMarketingOptIn, marketingOptInChecked]);
+  }, [password, dispatch, applyMarketingOptInTrue]);
 
   const onPressCreate = useCallback(async () => {
     const validation = validatePasswordSubmission({
       isLoading: loading,
-      isAwaitingGeolocation,
+      isAwaitingGeolocation: false,
     });
     if (!validation.valid) return;
 
     await resetPassword();
-  }, [
-    validatePasswordSubmission,
-    loading,
-    isAwaitingGeolocation,
-    resetPassword,
-  ]);
+  }, [validatePasswordSubmission, loading, resetPassword]);
 
   return (
     <ChoosePasswordForm
@@ -109,15 +108,10 @@ const RecoveryResetPassword = ({ params }: ChoosePasswordFlowProps) => {
       )}
       fields={fields}
       onSubmit={onPressCreate}
-      isSubmitLoading={isAwaitingGeolocation}
+      isSubmitLoading={false}
       isLoading={loading}
       foxLoaderRef={foxRiveLoaderRef}
-    >
-      <ChoosePasswordMarketingOptIn
-        isSelected={marketingOptInChecked}
-        onPress={setSelection}
-      />
-    </ChoosePasswordForm>
+    />
   );
 };
 

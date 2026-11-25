@@ -1,4 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Platform,
   KeyboardAvoidingView,
@@ -10,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useNetInfo } from '@react-native-community/netinfo';
 import {
   Text,
   TextColor,
@@ -32,6 +39,7 @@ import {
   Checkbox,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useSelector, useDispatch } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
@@ -52,6 +60,7 @@ import {
 import NotificationManager from '../../../core/NotificationManager';
 import { passcodeType } from '../../../util/authentication';
 import { Authentication } from '../../../core';
+import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { useTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
@@ -61,7 +70,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Routes from '../../../constants/navigation/Routes';
-import NavigationService from '../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
@@ -69,7 +77,9 @@ import LottieView, { AnimationObject } from 'lottie-react-native';
 import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
+  selectSeedlessIsLocalPassword,
 } from '../../../selectors/seedlessOnboardingController';
+import { selectMfaUiKitEnabled } from '../../../selectors/featureFlagController/mfaUiKit';
 import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
@@ -78,17 +88,39 @@ import SearchingFox from '../../../animations/Searching_Fox.json';
 import {
   PASSWORD_GUIDE_URL,
   RESET_PASSWORD_GUIDE_URL,
-  RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { hasTestOverrides } from '../../../util/test/utils';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+import { setDataCollectionForMarketing } from '../../../actions/security';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { useMfa } from '../../../util/identity/mfa/useMfa';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../util/identity/mfa/engine/types';
+import {
+  WalletRecoveryVerify,
+  type WalletRecoveryMethod,
+} from '../shared/WalletRecoveryVerify';
+import {
+  getActiveTwoStepMethods,
+  getChangePasswordGateKind,
+  type ChangePasswordGateKind,
+} from './changePasswordGate';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const CHANGE_PASSWORD_MFA_REASON: MfaReason = {
+  operation: 'settings.change_password',
+  presentation: 'modal',
+};
+
 enum ViewState {
   ResetForm = 'reset_form',
   ConfirmCurrent = 'confirm_current',
+  /** MFA-1012: reuse recovery "Verify it's you" when Face ID fails / recovery. */
+  VerifyMfa = 'verify_mfa',
 }
 
 const getCommonButtonProps = () => ({
@@ -122,6 +154,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const dispatch = useDispatch();
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+  const netInfo = useNetInfo();
+  const { credentials, verifyOrEnroll } = useMfa();
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -130,6 +164,28 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     selectSeedlessOnboardingLoginFlow,
   );
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
+  const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
+  const isLocalPassword = useSelector(selectSeedlessIsLocalPassword);
+
+  const activeTwoStepMethods = useMemo(
+    () => getActiveTwoStepMethods(credentials),
+    [credentials],
+  );
+  const gateKind: ChangePasswordGateKind = useMemo(
+    () =>
+      getChangePasswordGateKind({
+        isSeedlessLoginFlow: isSeedlessOnboardingLoginFlow,
+        isMfaUiKitEnabled,
+        isLocalPassword,
+        activeTwoStepMethods,
+      }),
+    [
+      isSeedlessOnboardingLoginFlow,
+      isMfaUiKitEnabled,
+      isLocalPassword,
+      activeTwoStepMethods,
+    ],
+  );
 
   const [isSelected, setIsSelected] = useState(false);
   const [password, setPassword] = useState('');
@@ -138,95 +194,278 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Start on a loader so gated cohorts never flash ConfirmCurrent ("Change
+  // password") before Face ID / passkey / Verify it's you is decided.
   const [view, setView] = useState(ViewState.ConfirmCurrent);
   const [originalPassword, setOriginalPassword] = useState<string | null>(null);
-  const [ready, setReady] = useState(true);
+  const [ready, setReady] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState<number[]>([0, 1]);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
     string | undefined
   >(undefined);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  /** ConfirmCurrent opened from Verify — back returns to the picker. */
+  const [confirmFromVerify, setConfirmFromVerify] = useState(false);
 
   const confirmPasswordInput = useRef<TextInput | null>(null);
   const passwordRef = useRef('');
+  const gateKindRef = useRef(gateKind);
+  gateKindRef.current = gateKind;
+  const activeTwoStepMethodsRef = useRef(activeTwoStepMethods);
+  activeTwoStepMethodsRef.current = activeTwoStepMethods;
+  const seedlessLoginRef = useRef(isSeedlessOnboardingLoginFlow);
+  seedlessLoginRef.current = isSeedlessOnboardingLoginFlow;
+  const mfaUiKitRef = useRef(isMfaUiKitEnabled);
+  mfaUiKitRef.current = isMfaUiKitEnabled;
+  const isLocalPasswordRef = useRef(isLocalPassword);
+  isLocalPasswordRef.current = isLocalPassword;
 
-  const reauthenticate = useCallback(async (pwd?: string) => {
-    // Biometric (no pwd) uses the full-screen loader. Password confirm keeps
-    // the form mounted so E2E can observe the transition to ResetForm.
-    if (!pwd) {
-      setReady(false);
-    }
-    let reauthError: Error | undefined;
+  /**
+   * Full-page Verify it's you. The only ConfirmCurrent entry for gated
+   * cohorts is an explicit Password tap on this screen.
+   */
+  const goToVerifyItsYou = useCallback(() => {
+    setWarningIncorrectPassword(undefined);
+    setVerifyError(null);
+    setConfirmFromVerify(false);
+    setView(ViewState.VerifyMfa);
+  }, []);
+
+  const isMfaCancelCode = (code: string | undefined): boolean =>
+    code === 'flow_cancelled' || code === 'passkey_ceremony_cancelled';
+
+  /**
+   * After MFA succeeds, read the keychain password for vault change.
+   * May prompt Face ID again; that is fine after 2SV (MFA-1012).
+   */
+  const proceedAfterVerifiedMfa = useCallback(async () => {
+    setReady(false);
     try {
       const { password: verifiedPassword } =
-        await Authentication.reauthenticate(pwd);
+        await Authentication.reauthenticate();
       passwordRef.current = '';
       setPassword('');
       setOriginalPassword(verifiedPassword);
+      setConfirmFromVerify(false);
       setView(ViewState.ResetForm);
-    } catch (e) {
-      reauthError = e as Error;
-    }
-    if (reauthError) {
-      if (
-        !reauthError.message.includes(
-          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
-        )
-      ) {
-        setWarningIncorrectPassword(
-          strings('reveal_credential.warning_incorrect_password'),
-        );
+    } catch (error) {
+      Logger.error(error as Error, {
+        context: 'ResetPassword.proceedAfterVerifiedMfa',
+      });
+      // Never dump gated users on Change password / current-password after a
+      // keychain biometric cancel — return to Verify it's you.
+      if (gateKindRef.current !== 'legacy') {
+        goToVerifyItsYou();
+      } else {
+        setWarningIncorrectPassword(undefined);
+        setConfirmFromVerify(true);
+        setView(ViewState.ConfirmCurrent);
       }
-      setView(ViewState.ConfirmCurrent);
+    } finally {
+      setReady(true);
     }
-    setReady(true);
-  }, []);
+  }, [goToVerifyItsYou]);
+
+  const reauthenticate = useCallback(
+    async (pwd?: string) => {
+      // Biometric (no pwd) uses the full-screen loader. Password confirm keeps
+      // the form mounted so E2E can observe the transition to ResetForm.
+      if (!pwd) {
+        setReady(false);
+      }
+      let reauthError: Error | undefined;
+      try {
+        const { password: verifiedPassword } =
+          await Authentication.reauthenticate(pwd);
+        passwordRef.current = '';
+        setPassword('');
+        setOriginalPassword(verifiedPassword);
+        setConfirmFromVerify(false);
+        setView(ViewState.ResetForm);
+      } catch (e) {
+        reauthError = e as Error;
+      }
+      if (reauthError) {
+        const isBiometricPath = !pwd;
+        const isPasswordNotSet = reauthError.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        );
+
+        // Incorrect-password copy is only for a typed password that failed.
+        if (!isBiometricPath && !isPasswordNotSet) {
+          setWarningIncorrectPassword(
+            strings('reveal_credential.warning_incorrect_password'),
+          );
+        } else {
+          setWarningIncorrectPassword(undefined);
+        }
+
+        // MFA-1012: any Face ID / biometrics cancel or miss on a gated device
+        // (including PASSWORD_NOT_SET / empty keychain) → Verify it's you.
+        // ConfirmCurrent is only for legacy or typed-password failures.
+        if (isBiometricPath && gateKindRef.current !== 'legacy') {
+          goToVerifyItsYou();
+        } else {
+          setView(ViewState.ConfirmCurrent);
+        }
+      }
+      setReady(true);
+    },
+    [goToVerifyItsYou],
+  );
+
+  /**
+   * Prompt the highest enrolled MFA factor (passkey). Cancel/fail always opens
+   * Verify it's you — never the Change password / current-password screen.
+   */
+  const offerPasskeyThenVerify = useCallback(async () => {
+    setReady(false);
+    setVerifyError(null);
+    try {
+      if (!activeTwoStepMethodsRef.current.includes('passkey')) {
+        goToVerifyItsYou();
+        return;
+      }
+      try {
+        await verifyOrEnroll({
+          methods: ['passkey'],
+          verifyWith: 'passkey',
+          verifyOnly: true,
+          reason: CHANGE_PASSWORD_MFA_REASON,
+        });
+        await proceedAfterVerifiedMfa();
+      } catch (passkeyError) {
+        Logger.log('ResetPassword: passkey → Verify picker', {
+          code: getMfaErrorCode(passkeyError),
+        });
+        goToVerifyItsYou();
+      }
+    } finally {
+      setReady(true);
+    }
+  }, [verifyOrEnroll, proceedAfterVerifiedMfa, goToVerifyItsYou]);
 
   useEffect(() => {
     const initAuth = async () => {
-      let authData;
-      let previouslyDisabled: string | null;
-      let passcodePreviouslyDisabled: string | null;
-
+      // reauthenticate / offerPasskeyThenVerify manage `ready` themselves.
+      let managedReady = false;
       try {
-        authData = await Authentication.getType();
-        previouslyDisabled = await StorageWrapper.getItem(
-          BIOMETRY_CHOICE_DISABLED,
-        );
-        passcodePreviouslyDisabled =
-          await StorageWrapper.getItem(PASSCODE_DISABLED);
-      } catch (e) {
-        Logger.error(e as Error);
-        setView(ViewState.ConfirmCurrent);
-        return;
-      }
-
-      if (
-        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
-      ) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
-        setView(ViewState.ConfirmCurrent);
-      } else if (authData.availableBiometryType) {
-        setBiometryType(authData.availableBiometryType);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        // E2E builds: skip Face ID auto-reauth so change-password always uses
-        // the current-password step.
-        // Production: await biometric reauth; on success reauthenticate sets
-        // ResetForm — do not force ConfirmCurrent afterward.
-        if (hasTestOverrides) {
-          setView(ViewState.ConfirmCurrent);
-        } else {
-          await reauthenticate();
+        // Prefer fresh MFA credentials so we do not mis-gate as legacy and
+        // dump cancel onto Change password / current-password.
+        try {
+          const fresh =
+            await Engine.context.AuthenticationController.refreshEnrolledCredentials();
+          const methods = getActiveTwoStepMethods(fresh);
+          activeTwoStepMethodsRef.current = methods;
+          gateKindRef.current = getChangePasswordGateKind({
+            isSeedlessLoginFlow: seedlessLoginRef.current,
+            isMfaUiKitEnabled: mfaUiKitRef.current,
+            isLocalPassword: isLocalPasswordRef.current,
+            activeTwoStepMethods: methods,
+          });
+        } catch (refreshError) {
+          Logger.log('ResetPassword: refresh enrolled credentials failed', {
+            message:
+              refreshError instanceof Error
+                ? refreshError.message
+                : String(refreshError),
+          });
         }
-      } else {
-        setView(ViewState.ConfirmCurrent);
+
+        let authData;
+        let previouslyDisabled: string | null;
+        let passcodePreviouslyDisabled: string | null;
+
+        try {
+          authData = await Authentication.getType();
+          previouslyDisabled = await StorageWrapper.getItem(
+            BIOMETRY_CHOICE_DISABLED,
+          );
+          passcodePreviouslyDisabled =
+            await StorageWrapper.getItem(PASSCODE_DISABLED);
+        } catch (e) {
+          Logger.error(e as Error);
+          if (gateKindRef.current === 'legacy') {
+            setView(ViewState.ConfirmCurrent);
+          } else {
+            goToVerifyItsYou();
+          }
+          return;
+        }
+
+        if (
+          authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+        ) {
+          setBiometryType(passcodeType(authData.currentAuthType));
+          setBiometryChoice(
+            !(
+              passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+            ),
+          );
+        } else if (authData.availableBiometryType) {
+          setBiometryType(authData.availableBiometryType);
+          setBiometryChoice(
+            !(previouslyDisabled && previouslyDisabled === TRUE),
+          );
+        }
+
+        const kind = gateKindRef.current;
+
+        // Recovery device: never treat Face ID alone as enough (MFA-1012).
+        // Passkey first when enrolled; cancel → Verify it's you.
+        if (kind === 'recovery_device') {
+          if (hasTestOverrides) {
+            goToVerifyItsYou();
+          } else {
+            managedReady = true;
+            await offerPasskeyThenVerify();
+          }
+          return;
+        }
+
+        if (kind === 'password_device') {
+          // Password device: Face ID alone can unlock. Any cancel/fail → Verify.
+          if (hasTestOverrides) {
+            goToVerifyItsYou();
+          } else if (authData.availableBiometryType) {
+            managedReady = true;
+            await reauthenticate();
+          } else {
+            // No biometrics: if passkey enrolled try it, else Verify picker.
+            managedReady = true;
+            await offerPasskeyThenVerify();
+          }
+          return;
+        }
+
+        // Legacy: today's current-password flow (optional Face ID unlock).
+        if (
+          authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+        ) {
+          setView(ViewState.ConfirmCurrent);
+        } else if (authData.availableBiometryType) {
+          if (hasTestOverrides) {
+            setView(ViewState.ConfirmCurrent);
+          } else {
+            managedReady = true;
+            await reauthenticate();
+          }
+        } else {
+          setView(ViewState.ConfirmCurrent);
+        }
+      } finally {
+        if (!managedReady) {
+          setReady(true);
+        }
       }
     };
 
     initAuth();
+    // gateKind / offerPasskeyThenVerify are read via refs or stable enough for
+    // a one-shot mount init; re-running would re-prompt Face ID / passkey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reauthenticate]);
 
   const toggleSelection = useCallback(() => {
@@ -329,6 +568,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
       dispatch(passwordSet());
 
+      // MFA-1012: no marketing checkbox on this surface — auto opt-in.
+      if (isSeedlessOnboardingLoginFlow) {
+        dispatch(setDataCollectionForMarketing(true));
+        OAuthLoginService.updateMarketingOptInStatus(true).catch((err) => {
+          Logger.error(err as Error);
+        });
+      }
+
       const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PASSWORD_CHANGED,
       ).addProperties({
@@ -340,12 +587,22 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       setLoading(false);
       navigation.navigate(Routes.SETTINGS.SECURITY_SETTINGS);
       InteractionManager.runAfterInteractions(() => {
-        NotificationManager.showSimpleNotification({
-          status: 'success',
-          duration: 5000,
-          title: strings('reset_password.password_updated'),
-          description: strings('reset_password.successfully_changed'),
-        });
+        // MFA-1012 / Nakul video: seedless toast is a short "Password changed".
+        if (isSeedlessOnboardingLoginFlow) {
+          NotificationManager.showSimpleNotification({
+            status: 'success',
+            duration: 5000,
+            title: strings('reset_password.password_changed'),
+            description: '',
+          });
+        } else {
+          NotificationManager.showSimpleNotification({
+            status: 'success',
+            duration: 5000,
+            title: strings('reset_password.password_updated'),
+            description: strings('reset_password.successfully_changed'),
+          });
+        }
       });
     } catch (err) {
       const castError = err as Error;
@@ -356,7 +613,29 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         );
         setLoading(false);
       } else if (castError.message.includes('SeedlessOnboardingController')) {
-        Logger.error(castError);
+        const cause =
+          'cause' in castError
+            ? (castError as Error & { cause?: unknown }).cause
+            : undefined;
+        const causeMessage =
+          cause instanceof Error
+            ? cause.message
+            : cause != null
+              ? String(cause)
+              : undefined;
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn('ResetPassword: seedless change password failed', {
+            message: castError.message,
+            causeMessage,
+            hasOriginalPassword: Boolean(originalPassword),
+          });
+        }
+        Logger.error(castError, {
+          message: 'ResetPassword: seedless change password failed',
+          causeMessage,
+          hasOriginalPassword: Boolean(originalPassword),
+        });
         if (
           castError.message ===
           SeedlessOnboardingControllerErrorMessage.OutdatedPassword
@@ -367,6 +646,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         }
         setLoading(false);
       } else {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn('ResetPassword: change password failed (non-seedless)', {
+            message: castError.message,
+          });
+        }
+        Logger.error(castError, {
+          message: 'ResetPassword: change password failed (non-seedless)',
+        });
         setLoading(false);
       }
     }
@@ -374,12 +662,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     loading,
     password,
     confirmPassword,
+    originalPassword,
     biometryChoice,
     rememberMe,
     biometryType,
     recreateVault,
     handleSeedlessPasswordOutdated,
     handleSeedlessChangePasswordError,
+    isSeedlessOnboardingLoginFlow,
     dispatch,
     navigation,
   ]);
@@ -412,16 +702,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     });
   }, [navigation, isSeedlessOnboardingLoginFlow]);
 
-  const learnMoreSocialLogin = useCallback(() => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: RESET_PASSWORD_SOCIAL_LOGIN_URL,
-        title: 'support.metamask.io',
-      },
-    });
-  }, [navigation]);
-
   const reauthenticateWithPassword = useCallback(() => {
     const pwd = passwordRef.current;
     if (!pwd) {
@@ -429,6 +709,91 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     }
     reauthenticate(pwd);
   }, [reauthenticate]);
+
+  const handleVerifyBack = useCallback(() => {
+    if (verifyBusy) {
+      return;
+    }
+    navigation.goBack();
+  }, [navigation, verifyBusy]);
+
+  const handleConfirmBack = useCallback(() => {
+    if (confirmFromVerify) {
+      setWarningIncorrectPassword(undefined);
+      setPassword('');
+      passwordRef.current = '';
+      setView(ViewState.VerifyMfa);
+      return;
+    }
+    navigation.goBack();
+  }, [confirmFromVerify, navigation]);
+
+  const handleHeaderBack = useCallback(() => {
+    if (loading || verifyBusy) {
+      return;
+    }
+    if (view === ViewState.VerifyMfa) {
+      handleVerifyBack();
+      return;
+    }
+    if (view === ViewState.ConfirmCurrent) {
+      handleConfirmBack();
+      return;
+    }
+    navigation.goBack();
+  }, [
+    loading,
+    verifyBusy,
+    view,
+    handleVerifyBack,
+    handleConfirmBack,
+    navigation,
+  ]);
+
+  const handleVerifyMethodSelect = useCallback(
+    async (method: WalletRecoveryMethod) => {
+      if (method === 'email' && authConnection !== AuthConnection.Telegram) {
+        return;
+      }
+
+      if (method === 'password') {
+        setVerifyError(null);
+        setWarningIncorrectPassword(undefined);
+        setConfirmFromVerify(true);
+        setView(ViewState.ConfirmCurrent);
+        return;
+      }
+
+      const mfaMethod: MfaMethod = method === 'email' ? 'email_otp' : method;
+      setVerifyBusy(true);
+      setVerifyError(null);
+      try {
+        await verifyOrEnroll({
+          methods: [mfaMethod],
+          verifyWith: mfaMethod,
+          verifyOnly: true,
+          reason: CHANGE_PASSWORD_MFA_REASON,
+        });
+        await proceedAfterVerifiedMfa();
+      } catch (error) {
+        const code = getMfaErrorCode(error);
+        Logger.log('ResetPassword: Verify method failed', {
+          method: mfaMethod,
+          code,
+        });
+        // Stay on Verify it's you — never navigate to Change password.
+        if (isMfaCancelCode(code)) {
+          goToVerifyItsYou();
+          return;
+        }
+        goToVerifyItsYou();
+        setVerifyError(strings('wallet_recovery_mfa.method_failed'));
+      } finally {
+        setVerifyBusy(false);
+      }
+    },
+    [authConnection, verifyOrEnroll, proceedAfterVerifiedMfa, goToVerifyItsYou],
+  );
 
   const isError = useCallback(
     () => shouldShowPasswordMismatchError(password, confirmPassword),
@@ -442,39 +807,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       password.length < MIN_PASSWORD_LENGTH,
     [isPasswordFieldFocused, password],
   );
-
-  const handleConfirmAction = useCallback(() => {
-    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('reset_password.warning_password_change_title'),
-        description: isSeedlessOnboardingLoginFlow ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings('reset_password.warning_password_change_description')}{' '}
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.PrimaryDefault}
-              onPress={learnMoreSocialLogin}
-            >
-              {strings('reset_password.learn_more')}
-            </Text>
-          </Text>
-        ) : (
-          `${strings('reset_password.warning_password_change_description')}.`
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        secondaryButtonLabel: strings(
-          'reset_password.warning_password_cancel_button',
-        ),
-        primaryButtonLabel: strings(
-          'reset_password.warning_password_change_button',
-        ),
-        onPrimaryButtonPress: onPressCreate,
-        closeOnPrimaryButtonPress: true,
-      },
-    });
-  }, [isSeedlessOnboardingLoginFlow, learnMoreSocialLogin, onPressCreate]);
 
   const renderPasswordHelperText = () => {
     if (password && password.length >= MIN_PASSWORD_LENGTH) return null;
@@ -620,12 +952,16 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
 
   const renderResetPassword = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
+    // Nakul password-cohort video + CW: seedless is plain new/confirm + Face ID
+    // toggle + Save — no "I understand" / marketing checkbox.
+    const showUnderstandCheckbox = !isSeedlessOnboardingLoginFlow;
     const canSubmit =
-      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
-    const isSrp =
-      authConnection !== AuthConnection.Apple &&
-      authConnection !== AuthConnection.Google &&
-      authConnection !== AuthConnection.Telegram;
+      passwordsMatch &&
+      password.length >= MIN_PASSWORD_LENGTH &&
+      (showUnderstandCheckbox ? isSelected : true);
+    const description = isSeedlessOnboardingLoginFlow
+      ? strings('choose_password.description_social_login')
+      : strings('choose_password.description');
 
     return (
       <Box
@@ -651,9 +987,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                 >
-                  {isSrp
-                    ? strings('choose_password.description')
-                    : strings('choose_password.description_social_login')}
+                  {description}
                 </Text>
 
                 {/* New password field */}
@@ -752,44 +1086,45 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                   {renderErrorText()}
                 </Box>
 
-                {/* I understand checkbox */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Start}
-                  justifyContent={BoxJustifyContent.Start}
-                  marginBottom={4}
-                  marginTop={2}
-                  gap={2}
-                >
-                  <Checkbox
-                    onChange={toggleSelection}
-                    isSelected={isSelected}
-                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                    accessibilityLabel={
-                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                    }
-                    style={tw.style('flex items-start')}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
-                    onPress={toggleSelection}
-                    twClassName="flex-row items-center w-[90%]"
+                {showUnderstandCheckbox ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Start}
+                    justifyContent={BoxJustifyContent.Start}
+                    marginBottom={4}
+                    marginTop={2}
+                    gap={2}
                   >
-                    {isSrp
-                      ? strings('reset_password.i_understand')
-                      : strings('reset_password.checkbox_forgot_password')}
+                    <Checkbox
+                      onChange={toggleSelection}
+                      isSelected={isSelected}
+                      testID={
+                        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
+                      }
+                      accessibilityLabel={
+                        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
+                      }
+                      style={tw.style('flex items-start')}
+                    />
                     <Text
-                      onPress={learnMore}
-                      testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
                       variant={TextVariant.BodyMd}
-                      color={TextColor.PrimaryDefault}
+                      color={TextColor.TextDefault}
+                      testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                      onPress={toggleSelection}
+                      twClassName="flex-row items-center w-[90%]"
                     >
-                      {' ' + strings('reset_password.learn_more')}
+                      {strings('reset_password.i_understand')}
+                      <Text
+                        onPress={learnMore}
+                        testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
+                      >
+                        {' ' + strings('reset_password.learn_more')}
+                      </Text>
                     </Text>
-                  </Text>
-                </Box>
+                  </Box>
+                ) : null}
 
                 <Box
                   flexDirection={BoxFlexDirection.Column}
@@ -800,12 +1135,10 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                   {renderSwitch()}
                   <Button
                     {...getCommonButtonProps()}
+                    // Seedless (Nakul video): Save → vault change / Face ID —
+                    // no "Are you sure?" warning sheet.
                     onPress={() => {
-                      if (isSeedlessOnboardingLoginFlow) {
-                        handleConfirmAction();
-                      } else {
-                        onPressCreate();
-                      }
+                      void onPressCreate();
                     }}
                     testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                     isDisabled={!canSubmit}
@@ -828,6 +1161,28 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
   );
 
+  const renderVerifyMfa = () => (
+    <WalletRecoveryVerify
+      showPasskey={activeTwoStepMethods.includes('passkey')}
+      showPassword
+      showEmail={
+        authConnection === AuthConnection.Telegram &&
+        activeTwoStepMethods.includes('email_otp')
+      }
+      showTotp={activeTwoStepMethods.includes('totp')}
+      isBusy={verifyBusy}
+      isOffline={
+        netInfo.isConnected === false || netInfo.isInternetReachable === false
+      }
+      error={verifyError}
+      description={strings('reset_password.verify_description')}
+      onBack={handleVerifyBack}
+      onSelectMethod={(method) => {
+        void handleVerifyMethodSelect(method);
+      }}
+    />
+  );
+
   if (!ready)
     return (
       <>
@@ -835,6 +1190,16 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         {captureDeterrent}
       </>
     );
+
+  // Verify owns its own header (HeaderStandard) — match WalletRecoveryFlow.
+  if (view === ViewState.VerifyMfa) {
+    return (
+      <>
+        {renderVerifyMfa()}
+        {captureDeterrent}
+      </>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -846,7 +1211,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         isFloating={false}
         testID="header"
         title={strings('password_reset.change_password')}
-        onBack={() => navigation.goBack()}
+        onBack={handleHeaderBack}
         backButtonProps={{ isDisabled: loading }}
         includesTopInset
       />

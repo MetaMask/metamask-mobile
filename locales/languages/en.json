@@ -672,6 +672,8 @@
     "changing_password": "Changing password...",
     "changing_password_subtitle": "This shouldn’t take long",
     "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "verify_description": "Choose a way to confirm it's you before you change your password.",
+    "password_changed": "Password changed",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Try again.",
     "seedless_change_password_error_modal_confirm": "Try again"
