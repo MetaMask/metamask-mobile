@@ -12,14 +12,17 @@ import { useTokenWatchlistQuery } from './useTokenWatchlistQuery';
 
 export { DEFAULT_WATCHLIST_BASE_ASSET_IDS } from '../constants/defaultWatchlistTokens';
 
+interface UseSuggestedWatchlistItemsQueryOptions {
+  enabled?: boolean;
+}
+
 /**
  * Hydrates curated default watchlist tokens for the empty-state CTA.
  * Geo-aware: eligible users receive SpaceX as a 6th default.
  */
-export const useSuggestedWatchlistItemsQuery = (): UseQueryResult<
-  WatchlistTokenWithBalance[],
-  Error
-> => {
+export const useSuggestedWatchlistItemsQuery = (
+  options: UseSuggestedWatchlistItemsQueryOptions = {},
+): UseQueryResult<WatchlistTokenWithBalance[], Error> => {
   const geolocation = useSelector(getDetectedGeolocation);
   const includeSpaceX = isSpaceXDefaultEligible(geolocation);
 
@@ -31,5 +34,6 @@ export const useSuggestedWatchlistItemsQuery = (): UseQueryResult<
   return useTokenWatchlistQuery({
     suggestedTokens,
     suggestedIncludeSpaceX: includeSpaceX,
+    enabled: options.enabled,
   });
 };

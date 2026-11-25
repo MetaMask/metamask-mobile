@@ -498,6 +498,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
+        submitIntent: jest.fn().mockResolvedValue({ success: true }),
+        state: { txHistory: {} },
+      },
+      MoneyAccountController: {
+        getMoneyAccount: jest.fn().mockReturnValue(undefined),
       },
       PredictMarketDataService: {},
       PredictLiveDataService: {},

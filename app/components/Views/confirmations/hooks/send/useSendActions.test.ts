@@ -129,7 +129,7 @@ describe('useSendActions', () => {
     );
     jest.spyOn(SendUtils, 'submitEvmTransaction').mockImplementation(jest.fn());
     await result.current.handleSubmitPress();
-    expect(mockNavigate).toHaveBeenCalledWith('RedesignedConfirmations', {
+    expect(mockNavigate).toHaveBeenCalledWith('Confirmations', {
       params: { maxValueMode: undefined },
       loader: 'transfer',
     });

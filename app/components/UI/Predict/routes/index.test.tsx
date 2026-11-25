@@ -287,12 +287,12 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('predict-sell-preview')).toBeOnTheScreen();
   });
 
-  it('navigates to redesigned confirmation screen', async () => {
+  it('navigates to confirmation screen', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
     await act(async () => {
       navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       );
     });
 
@@ -399,11 +399,11 @@ describe('PredictModalStack', () => {
     expect(screen.getByTestId('predict-activity-detail')).toBeOnTheScreen();
   });
 
-  it('navigates to redesigned confirmation in modal stack', async () => {
+  it('navigates to confirmation in modal stack', async () => {
     renderModalStackInApp();
 
     await openModalStack({
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     });
 
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();

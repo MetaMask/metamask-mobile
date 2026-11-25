@@ -71,7 +71,7 @@ function EarnActionSection<Key extends string>({
                 iconName={row.iconName}
                 size={AvatarIconSize.Md}
                 severity={AvatarIconSeverity.Neutral}
-                iconProps={{ color: IconColor.IconDefault }}
+                iconProps={{ color: IconColor.IconAlternative }}
               />
               <Box twClassName="flex-1">
                 <Text variant={TextVariant.BodyMd}>{row.title}</Text>

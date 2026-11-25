@@ -1,63 +1,16 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+
+import { collectIterationFailures } from './cv-flakiness-detection.mjs';
+import { cleanupTempDirs, makeCvFile, newTempDir, readStubCalls, writeJestStub } from './test-helpers';
 
 const REPOSITORY_ROOT = process.cwd();
 const SCRIPT_PATH = path.join(
   REPOSITORY_ROOT,
   '.github/scripts/qa-automation/cv-flakiness/cv-flakiness-detection.mjs',
 );
-
-/** Jest stub: writes a minimal Jest JSON report and logs every invocation. */
-function writeJestStub(stubDir: string, options: { failSubstring?: string; sleepMs?: number }): string {
-  const stubPath = path.join(stubDir, 'jest-stub.cjs');
-  writeFileSync(
-    stubPath,
-    `
-const fs = require('node:fs');
-const args = process.argv.slice(2);
-const option = (name) => { const i = args.indexOf(name); return i !== -1 ? args[i + 1] : ''; };
-const outputFile = option('--outputFile');
-const files = args.filter((arg, i) => /\.view\.test\.tsx?$/.test(arg) && !['--outputFile', '--seed'].includes(args[i - 1]));
-fs.appendFileSync(process.env.STUB_CALLS_PATH, JSON.stringify({ seed: option('--seed'), files }) + '\\n');
-const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
-const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
-const forcedExit = Number(process.env.STUB_EXIT_CODE || '');
-const stubReport = process.env.STUB_REPORT || '';
-setTimeout(() => {
-  if (stubReport === 'invalid') {
-    if (outputFile) fs.writeFileSync(outputFile, '{"testResults": [');
-    process.exit(1);
-  }
-  const runtime = stubReport === 'runtime';
-  const testResults = files.map((file) => {
-    const failed = Boolean(failSubstring) && file.includes(failSubstring);
-    const entry = {
-      name: file,
-      status: failed ? 'failed' : 'passed',
-      assertionResults: [{
-        fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
-        status: failed ? 'failed' : 'passed',
-        failureMessages: failed ? ['Stub failure message'] : [],
-      }],
-    };
-    if (runtime) {
-      entry.status = 'failed';
-      entry.testExecError = 'Cannot find module ../../../missingModule';
-    }
-    return entry;
-  });
-  if (outputFile) {
-    fs.writeFileSync(outputFile, JSON.stringify({ testResults, numRuntimeErrorTestSuites: runtime ? 1 : 0 }));
-  }
-  const anyFailed = testResults.some((result) => result.status === 'failed');
-  process.exit(Number.isFinite(forcedExit) ? forcedExit : anyFailed ? 1 : 0);
-}, sleepMs);
-`,
-  );
-  return stubPath;
-}
 
 /** Fetch stub injected with NODE_OPTIONS=--require for the PR label check. */
 function writeFetchStub(stubDir: string, options: { ok: boolean; labelNames: string[] }): string {
@@ -87,10 +40,12 @@ interface RunOptions {
   repeatCount?: string;
   maxFiles?: string;
   deadlineMs?: string;
+  hangTimeoutMinutes?: string;
   labels?: string[];
   fetchOk?: boolean;
   failSubstring?: string;
   sleepMs?: number;
+  hangAfterReport?: boolean;
   stubExitCode?: string;
   stubReport?: string;
   jestNodePath?: string;
@@ -105,17 +60,15 @@ interface RunResult {
   summary: string;
 }
 
-const createdDirs: string[] = [];
-
 function runScript(options: RunOptions): RunResult {
-  const stubDir = mkdtempSync(path.join(tmpdir(), 'cv-flakiness-stub-'));
-  createdDirs.push(stubDir);
+  const stubDir = newTempDir('cv-flakiness-stub-');
   const callsPath = path.join(stubDir, 'calls.jsonl');
   const outputPath = path.join(stubDir, 'github-output');
   const summaryPath = path.join(stubDir, 'step-summary');
   const jestStubPath = writeJestStub(stubDir, {
     failSubstring: options.failSubstring,
     sleepMs: options.sleepMs,
+    hangAfterReport: options.hangAfterReport,
   });
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -136,6 +89,9 @@ function runScript(options: RunOptions): RunResult {
   };
   if (options.deadlineMs !== undefined) {
     env.CV_FLAKINESS_DEADLINE_MS = options.deadlineMs;
+  }
+  if (options.hangTimeoutMinutes !== undefined) {
+    env.HANG_TIMEOUT_MINUTES = options.hangTimeoutMinutes;
   }
   if (options.jestNodePath !== undefined) {
     env.JEST_NODE_PATH = options.jestNodePath;
@@ -158,35 +114,21 @@ function runScript(options: RunOptions): RunResult {
     status: result.status,
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
-    calls: existsSync(callsPath)
-      ? readFileSync(callsPath, 'utf8')
-          .trim()
-          .split('\n')
-          .filter(Boolean)
-          .map((line) => JSON.parse(line))
-      : [],
+    calls: readStubCalls(callsPath),
     output: existsSync(outputPath) ? readFileSync(outputPath, 'utf8') : '',
     summary: existsSync(summaryPath) ? readFileSync(summaryPath, 'utf8') : '',
   };
-}
-function makeCvFile(dir: string, name: string): string {
-  const filePath = path.join(dir, name);
-  writeFileSync(filePath, '');
-  return filePath;
 }
 
 describe('cv-flakiness-detection', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'cv-flakiness-files-'));
-    createdDirs.push(tempDir);
+    tempDir = newTempDir('cv-flakiness-files-');
   });
 
   afterEach(() => {
-    for (const dir of createdDirs.splice(0)) {
-      rmSync(dir, { recursive: true, force: true });
-    }
+    cleanupTempDirs();
   });
 
   it('skips without running jest when no component view test files changed', () => {
@@ -265,20 +207,69 @@ describe('cv-flakiness-detection', () => {
     expect(stderr).toContain(expectedReason);
   });
 
-  it('fails the job when the budget kills Jest mid-run, reported as a timeout', () => {
+  // A repetition killed by the remaining time budget is a warning-only budget
+  // stop, never a hang failure — the budget must not fail a healthy run
+  // (Bugbot r4681021621).
+  it('treats a repetition killed by the budget as a warning-only budget stop', () => {
     const file = makeCvFile(tempDir, 'Hung.view.test.tsx');
+    const { status, calls, output, stdout, summary } = runScript({
+      changedFiles: file,
+      repeatCount: '2',
+      // The stub outlasts the whole remaining budget; the 5s deadline leaves room for slow startups.
+      sleepMs: 30000,
+      deadlineMs: String(new Date().getTime() + 5000),
+    });
+
+    expect(status).toBe(0);
+    // The budget was spent killing the repetition; the second one never starts.
+    expect(calls).toHaveLength(1);
+    expect(output).toContain('budget_exhausted=true');
+    expect(output).toContain('completed_iterations=0');
+    expect(output).toContain('status=budget-limited');
+    expect(stdout).toContain('was stopped by the remaining time budget');
+    expect(stdout).toContain('did not get all 2 repetitions');
+    expect(summary).toContain('⏱️ stopped by budget');
+  });
+
+  it('still fails the job when a budget-killed run had already reported failing tests', () => {
+    const file = makeCvFile(tempDir, 'ReportedThenKilled.view.test.tsx');
     const { status, output, stderr } = runScript({
       changedFiles: file,
       repeatCount: '1',
-      // The stub outlasts the whole remaining budget; the 5s deadline leaves room for slow startups.
+      failSubstring: 'ReportedThenKilled',
+      // The stub writes its failing report, then outlives the deadline so the
+      // budget kills the run after the report exists.
+      hangAfterReport: true,
       sleepMs: 30000,
       deadlineMs: String(new Date().getTime() + 5000),
     });
 
     expect(status).toBe(1);
     expect(output).toContain('status=failed');
-    // The mid-run kill reads as a timeout, not a start failure (Bugbot r4679772868).
-    expect(stderr).toContain('aborted (SIGTERM) after exceeding the remaining time budget');
+    expect(stderr).toContain('ReportedThenKilled.view.test.tsx › Stub failing test name');
+  });
+
+  // With budget still remaining, a kill at the spawn timeout is the hang limit
+  // firing: a hung run must fail the job, not ride the budget as a stop
+  // (Bugbot r4681021621 follow-up).
+  it('fails the job when a hung run exceeds the hang limit with budget remaining', () => {
+    const file = makeCvFile(tempDir, 'Hangs.view.test.tsx');
+    const { status, calls, output, stderr } = runScript({
+      changedFiles: file,
+      repeatCount: '1',
+      // The stub outlasts the 6-second hang limit; the 10-minute deadline
+      // keeps the budget from binding, so the kill is a hang.
+      sleepMs: 30000,
+      hangTimeoutMinutes: '0.1',
+      deadlineMs: String(new Date().getTime() + 10 * 60 * 1000),
+    });
+
+    expect(status).toBe(1);
+    expect(calls).toHaveLength(1);
+    expect(output).toContain('status=failed');
+    expect(output).toContain('budget_exhausted=false');
+    expect(stderr).toContain('suspected hang');
+    expect(stderr).toContain('0.1 minute(s) without finishing');
   });
 
   it('fails the job when Jest cannot be spawned at all', () => {
@@ -378,5 +369,36 @@ describe('cv-flakiness-detection', () => {
     const orders = new Set(calls.map((call) => call.files.join(',')));
     // One identical order across five shuffled repetitions would be astronomically unlikely.
     expect(orders.size).toBeGreaterThan(1);
+  });
+});
+
+describe('collectIterationFailures budget-kill classification', () => {
+  const unreadableReport = {
+    suites: [],
+    crashedSuites: [],
+    runtimeErrorSuites: 0,
+    suitesFound: 0,
+    unreadable: 'ENOENT: no such file',
+  };
+
+  it('does not report a budget-driven kill as a failure', () => {
+    const failures = collectIterationFailures({ signal: 'SIGTERM' }, unreadableReport, {
+      budgetKilled: true,
+    });
+
+    expect(failures).toHaveLength(0);
+  });
+
+  it('still reports a kill at the hang limit as a failure', () => {
+    const failures = collectIterationFailures({ signal: 'SIGTERM' }, unreadableReport, {
+      killLimitMinutes: 20,
+    });
+
+    expect(failures).toEqual([
+      {
+        kind: 'clean-run',
+        reason: 'Jest was killed after 20 minute(s) without finishing (suspected hang)',
+      },
+    ]);
   });
 });
