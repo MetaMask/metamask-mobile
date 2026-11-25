@@ -8,7 +8,6 @@ import {
 import {
   onboardingSigningBase,
   onboardingSignatureParams,
-  VENUE_AUTHORIZATION_HEADER,
 } from './kalshiOnboardingSigner';
 
 const KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
@@ -17,6 +16,18 @@ const CONTEXT = {
   a2t: 'a2t-token',
   deviceKey: 'device-key',
   salt: 'device-salt',
+};
+
+// ES2022 does not provide Promise.withResolvers.
+const deferred = <Value>(): {
+  promise: Promise<Value>;
+  resolve: (value: Value) => void;
+} => {
+  let resolve!: (value: Value) => void;
+  const promise = new Promise<Value>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
 };
 
 const response = (status: number, body: string) => ({
@@ -38,17 +49,21 @@ const clientWith = (
   overrides: {
     getA2t?: () => Promise<string | undefined>;
     getDeviceKey?: () => Promise<{ publicKey: string; salt: string } | null>;
+    getBearerToken?: () => Promise<string | undefined>;
+    signDeviceProof?: (message: Uint8Array) => Promise<Uint8Array>;
   } = {},
 ) => {
-  const signDeviceProof = jest.fn(async (message: Uint8Array) =>
-    Buffer.from(`signed:${Buffer.from(message).toString('utf8')}`),
+  const signDeviceProof = jest.fn(
+    overrides.signDeviceProof ??
+      (async (message: Uint8Array) =>
+        Buffer.from(`signed:${Buffer.from(message).toString('utf8')}`)),
   );
   const invalidateA2t = jest.fn();
   const client = new KalshiOnboardingClient({
     baseUrl: 'https://predict.example',
     clientVersion: 'test',
     fetch: fetchImpl,
-    getBearerToken: async () => 'mm-token',
+    getBearerToken: overrides.getBearerToken ?? (async () => 'mm-token'),
     getA2t: overrides.getA2t ?? (async () => CONTEXT.a2t),
     getDeviceKey:
       overrides.getDeviceKey ??
@@ -95,6 +110,170 @@ const envelope = (fetchImpl: jest.Mock, index: number) =>
   };
 
 describe('KalshiOnboardingClient', () => {
+  it('passes the status signal to fetch', async () => {
+    const controller = new AbortController();
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValue(json(200, { onboarded: true }));
+    const { client } = clientWith(fetchImpl);
+
+    await client.getStatus({ signal: controller.signal });
+
+    expect(fetchImpl.mock.calls[0][1].signal).toBe(controller.signal);
+  });
+
+  it('stops before obtaining credentials when already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const getA2t = jest.fn(async () => CONTEXT.a2t);
+    const fetchImpl = jest.fn();
+    const { client, signDeviceProof } = clientWith(fetchImpl, { getA2t });
+
+    await expect(
+      client.getStatus({ signal: controller.signal }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+
+    expect(getA2t).not.toHaveBeenCalled();
+    expect(signDeviceProof).not.toHaveBeenCalled();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('stops after credential resolution if aborted during it', async () => {
+    const controller = new AbortController();
+    const credential = deferred<string | undefined>();
+    const fetchImpl = jest.fn();
+    const { client, signDeviceProof } = clientWith(fetchImpl, {
+      getA2t: async () => credential.promise,
+    });
+    const result = client.getStatus({ signal: controller.signal });
+
+    controller.abort();
+    credential.resolve(CONTEXT.a2t);
+
+    await expect(result).rejects.toMatchObject({ name: 'AbortError' });
+    expect(signDeviceProof).not.toHaveBeenCalled();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('does not send after abort during signing', async () => {
+    const controller = new AbortController();
+    const signature = deferred<Uint8Array>();
+    const signingStarted = deferred<void>();
+    const fetchImpl = jest.fn();
+    const { client } = clientWith(fetchImpl, {
+      signDeviceProof: async () => {
+        signingStarted.resolve();
+        return signature.promise;
+      },
+    });
+    const result = client.getStatus({ signal: controller.signal });
+    await signingStarted.promise;
+
+    controller.abort();
+    signature.resolve(new Uint8Array([1]));
+
+    await expect(result).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('does not send after abort during bearer token resolution', async () => {
+    const controller = new AbortController();
+    const token = deferred<string | undefined>();
+    const tokenStarted = deferred<void>();
+    const fetchImpl = jest.fn();
+    const { client } = clientWith(fetchImpl, {
+      getBearerToken: async () => {
+        tokenStarted.resolve();
+        return token.promise;
+      },
+    });
+    const result = client.getStatus({ signal: controller.signal });
+    await tokenStarted.promise;
+
+    controller.abort();
+    token.resolve('mm-token');
+
+    await expect(result).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('discards a response body resolved after abort', async () => {
+    const controller = new AbortController();
+    const body = deferred<string>();
+    const bodyStarted = deferred<void>();
+    const fetchImpl = jest.fn().mockResolvedValue({
+      status: 200,
+      text: async () => {
+        bodyStarted.resolve();
+        return body.promise;
+      },
+      headers: { get: () => null },
+    });
+    const { client } = clientWith(fetchImpl);
+    const result = client.getStatus({ signal: controller.signal });
+    await bodyStarted.promise;
+
+    controller.abort();
+    body.resolve('{"onboarded":true}');
+
+    await expect(result).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('does not renew credentials after an aborted stale response', async () => {
+    const controller = new AbortController();
+    const pending = deferred<{
+      status: number;
+      text: () => Promise<string>;
+      headers: { get: () => null };
+    }>();
+    const fetchStarted = deferred<void>();
+    const fetchImpl = jest.fn(async () => {
+      fetchStarted.resolve();
+      return pending.promise;
+    });
+    const { client, invalidateA2t } = clientWith(fetchImpl);
+    const result = client.getStatus({ signal: controller.signal });
+    await fetchStarted.promise;
+
+    controller.abort();
+    pending.resolve(json(403, {}, 'venue_authorization_invalid'));
+
+    await expect(result).rejects.toMatchObject({ name: 'AbortError' });
+    expect(invalidateA2t).not.toHaveBeenCalled();
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns a status after one credential renewal', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce(json(403, {}, 'venue_authorization_invalid'))
+      .mockResolvedValueOnce(json(200, { onboarded: true }));
+    const { client, invalidateA2t } = clientWith(fetchImpl);
+    const controller = new AbortController();
+
+    await expect(
+      client.getStatus({ signal: controller.signal }),
+    ).resolves.toEqual({ state: 'active' });
+
+    expect(invalidateA2t).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl.mock.calls[1][1].signal).toBe(controller.signal);
+  });
+
+  it('renews a status request only once', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValue(json(403, {}, 'venue_authorization_invalid'));
+    const { client, invalidateA2t } = clientWith(fetchImpl);
+
+    await expect(
+      client.getStatus({ signal: new AbortController().signal }),
+    ).rejects.toMatchObject({ code: 'venue_authorization_invalid' });
+
+    expect(invalidateA2t).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
   it('sends the onboarded probe device-signed with an envelope', async () => {
     const fetchImpl = jest
       .fn()
@@ -162,7 +341,8 @@ describe('KalshiOnboardingClient', () => {
   >([
     [
       'link',
-      (client) => client.submitEmail('user@example.com', KEY),
+      async (client): Promise<unknown> =>
+        client.submitEmail('user@example.com', KEY),
       {
         path: '/trade-api/v2/isv/users/link',
         body: '{"email":"user@example.com"}',
@@ -171,7 +351,7 @@ describe('KalshiOnboardingClient', () => {
     ],
     [
       'link verify',
-      (client) => client.verifyCode('888888', KEY),
+      async (client): Promise<unknown> => client.verifyCode('888888', KEY),
       {
         path: '/trade-api/v2/isv/users/link/verify',
         body: '{"code":"888888"}',
@@ -180,7 +360,7 @@ describe('KalshiOnboardingClient', () => {
     ],
     [
       'intent',
-      (client) => client.createIntent(KEY),
+      async (client): Promise<unknown> => client.createIntent(KEY),
       {
         path: '/trade-api/v2/isv/enrollment/intents',
         body: '',
@@ -189,7 +369,7 @@ describe('KalshiOnboardingClient', () => {
     ],
     [
       'activate',
-      (client) => client.activate('0xabc', 'base', KEY),
+      async (client): Promise<unknown> => client.activate('0xabc', 'base', KEY),
       {
         path: '/trade-api/v2/isv/wallet/register',
         body: '{"wallet_address":"0xabc","network":"base"}',
