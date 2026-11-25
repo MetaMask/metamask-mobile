@@ -7,18 +7,18 @@ import {
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
-import { TabsView } from '../views/TabsView';
+import { HomeView } from '../views/HomeView';
 import {
   collectiblesRoutes,
   type CollectiblesStackParamList,
 } from '../routeNames';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-export function TabsScreen() {
+export function HomeScreen() {
   const navigation = useNavigation();
   const { params } =
     useRoute<
-      RouteProp<CollectiblesStackParamList, typeof collectiblesRoutes.tabs>
+      RouteProp<CollectiblesStackParamList, typeof collectiblesRoutes.home>
     >();
 
   return (
@@ -29,7 +29,7 @@ export function TabsScreen() {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <TabsView initialTab={params?.tab} />
+      <HomeView initialTab={params?.tab} />
     </View>
   );
 }

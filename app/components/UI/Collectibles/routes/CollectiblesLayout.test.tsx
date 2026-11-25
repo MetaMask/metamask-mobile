@@ -56,7 +56,7 @@ function EntryScreen() {
         title="open collection"
         onPress={() =>
           navigation.navigate(collectiblesRoutes.root, {
-            screen: collectiblesRoutes.tabs,
+            screen: collectiblesRoutes.home,
             params: { tab: 'collection' },
           })
         }

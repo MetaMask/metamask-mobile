@@ -4,14 +4,14 @@ import {
   collectiblesRoutes,
   type CollectiblesStackParamList,
 } from '../routeNames';
-import { TabsScreen } from './TabsScreen';
+import { HomeScreen } from './HomeScreen';
 
 const Stack = createNativeStackNavigator<CollectiblesStackParamList>();
 
 export function CollectiblesLayout() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name={collectiblesRoutes.tabs} component={TabsScreen} />
+      <Stack.Screen name={collectiblesRoutes.home} component={HomeScreen} />
     </Stack.Navigator>
   );
 }

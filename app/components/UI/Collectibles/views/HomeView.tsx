@@ -47,7 +47,7 @@ function renderTabBar(
   return <TabViewBar {...props} testID={collectiblesTestIds.tabBar} />;
 }
 
-export function TabsView({ initialTab }: Props) {
+export function HomeView({ initialTab }: Props) {
   const tabIndex = collectiblesTabs.indexOf(initialTab ?? 'popular');
   const [index, setIndex] = useState(tabIndex === -1 ? 0 : tabIndex);
 

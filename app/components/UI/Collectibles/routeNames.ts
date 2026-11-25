@@ -2,7 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export const collectiblesRoutes = {
   root: 'Collectibles',
-  tabs: 'CollectiblesTabs',
+  home: 'CollectiblesHome',
 } as const;
 
 export const collectiblesTabs = [
@@ -14,13 +14,13 @@ export const collectiblesTabs = [
 
 export type CollectiblesTab = (typeof collectiblesTabs)[number];
 
-export interface CollectiblesTabsParams {
+export interface CollectiblesHomeParams {
   tab?: CollectiblesTab;
 }
 
 export type CollectiblesStackParamList = Record<
-  typeof collectiblesRoutes.tabs,
-  CollectiblesTabsParams | undefined
+  typeof collectiblesRoutes.home,
+  CollectiblesHomeParams | undefined
 >;
 
 export type CollectiblesParamList = ReactNavigation.RootParamList &
