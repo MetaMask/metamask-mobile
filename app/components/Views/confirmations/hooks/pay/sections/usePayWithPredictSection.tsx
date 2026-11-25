@@ -104,7 +104,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
       CommonActions.navigate({
         name: Routes.PREDICT.ROOT,
         params: {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           params: { loader: ConfirmationLoader.CustomAmount },
         },
       }),
