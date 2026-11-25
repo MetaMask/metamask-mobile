@@ -11,6 +11,7 @@ import {
 } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
+  excludeExpectedErrors,
   excludeEvents,
   captureSentryFeedback,
   maskObject,
@@ -244,6 +245,40 @@ describe('isSentryEnabled', () => {
     const result = isSentryEnabled();
 
     expect(result).toBe(true);
+  });
+});
+
+describe('excludeExpectedErrors', () => {
+  it.each([
+    'MetaMask Pay: Fiat: Fiat order failed',
+    'MetaMask Pay: Fiat: Fiat order cancelled',
+    'MetaMask Pay: Fiat: Fiat order id_expired',
+  ])('drops a terminal fiat order failure: %s', (value) => {
+    expect(
+      excludeExpectedErrors({ exception: { values: [{ value }] } }),
+    ).toBeNull();
+  });
+
+  it('keeps a fiat order polling timeout', () => {
+    const event = {
+      exception: {
+        values: [{ value: 'MetaMask Pay: Fiat: Fiat order polling timed out' }],
+      },
+    };
+    expect(excludeExpectedErrors(event)).toBe(event);
+  });
+
+  it('keeps an unrelated error', () => {
+    const event = { exception: { values: [{ value: 'Deposit failed' }] } };
+    expect(excludeExpectedErrors(event)).toBe(event);
+  });
+
+  it('reads event.message when there is no exception value', () => {
+    expect(excludeExpectedErrors({ message: 'Fiat order failed' })).toBeNull();
+  });
+
+  it('returns null for a null event', () => {
+    expect(excludeExpectedErrors(null)).toBeNull();
   });
 });
 
@@ -1514,6 +1549,31 @@ describe('setupSentry', () => {
       tags: {},
     });
     expect(result).toBeNull();
+  });
+
+  it('drops expected card declines in beforeSend', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSend: (event: {
+        exception?: { values?: { value?: string }[] };
+      }) => unknown;
+    };
+
+    expect(
+      initOptions.beforeSend({
+        exception: {
+          values: [{ value: 'MetaMask Pay: Fiat: Fiat order failed' }],
+        },
+      }),
+    ).toBeNull();
+    expect(
+      initOptions.beforeSend({
+        exception: {
+          values: [{ value: 'MetaMask Pay: Fiat: Fiat order id_expired' }],
+        },
+      }),
+    ).toBeNull();
   });
 
   it('registers outgoing request annotation when a Sentry client exists', async () => {

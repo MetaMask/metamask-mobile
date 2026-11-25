@@ -9,6 +9,7 @@ import {
   runtimeVersion,
 } from 'expo-updates';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
+import { isFiatOrderDeclineError } from '../errorHandling/isFiatOrderDeclineError';
 import { regex } from '../regex';
 import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
 import { store } from '../../store';
@@ -458,6 +459,21 @@ export function rewriteReport(report: SentryEvent): SentryEvent {
 }
 
 /**
+ * Drops expected product outcomes that are not app errors.
+ *
+ * @param event - to be logged
+ * @returns event or null
+ */
+export function excludeExpectedErrors(
+  event: SentryEvent | null,
+): SentryEvent | null {
+  if (!event) return null;
+
+  const message = event.exception?.values?.[0]?.value ?? event.message;
+  return isFiatOrderDeclineError(message) ? null : event;
+}
+
+/**
  * This function excludes events from being logged in the performance portion of the app.
  *
  * @param event - to be logged
@@ -742,7 +758,11 @@ export async function setupSentry(
       },
       profilesSampleRate: 1.0,
       beforeSend: (report) => {
-        const rewritten = rewriteReport(report as SentryEvent);
+        const expected = excludeExpectedErrors(report as SentryEvent);
+        if (!expected) {
+          return null;
+        }
+        const rewritten = rewriteReport(expected);
         return rewritten as typeof report;
       },
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
