@@ -23302,11 +23302,6 @@
       "count": 7
     }
   },
-  "app/selectors/configRegistry.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/selectors/configRegistry.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
