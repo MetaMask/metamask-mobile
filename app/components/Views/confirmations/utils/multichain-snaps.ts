@@ -7,6 +7,14 @@ import { handleSnapRequest } from '../../../../core/Snaps/utils';
 
 const controllerMessenger = Engine.controllerMessenger;
 
+/**
+ * Result returned by a wallet Snap's `onAmountInput` client request.
+ */
+export interface SnapAmountValidationResult {
+  valid: boolean;
+  errors?: { code: string }[];
+}
+
 export async function sendMultichainTransactionForReview(
   fromAccount: InternalAccount,
   params: {
@@ -33,6 +41,7 @@ export async function validateAmountMultichain(
     value: string;
     accountId: string;
     assetId: CaipAssetType;
+    toAddress?: string;
   },
 ) {
   return await handleSnapRequest(controllerMessenger, {
@@ -41,6 +50,25 @@ export async function validateAmountMultichain(
     handler: HandlerType.OnClientRequest,
     request: {
       method: 'onAmountInput',
+      params,
+    },
+  });
+}
+
+export async function getMaxSendableAmountMultichain(
+  fromAccount: InternalAccount,
+  params: {
+    accountId: string;
+    assetId: CaipAssetType;
+    toAddress?: string;
+  },
+) {
+  return await handleSnapRequest(controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'getMaxSendableAmount',
       params,
     },
   });

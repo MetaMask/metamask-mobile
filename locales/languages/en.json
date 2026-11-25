@@ -8847,6 +8847,9 @@
     "tron_validation": {
       "validation_unavailable": "Unable to verify this amount. Please try again."
     },
+    "snap_validation": {
+      "insufficient_funds_max": "Insufficient funds. You can send up to {{amount}} {{symbol}}."
+    },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verify your payment method and card support",

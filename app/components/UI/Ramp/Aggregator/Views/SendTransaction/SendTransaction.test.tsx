@@ -11,8 +11,10 @@ import {
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { addTransaction } from '../../../../../../util/transaction-controller';
-import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
-import { validateTronTransferAmount } from '../../../../../../core/Multichain/tron';
+import {
+  sendMultichainTransactionForReview,
+  validateAmountMultichain,
+} from '../../../../../Views/confirmations/utils/multichain-snaps';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../../core/AppConstants';
@@ -486,10 +488,7 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
 
 jest.mock('../../../../../Views/confirmations/utils/multichain-snaps', () => ({
   sendMultichainTransactionForReview: jest.fn(),
-}));
-
-jest.mock('../../../../../../core/Multichain/tron', () => ({
-  validateTronTransferAmount: jest.fn(),
+  validateAmountMultichain: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/accountsController', () => ({
@@ -500,7 +499,7 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
 
 const mockSendMultichainTransactionForReview =
   sendMultichainTransactionForReview as jest.Mock;
-const mockValidateTronTransferAmount = validateTronTransferAmount as jest.Mock;
+const mockValidateTronTransferAmount = validateAmountMultichain as jest.Mock;
 const mockGetInternalAccountByAddress =
   getMemoizedInternalAccountByAddress as unknown as jest.Mock;
 

@@ -61,11 +61,11 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
-import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
 import {
-  SnapAmountValidationResult,
-  validateTronTransferAmount,
-} from '../../../../../../core/Multichain/tron';
+  sendMultichainTransactionForReview,
+  validateAmountMultichain,
+  type SnapAmountValidationResult,
+} from '../../../../../Views/confirmations/utils/multichain-snaps';
 
 import { RAMPS_SEND } from '../../constants';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -197,12 +197,12 @@ function SendTransaction() {
 
     let result: SnapAmountValidationResult | undefined;
     try {
-      result = await validateTronTransferAmount(fromAccount, {
+      result = (await validateAmountMultichain(fromAccount, {
         accountId: fromAccount.id,
         assetId: `${chainId}/${assetReference}` as CaipAssetType,
         value: String(orderData.cryptoAmount ?? '0'),
         toAddress: orderData.depositWallet,
-      });
+      })) as SnapAmountValidationResult | undefined;
     } catch {
       result = undefined;
     }
