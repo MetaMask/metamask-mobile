@@ -60,6 +60,12 @@ export interface PerpsTransactionRequest {
  */
 export const LIGHTER_PAYMENT_OVERRIDE = 'perpsLighter';
 
+/**
+ * CAIP-19 asset type of the Lighter perps USDC balance. Declaring it on the
+ * required asset of a Lighter withdraw makes Pay quote from that balance.
+ */
+export const LIGHTER_USDC_ASSET_ID = 'lighter:mainnet/perps:usdc';
+
 /** The Hyperliquid confirmation to recreate when the user switches back. */
 export interface HyperliquidConfirmationSnapshot {
   nestedTransactions: TransactionMeta['nestedTransactions'];
@@ -249,6 +255,44 @@ export function buildHyperliquidRestoreRequest({
 }
 
 /**
+ * Required asset of a Lighter withdraw: the USDC the Perps withdraw transfers,
+ * declared as the Lighter perps balance. Other types have no required assets,
+ * so Pay reads them from the transfer.
+ *
+ * TODO: `assetId` is not on `RequiredAsset` until this app depends on a
+ * `@metamask/transaction-controller` release with MetaMask/core#11730.
+ *
+ * @param meta - Withdraw confirmation being replaced.
+ * @param type - Withdraw type for the selected provider.
+ * @returns The required assets for the new confirmation, if any.
+ */
+export function buildLighterWithdrawRequiredAssets(
+  meta: TransactionMeta,
+  type: TransactionType,
+): TransactionMeta['requiredAssets'] {
+  if (type !== TransactionType.perpsLighterWithdraw) {
+    return undefined;
+  }
+
+  const transfer = getTokenTransferData(meta);
+  const amount = parseStandardTokenTransactionData(transfer?.data)?.args
+    ?._value;
+
+  if (!transfer || amount === undefined) {
+    return undefined;
+  }
+
+  const requiredAsset = {
+    address: transfer.to,
+    amount: toHex(BigInt(amount.toString())),
+    assetId: LIGHTER_USDC_ASSET_ID,
+    standard: 'erc20',
+  };
+
+  return [requiredAsset];
+}
+
+/**
  * The open confirmation again, with a different type. Used when only the
  * label changes, such as a withdraw.
  *
@@ -260,12 +304,15 @@ export function buildRetypedRequest(
   meta: TransactionMeta,
   type: TransactionType,
 ): PerpsTransactionRequest {
+  const requiredAssets = buildLighterWithdrawRequiredAssets(meta, type);
+
   return {
     params: { ...meta.txParams },
     options: {
       nestedTransactions: meta.nestedTransactions,
       networkClientId: meta.networkClientId,
       origin: meta.origin,
+      ...(requiredAssets ? { requiredAssets } : {}),
       requireApproval: true,
       type,
     },
@@ -286,6 +333,8 @@ export async function replacePerpsWithdrawBatch(
 ): Promise<void> {
   const { controllerMessenger } = Engine;
   const event = 'TransactionController:unapprovedTransactionAdded';
+
+  const requiredAssets = buildLighterWithdrawRequiredAssets(meta, type);
 
   // `addTransactionBatch` resolves only once the batch is approved, so the
   // previous approval is rejected as soon as the new transaction appears.
@@ -316,6 +365,7 @@ export async function replacePerpsWithdrawBatch(
       disableHook: true,
       disableSequential: true,
       overwriteUpgrade: true,
+      ...(requiredAssets ? { requiredAssets } : {}),
       transactions: (meta.nestedTransactions ?? []).map(
         ({ to, data, value, type: nestedType }) => ({
           params: { to, data, value },

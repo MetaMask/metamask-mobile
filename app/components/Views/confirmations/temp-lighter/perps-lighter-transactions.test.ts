@@ -12,6 +12,7 @@ import {
 import { generateTransferData } from '../../../../util/transactions';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import {
+  LIGHTER_USDC_ASSET_ID,
   buildHyperliquidRestoreRequest,
   buildLighterDepositRequest,
   buildLighterExistingAccountDepositRequest,
@@ -278,6 +279,42 @@ describe('buildRetypedRequest', () => {
   });
 });
 
+describe('buildRetypedRequest required assets', () => {
+  const withdraw = {
+    networkClientId: 'arbitrum',
+    txParams: { from: USER, to: USDC, data: transferData(2_000_000) },
+  } as TransactionMeta;
+
+  it('declares the Lighter perps balance as the required asset of a Lighter withdraw', () => {
+    const { options } = buildRetypedRequest(
+      withdraw,
+      TransactionType.perpsLighterWithdraw,
+    );
+
+    expect(options).toStrictEqual(
+      expect.objectContaining({
+        requiredAssets: [
+          {
+            address: USDC,
+            amount: '0x1e8480',
+            assetId: LIGHTER_USDC_ASSET_ID,
+            standard: 'erc20',
+          },
+        ],
+      }),
+    );
+  });
+
+  it('adds no required assets for other types', () => {
+    const { options } = buildRetypedRequest(
+      withdraw,
+      TransactionType.perpsWithdraw,
+    );
+
+    expect(options).not.toHaveProperty('requiredAssets');
+  });
+});
+
 describe('replacePerpsTransaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -421,6 +458,14 @@ describe('replacePerpsWithdrawBatch', () => {
       disableHook: true,
       disableSequential: true,
       overwriteUpgrade: true,
+      requiredAssets: [
+        {
+          address: USDC,
+          amount: '0x0',
+          assetId: LIGHTER_USDC_ASSET_ID,
+          standard: 'erc20',
+        },
+      ],
       transactions: [
         {
           params: { to: USDC, data: transferData(0), value: '0x0' },

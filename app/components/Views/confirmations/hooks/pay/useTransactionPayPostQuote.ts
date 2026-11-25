@@ -102,15 +102,6 @@ export function useTransactionPayPostQuote(): void {
           config.isHyperliquidSource = true;
         }
 
-        if (isLighterWithdraw) {
-          // TODO: type `isLighterSource` through `TransactionConfig` once this
-          // app depends on a `@metamask/transaction-pay-controller` release
-          // with MetaMask/core#11730.
-          (
-            config as typeof config & { isLighterSource?: boolean }
-          ).isLighterSource = true;
-        }
-
         if (isDepositWalletWithdraw) {
           config.isPolymarketDepositWallet = true;
         }

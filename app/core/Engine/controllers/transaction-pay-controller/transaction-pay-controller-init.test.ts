@@ -9,12 +9,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInit } from './transaction-pay-controller-init';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
-import { createLighterCallbacks } from './lighter-callbacks';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 
 jest.mock('@metamask/transaction-pay-controller');
-jest.mock('./lighter-callbacks');
 jest.mock('./polymarket-callbacks');
 jest.mock('../../../../util/environment');
 
@@ -126,29 +124,6 @@ describe('Transaction Pay Controller Init', () => {
 
     expect(createPolymarketCallbacks).toHaveBeenCalledTimes(1);
     expect(polymarket).toBe(polymarketCallbacksMock);
-  });
-
-  it('wires Lighter callbacks into the controller', () => {
-    const lighterCallbacksMock = { __lighterCallbacks: true };
-    jest
-      .mocked(createLighterCallbacks)
-      .mockReturnValue(
-        lighterCallbacksMock as unknown as ReturnType<
-          typeof createLighterCallbacks
-        >,
-      );
-    const requestMock = buildInitRequestMock();
-
-    TransactionPayControllerInit(requestMock);
-
-    expect(createLighterCallbacks).toHaveBeenCalledTimes(1);
-    expect(
-      (
-        transactionPayControllerClassMock.mock.calls[0][0] as unknown as {
-          lighter: unknown;
-        }
-      ).lighter,
-    ).toBe(lighterCallbacksMock);
   });
 
   it('wires the getBalance callback into the controller', () => {

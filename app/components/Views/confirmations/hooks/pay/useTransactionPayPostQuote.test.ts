@@ -226,7 +226,7 @@ describe('useTransactionPayPostQuote', () => {
     expect(computeProxyAddressMock).not.toHaveBeenCalled();
   });
 
-  it('sets isLighterSource=true and no refundTo or isHyperliquidSource for perpsLighterWithdraw', () => {
+  it('sets no refundTo or isHyperliquidSource for perpsLighterWithdraw', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
       txParams: { from: FROM_MOCK },
@@ -244,12 +244,10 @@ describe('useTransactionPayPostQuote', () => {
       isPostQuote?: boolean;
       refundTo?: Hex;
       isHyperliquidSource?: boolean;
-      isLighterSource?: boolean;
     };
     callback(config);
 
     expect(config.isPostQuote).toBe(true);
-    expect(config.isLighterSource).toBe(true);
     expect(config.isHyperliquidSource).toBeUndefined();
     expect(config.refundTo).toBeUndefined();
     expect(computeProxyAddressMock).not.toHaveBeenCalled();
