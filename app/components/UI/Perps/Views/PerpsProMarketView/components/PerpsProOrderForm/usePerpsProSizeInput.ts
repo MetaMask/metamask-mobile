@@ -57,6 +57,8 @@ export interface UsePerpsProSizeInputResult {
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
   effectiveUsdAmount: string;
+  /** Last entered or slider USD amount, before live-price reprojection. */
+  draftUsdAmount: string;
   /** Exact base intent; slider previews continue to express a quote budget. */
   exactAssetAmount?: string;
   /** True when the user last committed the slider at its maximum. */
@@ -895,6 +897,7 @@ export const usePerpsProSizeInput = ({
     sizeInput,
     sizeSlider,
     effectiveUsdAmount,
+    draftUsdAmount: sliderPreview ?? usdDraft,
     exactAssetAmount:
       hasAssetIntent &&
       sliderPreview === null &&

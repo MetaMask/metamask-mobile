@@ -9,13 +9,13 @@ import { usePerpsLiveAccount } from './stream';
 type CrossEstimateInput = Omit<EstimateCrossLiquidationParams, 'entryPrice'> & {
   entryPrice: number | undefined;
   enabled: boolean;
-  contextKey: string;
+  draftKey: string;
 };
 
 /** Get the venue's tiered Cross estimate; never reuse one across accounts or order drafts. */
 export function usePerpsCrossLiquidationPrice({
   enabled,
-  contextKey,
+  draftKey,
   symbol,
   direction,
   size,
@@ -42,11 +42,15 @@ export function usePerpsCrossLiquidationPrice({
         : undefined,
     [enabled, symbol, direction, size, entryPrice, leverage, providerId],
   );
+  const activeDraftKey = params ? draftKey : undefined;
   const [result, setResult] = useState<{
-    params: EstimateCrossLiquidationParams;
-    contextKey: string;
+    draftKey: string;
     price?: string;
   }>();
+  useEffect(() => {
+    setResult(undefined);
+  }, [activeDraftKey]);
+
   useEffect(() => {
     if (!params) return;
     let active = true;
@@ -56,8 +60,7 @@ export function usePerpsCrossLiquidationPrice({
           await Engine.context.PerpsController.estimateCrossLiquidation(params);
         if (active)
           setResult({
-            params,
-            contextKey,
+            draftKey,
             price: estimate.status === 'price' ? estimate.price : undefined,
           });
       } catch {
@@ -70,12 +73,12 @@ export function usePerpsCrossLiquidationPrice({
     };
   }, [
     params,
-    contextKey,
+    draftKey,
     account?.crossMarginSummary?.accountValue,
     account?.crossMarginSummary?.maintenanceMargin,
     account?.spotCollateral,
   ]);
-  return result && result.params === params && result.contextKey === contextKey
+  return result && result.draftKey === activeDraftKey
     ? result.price
     : undefined;
 }

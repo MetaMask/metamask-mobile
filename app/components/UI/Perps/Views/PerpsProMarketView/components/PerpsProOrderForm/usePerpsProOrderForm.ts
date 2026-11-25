@@ -1351,6 +1351,7 @@ export const usePerpsProOrderForm = ({
     sizeInput,
     sizeSlider,
     effectiveUsdAmount,
+    draftUsdAmount,
     exactAssetAmount,
     commitPendingSliderPreview,
     isAtMaxAmount,
@@ -2147,7 +2148,21 @@ export const usePerpsProOrderForm = ({
     entryPrice: effectivePrice,
     leverage: orderForm.leverage,
     providerId: crossProviderId,
-    contextKey: marginModeContextKey,
+    // Live mid and projected base size change on ticks; only edits to the
+    // underlying order or its execution context invalidate the last estimate.
+    draftKey: JSON.stringify([
+      marginModeContextKey,
+      crossProviderId,
+      orderForm.asset,
+      orderForm.type,
+      orderForm.direction,
+      orderForm.leverage,
+      draftUsdAmount,
+      exactOrderBookFillSize,
+      orderBookFillFieldPrices.limit,
+      orderBookFillFieldPrices.trigger,
+      reduceOnly,
+    ]),
   });
   const liquidationPrice =
     marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;

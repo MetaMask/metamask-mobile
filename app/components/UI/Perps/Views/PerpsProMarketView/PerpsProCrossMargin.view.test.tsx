@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 
 import type React from 'react';
 import {
+  act,
   cleanup,
   fireEvent,
   screen,
@@ -28,7 +29,7 @@ import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 let unwire: (() => void) | undefined;
 
 const selectCross = async () => {
-  const { store } = renderPerpsCrossMarginOrderFormPanel({
+  const { store, stream } = renderPerpsCrossMarginOrderFormPanel({
     streamOverrides: {
       positions: [],
       orders: [],
@@ -49,6 +50,7 @@ const selectCross = async () => {
       strings('perps.margin_mode.cross_title'),
     ),
   );
+  return stream;
 };
 
 describeForPlatforms('Pro Cross margin risk editors', () => {
@@ -69,12 +71,12 @@ describeForPlatforms('Pro Cross margin risk editors', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the venue’s Cross liquidation price after the trader enters a size', async () => {
+  it('keeps the Cross estimate during a quote refresh but not after the size is edited', async () => {
     const estimate = jest.mocked(
       Engine.context.PerpsController.estimateCrossLiquidation,
     );
     estimate.mockResolvedValue({ status: 'price', price: '1842' });
-    await selectCross();
+    const stream = await selectCross();
     fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
     fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
     await waitFor(() =>
@@ -88,6 +90,45 @@ describeForPlatforms('Pro Cross margin risk editors', () => {
         direction: 'long',
         providerId: 'hyperliquid',
       }),
+    );
+
+    let releaseQuote!: () => void;
+    const pendingQuote = new Promise<void>((resolve) => {
+      releaseQuote = resolve;
+    });
+    estimate.mockImplementation(async () => {
+      await pendingQuote;
+      return { status: 'price', price: '1850' };
+    });
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2600',
+          markPrice: '2600',
+          timestamp: 2,
+          isTradable: true,
+        },
+      });
+    });
+    await waitFor(() =>
+      expect(estimate).toHaveBeenCalledWith(
+        expect.objectContaining({ entryPrice: '2600' }),
+      ),
+    );
+    expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
+      /\$1,842/,
+    );
+    await act(async () => releaseQuote());
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
+        /\$1,850/,
+      ),
+    );
+
+    fireEvent.changeText(screen.getByTestId(formIds.SIZE_INPUT), '200');
+    expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
+      /--/,
     );
   });
 
