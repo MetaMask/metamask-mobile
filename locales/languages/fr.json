@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "à",
-        "market_cap_suffix": "Capitalisation boursière",
-        "size_at_price": "{{size}} à {{price}} ",
-        "size_at_market_cap": "{{size}} à {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Capitalisation boursière"
       },
       "trader_stats": {
         "pnl_30d": "Résultat net de {{pnl}} (30 jours)",
@@ -1993,22 +1991,6 @@
         "4": "Jeu",
         "5": "Ven",
         "6": "Sam"
-      },
-      "tooltip": {
-        "label": "{{action}} à {{price}}",
-        "bought": "Acheté",
-        "sold": "Vendu",
-        "perps_closed": "Fermé",
-        "perps_long_opened": "Position longue ouverte",
-        "perps_long_added": "A augmenté sa position longue",
-        "perps_long_reduced": "A réduit sa position longue",
-        "perps_short_opened": "Position courte ouverte",
-        "perps_short_added": "A augmenté sa position courte",
-        "perps_short_reduced": "A racheté",
-        "spot_opened": "Acheté",
-        "spot_added": "A acheté davantage",
-        "spot_reduced": "A vendu une partie",
-        "spot_closed": "A tout vendu"
       }
     },
     "trader_position": {

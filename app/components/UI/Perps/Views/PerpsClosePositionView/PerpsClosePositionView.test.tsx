@@ -509,6 +509,34 @@ describe('PerpsClosePositionView', () => {
       expect(handleClosePosition).not.toHaveBeenCalled();
     });
 
+    it('treats the position as gone when only the other venue still holds the symbol', async () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: { ...defaultPerpsPositionMock, providerId: 'lighter' },
+        },
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [{ ...defaultPerpsPositionMock, providerId: 'hyperliquid' }],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+    });
+
     it('does not dismiss a second time when the stream drops the position after a confirmed close', async () => {
       const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({
@@ -1062,6 +1090,28 @@ describe('PerpsClosePositionView', () => {
           symbols: expect.arrayContaining([defaultPerpsPositionMock.symbol]),
           throttleMs: 1000,
         }),
+      );
+    });
+
+    it('validates the limit price band against the oracle price, not the mark price', () => {
+      usePerpsLivePricesMock.mockReturnValue({
+        [defaultPerpsPositionMock.symbol]: {
+          price: '50000',
+          markPrice: '50100',
+          oraclePrice: '49900',
+        },
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(usePerpsClosePositionValidationMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 50000, referencePrice: 49900 }),
       );
     });
 

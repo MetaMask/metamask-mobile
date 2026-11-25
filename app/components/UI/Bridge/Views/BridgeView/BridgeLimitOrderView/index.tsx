@@ -97,6 +97,7 @@ import {
 } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 import { getAdvancedOrderTokenProperties } from '../../../utils/advancedOrders';
+import { isPairSupportedForNonMarketSwapTab } from '../../../utils/tokenUtils';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -155,9 +156,19 @@ const BridgeLimitOrderViewContent = ({
     sourceAmount,
     isSourceNetworkGasSponsored,
   } = useLimitOrderSwapInputs();
-  const orderChainId = sourceToken
-    ? formatChainIdToCaip(sourceToken.chainId)
-    : undefined;
+  // The pressed tab page renders the previous tab's pair until the tab
+  // replaces it, and that pair must not be validated against this tab's fees.
+  const isPairPendingReplacement =
+    enabledChainIds !== undefined &&
+    !isPairSupportedForNonMarketSwapTab(
+      sourceToken,
+      destToken,
+      enabledChainIds,
+    );
+  const orderChainId =
+    sourceToken && !isPairPendingReplacement
+      ? formatChainIdToCaip(sourceToken.chainId)
+      : undefined;
   const sourceAssetId = sourceToken
     ? (formatAddressToAssetId(sourceToken.address, sourceToken.chainId) ??
       undefined)

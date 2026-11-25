@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "σε",
-        "market_cap_suffix": "Κεφαλαιοποίηση αγοράς",
-        "size_at_price": "{{size}} με {{price}}",
-        "size_at_market_cap": "{{size}} με {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Κεφαλαιοποίηση αγοράς"
       },
       "trader_stats": {
         "pnl_30d": "Κέρδη & ζημίες (30 ημ.): {{pnl}}",
@@ -1993,22 +1991,6 @@
         "4": "Πεμ",
         "5": "Παρ",
         "6": "Σαβ"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Αγόρασε",
-        "sold": "Πουλήθηκαν",
-        "perps_closed": "Έκλεισε",
-        "perps_long_opened": "Άνοιξε θέση αγοράς (long)",
-        "perps_long_added": "Προστέθηκε στις θέσεις αγοράς",
-        "perps_long_reduced": "Μειώθηκε η θέση αγοράς",
-        "perps_short_opened": "Η θέση πώλησης άνοιξε",
-        "perps_short_added": "Προστέθηκε στις θέσεις πώλησης",
-        "perps_short_reduced": "Αγοράστηκε ξανά",
-        "spot_opened": "Αγόρασε",
-        "spot_added": "Αγοράστηκε επιπλέον ποσότητα",
-        "spot_reduced": "Πωλήθηκε μέρος της θέσης",
-        "spot_closed": "Πωλήθηκε ολόκληρη η θέση"
       }
     },
     "trader_position": {

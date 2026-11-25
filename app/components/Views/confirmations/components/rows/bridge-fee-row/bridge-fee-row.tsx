@@ -51,6 +51,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import DottedUnderline from '../../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../../util/theme';
+import { decodeEvmAssetId } from '../../../../../../util/transactions/payment-token';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -336,11 +337,12 @@ function getNetworkFeeToken({
   transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } {
   const request = quotes?.[0]?.request;
-  const chainId = request?.sourceChainId ?? transactionMeta.chainId;
+  const sourceAsset = request && decodeEvmAssetId(request.sourceAssetId);
+  const chainId = sourceAsset?.chainId ?? transactionMeta.chainId;
 
   const address =
-    totals.fees.isSourceGasFeeToken && request?.sourceTokenAddress
-      ? request.sourceTokenAddress
+    totals.fees.isSourceGasFeeToken && sourceAsset
+      ? sourceAsset.address
       : getNativeTokenAddress(chainId);
 
   return { address, chainId };

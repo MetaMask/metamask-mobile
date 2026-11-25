@@ -38,6 +38,10 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: { isEnabled: jest.fn() },
+}));
+
 jest.mock('@metamask/utils', () => ({
   toCaipAccountId: jest.fn(),
   parseCaipChainId: jest.fn(),

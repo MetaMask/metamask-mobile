@@ -14,10 +14,11 @@ import {
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
-import { Hex, Json } from '@metamask/utils';
+import { Json } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { type PaymentMethod } from '@metamask/ramps-controller';
+import { buildPaymentTokenMock } from '../../../__mocks__/pay-token.mock';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -94,7 +95,10 @@ describe('BridgeTimeRow', () => {
       estimatedDuration: 120,
     } as TransactionPayTotals);
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { chainId: '0x1' as Hex },
+      payToken: buildPaymentTokenMock({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByText } = render();
@@ -108,7 +112,10 @@ describe('BridgeTimeRow', () => {
       estimatedDuration: 0,
     } as TransactionPayTotals);
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { chainId: '0x1' as Hex },
+      payToken: buildPaymentTokenMock({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByText } = render();

@@ -7,7 +7,6 @@ import {
   findtoNetworkConfiguration,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
-import { MESSAGE_TYPE } from '../createTracingMiddleware';
 import { isSnapId } from '@metamask/snaps-utils';
 
 /**
@@ -106,19 +105,4 @@ export const wallet_switchEthereumChain = async ({
     code: 4902, // To-be-standardized "unrecognized chain ID" error
     message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.`,
   });
-};
-
-export const switchEthereumChainHandler = {
-  methodNames: [MESSAGE_TYPE.SWITCH_ETHEREUM_CHAIN],
-  implementation: wallet_switchEthereumChain,
-  hookNames: {
-    getNetworkConfigurationByChainId: true,
-    setActiveNetwork: true,
-    getCaveat: true,
-    getCurrentChainIdForDomain: true,
-    requestPermittedChainsPermissionIncrementalForOrigin: true,
-    setTokenNetworkFilter: true,
-    hasApprovalRequestsForOrigin: true, // not needed here, but is needed by wallet_addEthereumChain
-    rejectApprovalRequestsForOrigin: true,
-  },
 };
