@@ -13,7 +13,7 @@ import { useColorScheme } from 'react-native';
 
 interface ProgressIndicatorProps {
   totalSteps: number;
-  currentStep: number; // 0-based index
+  currentStep: number; // 1-based index of the active step
   variant?: 'dots' | 'bars';
 }
 
@@ -44,6 +44,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
         {Array.from({ length: totalSteps }, (_, index) => (
           <Box
             key={index}
+            testID={`progress-indicator-step-${index}`}
             style={tw.style(
               'w-[12px] h-[12px] rounded-full',
               index === currentStep - 1 ? activeColor : 'bg-border-muted',
@@ -66,6 +67,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
       {Array.from({ length: totalSteps }, (_, index) => (
         <Box
           key={index}
+          testID={`progress-indicator-step-${index}`}
           style={tw.style(
             'h-[12px] rounded-xl',
             index === currentStep - 1
