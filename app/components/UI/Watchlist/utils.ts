@@ -9,6 +9,7 @@ import type {
   UnifiedWatchlistItem,
   UnifiedWatchlistPerp,
   UnifiedWatchlistToken,
+  WatchlistFilter,
 } from './types';
 import { isEvmCaip19AssetId } from '../../../util/multichain/isEvmCaip19AssetId';
 
@@ -230,3 +231,28 @@ export const canUseWatchlistLivePrices = (
   !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
 
 export const canUseWatchlistMotion = canUseWatchlistLivePrices;
+
+export const filterWatchlistItems = (
+  items: readonly UnifiedWatchlistItem[],
+  filter: WatchlistFilter,
+): UnifiedWatchlistItem[] => {
+  if (filter === 'all') {
+    return [...items];
+  }
+  const targetKind = filter === 'tokens' ? 'token' : 'perp';
+  return items.filter((item) => item.kind === targetKind);
+};
+
+export const reorderWatchlistItems = (
+  items: readonly UnifiedWatchlistItem[],
+  from: number,
+  to: number,
+): UnifiedWatchlistItem[] => {
+  const result = [...items];
+  const [moved] = result.splice(from, 1);
+  if (moved === undefined) {
+    return result;
+  }
+  result.splice(to, 0, moved);
+  return result;
+};

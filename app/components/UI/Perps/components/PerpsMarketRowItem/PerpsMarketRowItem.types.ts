@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+import type { ListItem } from '@metamask/design-system-react-native';
 import {
   type PerpsMarketData,
   type SortField,
@@ -15,6 +17,8 @@ export interface PerpsMarketRowItemProps {
    * Callback when the row is pressed
    */
   onPress?: (market: PerpsMarketData) => void;
+  /** Callback when the row is long-pressed. */
+  onLongPress?: () => void;
   /**
    * Size of the token icon (defaults to HOME_SCREEN_CONFIG.DefaultIconSize)
    */
@@ -58,4 +62,10 @@ export interface PerpsMarketRowItemProps {
   isWatchlisted?: boolean;
   /** Optional utility classes when embedding the row in another list. */
   twClassName?: string;
+  accessibilityActions?: ComponentProps<
+    typeof ListItem
+  >['accessibilityActions'];
+  onAccessibilityAction?: ComponentProps<
+    typeof ListItem
+  >['onAccessibilityAction'];
 }

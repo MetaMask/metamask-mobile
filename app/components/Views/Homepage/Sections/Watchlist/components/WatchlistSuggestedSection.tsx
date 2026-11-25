@@ -23,6 +23,8 @@ interface WatchlistSuggestedSectionProps {
   rows?: SuggestedWatchlistRow[];
   hasWatchlist: boolean;
   onAddPress: (token: WatchlistTokenWithBalance) => void;
+  tokenDetailsSource?: TokenDetailsSource;
+  rowTwClassName?: string;
   onPerpPress?: (market: PerpsMarketData) => void;
   onAddPerpPress?: (market: PerpsMarketData) => void;
   canUseLivePerpsPrices?: boolean;
@@ -34,6 +36,8 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   rows,
   hasWatchlist,
   onAddPress,
+  tokenDetailsSource = TokenDetailsSource.WatchlistHomepage,
+  rowTwClassName = '-mx-4 w-auto px-4',
   onPerpPress,
   onAddPerpPress,
   canUseLivePerpsPrices = false,
@@ -53,7 +57,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-1"
+          twClassName={rowTwClassName === 'px-4' ? 'mb-1 px-4 pt-2' : 'mb-1'}
           testID="watchlist-suggested-header"
         >
           {strings('token_watchlist.suggested')}
@@ -70,8 +74,8 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
             {suggestion.kind === 'token' ? (
               <TrendingTokenRowItem
                 token={mapWatchlistTokenToTrendingAsset(suggestion.token)}
-                tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-                twClassName="-mx-4 w-auto px-4"
+                tokenDetailsSource={tokenDetailsSource}
+                twClassName={rowTwClassName}
                 endAction={{
                   type: 'watchlist',
                   onPress: () => onAddPress(suggestion.token),
@@ -83,7 +87,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
                 compact
                 showBadge={false}
                 enableLivePrices={canUseLivePerpsPrices}
-                twClassName="-mx-4 w-auto px-4"
+                twClassName={rowTwClassName}
                 onPress={onPerpPress}
                 onAddPress={onAddPerpPress}
               />

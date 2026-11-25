@@ -6,8 +6,10 @@ import {
   canUseWatchlistLivePrices,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  filterWatchlistItems,
   getTokenWatchlistKey,
   reconcileWatchlistItemOrder,
+  reorderWatchlistItems,
   selectWatchlistSuggestions,
 } from './utils';
 
@@ -195,5 +197,24 @@ describe('watchlist utils', () => {
     const solanaAssetId =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
     expect(getTokenWatchlistKey(solanaAssetId)).toBe(`token:${solanaAssetId}`);
+  });
+
+  it('filters unified watchlist items by active tab', () => {
+    const tokenItem = createUnifiedWatchlistToken(TOKEN);
+    const perpItem = createUnifiedWatchlistPerp(PERP);
+    const items = [tokenItem, perpItem];
+
+    expect(filterWatchlistItems(items, 'all')).toEqual([tokenItem, perpItem]);
+    expect(filterWatchlistItems(items, 'tokens')).toEqual([tokenItem]);
+    expect(filterWatchlistItems(items, 'perps')).toEqual([perpItem]);
+  });
+
+  it('reorders unified watchlist items without mutating the source array', () => {
+    const tokenItem = createUnifiedWatchlistToken(TOKEN);
+    const perpItem = createUnifiedWatchlistPerp(PERP);
+    const items = [tokenItem, perpItem];
+
+    expect(reorderWatchlistItems(items, 0, 1)).toEqual([perpItem, tokenItem]);
+    expect(items).toEqual([tokenItem, perpItem]);
   });
 });
