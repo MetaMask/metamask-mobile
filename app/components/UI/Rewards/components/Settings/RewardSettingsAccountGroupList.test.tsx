@@ -1007,7 +1007,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Expand/Collapse Functionality', () => {
-    it('should initially show only 2 account groups per wallet', () => {
+    it('initially shows only 2 account groups per wallet', () => {
       const walletDataWithManyGroups = [
         {
           wallet: {
@@ -1081,7 +1081,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('show-more-button-wallet-1')).toBeOnTheScreen();
     });
 
-    it('should expand to show all groups when "Show more" is pressed', () => {
+    it('expands to show all groups when "Show more" is pressed', () => {
       const walletDataWithManyGroups = [
         {
           wallet: {
@@ -1144,7 +1144,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('should collapse to show only 2 groups when "Show less" is pressed', () => {
+    it('collapses to show only 2 groups when "Show less" is pressed', () => {
       const walletDataWithManyGroups = [
         {
           wallet: {
@@ -1216,7 +1216,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(queryByTestId('account-group-group-3')).toBeNull();
     });
 
-    it('should not show "Show more" button when there are 2 or fewer groups', () => {
+    it('hides the "Show more" button when there are 2 or fewer groups', () => {
       const walletDataWithFewGroups = [
         {
           wallet: {
@@ -1268,7 +1268,7 @@ describe('RewardSettingsAccountGroupList', () => {
   });
 
   describe('Bulk Link State', () => {
-    it('should show bulk link progress when bulk link is running', () => {
+    it('shows bulk link progress when bulk link is running', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1315,7 +1315,7 @@ describe('RewardSettingsAccountGroupList', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should show "Add all accounts" button when not all accounts are linked', () => {
+    it('shows the "Add all accounts" button when not all accounts are linked', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1339,7 +1339,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-add-all-button')).toBeOnTheScreen();
     });
 
-    it('should call startBulkLink when "Add all accounts" button is pressed', () => {
+    it('calls startBulkLink when the "Add all accounts" button is pressed', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
@@ -1365,7 +1365,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(mockStartBulkLink).toHaveBeenCalledTimes(1);
     });
 
-    it('should not show "Add all accounts" button when bulk link is running', () => {
+    it('hides the "Add all accounts" button when bulk link is running', () => {
       mockUseBulkLinkState.mockReturnValue({
         startBulkLink: mockStartBulkLink,
         cancelBulkLink: jest.fn(),
