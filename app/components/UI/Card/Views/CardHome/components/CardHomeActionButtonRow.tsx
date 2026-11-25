@@ -85,6 +85,7 @@ export const getCardHomeActionVisibility = ({
       hasManageableCard && Boolean(capabilities?.supportsPinView) && cardHasPin,
     freeze:
       hasManageableCard &&
+      Boolean(capabilities?.supportsFreeze) &&
       Boolean(card?.isFreezable) &&
       card?.status !== CardStatus.BLOCKED,
   };
