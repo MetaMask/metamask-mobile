@@ -111,7 +111,9 @@ runs:
         if [ "$source" != "$target" ]; then
           sudo mkdir -p "$target"
           if ! mountpoint -q "$target"; then
-            sudo mount --bind "$source" "$target"
+            # rbind keeps the Namespace cache mounts (node_modules, .yarn/cache).
+            # A plain bind would hide them, and yarn would not see its state file.
+            sudo mount --rbind "$source" "$target"
           fi
         fi
         cache_dir="/opt/jest-cache/$JEST_CACHE_NAME"
