@@ -52,7 +52,7 @@ export function usePerpsCrossLiquidationPrice({
   useEffect(() => {
     if (!params) return;
     let active = true;
-    const timer = setTimeout(async () => {
+    const updateEstimate = async (): Promise<void> => {
       try {
         const estimate =
           await Engine.context.PerpsController.estimateCrossLiquidation(params);
@@ -64,6 +64,9 @@ export function usePerpsCrossLiquidationPrice({
       } catch {
         if (active) setResult(undefined);
       }
+    };
+    const timer = setTimeout(() => {
+      void updateEstimate();
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);
     return () => {
       active = false;

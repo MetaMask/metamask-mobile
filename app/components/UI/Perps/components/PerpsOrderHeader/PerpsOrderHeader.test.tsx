@@ -130,7 +130,7 @@ describe('PerpsOrderHeader', () => {
     const { getByText } = renderWithProvider(
       <PerpsOrderHeader
         asset="ETH"
-        price={undefined as unknown as number}
+        price={undefined}
         orderType="market"
         onOrderTypePress={mockOnOrderTypePress}
       />,

@@ -54,7 +54,7 @@ export const usePerpsLiquidationPrice = (
     let active = true;
     setIsCalculating(true);
     setError(null);
-    const timer = setTimeout(async () => {
+    const updateLiquidationPrice = async (): Promise<void> => {
       try {
         const price = await calculateLiquidationPrice({
           entryPrice,
@@ -76,6 +76,9 @@ export const usePerpsLiquidationPrice = (
       } finally {
         if (active) setIsCalculating(false);
       }
+    };
+    const timer = setTimeout(() => {
+      void updateLiquidationPrice();
     }, debounceMs);
     return () => {
       active = false;
