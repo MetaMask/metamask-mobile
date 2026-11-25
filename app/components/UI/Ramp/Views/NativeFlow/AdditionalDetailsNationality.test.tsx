@@ -2,6 +2,7 @@ import React from 'react';
 import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import AdditionalDetailsNationality from './AdditionalDetailsNationality';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { buildMicaMetadata } from '../../testUtils/micaKycMocks';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -24,12 +25,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   I18nEvents: { addListener: jest.fn() },
 }));
 
-const mockMetadata = {
-  options: [] as { name: string; value: string }[],
-  documentProofOptions: [],
-  expiresAt: '',
-  kycUrl: '',
-  workFlowRunId: '',
+const mockMetadata = buildMicaMetadata({
   employmentStatusOptions: [
     { name: 'Employed', value: 'employed' },
     { name: 'Student', value: 'student' },
@@ -38,7 +34,7 @@ const mockMetadata = {
     { name: 'Germany', value: 'DE' },
     { name: 'France', value: 'FR' },
   ],
-};
+});
 
 const mockSubmitAdditionalDetailsNationality = jest.fn();
 const mockGetKycRequirement = jest.fn();
@@ -56,27 +52,20 @@ const mockRouteAfterAuthentication = jest.fn();
 const mockUseTransakRouting = jest.fn();
 const mockLayoutProps = jest.fn();
 
-// Render the real layout but expose its props, so the submit handler can be
-// invoked directly (the disabled footer button never fires it).
-jest.mock('./MicaKycFormLayout', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('./MicaKycFormLayout');
-  return {
-    __esModule: true,
-    ...actual,
-    default: (props: Record<string, unknown>): unknown => {
-      mockLayoutProps(props);
-      return ReactActual.createElement(actual.default, props);
-    },
-  };
-});
+jest.mock('./MicaKycFormLayout', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockMicaKycFormLayout(
+    (props: Record<string, unknown>) => mockLayoutProps(props),
+  ),
+);
 
-jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: (config: unknown) => {
-    mockUseTransakRouting(config);
-    return { routeAfterAuthentication: mockRouteAfterAuthentication };
-  },
-}));
+jest.mock('../../hooks/useTransakRouting', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockTransakRoutingModule(() => ({
+    onConfig: mockUseTransakRouting,
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  })),
+);
 
 const mockUseParamsReturn: {
   quote: { quoteId: string };
@@ -90,20 +79,12 @@ const mockUseParamsReturn: {
   headlessSessionId: undefined,
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails:
-    (..._args: unknown[]) =>
-    (params: unknown) => ['MockRoute', params],
-  useParams: () => mockUseParamsReturn,
-  navigateWithDetails: (
-    navigation: { navigate: (...args: unknown[]) => void },
-    details: unknown[],
-  ) => navigation.navigate(...details),
-  resetWithRoutes: (
-    navigation: { reset: (state: unknown) => void },
-    _state: unknown,
-  ) => navigation.reset(_state),
-}));
+jest.mock('../../../../../util/navigation/navUtils', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockNavUtilsModule(
+    () => mockUseParamsReturn,
+  ),
+);
 
 const EMPLOYMENT_SELECT = 'nationality-employment-status-select';
 const COUNTRY_SELECT = 'nationality-country-of-citizenship-select';

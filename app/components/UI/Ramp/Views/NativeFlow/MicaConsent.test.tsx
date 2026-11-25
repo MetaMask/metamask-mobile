@@ -64,27 +64,20 @@ const mockRouteAfterAuthentication = jest.fn();
 const mockUseTransakRouting = jest.fn();
 const mockLayoutProps = jest.fn();
 
-// Render the real layout but expose its props, so the submit handler can be
-// invoked directly (the disabled footer button never fires it).
-jest.mock('./MicaKycFormLayout', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('./MicaKycFormLayout');
-  return {
-    __esModule: true,
-    ...actual,
-    default: (props: Record<string, unknown>): unknown => {
-      mockLayoutProps(props);
-      return ReactActual.createElement(actual.default, props);
-    },
-  };
-});
+jest.mock('./MicaKycFormLayout', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockMicaKycFormLayout(
+    (props: Record<string, unknown>) => mockLayoutProps(props),
+  ),
+);
 
-jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: (config: unknown) => {
-    mockUseTransakRouting(config);
-    return { routeAfterAuthentication: mockRouteAfterAuthentication };
-  },
-}));
+jest.mock('../../hooks/useTransakRouting', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockTransakRoutingModule(() => ({
+    onConfig: mockUseTransakRouting,
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  })),
+);
 
 const mockUseParamsReturn: {
   quote: { quoteId: string; fiatAmount: number };
@@ -96,20 +89,12 @@ const mockUseParamsReturn: {
   headlessSessionId: undefined,
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails:
-    (..._args: unknown[]) =>
-    (params: unknown) => ['MockRoute', params],
-  useParams: () => mockUseParamsReturn,
-  navigateWithDetails: (
-    navigation: { navigate: (...args: unknown[]) => void },
-    details: unknown[],
-  ) => navigation.navigate(...details),
-  resetWithRoutes: (
-    navigation: { reset: (state: unknown) => void },
-    _state: unknown,
-  ) => navigation.reset(_state),
-}));
+jest.mock('../../../../../util/navigation/navUtils', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockNavUtilsModule(
+    () => mockUseParamsReturn,
+  ),
+);
 
 describe('MicaConsent', () => {
   beforeEach(() => {
@@ -139,11 +124,7 @@ describe('MicaConsent', () => {
   };
 
   it('renders correctly', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(getByText('deposit.mica.continueWithTransak')).toBeOnTheScreen();
@@ -151,11 +132,7 @@ describe('MicaConsent', () => {
   });
 
   it('fetches and displays user details', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(mockGetUserDetails).toHaveBeenCalled();
@@ -188,11 +165,7 @@ describe('MicaConsent', () => {
   });
 
   it('disables submit button until both consents are checked', async () => {
-    const { getByText, getByLabelText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByText, getByLabelText } = renderScreen();
 
     await waitFor(() => {
       expect(
@@ -205,11 +178,7 @@ describe('MicaConsent', () => {
   });
 
   it('enables submit once both design system checkboxes are checked', async () => {
-    const { getByTestId, getByLabelText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByTestId, getByLabelText } = renderScreen();
 
     await waitFor(() => {
       expect(
@@ -228,11 +197,7 @@ describe('MicaConsent', () => {
   });
 
   it('renders the user data labels in a bold weight and the values in regular', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
     await waitFor(() => {
       expect(getByText(/John Doe/)).toBeOnTheScreen();
     });
@@ -252,11 +217,7 @@ describe('MicaConsent', () => {
   });
 
   it('exposes accessible labels and checked state on the checkboxes', async () => {
-    const { getByTestId } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByTestId } = renderScreen();
 
     await waitFor(() => {
       expect(
@@ -281,11 +242,7 @@ describe('MicaConsent', () => {
   });
 
   it('renders consent checkboxes with linked text', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(
@@ -301,11 +258,7 @@ describe('MicaConsent', () => {
   });
 
   it('renders agree and continue button', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <MicaConsent />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(getByText('deposit.mica.agreeAndContinue')).toBeOnTheScreen();

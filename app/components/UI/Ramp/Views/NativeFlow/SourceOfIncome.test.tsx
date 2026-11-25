@@ -2,6 +2,7 @@ import React from 'react';
 import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import SourceOfIncome from './SourceOfIncome';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { buildMicaMetadata } from '../../testUtils/micaKycMocks';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -31,17 +32,12 @@ jest.mock('../../../../hooks/useFormatters', () => ({
   }),
 }));
 
-const mockMetadata = {
-  options: [] as { name: string; value: string }[],
-  documentProofOptions: [],
-  expiresAt: '',
-  kycUrl: '',
-  workFlowRunId: '',
+const mockMetadata = buildMicaMetadata({
   sourceOfFundsTypeOptions: [
     { name: 'Salary payments', value: 'salary_payment' },
     { name: 'Savings', value: 'savings' },
   ],
-};
+});
 
 const mockSubmitSourceOfIncome = jest.fn().mockResolvedValue({
   status: 'SUBMITTED',
@@ -62,27 +58,20 @@ const mockRouteAfterAuthentication = jest.fn();
 const mockUseTransakRouting = jest.fn();
 const mockLayoutProps = jest.fn();
 
-// Render the real layout but expose its props, so the submit handler can be
-// invoked directly (the disabled footer button never fires it).
-jest.mock('./MicaKycFormLayout', () => {
-  const ReactActual = jest.requireActual('react');
-  const actual = jest.requireActual('./MicaKycFormLayout');
-  return {
-    __esModule: true,
-    ...actual,
-    default: (props: Record<string, unknown>): unknown => {
-      mockLayoutProps(props);
-      return ReactActual.createElement(actual.default, props);
-    },
-  };
-});
+jest.mock('./MicaKycFormLayout', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockMicaKycFormLayout(
+    (props: Record<string, unknown>) => mockLayoutProps(props),
+  ),
+);
 
-jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: (config: unknown) => {
-    mockUseTransakRouting(config);
-    return { routeAfterAuthentication: mockRouteAfterAuthentication };
-  },
-}));
+jest.mock('../../hooks/useTransakRouting', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockTransakRoutingModule(() => ({
+    onConfig: mockUseTransakRouting,
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  })),
+);
 
 const mockUseParamsReturn: {
   quote: { quoteId: string; fiatAmount: number; fiatCurrency?: string };
@@ -96,20 +85,12 @@ const mockUseParamsReturn: {
   headlessSessionId: undefined,
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails:
-    (..._args: unknown[]) =>
-    (params: unknown) => ['MockRoute', params],
-  useParams: () => mockUseParamsReturn,
-  navigateWithDetails: (
-    navigation: { navigate: (...args: unknown[]) => void },
-    details: unknown[],
-  ) => navigation.navigate(...details),
-  resetWithRoutes: (
-    navigation: { reset: (state: unknown) => void },
-    _state: unknown,
-  ) => navigation.reset(_state),
-}));
+jest.mock('../../../../../util/navigation/navUtils', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../testUtils/micaKycMocks').mockNavUtilsModule(
+    () => mockUseParamsReturn,
+  ),
+);
 
 describe('SourceOfIncome', () => {
   beforeEach(() => {
@@ -134,11 +115,7 @@ describe('SourceOfIncome', () => {
     );
 
   it('renders the title and subtitle copy', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(getByText('deposit.source_of_income.title')).toBeOnTheScreen();
@@ -147,11 +124,7 @@ describe('SourceOfIncome', () => {
   });
 
   it('renders monthly volume and source of funds only', async () => {
-    const { getByText, queryByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
+    const { getByText, queryByText } = renderScreen();
 
     await waitFor(() => {
       expect(
@@ -170,11 +143,7 @@ describe('SourceOfIncome', () => {
   });
 
   it('shows the fiat currency symbol inside the monthly volume field', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(getByText('€')).toBeOnTheScreen();
@@ -182,11 +151,7 @@ describe('SourceOfIncome', () => {
   });
 
   it('uses the estimate hint as the monthly volume placeholder', async () => {
-    const { getByPlaceholderText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
+    const { getByPlaceholderText } = renderScreen();
 
     await waitFor(() => {
       expect(
@@ -372,11 +337,7 @@ describe('SourceOfIncome', () => {
   });
 
   it('renders the continue button', async () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
+    const { getByText } = renderScreen();
 
     await waitFor(() => {
       expect(

@@ -160,6 +160,19 @@ const renderWithTheme = (component: React.ReactElement) =>
     </ThemeContext.Provider>,
   );
 
+const waitForCooldownAndResend = async (
+  getByText: ReturnType<typeof renderWithTheme>['getByText'],
+) => {
+  for (let i = 0; i < 60; i++) {
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+  }
+  await act(async () => {
+    fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+  });
+};
+
 describe('V2OtpCode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -549,15 +562,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(mockSendUserOtp).toHaveBeenCalledWith('test@example.com');
@@ -569,15 +574,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(getByText('deposit.otp_code.resend_cooldown')).toBeOnTheScreen();
@@ -636,15 +633,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(getByText('Network error')).toBeOnTheScreen();
@@ -720,15 +709,7 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
-    await act(async () => {
-      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-    });
+    await waitForCooldownAndResend(getByText);
 
     await waitFor(() => {
       expect(getByText('deposit.otp_code.resend_code_error')).toBeOnTheScreen();
@@ -739,14 +720,7 @@ describe('V2OtpCode', () => {
       getByText: ReturnType<typeof renderWithTheme>['getByText'],
     ) => {
       for (let attempt = 0; attempt < 5; attempt++) {
-        for (let i = 0; i < 60; i++) {
-          act(() => {
-            jest.advanceTimersByTime(1000);
-          });
-        }
-        await act(async () => {
-          fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
-        });
+        await waitForCooldownAndResend(getByText);
       }
     };
 
