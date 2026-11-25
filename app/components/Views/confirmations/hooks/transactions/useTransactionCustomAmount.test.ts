@@ -3150,8 +3150,10 @@ describe('useTransactionCustomAmount', () => {
         jest.runAllTimers();
       });
 
-      // Without tokenFiatRate, the clamp should not run yet
+      // Without tokenFiatRate, the clamp should not run yet, and Continue stays
+      // blocked because the replacement still carries the uncapped amount
       expect(result.current.amountFiat).toBe('1000');
+      expect(result.current.isClampCommitPending).toBe(true);
       // And updateTransactionPayAmount should NOT have been called (no rate)
       expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
 
@@ -3546,75 +3548,97 @@ describe('useTransactionCustomAmount', () => {
       expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(4);
     });
 
-    it('clears failure state on successful retry', async () => {
-      jest.useFakeTimers();
+    it.each([
+      [
+        'rejects',
+        (): void => {
+          updateTransactionPayAmountMock.mockRejectedValueOnce(
+            new Error('Network failure'),
+          );
+        },
+      ],
+      [
+        'reports nothing applied',
+        (): void => {
+          updateTransactionPayAmountMock.mockResolvedValueOnce(false);
+        },
+      ],
+    ])(
+      'retries and stays pending when the amount update %s',
+      async (_name, failFirstCall) => {
+        jest.useFakeTimers();
 
-      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+        mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
-      const perpsDepositMeta = {
-        type: TransactionType.perpsDeposit,
-        id: transactionIdMock,
-        chainId: '0x1' as Hex,
-        txParams: { from: '0xabc' as Hex },
-      } as unknown as Partial<TransactionMeta>;
+        const perpsDepositMeta = {
+          type: TransactionType.perpsDeposit,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' as Hex },
+        } as unknown as Partial<TransactionMeta>;
 
-      const { result, rerender } = runHook({
-        transactionMeta: perpsDepositMeta,
-      });
+        const { result, rerender } = runHook({
+          transactionMeta: perpsDepositMeta,
+        });
 
-      await act(async () => {
-        result.current.updatePendingAmountPercentage(100);
-      });
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(100);
+        });
 
-      // Replace with a first Lighter deposit
-      const actualHook = jest.requireActual(
-        './useTransactionMetadataRequest',
-      ).useTransactionMetadataRequest;
+        // Replace with a first Lighter deposit
+        const actualHook = jest.requireActual(
+          './useTransactionMetadataRequest',
+        ).useTransactionMetadataRequest;
 
-      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
-        const current = actualHook();
-        return {
-          ...current,
-          id: 'replacement-lighter-deposit',
-          type: TransactionType.perpsLighterDeposit,
-          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
-        } as TransactionMeta;
-      });
-      mockPayToken(undefined);
+        jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+          const current = actualHook();
+          return {
+            ...current,
+            id: 'replacement-lighter-deposit',
+            type: TransactionType.perpsLighterDeposit,
+            nestedTransactions: [
+              { data: '0x095ea7b3' },
+              { data: '0x8a857083' },
+            ],
+          } as TransactionMeta;
+        });
+        mockPayToken(undefined);
 
-      await act(async () => {
-        rerender({});
-        jest.runAllTimers();
-      });
+        await act(async () => {
+          rerender({});
+          jest.runAllTimers();
+        });
 
-      // Fail once, then succeed
-      updateTransactionPayAmountMock
-        .mockRejectedValueOnce(new Error('Network failure'))
-        .mockResolvedValue(true);
+        // Fail once, then succeed
+        failFirstCall();
+        updateTransactionPayAmountMock.mockResolvedValue(true);
 
-      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+        mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
-      await act(async () => {
-        rerender({});
-        jest.runAllTimers();
-        await Promise.resolve();
-      });
+        await act(async () => {
+          rerender({});
+          jest.runAllTimers();
+          await Promise.resolve();
+        });
 
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
-      expect(result.current.isClampCommitPending).toBe(false);
+        expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+        // The transaction still carries the uncapped amount during backoff.
+        expect(result.current.isClampCommitPending).toBe(true);
+        expect(result.current.isClampCommitFailed).toBe(false);
 
-      // Retry succeeds
-      await act(async () => {
-        jest.advanceTimersByTime(500);
-        rerender({});
-        jest.runAllTimers();
-        await Promise.resolve();
-      });
+        // Retry succeeds
+        await act(async () => {
+          jest.advanceTimersByTime(500);
+          rerender({});
+          jest.runAllTimers();
+          await Promise.resolve();
+        });
 
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
-      expect(result.current.isClampCommitFailed).toBe(false);
-      expect(result.current.isClampCommitPending).toBe(false);
-    });
+        expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+        expect(result.current.isClampCommitFailed).toBe(false);
+        expect(result.current.isClampCommitPending).toBe(false);
+      },
+    );
 
     it('reports pending state while commit is in flight', async () => {
       mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');

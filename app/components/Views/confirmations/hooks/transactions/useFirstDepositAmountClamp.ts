@@ -161,21 +161,27 @@ export function useFirstDepositAmountClamp({
     clampCommitGenerationRef.current += 1;
     clampCommitInFlightRef.current = false;
     clampRetryAttemptsRef.current = 0;
-    setIsClampCommitPending(false);
     setIsClampCommitFailed(false);
 
     if (amountFiat !== '0') {
       keepAmountAfterReplacementRef.current = true;
       pendingClampRef.current = true;
       ignoreNextAutomaticTokenChangeRef.current = true;
+      // The replacement is built from the uncapped amount, so a first Lighter
+      // deposit is unsafe to confirm from now until the cap is written. Block
+      // Continue while the balance and fiat rate load, not only once the
+      // commit starts.
+      setIsClampCommitPending(isLighterAccountCreationDeposit(transactionMeta));
     } else {
       pendingClampRef.current = false;
+      setIsClampCommitPending(false);
     }
   }, [
     amountFiat,
     ignoreNextAutomaticTokenChangeRef,
     keepAmountAfterReplacementRef,
     transactionId,
+    transactionMeta,
   ]);
 
   // Commit once per replacement, deferring until the balance, fiat rate, and
@@ -227,9 +233,15 @@ export function useFirstDepositAmountClamp({
 
       const commitClampedAmount = async (): Promise<void> => {
         try {
-          await updateTransactionPayAmount(clampedAmountHuman);
+          const isApplied =
+            await updateTransactionPayAmount(clampedAmountHuman);
           if (clampCommitGenerationRef.current !== commitGeneration) {
             return;
+          }
+          // `false` means nothing was written, for example a newer amount took
+          // over. The transaction can still carry the uncapped amount.
+          if (!isApplied) {
+            throw new Error('Clamped pay amount was not applied');
           }
           pendingClampRef.current = false;
           clampCommitInFlightRef.current = false;
@@ -248,9 +260,11 @@ export function useFirstDepositAmountClamp({
           // Hold the ref false during backoff so this effect does not start
           // another commit before the timeout. The timeout sets it true again.
           pendingClampRef.current = false;
-          setIsClampCommitPending(false);
 
+          // Stay pending through the backoff: the transaction still carries
+          // the uncapped amount until a retry lands.
           if (clampRetryAttemptsRef.current >= MAX_CLAMP_COMMIT_RETRIES) {
+            setIsClampCommitPending(false);
             setIsClampCommitFailed(true);
             Logger.error(
               new Error('Clamp commit retry limit reached'),
@@ -277,6 +291,7 @@ export function useFirstDepositAmountClamp({
       });
     } else if (!clampCommitInFlightRef.current) {
       pendingClampRef.current = false;
+      setIsClampCommitPending(false);
     }
   }, [
     amountFiat,
