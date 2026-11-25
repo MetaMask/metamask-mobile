@@ -884,6 +884,8 @@ const CardHome = () => {
           isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
+          title={strings('card.card_home.title')}
+          titleProps={{ accessibilityRole: 'header' }}
           {...headerHandlers}
         />
         <Box twClassName="flex-1 items-center justify-center gap-2">
@@ -959,6 +961,8 @@ const CardHome = () => {
         isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
+        title={strings('card.card_home.title')}
+        titleProps={{ accessibilityRole: 'header' }}
         {...headerHandlers}
       />
       <ScrollView
