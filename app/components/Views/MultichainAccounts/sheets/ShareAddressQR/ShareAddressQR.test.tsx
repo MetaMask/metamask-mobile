@@ -138,6 +138,7 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 let mockAccount = internalAccount1;
 let mockNetworkName = 'Ethereum Mainnet';
+let mockSource: string | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -154,6 +155,7 @@ jest.mock('@react-navigation/native', () => ({
       chainId: '0x1',
       groupId: 'test-group-id',
       location: 'address-list',
+      source: mockSource,
       account: mockAccount,
     },
   }),
@@ -306,6 +308,7 @@ describe('ShareAddressQR', () => {
     mockTrackEvent.mockClear();
     mockAccount = internalAccount1;
     mockNetworkName = 'Ethereum Mainnet';
+    mockSource = undefined;
   });
 
   it('tracks QR Code Viewed on render', () => {
@@ -318,6 +321,35 @@ describe('ShareAddressQR', () => {
           location: 'address-list',
           chain_id_caip: 'eip155:1',
           account_type: 'MetaMask',
+        }),
+      }),
+    );
+  });
+
+  it('includes source on QR Code Viewed when the address list passes one', () => {
+    mockSource = 'onboarding_checklist';
+
+    render();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'QR Code Viewed',
+        properties: expect.objectContaining({
+          location: 'address-list',
+          source: 'onboarding_checklist',
+        }),
+      }),
+    );
+  });
+
+  it('omits source on QR Code Viewed when none is passed', () => {
+    render();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'QR Code Viewed',
+        properties: expect.not.objectContaining({
+          source: expect.anything(),
         }),
       }),
     );
