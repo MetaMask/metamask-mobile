@@ -1,6 +1,7 @@
 import { MoneyAccountBalanceService } from '@metamask/money-account-balance-service';
 import { MoneyAccountApiDataService } from '@metamask/money-account-api-data-service';
 
+// TODO: Move temporary keys into MoneyAccountApiDataServiceQueryKeys when core is updated.
 export const MoneyQueryKeys = {
   /**
    * Temporary key for historical earnings fetched directly until
@@ -12,6 +13,11 @@ export const MoneyQueryKeys = {
    * MoneyAccountApiDataService supports this query.
    */
   FETCH_VAULT_COMPOSITION: 'money:fetchVaultComposition',
+  /**
+   * Temporary key for vault APY history fetched directly until
+   * MoneyAccountApiDataService supports this query.
+   */
+  FETCH_VAULT_APY_HISTORY: 'money:fetchVaultApyHistory',
 } as const;
 
 export const MoneyAccountBalanceServiceQueryKeys = {
