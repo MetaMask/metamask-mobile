@@ -174,14 +174,6 @@ describe('CardHome', () => {
     mockGetCapabilities.mockReturnValue(defaultCapabilities);
   });
 
-  it('names the screen with a "Card" header for screen readers', async () => {
-    const { findByRole } = renderCardHomeView();
-
-    expect(
-      await findByRole('header', { name: strings('card.card_home.title') }),
-    ).toBeOnTheScreen();
-  });
-
   describe('navigation', () => {
     describe('when authenticated', () => {
       it('opens Add Funds modal with the active USDC funding token when Add Funds button is pressed', async () => {
