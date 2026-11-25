@@ -6,12 +6,26 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 
 jest.mock('../transactions/useTransactionAccountOverride');
+jest.mock('../transactions/useTransactionMetadataRequest', () => {
+  const actual = jest.requireActual(
+    '../transactions/useTransactionMetadataRequest',
+  );
+  return {
+    useTransactionMetadataRequest: jest.fn(() =>
+      actual.useTransactionMetadataRequest(),
+    ),
+  };
+});
 
 const useTransactionAccountOverrideMock = jest.mocked(
   useTransactionAccountOverride,
+);
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
 );
 
 const RECIPIENT_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
@@ -46,26 +60,29 @@ function runHook({
 describe('usePaySectionRecipientMetrics', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    const actualTxMeta = jest.requireActual(
+      '../transactions/useTransactionMetadataRequest',
+    );
+    useTransactionMetadataRequestMock.mockImplementation(() =>
+      actualTxMeta.useTransactionMetadataRequest(),
+    );
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
   });
 
   describe('deposit flows (fixed by transaction type)', () => {
-    it('returns perps for perpsDeposit', () => {
-      const { result } = runHook({ type: TransactionType.perpsDeposit });
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.perpsLighterDepositAndOrder,
+    ] as const)('returns perps for %s', (type) => {
+      const { result } = runHook({ type });
 
       expect(result.current).toEqual({
         presented: 'perps',
         selected: 'perps',
         switchCount: 0,
       });
-    });
-
-    it('returns perps for perpsDepositAndOrder', () => {
-      const { result } = runHook({
-        type: TransactionType.perpsDepositAndOrder,
-      });
-
-      expect(result.current.selected).toBe('perps');
     });
 
     it('returns predict for predictDeposit', () => {
@@ -82,12 +99,40 @@ describe('usePaySectionRecipientMetrics', () => {
       expect(result.current.selected).toBe('predict');
     });
 
-    it('returns money-account for moneyAccountDeposit', () => {
-      const { result } = runHook({
-        type: TransactionType.moneyAccountDeposit,
-      });
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      TransactionType.membershipSubscription,
+    ] as const)('returns money-account for %s', (type) => {
+      const { result } = runHook({ type });
 
       expect(result.current.selected).toBe('money-account');
+    });
+
+    it('ignores sourceSection changes for membershipSubscription', () => {
+      let currentSourceSection: PayWithSectionId = 'metamask';
+
+      const state = merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+      );
+      state.engine.backgroundState.TransactionController.transactions[0].type =
+        TransactionType.membershipSubscription;
+
+      const { result, rerender } = renderHookWithProvider(
+        () => usePaySectionRecipientMetrics(currentSourceSection, true),
+        { state },
+      );
+
+      currentSourceSection = 'bank-card';
+      rerender({});
+
+      expect(result.current).toEqual({
+        presented: 'money-account',
+        selected: 'money-account',
+        switchCount: 0,
+      });
     });
 
     it('ignores sourceSection for deposit flows', () => {
@@ -101,9 +146,12 @@ describe('usePaySectionRecipientMetrics', () => {
   });
 
   describe('withdraw flows (uses sourceSection)', () => {
-    it('returns sourceSection for perpsWithdraw', () => {
+    it.each([
+      TransactionType.perpsWithdraw,
+      TransactionType.perpsLighterWithdraw,
+    ] as const)('returns sourceSection for %s', (type) => {
       const { result } = runHook({
-        type: TransactionType.perpsWithdraw,
+        type,
         sourceSection: 'crypto',
       });
 
@@ -296,20 +344,131 @@ describe('usePaySectionRecipientMetrics', () => {
       });
     });
 
-    it('does not increment switchCount when accountOverride changes on moneyAccountDeposit', () => {
-      useTransactionAccountOverrideMock.mockReturnValue(RECIPIENT_ACCOUNT_MOCK);
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      TransactionType.membershipSubscription,
+    ] as const)(
+      'does not increment switchCount when accountOverride changes on %s',
+      (type) => {
+        useTransactionAccountOverrideMock.mockReturnValue(
+          RECIPIENT_ACCOUNT_MOCK,
+        );
+
+        const { result, rerender } = runHook({ type });
+
+        useTransactionAccountOverrideMock.mockReturnValue(
+          SECOND_RECIPIENT_ACCOUNT_MOCK,
+        );
+
+        rerender({});
+
+        expect(result.current.switchCount).toBe(0);
+      },
+    );
+  });
+
+  describe('sub-account recipient picker tracking', () => {
+    it.each([
+      [TransactionType.predictDeposit, 'predict'],
+      [TransactionType.perpsDeposit, 'perps'],
+      [TransactionType.perpsLighterDeposit, 'perps'],
+    ] as const)(
+      'counts recipient sub-account round trip as 2 for %s',
+      (type, expectedSection) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type,
+          txParams: { from: RECIPIENT_ACCOUNT_MOCK },
+        } as never);
+
+        const { result, rerender } = runHook({
+          type,
+          sourceSection: 'money-account',
+        });
+
+        expect(result.current).toEqual({
+          presented: expectedSection,
+          selected: expectedSection,
+          switchCount: 0,
+        });
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: type === TransactionType.predictDeposit ? 'tx-1' : 'tx-2',
+          type,
+          txParams: { from: SECOND_RECIPIENT_ACCOUNT_MOCK },
+        } as never);
+        rerender({});
+
+        expect(result.current.switchCount).toBe(1);
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: type === TransactionType.predictDeposit ? 'tx-1' : 'tx-3',
+          type,
+          txParams: { from: RECIPIENT_ACCOUNT_MOCK },
+        } as never);
+        rerender({});
+
+        expect(result.current.switchCount).toBe(2);
+      },
+    );
+
+    it.each([
+      TransactionType.predictDeposit,
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ] as const)(
+      'does not increment switchCount when same sub-account is re-selected or re-rendered for %s',
+      (type) => {
+        const accountLowercase = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const accountUppercase = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type,
+          txParams: { from: accountLowercase },
+        } as never);
+
+        const { result, rerender } = runHook({
+          type,
+          sourceSection: 'money-account',
+        });
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type,
+          txParams: { from: accountUppercase },
+        } as never);
+        rerender({});
+        rerender({});
+
+        expect(result.current.switchCount).toBe(0);
+      },
+    );
+
+    it('does not increment switchCount when switching Perps provider with the same recipient account', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.perpsDeposit,
+        txParams: { from: RECIPIENT_ACCOUNT_MOCK },
+      } as never);
 
       const { result, rerender } = runHook({
-        type: TransactionType.moneyAccountDeposit,
+        type: TransactionType.perpsDeposit,
+        sourceSection: 'money-account',
       });
 
-      useTransactionAccountOverrideMock.mockReturnValue(
-        SECOND_RECIPIENT_ACCOUNT_MOCK,
-      );
-
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-2',
+        type: TransactionType.perpsLighterDeposit,
+        txParams: { from: RECIPIENT_ACCOUNT_MOCK },
+      } as never);
       rerender({});
 
-      expect(result.current.switchCount).toBe(0);
+      expect(result.current).toEqual({
+        presented: 'perps',
+        selected: 'perps',
+        switchCount: 0,
+      });
     });
   });
 

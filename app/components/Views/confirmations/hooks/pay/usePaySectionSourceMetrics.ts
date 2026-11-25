@@ -63,6 +63,7 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
+    TransactionType.perpsLighterDepositAndOrder,
   ]);
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
@@ -71,8 +72,6 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
     transactionMeta,
     MONEY_ACCOUNT_DEPOSIT_TYPES,
   );
-  const isPayingAccountReady =
-    !isMoneyAccountDeposit || Boolean(accountOverride);
 
   const isMoneyAccountActive =
     paymentOverride === PaymentOverride.MoneyAccount ||
@@ -85,6 +84,10 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
     isPredictBalanceSelected:
       isPredictDepositAndOrder && isPredictBalanceSelected,
   });
+  const isPayingAccountReady =
+    !isMoneyAccountDeposit ||
+    Boolean(accountOverride) ||
+    Boolean(nonCryptoSection);
   const currentSection = nonCryptoSection ?? cryptoAccountType;
   const switchKey =
     !nonCryptoSection && payingAccount
