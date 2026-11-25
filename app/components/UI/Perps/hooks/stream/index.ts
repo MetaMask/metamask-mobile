@@ -9,6 +9,7 @@ export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
 export {
   readAvailableToTradeUsd,
+  readMaxAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from './usePerpsLiveAvailableToTrade';
 export { usePerpsVenueBalances } from './usePerpsVenueBalances';

@@ -151,7 +151,9 @@ import {
   type DepositPrepSession,
 } from '../../utils/depositConfirmationGuard';
 import {
+  readMaxAvailableToTradeUsd,
   usePerpsLiveAccount,
+  usePerpsLiveAvailableToTrade,
   usePerpsLiveOrders,
   usePerpsLivePrices,
   usePerpsLiveFocusedPrice,
@@ -803,6 +805,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   } = usePerpsLiveAccount();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance(market?.symbol);
+  const {
+    availableToTrade: venueAvailableToTrade,
+    isInitialLoading: isLoadingAvailableToTrade,
+  } = usePerpsLiveAvailableToTrade({
+    symbol: market?.symbol ?? '',
+    enabled: Boolean(market?.symbol),
+  });
+  const venueMaxAvailableToTrade = readMaxAvailableToTradeUsd(
+    venueAvailableToTrade,
+  );
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const spendableBalance = Number.parseFloat(
@@ -810,7 +822,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   );
   const hasDirectOrderFundingPath =
     !isLoadingAccount &&
+    !isLoadingAvailableToTrade &&
     (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
+      (venueMaxAvailableToTrade !== undefined &&
+        venueMaxAvailableToTrade >= PERPS_MIN_BALANCE_THRESHOLD) ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
   const clearDepositPrepSession = useCallback(() => {
@@ -2002,6 +2017,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     shouldShowNewPositionActions &&
     isEligible &&
     !isLoadingAccount &&
+    !isLoadingAvailableToTrade &&
     !isLoadingPosition &&
     !hasDirectOrderFundingPath;
   const shouldShowLongShortButtonsOnly =

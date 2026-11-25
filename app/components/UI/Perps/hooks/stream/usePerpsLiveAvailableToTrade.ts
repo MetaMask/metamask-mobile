@@ -40,6 +40,21 @@ export const readAvailableToTradeUsd = (
 };
 
 /**
+ * The larger of the venue's long and short USD figures, for when no order
+ * direction is chosen yet. Undefined when neither side is known.
+ */
+export const readMaxAvailableToTradeUsd = (
+  availableToTrade: PerpsAvailableToTrade | null | undefined,
+): number | undefined => {
+  const availableLong = readAvailableToTradeUsd(availableToTrade, 'long');
+  const availableShort = readAvailableToTradeUsd(availableToTrade, 'short');
+  if (availableLong === undefined && availableShort === undefined) {
+    return undefined;
+  }
+  return Math.max(availableLong ?? 0, availableShort ?? 0);
+};
+
+/**
  * Subscribes to one market's available to trade via
  * `PerpsController.subscribeToAvailableToTrade`.
  *

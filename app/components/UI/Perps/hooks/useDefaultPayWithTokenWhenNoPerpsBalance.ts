@@ -18,7 +18,7 @@ import {
 import { usePerpsNetwork } from './index';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 import {
-  readAvailableToTradeUsd,
+  readMaxAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from './stream/usePerpsLiveAvailableToTrade';
 
@@ -50,17 +50,12 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(
       symbol: symbol ?? '',
       enabled: featureEnabled && Boolean(symbol),
     });
-  const availableLong = readAvailableToTradeUsd(availableToTrade, 'long');
-  const availableShort = readAvailableToTradeUsd(availableToTrade, 'short');
+  const venueAvailableToTrade = readMaxAvailableToTradeUsd(availableToTrade);
 
   return useMemo(() => {
     if (!featureEnabled || isAvailableToTradeLoading) {
       return null;
     }
-    const venueAvailableToTrade =
-      availableLong === undefined && availableShort === undefined
-        ? undefined
-        : Math.max(availableLong ?? 0, availableShort ?? 0);
     const perpsBalance =
       venueAvailableToTrade ??
       Number.parseFloat(perpsAccount?.spendableBalance?.toString() ?? '0');
@@ -113,8 +108,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(
   }, [
     featureEnabled,
     isAvailableToTradeLoading,
-    availableLong,
-    availableShort,
+    venueAvailableToTrade,
     perpsAccount?.spendableBalance,
     allowlistAssets,
     activeProvider,
