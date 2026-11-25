@@ -382,6 +382,14 @@ describe('useSyncPerpsLighterTransactionType', () => {
       networkClientId: 'arbitrum',
       origin: 'metamask',
       requireApproval: true,
+      requiredAssets: [
+        {
+          address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          amount: '0x1e8480',
+          assetId: 'lighter:mainnet/perps:usdc',
+          standard: 'erc20',
+        },
+      ],
       type: TransactionType.perpsLighterWithdraw,
     });
   });
