@@ -374,6 +374,22 @@ describe('useMoneyMfa', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
+    it('turns 2FA back on without migrating when the restored account is already the 2FA account', async () => {
+      setMigration('failed');
+      const { result } = arrange({
+        lifecycle: mfaLifecycle,
+        primaryAddress: MPC_ADDRESS,
+      });
+
+      await act(async () => {
+        await result.current.turnOn();
+      });
+
+      expect(mockStart).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('enabled');
+      expectToast('money.mfa.toast_on');
+    });
+
     it('shows the setting-up banner again for a new migration', async () => {
       moneyMfaStore.setState({ isMigrationBannerDismissed: true });
       const finish = deferMigration();

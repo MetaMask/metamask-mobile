@@ -113,6 +113,10 @@ export const useMoneyMfa = () => {
   const hasRestoredMpcAccount =
     mfaLifecycle?.identity.currentAddress.toLowerCase() ===
     primaryMoneyAccount?.address.toLowerCase();
+  // An account restored on this device was migrated elsewhere, so it never ran here.
+  const isMigrated =
+    migrationStatus === 'done' ||
+    Boolean(mfaLifecycle && hasRestoredMpcAccount);
 
   const activeMethods = useMemo(
     () =>
@@ -144,12 +148,12 @@ export const useMoneyMfa = () => {
     }
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
-  } else if (migrationStatus === 'failed') {
+  } else if (migrationStatus === 'failed' && !isMigrated) {
     status = 'failed';
   } else if (isMoneyAccountMfaEnabled) {
     status = 'enabled';
   } else {
-    status = migrationStatus === 'done' ? 'off' : 'not_set_up';
+    status = isMigrated ? 'off' : 'not_set_up';
   }
 
   useEffect(() => {
@@ -187,7 +191,7 @@ export const useMoneyMfa = () => {
         // The kit has already shown any error; backing out leaves 2FA as it was.
         return;
       }
-      if (moneyAccountMigration.getStatus() === 'done') {
+      if (isMigrated) {
         moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
         showToast('money.mfa.toast_on');
         return;
@@ -195,7 +199,7 @@ export const useMoneyMfa = () => {
       moneyMfaStore.setState({ isMigrationBannerDismissed: false });
       await migrate('turn_on');
     },
-    [verifyOrEnroll, showToast],
+    [isMigrated, verifyOrEnroll, showToast],
   );
 
   const addPasskey = useCallback(async () => {
