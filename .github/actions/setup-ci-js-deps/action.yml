@@ -11,6 +11,30 @@ inputs:
     description: 'Runner provider (`namespace` or any GitHub-hosted value).'
     required: false
     default: 'current'
+  jest_cache_name:
+    description: >
+      Optional Jest cache namespace (`unit`, `cv`, `integration`). When set,
+      restores an isolated cache directory. Only a push to main saves it.
+    required: false
+    default: ''
+  jest_cache_key_suffix:
+    description: >
+      Cache key suffix, one entry per shard (for example `shard-3`). Per-shard
+      entries restore in a few seconds; one entry for every shard would be much
+      larger.
+    required: false
+    default: ''
+
+outputs:
+  jest_cache_key:
+    description: 'Exact cache key. Empty when jest_cache_name is not set.'
+    value: ${{ steps.jest-cache-key.outputs.key }}
+  jest_cache_hit:
+    description: 'true when the exact main key was restored.'
+    value: ${{ steps.jest-cache.outputs.cache-hit }}
+  jest_cache_matched_key:
+    description: 'Key that was restored, including a previous week via the prefix.'
+    value: ${{ steps.jest-cache.outputs.cache-matched-key }}
 
 runs:
   using: 'composite'
@@ -64,3 +88,89 @@ runs:
       if: ${{ steps.check-deps.outputs.needs-install == 'true' }}
       shell: bash
       run: yarn setup:github-ci --node
+
+    # babel-jest's cache key includes the absolute source path and cacheDirectory.
+    # Pin both so a cache saved on main hits on every runner.
+    - name: Pin Jest workspace and cache directory
+      if: ${{ inputs.jest_cache_name != '' }}
+      shell: bash
+      env:
+        JEST_CACHE_NAME: ${{ inputs.jest_cache_name }}
+      run:
+        | # zizmor: ignore[github-env] cache name is allowlisted; paths are fixed
+        set -euo pipefail
+        case "$JEST_CACHE_NAME" in
+          unit|cv|integration) ;;
+          *)
+            echo "::error::Unsupported jest_cache_name: $JEST_CACHE_NAME"
+            exit 1
+            ;;
+        esac
+        source="$(pwd -P)"
+        target="/opt/metamask-mobile"
+        if [ "$source" != "$target" ]; then
+          sudo mkdir -p "$target"
+          if ! mountpoint -q "$target"; then
+            sudo mount --bind "$source" "$target"
+          fi
+        fi
+        cache_dir="/opt/jest-cache/$JEST_CACHE_NAME"
+        sudo mkdir -p "$cache_dir"
+        sudo chown "$(id -u):$(id -g)" "$cache_dir"
+        echo "JEST_WORKSPACE=$target" >> "$GITHUB_ENV"
+        echo "JEST_CACHE_DIRECTORY=$cache_dir" >> "$GITHUB_ENV"
+
+    - name: Read Node version and week
+      id: jest-cache-meta
+      if: ${{ inputs.jest_cache_name != '' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "node=$(node -v | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+        echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+    - name: Resolve Jest cache key
+      id: jest-cache-key
+      if: ${{ inputs.jest_cache_name != '' }}
+      shell: bash
+      env:
+        NODE_VERSION: ${{ steps.jest-cache-meta.outputs.node }}
+        WEEK: ${{ steps.jest-cache-meta.outputs.week }}
+        FILES_HASH: ${{ hashFiles('yarn.lock', 'jest.config*.js', 'babel.config*.js') }}
+        SUITE: ${{ inputs.jest_cache_name }}
+        SUFFIX: ${{ inputs.jest_cache_key_suffix }}
+        PROVIDER: ${{ inputs.runner_provider }}
+        OS_NAME: ${{ runner.os }}
+      run: |
+        set -euo pipefail
+        echo "key=jest-${SUITE}-${SUFFIX}-${PROVIDER}-${OS_NAME}-${NODE_VERSION}-${FILES_HASH}-${WEEK}" >> "$GITHUB_OUTPUT"
+        echo "restore_prefix=jest-${SUITE}-${SUFFIX}-${PROVIDER}-${OS_NAME}-${NODE_VERSION}-${FILES_HASH}-" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Jest cache
+      id: jest-cache
+      if: ${{ inputs.jest_cache_name != '' }}
+      # PRs and the merge queue restore only. Push to main saves after the tests,
+      # so a pull request cannot write this cache.
+      uses: actions/cache/restore@v6
+      with:
+        path: /opt/jest-cache/${{ inputs.jest_cache_name }}
+        key: ${{ steps.jest-cache-key.outputs.key }}
+        restore-keys: |
+          ${{ steps.jest-cache-key.outputs.restore_prefix }}
+
+    - name: Report Jest cache restore
+      if: ${{ inputs.jest_cache_name != '' }}
+      shell: bash
+      env:
+        CACHE_KEY: ${{ steps.jest-cache-key.outputs.key }}
+        CACHE_HIT: ${{ steps.jest-cache.outputs.cache-hit }}
+        MATCHED_KEY: ${{ steps.jest-cache.outputs.cache-matched-key }}
+      run: |
+        set -euo pipefail
+        echo "Jest cache key: ${CACHE_KEY}"
+        echo "Jest cache exact hit: ${CACHE_HIT:-false}"
+        if [ -n "${MATCHED_KEY}" ]; then
+          echo "Jest cache restored a main entry: ${MATCHED_KEY}"
+        else
+          echo "Jest cache miss. No main entry exists for this key yet."
+        fi
