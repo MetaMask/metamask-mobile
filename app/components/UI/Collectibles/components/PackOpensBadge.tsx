@@ -6,8 +6,8 @@ import {
   IconSize,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { strings } from '../../../../../locales/i18n';
+import { getFormatters, useFormatters } from '../../../hooks/useFormatters';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
 import { Text } from '../../primitives/Text';
@@ -15,16 +15,15 @@ import { CapsuleGlass } from '../../primitives/CapsuleGlass';
 
 const flameThreshold = 20_000;
 
-function formatOpens(openedCount: number) {
-  return getIntlNumberFormatter(I18n.locale).format(openedCount);
-}
-
 export function getOpensLabel(openedCount: number) {
   return strings(
     openedCount >= flameThreshold
       ? 'collectibles.home.opens_trending'
       : 'collectibles.home.opens',
-    { count: openedCount, formattedCount: formatOpens(openedCount) },
+    {
+      count: openedCount,
+      formattedCount: getFormatters().formatNumber(openedCount),
+    },
   );
 }
 
@@ -41,7 +40,8 @@ export function PackOpensBadge({
   className,
   isAccessible = true,
 }: Props) {
-  const formattedCount = formatOpens(openedCount);
+  const { formatNumber } = useFormatters();
+  const formattedCount = formatNumber(openedCount);
   const isTrending = openedCount >= flameThreshold;
 
   return (

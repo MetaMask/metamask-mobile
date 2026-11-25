@@ -35,7 +35,7 @@ describe('PacksGridTile', () => {
     expect(screen.getByText('1,234')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        strings('collectibles.packs.open_price', { price: '$25' }),
+        strings('collectibles.packs.open_price', { price: '$25.00' }),
       ),
     ).toBeOnTheScreen();
   });
@@ -87,7 +87,7 @@ describe('PacksGridTile', () => {
       screen.getByLabelText(
         strings('collectibles.packs.open_pack_price', {
           name: 'Lorem ipsum',
-          price: '$25',
+          price: '$25.00',
         }),
       ),
     ).toBeOnTheScreen();

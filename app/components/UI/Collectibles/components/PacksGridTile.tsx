@@ -6,9 +6,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { useFormatters } from '../../../hooks/useFormatters';
 import type { ListedPack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
-import { formatPackPrice } from '../utils/packsCatalog';
 import { Button } from '../../primitives/Button';
 import { Image } from '../../primitives/Image';
 import { Pressable } from '../../primitives/Pressable';
@@ -25,7 +25,8 @@ interface Props {
 export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
   const [failedImageUrl, setFailedImageUrl] = useState<string>();
   const hasArtFailed = failedImageUrl === pack.imageUrl;
-  const price = formatPackPrice(pack.priceUsd);
+  const { formatCurrency } = useFormatters();
+  const price = formatCurrency(pack.priceUsd, 'USD');
 
   return (
     <View className="gap-2" testID={collectiblesTestIds.packsTile(pack.code)}>
