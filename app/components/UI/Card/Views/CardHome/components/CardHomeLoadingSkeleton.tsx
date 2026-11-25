@@ -46,7 +46,8 @@ const CardHomeLoadingSkeleton = (): React.JSX.Element => {
         />
       </Box>
 
-      <Box twClassName="mx-4 mt-6">
+      {/* Same gap as the loaded card art (CardHome mt-4), so it does not shift. */}
+      <Box twClassName="mx-4 mt-4">
         <Box
           twClassName="w-full overflow-hidden rounded-xl"
           style={{ aspectRatio: CARD_ART_ASPECT_RATIO }}
