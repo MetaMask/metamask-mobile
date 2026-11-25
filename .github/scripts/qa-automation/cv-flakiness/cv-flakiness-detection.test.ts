@@ -433,7 +433,7 @@ describe('collectIterationFailures budget-kill classification', () => {
   };
 
   it('does not report a budget-driven kill as a failure', () => {
-    const failures = collectIterationFailures(1, { signal: 'SIGTERM' }, unreadableReport, {
+    const failures = collectIterationFailures({ signal: 'SIGTERM' }, unreadableReport, {
       budgetKilled: true,
     });
 
@@ -441,7 +441,7 @@ describe('collectIterationFailures budget-kill classification', () => {
   });
 
   it('still reports a non-budget kill as a failure', () => {
-    const failures = collectIterationFailures(1, { signal: 'SIGTERM' }, unreadableReport, {});
+    const failures = collectIterationFailures({ signal: 'SIGTERM' }, unreadableReport, {});
 
     expect(failures).toEqual([
       { kind: 'clean-run', reason: expect.stringContaining('aborted (SIGTERM)') },

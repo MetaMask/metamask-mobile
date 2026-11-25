@@ -241,7 +241,7 @@ function markSkipped(summaryLine) {
 }
 
 /** Every failure in one repetition — assertions plus crashes, unreadable reports and suite-level errors. Pure: callers decide how to surface them. */
-export function collectIterationFailures(iteration, run, report, { budgetKilled = false } = {}) {
+export function collectIterationFailures(run, report, { budgetKilled = false } = {}) {
   const found = [];
   for (const suite of report.suites) {
     if (suite.status !== 'failed') continue;
@@ -368,7 +368,7 @@ export function runRepetitions(
       Number.isFinite(deadlineMs) &&
       (run.error?.code === 'ETIMEDOUT' || run.signal === 'SIGTERM') &&
       Date.now() - iterationStartedAt >= timeoutMs - 1000;
-    const iterationFailures = collectIterationFailures(iteration, run, report, { budgetKilled });
+    const iterationFailures = collectIterationFailures(run, report, { budgetKilled });
     const stopped = budgetKilled && iterationFailures.length === 0;
     const iterationPassed = !stopped && iterationFailures.length === 0;
 
