@@ -133,8 +133,6 @@ import CardHomeActionButtonRow, {
 } from './components/CardHomeActionButtonRow';
 import CardHomeMoreSheet from './components/CardHomeMoreSheet';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
-import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
-import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
@@ -892,8 +890,6 @@ const CardHome = () => {
     cardType: data?.card?.type,
     isRevealingCardDetails,
   });
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
   const reduceMotion = useReduceMotion();
   // Offline: no Rive, on every hardware tier. A low-end phone on a slow
   // cell connection skips it too. An unknown network keeps the animation.
