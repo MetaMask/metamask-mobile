@@ -27,8 +27,13 @@ function renderTile(overrides: Partial<ListedPack> = {}) {
   return { onOpenDetail, onOpenBuy };
 }
 
+const opensLabel = strings('collectibles.home.opens', {
+  count: 1234,
+  formattedCount: '1,234',
+});
+
 describe('PackListingTile', () => {
-  it('shows the name, the counter and the USD price button', () => {
+  it('shows the pack summary', () => {
     renderTile();
 
     expect(screen.getByText('Lorem ipsum')).toBeOnTheScreen();
@@ -62,12 +67,8 @@ describe('PackListingTile', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('reads the name and opens as one tile label', () => {
+  it('labels the tile with the name plus opens', () => {
     renderTile();
-    const opensLabel = strings('collectibles.home.opens', {
-      count: 1234,
-      formattedCount: '1,234',
-    });
 
     expect(
       screen.getByLabelText(
@@ -77,6 +78,11 @@ describe('PackListingTile', () => {
         }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps the counter out of the screen reader order', () => {
+    renderTile();
+
     expect(screen.queryByLabelText(opensLabel)).not.toBeOnTheScreen();
   });
 

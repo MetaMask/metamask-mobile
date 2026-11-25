@@ -33,7 +33,7 @@ describe('PackCategoryFilter', () => {
     ).not.toBeSelected();
   });
 
-  it('reports the pressed chip', () => {
+  it('reports the pressed category', () => {
     const onSelect = jest.fn();
     render(
       <PackCategoryFilter
@@ -44,9 +44,22 @@ describe('PackCategoryFilter', () => {
     );
 
     fireEvent.press(screen.getByText('Sports'));
+
+    expect(onSelect).toHaveBeenCalledWith('sports');
+  });
+
+  it('reports no category when "All" is pressed', () => {
+    const onSelect = jest.fn();
+    render(
+      <PackCategoryFilter
+        categories={categories}
+        selectedId="pokemon"
+        onSelect={onSelect}
+      />,
+    );
+
     fireEvent.press(screen.getByText(strings('collectibles.packs.all')));
 
-    expect(onSelect).toHaveBeenNthCalledWith(1, 'sports');
-    expect(onSelect).toHaveBeenNthCalledWith(2, undefined);
+    expect(onSelect).toHaveBeenCalledWith(undefined);
   });
 });

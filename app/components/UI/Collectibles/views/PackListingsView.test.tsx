@@ -52,7 +52,7 @@ describe('PackListingsView', () => {
     jest.restoreAllMocks();
   });
 
-  it('shows the controls, chips and grid', () => {
+  it('shows the packs layout', () => {
     renderWithProvider(<PackListingsView />);
 
     expect(
@@ -80,12 +80,17 @@ describe('PackListingsView', () => {
     );
   });
 
-  it('selects "All" by default and shows every open priced pack', () => {
+  it('selects "All" by default', () => {
     renderWithProvider(<PackListingsView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
     ).toBeSelected();
+  });
+
+  it('shows every open priced pack by default', () => {
+    renderWithProvider(<PackListingsView />);
+
     expect(shownPackCodes()).toEqual(mockCatalog.packs.map(({ code }) => code));
     expect(shownPackCodes()).not.toContain('pack-11');
     expect(shownPackCodes()).not.toContain('pack-12');
@@ -139,10 +144,12 @@ describe('PackListingsView', () => {
     expect(
       screen.getByTestId(collectiblesTestIds.packsSkeleton),
     ).toBeOnTheScreen();
-    expect(screen.queryByTestId(collectiblesTestIds.packsGrid)).toBeNull();
+    expect(
+      screen.queryByTestId(collectiblesTestIds.packsGrid),
+    ).not.toBeOnTheScreen();
   });
 
-  it('shows and announces the placeholder when no pack is available', () => {
+  it('announces the placeholder when no pack is available', () => {
     const announce = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(jest.fn());
@@ -150,6 +157,14 @@ describe('PackListingsView', () => {
     renderWithProvider(<PackListingsView />);
 
     expect(announce).toHaveBeenCalledWith(strings('collectibles.packs.empty'));
+  });
+
+  it('shows the placeholder when no pack is available', () => {
+    jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(jest.fn());
+    mockCatalog = { packs: [], categories: [], isPending: false };
+    renderWithProvider(<PackListingsView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsEmpty),
