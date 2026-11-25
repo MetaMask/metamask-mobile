@@ -48,7 +48,7 @@ describe('PerpsOrderRedirect', () => {
         initialParams: defaultParams,
         extraRoutes: [
           {
-            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           },
         ],
       },
@@ -72,7 +72,7 @@ describe('PerpsOrderRedirect', () => {
         initialParams: defaultParams,
         extraRoutes: [
           {
-            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           },
         ],
       },
@@ -93,7 +93,7 @@ describe('PerpsOrderRedirect', () => {
         initialParams: { ...defaultParams, useBottomSheet: true },
         extraRoutes: [
           {
-            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           },
         ],
       },
@@ -122,7 +122,7 @@ describe('PerpsOrderRedirect', () => {
         initialParams: defaultParams,
         extraRoutes: [
           {
-            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           },
         ],
       },
@@ -171,7 +171,7 @@ describe('PerpsOrderRedirect', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('forwards stayOnCurrentScreen onto redesigned confirmations', async () => {
+  it('forwards stayOnCurrentScreen onto confirmations', async () => {
     renderPerpsView(PerpsOrderRedirect, Routes.PERPS.ORDER_REDIRECT, {
       initialParams: {
         ...defaultParams,
@@ -180,9 +180,9 @@ describe('PerpsOrderRedirect', () => {
       },
       extraRoutes: [
         {
-          name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           Component: createRouteParamsProbe(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           ) as ComponentType<unknown>,
         },
       ],
@@ -191,7 +191,7 @@ describe('PerpsOrderRedirect', () => {
     expect(
       await screen.findByTestId(
         getRouteParamsProbeTestId(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         ),
       ),
     ).toHaveTextContent(/"stayOnCurrentScreen":true/);

@@ -219,13 +219,15 @@ describe('WatchlistSection', () => {
   const renderSection = () =>
     render(<WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />);
 
-  it('keeps the shared performance hook on its legacy metadata contract', () => {
+  it('passes explicit TTC demand and cache metadata', () => {
     render(<WatchlistSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     expect(jest.mocked(useSectionPerformance)).toHaveBeenCalledWith({
       sectionId: 'watchlist',
       contentReady: true,
       isEmpty: true,
+      demandStarted: true,
+      cacheState: 'warm',
       isLoading: false,
       enabled: true,
     });

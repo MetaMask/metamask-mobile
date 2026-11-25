@@ -366,18 +366,15 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       };
       prepareOrder()
         .then(() => {
-          navigation.navigate(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            {
-              ...params,
-              ...(useBottomSheet
-                ? { useBottomSheet: true, forceBottomSheet: true }
-                : {}),
-              showPerpsHeader: useBottomSheet
-                ? false
-                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
-            },
-          );
+          navigation.navigate(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+            ...params,
+            ...(useBottomSheet
+              ? { useBottomSheet: true, forceBottomSheet: true }
+              : {}),
+            showPerpsHeader: useBottomSheet
+              ? false
+              : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          });
         })
         .catch((error: unknown) => {
           if (useBottomSheet) {
