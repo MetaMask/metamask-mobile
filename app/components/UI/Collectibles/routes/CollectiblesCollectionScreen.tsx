@@ -3,9 +3,9 @@ import { useNavigation } from '@react-navigation/native';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
+import { CollectiblesCollectionView } from '../views/CollectiblesCollectionView';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-// Placeholder until GAC-75 fills it.
 export function CollectiblesCollectionScreen() {
   const navigation = useNavigation();
 
@@ -19,6 +19,7 @@ export function CollectiblesCollectionScreen() {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
+      <CollectiblesCollectionView />
     </View>
   );
 }

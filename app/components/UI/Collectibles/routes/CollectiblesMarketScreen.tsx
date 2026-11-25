@@ -1,16 +1,11 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  HeaderStandard,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
+import { CollectiblesMarketView } from '../views/CollectiblesMarketView';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-// Coming Soon placeholder until the Market story lands.
 export function CollectiblesMarketScreen() {
   const navigation = useNavigation();
 
@@ -24,11 +19,7 @@ export function CollectiblesMarketScreen() {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <View className="flex-1 items-center justify-center px-6">
-        <Text variant={TextVariant.HeadingSm} color={TextColor.TextAlternative}>
-          {strings('collectibles.market.coming_soon')}
-        </Text>
-      </View>
+      <CollectiblesMarketView />
     </View>
   );
 }
