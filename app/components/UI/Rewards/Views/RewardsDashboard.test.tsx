@@ -136,6 +136,7 @@ import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMon
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
+import { resetNotSupportedSheetSession } from '../utils/notSupportedSheetSession';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
@@ -917,6 +918,10 @@ describe('RewardsDashboard', () => {
   });
 
   describe('unsupported account sheet', () => {
+    beforeEach(() => {
+      resetNotSupportedSheetSession();
+    });
+
     const KEY_PREFIX = 'rewards.dashboard_modal_info.account_not_supported';
     const notSupportedParams = (descriptionKey: string) => ({
       title: `${KEY_PREFIX}.title`,
@@ -1045,6 +1050,46 @@ describe('RewardsDashboard', () => {
 
       // Act: closing the sheet refocuses the dashboard, which re-runs the effect
       rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        mockNavigate.mock.calls.filter(
+          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not reopen the sheet after the account group status briefly reports unknown', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        currentAccountGroupPartiallySupported: null,
+        currentAccountGroupOptedInStatus: null,
+      });
+
+      // Act: a loading or error refresh flickers the status, then it settles
+      rerender(<RewardsDashboard />);
+      mockUnsupportedAccountGroup();
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        mockNavigate.mock.calls.filter(
+          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not reopen the sheet for the same account group in a new dashboard mount', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { unmount } = render(<RewardsDashboard />);
+      unmount();
+
+      // Act
+      render(<RewardsDashboard />);
 
       // Assert
       expect(

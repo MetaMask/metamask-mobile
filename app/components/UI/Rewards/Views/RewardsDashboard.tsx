@@ -67,6 +67,10 @@ import {
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
 import { useOpenSocialPostComposer } from '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
+import {
+  hasShownNotSupportedSheet,
+  markNotSupportedSheetShown,
+} from '../utils/notSupportedSheetSession';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
@@ -184,26 +188,21 @@ const RewardsDashboard: React.FC = () => {
   );
 
   // Tell the user when the selected account group is entirely not supported
-  // (e.g. a hardware wallet account group). Shown once per account group for
-  // this mount: dismissing it must stick, since closing the sheet refocuses
-  // the dashboard and would otherwise reopen it.
-  const notSupportedSheetGroupId = useRef<string | null>(null);
+  // (e.g. a hardware wallet account group). Shown once per account group per
+  // app session: closing the sheet refocuses the dashboard, and transient
+  // loading or error states must not bring it back.
   useFocusEffect(
     useCallback(() => {
       const groupId = selectedAccountGroup?.id;
-      const isNotSupported =
-        currentAccountGroupPartiallySupported === false &&
-        !hideCurrentAccountNotOptedInBanner &&
-        Boolean(groupId);
-
-      if (!isNotSupported || !groupId) {
-        notSupportedSheetGroupId.current = null;
+      if (
+        currentAccountGroupPartiallySupported !== false ||
+        hideCurrentAccountNotOptedInBanner ||
+        !groupId ||
+        hasShownNotSupportedSheet(groupId)
+      ) {
         return;
       }
-      if (notSupportedSheetGroupId.current === groupId) {
-        return;
-      }
-      notSupportedSheetGroupId.current = groupId;
+      markNotSupportedSheetShown(groupId);
 
       const hasHardwareAccounts = getAccountsByGroupId(groupId).some(
         (account) => isHardwareAccount(account.address),
