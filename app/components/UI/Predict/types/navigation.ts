@@ -165,7 +165,7 @@ export type PredictModalsNavigationParamList = {
   PredictMarketUnavailable: undefined;
   PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
-  RedesignedConfirmations: undefined;
+  Confirmations: undefined;
   NoHeaderConfirmations: undefined;
 };
 
@@ -178,7 +178,7 @@ export type PredictStackParamList = {
   PredictPositions: PredictPositionsParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
-  RedesignedConfirmations: undefined;
+  Confirmations: undefined;
   NoHeaderConfirmations: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;

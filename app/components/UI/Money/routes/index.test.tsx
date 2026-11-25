@@ -267,15 +267,13 @@ describe('MoneyConfirmationScreenStack', () => {
     jest.clearAllMocks();
   });
 
-  it('registers the redesigned confirmations screen', () => {
+  it('registers the confirmations screen', () => {
     const { getByTestId } = renderWithProvider(
       <MoneyConfirmationScreenStack />,
       { theme: themeWithCustomBackground },
     );
 
-    expect(
-      getByTestId('money-screen-RedesignedConfirmations'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('money-screen-Confirmations')).toBeOnTheScreen();
   });
 
   it('hides the stack header', () => {

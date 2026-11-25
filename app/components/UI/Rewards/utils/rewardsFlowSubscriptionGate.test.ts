@@ -27,17 +27,17 @@ describe('rewardsFlowFocusedScreen', () => {
   it('uses the nested screen param when no route name is available', () => {
     const focused = rewardsFlowFocusedScreen(
       undefined,
-      Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
+      Routes.REWARDS_COPY_TRADING_VIEW,
     );
 
-    expect(focused).toBe(Routes.REWARDS_TRADING_COMMISSIONS_VIEW);
+    expect(focused).toBe(Routes.REWARDS_COPY_TRADING_VIEW);
   });
 });
 
 describe('isRewardsMoneyFlowScreen', () => {
   it.each([
     Routes.REWARDS_SETTINGS_VIEW,
-    Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
+    Routes.REWARDS_COPY_TRADING_VIEW,
     Routes.REWARDS_TRADING_REBATES_VIEW,
     Routes.REWARDS_EARNINGS_HISTORY_VIEW,
   ])('accepts %s without a points subscription', (screen) => {

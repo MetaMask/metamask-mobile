@@ -917,7 +917,7 @@ const selectModifyActionExtraRoutes = [
   { name: Routes.PERPS.ADJUST_MARGIN },
   { name: Routes.PERPS.TUTORIAL },
   {
-    name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     Component: () => (
       <Text testID={ROUTE_ORDER_CONFIRMATION_TEST_ID}>Order</Text>
     ),
