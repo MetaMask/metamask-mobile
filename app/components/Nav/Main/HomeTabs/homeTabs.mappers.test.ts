@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import {
   isNativeTabBarSupported,
@@ -144,6 +145,28 @@ describe('toNativeTabOptions', () => {
     });
   });
 
+  it('adds a new-state accessibility label to the Social tab', () => {
+    const options = toNativeTabOptions({
+      ...homeTab,
+      iconKey: TabBarIconKey.Social,
+      showNewBadge: true,
+    });
+
+    expect(options).toHaveProperty(
+      'tabBarAccessibilityLabel',
+      `${strings('bottom_nav.social')}, ${strings('bridge.tabs.new_badge')}`,
+    );
+  });
+
+  it('leaves the Social tab accessibility label unchanged without a new badge', () => {
+    const options = toNativeTabOptions({
+      ...homeTab,
+      iconKey: TabBarIconKey.Social,
+    });
+
+    expect(options).not.toHaveProperty('tabBarAccessibilityLabel');
+  });
+
   it('does not touch the bar style unless the tab asks to hide it', () => {
     const rewardsTab: HomeTabDefinition = {
       ...homeTab,
@@ -175,14 +198,10 @@ describe('toNativeTabOptions', () => {
     expect(options.tabBarSelectionEnabled).toBeUndefined();
   });
 
-  it('maps a new badge to the native tab icon', () => {
-    const options = toNativeTabOptions(
-      { ...homeTab, showNewBadge: true },
-      undefined,
-      'green',
-    );
+  it('leaves native badge rendering to the overlay', () => {
+    const options = toNativeTabOptions({ ...homeTab, showNewBadge: true });
 
-    expect(options.tabBarBadge).toBe('');
-    expect(options.tabBarBadgeStyle).toEqual({ backgroundColor: 'green' });
+    expect(options).not.toHaveProperty('tabBarBadge');
+    expect(options).not.toHaveProperty('tabBarBadgeStyle');
   });
 });

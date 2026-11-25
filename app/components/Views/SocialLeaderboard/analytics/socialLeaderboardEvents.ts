@@ -151,6 +151,7 @@ export type TraderProfileScreenViewedSource = Extract<
   | 'deep_link'
   | 'trader_feed'
   | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type TraderFollowInteractionSource = Extract<
@@ -163,6 +164,7 @@ export type TraderFollowInteractionSource = Extract<
   | 'nux'
   | 'trader_feed'
   | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type FollowTradingTokenSource = Extract<
