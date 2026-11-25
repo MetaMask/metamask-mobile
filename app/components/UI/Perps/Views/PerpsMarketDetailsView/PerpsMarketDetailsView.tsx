@@ -2559,7 +2559,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         <PerpsTradeOnSheet
           selectedProviderId={tradeVenueId}
           defaultProviderId={defaultProvider}
-          symbol={market?.symbol ?? ''}
           venues={tradeOnVenues}
           onSelect={handleTradeOnSelect}
           onClose={() => setIsTradeOnSheetVisible(false)}

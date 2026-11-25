@@ -3664,8 +3664,8 @@
     },
     "exchange_filter": {
       "title": "Filter by exchange",
-      "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage",
+      "tagline_lighter": "Lower fee, higher leverage",
+      "tagline_hyperliquid": "Higher volume, lower slippage",
       "trigger": "{{count}} exchange",
       "trigger_plural": "{{count}} exchanges"
     },
@@ -3901,12 +3901,10 @@
     },
     "trade_on": {
       "title": "Trade on",
+      "label": "Trade on",
       "subtitle": "Select an exchange for this order. To set a default for all orders, go to settings.",
-      "provided_by": "Provided by",
       "accessibility_label": "Trade on {{venue}}",
       "max_leverage": "max",
-      "fee": "fee",
-      "open_interest": "OI",
       "default_tag": "Default"
     }
   },

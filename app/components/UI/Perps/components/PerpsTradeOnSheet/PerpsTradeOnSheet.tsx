@@ -15,10 +15,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
-import {
-  formatPercentage,
-  type PerpsMarketData,
-  type PerpsProviderType,
+import type {
+  PerpsMarketData,
+  PerpsProviderType,
 } from '@metamask/perps-controller';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -26,8 +25,6 @@ import BottomSheetHeaderGlass from '../../../../../component-library/components-
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import PerpsProviderLogos from '../PerpsProviderLogos';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
-import FundingCountdown from '../FundingCountdown';
-import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import { PerpsTradeOnSelectorsIDs } from '../../Perps.testIds';
 
@@ -36,8 +33,6 @@ interface PerpsTradeOnSheetProps {
   selectedProviderId: PerpsProviderType;
   /** The saved default provider, tagged on its row. */
   defaultProviderId: PerpsProviderType;
-  /** Market symbol the fee rates are resolved for. */
-  symbol: string;
   /** One market row per venue that lists the market, in display order. */
   venues: readonly PerpsMarketData[];
   /**
@@ -50,9 +45,6 @@ interface PerpsTradeOnSheetProps {
   testID?: string;
 }
 
-/** Placeholder for stats that have not loaded; edge states follow TAT-4410. */
-const UNAVAILABLE_STAT = '—';
-
 /** Venue-mark size on each row, matching the exchange filter sheet. */
 const TRADE_ON_SHEET_LOGO_SIZE = 40;
 
@@ -63,20 +55,14 @@ const VENUE_TAGLINE_KEY: Record<PerpsProviderType, string> = {
 
 /**
  * "Trade on" sheet (TAT-4418): pick which exchange this order goes to.
- * One row per venue listing the market — venue mark, name with max
- * leverage (and a Default tag on the saved default), its tagline, fee,
- * open interest, and funding with its countdown — plus a radio and a
- * Save button. Saving applies to this order only; the default provider
- * is changed in settings, not here.
- *
- * Fee rates come from the order fee hooks (a Figma frame shows a
- * Hyperliquid rate on the Lighter row by mistake; the hooks are the
- * source of truth).
+ * One row per venue listing the market — venue mark, name with a
+ * max-leverage tag (and a Default tag on the saved default), its
+ * tagline, and a radio — plus a Save button. Saving applies to this
+ * order only; the default provider is changed in settings, not here.
  */
 const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
   selectedProviderId,
   defaultProviderId,
-  symbol,
   venues,
   onSelect,
   onClose,
@@ -85,26 +71,6 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) ?? false;
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-
-  // One fee lookup per venue; the rate is amount-independent, so a
-  // nominal market order suffices. The sheet only mounts while open, so
-  // these do not run on every market screen.
-  const hyperliquidFees = usePerpsOrderFees({
-    orderType: 'market',
-    amount: '1',
-    symbol,
-    providerId: PROVIDER_CONFIG.DefaultProvider,
-  });
-  const lighterFees = usePerpsOrderFees({
-    orderType: 'market',
-    amount: '1',
-    symbol,
-    providerId: PROVIDER_CONFIG.LighterProvider,
-  });
-  const feeRateByVenue: Record<PerpsProviderType, number | undefined> = {
-    [PROVIDER_CONFIG.DefaultProvider]: hyperliquidFees.totalFeeRate,
-    [PROVIDER_CONFIG.LighterProvider]: lighterFees.totalFeeRate,
-  };
 
   // Radio selection is a draft until Save applies it.
   const [draftProviderId, setDraftProviderId] =
@@ -199,40 +165,6 @@ const PerpsTradeOnSheet: React.FC<PerpsTradeOnSheetProps> = ({
                     numberOfLines={1}
                   >
                     {strings(VENUE_TAGLINE_KEY[providerId])}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                    testID={`${rowTestID}-stats`}
-                  >
-                    {`${formatPercentage(
-                      feeRateByVenue[providerId] === undefined
-                        ? undefined
-                        : feeRateByVenue[providerId] * 100,
-                      { decimals: 3 },
-                    )} ${strings('perps.trade_on.fee')} · ${
-                      venue.openInterest ?? UNAVAILABLE_STAT
-                    } ${strings('perps.trade_on.open_interest')}`}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                    testID={`${rowTestID}-funding`}
-                  >
-                    {`${formatPercentage(
-                      venue.fundingRate === undefined
-                        ? undefined
-                        : venue.fundingRate * 100,
-                      { decimals: 4, sign: 'never' },
-                    )} `}
-                    <FundingCountdown
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                      nextFundingTime={venue.nextFundingTime}
-                      fundingIntervalHours={venue.fundingIntervalHours}
-                    />
                   </Text>
                 </Box>
                 <RadioButton
