@@ -265,7 +265,7 @@ describe('usePerpsLiquidationPrice', () => {
       (props) => usePerpsLiquidationPrice(props),
       {
         initialProps: {
-          entryPrice: 50000 as number | undefined,
+          entryPrice: 50000,
           leverage: 10,
           direction: 'long' as const,
           asset: 'BTC',
@@ -316,8 +316,13 @@ describe('usePerpsLiquidationPrice', () => {
         asset: 'BTC',
       });
 
-      jest.advanceTimersByTime(1000);
-      await act(async () => {});
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      // Flush the microtasks enqueued by the timer's async callback.
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(1);
       expect(mockCalculateLiquidationPrice).toHaveBeenCalledWith(
@@ -329,10 +334,10 @@ describe('usePerpsLiquidationPrice', () => {
   });
 
   it('drops a late response for inputs that have since changed', async () => {
-    let resolveStale: (price: string) => void = () => undefined;
+    let resolveStale: (price: string) => void = jest.fn();
     mockCalculateLiquidationPrice
       .mockImplementationOnce(
-        () =>
+        async () =>
           new Promise<string>((resolve) => {
             resolveStale = resolve;
           }),
