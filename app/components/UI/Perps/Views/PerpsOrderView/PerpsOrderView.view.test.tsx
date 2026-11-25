@@ -57,6 +57,7 @@ import {
   type PerpsExtraRoute,
   type PerpsStreamOverrides,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { createAccountSwitcher } from '../../../../../../tests/component-view/helpers/accountSwitcher';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import {
   PerpsBottomSheetTooltipSelectorsIDs,
@@ -846,6 +847,71 @@ describe('PerpsOrderView', () => {
 
     expect(placeOrder).not.toHaveBeenCalled();
   });
+
+  it.each(['account', 'network', 'neither'] as const)(
+    'binds the supported Lite order to its context while validation finishes (%s changes)',
+    async (change) => {
+      const controller = Engine.context.PerpsController;
+      const validateOrder = jest.mocked(controller.validateOrder);
+      const { store, stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const submit = await waitForEnabledPlaceOrderButton();
+
+      // A quote tick starts background validation. Keep both it and the
+      // submit-time validation pending until after the support check passes.
+      let finishValidation!: () => void;
+      const validation = new Promise<{ isValid: boolean }>((resolve) => {
+        finishValidation = () => resolve({ isValid: true });
+      });
+      validateOrder
+        .mockClear()
+        .mockReturnValueOnce(validation)
+        .mockReturnValueOnce(validation);
+      emitEthPrice(stream, '2', '2501');
+      await waitFor(() => expect(validateOrder).toHaveBeenCalledTimes(1));
+      jest.mocked(controller.getAccountSupport).mockClear();
+      fireEvent.press(submit);
+      await waitFor(() => expect(validateOrder).toHaveBeenCalledTimes(2));
+      expect(controller.getAccountSupport).toHaveBeenCalledTimes(1);
+
+      const switcher = createAccountSwitcher(store);
+      try {
+        if (change === 'account') {
+          act(() =>
+            switcher.switchTo(
+              'second-trader',
+              '0x0000000000000000000000000000000000000002',
+            ),
+          );
+        } else if (change === 'network') {
+          switchPerpsSupportContext(store);
+        }
+        await act(async () => {
+          finishValidation();
+        });
+        expect(controller.placeOrder).toHaveBeenCalledTimes(
+          change === 'neither' ? 1 : 0,
+        );
+      } finally {
+        switcher.cleanup();
+      }
+    },
+  );
 
   it('abandons a Trade sheet submission when its account-support context becomes stale', async () => {
     const getAccountSupport = jest.mocked(

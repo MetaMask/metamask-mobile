@@ -2076,40 +2076,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     track,
   ]);
 
-  /** Resolves to undefined when the attempt was retired during validation. */
-  const resolveSubmissionValidation = useCallback(
-    async (
-      isAttemptRetired: () => boolean,
-    ): Promise<Pick<ValidationAttempt, 'isValid' | 'errors'> | undefined> => {
-      if (!orderValidation.isValidating) {
-        return {
-          isValid: orderValidation.isValid,
-          errors: orderValidation.errors,
-        };
-      }
-      isSubmittingRef.current = true;
-      // Promise `finally` instead of a `finally` block: React Compiler does
-      // not handle try/finally, which kept this whole view uncompiled.
-      const validationAttempt = await validateOrderNow().finally(() => {
-        isSubmittingRef.current = false;
-      });
-      // Only a user-initiated submit is abandoned with the sheet. The
-      // post-deposit re-entry (`forceTrade`) runs by design after the user
-      // has left — the deposit branch itself navigates away once the
-      // confirmation resolves — and the confirmed deposit is a commitment
-      // that must still produce the order.
-      if (isAttemptRetired()) {
-        return undefined;
-      }
-      return validationAttempt;
-    },
-    [
-      orderValidation.isValidating,
-      orderValidation.isValid,
-      orderValidation.errors,
-      validateOrderNow,
-    ],
-  );
+  const resolveSubmissionValidation = useCallback(async (): Promise<
+    Pick<ValidationAttempt, 'isValid' | 'errors'>
+  > => {
+    if (!orderValidation.isValidating) {
+      return {
+        isValid: orderValidation.isValid,
+        errors: orderValidation.errors,
+      };
+    }
+    isSubmittingRef.current = true;
+    return validateOrderNow().finally(() => {
+      isSubmittingRef.current = false;
+    });
+  }, [
+    orderValidation.isValidating,
+    orderValidation.isValid,
+    orderValidation.errors,
+    validateOrderNow,
+  ]);
 
   const reportValidationFailure = useCallback(
     (errors: string[]) => {
@@ -2589,8 +2574,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         fireImpact(ImpactMoment.PrimaryCTA);
       }
 
-      const validation = await resolveSubmissionValidation(isAttemptRetired);
-      if (!validation) return 'abort';
+      const validation = await resolveSubmissionValidation();
+      // Even cached validation yields to the event loop. Check ownership
+      // here, before starting either the deposit or direct placement.
+      if (isAttemptRetired()) return 'abort';
       if (!validation.isValid) {
         reportValidationFailure(validation.errors);
         return;

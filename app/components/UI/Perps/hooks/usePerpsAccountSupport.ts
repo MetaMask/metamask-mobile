@@ -59,6 +59,8 @@ export interface UsePerpsAccountSupportReturn {
   unsupportedContentKey: UnsupportedContentKey | null;
   /** Opens the explanation synchronously only if prefetch already found a blocker. */
   showPrefetchedUnsupported: () => boolean;
+  /** Identity checked for a pinned or active venue, read from the live store. */
+  readContextKey: (providerId?: PerpsProviderType) => string;
   checkAccountSupport: (
     providerId?: PerpsProviderType,
     options?: CheckPerpsAccountSupportOptions,
@@ -94,6 +96,11 @@ export const usePerpsAccountSupport = (
   const store = useStore<RootState>();
   const contextKey = useSelector((state: RootState) =>
     getSupportContextKey(state, prefetchProviderId, true),
+  );
+  const readContextKey = useCallback(
+    (providerId?: PerpsProviderType, bindActiveProvider = false) =>
+      getSupportContextKey(store.getState(), providerId, bindActiveProvider),
+    [store],
   );
   const isMountedRef = useRef(true);
 
@@ -160,15 +167,11 @@ export const usePerpsAccountSupport = (
 
   const showPrefetchedUnsupported = useCallback(() => {
     const known = prefetched.current;
-    if (
-      !known ||
-      known.contextKey !==
-        getSupportContextKey(store.getState(), prefetchProviderId, true)
-    )
+    if (!known || known.contextKey !== readContextKey(prefetchProviderId, true))
       return false;
     setExplanation(known);
     return true;
-  }, [prefetchProviderId, store]);
+  }, [prefetchProviderId, readContextKey]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -182,8 +185,7 @@ export const usePerpsAccountSupport = (
       providerId?: PerpsProviderType,
       options?: CheckPerpsAccountSupportOptions,
     ): Promise<PerpsAccountSupportCheckResult> => {
-      const requestedContext = getSupportContextKey(
-        store.getState(),
+      const requestedContext = readContextKey(
         providerId,
         options?.bindActiveProvider,
       );
@@ -194,22 +196,15 @@ export const usePerpsAccountSupport = (
       // An explicit providerId ignores the active provider on its own, so
       // withdrawals also bind the active provider mode.
       if (
-        getSupportContextKey(
-          store.getState(),
-          providerId,
-          options?.bindActiveProvider,
-        ) !== requestedContext
+        readContextKey(providerId, options?.bindActiveProvider) !==
+        requestedContext
       ) {
         return 'stale';
       }
       if (!support.isSupported) {
         if (!unmounted && options?.showExplanation !== false) {
           setExplanation({
-            contextKey: getSupportContextKey(
-              store.getState(),
-              prefetchProviderId,
-              true,
-            ),
+            contextKey: readContextKey(prefetchProviderId, true),
             reason: support.reason,
           });
         }
@@ -220,7 +215,7 @@ export const usePerpsAccountSupport = (
       }
       return 'supported';
     },
-    [prefetchProviderId, readAccountSupport, store],
+    [prefetchProviderId, readAccountSupport, readContextKey],
   );
 
   const checkAccountSupport = useCallback(
@@ -263,6 +258,7 @@ export const usePerpsAccountSupport = (
   return {
     unsupportedContentKey,
     showPrefetchedUnsupported,
+    readContextKey,
     checkAccountSupport,
     closeAccountUnsupportedModal,
   };

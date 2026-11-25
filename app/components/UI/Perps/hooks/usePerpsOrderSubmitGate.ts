@@ -19,8 +19,13 @@ type GateDecision =
 export function usePerpsOrderSubmitGate(
   checkAccountSupport: UsePerpsAccountSupportReturn['checkAccountSupport'],
   inputKey: string,
-  isDismissedRef?: { readonly current: boolean },
+  liteContext?: {
+    isDismissedRef: { readonly current: boolean };
+    readContextKey: UsePerpsAccountSupportReturn['readContextKey'];
+  },
 ) {
+  const isDismissedRef = liteContext?.isDismissedRef;
+  const readContextKey = liteContext?.readContextKey;
   const committedKey = useRef(inputKey);
   useLayoutEffect(() => {
     committedKey.current = inputKey;
@@ -35,8 +40,12 @@ export function usePerpsOrderSubmitGate(
       { origin }: SubmitOrigin,
     ): Promise<GateDecision> => {
       const attempt = generation.current;
+      // A committed deposit can outlive the view. Re-read the venue context
+      // from the store even when the form can no longer rerender.
+      const contextAtSubmit = readContextKey?.(providerId);
       const isRetired = () =>
         inputKey !== committedKey.current ||
+        readContextKey?.(providerId) !== contextAtSubmit ||
         (origin === 'userTap' &&
           (Boolean(isDismissedRef?.current) || generation.current !== attempt));
       const support =
@@ -52,7 +61,7 @@ export function usePerpsOrderSubmitGate(
       if (support === 'unsupported') return { status: 'accountUnsupported' };
       return { status: 'continue', isRetired };
     },
-    [checkAccountSupport, inputKey, isDismissedRef],
+    [checkAccountSupport, inputKey, isDismissedRef, readContextKey],
   );
   return { checkBeforeSubmit, retireAttempts };
 }
@@ -84,7 +93,7 @@ export function usePerpsLiteOrderSubmitGate({
       payTokenIdentity,
       hasCustomTokenSelected,
     ]),
-    isDismissedRef,
+    { isDismissedRef, readContextKey: support.readContextKey },
   );
   return {
     ...gate,
