@@ -15,7 +15,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
       if (typeof styles === 'string') {
         return { testID: `tw-${styles}` };
       }
-      return styles || {};
+      return styles ?? {};
     });
 
     const tw = Object.assign(mockFn, {

@@ -12278,11 +12278,6 @@
       "count": 2
     }
   },
-  "app/components/UI/Rewards/components/testUtils.ts": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/hooks/useAcceptMoneyReferralCode.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
