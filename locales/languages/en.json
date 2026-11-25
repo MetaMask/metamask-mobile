@@ -203,6 +203,12 @@
         "message": "This has been identified as suspicious. We recommend not interacting with this site.",
         "title": "Suspicious site"
       }
+    },
+    "clamp_commit_failed": {
+      "message": "Failed to update transaction amount"
+    },
+    "clamp_commit_pending": {
+      "message": "Updating transaction amount"
     }
   },
   "blockaid_banner": {

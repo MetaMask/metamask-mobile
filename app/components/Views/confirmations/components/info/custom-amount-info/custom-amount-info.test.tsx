@@ -455,7 +455,10 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayPostQuoteMock = jest.mocked(
     useTransactionPayPostQuote,
   );
-  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
+  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount> & {
+    isClampCommitPending?: boolean;
+    isClampCommitFailed?: boolean;
+  };
   const createCustomAmountMock = (
     overrides: Partial<CustomAmountMock> = {},
   ): CustomAmountMock => ({
@@ -472,6 +475,8 @@ describe('CustomAmountInfo', () => {
     updatePendingAmount: noop,
     updatePendingAmountPercentage: () => false,
     updateTokenAmount: jest.fn(),
+    isClampCommitPending: false,
+    isClampCommitFailed: false,
     ...overrides,
   });
 
@@ -917,6 +922,60 @@ describe('CustomAmountInfo', () => {
 
     expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
     expect(getByText('Test Help Text')).toBeDefined();
+  });
+
+  it('blocks Continue when clamp commit is pending', () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '900',
+        isClampCommitPending: true,
+        isClampCommitFailed: false,
+      }),
+    );
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: AlertKeys.ClampCommitFailed,
+          message: 'Updating transaction amount',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+
+    const view = render();
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('blocks Continue when clamp commit has failed', () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '900',
+        isClampCommitPending: false,
+        isClampCommitFailed: true,
+      }),
+    );
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: AlertKeys.ClampCommitFailed,
+          message: 'Failed to update transaction amount',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+
+    const view = render();
+
+    expect(
+      view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {

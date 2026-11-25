@@ -756,14 +756,15 @@ export function useTransactionCustomAmount({
   ]);
 
   // Clean up retry timeout on unmount or transactionId change
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (clampRetryTimeoutRef.current) {
         clearTimeout(clampRetryTimeoutRef.current);
         clampRetryTimeoutRef.current = null;
       }
-    };
-  }, [transactionId]);
+    },
+    [transactionId],
+  );
 
   const updateTokenAmount = useCallback(async () => {
     await updateTransactionPayAmount(amountHuman);
