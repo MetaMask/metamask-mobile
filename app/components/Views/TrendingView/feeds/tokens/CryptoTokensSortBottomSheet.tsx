@@ -30,7 +30,6 @@ import {
   SortDirection,
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 
-/** A client-side sort of the active crypto pill's rows. */
 export interface CryptoTokensSort {
   option: PriceChangeOption;
   direction: SortDirection;
@@ -50,17 +49,11 @@ export const CRYPTO_TOKENS_SORT_OPTIONS: readonly {
 
 export interface CryptoTokensSortBottomSheetProps {
   onClose: () => void;
-  /** Current sort; undefined keeps the pill's own (server) order. */
   sort?: CryptoTokensSort;
-  /** Called on Apply; undefined after Reset restores the pill's order. */
   onApply: (sort: CryptoTokensSort | undefined) => void;
   testID?: string;
 }
 
-/**
- * Changes stay in draft until Apply; tapping the selected option toggles
- * the direction, and Reset restores the pill's own order.
- */
 const CryptoTokensSortBottomSheet: React.FC<
   CryptoTokensSortBottomSheetProps
 > = ({ onClose, sort, onApply, testID }) => {

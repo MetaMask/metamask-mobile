@@ -13,25 +13,17 @@ export type CryptoPillKey =
   | 'most_traded'
   | 'robinhood';
 
-export type CryptoChainPillKey = Extract<CryptoPillKey, 'robinhood'>;
+type CryptoChainPillKey = Extract<CryptoPillKey, 'robinhood'>;
 
-/** Definition for a pill rendered in the Explore crypto pill row. */
 export interface CryptoPillDefinition {
   key: CryptoPillKey;
   labelKey: string;
   sectionName: ExploreSectionName;
-  /** Minimum filtered items for the pill to stay visible once loaded. */
   minItems: number;
-  /** Optional leading pill icon. */
   iconName?: IconName;
-  /** Token API request; omitted for the watchlist pill. */
   request?: CryptoPillRequestParams;
 }
 
-/**
- * Chain-scoped pill. `trending` is the primary request scoped to the pill's
- * chain; when it returns no tokens, `popularFallback` is used instead.
- */
 export interface CryptoChainPillDefinition {
   key: CryptoChainPillKey;
   chainId: CaipChainId;
@@ -110,12 +102,6 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
   },
 ];
 
-/**
- * Chain pills appended after the token pills. Surfacing another chain
- * additionally requires extending CryptoPillKey, adding a `tokens_<key>`
- * member to ExploreSectionName, and adding the label under
- * `trending.crypto_pills` in en.json.
- */
 export const CRYPTO_CHAIN_PILLS: readonly CryptoChainPillDefinition[] = [
   {
     key: 'robinhood',
@@ -142,7 +128,6 @@ export const CRYPTO_CHAIN_PILLS: readonly CryptoChainPillDefinition[] = [
   },
 ];
 
-/** Ordered pill definitions for the UI; the watchlist pill is flag-gated. */
 export const getCryptoPillOrder = (
   isWatchlistEnabled: boolean,
 ): readonly CryptoPillDefinition[] => [

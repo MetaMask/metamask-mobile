@@ -189,7 +189,6 @@ const arrange = (results: Record<string, CryptoPillFeedResult>) => {
   mockUseCryptoPillFeed.mockReturnValue({ results });
 };
 
-/** Mirrors CryptoTab: the parent owns the pill selection. */
 const CryptoPillBlockHarness: React.FC<{
   blockProps: Omit<
     CryptoTokensPillBlockProps,

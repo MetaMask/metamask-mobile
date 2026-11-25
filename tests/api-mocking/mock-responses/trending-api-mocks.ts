@@ -24,8 +24,6 @@ const TRENDING_TOKENS_RESPONSE = [
   },
 ];
 
-// Top gainers pill (Explore › Crypto). Distinct from top losers by the sort
-// query parameter — both pills hit the same /top-gainers endpoint.
 const TOP_GAINERS_TOKENS_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0x514910771af9ca656af840dff83e8264ecf986ca',
@@ -49,7 +47,6 @@ const TOP_GAINERS_TOKENS_RESPONSE = [
   },
 ];
 
-// Top losers pill — ascending sort on the shared /top-gainers endpoint.
 const TOP_LOSERS_TOKENS_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
@@ -83,8 +80,6 @@ const TOP_LOSERS_TOKENS_RESPONSE = [
   },
 ];
 
-// Most traded pill (and the Robinhood-chain pill fallback when its
-// trending-scoped request comes back empty).
 const POPULAR_TOKENS_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',

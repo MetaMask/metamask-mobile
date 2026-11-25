@@ -76,7 +76,6 @@ type CryptoTokensListRow =
 
 const STICKY_ROW: CryptoTokensListRow = { type: 'sticky' };
 
-/** Pills whose order is the point of the pill; they get no sort row. */
 const UNSORTABLE_PILL_KEYS: ReadonlySet<CryptoPillKey> = new Set([
   'gainers',
   'losers',
@@ -84,34 +83,20 @@ const UNSORTABLE_PILL_KEYS: ReadonlySet<CryptoPillKey> = new Set([
 
 export interface CryptoTokensPillBlockProps {
   title: string;
-  /** The user's pill selection. Owned by the parent so pull-to-refresh targets the displayed pill. */
   activePillKey?: CryptoPillKey;
   onActivePillChange: (key: CryptoPillKey) => void;
-  /** Shows the Quick Trade button on token rows when provided. */
   onQuickTrade?: (token: TrendingAsset) => void;
-  /** Analytics context. */
   tabName: ExploreTabName;
-  /** Test IDs. */
   headerTestID: string;
   idPrefix: string;
   testIdPrefix: string;
   listTestId: string;
-  /** Rendered above the section header; scrolls away (e.g. Top Traders). */
   ListHeaderComponent?: React.ReactElement | null;
   refreshing: boolean;
   onRefresh: () => void;
-  /** Test ID of the scrolling list. */
   testID?: string;
 }
 
-/**
- * Explore crypto tokens list: `ListHeaderComponent`
- * and the Tokens section header scroll away, the pill row (watchlist,
- * trending, top gainers, losers, most traded, plus configured chains) pins
- * as a sticky header, and every token of the selected pill is listed below.
- * Pills whose loaded data falls below their `minItems` are hidden; the active
- * pill falls back to the first selectable one.
- */
 const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   title,
   activePillKey,
@@ -262,8 +247,6 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     return rows;
   }, [activeItems, isListLoading]);
 
-  // On a pill change past the header, jump back to the list top with the
-  // pills still pinned. Skips the first render.
   const hasMountedRef = useRef(false);
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -443,8 +426,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
         testID={testID ?? listTestId}
       />
       {isSortSheetOpen && (
-        // A Modal so the sheet covers the floating tab bar. Android: wrap
-        // <Modal> in a plain <View>.
+        // Android: <Modal> must sit inside a plain <View>.
         <View>
           <Modal
             visible

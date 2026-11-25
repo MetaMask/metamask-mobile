@@ -34,7 +34,6 @@ import {
   type CryptoPillKey,
 } from './cryptoPillConfig';
 
-/** Per-pill query state consumed by the crypto pill block. */
 export interface CryptoPillFeedResult {
   data?: TrendingAsset[];
   isLoading: boolean;
@@ -42,25 +41,14 @@ export interface CryptoPillFeedResult {
 }
 
 export interface CryptoPillFeedOptions {
-  /** Only this pill's query is enabled before prefetching starts. */
   activePillKey: CryptoPillKey;
-  /** Pull-to-refresh wiring from the Explore tab. */
   refresh?: RefreshConfig;
 }
 
 export interface CryptoPillFeed {
-  /** Query state per pill key, including the watchlist pill. */
   results: Record<string, CryptoPillFeedResult>;
 }
 
-/**
- * Shared visibility contract for the crypto pill section: watchlist-style
- * pills and still-loading pills are visible, pills that errored without
- * data are hidden (a failed background refetch keeps the cached data
- * visible), and loaded pills must return at least `minItems` tokens. Used
- * by CryptoTab to decide whether the tokens section renders at all and by
- * the pill block to decide which pills to show.
- */
 export const getVisibleCryptoPills = (
   results: Record<string, CryptoPillFeedResult>,
   isWatchlistEnabled: boolean,
@@ -75,11 +63,6 @@ export const getVisibleCryptoPills = (
     return result.data.length >= pill.minItems;
   });
 
-/**
- * Pills eligible to be the implicit active pill: every visible pill except
- * the watchlist. The watchlist stays in the pill row and remains selectable,
- * but the section always opens on Trending (the first non-watchlist pill).
- */
 export const getSelectableCryptoPills = (
   results: Record<string, CryptoPillFeedResult>,
   isWatchlistEnabled: boolean,
@@ -88,14 +71,6 @@ export const getSelectableCryptoPills = (
     (pill) => pill.key !== CRYPTO_WATCHLIST_PILL.key,
   );
 
-/**
- * The pill the section actually displays: the user's selection while it is
- * still visible, otherwise the first eligible default pill, otherwise
- * `fallbackKey`. `defaultPills` defaults to `visiblePills`; callers pass the
- * selectable pills so the implicit default skips a loaded-empty watchlist.
- * Shared so CryptoTab's pull-to-refresh and the block's rendering target
- * the same pill.
- */
 export const getEffectiveActiveCryptoPillKey = (
   activePillKey: CryptoPillKey | undefined,
   visiblePills: readonly CryptoPillDefinition[],
@@ -119,12 +94,6 @@ const filterQuality = (tokens: TrendingAsset[]) =>
 
 const CRYPTO_PILL_STALE_TIME_MS = 300_000;
 
-/**
- * One TanStack query per crypto pill. The active pill fetches immediately;
- * the remaining pills are prefetched in the background once the active pill
- * has finished loading. Chain pills fall back to a popular request when
- * their trending request returns no tokens.
- */
 export const useCryptoPillFeed = ({
   activePillKey,
   refresh,
