@@ -1770,6 +1770,7 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith({
+      fullCatalog: true,
       skipInitialFetch: false,
     });
     expect(
