@@ -24,7 +24,6 @@ patches/react-native-step-indicator+1.0.3.patch             @MetaMask/mobile-pla
 patches/react-native-svg+15.15.5.patch                      @MetaMask/mobile-platform
 patches/unicode-confusables+0.1.1.patch                     @MetaMask/mobile-platform
 .yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch               @MetaMask/mobile-platform
-.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch   @MetaMask/mobile-platform
 .yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch        @MetaMask/mobile-platform
 .yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch           @MetaMask/mobile-platform
 .yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch               @MetaMask/mobile-platform
