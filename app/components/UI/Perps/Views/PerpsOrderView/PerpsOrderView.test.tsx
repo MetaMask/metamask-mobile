@@ -69,6 +69,7 @@ import {
   usePerpsOrderValidation,
   usePerpsPrices,
   usePerpsRewards,
+  useHasExistingPosition,
   usePerpsTrading,
   usePerpsToasts,
   useMinimumOrderAmount,
@@ -661,6 +662,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockCrossMarginEnabled = false;
 let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
@@ -708,9 +710,13 @@ jest.mock('react-redux', () => {
     useSelector: jest.fn((selector) => {
       // reselect selectors do not carry their export name in `toString()`, so
       // match this one by identity.
-      const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
-        '../../selectors/featureFlags',
-      );
+      const {
+        selectPerpsCrossMarginEnabledFlag,
+        selectPerpsTradeWithAnyTokenEnabledFlag,
+      } = jest.requireActual('../../selectors/featureFlags');
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return mockCrossMarginEnabled;
+      }
       const { selectPerpsOrderBookPreferences } = jest.requireActual(
         '../../selectors/perpsController',
       );
@@ -1124,6 +1130,12 @@ jest.mock(
   },
 );
 
+const mockUsePerpsPositionModifyPreview = jest.fn();
+jest.mock('../../hooks/usePerpsPositionModifyPreview', () => ({
+  usePerpsPositionModifyPreview: (...args: unknown[]) =>
+    mockUsePerpsPositionModifyPreview(...args),
+}));
+
 jest.mock('../../hooks/usePerpsEstimatedSlippage', () => ({
   usePerpsEstimatedSlippage: jest.fn(() =>
     mockDefaultUsePerpsEstimatedSlippage(),
@@ -1417,8 +1429,18 @@ function applyDefaultHookMocks() {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     mockPerpsSizeDenomination = 'usd';
+    mockCrossMarginEnabled = false;
     jest.useRealTimers();
     jest.clearAllMocks();
+    (useHasExistingPosition as jest.Mock).mockReturnValue({
+      hasPosition: false,
+      isLoading: false,
+      error: null,
+    });
+    mockUsePerpsPositionModifyPreview.mockReturnValue({
+      preview: { status: 'none' },
+      isAwaitingFirstPreview: false,
+    });
     applyDefaultHookMocks();
     (global.requestAnimationFrame as jest.Mock).mockImplementation(
       runFrameSynchronously,
@@ -4153,6 +4175,39 @@ describe('PerpsOrderView', () => {
       expect(
         screen.getByTestId('perps-order-view-bottom-sheet-tooltip'),
       ).toBeDefined();
+    });
+  });
+
+  describe('Cross position preview', () => {
+    it.each([
+      ['waits while the price is unknown', {}, false],
+      [
+        'runs once the price is known',
+        { ETH: { price: '3000', percentChange24h: '2.5', markPrice: '3000' } },
+        true,
+      ],
+    ])('%s', async (_label, prices, enabled) => {
+      mockCrossMarginEnabled = true;
+      (useHasExistingPosition as jest.Mock).mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'ETH',
+          size: '1',
+          entryPrice: '2900',
+          leverage: { type: 'cross', value: 3 },
+        },
+      });
+      (usePerpsLivePrices as jest.Mock).mockReturnValue(prices);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      await screen.findByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON);
+
+      expect(mockUsePerpsPositionModifyPreview).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled }),
+        expect.anything(),
+      );
     });
   });
 

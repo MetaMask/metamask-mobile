@@ -2689,7 +2689,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       reduceOnly: false,
       feeAmountUsd: estimatedFees,
       providerId: orderProvider ?? undefined,
-      enabled: isOnCrossPosition && hasValidAmount,
+      // Without a price the order size is unknown too.
+      enabled: isOnCrossPosition && hasValidAmount && effectivePrice > 0,
       accountKey: getCrossAccountKey(account),
       priceTick: currentPrice?.timestamp,
     },
