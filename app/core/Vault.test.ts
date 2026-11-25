@@ -10,8 +10,12 @@ import {
 import ReduxService, { ReduxStore } from './redux';
 import { RootState } from '../reducers';
 import { RecursivePartial } from './Authentication/Authentication.test';
-import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import {
+  PasswordSyncInstruction,
+  SeedlessOnboardingControllerErrorMessage,
+} from '@metamask/seedless-onboarding-controller';
 import Logger from '../util/Logger';
+import { Authentication } from './Authentication/Authentication';
 
 const mockAddNewKeyring = jest.fn();
 const mockWithKeyring = jest.fn();
@@ -163,6 +167,8 @@ jest.mock('./Engine', () => ({
       importAccountWithStrategy: (strategy: string, accounts: string[]) =>
         mockImportAccountWithStrategy(strategy, accounts),
       exportEncryptionKey: jest.fn(),
+      isUnlocked: jest.fn(() => true),
+      setLocked: jest.fn(),
       state: {
         get keyrings() {
           return [
@@ -183,8 +189,10 @@ jest.mock('./Engine', () => ({
       changePassword: jest.fn(),
       storeKeyringEncryptionKey: jest.fn(),
       loadKeyringEncryptionKey: jest.fn(),
-      submitGlobalPassword: jest.fn(),
-      checkIsPasswordOutdated: jest.fn(),
+      markPasswordChangeKeySyncPending: jest.fn(),
+      completePasswordChange: jest.fn(),
+      resolvePasswordSyncState: jest.fn(),
+      setLocked: jest.fn(),
     },
     CardController: {
       logout: jest.fn(),
@@ -294,7 +302,7 @@ describe('Vault', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('should call seedlessChangePassword and syncKeyringEncryptionKey if seedless onboarding flow is active', async () => {
+    it('should call seedlessChangePassword and complete key sync lifecycle if seedless onboarding flow is active', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
@@ -313,6 +321,13 @@ describe('Vault', () => {
         getState: jest.fn(() => mockReduxState),
       } as unknown as ReduxStore);
 
+      mockEngine.context.KeyringController.exportEncryptionKey.mockResolvedValue(
+        'mock-keyring-encryption-key',
+      );
+      mockEngine.context.SeedlessOnboardingController.loadKeyringEncryptionKey.mockResolvedValue(
+        'mock-keyring-encryption-key',
+      );
+
       await recreateVaultsWithNewPassword(
         'old-password',
         'new-password',
@@ -326,16 +341,48 @@ describe('Vault', () => {
 
       expect(
         mockEngine.context.SeedlessOnboardingController.changePassword,
-      ).toHaveBeenCalled();
-
+      ).toHaveBeenCalledWith('new-password', 'old-password');
+      expect(
+        mockEngine.context.SeedlessOnboardingController
+          .markPasswordChangeKeySyncPending,
+      ).toHaveBeenCalledTimes(1);
       expect(
         mockEngine.context.SeedlessOnboardingController
           .storeKeyringEncryptionKey,
-      ).toHaveBeenCalled();
+      ).toHaveBeenCalledWith('mock-keyring-encryption-key');
+      expect(
+        mockEngine.context.SeedlessOnboardingController
+          .loadKeyringEncryptionKey,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockEngine.context.SeedlessOnboardingController.completePasswordChange,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        (
+          mockEngine.context.SeedlessOnboardingController
+            .markPasswordChangeKeySyncPending as jest.Mock
+        ).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (
+          mockEngine.context.SeedlessOnboardingController
+            .storeKeyringEncryptionKey as jest.Mock
+        ).mock.invocationCallOrder[0],
+      );
       expect(
         (
           mockEngine.context.SeedlessOnboardingController
             .storeKeyringEncryptionKey as jest.Mock
+        ).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (
+          mockEngine.context.SeedlessOnboardingController
+            .completePasswordChange as jest.Mock
+        ).mock.invocationCallOrder[0],
+      );
+      expect(
+        (
+          mockEngine.context.SeedlessOnboardingController
+            .completePasswordChange as jest.Mock
         ).mock.invocationCallOrder[0],
       ).toBeLessThan(
         (mockEngine.context.CardController.logout as jest.Mock).mock
@@ -372,7 +419,7 @@ describe('Vault', () => {
       expect(mockEngine.context.CardController.logout).toHaveBeenCalledTimes(1);
     });
 
-    it('should restore when seedless change password failed if seedless onboarding flow is active', async () => {
+    it('should lock the app when seedless change password fails if seedless onboarding flow is active', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
@@ -391,7 +438,11 @@ describe('Vault', () => {
         getState: jest.fn(() => mockReduxState),
       } as unknown as ReduxStore);
 
-      mockEngine.context.SeedlessOnboardingController.changePassword.mockRejectedValue(
+      const lockAppSpy = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValueOnce(undefined);
+
+      mockEngine.context.SeedlessOnboardingController.changePassword.mockRejectedValueOnce(
         new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
       );
 
@@ -408,8 +459,50 @@ describe('Vault', () => {
       expect(
         mockEngine.context.SeedlessOnboardingController.changePassword,
       ).toHaveBeenCalled();
-
+      expect(lockAppSpy).toHaveBeenCalledWith({ locked: true, reset: false });
       expect(mockEngine.setSelectedAddress).not.toHaveBeenCalledWith('0x123');
+    });
+
+    it('locks the app and does not complete lifecycle when stored encryption key verification fails', async () => {
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'valid vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+
+      const lockAppSpy = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValueOnce(undefined);
+
+      mockEngine.context.SeedlessOnboardingController.resolvePasswordSyncState.mockResolvedValue(
+        PasswordSyncInstruction.InSync,
+      );
+      mockEngine.context.KeyringController.exportEncryptionKey.mockResolvedValue(
+        'current-keyring-key',
+      );
+      mockEngine.context.SeedlessOnboardingController.loadKeyringEncryptionKey.mockResolvedValue(
+        'stale-keyring-key',
+      );
+
+      await expect(
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
+      ).rejects.toThrow('Keyring encryption key synchronization failed');
+
+      expect(
+        mockEngine.context.SeedlessOnboardingController.completePasswordChange,
+      ).not.toHaveBeenCalled();
+      expect(lockAppSpy).toHaveBeenCalledWith({ locked: true, reset: false });
+      expect(mockEngine.context.CardController.logout).not.toHaveBeenCalled();
     });
   });
 });

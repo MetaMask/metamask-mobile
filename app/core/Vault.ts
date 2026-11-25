@@ -84,18 +84,22 @@ export const recreateVaultsWithNewPassword = async (
     ReduxService.store.getState(),
   );
 
-  // we change the password in the seedless flow first
-  // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
-  // and ask user to login with new password
+  // Change the Seedless password first, then update the local Keyring and
+  // complete the key-sync lifecycle. Failures preserve the lifecycle for
+  // recovery and lock the wallet so unlock can reconcile state cleanly.
   if (isSeedlessFlow) {
-    await recreateSeedlessVaultWithNewPassword(newPassword, password);
+    try {
+      await recreateSeedlessVaultWithNewPassword(newPassword, password);
+      await KeyringController.changePassword(newPassword);
+      await Authentication.syncAndCompleteKeyringEncryptionKey();
+    } catch (error) {
+      await Authentication.lockApp({ locked: true, reset: false });
+      throw error;
+    }
+  } else {
+    await KeyringController.changePassword(newPassword);
   }
 
-  await KeyringController.changePassword(newPassword);
-
-  if (isSeedlessFlow) {
-    await Authentication.syncKeyringEncryptionKey();
-  }
   Engine.setSelectedAddress(selectedAddress);
   // Card logout is a remote call with no timeout. It must not delay the
   // password change or sit before the seedless key sync.

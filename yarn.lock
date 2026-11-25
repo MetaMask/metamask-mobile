@@ -11906,9 +11906,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-562e62272":
-  version: 12.1.0-preview-562e62272
-  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.1.0-preview-562e62272"
+"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-abcfadf":
+  version: 12.1.0-preview-abcfadf
+  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.1.0-preview-abcfadf"
   dependencies:
     "@metamask/analytics-controller": "npm:^4.4.0"
     "@metamask/auth-network-utils": "npm:^0.5.0"
@@ -11923,7 +11923,7 @@ __metadata:
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/0124680784c90a70d92d0fdc57de7e70cf1bcffda2e0cf103534197de1dad15a6a8591e29ae2ed752bcd9edc4e137b4a7262b0d213900b558c02f4beec2df486
+  checksum: 10/6b12a7fbdd163364d5fdbe2a30d7b04f9e03c8fd43ce426c11bf764baf6241486aa206a5453bc7f4405800125850a1b4a4d8ae99c04e5844e70c402bc67b5ee2
   languageName: node
   linkType: hard
 
@@ -38550,7 +38550,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^6.1.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-562e62272"
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-abcfadf"
     "@metamask/selected-network-controller": "npm:^27.1.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/shield-controller": "npm:^7.1.2"
