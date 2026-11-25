@@ -1,3 +1,4 @@
+import I18n from '../../../../../locales/i18n';
 import {
   mockCatalogPacks,
   mockPackCategoryMapping,
@@ -84,11 +85,21 @@ describe('buildPacksCatalog', () => {
 });
 
 describe('formatPackPrice', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it.each([
     [25, '$25'],
     [24.5, '$24.50'],
     [1500, '$1,500'],
   ])('formats %d as %s', (price, label) => {
     expect(formatPackPrice(price)).toBe(label);
+  });
+
+  it('keeps the US dollar format in other locales', () => {
+    jest.replaceProperty(I18n, 'locale', 'de');
+
+    expect(formatPackPrice(1500)).toBe('$1,500');
   });
 });

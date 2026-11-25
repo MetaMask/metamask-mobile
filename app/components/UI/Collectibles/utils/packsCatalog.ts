@@ -1,4 +1,3 @@
-import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import type {
   CatalogPack,
@@ -49,9 +48,10 @@ export function buildPacksCatalog(
 
 export function formatPackPrice(priceUsd: number) {
   const fractionDigits = Number.isInteger(priceUsd) ? 0 : 2;
-  const amount = getIntlNumberFormatter(I18n.locale, {
+  return getIntlNumberFormatter('en-US', {
+    style: 'currency',
+    currency: 'USD',
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(priceUsd);
-  return `$${amount}`;
 }
