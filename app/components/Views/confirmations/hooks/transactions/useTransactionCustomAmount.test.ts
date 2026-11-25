@@ -3171,6 +3171,8 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('retries the clamp commit if updateTransactionPayAmount fails', async () => {
+      jest.useFakeTimers();
+
       // Start with Hyperliquid deposit at 100%
       mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
@@ -3225,14 +3227,21 @@ describe('useTransactionCustomAmount', () => {
       await act(async () => {
         rerender({});
         jest.runAllTimers();
-        // Wait for the async update to complete and trigger the retry
-        await Promise.resolve();
         await Promise.resolve();
       });
 
-      // The UI should show the clamped 90% = 900
+      // The keypad shows the cap immediately. The failed commit waits out the
+      // backoff before retrying, so a balance update cannot start a second one.
       expect(result.current.amountFiat).toBe('900');
-      // updateTransactionPayAmount was called, failed, then retried and succeeded
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+
       expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
       expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
       expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');

@@ -666,7 +666,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 onDonePress={handleDonePress}
                 onPercentagePress={handlePercentagePress}
                 hasInput={hasInput}
-                hasMax={isMaxAvailable}
+                hasMax={
+                  (hasMax || isMoneyDepositNoFee) &&
+                  (isWithdraw || !isNativePayToken)
+                }
               />
             )}
           {showBuyButton && <CustomAmountBuy />}
