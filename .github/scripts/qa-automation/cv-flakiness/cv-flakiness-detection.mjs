@@ -16,8 +16,9 @@
  * `skip-cv-flakiness-detection` label opts a PR out (fail-open: a GitHub API
  * error also skips, like the E2E mechanism), and TIME_BUDGET_MINUTES stops
  * further repetitions before they start with a warning instead of failing; a
- * Jest run killed mid-way by that budget is indistinguishable from a hang and
- * fails the job.
+ * Jest run killed by that budget mid-way is a warning-only budget stop too,
+ * never a hang failure, so a healthy run cannot be failed by the budget
+ * (Bugbot r4681021621).
  *
  * Env: CHANGED_CV_TEST_FILES space-separated changed paths; REPEAT_COUNT
  * repetitions per file (default 5); MAX_FILES cap (default 10);
@@ -26,6 +27,11 @@
  * CV_FLAKINESS_DEADLINE_MS test hook: absolute epoch-ms budget deadline;
  * GITHUB_TOKEN, REPOSITORY, PR_NUMBER label check inputs; GITHUB_OUTPUT,
  * GITHUB_STEP_SUMMARY GitHub Actions sinks.
+ *
+ * The repetition core (runRepetitions) is shared with the local entry point
+ * cv-flakiness-local.mjs (`yarn test:view:repeat`), which repeats changed
+ * component view tests with the same pattern, cap, budget, shuffling and
+ * seeds — without the GitHub label check or Actions sinks.
  */
 
 import fs from 'node:fs';
@@ -53,7 +59,7 @@ const env = {
 };
 
 /** Repository-relative rendering of an absolute path for logs and summaries. */
-function displayPath(absolutePath) {
+export function displayPath(absolutePath) {
   const relative = path.relative(process.cwd(), absolutePath);
   return relative || absolutePath;
 }
@@ -81,6 +87,12 @@ export function filterExistingFiles(files, existsFn = (file) => fs.existsSync(fi
     else missing.push(file);
   }
   return { existing, missing };
+}
+
+/** Parse a changed-file list, drop deleted paths and cap it; callers log what was dropped. */
+export function selectFilesToRepeat(raw, maxFiles) {
+  const { existing, missing } = filterExistingFiles(parseChangedCvTestFiles(raw));
+  return { kept: existing.slice(0, maxFiles), missing, dropped: existing.slice(maxFiles) };
 }
 
 /** Deterministic seeded Fisher-Yates shuffle, so a failing repetition's order can be reproduced. */
@@ -228,36 +240,29 @@ function markSkipped(summaryLine) {
   appendSummary(['### Component view flakiness detection', '', summaryLine]);
 }
 
-/** Emit ::error annotations for one repetition and return every failure — assertions plus crashes, kills, unreadable reports and suite-level errors. */
-function collectIterationFailures(iteration, run, report) {
+/** Every failure in one repetition — assertions plus crashes, unreadable reports and suite-level errors. Pure: callers decide how to surface them. */
+export function collectIterationFailures(iteration, run, report, { budgetKilled = false } = {}) {
   const found = [];
   for (const suite of report.suites) {
     if (suite.status !== 'failed') continue;
-    console.error(
-      `::error file=${displayPath(suite.file)}::CV flakiness detected (iteration ${iteration}): ${displayPath(suite.file)} › ${suite.fullName}`,
-    );
-    found.push({ file: suite.file, fullName: suite.fullName });
+    found.push({ kind: 'assertion', file: suite.file, fullName: suite.fullName });
   }
   for (const crashed of report.crashedSuites) {
     const reason = `test suite failed to run (${summarizeMessage(crashed.message)})`;
-    console.error(
-      `::error file=${displayPath(crashed.file)}::Repetition ${iteration}: ${reason}`,
-    );
-    found.push({ file: crashed.file, reason });
+    found.push({ kind: 'crash', file: crashed.file, reason });
   }
   const unnamedRuntimeErrors = report.runtimeErrorSuites - report.crashedSuites.length;
   if (unnamedRuntimeErrors > 0) {
     const reason = `${unnamedRuntimeErrors} test suite(s) hit a runtime error that the report does not name`;
-    console.error(`::error::Repetition ${iteration}: ${reason}`);
-    found.push({ reason });
+    found.push({ kind: 'runtime-errors', reason });
   }
 
-  const crashReason = describeCleanRunGap(run, report);
+  // A kill at the spawn timeout with a finite deadline is the time budget
+  // cutting a healthy repetition short, not a hang: it is handled as a budget
+  // stop by the caller and must not become a failure (Bugbot r4681021621).
+  const crashReason = budgetKilled ? '' : describeCleanRunGap(run, report);
   if (crashReason && found.length === 0) {
-    console.error(
-      `::error::Repetition ${iteration} failed without any failing test assertion: ${crashReason}`,
-    );
-    found.push({ reason: crashReason });
+    found.push({ kind: 'clean-run', reason: crashReason });
   }
   return found;
 }
@@ -287,12 +292,175 @@ function summarizeMessage(message) {
   return String(message || 'unknown error').split('\n')[0].slice(0, 200);
 }
 /** Budget deadline: the CV_FLAKINESS_DEADLINE_MS test hook wins over now + minutes; Infinity disables. */
-function resolveDeadline(minutes) {
+export function resolveDeadline(minutes) {
   const deadlineOverride = Number(process.env.CV_FLAKINESS_DEADLINE_MS || '');
   if (Number.isFinite(deadlineOverride) && deadlineOverride > 0) return deadlineOverride;
   if (!Number.isFinite(minutes) || minutes <= 0) return Number.POSITIVE_INFINITY;
   return Date.now() + minutes * 60000;
 }
+
+/**
+ * Shared repetition core behind the CI job and the local `yarn test:view:repeat`
+ * entry point: repeats `files` once per repetition with the file order shuffled
+ * and Jest `--randomize`, honouring the time budget. A repetition killed at the
+ * spawn timeout with a finite deadline is a warning-only budget stop — never a
+ * failure, so a healthy run cannot be failed by the budget (Bugbot r4681021621).
+ *
+ * Reports each repetition through `onIteration` and returns everything the
+ * callers need for their summaries. With `stopOnFirstFailure` (local mode) the
+ * loop stops at the first failing repetition.
+ *
+ * @param {string[]} files Absolute component view test paths to repeat.
+ * @param {{ repeatCount: number, deadlineMs: number, stopOnFirstFailure?: boolean,
+ *           onIteration?: (result: {
+ *             iteration: number, seed: number, files: string[],
+ *             verdict: 'passed' | 'failed' | 'stopped', durationSeconds: number,
+ *             failures: object[], run: object, report: object,
+ *           }) => void }} options
+ */
+export function runRepetitions(
+  files,
+  { repeatCount, deadlineMs, stopOnFirstFailure = false, onIteration = () => {} } = {},
+) {
+  const iterations = [];
+  const failures = [];
+  const perFileRuns = new Map(files.map((file) => [file, { passed: 0, failed: 0 }]));
+  let completedIterations = 0;
+  let budgetExhausted = false;
+
+  fs.mkdirSync(RESULTS_DIR, { recursive: true });
+
+  for (let iteration = 1; iteration <= repeatCount; iteration += 1) {
+    if (Date.now() > deadlineMs) {
+      budgetExhausted = true;
+      console.log(
+        `⏱️  Time budget (${env.TIME_BUDGET_MINUTES} min) exhausted after ${completedIterations} iteration(s).`,
+      );
+      break;
+    }
+
+    const seed = Math.floor(Math.random() * 2 ** 31);
+    const outputFile = path.join(RESULTS_DIR, `iteration-${iteration}.json`);
+    // A killed Jest run leaves no report; clear any previous run's stale file
+    // for this slot so a killed repetition is never judged from it.
+    fs.rmSync(outputFile, { force: true });
+    const orderedFiles = shuffleWithSeed(files, seed);
+    const { command, args } = buildJestCommand(orderedFiles, { seed, outputFile });
+    const iterationStartedAt = Date.now();
+
+    console.log(`\n🔁 Iteration ${iteration}/${repeatCount} (seed ${seed})…`);
+    // Safety net so a hung Jest run cannot outlive the budget on its own:
+    // the remaining budget (at least 1s), or 30 minutes when it is disabled.
+    const timeoutMs = Number.isFinite(deadlineMs)
+      ? Math.max(deadlineMs - Date.now(), 1000)
+      : 30 * 60000;
+    const run = spawnSync(command, args, {
+      env: { ...process.env, TEST_OS: env.TEST_OS },
+      encoding: 'utf8',
+      timeout: timeoutMs,
+    });
+    const durationSeconds = Math.round((Date.now() - iterationStartedAt) / 1000);
+
+    const report = parseJestReport(outputFile);
+    // A kill that lasted the full spawn timeout with a finite deadline is the
+    // budget cutting the repetition short; anything earlier is not budget-driven.
+    const budgetKilled =
+      Number.isFinite(deadlineMs) &&
+      (run.error?.code === 'ETIMEDOUT' || run.signal === 'SIGTERM') &&
+      Date.now() - iterationStartedAt >= timeoutMs - 1000;
+    const iterationFailures = collectIterationFailures(iteration, run, report, { budgetKilled });
+    const stopped = budgetKilled && iterationFailures.length === 0;
+    const iterationPassed = !stopped && iterationFailures.length === 0;
+
+    if (!stopped) {
+      completedIterations += 1;
+      for (const file of orderedFiles) {
+        const fileSuites = report.suites.filter((suite) => suite.file === file);
+        const fileStat = perFileRuns.get(file);
+        if (!fileStat) continue;
+        if (fileSuites.length === 0) {
+          // The suite never reported (crash, spawn timeout): count it as failed
+          // so the per-file table cannot overstate confidence.
+          fileStat.failed += 1;
+        } else if (fileSuites.some((suite) => suite.status === 'failed')) {
+          fileStat.failed += 1;
+        } else {
+          fileStat.passed += 1;
+        }
+      }
+    }
+
+    failures.push(...iterationFailures.map((failure) => ({ iteration, ...failure })));
+    const verdict = stopped ? 'stopped' : iterationPassed ? 'passed' : 'failed';
+    iterations.push({
+      iteration,
+      seed,
+      fileCount: orderedFiles.length,
+      verdict,
+      durationSeconds,
+      files: orderedFiles,
+    });
+    onIteration({
+      iteration,
+      seed,
+      files: orderedFiles,
+      verdict,
+      durationSeconds,
+      failures: iterationFailures,
+      run,
+      report,
+    });
+
+    if (stopped) {
+      // The budget was spent killing this repetition; no further one can run.
+      budgetExhausted = true;
+      console.log(
+        `⏱️  Repetition ${iteration} was stopped by the remaining time budget; treated as a budget stop, not a failure.`,
+      );
+      break;
+    }
+    if (!iterationPassed && stopOnFirstFailure) break;
+  }
+
+  return { iterations, failures, perFileRuns, completedIterations, budgetExhausted };
+}
+
+/** CI-side per-repetition reporting: ::error annotations and the console verdict lines. */
+function reportCiIteration({ iteration, verdict, failures: iterationFailures, durationSeconds, run, report }) {
+  for (const failure of iterationFailures) {
+    if (failure.kind === 'assertion') {
+      console.error(
+        `::error file=${displayPath(failure.file)}::CV flakiness detected (iteration ${iteration}): ${displayPath(failure.file)} › ${failure.fullName}`,
+      );
+    } else if (failure.kind === 'crash') {
+      console.error(
+        `::error file=${displayPath(failure.file)}::Repetition ${iteration}: ${failure.reason}`,
+      );
+    } else if (failure.kind === 'runtime-errors') {
+      console.error(`::error::Repetition ${iteration}: ${failure.reason}`);
+    } else {
+      console.error(
+        `::error::Repetition ${iteration} failed without any failing test assertion: ${failure.reason}`,
+      );
+    }
+  }
+  if (verdict === 'failed') {
+    console.error(
+      `❌ Iteration ${iteration} failed (${iterationFailures.length} failure(s)); continuing with remaining repetitions.`,
+    );
+    if (!report.suitesFound && run.stderr) {
+      console.error(`Jest output:\n${run.stderr.split('\n').slice(-40).join('\n')}`);
+    }
+  } else if (verdict === 'passed') {
+    console.log(`✅ Iteration ${iteration} passed in ${durationSeconds}s.`);
+  }
+}
+
+const ITERATION_VERDICT_LABELS = {
+  passed: '✅ passed',
+  failed: '❌ failed',
+  stopped: '⏱️ stopped by budget',
+};
 
 async function main() {
   if (!Number.isInteger(env.REPEAT_COUNT) || env.REPEAT_COUNT < 1) {
@@ -306,10 +474,7 @@ async function main() {
   }
 
   const startedAt = Date.now();
-  const parsed = parseChangedCvTestFiles(env.CHANGED_CV_TEST_FILES);
-  const { existing, missing } = filterExistingFiles(parsed);
-  const kept = existing.slice(0, env.MAX_FILES);
-  const dropped = existing.slice(env.MAX_FILES);
+  const { kept, missing, dropped } = selectFilesToRepeat(env.CHANGED_CV_TEST_FILES, env.MAX_FILES);
 
   for (const file of missing) console.log(`ℹ️  Skipping deleted component view test file: ${displayPath(file)}`);
   for (const file of dropped) {
@@ -349,89 +514,30 @@ async function main() {
     '| --- | --- | --- | --- | --- |',
   ];
 
-  const perFileRuns = new Map(kept.map((file) => [file, { passed: 0, failed: 0 }]));
-  const failures = [];
-  let completedIterations = 0;
-  let budgetExhausted = false;
+  const results = runRepetitions(kept, {
+    repeatCount: env.REPEAT_COUNT,
+    deadlineMs,
+    onIteration: reportCiIteration,
+  });
 
-  fs.mkdirSync(RESULTS_DIR, { recursive: true });
-
-  for (let iteration = 1; iteration <= env.REPEAT_COUNT; iteration += 1) {
-    if (Date.now() > deadlineMs) {
-      budgetExhausted = true;
-      console.log(
-        `⏱️  Time budget (${env.TIME_BUDGET_MINUTES} min) exhausted after ${completedIterations} iteration(s).`,
-      );
-      break;
-    }
-
-    const seed = Math.floor(Math.random() * 2 ** 31);
-    const outputFile = path.join(RESULTS_DIR, `iteration-${iteration}.json`);
-    const orderedFiles = shuffleWithSeed(kept, seed);
-    const { command, args } = buildJestCommand(orderedFiles, { seed, outputFile });
-    const iterationStartedAt = Date.now();
-
-    console.log(`\n🔁 Iteration ${iteration}/${env.REPEAT_COUNT} (seed ${seed})…`);
-    const run = spawnSync(command, args, {
-      env: { ...process.env, TEST_OS: env.TEST_OS },
-      encoding: 'utf8',
-      // Safety net so a hung Jest run cannot outlive the budget on its own:
-      // the remaining budget (at least 1s), or 30 minutes when it is disabled.
-      timeout: Number.isFinite(deadlineMs)
-        ? Math.max(deadlineMs - Date.now(), 1000)
-        : 30 * 60000,
-    });
-    const durationSeconds = Math.round((Date.now() - iterationStartedAt) / 1000);
-
-    const report = parseJestReport(outputFile);
-    const iterationFailures = collectIterationFailures(iteration, run, report);
-    const iterationPassed = iterationFailures.length === 0;
-    completedIterations += 1;
-
-    for (const file of orderedFiles) {
-      const fileSuites = report.suites.filter((suite) => suite.file === file);
-      const fileStat = perFileRuns.get(file);
-      if (!fileStat) continue;
-      if (fileSuites.length === 0) {
-        // The suite never reported (crash, spawn timeout): count it as failed
-        // so the per-file table cannot overstate confidence.
-        fileStat.failed += 1;
-      } else if (fileSuites.some((suite) => suite.status === 'failed')) {
-        fileStat.failed += 1;
-      } else {
-        fileStat.passed += 1;
-      }
-    }
-
-    failures.push(...iterationFailures.map((failure) => ({ iteration, ...failure })));
-    summaryLines.push(
-      `| ${iteration} | ${seed} | ${orderedFiles.length} | ${iterationPassed ? '✅ passed' : '❌ failed'} | ${durationSeconds}s |`,
-    );
-
-    if (!iterationPassed) {
-      console.error(
-        `❌ Iteration ${iteration} failed (${iterationFailures.length} failure(s)); continuing with remaining repetitions.`,
-      );
-      if (!report.suitesFound && run.stderr) {
-        console.error(`Jest output:\n${run.stderr.split('\n').slice(-40).join('\n')}`);
-      }
-    } else {
-      console.log(`✅ Iteration ${iteration} passed in ${durationSeconds}s.`);
-    }
-  }
-
-  appendGithubOutput('completed_iterations', String(completedIterations));
-  appendGithubOutput('budget_exhausted', budgetExhausted ? 'true' : 'false');
-  const status = failures.length > 0 ? 'failed' : budgetExhausted ? 'budget-limited' : 'passed';
+  appendGithubOutput('completed_iterations', String(results.completedIterations));
+  appendGithubOutput('budget_exhausted', results.budgetExhausted ? 'true' : 'false');
+  const status =
+    results.failures.length > 0 ? 'failed' : results.budgetExhausted ? 'budget-limited' : 'passed';
   appendGithubOutput('status', status);
 
+  for (const row of results.iterations) {
+    summaryLines.push(
+      `| ${row.iteration} | ${row.seed} | ${row.fileCount} | ${ITERATION_VERDICT_LABELS[row.verdict]} | ${row.durationSeconds}s |`,
+    );
+  }
   summaryLines.push(
     '',
-    `**Total: ${completedIterations}/${env.REPEAT_COUNT} iterations in ${Math.round((Date.now() - startedAt) / 1000)}s.**`,
+    `**Total: ${results.completedIterations}/${env.REPEAT_COUNT} iterations in ${Math.round((Date.now() - startedAt) / 1000)}s.**`,
     '',
     '| File | Runs | Failing runs |',
     '| --- | --- | --- |',
-    ...[...perFileRuns.entries()].map(
+    ...[...results.perFileRuns.entries()].map(
       ([file, stat]) =>
         `| \`${displayPath(file)}\` | ${stat.passed + stat.failed} | ${stat.failed} |`,
     ),
@@ -445,10 +551,11 @@ async function main() {
     summaryLines.push('', '### Not repeated', '', ...notRepeated);
   }
 
-  if (budgetExhausted) {
+  if (results.budgetExhausted) {
     const underRepetition = kept.filter(
       (file) =>
-        (perFileRuns.get(file)?.passed || 0) + (perFileRuns.get(file)?.failed || 0) <
+        (results.perFileRuns.get(file)?.passed || 0) +
+          (results.perFileRuns.get(file)?.failed || 0) <
         env.REPEAT_COUNT,
     );
     summaryLines.push(
@@ -461,12 +568,12 @@ async function main() {
     );
   }
 
-  if (failures.length > 0) {
+  if (results.failures.length > 0) {
     summaryLines.push(
       '',
       '### Failures',
       '',
-      ...failures.map((failure) =>
+      ...results.failures.map((failure) =>
         failure.fullName
           ? `- \`${displayPath(failure.file)} › ${failure.fullName}\` — iteration ${failure.iteration}`
           : `- ${failure.reason} — iteration ${failure.iteration}`,
@@ -476,10 +583,12 @@ async function main() {
 
   appendSummary(summaryLines);
 
-  if (failures.length > 0) {
-    const failedFileCount = [...perFileRuns.values()].filter((stat) => stat.failed > 0).length;
+  if (results.failures.length > 0) {
+    const failedFileCount = [...results.perFileRuns.values()].filter(
+      (stat) => stat.failed > 0,
+    ).length;
     throw new Error(
-      `Component view flakiness detected: ${failedFileCount} file(s), ${failures.length} failing run(s) (failing test assertions and Jest crashes) across ${completedIterations} iterations.`,
+      `Component view flakiness detected: ${failedFileCount} file(s), ${results.failures.length} failing run(s) (failing test assertions and Jest crashes) across ${results.completedIterations} iterations.`,
     );
   }
 }

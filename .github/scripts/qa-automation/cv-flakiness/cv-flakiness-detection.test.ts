@@ -3,6 +3,8 @@ import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
+import { collectIterationFailures } from './cv-flakiness-detection.mjs';
+
 const REPOSITORY_ROOT = process.cwd();
 const SCRIPT_PATH = path.join(
   REPOSITORY_ROOT,
@@ -10,7 +12,10 @@ const SCRIPT_PATH = path.join(
 );
 
 /** Jest stub: writes a minimal Jest JSON report and logs every invocation. */
-function writeJestStub(stubDir: string, options: { failSubstring?: string; sleepMs?: number }): string {
+function writeJestStub(
+  stubDir: string,
+  options: { failSubstring?: string; sleepMs?: number; hangAfterReport?: boolean },
+): string {
   const stubPath = path.join(stubDir, 'jest-stub.cjs');
   writeFileSync(
     stubPath,
@@ -23,12 +28,13 @@ const files = args.filter((arg, i) => /\.view\.test\.tsx?$/.test(arg) && !['--ou
 fs.appendFileSync(process.env.STUB_CALLS_PATH, JSON.stringify({ seed: option('--seed'), files }) + '\\n');
 const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
 const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
+const hangAfterReport = ${JSON.stringify(options.hangAfterReport ?? false)};
 const forcedExit = Number(process.env.STUB_EXIT_CODE || '');
 const stubReport = process.env.STUB_REPORT || '';
-setTimeout(() => {
+const writeReport = () => {
   if (stubReport === 'invalid') {
     if (outputFile) fs.writeFileSync(outputFile, '{"testResults": [');
-    process.exit(1);
+    return true;
   }
   const runtime = stubReport === 'runtime';
   const testResults = files.map((file) => {
@@ -51,9 +57,17 @@ setTimeout(() => {
   if (outputFile) {
     fs.writeFileSync(outputFile, JSON.stringify({ testResults, numRuntimeErrorTestSuites: runtime ? 1 : 0 }));
   }
-  const anyFailed = testResults.some((result) => result.status === 'failed');
-  process.exit(Number.isFinite(forcedExit) ? forcedExit : anyFailed ? 1 : 0);
-}, sleepMs);
+  return testResults.some((result) => result.status === 'failed');
+};
+const exitWith = (anyFailed) => process.exit(Number.isFinite(forcedExit) ? forcedExit : anyFailed ? 1 : 0);
+if (hangAfterReport) {
+  // Write the report up front, then keep running past the budget deadline so
+  // spawnSync kills the run after its report exists.
+  const anyFailed = writeReport();
+  setTimeout(() => exitWith(anyFailed), sleepMs);
+} else {
+  setTimeout(() => exitWith(writeReport()), sleepMs);
+}
 `,
   );
   return stubPath;
@@ -91,6 +105,7 @@ interface RunOptions {
   fetchOk?: boolean;
   failSubstring?: string;
   sleepMs?: number;
+  hangAfterReport?: boolean;
   stubExitCode?: string;
   stubReport?: string;
   jestNodePath?: string;
@@ -116,6 +131,7 @@ function runScript(options: RunOptions): RunResult {
   const jestStubPath = writeJestStub(stubDir, {
     failSubstring: options.failSubstring,
     sleepMs: options.sleepMs,
+    hangAfterReport: options.hangAfterReport,
   });
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -265,20 +281,46 @@ describe('cv-flakiness-detection', () => {
     expect(stderr).toContain(expectedReason);
   });
 
-  it('fails the job when the budget kills Jest mid-run, reported as a timeout', () => {
+  // A repetition killed by the remaining time budget is a warning-only budget
+  // stop, never a hang failure — the budget must not fail a healthy run
+  // (Bugbot r4681021621).
+  it('treats a repetition killed by the budget as a warning-only budget stop', () => {
     const file = makeCvFile(tempDir, 'Hung.view.test.tsx');
+    const { status, calls, output, stdout, summary } = runScript({
+      changedFiles: file,
+      repeatCount: '2',
+      // The stub outlasts the whole remaining budget; the 5s deadline leaves room for slow startups.
+      sleepMs: 30000,
+      deadlineMs: String(new Date().getTime() + 5000),
+    });
+
+    expect(status).toBe(0);
+    // The budget was spent killing the repetition; the second one never starts.
+    expect(calls).toHaveLength(1);
+    expect(output).toContain('budget_exhausted=true');
+    expect(output).toContain('completed_iterations=0');
+    expect(output).toContain('status=budget-limited');
+    expect(stdout).toContain('was stopped by the remaining time budget');
+    expect(stdout).toContain('did not get all 2 repetitions');
+    expect(summary).toContain('⏱️ stopped by budget');
+  });
+
+  it('still fails the job when a budget-killed run had already reported failing tests', () => {
+    const file = makeCvFile(tempDir, 'ReportedThenKilled.view.test.tsx');
     const { status, output, stderr } = runScript({
       changedFiles: file,
       repeatCount: '1',
-      // The stub outlasts the whole remaining budget; the 5s deadline leaves room for slow startups.
+      failSubstring: 'ReportedThenKilled',
+      // The stub writes its failing report, then outlives the deadline so the
+      // budget kills the run after the report exists.
+      hangAfterReport: true,
       sleepMs: 30000,
       deadlineMs: String(new Date().getTime() + 5000),
     });
 
     expect(status).toBe(1);
     expect(output).toContain('status=failed');
-    // The mid-run kill reads as a timeout, not a start failure (Bugbot r4679772868).
-    expect(stderr).toContain('aborted (SIGTERM) after exceeding the remaining time budget');
+    expect(stderr).toContain('ReportedThenKilled.view.test.tsx › Stub failing test name');
   });
 
   it('fails the job when Jest cannot be spawned at all', () => {
@@ -378,5 +420,31 @@ describe('cv-flakiness-detection', () => {
     const orders = new Set(calls.map((call) => call.files.join(',')));
     // One identical order across five shuffled repetitions would be astronomically unlikely.
     expect(orders.size).toBeGreaterThan(1);
+  });
+});
+
+describe('collectIterationFailures budget-kill classification', () => {
+  const unreadableReport = {
+    suites: [],
+    crashedSuites: [],
+    runtimeErrorSuites: 0,
+    suitesFound: 0,
+    unreadable: 'ENOENT: no such file',
+  };
+
+  it('does not report a budget-driven kill as a failure', () => {
+    const failures = collectIterationFailures(1, { signal: 'SIGTERM' }, unreadableReport, {
+      budgetKilled: true,
+    });
+
+    expect(failures).toHaveLength(0);
+  });
+
+  it('still reports a non-budget kill as a failure', () => {
+    const failures = collectIterationFailures(1, { signal: 'SIGTERM' }, unreadableReport, {});
+
+    expect(failures).toEqual([
+      { kind: 'clean-run', reason: expect.stringContaining('aborted (SIGTERM)') },
+    ]);
   });
 });
