@@ -19,12 +19,12 @@ import type { ListedPack } from '../types/packs';
 import { usePacksCatalog } from '../hooks/usePacksCatalog';
 import { useAnnounce } from '../hooks/useAnnounce';
 import { PackCategoryFilter } from '../components/PackCategoryFilter';
-import { PacksGridTile } from '../components/PacksGridTile';
+import { PackListingTile } from '../components/PackListingTile';
 import { PacksScreenSkeleton } from '../components/PacksScreenSkeleton';
 
 const keyExtractor = (pack: ListedPack) => pack.code;
 
-export function PacksView() {
+export function PackListingsView() {
   const tw = useTailwind();
   const { packs, categories, isPending } = usePacksCatalog();
 
@@ -46,7 +46,7 @@ export function PacksView() {
 
   const renderItem = ({ item }: { item: ListedPack }) => (
     <View className="flex-1 px-2 pb-6">
-      <PacksGridTile pack={item} />
+      <PackListingTile pack={item} />
     </View>
   );
 

@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import type { ListedPack } from '#app/components/UI/Collectibles/types/packs';
-import { PacksGridTile } from './PacksGridTile';
+import { PackListingTile } from '#app/components/UI/Collectibles/components/PackListingTile';
 
 const pack: ListedPack = {
   code: 'pack-1',
@@ -18,7 +18,7 @@ function renderTile(overrides: Partial<ListedPack> = {}) {
   const onOpenDetail = jest.fn();
   const onOpenBuy = jest.fn();
   render(
-    <PacksGridTile
+    <PackListingTile
       pack={{ ...pack, ...overrides }}
       onOpenDetail={onOpenDetail}
       onOpenBuy={onOpenBuy}
@@ -27,7 +27,7 @@ function renderTile(overrides: Partial<ListedPack> = {}) {
   return { onOpenDetail, onOpenBuy };
 }
 
-describe('PacksGridTile', () => {
+describe('PackListingTile', () => {
   it('shows the name, the counter and the USD price button', () => {
     renderTile();
 
@@ -96,7 +96,7 @@ describe('PacksGridTile', () => {
   it('shows the art of a new pack after the previous art failed', () => {
     const handlers = { onOpenDetail: jest.fn(), onOpenBuy: jest.fn() };
     render(
-      <PacksGridTile
+      <PackListingTile
         pack={{ ...pack, imageUrl: 'https://example.com/a.png' }}
         {...handlers}
       />,
@@ -112,7 +112,7 @@ describe('PacksGridTile', () => {
     ).toBeOnTheScreen();
 
     screen.rerender(
-      <PacksGridTile
+      <PackListingTile
         pack={{
           ...pack,
           code: 'pack-2',

@@ -9,7 +9,7 @@ import {
   mockPackCategoryMapping,
 } from '#app/components/UI/Collectibles/mocks/packsCatalog';
 import { buildPacksCatalog } from '#app/components/UI/Collectibles/utils/packsCatalog';
-import { PacksView } from './PacksView';
+import { PackListingsView } from '#app/components/UI/Collectibles/views/PackListingsView';
 
 let mockCatalog: ReturnType<typeof buildPacksCatalog> & { isPending: boolean };
 
@@ -43,7 +43,7 @@ function shownPackCodes() {
     .map((tile) => tile.props.testID.replace('collectibles-packs-tile-', ''));
 }
 
-describe('PacksView', () => {
+describe('PackListingsView', () => {
   beforeEach(() => {
     mockCatalog = loadedCatalog();
   });
@@ -53,7 +53,7 @@ describe('PacksView', () => {
   });
 
   it('shows the controls, chips and grid', () => {
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsFilterButton),
@@ -68,7 +68,7 @@ describe('PacksView', () => {
   });
 
   it('reads "All prices · Lowest price" by default', () => {
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsFilterSortLine),
@@ -81,7 +81,7 @@ describe('PacksView', () => {
   });
 
   it('selects "All" by default and shows every open priced pack', () => {
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
@@ -92,7 +92,7 @@ describe('PacksView', () => {
   });
 
   it('shows only the packs of the tapped category', () => {
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
 
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('pokemon')),
@@ -102,7 +102,7 @@ describe('PacksView', () => {
   });
 
   it('shows every pack again after tapping "All"', () => {
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('pokemon')),
     );
@@ -115,13 +115,13 @@ describe('PacksView', () => {
   });
 
   it('falls back to "All" when the selected category loses its last pack', () => {
-    const { rerender } = renderWithProvider(<PacksView />);
+    const { rerender } = renderWithProvider(<PackListingsView />);
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('watches')),
     );
 
     mockCatalog = catalogWithoutWatches();
-    rerender(<PacksView />);
+    rerender(<PackListingsView />);
 
     expect(
       screen.queryByTestId(collectiblesTestIds.packsCategoryChip('watches')),
@@ -134,7 +134,7 @@ describe('PacksView', () => {
 
   it('shows skeletons while loading', () => {
     mockCatalog = { packs: [], categories: [], isPending: true };
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsSkeleton),
@@ -147,7 +147,7 @@ describe('PacksView', () => {
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(jest.fn());
     mockCatalog = { packs: [], categories: [], isPending: false };
-    renderWithProvider(<PacksView />);
+    renderWithProvider(<PackListingsView />);
 
     expect(announce).toHaveBeenCalledWith(strings('collectibles.packs.empty'));
 
