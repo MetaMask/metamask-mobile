@@ -212,6 +212,13 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   };
 });
 
+// The Following tab reads the lock state. The default test store has no
+// keyring slice, so this matches its locked default and skips the prefetch.
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
+  selectIsUnlocked: () => false,
+}));
+
 jest.mock('./feed/components/PopularTradersCarousel', () => {
   const ReactActual = jest.requireActual('react') as typeof import('react');
   const { View } = jest.requireActual(

@@ -8,6 +8,7 @@ import type {
   PredictVenueId,
 } from '../../types';
 import composedNflGame from '../../contracts/v1/fixtures/composed-nfl-game.json';
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import { parsePredictEvent } from '../../contracts/v1/marketData';
 import { findGameSelectionQuote } from './findGameSelectionQuote';
 
@@ -31,7 +32,7 @@ const createMarket = (
   question: id,
   status: 'active',
   outcomes,
-  ...(group ? { group } : {}),
+  ...(group ? { group } : fullGameMoneylineMetadata()),
 });
 
 const createEvent = (markets: readonly PredictMarket[]): PredictEvent => ({
@@ -153,7 +154,7 @@ describe('findGameSelectionQuote', () => {
     expect(findGameSelectionQuote(event, 'draw')).toBeUndefined();
   });
 
-  it('ignores grouped Markets when resolving a unique Game Selection', () => {
+  it('ignores spread Markets when resolving a unique Game Selection', () => {
     const awayYes = createOutcome('away-yes', 'yes', 'away');
     const spreadGroup: PredictMarketGroup = {
       key: 'spread-1',

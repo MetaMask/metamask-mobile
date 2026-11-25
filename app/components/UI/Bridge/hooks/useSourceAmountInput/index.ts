@@ -339,6 +339,7 @@ export const useSourceAmountInput = ({
     amount,
     balanceCheckAmount: sourceAmount,
     canToggle,
+    fiatRate,
     handleFocus: () => setSourceAmountCursorPositionToEnd(amount),
     handleKeypadChange,
     handleSelectionChange,
