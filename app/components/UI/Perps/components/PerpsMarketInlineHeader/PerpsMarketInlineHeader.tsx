@@ -51,13 +51,14 @@ export const PerpsMarketInlineHeader = ({
   const compactDescription = useMemo(
     () => (
       <LivePriceHeader
+        providerId={market.providerId}
         symbol={market.symbol}
         testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
         testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
         currentPrice={currentPrice}
       />
     ),
-    [market.symbol, currentPrice],
+    [market.symbol, market.providerId, currentPrice],
   );
 
   const endButtonIconProps = useMemo(() => {

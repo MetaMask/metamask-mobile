@@ -1,17 +1,10 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import WhatsHappeningCard from './WhatsHappeningCard';
 import type { WhatsHappeningItem } from '../types';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn((eventName: string) => ({
-  addProperties: jest.fn((properties: Record<string, unknown>) => ({
-    build: jest.fn(() => ({ category: eventName, properties })),
-  })),
-  build: jest.fn(() => ({ category: eventName })),
-}));
 
 const mockEndTrace = jest.fn();
 
@@ -20,25 +13,8 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
-let capturedOnVisible: (() => void) | null = null;
-let capturedViewportContext: { emitTrace?: boolean } | undefined;
-jest.mock('../../MarketInsights/hooks/useViewportTracking', () => ({
-  useViewportTracking: (
-    onVisible: () => void,
-    _areaThreshold?: number,
-    context?: { emitTrace?: boolean },
-  ) => {
-    capturedOnVisible = onVisible;
-    capturedViewportContext = context;
-    return { ref: { current: null }, onLayout: jest.fn() };
-  },
-}));
-
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock(
@@ -112,8 +88,7 @@ const baseItem: WhatsHappeningItem = {
 describe('WhatsHappeningCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedOnVisible = null;
-    capturedViewportContext = undefined;
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
   it('renders title and description', () => {
@@ -332,39 +307,5 @@ describe('WhatsHappeningCard', () => {
     );
 
     expect(mockEndTrace).not.toHaveBeenCalled();
-  });
-
-  it('does not emit Market Insights viewport spans', () => {
-    renderWithProvider(
-      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
-    );
-
-    expect(capturedViewportContext).toEqual(
-      expect.objectContaining({ emitTrace: false }),
-    );
-  });
-
-  it('tracks Whats Happening Card Scrolled to View when card becomes visible', () => {
-    renderWithProvider(
-      <WhatsHappeningCard item={baseItem} cardIndex={2} source="homepage" />,
-    );
-    expect(capturedOnVisible).not.toBeNull();
-    capturedOnVisible?.();
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
-    );
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
-        properties: expect.objectContaining({
-          trend_id: 'trend-0',
-          card_index: 2,
-          trend_category: 'macro',
-          trend_impact: 'positive',
-          asset_symbols: ['BTC'],
-          source: 'homepage',
-        }),
-      }),
-    );
   });
 });

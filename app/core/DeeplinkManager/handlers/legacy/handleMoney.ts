@@ -186,8 +186,8 @@ export const handleMoney = ({ moneyPath }: { moneyPath?: string } = {}) => {
       return;
     }
 
-    if (decision.destination === 'onboarding') {
-      NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
+    if (decision.destination === 'splash') {
+      NavigationService.navigation.navigate(Routes.MONEY.SPLASH);
       return;
     }
 

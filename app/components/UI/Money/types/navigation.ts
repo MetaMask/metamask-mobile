@@ -19,8 +19,10 @@ export enum MoneyPostOnboardingRedirectType {
   CARD = 'card',
 }
 
-/** Card screen to open after Money onboarding when the redirect type is CARD. */
+/** Card screen to open after the Money splash when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
+
+export type MoneyEarningsTab = 'earnings' | 'apy' | 'allocation';
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
@@ -47,11 +49,8 @@ export type MoneyPostOnboardingRedirect =
       cardScreen: MoneyCardReturnScreen;
     };
 
-export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
+export interface MoneySplashParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
-}
-
-export interface MoneySplashParams extends MoneyOnboardingParams {
   /** Opens the splash as a read-only explainer: no CTA, no FAQ, and it does not mark the splash as seen. */
   infoMode?: boolean;
 }
@@ -130,6 +129,10 @@ interface MoneyPotentialEarningsParams {
   overrideToUsd?: boolean;
 }
 
+interface MoneyEarningsParams {
+  activeTab?: MoneyEarningsTab;
+}
+
 /**
  * Selection returned by the rescue recipient screen. Only the account *id*
  * travels through navigation; the review screen resolves it against the
@@ -148,10 +151,10 @@ export interface MoneyMusdRescueRecipientSelection {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
-    MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
+    MoneyEarnings: MoneyEarningsParams | undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;

@@ -42,12 +42,8 @@ const CREATE_REQUEST: CreateRecurringOrderRequest = {
   dest: {
     assetId: PREPARE_QUERY.destAssetId,
   },
-  slippage: 0.5,
-  schedule: {
-    every: PREPARE_QUERY.every,
-    unit: PREPARE_QUERY.unit,
-    repeatCount: PREPARE_QUERY.repeatCount,
-  },
+  priceTolerance: 0.5,
+  schedule: PREPARE_QUERY.schedule,
   delegations: PREPARE_RESPONSE.delegations,
 };
 const API_ORDER = MOCK_RECURRING_OPEN_ORDER;
@@ -178,9 +174,16 @@ describe('recurring orders API client', () => {
 
   it('serializes every prepare parameter', async () => {
     globalFetchSpy.mockResolvedValue(createResponse(PREPARE_RESPONSE));
+    const priceRange = {
+      side: 'dest',
+      currency: 'USD',
+      min: '1800',
+      max: '2200',
+    } as const;
+    const query = { ...PREPARE_QUERY, priceRange };
 
     const result =
-      await recurringOrdersApiClient.prepareRecurringDelegation(PREPARE_QUERY);
+      await recurringOrdersApiClient.prepareRecurringDelegation(query);
 
     const url = new URL(globalFetchSpy.mock.calls[0][0]);
     expect(`${url.origin}${url.pathname}`).toBe(
@@ -192,9 +195,8 @@ describe('recurring orders API client', () => {
       srcAssetId: PREPARE_QUERY.srcAssetId,
       srcAmount: PREPARE_QUERY.srcAmount,
       destAssetId: PREPARE_QUERY.destAssetId,
-      every: '2',
-      unit: 'day',
-      repeatCount: '4',
+      schedule: JSON.stringify(PREPARE_QUERY.schedule),
+      priceRange: JSON.stringify(priceRange),
     });
     expect(result).toStrictEqual(PREPARE_RESPONSE);
   });

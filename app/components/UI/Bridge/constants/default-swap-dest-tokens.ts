@@ -55,7 +55,7 @@ export const DefaultSwapDestTokens: Partial<
   },
   [NETWORK_CHAIN_ID.BSC]: {
     '*': {
-      symbol: 'USDT',
+      symbol: 'BSC-USD',
       name: 'Tether USD',
       address: '0x55d398326f99059ff775485246999027b3197955',
       decimals: 18,

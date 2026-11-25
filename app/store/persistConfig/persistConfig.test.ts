@@ -16,6 +16,7 @@ jest.mock('../../core/Engine/constants', () => ({
     'KeyringController:stateChange',
     'PreferencesController:stateChange',
     'NetworkController:stateChange',
+    'CollectiblesController:stateChanged',
   ],
 }));
 
@@ -236,6 +237,22 @@ describe('persistConfig', () => {
   describe('ControllerStorage.getAllPersistedState()', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+    });
+
+    it('discovers Collectibles state through its registered stateChanged event', async () => {
+      jest
+        .mocked(FilesystemStorage.getItem)
+        .mockImplementation(async (key) =>
+          key === 'persist:CollectiblesController'
+            ? JSON.stringify({ _persist: { version } })
+            : undefined,
+        );
+
+      const result = await ControllerStorage.getAllPersistedState();
+
+      expect(result).toEqual({
+        backgroundState: { CollectiblesController: {} },
+      });
     });
 
     it('returns empty backgroundState for fresh install (no persisted data)', async () => {
@@ -473,7 +490,7 @@ describe('persistConfig', () => {
       });
     });
 
-    it('backfills moneySplashSeen from moneyOnboardingSeen when absent', () => {
+    it('does not backfill moneySplashSeen from moneyOnboardingSeen', () => {
       const userTransform = persistConfig.transforms[0] as Transform<
         unknown,
         unknown
@@ -490,7 +507,7 @@ describe('persistConfig', () => {
       ).toEqual(
         expect.objectContaining({
           moneyOnboardingSeen: true,
-          moneySplashSeen: true,
+          moneySplashSeen: false,
         }),
       );
     });
@@ -550,7 +567,7 @@ describe('persistConfig', () => {
       expect(bridgeTransform.whitelist).toEqual(['bridge']);
     });
 
-    it('does not persist the limit order session settings', () => {
+    it('does not persist advanced order session settings', () => {
       const bridgeTransform = persistConfig.transforms[3] as Transform<
         unknown,
         unknown
@@ -564,6 +581,7 @@ describe('persistConfig', () => {
           limitOrderCostTolerance: '3',
           limitOrderExpirationMinutes: 10080,
           limitOrderMarketComparison: undefined,
+          recurringPriceTolerance: '2',
         }),
       ).toEqual({
         sourceAmount: '1',
@@ -571,7 +589,7 @@ describe('persistConfig', () => {
       });
     });
 
-    it('clears limit order settings persisted by older app versions on rehydrate', () => {
+    it('clears advanced order settings on rehydrate', () => {
       const bridgeTransform = persistConfig.transforms[3] as Transform<
         unknown,
         unknown
@@ -584,11 +602,13 @@ describe('persistConfig', () => {
           sourceAmount: '1',
           limitOrderCostTolerance: '3',
           limitOrderExpirationMinutes: 10080,
+          recurringPriceTolerance: '2',
         }),
       ).toEqual({
         sourceAmount: '1',
         limitOrderCostTolerance: undefined,
         limitOrderExpirationMinutes: undefined,
+        recurringPriceTolerance: undefined,
       });
     });
   });

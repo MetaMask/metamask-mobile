@@ -59,7 +59,7 @@ export const MoneyAccountRow = ({
 
 /**
  * Shown when a Money account channel needs a Money account that does not exist yet.
- * The CTA opens Money onboarding and returns to Card afterwards.
+ * The CTA opens the Money splash and returns to Card afterwards.
  */
 export const MoneyAccountRequired = ({
   returnTo,
@@ -70,7 +70,7 @@ export const MoneyAccountRequired = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const onPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.ONBOARDING, {
+    navigation.navigate(Routes.MONEY.SPLASH, {
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.CARD,
         cardScreen: returnTo,

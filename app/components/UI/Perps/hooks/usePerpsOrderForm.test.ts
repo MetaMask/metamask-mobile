@@ -275,7 +275,30 @@ describe('usePerpsOrderForm', () => {
         },
       );
 
-      expect(mockUsePerpsMarketData).toHaveBeenCalledWith('');
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith(
+        expect.objectContaining({ asset: '' }),
+      );
+    });
+
+    it('reads market data and existing leverage from the requested venue', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          { ...createMockPosition('ETH', 20), providerId: 'hyperliquid' },
+          { ...createMockPosition('ETH', 5), providerId: 'lighter' },
+        ],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ initialAsset: 'ETH', providerId: 'lighter' }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith({
+        asset: 'ETH',
+        providerId: 'lighter',
+      });
+      expect(result.current.orderForm.leverage).toBe(5);
     });
 
     it('keeps an empty surface fallback empty', () => {

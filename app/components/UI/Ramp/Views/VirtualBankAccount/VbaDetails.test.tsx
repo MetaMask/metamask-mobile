@@ -15,6 +15,10 @@ import {
 } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  VBA_TEST_PIX_INSTRUCTIONS as pixInstructions,
+  VBA_TEST_US_BANK_INSTRUCTIONS as usBankInstructions,
+} from '../../../../../../tests/component-view/fixtures/vba';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
@@ -88,6 +92,19 @@ const mockMarkVbaAccountDetailsViewed = jest.mocked(
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('../../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
@@ -228,13 +245,6 @@ const approvedAutoramp: TestAutoramp = {
   walletAddress: '0xabc',
   status: 'Approved',
   depositRailsSummary: { currency: 'BRL' },
-};
-
-const pixInstructions = {
-  type: 'Pix' as const,
-  brCode: '00020126',
-  instruction: 'Pay with PIX',
-  pixKey: 'pix@example.com',
 };
 
 // Test fixtures use plain status strings, not the controller's enum.
@@ -679,20 +689,11 @@ describe('VbaDetails', () => {
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
     expect(playSelection).toHaveBeenCalledTimes(1);
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Copied Pix key',
+      'Pix key copied',
     );
   });
 
   describe('when NeoBankService reads every deposit rail', () => {
-    const usBankInstructions = {
-      type: 'UsBank',
-      rail: 'ACH',
-      accountHolder: 'Jane Doe',
-      routingNumber: '021000021',
-      accountNumber: '123456789',
-      bankName: 'Lead Bank',
-    };
-
     it('shows the US bank transfer rows', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
@@ -781,42 +782,6 @@ describe('VbaDetails', () => {
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
       expect(playSelection).toHaveBeenCalledTimes(1);
-    });
-
-    it('copies every US bank row and opens the share sheet', async () => {
-      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
-
-      const { getByTestId } = renderWithProvider(<VbaDetails />);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
-        ).toBeOnTheScreen();
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
-      });
-
-      const bankDetails = [
-        'Account holder',
-        'Jane Doe',
-        '',
-        'Routing number',
-        '021000021',
-        '',
-        'Account number',
-        '123456789',
-        '',
-        'Bank name',
-        'Lead Bank',
-      ].join('\n');
-      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
-      expect(playSelection).toHaveBeenCalledTimes(1);
-      expect(Share.open).toHaveBeenCalledWith({
-        message: bankDetails,
-        failOnCancel: false,
-      });
     });
 
     it('renders cached US bank details immediately for a USD account', () => {
@@ -914,7 +879,7 @@ describe('VbaDetails', () => {
         strings('virtual_bank_account.vba_details.title'),
       );
       expect(
-        queryByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+        queryByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
       ).not.toBeOnTheScreen();
     });
 
@@ -1001,7 +966,7 @@ describe('VbaDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('copies every SEPA row, including the payment reference', async () => {
+    it('shares every SEPA row, including the payment reference', async () => {
       mockGetDepositInstructions.mockResolvedValue({
         ...sepaInstructions,
         paymentReference: 'IR-K7M2QX',
@@ -1011,12 +976,12 @@ describe('VbaDetails', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+          getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
         ).toBeOnTheScreen();
       });
 
       await act(async () => {
-        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON));
       });
 
       const bankDetails = [
@@ -1035,12 +1000,12 @@ describe('VbaDetails', () => {
         'Bank name',
         'Banking Circle S.A.',
       ].join('\n');
-      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
       expect(playSelection).toHaveBeenCalledTimes(1);
       expect(Share.open).toHaveBeenCalledWith({
         message: bankDetails,
         failOnCancel: false,
       });
+      expect(Clipboard.setString).not.toHaveBeenCalled();
     });
 
     it('does not show the Brazil provider disclosure on the SEPA layout', async () => {
@@ -1096,7 +1061,7 @@ describe('VbaDetails', () => {
         'DE89370400440532013000',
       );
       expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-        'Copied IBAN',
+        'IBAN copied',
       );
     });
 

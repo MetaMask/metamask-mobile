@@ -49,13 +49,13 @@ const mockHighestBalanceAaveOutputToken = {
 const arrangeEligibility = ({
   isMoneyAccountFeatureEnabled = true,
   isMoneyAccountGeoEligible = true,
-  isOnboardingRedirectNeeded = false,
+  isSplashRedirectNeeded = false,
   geolocationStatus = 'complete',
   highestBalanceAaveTokenMeetingDepositMinimum,
 }: {
   isMoneyAccountFeatureEnabled?: boolean;
   isMoneyAccountGeoEligible?: boolean;
-  isOnboardingRedirectNeeded?: boolean;
+  isSplashRedirectNeeded?: boolean;
   geolocationStatus?: string;
   highestBalanceAaveTokenMeetingDepositMinimum?: typeof mockHighestBalanceAaveOutputToken;
 } = {}) => {
@@ -71,7 +71,7 @@ const arrangeEligibility = ({
           : !isMoneyAccountGeoEligible
             ? 'geo_blocked'
             : undefined,
-        isOnboardingRedirectNeeded,
+        isSplashRedirectNeeded,
       };
     }
 
@@ -142,14 +142,14 @@ describe('MoneyDepositDeeplinkBridge', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('redirects unseen users to onboarding with a deposit continuation', () => {
+  it('redirects unseen users to the splash with a deposit continuation', () => {
     mockUseRoute.mockReturnValue({
       params: {
         tokenType: 'atoken',
       },
     } as never);
     arrangeEligibility({
-      isOnboardingRedirectNeeded: true,
+      isSplashRedirectNeeded: true,
       highestBalanceAaveTokenMeetingDepositMinimum:
         mockHighestBalanceAaveOutputToken,
     });
@@ -163,7 +163,7 @@ describe('MoneyDepositDeeplinkBridge', () => {
     expect(dispatchCallback).toEqual(expect.any(Function));
 
     expect(dispatchCallback?.({ key: 'money-stack' })).toEqual({
-      ...StackActions.replace(Routes.MONEY.ONBOARDING, {
+      ...StackActions.replace(Routes.MONEY.SPLASH, {
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
           preferredPaymentToken: {
@@ -177,7 +177,7 @@ describe('MoneyDepositDeeplinkBridge', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('starts a replacement deposit confirmation when onboarding is not needed', async () => {
+  it('starts a replacement deposit confirmation when the splash is not needed', async () => {
     const { rerender } = render(<MoneyDepositDeeplinkBridge />);
     rerender(<MoneyDepositDeeplinkBridge />);
 

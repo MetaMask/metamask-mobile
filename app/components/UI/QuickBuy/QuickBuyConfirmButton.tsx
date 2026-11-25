@@ -42,9 +42,10 @@ interface QuickBuyConfirmButtonProps {
 }
 
 /**
- * Confirm CTA colors follow Figma Trade ButtonHero fills:
+ * Confirm CTA colors follow the Figma Trade button fills:
  * buy → success-default (#b9f302 in dark), sell → error-default.
- * Do not use design-system ButtonHero here — its locked light primary is blue.
+ * Do not use the design-system button here — its theme-following
+ * primary color is brand blue, not these fills.
  */
 const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   state,

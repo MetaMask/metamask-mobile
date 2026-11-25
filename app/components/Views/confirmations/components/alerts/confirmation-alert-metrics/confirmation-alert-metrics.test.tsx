@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { ConfirmationAlertMetrics } from './confirmation-alert-metrics';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
@@ -28,6 +28,7 @@ describe('ConfirmationAlertMetrics', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     jest.mocked(useConfirmationAlertMetrics).mockReturnValue({
       trackAlertMetrics: mockTrackAlertMetrics,
@@ -36,10 +37,19 @@ describe('ConfirmationAlertMetrics', () => {
     });
   });
 
-  it('tracks alert metrics on mount', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('tracks alert metrics on the next tick after mount', () => {
     mockAlerts([DEPOSIT_LIMIT_ALERT]);
 
     render(<ConfirmationAlertMetrics />);
+    expect(mockTrackAlertMetrics).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.runAllTimers();
+    });
 
     expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
   });
@@ -48,12 +58,55 @@ describe('ConfirmationAlertMetrics', () => {
     mockAlerts([]);
 
     const { rerender } = render(<ConfirmationAlertMetrics />);
+    act(() => {
+      jest.runAllTimers();
+    });
     expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
 
     mockAlerts([DEPOSIT_LIMIT_ALERT]);
     rerender(<ConfirmationAlertMetrics />);
+    act(() => {
+      jest.runAllTimers();
+    });
 
     expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(2);
+  });
+
+  it('coalesces changes within the same tick into one write using the latest callback', () => {
+    const latestTrackAlertMetrics = jest.fn();
+    mockAlerts([]);
+
+    const { rerender } = render(<ConfirmationAlertMetrics />);
+
+    mockAlerts([DEPOSIT_LIMIT_ALERT]);
+    jest.mocked(useConfirmationAlertMetrics).mockReturnValue({
+      trackAlertMetrics: latestTrackAlertMetrics,
+      trackAlertRendered: jest.fn(),
+      trackInlineAlertClicked: jest.fn(),
+    });
+    rerender(<ConfirmationAlertMetrics />);
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(mockTrackAlertMetrics).not.toHaveBeenCalled();
+    expect(latestTrackAlertMetrics).toHaveBeenCalledTimes(1);
+  });
+
+  it('flushes a pending write on unmount', () => {
+    mockAlerts([DEPOSIT_LIMIT_ALERT]);
+
+    const { unmount } = render(<ConfirmationAlertMetrics />);
+    unmount();
+
+    expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
   });
 
   it('renders nothing', () => {
