@@ -1970,13 +1970,7 @@ jobs:
       actions: write
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs:
-      [
-        build-android-apks,
-        smart-e2e-selection,
-        prepare-e2e-timings,
-        get_requirements,
-      ]
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -2017,13 +2011,7 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs:
-      [
-        get_requirements,
-        build-ios-apps,
-        smart-e2e-selection,
-        prepare-e2e-timings,
-      ]
+    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
