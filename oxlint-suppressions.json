@@ -20782,7 +20782,7 @@
   },
   "app/core/DeeplinkManager/DeeplinkManager.ts": {
     "typescript/no-floating-promises": {
-      "count": 5
+      "count": 3
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
