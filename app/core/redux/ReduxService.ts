@@ -6,6 +6,7 @@ import { ReduxStore } from './types';
  */
 class ReduxService {
   static #reduxStore: ReduxStore;
+  static readonly #storeReady = new Set<(store: ReduxStore) => void>();
 
   static #assertReduxStoreType(store: ReduxStore) {
     if (
@@ -35,6 +36,26 @@ class ReduxService {
   static set store(store: ReduxStore) {
     this.#assertReduxStoreType(store);
     this.#reduxStore = store;
+    const listeners = [...this.#storeReady];
+    this.#storeReady.clear();
+    listeners.forEach((listener) => listener(store));
+  }
+
+  /** Runs once when the store becomes available and can be cancelled before then. */
+  static whenStoreReady(listener: (store: ReduxStore) => void): () => void {
+    if (this.#reduxStore) {
+      listener(this.#reduxStore);
+      return () => undefined;
+    }
+    this.#storeReady.add(listener);
+    return () => {
+      this.#storeReady.delete(listener);
+    };
+  }
+
+  /** Reads the store without reporting an error before bootstrap. */
+  static get storeIfInitialized(): ReduxStore | undefined {
+    return this.#reduxStore;
   }
 
   /**
