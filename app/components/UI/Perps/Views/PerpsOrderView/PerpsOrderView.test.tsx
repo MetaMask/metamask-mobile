@@ -3066,6 +3066,35 @@ describe('PerpsOrderView', () => {
       );
     });
 
+    // Unit fallback. A view test cannot fire the deposit tracker's credit
+    // callback, let alone twice while the first re-entry is in flight.
+    it('places a credited order once without a failure toast when a second credit arrives during the support check', async () => {
+      const toasts = mockDefaultUsePerpsToasts();
+      (usePerpsToasts as jest.Mock).mockReturnValue(toasts);
+      const { placeOrder, submit, settleConfirm, confirmDepositOnChain } =
+        arrangeDepositFlow();
+      await submit();
+      await settleConfirm();
+      let allowSupport!: () => void;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise((resolve) => {
+          allowSupport = () => resolve('supported');
+        }),
+      );
+
+      await confirmDepositOnChain();
+      await confirmDepositOnChain();
+      await act(async () => {
+        allowSupport();
+        await flushAsync();
+      });
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(toasts.showToast).not.toHaveBeenCalledWith(
+        toasts.PerpsToastOptions.accountManagement.deposit.orderNotPlaced,
+      );
+    });
+
     // Deposit confirm dismisses first; funds arriving later re-enter
     // `handlePlaceOrder(true)` and must still place without a second goBack.
     it('does not pop the presenting screen again when funds arrive after a stay-on-screen deposit dismiss', async () => {

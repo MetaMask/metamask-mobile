@@ -388,6 +388,73 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('sets TP/SL on the route venue after a routed market order fills', async () => {
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    const updatePositionTPSL = jest.mocked(
+      Engine.context.PerpsController.updatePositionTPSL,
+    );
+    // The pending take-profit belongs to the active venue (Hyperliquid); the
+    // route sends the order to Lighter, so TP/SL must follow the route.
+    const { stream } = renderPerpsOrderView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              ...eligibleOverrides.engine.backgroundState.PerpsController,
+              tradeConfigurations: {
+                mainnet: {
+                  hyperliquid: {
+                    ETH: {
+                      pendingConfig: {
+                        takeProfitPrice: '3500',
+                        timestamp: Date.now(),
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        providerId: 'lighter',
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(updatePositionTPSL).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        takeProfitPrice: '3500',
+        stopLossPrice: undefined,
+        providerId: 'lighter',
+      });
+    });
+    expect(placeOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
+    );
+    expect(placeOrder).toHaveBeenCalledWith(
+      expect.not.objectContaining({ takeProfitPrice: '3500' }),
+    );
+  });
+
   it('blocks an unsupported full-screen order and dismisses the explanation', async () => {
     const getAccountSupport = jest.mocked(
       Engine.context.PerpsController.getAccountSupport,
