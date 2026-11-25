@@ -35,6 +35,7 @@ import {
   claimWaitCaption,
   claimWaitMinutesRemaining,
   displayClaimTotals,
+  familyDisplayTotals,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
@@ -2107,5 +2108,89 @@ describe('isPendingClaimRow', () => {
         payout_method: 'VOUCHER',
       }),
     ).toBe(false);
+  });
+});
+
+describe('familyDisplayTotals', () => {
+  const familySummary = (
+    family: Record<string, string>,
+    minimum = ONE_DOLLAR,
+  ) =>
+    ({
+      minimum_musd_base_units: minimum,
+      self_earned: { by_claim_family: {} },
+      earned_by_others: {
+        by_claim_family: { REFERRAL_REV_SHARE: family },
+      },
+    }) as unknown as EarningsSummaryDto;
+
+  it('reads each field of the named family and branch', () => {
+    expect(
+      familyDisplayTotals(
+        familySummary({
+          claimable: '2000000',
+          pending: '300000',
+          held: '40',
+          blocked: '5',
+          voided: '6',
+          claimed: '7000000',
+        }),
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toEqual({
+      claimable: '2000000',
+      pending: '300000',
+      held: '40',
+      blocked: '5',
+      voided: '6',
+      claimed: '7000000',
+    });
+  });
+
+  it('moves a claimable under the minimum into pending', () => {
+    expect(
+      familyDisplayTotals(
+        familySummary({ claimable: UNDER_DOLLAR, pending: '100000' }),
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toMatchObject({ claimable: '0', pending: '1099999' });
+  });
+
+  it('keeps a claimable when the minimum is unknown', () => {
+    const summaryWithoutMinimum = familySummary({ claimable: UNDER_DOLLAR });
+    delete (summaryWithoutMinimum as Partial<EarningsSummaryDto>)
+      .minimum_musd_base_units;
+
+    expect(
+      familyDisplayTotals(
+        summaryWithoutMinimum,
+        'earned_by_others',
+        'REFERRAL_REV_SHARE',
+      ),
+    ).toMatchObject({ claimable: UNDER_DOLLAR, pending: '0' });
+  });
+
+  it('reads zero for a missing family or summary', () => {
+    const zero = {
+      claimable: '0',
+      pending: '0',
+      held: '0',
+      blocked: '0',
+      voided: '0',
+      claimed: '0',
+    };
+
+    expect(
+      familyDisplayTotals(
+        familySummary({}),
+        'self_earned',
+        'REFERRAL_TRADE_FEE_CASHBACK',
+      ),
+    ).toEqual(zero);
+    expect(
+      familyDisplayTotals(null, 'earned_by_others', 'SOCIAL_FOLLOW_TRADE'),
+    ).toEqual(zero);
   });
 });

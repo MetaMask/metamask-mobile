@@ -19,7 +19,7 @@ import { selectTransactions } from '../../../../selectors/transactionController'
 
 const log = createProjectLogger('confirm-navigation');
 
-const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS;
 const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 export type ConfirmNavigateOptions = {

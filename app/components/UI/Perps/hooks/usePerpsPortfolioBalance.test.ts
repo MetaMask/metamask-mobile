@@ -99,9 +99,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       expect(result.current).toEqual({
         perpsBalance: 0,
-        perpsBalance1dAgo: 0,
+        perpsBalance1dAgo: undefined,
         unrealizedPnl: 0,
         hasPerpsData: false,
+        isPartial: false,
         perpsBalances: {},
       });
     });
@@ -134,9 +135,51 @@ describe('usePerpsPortfolioBalance', () => {
         perpsBalance1dAgo: 950,
         unrealizedPnl: 50.25,
         hasPerpsData: true,
+        isPartial: false,
         perpsBalances: mockBalances,
       });
     });
+  });
+
+  it('updates the partial flag when stream completeness changes without a new account', () => {
+    const liveAccount = {
+      account: {
+        spendableBalance: '100',
+        withdrawableBalance: '100',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '100',
+      },
+      isInitialLoading: false,
+      aggregate: {
+        status: 'partial',
+        availableProviders: ['hyperliquid'],
+        unavailableProviders: ['lighter'],
+        pendingProviders: [],
+      },
+    } satisfies ReturnType<typeof usePerpsLiveAccount>;
+    mockUsePerpsLiveAccount.mockReturnValue(liveAccount);
+
+    const { result, rerender } = renderHook(() => usePerpsPortfolioBalance());
+
+    expect(result.current.isPartial).toBe(true);
+    expect(result.current.perpsBalance).toBe(100);
+
+    mockUsePerpsLiveAccount.mockReturnValue({
+      ...liveAccount,
+      aggregate: {
+        status: 'complete',
+        availableProviders: ['hyperliquid', 'lighter'],
+        unavailableProviders: [],
+        pendingProviders: [],
+      },
+    });
+
+    rerender({});
+
+    expect(result.current.isPartial).toBe(false);
+    expect(result.current.perpsBalance).toBe(100);
   });
 
   describe('Balance aggregation', () => {
@@ -170,9 +213,143 @@ describe('usePerpsPortfolioBalance', () => {
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
       expect(result.current.perpsBalance).toBeCloseTo(1500.75, 2);
-      expect(result.current.perpsBalance1dAgo).toBeCloseTo(1430, 2);
+      // TAT-4407: the live account here is a single venue (no providerStates),
+      // so the baseline sums only that venue's persisted row. Summing dydx's
+      // baseline against a one-venue live total would distort the change.
+      expect(result.current.perpsBalance1dAgo).toBeCloseTo(950, 2);
       expect(result.current.unrealizedPnl).toBeCloseTo(-25.15, 2);
       expect(result.current.hasPerpsData).toBe(true);
+    });
+
+    it('sums the 1d baseline across providerStates venues when every venue has one', () => {
+      const mockBalances = {
+        hyperliquid: {
+          totalBalance: '1000.50',
+          unrealizedPnl: '-50.25',
+          accountValue1dAgo: '950.00',
+          lastUpdated: Date.now(),
+        },
+        lighter: {
+          totalBalance: '500.25',
+          unrealizedPnl: '25.10',
+          accountValue1dAgo: '480.00',
+          lastUpdated: Date.now(),
+        },
+      };
+
+      const accountData = {
+        spendableBalance: '1500.75',
+        withdrawableBalance: '1500.75',
+        marginUsed: '0',
+        unrealizedPnl: '-25.15',
+        returnOnEquity: '0',
+        totalBalance: '1500.75',
+        providerStates: {
+          hyperliquid: {
+            status: 'available',
+            providerId: 'hyperliquid',
+            state: {} as AccountState,
+          },
+          lighter: {
+            status: 'available',
+            providerId: 'lighter',
+            state: {} as AccountState,
+          },
+        },
+      } as unknown as AccountState;
+
+      setupMocks(mockBalances, accountData);
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
+
+      expect(result.current.perpsBalance1dAgo).toBeCloseTo(1430, 2);
+    });
+
+    it('excludes pending and unavailable venues from the 1d baseline', () => {
+      const mockBalances = {
+        hyperliquid: {
+          totalBalance: '1000.50',
+          unrealizedPnl: '-50.25',
+          accountValue1dAgo: '950.00',
+          lastUpdated: Date.now(),
+        },
+        lighter: {
+          totalBalance: '500.25',
+          unrealizedPnl: '25.10',
+          accountValue1dAgo: '480.00',
+          lastUpdated: Date.now(),
+        },
+      };
+
+      const accountData = {
+        spendableBalance: '1000.50',
+        withdrawableBalance: '1000.50',
+        marginUsed: '0',
+        unrealizedPnl: '-50.25',
+        returnOnEquity: '0',
+        totalBalance: '1000.50',
+        providerStates: {
+          hyperliquid: {
+            status: 'available',
+            providerId: 'hyperliquid',
+            state: {} as AccountState,
+          },
+          lighter: { status: 'pending', providerId: 'lighter' },
+        },
+      } as unknown as AccountState;
+
+      setupMocks(mockBalances, accountData);
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
+
+      // The live total covers Hyperliquid only, so Lighter's history must not
+      // enter the baseline.
+      expect(result.current.perpsBalance1dAgo).toBeCloseTo(950, 2);
+    });
+
+    it('unsets the 1d baseline when a venue in the live total has none', () => {
+      const mockBalances = {
+        hyperliquid: {
+          totalBalance: '1000.50',
+          unrealizedPnl: '-50.25',
+          accountValue1dAgo: '950.00',
+          lastUpdated: Date.now(),
+        },
+        lighter: {
+          totalBalance: '500.25',
+          unrealizedPnl: '25.10',
+          lastUpdated: Date.now(),
+        } as unknown as MockBalance,
+      };
+
+      const accountData = {
+        spendableBalance: '1500.75',
+        withdrawableBalance: '1500.75',
+        marginUsed: '0',
+        unrealizedPnl: '-25.15',
+        returnOnEquity: '0',
+        totalBalance: '1500.75',
+        providerStates: {
+          hyperliquid: {
+            status: 'available',
+            providerId: 'hyperliquid',
+            state: {} as AccountState,
+          },
+          lighter: {
+            status: 'available',
+            providerId: 'lighter',
+            state: {} as AccountState,
+          },
+        },
+      } as unknown as AccountState;
+
+      setupMocks(mockBalances, accountData);
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
+
+      // Lighter has no accountValue1dAgo: comparing the two-venue live total
+      // against a one-venue baseline would count the missing baseline as zero.
+      expect(result.current.perpsBalance1dAgo).toBeUndefined();
     });
 
     it('should handle single provider balance', () => {
@@ -284,10 +461,11 @@ describe('usePerpsPortfolioBalance', () => {
 
       expect(result.current).toEqual({
         perpsBalance: 0,
-        perpsBalance1dAgo: 0,
+        perpsBalance1dAgo: undefined,
         unrealizedPnl: 0,
         perpsBalances: {},
         hasPerpsData: false,
+        isPartial: false,
       });
     });
 
@@ -301,10 +479,11 @@ describe('usePerpsPortfolioBalance', () => {
 
       expect(result.current).toEqual({
         perpsBalance: 0,
-        perpsBalance1dAgo: 0,
+        perpsBalance1dAgo: undefined,
         unrealizedPnl: 0,
         perpsBalances: {},
         hasPerpsData: false,
+        isPartial: false,
       });
     });
 
@@ -317,10 +496,11 @@ describe('usePerpsPortfolioBalance', () => {
       // Should still return default values even if there are errors
       expect(result.current).toEqual({
         perpsBalance: 0,
-        perpsBalance1dAgo: 0,
+        perpsBalance1dAgo: undefined,
         unrealizedPnl: 0,
         perpsBalances: {},
         hasPerpsData: false,
+        isPartial: false,
       });
     });
 
@@ -492,12 +672,55 @@ describe('usePerpsPortfolioBalance', () => {
         unrealizedPnl: '0',
         returnOnEquity: '0',
         totalBalance: '1500.00',
+        providerStates: {
+          hyperliquid: {
+            status: 'available',
+            providerId: 'hyperliquid',
+            state: {} as AccountState,
+          },
+          lighter: {
+            status: 'available',
+            providerId: 'lighter',
+            state: {} as AccountState,
+          },
+        },
       });
 
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
       expect(result.current.perpsBalance).toBe(1500);
       expect(result.current.perpsBalance1dAgo).toBeUndefined();
+    });
+
+    it.each<[string, number | undefined]>([
+      ['0', 0],
+      ['-10', -10],
+      ['invalid', undefined],
+      ['NaN', undefined],
+      ['Infinity', undefined],
+    ])('reports the historical baseline %s as %s', (baseline, expected) => {
+      setupMocks(
+        {
+          hyperliquid: {
+            totalBalance: '100',
+            unrealizedPnl: '0',
+            accountValue1dAgo: baseline,
+            lastUpdated: 0,
+          },
+        },
+        {
+          spendableBalance: '100',
+          withdrawableBalance: '100',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '100',
+        },
+      );
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
+
+      expect(result.current.perpsBalance1dAgo).toBe(expected);
     });
 
     it('should handle null provider balance objects', () => {
@@ -524,9 +747,11 @@ describe('usePerpsPortfolioBalance', () => {
 
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
-      // Should only count the valid provider
+      // Should only count the valid provider. TAT-4407: the live account is a
+      // single venue whose persisted row is null, so the baseline is
+      // incomplete and the change figure is unset rather than zero.
       expect(result.current.perpsBalance).toBe(500);
-      expect(result.current.perpsBalance1dAgo).toBe(450);
+      expect(result.current.perpsBalance1dAgo).toBeUndefined();
       expect(result.current.unrealizedPnl).toBe(25);
     });
   });

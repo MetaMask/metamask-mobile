@@ -1,3 +1,4 @@
+import { PERPS_VENUE_IDS } from '../../constants/venueIds';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   BottomSheet,
@@ -29,12 +30,6 @@ export interface PerpsExchangeFilterSheetProps {
   onClose: () => void;
   testID?: string;
 }
-
-// Display order; the aggregated option is never listed.
-const EXCHANGE_FILTER_PROVIDER_IDS: PerpsProviderType[] = [
-  'lighter',
-  'hyperliquid',
-];
 
 const TAGLINE_STRING_KEY: Record<PerpsProviderType, string> = {
   lighter: 'perps.exchange_filter.tagline_lighter',
@@ -70,7 +65,7 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
       return;
     }
     onSave(
-      EXCHANGE_FILTER_PROVIDER_IDS.filter((providerId) =>
+      PERPS_VENUE_IDS.filter((providerId) =>
         draftProviderIds.includes(providerId),
       ),
     );
@@ -90,7 +85,7 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
         {strings('perps.exchange_filter.title')}
       </BottomSheetHeaderGlass>
       <Box accessible={false} twClassName="px-4 pb-3" gap={2}>
-        {EXCHANGE_FILTER_PROVIDER_IDS.map((providerId) => {
+        {PERPS_VENUE_IDS.map((providerId) => {
           const name = PROVIDER_DISPLAY_INFO[providerId].name;
           const isChecked = draftProviderIds.includes(providerId);
           const rowTestID = `${PerpsExchangeFilterSheetSelectorsIDs.OPTION}-${providerId}`;

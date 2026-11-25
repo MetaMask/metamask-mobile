@@ -50,6 +50,13 @@ const mockGetParent = jest.fn(() => ({
   getState: () => ({ type: mockParentNavigatorType }),
 }));
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   const ReactActual = jest.requireActual('react');

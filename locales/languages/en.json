@@ -139,6 +139,12 @@
     "deposit_limit": {
       "title": "Max deposit: {{amount}}"
     },
+    "lighter_account_lookup_pending": {
+      "message": "Verifying Lighter account..."
+    },
+    "lighter_account_lookup_failed": {
+      "message": "Failed to verify Lighter account"
+    },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
       "message": "Something went wrong with your fiat purchase. Try again."
@@ -197,6 +203,12 @@
         "message": "This has been identified as suspicious. We recommend not interacting with this site.",
         "title": "Suspicious site"
       }
+    },
+    "clamp_commit_failed": {
+      "message": "Failed to update transaction amount"
+    },
+    "clamp_commit_pending": {
+      "message": "Updating transaction amount"
     }
   },
   "blockaid_banner": {
@@ -3653,7 +3665,9 @@
     "exchange_filter": {
       "title": "Filter by exchange",
       "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage"
+      "tagline_hyperliquid": "High volume, low slippage",
+      "trigger": "{{count}} exchange",
+      "trigger_plural": "{{count}} exchanges"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -5472,6 +5486,20 @@
         "one": "{{formattedCount}} open, trending",
         "other": "{{formattedCount}} opens, trending"
       }
+    },
+    "tabs": {
+      "popular": "Popular",
+      "packs": "Packs",
+      "collection": "Collection",
+      "marketplace": "Marketplace"
+    },
+    "landing": {
+      "just_opened": "Just opened",
+      "epic_vs_odds": "Epic vs Odds",
+      "greatest_hits": "Greatest hits"
+    },
+    "marketplace": {
+      "coming_soon": "Coming soon"
     }
   },
   "collectible": {
@@ -8576,6 +8604,7 @@
     "encountered_error": "We've encountered an error",
     "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
     "min_purchase_limit": "Minimum purchase is {{amount}}",
+    "min_deposit_limit": "Minimum deposit is {{amount}}",
     "max_purchase_limit": "Maximum purchase is {{amount}}",
     "change_provider_button": "Change provider"
   },
@@ -11612,6 +11641,21 @@
     "ios_google_login_unsupported_blocking_rehydration_description_3": "Can't update? You can still access your wallet by signing in on another device with the same Google login and password or importing with your Secret Recovery Phrase.",
     "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
+  "wallet_recovery_mfa": {
+    "verify_title": "Verify it's you",
+    "verify_description": "Choose a security method to recover your wallet.",
+    "use_passkey": "Use passkey",
+    "or": "or",
+    "method_password": "Password",
+    "method_email": "Email",
+    "method_totp": "Authenticator app",
+    "method_failed": "Verification failed. Try again or choose another method.",
+    "offline_reason": "Connect to the internet to use these methods.",
+    "cant_use_these": "Can't use any of these?",
+    "password_description": "Enter your password to continue",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
+  },
   "password_hint": {
     "title": "Password hint",
     "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
@@ -12227,6 +12271,14 @@
       "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
+      "action_buttons": {
+        "add": "Add",
+        "details": "Details",
+        "hide_details": "Hide",
+        "view_pin": "View PIN",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze"
+      },
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",
       "try_again": "Try again",
@@ -12835,6 +12887,11 @@
     },
     "referral_details_error": {
       "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "earnings_summary_error": {
+      "error_fetching_title": "Earnings couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
@@ -13905,11 +13962,16 @@
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
     "add_to_watchlist": "Add to watchlist",
+    "remove_from_watchlist": "Remove from watchlist",
+    "market_data_unavailable": "Market data unavailable",
     "home_empty_title": "Watchlist",
     "home_empty_subtitle": "You have no watchlist items yet",
     "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
+    "load_error": "Unable to load watchlist items",
+    "save_error": "Unable to save watchlist order",
+    "retry": "Try again",
     "edit": "Edit",
     "done": "Done",
     "empty_add_tokens_cta": "Add {{count}} token",
