@@ -262,7 +262,10 @@ describe('usePerpsLiquidationPrice', () => {
     mockCalculateLiquidationPrice.mockResolvedValue('45000.00');
 
     const { result, rerender } = renderHook(
-      (props) => usePerpsLiquidationPrice(props),
+      // Props come from the hook's own parameter type, so the rerender below
+      // can pass an undefined entry price.
+      (props: Parameters<typeof usePerpsLiquidationPrice>[0]) =>
+        usePerpsLiquidationPrice(props),
       {
         initialProps: {
           entryPrice: 50000,
