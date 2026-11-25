@@ -566,7 +566,7 @@ const Routes = {
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
-    REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    CONFIRMATIONS: 'Confirmations',
     NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {
