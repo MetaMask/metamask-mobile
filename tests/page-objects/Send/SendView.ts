@@ -1,6 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
+import { SendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/SendView.testIds';
 import {
   Utilities,
   Assertions,
@@ -22,7 +22,7 @@ class SendView {
   }
 
   get amountScreen(): Promise<AppiumElement> {
-    return Matchers.getElementByID(RedesignedSendViewSelectorsIDs.SEND_AMOUNT);
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_AMOUNT);
   }
 
   get zeroButton(): Promise<AppiumElement> {
@@ -47,14 +47,12 @@ class SendView {
 
   get recipientAddressInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
   }
 
   get reviewButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-    );
+    return Matchers.getElementByID(SendViewSelectorsIDs.REVIEW_BUTTON);
   }
 
   get amountInputField(): Promise<AppiumElement> {
