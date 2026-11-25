@@ -58,6 +58,21 @@ describe(`Migration ${migrationVersion}: remove Arc ERC-20 USDC custom asset`, (
     expect(migrate(state)).toBe(state);
   });
 
+  it('returns state unchanged when customAssets is not an object', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AssetsController: {
+            customAssets: 'not-a-map',
+            assetsInfo: { preserved: true },
+          },
+        },
+      },
+    };
+
+    expect(migrate(state)).toBe(state);
+  });
+
   it('returns state unchanged when the Arc ERC-20 USDC custom asset is absent', () => {
     const state = createState({ [ACCOUNT_1]: [OTHER_ASSET_ID] });
 
@@ -98,6 +113,21 @@ describe(`Migration ${migrationVersion}: remove Arc ERC-20 USDC custom asset`, (
       result.engine.backgroundState.AssetsController.customAssets,
     ).toStrictEqual({
       [ACCOUNT_2]: [OTHER_ASSET_ID],
+    });
+  });
+
+  it('keeps accounts whose custom assets are not an array', () => {
+    const state = createState({
+      [ACCOUNT_1]: 'not-an-array',
+      [ACCOUNT_2]: [ARC_ERC20_USDC_ASSET_ID],
+    });
+
+    const result = migrate(state) as typeof state;
+
+    expect(
+      result.engine.backgroundState.AssetsController.customAssets,
+    ).toStrictEqual({
+      [ACCOUNT_1]: 'not-an-array',
     });
   });
 
