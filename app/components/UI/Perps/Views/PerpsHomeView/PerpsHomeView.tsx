@@ -456,6 +456,7 @@ const PerpsHomeView = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
+          accessible={false}
         >
           {availableBalanceLabel}
           <Icon
