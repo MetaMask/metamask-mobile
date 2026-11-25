@@ -93,48 +93,6 @@ export const buildCardSupportUrl = (
   return `${baseUrl}${separator}${params.join('&')}`;
 };
 
-/** Longest appeal message the form sends, so the support URL stays bounded. */
-export const SOCIAL_APPEAL_MESSAGE_MAX_LENGTH = 1000;
-
-/**
- * Builds the help-center URL that hands a social moderation appeal to support.
- * The email and message the user typed ride along as query params, next to
- * the decision being appealed, so the support side can open the conversation
- * with them.
- * NOTE: the `appeal_*` param names are placeholders pending support/Intercom
- * confirmation. The email and message are redacted from logs (see
- * `redactCustomerServiceToken`).
- */
-export const buildSocialAppealSupportUrl = (
-  {
-    email,
-    message,
-    decision,
-    handle,
-    reason,
-  }: {
-    email: string;
-    message: string;
-    decision: string;
-    handle: string;
-    reason: string;
-  },
-  baseUrl: string = METAMASK_SUPPORT_URL,
-) => {
-  const params = [
-    'appeal_type=social_moderation',
-    `appeal_decision=${encodeURIComponent(decision)}`,
-    `appeal_handle=${encodeURIComponent(handle)}`,
-    `appeal_reason=${encodeURIComponent(reason)}`,
-    `appeal_email=${encodeURIComponent(email)}`,
-    `appeal_message=${encodeURIComponent(
-      message.slice(0, SOCIAL_APPEAL_MESSAGE_MAX_LENGTH),
-    )}`,
-  ];
-  const separator = baseUrl.includes('?') ? '&' : '?';
-  return `${baseUrl}${separator}${params.join('&')}`;
-};
-
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
 export const PERPS_TROUBLESHOOT_URL = `https://support.metamask.io/trade/perps/troubleshoot/${MOBILE_UTM}`;

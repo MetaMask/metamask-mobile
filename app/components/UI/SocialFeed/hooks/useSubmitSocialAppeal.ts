@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import type { SocialDecisionKind } from '../../../Views/SocialLeaderboard/SocialPostDecisionView/SocialPostDecisionView.types';
 
 export interface SocialAppeal {
   /** Where the appeal outcome is emailed. */
@@ -6,7 +7,7 @@ export interface SocialAppeal {
   /** Why the user disagrees with the decision. */
   message: string;
   /** Which outcome is being appealed. */
-  decision: string;
+  decision: SocialDecisionKind;
   /** Handle of the post's author or the profile the decision is about. */
   handle: string;
   /** Why the decision was made. */

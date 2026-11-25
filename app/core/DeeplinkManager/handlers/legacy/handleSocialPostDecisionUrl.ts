@@ -17,10 +17,11 @@ interface HandleSocialPostDecisionUrlParams {
  * "Your profile was hidden" or "Update on your report" notification.
  *
  * Supported URL format:
- * - https://link.metamask.io/social/post/decision?kind=<post-removed|profile-hidden|report-post-removed|report-post-left-up|report-profile-hidden|report-profile-left-up>&handle=<handle>&reason=<reason>[&text=<text>][&postedAt=<ms>][&avatarUrl=<url>][&profileId=<id>][&verified=true][&notification_subtype=<subtype>]
+ * - https://link.metamask.io/social/post/decision?kind=<post-removed|profile-hidden|report-post-removed|report-post-left-up|report-profile-hidden|report-profile-left-up>&handle=<handle>&reason=<reason>[&text=<text>][&postedAt=<ms>][&reportedAt=<ms>][&decidedAt=<ms>][&avatarUrl=<url>][&profileId=<id>][&verified=true][&notification_subtype=<subtype>]
  *
- * `text` is required for every kind that is about a post. A link that
- * cannot describe the decision lands the recipient on their profile instead.
+ * `kind` defaults to `post-removed`. `text` is optional because a
+ * position-only post has none. A link without a `handle` or `reason`, or with
+ * an unknown `kind`, lands the recipient on their profile instead.
  */
 export const handleSocialPostDecisionUrl = ({
   actionPath,
@@ -45,7 +46,7 @@ export const handleSocialPostDecisionUrl = ({
     const decision = parseSocialPostDecisionParams(actionPath);
     if (!decision) {
       DevLogger.log(
-        '[handleSocialPostDecisionUrl] Unknown kind or missing handle, text or reason, falling back to the profile',
+        '[handleSocialPostDecisionUrl] Unknown kind or missing handle or reason, falling back to the profile',
       );
       navigateToSocialV1Profile(NavigationService.navigation);
       return;

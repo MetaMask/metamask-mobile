@@ -41,7 +41,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import Routes from '../../../../constants/navigation/Routes';
-import { SOCIAL_APPEAL_MESSAGE_MAX_LENGTH } from '../../../../constants/urls';
 import type {
   AppNavigationProp,
   RootStackParamList,
@@ -56,11 +55,16 @@ import { SocialPostAppealViewSelectorsIDs } from './SocialPostAppealView.testIds
 const MIN_FOOTER_BOTTOM_PADDING = 16;
 /** Screens an appeal adds to the stack: the decision it came from and itself. */
 const APPEAL_FLOW_SCREEN_COUNT = 2;
+/** Longest appeal message the form accepts. */
+const SOCIAL_APPEAL_MESSAGE_MAX_LENGTH = 1000;
 
 /**
  * Lets someone appeal a moderation decision: an email to hear back on and a
- * message. Submitting hands the appeal to MetaMask support, then confirms.
- * Opened from the decision screen's Appeal button.
+ * message. Opened from the decision screen's Appeal button.
+ *
+ * TODO(TSA-1668): submitting only confirms receipt for now, see
+ * `useSubmitSocialAppeal`. Once the hand-off to Intercom is async, block
+ * repeat submits while one is in flight.
  */
 const SocialPostAppealView: React.FC = () => {
   const tw = useTailwind();

@@ -1,63 +1,8 @@
 import {
   buildCardSupportUrl,
-  buildSocialAppealSupportUrl,
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
-  SOCIAL_APPEAL_MESSAGE_MAX_LENGTH,
 } from './urls';
-
-describe('buildSocialAppealSupportUrl', () => {
-  const appeal = {
-    email: 'alex+appeal@example.com',
-    message: 'I think this is wrong & unfair',
-    decision: 'post-removed',
-    handle: 'alphawhale',
-    reason: 'Promises guaranteed returns',
-  };
-
-  it('puts the decision, the email and the message on the support URL', () => {
-    const url = new URL(buildSocialAppealSupportUrl(appeal));
-
-    expect(url.origin + url.pathname).toBe('https://support.metamask.io/');
-    expect(url.searchParams.get('utm_source')).toBe('mobile_app');
-    expect(url.searchParams.get('appeal_type')).toBe('social_moderation');
-    expect(url.searchParams.get('appeal_decision')).toBe('post-removed');
-    expect(url.searchParams.get('appeal_handle')).toBe('alphawhale');
-    expect(url.searchParams.get('appeal_reason')).toBe(
-      'Promises guaranteed returns',
-    );
-    expect(url.searchParams.get('appeal_email')).toBe(
-      'alex+appeal@example.com',
-    );
-    expect(url.searchParams.get('appeal_message')).toBe(
-      'I think this is wrong & unfair',
-    );
-  });
-
-  it('caps how much of the message it sends', () => {
-    const url = new URL(
-      buildSocialAppealSupportUrl({
-        ...appeal,
-        message: 'm'.repeat(SOCIAL_APPEAL_MESSAGE_MAX_LENGTH + 500),
-      }),
-    );
-
-    expect(url.searchParams.get('appeal_message')).toHaveLength(
-      SOCIAL_APPEAL_MESSAGE_MAX_LENGTH,
-    );
-  });
-
-  it('builds on the base URL it is given', () => {
-    const url = buildSocialAppealSupportUrl(
-      appeal,
-      'https://intercom.help/internal-beta-testing/en/',
-    );
-
-    expect(url).toMatch(
-      /^https:\/\/intercom\.help\/internal-beta-testing\/en\/\?appeal_type=social_moderation&/,
-    );
-  });
-});
 
 describe('buildVipPrioritySupportUrl', () => {
   it('appends VIP priority and address query params to the default support URL', () => {
