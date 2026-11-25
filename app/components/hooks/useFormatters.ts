@@ -1,10 +1,7 @@
-import { useSyncExternalStore } from 'react';
 import { createFormatters, type Formatters } from '@metamask/client-utils';
 import I18n from '../../../locales/i18n';
-import {
-  getFormattingLocale,
-  subscribeToLocaleChanges,
-} from '../../util/locale';
+import { getFormattingLocale } from '../../util/locale';
+import { useFormattingLocale } from './useFormattingLocale';
 
 export const getLocaleLanguageCode = () => I18n.locale.split('-')[0];
 
@@ -16,8 +13,7 @@ let cachedLocale: string | undefined;
  * locale. Safe to call outside React; prefer {@link useFormatters} in
  * components.
  */
-export function getFormatters(): Formatters {
-  const locale = getFormattingLocale();
+export function getFormatters(locale = getFormattingLocale()): Formatters {
   if (!cachedFormatters || cachedLocale !== locale) {
     cachedLocale = locale;
     cachedFormatters = createFormatters({ locale });
@@ -26,5 +22,5 @@ export function getFormatters(): Formatters {
 }
 
 export function useFormatters(): Formatters {
-  return useSyncExternalStore(subscribeToLocaleChanges, getFormatters);
+  return getFormatters(useFormattingLocale());
 }
