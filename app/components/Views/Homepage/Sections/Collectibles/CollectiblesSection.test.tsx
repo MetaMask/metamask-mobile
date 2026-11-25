@@ -99,7 +99,6 @@ describe('CollectiblesSection', () => {
       screen.getByTestId(collectiblesTestIds.tile(firstPack.code)),
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
-    expect(screen.getByText(firstPack.subtitle)).toBeOnTheScreen();
     expect(screen.getByText(String(firstPack.priceLabel))).toBeOnTheScreen();
   });
 

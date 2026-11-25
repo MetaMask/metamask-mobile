@@ -57,6 +57,68 @@ const cvFlakeSelectors = [
     message: CV_FIXED_SLEEP_MESSAGE,
   },
 ];
+const designSystem = require('./scripts/eslint/design-system-plugin.js');
+const designSystemPlugin = {
+  meta: designSystem.meta,
+  rules: designSystem.rules,
+};
+
+// Spacing sits on the 4px grid (Design Brain SP-S5). Selectors match on the
+// literal's source text: a number is a multiple of 4 when its last two digits
+// are, so OFF_GRID needs no arithmetic. Arbitrary values only count when they
+// start with a number, so calc() and var() layouts are not flagged. The
+// ConditionalExpression selectors cover the two result branches of a spacing
+// ternary, e.g. paddingTop: expanded ? 22 : 0.
+const SPACING_KEY =
+  '/^(margin|padding)(Top|Right|Bottom|Left|Horizontal|Vertical|Start|End|(Inline|Block)(Start|End)?)?$|^(row|column)?[Gg]ap$/';
+const OFF_GRID_NUMBER =
+  '/^(?!(\\d*[02468][048]|\\d*[13579][26]|[048])$)\\d+(\\.\\d+)?$/';
+const ARBITRARY_SPACING_CLASS =
+  '/(^|[\\s:!])-?((m|p)[trblxyse]?|gap(-[xy])?)-\\[-?\\d/';
+const CLASS_ATTRIBUTE = '/^(className|twClassName)$/';
+const OFF_GRID_MESSAGE =
+  'Spacing is off the 4px grid. Use a multiple of 4, or a Tailwind class or Box spacing prop (1 = 4px). A 2px half-step or optical offset needs an eslint-disable comment that says why.';
+const ARBITRARY_SPACING_MESSAGE =
+  'Arbitrary spacing values like p-[15px] skip the 4px grid. Use a spacing step (p-4 = 16px, p-0.5 = 2px). An optical offset needs an eslint-disable comment that says why.';
+const spacingGridSelectors = [
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > UnaryExpression > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > ConditionalExpression > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `Property[key.name=${SPACING_KEY}] > ConditionalExpression > UnaryExpression > Literal[raw=${OFF_GRID_NUMBER}]`,
+    message: OFF_GRID_MESSAGE,
+  },
+  {
+    selector: `JSXAttribute[name.name=${CLASS_ATTRIBUTE}] Literal[value=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `JSXAttribute[name.name=${CLASS_ATTRIBUTE}] TemplateElement[value.raw=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.object.name='tw'] Literal[value=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.object.name='tw'] TemplateElement[value.raw=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+  {
+    selector: `TaggedTemplateExpression[tag.name='tw'] TemplateElement[value.raw=${ARBITRARY_SPACING_CLASS}]`,
+    message: ARBITRARY_SPACING_MESSAGE,
+  },
+];
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({
   baseDirectory: here,
@@ -385,6 +447,23 @@ export default [
       'component-view/no-restricted-syntax': ['warn', ...cvFlakeSelectors],
       'component-view/no-bare-query-timeout': 'warn',
       'component-view/no-clear-all-mocks-without-reset': 'warn',
+    },
+  },
+  // Existing violations are baselined in eslint-suppressions.json. After
+  // fixing one, run `yarn eslint <file> --prune-suppressions`. The
+  // disable-reason rule keeps every exception to spacing-grid documented in
+  // the disable comment itself.
+  {
+    files: ['app/**/*.{js,jsx,ts,tsx}'],
+    ignores: [
+      '**/*.test.{js,jsx,ts,tsx}',
+      '**/*.stories.{js,jsx,ts,tsx}',
+      '**/__mocks__/**',
+    ],
+    plugins: { 'design-system': designSystemPlugin },
+    rules: {
+      'design-system/spacing-grid': ['error', ...spacingGridSelectors],
+      'design-system/spacing-grid-disable-reason': 'error',
     },
   },
 ];
