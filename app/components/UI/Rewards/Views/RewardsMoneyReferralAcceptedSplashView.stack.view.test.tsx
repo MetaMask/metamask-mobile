@@ -26,8 +26,12 @@ import { rewardsMoneyViewState } from '../../../../../tests/component-view/prese
 const PRE_ACCEPT_ROUTE = 'PreAcceptMoneyDashboard';
 const SPLASH_ROUTE = Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW;
 const REWARDS_VIEW_PROBE = getRouteProbeTestId(Routes.REWARDS_VIEW);
-
 const PRE_ACCEPT_PROBE = getRouteProbeTestId(PRE_ACCEPT_ROUTE);
+
+/** testIDs of this file's own probe screens. */
+const HOME_OPEN_REWARDS_MARKER = 'home-open-rewards';
+const PRE_ACCEPT_OPEN_SPLASH_MARKER = 'pre-accept-open-splash';
+const REWARDS_VIEW_BACK_MARKER = 'rewards-view-back';
 
 /** Navigates to `to` on mount, so a journey starts from the desired shape. */
 function AutoNavigate({ to, marker }: { to: string; marker: string }) {
@@ -59,16 +63,18 @@ function PushScreen({ to, marker }: { to: string; marker: string }) {
 
 /** Wallet tab screens: one opens the pre-accept Rewards view, one the splash. */
 function HomeOpeningPreAccept() {
-  return <PushScreen to={PRE_ACCEPT_ROUTE} marker="home-open-rewards" />;
+  return <PushScreen to={PRE_ACCEPT_ROUTE} marker={HOME_OPEN_REWARDS_MARKER} />;
 }
 
 function HomeOpeningSplash() {
-  return <PushScreen to={SPLASH_ROUTE} marker="home-open-rewards" />;
+  return <PushScreen to={SPLASH_ROUTE} marker={HOME_OPEN_REWARDS_MARKER} />;
 }
 
 /** The pre-accept Money dashboard beneath the splash. */
 function PreAcceptScreen() {
-  return <PushScreen to={SPLASH_ROUTE} marker="pre-accept-open-splash" />;
+  return (
+    <PushScreen to={SPLASH_ROUTE} marker={PRE_ACCEPT_OPEN_SPLASH_MARKER} />
+  );
 }
 
 /** The Money dashboard the reset lands on, with a Back control. */
@@ -79,7 +85,7 @@ function RewardsViewWithBack() {
       <Text testID={REWARDS_VIEW_PROBE}>{Routes.REWARDS_VIEW}</Text>
       <Pressable
         accessibilityRole="button"
-        testID="rewards-view-back"
+        testID={REWARDS_VIEW_BACK_MARKER}
         onPress={() => navigation.goBack()}
       >
         <Text>Back</Text>
@@ -125,9 +131,9 @@ async function openSplash(
   view: ReturnType<typeof renderSplashStack>,
   { viaPreAccept }: { viaPreAccept: boolean },
 ): Promise<void> {
-  fireEvent.press(await view.findByTestId('home-open-rewards'));
+  fireEvent.press(await view.findByTestId(HOME_OPEN_REWARDS_MARKER));
   if (viaPreAccept) {
-    fireEvent.press(await view.findByTestId('pre-accept-open-splash'));
+    fireEvent.press(await view.findByTestId(PRE_ACCEPT_OPEN_SPLASH_MARKER));
   }
   await view.findByTestId(SPLASH_TEST_IDS.CONTAINER);
 }
@@ -137,9 +143,7 @@ describe('RewardsMoneyReferralAcceptedSplashView stack', () => {
     const view = renderSplashStack({ withPreAcceptRewards: true });
     await openSplash(view, { viaPreAccept: true });
 
-    fireEvent.press(
-      view.getByTestId('rewards-money-referral-accepted-view-rewards'),
-    );
+    fireEvent.press(view.getByTestId(SPLASH_TEST_IDS.VIEW_REWARDS));
 
     // The reset landed on the Money dashboard above Wallet, the splash is
     // gone, and the pre-accept view was dropped from the stack.
@@ -149,8 +153,8 @@ describe('RewardsMoneyReferralAcceptedSplashView stack', () => {
 
     // Back leaves Rewards: Wallet is underneath, and neither the pre-accept
     // view nor the splash comes back.
-    fireEvent.press(view.getByTestId('rewards-view-back'));
-    expect(view.getByTestId('home-open-rewards')).toBeOnTheScreen();
+    fireEvent.press(view.getByTestId(REWARDS_VIEW_BACK_MARKER));
+    expect(view.getByTestId(HOME_OPEN_REWARDS_MARKER)).toBeOnTheScreen();
     expect(view.queryByTestId(REWARDS_VIEW_PROBE)).not.toBeOnTheScreen();
     expect(view.queryByTestId(PRE_ACCEPT_PROBE)).not.toBeOnTheScreen();
     expect(view.queryByTestId(SPLASH_TEST_IDS.CONTAINER)).not.toBeOnTheScreen();
@@ -160,9 +164,7 @@ describe('RewardsMoneyReferralAcceptedSplashView stack', () => {
     const view = renderSplashStack({ withPreAcceptRewards: false });
     await openSplash(view, { viaPreAccept: false });
 
-    fireEvent.press(
-      view.getByTestId('rewards-money-referral-accepted-view-rewards'),
-    );
+    fireEvent.press(view.getByTestId(SPLASH_TEST_IDS.VIEW_REWARDS));
 
     expect(await view.findByTestId(REWARDS_VIEW_PROBE)).toBeOnTheScreen();
     expect(view.queryByTestId(SPLASH_TEST_IDS.CONTAINER)).not.toBeOnTheScreen();

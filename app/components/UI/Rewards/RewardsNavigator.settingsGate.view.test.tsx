@@ -25,6 +25,9 @@ import {
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './components/Settings/ReferredByCodeSection.testIds';
 import { REWARDS_SETTINGS_SAFE_AREA_TEST_ID } from './Views/RewardsSettingsView';
 
+/** testID of this file's own journey-host probe. */
+const SETTINGS_GATE_HOST = 'settings-gate-host';
+
 /** Opens the Money flow on Settings, the way the Money dashboard gear does. */
 function SettingsGateJourneyHost() {
   const navigation = useNavigation();
@@ -34,7 +37,7 @@ function SettingsGateJourneyHost() {
       params: { screen: Routes.REWARDS_SETTINGS_VIEW },
     } as never);
   }, [navigation]);
-  return <Text testID="settings-gate-host">Host</Text>;
+  return <Text testID={SETTINGS_GATE_HOST}>Host</Text>;
 }
 
 describe('RewardsNavigator settings gate', () => {
@@ -89,6 +92,6 @@ describe('RewardsNavigator settings gate', () => {
     expect(
       queryByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID),
     ).not.toBeOnTheScreen();
-    expect(getByTestId('settings-gate-host')).toBeOnTheScreen();
+    expect(getByTestId(SETTINGS_GATE_HOST)).toBeOnTheScreen();
   });
 });
