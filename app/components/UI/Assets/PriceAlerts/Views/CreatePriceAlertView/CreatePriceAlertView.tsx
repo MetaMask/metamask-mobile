@@ -86,7 +86,6 @@ const CreatePriceAlertView: React.FC = () => {
     initialType,
     mode,
     marketId,
-    szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
   const isPerpsPercentChangeEnabled = useSelector(
@@ -236,7 +235,7 @@ const CreatePriceAlertView: React.FC = () => {
             editingAlert={editingAbsoluteAlert}
             existingAbsoluteAlerts={existingAbsoluteAlerts}
             marketId={isPerpsMode ? marketId : undefined}
-            szDecimals={szDecimals}
+            isPerps={isPerpsMode}
           />
         )}
 
