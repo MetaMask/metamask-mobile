@@ -5829,16 +5829,6 @@
       "count": 3
     }
   },
-  "app/components/UI/NftGrid/NftGridItemActionSheet.test.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
-  "app/components/UI/NftGrid/NftGridItemActionSheet.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/NftGrid/NftGridItemBottomSheet.tsx": {
     "typescript/no-floating-promises": {
       "count": 1
