@@ -8,8 +8,12 @@ import BigNumber from 'bignumber.js';
 export const getFiatDepositAttemptedAmount = (
   transactionMeta: TransactionMeta,
 ): string | undefined => {
-  const { bridgeFeeFiat, networkFeeFiat, totalFiat } =
+  const { bridgeFeeFiat, fiat, networkFeeFiat, totalFiat } =
     transactionMeta.metamaskPay ?? {};
+  // Non-direct quotes add a MetaMask fee and target-network fee this cannot subtract.
+  if (fiat?.isDirectMusd === false) {
+    return undefined;
+  }
   const total = new BigNumber(totalFiat ?? NaN);
   if (!total.isFinite() || total.lte(0)) {
     return undefined;

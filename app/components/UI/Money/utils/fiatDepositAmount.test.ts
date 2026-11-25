@@ -25,6 +25,30 @@ describe('getFiatDepositAttemptedAmount', () => {
     ).toBe('5.00');
   });
 
+  it('derives the amount for a direct mUSD quote', () => {
+    expect(
+      getFiatDepositAttemptedAmount(
+        makeTx({
+          fiat: { isDirectMusd: true, orderId: 'o-1', provider: 'transak' },
+          totalFiat: '6.14',
+          bridgeFeeFiat: '1.14',
+        }),
+      ),
+    ).toBe('5.00');
+  });
+
+  it('returns undefined for a non-direct quote', () => {
+    expect(
+      getFiatDepositAttemptedAmount(
+        makeTx({
+          fiat: { isDirectMusd: false, orderId: 'o-1', provider: 'transak' },
+          totalFiat: '6.14',
+          bridgeFeeFiat: '1.14',
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
   it('subtracts both fees', () => {
     expect(
       getFiatDepositAttemptedAmount(
