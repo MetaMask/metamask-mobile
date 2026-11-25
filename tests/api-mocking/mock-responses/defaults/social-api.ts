@@ -79,8 +79,32 @@ const NO_BLOCKED_PROFILES: BlockedProfilesResponse = {
 };
 const NO_BLOCKED_CONTENT: BlockedContentResponse = { items: [], cursor: null };
 
+/**
+ * Chains social-api serves (`GET /v1/supportedNetworks`, CAIP-2). Mirrors the
+ * built-in `FEED_CAIP2_CHAINS` fallback so the open-position gate behaves the
+ * same as when the request fails.
+ */
+const SUPPORTED_NETWORKS = {
+  fullSupport: [
+    'eip155:8453',
+    'eip155:1',
+    'eip155:56',
+    'eip155:4663',
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    'eip155:999',
+  ],
+  partialSupport: [],
+};
+
 export const SOCIAL_API_MOCKS: MockEventsObject = {
   GET: [
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v1\\/supportedNetworks(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: SUPPORTED_NETWORKS,
+    },
     {
       urlEndpoint: new RegExp(
         `^${SOCIAL_HOST}\\/api\\/v1\\/leaderboard(?:\\?.*)?$`,
