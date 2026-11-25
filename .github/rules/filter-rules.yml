@@ -92,6 +92,11 @@ e2e_spec_files:
 cv_test_files:
   - '**/*.view.test.{ts,tsx}'
 
+# Application source files, used to scope Jest coverage to the files a PR
+# touches. Test, spec and story files are dropped in get-requirements.yml.
+app_source_files:
+  - 'app/**/*.{js,ts,tsx,jsx}'
+
 # Smart E2E contract tests only run when the mode/action changes. The analyzer
 # pin lives in the action, so analyzer version bumps are included here too.
 smart_e2e_contracts:
