@@ -44,6 +44,14 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 - **Active Venue factory:** `buildPredictVenueIntegrationHarness({ persisted, geolocationWaitMs })`. Real `GeolocationApiService`, `GeolocationController` with its Engine-start init, and `PredictVenueController`; the geolocation HTTP fetch is mocked and stays pending until answered.
 - **Returns:** `{ venueController, geolocationController, geolocationFetchMock, respondWithCountry, failGeolocation, persistedVenueState, destroy }`
 
+### Rewards Money builder fee — [`harnesses/rewards-money-builder-fee.ts`](harnesses/rewards-money-builder-fee.ts)
+
+- **Real:** `createMobileClientConfig` (the app's Perps client configuration, including the Hyperliquid mainnet builder address) and `RewardsController`'s trading-fee-grant matcher, including `getHyperliquidMainnetBuilderAddress`
+- **Mocked:** the `RewardsControllerMessenger` stub (the `RewardsDataService:*` network boundary, injected — no module mock) and the app-shell glue the mobile infrastructure adapter imports (Engine, analytics, Sentry, trace, storage, stream manager, WebView signer bridge, formatters)
+- **Factory:** `buildRewardsMoneyBuilderFeeHarness({ mainnetBuilderAddressOverride? })` — saves/restores the env it changes; builds a fresh controller per call, so tests construct it per test
+- **Returns:** `{ clientConfig, configuredBuilderAddress, rewardsController, messenger, restoreEnvironment }`, plus `tradingFeeGrantResponse(builderCode)` and `TERMINAL_BUILDER_ADDRESS`
+- **Use when:** asserting the RWDS-1675 seam — that the address the Perps client sends and the address the Rewards grant matcher accepts stay one configured source
+
 ---
 
 ## New domain — definition of done
