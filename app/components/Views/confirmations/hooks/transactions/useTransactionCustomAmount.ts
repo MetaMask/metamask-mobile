@@ -56,6 +56,8 @@ import {
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
+const MAX_CLAMP_COMMIT_RETRIES = 3;
+const CLAMP_RETRY_BACKOFF_MS = 500;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;
@@ -202,7 +204,12 @@ export function useTransactionCustomAmount({
   const pendingClampRef = useRef(false);
   const clampCommitInFlightRef = useRef(false);
   const targetClampedAmountRef = useRef<string | null>(null);
+  const clampRetryAttemptsRef = useRef(0);
+  const clampRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [clampRetryCounter, setClampRetryCounter] = useState(0);
+  const [isClampCommitFailed, setIsClampCommitFailed] = useState(false);
   const ignoreNextAutomaticTokenChangeRef = useRef(false);
 
   const previousPayTokenKeyRef = useRef(payTokenKey);
@@ -602,26 +609,48 @@ export function useTransactionCustomAmount({
 
       clampCommitInFlightRef.current = true;
 
-      void (async () => {
+      const commitClampedAmount = async () => {
         try {
           await updateTransactionPayAmount(clampedAmountHuman);
-          // Clear both flags only after the update succeeds
+          // Clear both flags and reset state only after success
           pendingClampRef.current = false;
           clampCommitInFlightRef.current = false;
           targetClampedAmountRef.current = null;
+          clampRetryAttemptsRef.current = 0;
+          setIsClampCommitFailed(false);
         } catch (error: unknown) {
           Logger.error(
             error as Error,
             'Failed to update transaction pay amount with clamped value',
           );
-          // Set pendingClampRef back to true and bump the retry counter to
-          // re-trigger the effect. Keep the target so the retry knows what to
-          // commit even when amountFiat already shows the clamped value.
           clampCommitInFlightRef.current = false;
-          pendingClampRef.current = true;
-          setClampRetryCounter((prev) => prev + 1);
+
+          // Check if we've hit the retry limit
+          if (clampRetryAttemptsRef.current >= MAX_CLAMP_COMMIT_RETRIES) {
+            // Stop retrying and surface the failure
+            pendingClampRef.current = false;
+            setIsClampCommitFailed(true);
+            Logger.error(
+              new Error('Clamp commit retry limit reached'),
+              'Failed to commit clamped amount after retries',
+            );
+          } else {
+            // Retry with backoff
+            clampRetryAttemptsRef.current += 1;
+            clampRetryTimeoutRef.current = setTimeout(() => {
+              pendingClampRef.current = true;
+              setClampRetryCounter((prev) => prev + 1);
+            }, CLAMP_RETRY_BACKOFF_MS);
+          }
         }
-      })();
+      };
+
+      commitClampedAmount().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'Unexpected error in clamp commit handler',
+        );
+      });
     } else if (!clampCommitInFlightRef.current) {
       // No clamp needed and no commit in flight; clear the pending flag
       pendingClampRef.current = false;
@@ -726,6 +755,16 @@ export function useTransactionCustomAmount({
     updatePendingAmountPercentage,
   ]);
 
+  // Clean up retry timeout on unmount or transactionId change
+  useEffect(() => {
+    return () => {
+      if (clampRetryTimeoutRef.current) {
+        clearTimeout(clampRetryTimeoutRef.current);
+        clampRetryTimeoutRef.current = null;
+      }
+    };
+  }, [transactionId]);
+
   const updateTokenAmount = useCallback(async () => {
     await updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
@@ -774,6 +813,9 @@ export function useTransactionCustomAmount({
     updatePendingAmount,
     updatePendingAmountPercentage,
     updateTokenAmount,
+    isClampCommitPending:
+      clampCommitInFlightRef.current || pendingClampRef.current,
+    isClampCommitFailed,
   };
 }
 

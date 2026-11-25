@@ -154,6 +154,11 @@
       "count": 1
     }
   },
+  "app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.styles.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 3
+    }
+  },
   "app/component-library/components-temp/MultichainAccounts/test-utils.ts": {
     "typescript/prefer-reduce-type-parameter": {
       "count": 3
