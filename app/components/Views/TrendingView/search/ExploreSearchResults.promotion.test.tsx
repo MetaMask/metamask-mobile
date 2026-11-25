@@ -56,7 +56,7 @@ jest.mock('@shopify/flash-list', () => {
           props;
         return ReactLib.createElement(
           RNView,
-          { testID, onScrollBeginDrag },
+          { testID, onTouchMove: onScrollBeginDrag },
           data.map((item, index) =>
             ReactLib.createElement(
               RNView,
@@ -365,7 +365,7 @@ describe('ExploreSearchResults stocks promotion', () => {
 
     expect(getByTestId('row-stocks').props.accessibilityLabel).toBe('true');
 
-    fireEvent(getByTestId('trending-search-results-list'), 'scrollBeginDrag');
+    fireEvent(getByTestId('trending-search-results-list'), 'touchMove');
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
