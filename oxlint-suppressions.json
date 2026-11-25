@@ -154,11 +154,6 @@
       "count": 1
     }
   },
-  "app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.styles.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/component-library/components-temp/MultichainAccounts/test-utils.ts": {
     "typescript/prefer-reduce-type-parameter": {
       "count": 3
@@ -11689,9 +11684,6 @@
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 3
     },
@@ -12018,11 +12010,6 @@
       "count": 2
     }
   },
-  "app/components/UI/Rewards/components/Money/PendingMoneyReferralInvite.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -12063,11 +12050,6 @@
   },
   "app/components/UI/Rewards/components/Money/TaxFormQuestionSheet.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Onboarding/testUtils.ts": {
-    "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
   },
@@ -12126,27 +12108,9 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/RewardsBottomSheetModal.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 3
-    }
-  },
-  "app/components/UI/Rewards/components/RewardsBottomSheetModal.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 3
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 6
-    }
-  },
   "app/components/UI/Rewards/components/RewardsErrorBanner.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 2
-    }
-  },
-  "app/components/UI/Rewards/components/RewardsImageModal/RewardsImageModal.test.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
     }
   },
   "app/components/UI/Rewards/components/RewardsInfoBanner.tsx": {
@@ -12281,11 +12245,6 @@
   "app/components/UI/Rewards/hooks/useAcceptMoneyReferralCode.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
-    }
-  },
-  "app/components/UI/Rewards/hooks/useApplyBonusCode.test.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/UI/Rewards/hooks/useBenefits.test.ts": {
@@ -12816,19 +12775,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/hooks/useRewardDashboardModals.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    }
-  },
-  "app/components/UI/Rewards/hooks/useRewardDashboardModals.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "typescript/prefer-readonly": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/hooks/useRewardOptinSummary.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
@@ -12923,11 +12869,6 @@
       "count": 2
     }
   },
-  "app/components/UI/Rewards/hooks/useTransactionExplorer.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    }
-  },
   "app/components/UI/Rewards/hooks/useUnlockedRewards.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -12938,11 +12879,6 @@
       "count": 1
     },
     "typescript/no-misused-promises": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/hooks/useValidateBonusCode.ts": {
-    "typescript/no-floating-promises": {
       "count": 1
     }
   },
@@ -21467,7 +21403,7 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 60
+      "count": 57
     },
     "typescript/only-throw-error": {
       "count": 1
@@ -21505,7 +21441,7 @@
       "count": 12
     },
     "typescript/promise-function-async": {
-      "count": 28
+      "count": 26
     }
   },
   "app/core/Engine/controllers/rewards-controller/index.test.ts": {
@@ -21529,7 +21465,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 2
+      "count": 1
     }
   },
   "app/core/Engine/controllers/rewards-controller/utils/hyperliquid-builder-address.ts": {

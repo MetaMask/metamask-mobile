@@ -697,9 +697,6 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal:
-    | RewardsNavigationParamList['RewardsBottomSheetModal']
-    | undefined;
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
