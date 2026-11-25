@@ -44,7 +44,7 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
     });
   });
 
-  it('crows the API winner count and leaves later ranks uncrowned (Social Perps Comp)', async () => {
+  it('crowns the API winner count and leaves later ranks uncrowned (Social Perps Comp)', async () => {
     const {
       findByTestId,
       getByTestId,
