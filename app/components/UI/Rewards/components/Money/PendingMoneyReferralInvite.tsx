@@ -131,11 +131,15 @@ const PendingMoneyReferralInvitePresenter = ({
           ) {
             return;
           }
+          if (result?.status !== 'settled') {
+            openInvite(appInstalled);
+            return;
+          }
           const state = store.getState();
-          const referralMeEntry =
-            result?.status === 'settled'
-              ? selectReferralMeEntry(state, result.profileId)
-              : undefined;
+          const referralMeEntry = selectReferralMeEntry(
+            state,
+            result.profileId,
+          );
           const referralMe =
             referralMeEntry && !referralMeEntry.error
               ? referralMeEntry.data
