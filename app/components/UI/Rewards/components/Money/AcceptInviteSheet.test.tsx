@@ -1142,6 +1142,33 @@ describe('AcceptInviteSheet', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
+    it.each([
+      [
+        'REFEREE',
+        buildReferralMe({ roles: ['REFEREE'], ui_variant: 'REFEREE' }),
+      ],
+      [
+        'REFERRER',
+        buildReferralMe({ roles: ['REFERRER'], ui_variant: 'REFERRER' }),
+      ],
+    ])(
+      'closes without a viewed event when an errored entry holds stale %s data',
+      (_role, staleReferralMe) => {
+        referralMeEntries = {
+          [PROFILE_ID]: {
+            loading: false,
+            error: true,
+            data: staleReferralMe,
+          },
+        };
+
+        renderSheetSync('KOL1');
+
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      },
+    );
+
     it('answers a viewed offer as dismissed when geo later resolves to excluded', async () => {
       referralMeEntries = {
         [PROFILE_ID]: {

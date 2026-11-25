@@ -95,16 +95,24 @@ const arrangeGates = ({
 const renderInvite = ({
   pendingReferralCode = 'KOL1',
   referralMe = buildReferralMe(),
+  referralMeError = false,
   geoLocation = null,
   isReferralLinkPending = false,
 }: {
   pendingReferralCode?: string | null;
   referralMe?: ReferralMeDto | null;
+  referralMeError?: boolean;
   geoLocation?: string | null;
   isReferralLinkPending?: boolean;
 } = {}) => {
   const referralMeEntries: Record<string, ReferralMeEntry> = referralMe
-    ? { [PROFILE_ID]: { loading: false, error: false, data: referralMe } }
+    ? {
+        [PROFILE_ID]: {
+          loading: false,
+          error: referralMeError,
+          data: referralMe,
+        },
+      }
     : {};
   const store = configureStore({
     rewardsMoney: {
@@ -327,6 +335,18 @@ describe('PendingMoneyReferralInvite', () => {
     ['already a referee', buildReferralMe({ roles: ['REFEREE'] })],
   ])('drops the code when the user is %s', async (_label, referralMe) => {
     const { store } = renderInvite({ referralMe });
+
+    await waitFor(() => {
+      expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('drops the code and does not navigate when a settled entry has error true and stale REFEREE data', async () => {
+    const { store } = renderInvite({
+      referralMe: buildReferralMe({ roles: ['REFEREE'] }),
+      referralMeError: true,
+    });
 
     await waitFor(() => {
       expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();

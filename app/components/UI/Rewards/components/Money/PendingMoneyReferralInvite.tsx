@@ -148,10 +148,7 @@ const PendingMoneyReferralInvitePresenter = ({
             state,
             result.profileId,
           );
-          const referralMe =
-            referralMeEntry && !referralMeEntry.error
-              ? referralMeEntry.data
-              : null;
+          const referralMe = referralMeEntry?.data ?? null;
           if (
             referralMe &&
             (!canAcceptMoneyReferralInvite(referralMe) ||

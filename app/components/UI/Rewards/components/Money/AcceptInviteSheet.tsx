@@ -146,7 +146,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const acceptAllowedForGeo = useSelector((state: RootState) =>
     selectMoneyReferralAllowedForGeo(state, profileId),
   );
-  const referralMe = referralMeEntry?.error ? undefined : referralMeEntry?.data;
+  const referralMe = referralMeEntry?.data ?? undefined;
 
   // A deeplink's code is answered once: whichever way this sheet closes, the
   // code it was opened for must not prompt again. A newer link that arrived
