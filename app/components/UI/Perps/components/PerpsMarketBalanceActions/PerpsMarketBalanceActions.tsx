@@ -55,7 +55,7 @@ interface PerpsMarketBalanceActionsProps {
    * Analytics `source` naming the presenting screen. Required so events
    * raised here can attribute the screen that rendered the actions.
    */
-  source: string;
+  source: (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {

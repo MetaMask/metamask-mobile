@@ -82,7 +82,7 @@ export function usePerpsLiteOrderSubmitGate({
   isDismissedRef,
 }: LiteSubmitGateOptions) {
   const support = usePerpsAccountSupport(
-    PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+    PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
     providerId,
   );
   const gate = usePerpsOrderSubmitGate(

@@ -27,6 +27,9 @@ import {
   buildPerpsOrderTrackingData,
 } from '../utils/orderParams';
 import { translatePerpsError } from '../utils/translatePerpsError';
+import { createLogRejection } from '../utils/logRejection';
+
+const logRejection = createLogRejection('usePerpsOrderSubmit');
 import { willFlipPosition } from '../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../utils/orderToasts';
 import {
@@ -63,16 +66,6 @@ export type PlaceOrderHandler = (
   origin: SubmitOrigin,
 ) => Promise<'accountUnsupported' | 'abort' | undefined>;
 
-
-/** Reports a rejected fire-and-forget promise from this hook's view. */
-const logRejection = (operation: string) => (error: unknown) => {
-  const name = `PerpsOrderView.${operation}`;
-  Logger.error(ensureError(error, name), {
-    tags: { feature: PERPS_CONSTANTS.FeatureName },
-    context: { name, data: {} },
-  });
-};
-
 export interface UsePerpsOrderSubmitOptions {
   navigation: AppNavigationProp;
   /** Live market row for the asset, or undefined before markets resolve. */
@@ -91,7 +84,11 @@ export interface UsePerpsOrderSubmitOptions {
   useBottomSheet: boolean;
   showToast: ReturnType<typeof usePerpsToasts>['showToast'];
   PerpsToastOptions: ReturnType<typeof usePerpsToasts>['PerpsToastOptions'];
-  orderValidation: { isValid: boolean; isValidating: boolean; errors: string[] };
+  orderValidation: {
+    isValid: boolean;
+    isValidating: boolean;
+    errors: string[];
+  };
   validateOrderNow: () => Promise<{ isValid: boolean; errors: string[] }>;
   isDraggingSlider: boolean;
   liveDragAmount: string;
@@ -104,7 +101,9 @@ export interface UsePerpsOrderSubmitOptions {
   hasCustomTokenSelected: boolean;
   isTradeWithAnyTokenEnabled: boolean;
   isCrossMarginEnabled: boolean;
-  currentMarketPosition: ReturnType<typeof useHasExistingPosition>['existingPosition'];
+  currentMarketPosition: ReturnType<
+    typeof useHasExistingPosition
+  >['existingPosition'];
   activePerpsProvider: PerpsActiveProviderMode | undefined;
   isPerpsProModeActive: boolean;
   canShareCopyTrade: () => boolean;
@@ -121,11 +120,17 @@ export interface UsePerpsOrderSubmitOptions {
   /** Market data used for tracking; only the mark price is read here. */
   assetData: { price: number };
   orderProviderId: PerpsProviderType | undefined;
-  executeOrder: (params: OrderParams) => Promise<{ success?: boolean } | undefined>;
+  executeOrder: (
+    params: OrderParams,
+  ) => Promise<{ success?: boolean } | undefined>;
   updatePositionTPSL: ReturnType<typeof usePerpsTrading>['updatePositionTPSL'];
-  checkBeforeSubmit: ReturnType<typeof usePerpsLiteOrderSubmitGate>['checkBeforeSubmit'];
+  checkBeforeSubmit: ReturnType<
+    typeof usePerpsLiteOrderSubmitGate
+  >['checkBeforeSubmit'];
   navigateToMarketAfterOrder: () => void;
-  handleDepositConfirm: ReturnType<typeof usePerpsOrderDepositTracking>['handleDepositConfirm'];
+  handleDepositConfirm: ReturnType<
+    typeof usePerpsOrderDepositTracking
+  >['handleDepositConfirm'];
   onDepositConfirm: ReturnType<typeof useTransactionConfirm>['onConfirm'];
   /** Shared with the view: the abandon tracker reads the placed flag. */
   hasPlacedOrderRef: RefObject<boolean>;
@@ -310,9 +315,10 @@ export const usePerpsOrderSubmit = (
     track,
   ]);
 
-  const resolveSubmissionValidation = useCallback(async (): Promise<
-    { isValid: boolean; errors: string[] }
-  > => {
+  const resolveSubmissionValidation = useCallback(async (): Promise<{
+    isValid: boolean;
+    errors: string[];
+  }> => {
     if (!orderValidation.isValidating) {
       return {
         isValid: orderValidation.isValid,

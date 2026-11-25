@@ -63,7 +63,9 @@ const buildState = ({ address, provider, isTestnet }: SupportContext) => ({
 
 const setContext = createAction<Partial<SupportContext>>('test/setContext');
 
-const renderAccountSupport = (options?: Parameters<typeof usePerpsAccountSupport>[2]) => {
+const renderAccountSupport = (
+  options?: Parameters<typeof usePerpsAccountSupport>[2],
+) => {
   let context = DEFAULT_CONTEXT;
   const store = configureStore({
     reducer: createReducer(buildState(context), (builder) => {

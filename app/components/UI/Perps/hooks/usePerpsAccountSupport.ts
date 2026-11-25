@@ -173,11 +173,7 @@ export const usePerpsAccountSupport = (
         } else {
           // Core can reject a prefetch with PROVIDER_LIFECYCLE_STALE during a
           // reconnect; the check fails open and the action-time read reports.
-          DevLogger.log(
-            name,
-            'Prefetch skipped (fail open)',
-            errorObj.message,
-          );
+          DevLogger.log(name, 'Prefetch skipped (fail open)', errorObj.message);
         }
         return { isSupported: true };
       }

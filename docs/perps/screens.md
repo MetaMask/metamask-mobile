@@ -108,6 +108,7 @@ Lite landing screen with positions, open orders, watchlist and recent activity.
 - Enters from the Lite entry points above.
 - Leaves to `MARKET_DETAILS` (tap a market) and `MARKET_LIST`.
 - Close all and cancel all open as embedded sheets, not routes.
+- Withdraw entry (`usePerpsHomeActions.handleWithdraw`) resolves the venue through Core `resolveWithdrawalRoute()` (the same resolution and refusal `withdraw()` applies), then checks `usePerpsAccountSupport` for the resolved provider before either withdrawal flow opens.
 - The Lite pill switches to Pro through `getProSwitchTarget`.
 - Tracks a screen view with `screen_type` `perps_home` and the route `source`.
 
@@ -177,8 +178,8 @@ Code: `app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrder
 
 Lite order form. It has no Perps-stack route. It renders as the confirmation body for `TransactionType.perpsDepositAndOrder`.
 
-| Components                                                                                                | Hooks                                                                                                                                                                                                                |
-| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Components                                                                                                                                | Hooks                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `PerpsOrderHeader`, `PerpsAmountDisplay`, `PerpsSlider`, `PerpsFeesDisplay`, `PerpsLimitPriceBottomSheet`, `PerpsAccountUnsupportedModal` | `usePerpsOrderForm` (through `PerpsOrderContext`), `usePerpsOrderFees`, `usePerpsRewards`, `usePerpsOrderValidation`, `usePerpsLivePrices`, `usePerpsOrderExecution`, `usePerpsAccountSupport`, `usePerpsLiteOrderSubmitGate`, `usePerpsOrderSubmit`, `usePerpsMeasurement`, `usePerpsEventTracking` |
 
 - Params are `PerpsOrderRouteParams`, including `direction`, `asset`, `providerId`, `leverage`, `amount`, `price`, `orderType`, `existingPosition`, `hideTPSL`, `source` and `useBottomSheet`.
@@ -287,14 +288,13 @@ Legacy withdrawal of USDC to Arbitrum. Home opens it only when `perpsWithdrawCon
 
 | Components                                                                 | Hooks                                                                                                                                        |
 | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Keypad`, `AvatarToken`, `Badge`, `PerpsBottomSheetTooltip`, `KeyValueRow` | `usePerpsLiveAccount`, `usePerpsWithdrawQuote`, `useWithdrawValidation`, `useWithdrawTokens`, `usePerpsAccountSupport`, `usePerpsEventTracking`, `usePerpsMeasurement` |
+| `Keypad`, `AvatarToken`, `Badge`, `PerpsBottomSheetTooltip`, `KeyValueRow` | `usePerpsLiveAccount`, `usePerpsWithdrawQuote`, `useWithdrawValidation`, `useWithdrawTokens`, `usePerpsEventTracking`, `usePerpsMeasurement` |
 
 - Amount by keypad or 10/25/50/Max. Percentage buttons hide once an amount is entered.
 - The minimum is the route's `minAmount` constraint, else Core `WITHDRAWAL_CONSTANTS.DefaultMinAmount`.
-- Confirm resolves the venue through Core `resolveWithdrawalRoute()` (the same resolution and refusal `withdraw()` applies), then checks `usePerpsAccountSupport` for the resolved provider before navigating.
-- Confirm shows a toast, goes back at once, then calls `controller.withdraw()`.
+- Venue resolution and the account-support check happened in Home's `handleWithdraw` before this view opened; Confirm shows a toast, goes back at once, then calls `controller.withdraw()`.
 
-Code: `app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.tsx` `handleContinue`; `app/components/UI/Perps/hooks/useWithdrawValidation.ts`; `app/components/UI/Perps/hooks/useWithdrawTokens.ts`; `app/components/UI/Perps/hooks/usePerpsHomeActions.ts`
+Code: `app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.tsx` `handleContinue`; `app/components/UI/Perps/hooks/useWithdrawValidation.ts`; `app/components/UI/Perps/hooks/useWithdrawTokens.ts`
 
 ## PerpsHeroCardView
 

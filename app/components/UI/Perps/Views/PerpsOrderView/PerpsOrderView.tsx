@@ -1,7 +1,6 @@
 import {
   useNavigation,
   useRoute,
-  CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
 import type {
@@ -45,13 +44,9 @@ import { ButtonVariants } from '../../../../../component-library/components/Butt
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { getPerformanceTimestamp, TraceName } from '../../../../../util/trace';
-import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../../../../util/errorUtils';
 import {
   completePerpsTradeSheetInteractiveTrace,
   failPerpsTradeSheetInteractiveTrace,
@@ -116,7 +111,6 @@ import {
   calculateRoEForPrice,
   getPerpsDisplaySymbol,
   type InputMethod,
-  type OrderParams,
   type OrderType,
   type PerpsProviderType,
   type Position,
@@ -134,12 +128,8 @@ import {
   toPerpsSizeUnitAnalyticsValue,
 } from '../../utils/perpsSizeDenomination';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
-import {
-  usePerpsLiteOrderSubmitGate,
-  type SubmitOrigin,
-} from '../../hooks/usePerpsOrderSubmitGate';
+import { usePerpsLiteOrderSubmitGate } from '../../hooks/usePerpsOrderSubmitGate';
 import { usePerpsOrderSubmit } from '../../hooks/usePerpsOrderSubmit';
-import type { ValidationAttempt } from '../../hooks/usePerpsOrderValidation';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -180,7 +170,6 @@ import {
   PERPS_MIN_BALANCE_THRESHOLD,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
-import { translatePerpsError } from '../../utils/translatePerpsError';
 import { useOrderLiquidationRow } from '../../hooks/useOrderLiquidationRow';
 import {
   getCrossLiquidationRefreshKey,
@@ -213,7 +202,6 @@ import {
   formatCombinedFeePercentage,
   formatOriginalCombinedFeePercentage,
 } from '../../utils/feeDiscount';
-import { willFlipPosition } from '../../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
@@ -222,10 +210,6 @@ import {
   deriveOrderSizing,
   getPayWithTokenDepositAmount,
 } from '../../utils/orderSizing';
-import {
-  buildPerpsOrderParams,
-  buildPerpsOrderTrackingData,
-} from '../../utils/orderParams';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow, PerpsPayTokenIcon } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
@@ -257,15 +241,14 @@ import {
   getCopyTradeOid,
 } from '../../utils/copyTradeIntent';
 import {
-  beginPerpsPostTradeShare,
   buildPerpsPostTradePreview,
-  canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
-  isPerpsPostTradeShareEligible,
-  openPerpsPostTradeShareSession,
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
+import { createLogRejection } from '../../utils/logRejection';
+
+const logRejection = createLogRejection('PerpsOrderView');
 import {
   useCanShareCopyTrade,
   usePostTradePromptResolver,
@@ -338,15 +321,6 @@ interface PerpsOrderViewContentProps {
   /** When the order view route mounted, for CUF spans when the form mounts later. */
   openStartTime?: number;
 }
-
-/** Reports a rejected fire-and-forget promise from this view. */
-const logRejection = (operation: string) => (error: unknown) => {
-  const name = `PerpsOrderView.${operation}`;
-  Logger.error(ensureError(error, name), {
-    tags: { feature: PERPS_CONSTANTS.FeatureName },
-    context: { name, data: {} },
-  });
-};
 
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
@@ -1975,9 +1949,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
-  const {
-    submitUserOrder,
-  } = usePerpsOrderSubmit({
+  const { submitUserOrder } = usePerpsOrderSubmit({
     navigation,
     navigationMarketData,
     fromTokenDetails,
@@ -2036,7 +2008,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     perpsPostTradePromptRef,
     inputMethodRef,
   });
-
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
