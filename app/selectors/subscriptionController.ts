@@ -3,6 +3,7 @@ import {
   getDefaultSubscriptionControllerState,
   MoneyAccountFeature,
   PRODUCT_TYPES,
+  RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
   selectHasEntitlement,
   type CachedLastSelectedPaymentMethod,
@@ -321,4 +322,19 @@ export function isMoneyAccountPlusFreeTrial(
 export const selectIsMoneyAccountPlusTrialing = createSelector(
   selectMoneyAccountPlusSubscription,
   isMoneyAccountPlusFreeTrial,
+);
+
+/**
+ * Selects whether the current Money Account Plus subscription bills annually.
+ *
+ * The free physical card is an annual-plan benefit, so monthly plans and
+ * plans with no known interval do not qualify.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether Plus is on the annual plan.
+ */
+export const selectIsMoneyAccountPlusAnnual = createSelector(
+  selectMoneyAccountPlusSubscription,
+  (subscription): boolean =>
+    subscription?.interval === RECURRING_INTERVALS.year,
 );

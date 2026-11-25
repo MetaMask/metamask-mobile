@@ -53,6 +53,58 @@ describe('usePerpsSlice', () => {
     });
   });
 
+  it('shows the partial subtotal without a 1d change until every venue reports', () => {
+    const liveAccount = {
+      account: {
+        spendableBalance: '100',
+        withdrawableBalance: '100',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '100',
+      },
+      isInitialLoading: false,
+      aggregate: {
+        status: 'partial',
+        availableProviders: ['hyperliquid'],
+        unavailableProviders: ['lighter'],
+        pendingProviders: [],
+      },
+    } satisfies ReturnType<typeof usePerpsLiveAccount>;
+    const toUserCurrency = (amount: number) => amount * 2;
+    mockUsePerpsLiveAccount.mockReturnValue(liveAccount);
+
+    const { result, rerender } = renderHook(() =>
+      usePerpsSlice(toUserCurrency),
+    );
+
+    expect(result.current).toMatchObject({
+      status: 'partial',
+      isVisible: true,
+      valueFiat: 200,
+      value1dAgoFiat: undefined,
+    });
+
+    mockUsePerpsLiveAccount.mockReturnValue({
+      ...liveAccount,
+      aggregate: {
+        status: 'complete',
+        availableProviders: ['hyperliquid', 'lighter'],
+        unavailableProviders: [],
+        pendingProviders: [],
+      },
+    });
+
+    rerender({});
+
+    expect(result.current).toMatchObject({
+      status: 'ready',
+      isVisible: true,
+      valueFiat: 200,
+      value1dAgoFiat: 160,
+    });
+  });
+
   it('reports no baseline when an aggregated provider lacks the 1d-ago observation', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
@@ -66,6 +118,17 @@ describe('usePerpsSlice', () => {
       }
       return undefined;
     });
+
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        totalBalance: '100',
+        providerStates: {
+          hyperliquid: { providerId: 'hyperliquid', status: 'available' },
+          lighter: { providerId: 'lighter', status: 'available' },
+        },
+      },
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveAccount>);
 
     const { result } = renderHook(() => usePerpsSlice((amount) => amount));
 
@@ -88,6 +151,27 @@ describe('usePerpsSlice', () => {
     const { result } = renderHook(() => usePerpsSlice((amount) => amount));
 
     expect(result.current.value1dAgoFiat).toBeUndefined();
+  });
+
+  it.each<[string, number | undefined]>([
+    ['0', 0],
+    ['-10', -10],
+    ['invalid', undefined],
+    ['NaN', undefined],
+    ['Infinity', undefined],
+  ])('reports the historical baseline %s as %s', (baseline, expected) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsProvider) return 'hyperliquid';
+      if (selector === selectPerpsBalances) {
+        return { hyperliquid: { accountValue1dAgo: baseline } };
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => usePerpsSlice((amount) => amount));
+
+    expect(result.current.value1dAgoFiat).toBe(expected);
   });
 
   it('keeps funded balances available when trading is geo-blocked', () => {

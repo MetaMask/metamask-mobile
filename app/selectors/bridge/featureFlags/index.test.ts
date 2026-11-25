@@ -7,6 +7,7 @@ import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyBaseUrl,
+  selectBridgeRecurringBuyDefaultPriceTolerance,
   selectSwapFromMoneyEnabled,
   selectSwapToMoneyEnabled,
   selectBridgeRecurringBuyFeatureFlags,
@@ -162,7 +163,20 @@ describe('selectBridgeLimitOrderBaseUrl', () => {
   });
 });
 
-describe('selectBridgeLimitOrderDefaultCostTolerance', () => {
+describe.each([
+  {
+    name: 'selectBridgeLimitOrderDefaultCostTolerance',
+    selector: selectBridgeLimitOrderDefaultCostTolerance,
+    flagKey: 'swapsLimitOrder',
+    enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+  },
+  {
+    name: 'selectBridgeRecurringBuyDefaultPriceTolerance',
+    selector: selectBridgeRecurringBuyDefaultPriceTolerance,
+    flagKey: 'swapsRecurringBuy',
+    enabledChainIds: RECURRING_BUY_CHAIN_IDS,
+  },
+])('$name', ({ selector, flagKey, enabledChainIds }) => {
   it.each([
     ['an integer', 5, '5'],
     ['a decimal', 1.5, '1.5'],
@@ -171,14 +185,14 @@ describe('selectBridgeLimitOrderDefaultCostTolerance', () => {
     'returns the remote defaultPriceTolerance when it is %s',
     (_caseName, defaultPriceTolerance, expected) => {
       const state = buildStateWithRemoteFlags({
-        swapsLimitOrder: {
+        [flagKey]: {
           enabled: true,
-          enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+          enabledChainIds,
           defaultPriceTolerance,
         },
       });
 
-      const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+      const result = selector(state);
 
       expect(result).toBe(expected);
     },
@@ -194,14 +208,14 @@ describe('selectBridgeLimitOrderDefaultCostTolerance', () => {
     'returns 3 when defaultPriceTolerance is %s',
     (_caseName, defaultPriceTolerance) => {
       const state = buildStateWithRemoteFlags({
-        swapsLimitOrder: {
+        [flagKey]: {
           enabled: true,
-          enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+          enabledChainIds,
           defaultPriceTolerance,
         },
       });
 
-      const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+      const result = selector(state);
 
       expect(result).toBe('3');
     },
@@ -209,26 +223,22 @@ describe('selectBridgeLimitOrderDefaultCostTolerance', () => {
 
   it('returns 3 when defaultPriceTolerance is missing', () => {
     const state = buildStateWithRemoteFlags({
-      swapsLimitOrder: { enabled: true, enabledChainIds: [] },
+      [flagKey]: { enabled: true, enabledChainIds: [] },
     });
 
-    const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+    const result = selector(state);
 
     expect(result).toBe('3');
   });
 
   it('returns 3 when the remote flag is missing', () => {
-    const result = selectBridgeLimitOrderDefaultCostTolerance(
-      mockedEmptyFlagsState,
-    );
+    const result = selector(mockedEmptyFlagsState);
 
     expect(result).toBe('3');
   });
 
   it('returns 3 when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectBridgeLimitOrderDefaultCostTolerance(
-      mockedUndefinedFlagsState,
-    );
+    const result = selector(mockedUndefinedFlagsState);
 
     expect(result).toBe('3');
   });

@@ -46,7 +46,7 @@ For a matched optimized arm, change only `sample_id` and the checkout. Keep ever
 | `[PerpsConnectionProof]` | Context change, reconnect start, health validation, preload commit or rejection, completion. No wallet addresses |
 
 - Recipe surface timing starts at `surface_demand`.
-- Homepage section TTC starts at section mount and stays a separate production clock.
+- Homepage section TTC starts at an explicit demand boundary. Resident content ends at the committed demand boundary; async content ends after its first presented frame. It stays a separate production clock and excludes deferred offscreen dwell; `content_ready_at_demand`, `demand_started`, and `cache_state` support cohort analysis.
 - Homepage Ready and Perps bootstrap stay separate traces with no per-event offset between them.
 - Never synthesize a missing milestone.
 

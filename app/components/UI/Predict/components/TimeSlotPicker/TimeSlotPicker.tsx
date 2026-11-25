@@ -197,12 +197,13 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   markets,
   selectedMarketId,
   onMarketSelected,
+  hideLiveIndicator = false,
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
   const pillPositions = useRef<Map<string, number>>(new Map());
 
-  const liveMarket = findLiveMarket(markets);
+  const liveMarket = hideLiveIndicator ? undefined : findLiveMarket(markets);
   const liveMarketId = liveMarket?.id;
   useCountdown(liveMarket?.endDate);
 

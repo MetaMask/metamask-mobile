@@ -8,6 +8,7 @@ import {
   formatSocialQueryErrorMessage,
   useLogSocialQueryError,
 } from '../../../../util/social/socialServiceTelemetry';
+import { useFeedChains } from '../../SocialFeed/data/supportedNetworks';
 import { assetChainScope, isOpenPositionChain } from './openPositionWallet';
 import {
   getOpenPositionForAsset,
@@ -50,7 +51,9 @@ const openPositionRouteId = (value: string | undefined): string => value ?? '';
  * Polled on the same interval as `useTraderPosition` while the screen is focused.
  * 404 and 403 are "no ready position" (`null`), not an error. A different
  * wallet is tried once when the first address is not the one the caller holds.
- * No request is sent for an asset on a chain the route does not serve.
+ * No request is sent for an asset on a chain the route does not serve: the
+ * chains social-api reports as supported, or the built-in list until that
+ * loads.
  */
 export const useOpenPositionForAsset = (
   traderId: string | undefined,
@@ -59,8 +62,10 @@ export const useOpenPositionForAsset = (
 ): UseOpenPositionForAssetResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const isFocused = useIsFocused();
+  const supportedChains = useFeedChains(isUnlocked);
   const servedChain = isOpenPositionChain(
     assetChainScope(tokenAddress as CaipAssetType | undefined),
+    supportedChains,
   );
   const enabled =
     Boolean(traderId && tokenAddress) && isUnlocked && servedChain;

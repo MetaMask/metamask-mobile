@@ -357,6 +357,68 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(false);
     });
 
+    it('unsubscribes when disabled', () => {
+      const { rerender } = renderHook(
+        ({ enabled }) => useLiveMarketPrices(['token1'], { enabled }),
+        { initialProps: { enabled: true } },
+      );
+
+      rerender({ enabled: false });
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('replaces the retained price with the first update after re-enabling', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+      const { result, rerender } = renderHook(
+        ({ enabled }) => useLiveMarketPrices(['token1'], { enabled }),
+        { initialProps: { enabled: true } },
+      );
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.75, bestBid: 0.74, bestAsk: 0.76 },
+        ]);
+      });
+      rerender({ enabled: false });
+      rerender({ enabled: true });
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.5, bestBid: 0.49, bestAsk: 0.51 },
+        ]);
+      });
+
+      expect(result.current.getPrice('token1')?.bestAsk).toBe(0.51);
+    });
+
+    it('subscribes only the current tokens when re-enabled after they changed while paused', () => {
+      const { rerender } = renderHook(
+        ({ tokenIds, enabled }) => useLiveMarketPrices(tokenIds, { enabled }),
+        {
+          initialProps: { tokenIds: ['old-up', 'old-down'], enabled: true },
+        },
+      );
+      expect(mockSubscribeToMarketPrices).toHaveBeenCalledTimes(1);
+
+      rerender({ tokenIds: ['old-up', 'old-down'], enabled: false });
+      // The market rolls over while paused.
+      rerender({ tokenIds: ['new-up', 'new-down'], enabled: false });
+      expect(mockSubscribeToMarketPrices).toHaveBeenCalledTimes(1);
+
+      rerender({ tokenIds: ['new-up', 'new-down'], enabled: true });
+
+      expect(mockSubscribeToMarketPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToMarketPrices).toHaveBeenLastCalledWith(
+        ['new-up', 'new-down'],
+        expect.any(Function),
+      );
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
     it('removes prices for tokens that are no longer selected', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {

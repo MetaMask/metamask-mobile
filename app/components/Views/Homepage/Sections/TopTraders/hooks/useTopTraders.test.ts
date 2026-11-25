@@ -149,6 +149,43 @@ describe('useTopTraders', () => {
       expect(result.current.traders).toEqual([]);
     });
 
+    it('reports warm cache state when leaderboard data is already cached', () => {
+      mockGetQueryData.mockReturnValue(mockLeaderboardResponse);
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.cacheState).toBe('warm');
+    });
+
+    it('samples cache state when a deferred query becomes enabled', () => {
+      const { result, rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) => useTopTraders({ enabled }),
+        { initialProps: { enabled: false } },
+      );
+
+      expect(result.current.cacheState).toBe('cold');
+
+      mockGetQueryData.mockReturnValue(mockLeaderboardResponse);
+      rerender({ enabled: true });
+
+      expect(result.current.cacheState).toBe('warm');
+    });
+
+    it('samples cache state when the leaderboard query key changes', () => {
+      const { result, rerender } = renderHook(
+        ({ sort }: { sort: 'pnl' | 'winRate' }) =>
+          useTopTraders({ limit: 50, sort }),
+        { initialProps: { sort: 'pnl' as 'pnl' | 'winRate' } },
+      );
+
+      expect(result.current.cacheState).toBe('cold');
+
+      mockGetQueryData.mockReturnValue(mockLeaderboardResponse);
+      rerender({ sort: 'winRate' });
+
+      expect(result.current.cacheState).toBe('warm');
+    });
+
     it('returns an empty array when traders array is missing', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: {} }));
       const { result } = renderHook(() => useTopTraders());

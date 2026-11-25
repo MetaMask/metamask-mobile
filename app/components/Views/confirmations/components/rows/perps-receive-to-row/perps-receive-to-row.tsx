@@ -36,6 +36,7 @@ import {
 } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { PerpsReceiveToSelectorsIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { usePerpsProviderBalance } from '../usePerpsProviderBalance';
 
 export type PerpsReceiveDestination = 'hyperliquid' | 'lighter';
 
@@ -43,15 +44,6 @@ const DESTINATIONS: PerpsReceiveDestination[] = ['hyperliquid', 'lighter'];
 
 export const DEFAULT_PERPS_RECEIVE_DESTINATION: PerpsReceiveDestination =
   'hyperliquid';
-
-/**
- * Display amounts from the deposit mock. This task does not read protocol
- * balances, so these stay constant until a later ticket wires them.
- */
-const PLACEHOLDER_AVAILABLE_BALANCE: Record<PerpsReceiveDestination, string> = {
-  hyperliquid: '$4,892.06',
-  lighter: '$4,718.18',
-};
 
 // Bundled images resolve to a numeric asset id.
 const HYPERLIQUID_BADGE_SRC = images.HYPE as number;
@@ -100,25 +92,15 @@ interface PerpsReceiveToRowProps {
   onDestinationChange: (destination: PerpsReceiveDestination) => void;
 }
 
-export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
+// The balance hook needs `PerpsStreamProvider`, which only the Perps stack
+// mounts, so it must not run on custom-amount screens where the row is hidden.
+const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
   destination,
   onDestinationChange,
 }) => {
-  const transactionMeta = useTransactionMetadataRequest();
-  const providerFlagEnabled = useSelector(
-    selectPerpsLighterProviderEnabledFlag,
-  );
+  const providerBalance = usePerpsProviderBalance();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
-
-  const isVisible =
-    isPerpsLighterConfirmationEnabled() &&
-    isLighterProviderEnabled() &&
-    providerFlagEnabled &&
-    hasTransactionType(transactionMeta, [
-      TransactionType.perpsDeposit,
-      TransactionType.perpsLighterDeposit,
-    ]);
 
   const closeSheet = useCallback(() => {
     setIsSheetVisible(false);
@@ -133,13 +115,9 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
     [onDestinationChange],
   );
 
-  if (!isVisible) {
-    return null;
-  }
-
   const rowLabel = strings('confirm.label.to');
   const selectedLabel = strings(`confirm.perps_receive_to.${destination}`);
-  const selectedBalance = PLACEHOLDER_AVAILABLE_BALANCE[destination];
+  const selectedBalance = providerBalance[destination];
 
   return (
     <>
@@ -211,7 +189,7 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
                       }
                       description={strings(
                         'confirm.perps_receive_to.available',
-                        { amount: PLACEHOLDER_AVAILABLE_BALANCE[option] },
+                        { amount: providerBalance[option] },
                       )}
                       startAccessory={
                         <DestinationAvatar destination={option} />
@@ -247,5 +225,35 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
         </Modal>
       )}
     </>
+  );
+};
+
+export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
+  destination,
+  onDestinationChange,
+}) => {
+  const transactionMeta = useTransactionMetadataRequest();
+  const providerFlagEnabled = useSelector(
+    selectPerpsLighterProviderEnabledFlag,
+  );
+
+  const isVisible =
+    isPerpsLighterConfirmationEnabled() &&
+    isLighterProviderEnabled() &&
+    providerFlagEnabled &&
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <PerpsReceiveToSelect
+      destination={destination}
+      onDestinationChange={onDestinationChange}
+    />
   );
 };

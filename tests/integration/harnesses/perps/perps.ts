@@ -448,6 +448,11 @@ export function buildPerpsIntegrationHarness(
     getFreshPositionsForAllDexs: jest.fn(() => getCachedPositions()),
     isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
     getCachedOrders: jest.fn().mockReturnValue([]),
+    // `null` means no live stream for the wallet, so reads fall back to REST.
+    getCachedOpenOrdersForDex: jest.fn().mockReturnValue(null),
+    getCachedActiveTwapOrders: jest.fn().mockReturnValue(null),
+    getCachedActiveAssetLeverage: jest.fn().mockReturnValue(null),
+    getFreshCrossMarginContext: jest.fn().mockReturnValue(null),
     getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
     // `null` is the uninitialized-cache signal, not an empty result.
     getFillsCacheIfInitialized: jest.fn().mockReturnValue(null),

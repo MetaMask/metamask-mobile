@@ -21,6 +21,7 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import { getContrastRatio } from '../game/useGameTeamColors';
 import { EventCardGame } from './EventCardGame';
 
@@ -45,6 +46,7 @@ const createMarket = (
   id: id as PredictEntityId,
   question: id,
   status,
+  ...fullGameMoneylineMetadata(),
   outcomes: [
     createOutcome(`${id}-yes`, selection, askPrice ?? undefined),
     {
