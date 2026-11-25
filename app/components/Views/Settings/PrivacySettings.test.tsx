@@ -131,6 +131,20 @@ describe('PrivacySettings', () => {
   );
 
   it('does not measure when the native scroll ref is unavailable', async () => {
+    jest.useFakeTimers();
+    let callbackInvoked = false;
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        setTimeout(() => {
+          if (typeof callback === 'function') {
+            callback();
+            callbackInvoked = true;
+          }
+        }, 0);
+        return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+      });
+
     jest
       .spyOn(ScrollView.prototype, 'getNativeScrollRef')
       .mockReturnValue(null);
@@ -142,8 +156,11 @@ describe('PrivacySettings', () => {
     await waitFor(() =>
       expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
     );
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    jest.runAllTimers();
+    expect(callbackInvoked).toBe(true);
     expect(measureLayoutSpy).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
   });
 
   it('does not scroll when the section layout cannot be measured', async () => {
