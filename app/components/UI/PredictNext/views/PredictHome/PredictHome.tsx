@@ -131,6 +131,13 @@ const PredictHomeView = ({
     isFocused,
     region: isRegionBlocked ? 'blocked' : 'allowed_or_unknown',
   });
+  // A known inactive account cannot read its Balance or Portfolio yet.
+  const hasAccountAccess =
+    readiness.accountActions === 'unchanged' || readiness.readiness === 'ready';
+  const showZeroBalance =
+    readiness.accountActions === 'readiness_gated' &&
+    readiness.readiness !== 'unknown' &&
+    readiness.readiness !== 'ready';
   const canBuy = canPerformVenueAction(capabilities, 'buy');
   const { failedGamesReads } = home;
   const retryFailedGamesReads = useCallback(
@@ -447,6 +454,7 @@ const PredictHomeView = ({
             isLoading={balanceQuery.isPending}
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
+            showZeroBalance={showZeroBalance}
             depositStatus={
               <DepositStatusLine
                 venueId={venueId}
@@ -455,25 +463,19 @@ const PredictHomeView = ({
             }
           />
           <AccountReadinessCardHost value={readiness} />
-          <PortfolioActions
-            onPositionsPress={openPortfolio}
-            onAddFundsPress={
-              !isRegionBlocked &&
-              (readiness.accountActions === 'unchanged' ||
-                readiness.readiness === 'ready') &&
-              canDeposit
-                ? openDeposit
-                : undefined
-            }
-            onWithdrawPress={
-              !isRegionBlocked &&
-              (readiness.accountActions === 'unchanged' ||
-                readiness.readiness === 'ready') &&
-              withdrawResolution.status === 'ready'
-                ? openWithdraw
-                : undefined
-            }
-          />
+          {hasAccountAccess ? (
+            <PortfolioActions
+              onPositionsPress={openPortfolio}
+              onAddFundsPress={
+                !isRegionBlocked && canDeposit ? openDeposit : undefined
+              }
+              onWithdrawPress={
+                !isRegionBlocked && withdrawResolution.status === 'ready'
+                  ? openWithdraw
+                  : undefined
+              }
+            />
+          ) : null}
           <HomeSectionsStatus
             capabilities={capabilities}
             hasSections={hasVisibleSection}

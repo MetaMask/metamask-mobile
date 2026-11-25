@@ -127,7 +127,8 @@ registers focus, region and eligibility; the observation reads only while Home
 is focused, the app is active, the user is eligible, setup is closed and the
 network is usable. Reads abort and fence on background, offline, dismissal and
 unmount; returning to the foreground re-reads status instead of replaying a
-write.
+write. A known inactive account renders an empty Balance as `$0.00` and has no
+Portfolio actions; a Balance failure belongs to an activated account.
 
 Account Setup is mounted only while an explicit card action holds a local
 request. Reading status never mounts it, and entering or refocusing Home never

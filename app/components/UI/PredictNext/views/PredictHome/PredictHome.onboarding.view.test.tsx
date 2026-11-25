@@ -277,6 +277,9 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
     expect(
       card.getByText(strings('predict_next.get_started_banner.body')),
     ).toBeOnTheScreen();
+    expect(view.getByTestId(HomeIds.BALANCE_AMOUNT)).toHaveTextContent('$0.00');
+    expect(view.queryByTestId(HomeIds.ACTIONS)).not.toBeOnTheScreen();
+    expect(view.queryByTestId(HomeIds.POSITIONS)).not.toBeOnTheScreen();
     expect(gets(fixture)).toHaveLength(1);
     expect(posts(fixture)).toHaveLength(0);
     expectNoSetup(view);
@@ -403,6 +406,8 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
         strings('predict_next.account_readiness.activation_required.action'),
       ),
     ).not.toBeOnTheScreen();
+    expect(view.getByTestId(HomeIds.BALANCE_AMOUNT)).toHaveTextContent('$0.00');
+    expect(view.queryByTestId(HomeIds.POSITIONS)).not.toBeOnTheScreen();
     expect(posts(fixture)).toHaveLength(0);
     fireEvent.press(
       view.getByTestId(HomeIds.ACCOUNT_SETUP_ACTION_REQUIRED_BANNER),
@@ -428,6 +433,7 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
     await view.findByTestId(HomeIds.IDENTITY_VERIFIED_BANNER);
     await flush();
     expectNoSetup(view);
+    expect(view.getByTestId(HomeIds.POSITIONS)).toBeOnTheScreen();
     expect(gets(fixture)).toHaveLength(readsBeforeClose + 1);
     expect(posts(fixture)).toHaveLength(1);
   });
@@ -493,7 +499,7 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
     expectNoSetup(view);
   });
 
-  it('renders readiness while an ordinary balance read is still pending', async () => {
+  it('shows zero Balance while an ordinary balance read is still pending', async () => {
     const fixture = configurePredictNextOnboarding();
     const defaultCall = messengerCall.getMockImplementation();
     messengerCall.mockImplementation((action: string, ...params: unknown[]) =>
@@ -505,13 +511,32 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
 
     await view.findByTestId(HomeIds.GET_STARTED_BANNER);
 
-    expect(view.queryByTestId(HomeIds.BALANCE_AMOUNT)).not.toBeOnTheScreen();
+    expect(view.getByTestId(HomeIds.BALANCE_AMOUNT)).toHaveTextContent('$0.00');
     expect(gets(fixture)).toHaveLength(1);
     expect(posts(fixture)).toHaveLength(0);
   });
 
-  it('renders readiness under an ordinary Balance error', async () => {
+  it('shows zero Balance instead of an ordinary Balance error before activation', async () => {
     const fixture = configurePredictNextOnboarding();
+    const defaultCall = messengerCall.getMockImplementation();
+    messengerCall.mockImplementation((action: string, ...params: unknown[]) =>
+      action === 'PredictPortfolioService:getBalance'
+        ? Promise.reject(new Error('Balance failed'))
+        : defaultCall?.(action, ...params),
+    );
+    const view = renderHome();
+
+    await view.findByTestId(HomeIds.GET_STARTED_BANNER);
+    await flush();
+
+    expect(view.getByTestId(HomeIds.BALANCE_AMOUNT)).toHaveTextContent('$0.00');
+    expect(view.queryByTestId(HomeIds.BALANCE_ERROR)).not.toBeOnTheScreen();
+    expect(gets(fixture)).toHaveLength(1);
+    expect(posts(fixture)).toHaveLength(0);
+  });
+
+  it('shows the ordinary Balance error after activation', async () => {
+    configurePredictNextOnboarding({ status: { state: 'active' } });
     const defaultCall = messengerCall.getMockImplementation();
     messengerCall.mockImplementation((action: string, ...params: unknown[]) =>
       action === 'PredictPortfolioService:getBalance'
@@ -522,15 +547,11 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
 
     await view.findByTestId(HomeIds.BALANCE_ERROR);
 
-    expect(
-      await view.findByTestId(HomeIds.GET_STARTED_BANNER),
-    ).toBeOnTheScreen();
+    expect(view.getByTestId(HomeIds.POSITIONS)).toBeOnTheScreen();
     expect(view.queryByTestId(HomeIds.BALANCE_AMOUNT)).not.toBeOnTheScreen();
-    expect(gets(fixture)).toHaveLength(1);
-    expect(posts(fixture)).toHaveLength(0);
   });
 
-  it('orders Balance, readiness, Portfolio actions and the Feed state', async () => {
+  it('orders Balance, readiness and the Feed state before activation', async () => {
     configurePredictNextOnboarding();
     const view = renderHome();
 
@@ -546,8 +567,6 @@ describeForPlatforms('PredictHome account readiness', ({ os }) => {
     expect(order).toEqual([
       HomeIds.BALANCE,
       HomeIds.ACCOUNT_READINESS,
-      HomeIds.ACTIONS,
-      HomeIds.POSITIONS,
       HomeIds.HOME_TRENDING,
     ]);
   });
