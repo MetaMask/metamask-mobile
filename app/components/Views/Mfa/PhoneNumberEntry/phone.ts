@@ -573,7 +573,7 @@ export const getCountryFlag = (iso: string): string =>
     ...iso
       .toUpperCase()
       .split('')
-      .map((letter) => 0x1f1a5 + letter.charCodeAt(0)),
+      .map((letter) => 0x1f1a5 + (letter.codePointAt(0) ?? 0)),
   );
 
 /** The country's English name, or its code for an unknown country. */

@@ -1,11 +1,5 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
-import { Pressable, type ListRenderItem } from 'react-native';
+import React, { useRef, useState, type ReactNode } from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   Button,
@@ -18,12 +12,10 @@ import {
   IconColor,
   IconName,
   IconSize,
-  ListItemSelect,
   Text,
   TextColor,
   TextField,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import StepLayout from '../MfaFlowHost/steps/StepLayout';
@@ -33,8 +25,6 @@ import {
   getPhoneNumberEntryTestIds,
 } from './PhoneNumberEntry.testIds';
 import {
-  DEFAULT_PHONE_COUNTRY_ISO,
-  PHONE_COUNTRIES,
   formatNational,
   getCountryFlag,
   getCountryName,
