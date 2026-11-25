@@ -8,7 +8,6 @@ export const collectiblesRoutes = {
   market: 'CollectiblesMarket',
 } as const;
 
-// Screens inside the Collectibles stack.
 export type CollectiblesStackParamList = Record<
   | typeof collectiblesRoutes.home
   | typeof collectiblesRoutes.packs
@@ -17,7 +16,6 @@ export type CollectiblesStackParamList = Record<
   undefined
 >;
 
-// Entry points can open the stack on any of its screens.
 export type CollectiblesParamList = ReactNavigation.RootParamList &
   Record<
     typeof collectiblesRoutes.root,

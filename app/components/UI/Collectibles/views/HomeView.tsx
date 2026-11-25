@@ -12,7 +12,6 @@ export function HomeView() {
 
   return (
     <ScrollView contentContainerStyle={tw.style('gap-4 pb-6')}>
-      {/* Pack wheel placeholder (GAC-81). */}
       <View
         className="mx-4 h-64 rounded-2xl bg-muted"
         testID={collectiblesTestIds.landingHero}

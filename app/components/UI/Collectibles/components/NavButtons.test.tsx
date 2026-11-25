@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { collectiblesRoutes } from '../routeNames';
-import { collectiblesTestIds } from '../Collectibles.testIds';
+import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { NavButtons } from './NavButtons';
 
 const mockNavigate = jest.fn();

@@ -9,7 +9,6 @@ interface Props {
   children?: ReactNode;
 }
 
-// Titled slot on the main page; its story supplies the content.
 export function LandingSection({ name, title, children }: Props) {
   return (
     <View testID={collectiblesTestIds.landingSection(name)}>

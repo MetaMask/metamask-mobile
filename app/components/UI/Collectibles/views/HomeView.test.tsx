@@ -1,8 +1,8 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { collectiblesTestIds } from '../Collectibles.testIds';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { HomeView } from './HomeView';
 
 jest.mock('@react-navigation/native', () => ({

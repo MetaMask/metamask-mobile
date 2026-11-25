@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { MarketScreen } from './MarketScreen';
 
@@ -30,7 +30,6 @@ describe('MarketScreen', () => {
   it('goes back when the back button is pressed', () => {
     renderWithProvider(<MarketScreen />);
 
-    // The design-system back button's default testID.
     fireEvent.press(screen.getByTestId('button-icon'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);

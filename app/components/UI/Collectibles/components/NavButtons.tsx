@@ -17,32 +17,33 @@ interface NavButton {
   name: string;
   route: keyof CollectiblesStackParamList;
   icon: IconName;
-  label: string;
+  labelKey: string;
 }
+
+const navButtons: NavButton[] = [
+  {
+    name: 'packs',
+    route: collectiblesRoutes.packs,
+    icon: IconName.Gift,
+    labelKey: 'collectibles.landing.packs',
+  },
+  {
+    name: 'collection',
+    route: collectiblesRoutes.collection,
+    icon: IconName.Category,
+    labelKey: 'collectibles.landing.collection',
+  },
+  {
+    name: 'market',
+    route: collectiblesRoutes.market,
+    icon: IconName.Tag,
+    labelKey: 'collectibles.landing.market',
+  },
+];
 
 export function NavButtons() {
   const navigation =
     useNavigation<NativeStackNavigationProp<CollectiblesStackParamList>>();
-  const navButtons: NavButton[] = [
-    {
-      name: 'packs',
-      route: collectiblesRoutes.packs,
-      icon: IconName.Gift,
-      label: strings('collectibles.landing.packs'),
-    },
-    {
-      name: 'collection',
-      route: collectiblesRoutes.collection,
-      icon: IconName.Category,
-      label: strings('collectibles.landing.collection'),
-    },
-    {
-      name: 'market',
-      route: collectiblesRoutes.market,
-      icon: IconName.Tag,
-      label: strings('collectibles.landing.market'),
-    },
-  ];
 
   return (
     <View className="flex-row gap-2 px-4">
@@ -50,7 +51,7 @@ export function NavButtons() {
         <MainActionButton
           key={button.name}
           iconName={button.icon}
-          label={button.label}
+          label={strings(button.labelKey)}
           onPress={() => navigation.navigate(button.route)}
           twClassName="flex-1"
           testID={collectiblesTestIds.landingNavButton(button.name)}
