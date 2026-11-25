@@ -155,6 +155,19 @@ describe('getLighterUsdcDepositAmountCalls', () => {
     ]);
   });
 
+  it('returns no calls for a deposit without calldata', () => {
+    const calls = getLighterUsdcDepositAmountCalls(
+      {
+        id: 'tx-1',
+        type: TransactionType.perpsLighterDeposit,
+        txParams: { from: USER, to: USER },
+      } as never,
+      '1.5',
+    );
+
+    expect(calls).toStrictEqual([]);
+  });
+
   it('returns undefined when the confirmation is not a Lighter deposit', () => {
     const calls = getLighterUsdcDepositAmountCalls(
       {

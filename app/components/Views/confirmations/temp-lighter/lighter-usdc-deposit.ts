@@ -145,7 +145,8 @@ export function buildLighterUsdcDepositTransaction(
  * Re-encodes the Lighter approve and deposit when the user changes the amount.
  *
  * Returns undefined when this confirmation is not a Lighter USDC deposit, so
- * the generic token-transfer updater can run instead.
+ * the generic token-transfer updater can run instead. Returns no calls for a
+ * deposit into an existing account, which has no calldata.
  *
  * @param transactionMeta - Confirmation being updated.
  * @param amountHuman - Human-readable USDC amount.
@@ -156,6 +157,16 @@ export function getLighterUsdcDepositAmountCalls(
   amountHuman: string,
 ): UpdateTransactionPayAmountCall[] | undefined {
   const nestedTransactions = transactionMeta.nestedTransactions;
+
+  // A deposit into an existing account has no calldata. Only the required
+  // asset amount changes, which the caller commits.
+  if (
+    !nestedTransactions?.length &&
+    (!transactionMeta.txParams?.data || transactionMeta.txParams.data === '0x')
+  ) {
+    return [];
+  }
+
   const depositIndex = nestedTransactions?.findIndex((transaction) =>
     transaction.data?.toLowerCase().startsWith(LIGHTER_DEPOSIT_SELECTOR),
   );
