@@ -57,7 +57,10 @@ export interface UsePerpsLimitPriceInputParams {
    * price, opening or closing.
    */
   isClosingPosition?: boolean;
-  /** Venue the order or position belongs to; its band is the one checked. */
+  /**
+   * Venue the order or position belongs to. Its live prices, book and
+   * price band are the ones used.
+   */
   providerId?: PerpsProviderType;
   /** Unsubscribes from live price and book data while a modal is hidden. */
   enabled?: boolean;
@@ -88,19 +91,20 @@ export interface UsePerpsLimitPriceInputResult {
  */
 export function usePerpsLimitPriceInput({
   asset,
+  providerId,
   currentPrice: passedCurrentPrice,
   direction,
   limitPrice,
   setLimitPrice,
   testIDs,
   isClosingPosition = false,
-  providerId,
   enabled = true,
 }: UsePerpsLimitPriceInputParams): UsePerpsLimitPriceInputResult {
   const { track } = usePerpsEventTracking();
   const inputMethodRef = useRef<string | null>(null);
 
   const priceData = usePerpsLivePrices({
+    providerId,
     symbols: enabled ? [asset] : [],
     throttleMs: 1000,
   });
@@ -122,7 +126,10 @@ export function usePerpsLimitPriceInput({
     providerId,
   );
 
-  const topOfBook = usePerpsTopOfBook({ symbol: enabled ? asset : '' });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: enabled ? asset : '',
+    providerId,
+  });
   const isLong = direction === 'long';
 
   // Destructured so an inline `testIDs` literal from a caller cannot rebuild

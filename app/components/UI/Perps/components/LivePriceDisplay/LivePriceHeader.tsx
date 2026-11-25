@@ -19,10 +19,14 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 
 interface LivePriceHeaderProps {
   symbol: string;
+  providerId?: PerpsProviderType;
   testIDPrice?: string;
   testIDChange?: string;
   throttleMs?: number;
@@ -87,6 +91,7 @@ const stackedLayout: ViewStyle = {
  */
 const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   symbol,
+  providerId,
   testIDPrice,
   testIDChange,
   throttleMs = 1000, // Balanced updates for header (1 update per second)
@@ -111,6 +116,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   // percent-change value — avoids a redundant duplicate subscription to the
   // same symbol.
   const prices = usePerpsLivePrices({
+    providerId,
     symbols: hasPercentChangeOverride ? [] : [symbol],
     throttleMs,
   });

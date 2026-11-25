@@ -82,7 +82,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
-    summaryMargin,
     summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
@@ -198,6 +197,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
     >
       <PerpsClosePositionSheetHeader
+        providerId={position.providerId}
         symbol={position.symbol}
         isLong={isLong}
         leverage={livePosition.leverage?.value}
@@ -259,7 +259,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           pnl={summaryPnl}
           roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
-          margin={summaryMargin}
           marginMode={summaryMarginMode}
         />
       )}

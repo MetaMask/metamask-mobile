@@ -1,5 +1,8 @@
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
-import { type OrderType } from '@metamask/perps-controller';
+import {
+  type PerpsProviderType,
+  type OrderType,
+} from '@metamask/perps-controller';
 import {
   CommonActions,
   NavigationContext,
@@ -33,6 +36,7 @@ interface PerpsTradeLeverageScreenProps {
   currentPrice: number | undefined;
   direction: 'long' | 'short';
   asset: string;
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   orderType: OrderType;
 }

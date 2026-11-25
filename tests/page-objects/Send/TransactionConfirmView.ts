@@ -1,6 +1,6 @@
 // TODO: This file references legacy confirmation UI that was removed.
 // The TransactionConfirmView.testIds file no longer exists.
-// This e2e page object needs to be updated to use redesigned confirmation testIds
+// This e2e page object needs to be updated to use confirmation testIds
 // or deleted if the functionality is no longer tested.
 
 import Gestures from '../../framework/Gestures';

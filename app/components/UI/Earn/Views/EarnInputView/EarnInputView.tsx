@@ -405,7 +405,7 @@ const EarnInputView = () => {
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
       '';
 
-    const createRedesignedLendingDepositConfirmation = (
+    const createBatchLendingDepositConfirmation = (
       _earnToken: EarnTokenDetails,
       _activeAccount: InternalAccount,
     ) => {
@@ -471,7 +471,7 @@ const EarnInputView = () => {
       });
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
     };
 
@@ -502,7 +502,7 @@ const EarnInputView = () => {
     const isBatchDepositEnabled = false;
 
     if (isBatchDepositEnabled) {
-      createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
+      createBatchLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
       createLegacyLendingDepositConfirmation(
         lendingPoolContractAddress,
@@ -598,7 +598,7 @@ const EarnInputView = () => {
       );
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
 
       const withRedesignedPropEventProperties = {

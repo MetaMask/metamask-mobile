@@ -48,6 +48,7 @@ import {
   buildPaymentTokenMock,
   evmAssetId,
 } from '../../__mocks__/pay-token.mock';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
@@ -69,6 +70,15 @@ jest.mock('../../../../../util/abTest', () => ({
   resolveABTestAssignment: jest.fn(),
 }));
 
+jest.mock('./useTransactionMetadataRequest', () => {
+  const actual = jest.requireActual('./useTransactionMetadataRequest');
+  return {
+    ...actual,
+    useTransactionMetadataRequest: jest.fn(
+      actual.useTransactionMetadataRequest,
+    ),
+  };
+});
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../pay/useTransactionPayPrefetch');
 jest.mock('../pay/useUpdateTransactionPayAmount');
@@ -239,6 +249,13 @@ describe('useTransactionCustomAmount', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest
+      .mocked(useTransactionMetadataRequest)
+      .mockImplementation(
+        jest.requireActual('./useTransactionMetadataRequest')
+          .useTransactionMetadataRequest,
+      );
 
     resolveABTestAssignmentMock.mockReturnValue({
       variantName: 'treatment',
@@ -2715,6 +2732,1189 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('800');
+    });
+  });
+
+  describe('perps provider switch replaces the transaction', () => {
+    const perpsDepositTransactionMeta = {
+      type: TransactionType.perpsDeposit,
+    };
+
+    beforeEach(() => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+        prefilledAmount: {
+          default: { enabled: false },
+          overrides: {
+            perpsDeposit: { enabled: true },
+          },
+        },
+      });
+    });
+
+    function mockPayToken(address: Hex | undefined, balanceUsd = '500') {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: address
+          ? buildPaymentTokenMock({
+              address,
+              balanceUsd,
+              chainId: '0x1',
+            })
+          : undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+    }
+
+    // The replacement is a new confirmation with its own id, and its pay token
+    // is unset until automatic selection runs again.
+    async function replaceTransaction(
+      rerender: ReturnType<typeof runHook>['rerender'],
+    ) {
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+      let replacement: TransactionMeta | undefined;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        replacement ??= { ...current, id: 'replacement-transaction' };
+        return replacement;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+    }
+
+    it('keeps the amount the user entered', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS);
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('42');
+      });
+
+      expect(result.current.amountFiat).toBe('42');
+
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('42');
+    });
+
+    it('keeps the prefilled amount', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS);
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      const prefilledAmount = result.current.amountFiat;
+      expect(prefilledAmount).not.toBe('0');
+
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe(prefilledAmount);
+    });
+
+    it('clears keepAmountAfterReplacementRef after automatic token change, then user token change applies prefill', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('42');
+      });
+
+      expect(result.current.amountFiat).toBe('42');
+
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('42');
+
+      // First token change after replacement is automatic (provider switch),
+      // so the amount is preserved
+      mockPayToken(ETHEREUM_USDC_ADDRESS, '800');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('42');
+
+      // Second token change is user-initiated, so keepAmountAfterReplacementRef
+      // is cleared and prefill applies. Perps deposits prefill to 50%.
+      mockPayToken(ETHEREUM_DAI_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('600');
+    });
+
+    it('clamps a 100% Hyperliquid Max to 90% when switching into a first Lighter deposit', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit (approve + deposit calls)
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' }, // approve
+            { data: '0x8a857083' }, // deposit
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // 100% should be clamped to 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+      // The clamped amount should also be committed to the transaction
+      // 900 USD / 2 (fiat rate) = 450 tokens
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+    });
+
+    it('keeps a normal kept amount below the first-deposit cap unchanged', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('500');
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // 500 is below the 90% cap (900), so it should remain unchanged
+      expect(result.current.amountFiat).toBe('500');
+    });
+
+    it('clamps successive replacements into first Lighter deposits', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // First replacement with Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'first-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // First clamp: 100% -> 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+
+      // Switch back to Hyperliquid with the clamped 900, then set to 100% again
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'back-to-hyperliquid',
+          type: TransactionType.perpsDeposit,
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Increase balance and set to 100% again
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1200');
+
+      // Second replacement with Lighter deposit
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'second-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Second clamp: 100% of 1200 -> 90% = 1080
+      expect(result.current.amountFiat).toBe('1080');
+    });
+
+    it('waits for tokenFiatRate before committing clamped amount', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Pay token is set but tokenFiatRate is missing
+      useTokenFiatRateMock.mockReturnValue(undefined);
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Without tokenFiatRate, the clamp should not run yet, and Continue stays
+      // blocked because the replacement still carries the uncapped amount
+      expect(result.current.amountFiat).toBe('1000');
+      expect(result.current.isClampCommitPending).toBe(true);
+      // And updateTransactionPayAmount should NOT have been called (no rate)
+      expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+
+      // Now the tokenFiatRate loads
+      useTokenFiatRateMock.mockReturnValue(2);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Now the clamp should run: 100% -> 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+      // And updateTransactionPayAmount should be called with the clamped amount
+      // 900 USD / 2 (fiat rate) = 450 tokens
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+    });
+
+    it('retries the clamp commit if updateTransactionPayAmount fails', async () => {
+      jest.useFakeTimers();
+
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' }, // approve
+            { data: '0x8a857083' }, // deposit
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Make updateTransactionPayAmount fail on the first attempt, then succeed
+      updateTransactionPayAmountMock
+        .mockRejectedValueOnce(new Error('Network failure'))
+        .mockResolvedValue(true);
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+
+      // The keypad shows the cap immediately. The failed commit waits out the
+      // backoff before retrying, so a balance update cannot start a second one.
+      expect(result.current.amountFiat).toBe('900');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
+    });
+
+    it('does not clear pendingClampRef while commit is in flight', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' }, // approve
+            { data: '0x8a857083' }, // deposit
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Make updateTransactionPayAmount hang (never resolve)
+      let resolveUpdate: (value: boolean) => void;
+      const hangingPromise = new Promise<boolean>((resolve) => {
+        resolveUpdate = resolve;
+      });
+      updateTransactionPayAmountMock.mockReturnValue(hangingPromise);
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      // First render: triggers the clamp and starts the async commit
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // The UI should show the clamped 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+      // updateTransactionPayAmount was called
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      // Second render: amountFiat === clampedAmount, but commit is still in flight
+      // The effect should return early and NOT clear pendingClampRef
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Should not have called updateTransactionPayAmount again
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      // Now resolve the update
+      await act(async () => {
+        if (resolveUpdate) {
+          resolveUpdate(true);
+        }
+        await Promise.resolve();
+      });
+
+      // After success, pendingClampRef should be cleared
+      // A subsequent rerender should not trigger another clamp
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+      expect(result.current.amountFiat).toBe('900');
+    });
+
+    it('commits the cap onto a later replacement when the keypad is already at 90%', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      const switchToLighterDeposit = async (
+        transactionId: string,
+      ): Promise<void> => {
+        jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+          const current = actualHook();
+          return {
+            ...current,
+            id: transactionId,
+            type: TransactionType.perpsLighterDeposit,
+            nestedTransactions: [
+              { data: '0x095ea7b3' },
+              { data: '0x8a857083' },
+            ],
+          } as TransactionMeta;
+        });
+        mockPayToken(undefined);
+
+        await act(async () => {
+          rerender({});
+          jest.runAllTimers();
+        });
+      };
+
+      await switchToLighterDeposit('replacement-lighter-deposit');
+
+      let resolveFirstCommit: (value: boolean) => void = () => undefined;
+      updateTransactionPayAmountMock.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveFirstCommit = resolve;
+        }),
+      );
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('900');
+      expect(result.current.isClampCommitPending).toBe(true);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+
+      let resolveSecondCommit: (value: boolean) => void = () => undefined;
+      updateTransactionPayAmountMock.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveSecondCommit = resolve;
+        }),
+      );
+
+      await switchToLighterDeposit('second-lighter-deposit');
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('900');
+      expect(result.current.isClampCommitPending).toBe(true);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
+
+      await act(async () => {
+        resolveFirstCommit(true);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitPending).toBe(true);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        resolveSecondCommit(true);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitPending).toBe(false);
+      expect(result.current.isClampCommitFailed).toBe(false);
+      expect(result.current.amountFiat).toBe('900');
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('caps retries at MAX_CLAMP_COMMIT_RETRIES and surfaces failure', async () => {
+      jest.useFakeTimers();
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Make updateTransactionPayAmount always fail
+      updateTransactionPayAmountMock.mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      // Initial attempt + 3 retries = 4 total attempts
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+
+      expect(result.current.amountFiat).toBe('900');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      // Retry 1
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+
+      // Retry 2
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(3);
+
+      // Retry 3 (final)
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(4);
+      expect(result.current.isClampCommitFailed).toBe(true);
+
+      // Further rerenders should not trigger more attempts
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+        rerender({});
+        jest.runAllTimers();
+      });
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(4);
+    });
+
+    it.each([
+      [
+        'rejects',
+        (): void => {
+          updateTransactionPayAmountMock.mockRejectedValueOnce(
+            new Error('Network failure'),
+          );
+        },
+      ],
+      [
+        'reports nothing applied',
+        (): void => {
+          updateTransactionPayAmountMock.mockResolvedValueOnce(false);
+        },
+      ],
+    ])(
+      'retries and stays pending when the amount update %s',
+      async (_name, failFirstCall) => {
+        jest.useFakeTimers();
+
+        mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+        const perpsDepositMeta = {
+          type: TransactionType.perpsDeposit,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' as Hex },
+        } as unknown as Partial<TransactionMeta>;
+
+        const { result, rerender } = runHook({
+          transactionMeta: perpsDepositMeta,
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(100);
+        });
+
+        // Replace with a first Lighter deposit
+        const actualHook = jest.requireActual(
+          './useTransactionMetadataRequest',
+        ).useTransactionMetadataRequest;
+
+        jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+          const current = actualHook();
+          return {
+            ...current,
+            id: 'replacement-lighter-deposit',
+            type: TransactionType.perpsLighterDeposit,
+            nestedTransactions: [
+              { data: '0x095ea7b3' },
+              { data: '0x8a857083' },
+            ],
+          } as TransactionMeta;
+        });
+        mockPayToken(undefined);
+
+        await act(async () => {
+          rerender({});
+          jest.runAllTimers();
+        });
+
+        // Fail once, then succeed
+        failFirstCall();
+        updateTransactionPayAmountMock.mockResolvedValue(true);
+
+        mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+        await act(async () => {
+          rerender({});
+          jest.runAllTimers();
+          await Promise.resolve();
+        });
+
+        expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+        // The transaction still carries the uncapped amount during backoff.
+        expect(result.current.isClampCommitPending).toBe(true);
+        expect(result.current.isClampCommitFailed).toBe(false);
+
+        // Retry succeeds
+        await act(async () => {
+          jest.advanceTimersByTime(500);
+          rerender({});
+          jest.runAllTimers();
+          await Promise.resolve();
+        });
+
+        expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+        expect(result.current.isClampCommitFailed).toBe(false);
+        expect(result.current.isClampCommitPending).toBe(false);
+      },
+    );
+
+    it('reports pending state while commit is in flight', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Make updateTransactionPayAmount hang
+      let resolveUpdate: (value: boolean) => void;
+      const hangingPromise = new Promise<boolean>((resolve) => {
+        resolveUpdate = resolve;
+      });
+      updateTransactionPayAmountMock.mockReturnValue(hangingPromise);
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Should show pending while in flight
+      expect(result.current.isClampCommitPending).toBe(true);
+
+      // Resolve
+      await act(async () => {
+        if (resolveUpdate) {
+          resolveUpdate(true);
+        }
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitPending).toBe(false);
+    });
+
+    it('resets all clamp state on transaction replacement', async () => {
+      jest.useFakeTimers();
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Make first attempt fail
+      updateTransactionPayAmountMock.mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitFailed).toBe(false);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      // The keypad is already at 90%. The new confirmation is still built from
+      // the uncapped amount, so the replacement writes the cap again and drops
+      // the previous attempt's retry.
+      updateTransactionPayAmountMock.mockResolvedValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'second-replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [{ data: '0x095ea7b3' }, { data: '0x8a857083' }],
+        } as TransactionMeta;
+      });
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitFailed).toBe(false);
+      expect(result.current.isClampCommitPending).toBe(false);
+      expect(result.current.amountFiat).toBe('900');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        rerender({});
+        await Promise.resolve();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the replaced amount when depositPrefill status toggles', async () => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+        prefilledAmount: {
+          default: { enabled: false },
+          overrides: {
+            perpsDeposit: { enabled: true },
+          },
+        },
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      // Initial prefill to 50%
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+
+      // User edits to a different amount
+      await act(async () => {
+        result.current.updatePendingAmount('350');
+      });
+
+      expect(result.current.amountFiat).toBe('350');
+
+      // Replace transaction - amount is kept
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('350');
+
+      // Toggle prefill status: Prefilled -> not prefilled (zero balance)
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '0');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Amount should stay 350, not cleared to 0 by prefill logic
+      expect(result.current.amountFiat).toBe('350');
+
+      // Toggle back: not prefilled -> Prefilled with higher balance
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '2000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Amount should still be 350, not changed to the new prefill (1000)
+      expect(result.current.amountFiat).toBe('350');
+    });
+
+    it('keeps amount through automatic token change after replacement, then clears on user token change', async () => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+        prefilledAmount: {
+          default: { enabled: false },
+          overrides: {
+            perpsDeposit: { enabled: true },
+          },
+        },
+      });
+
+      // Start with token A at $1000
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      // Prefill to 50% = $500
+      expect(result.current.amountFiat).toBe('500');
+
+      // User edits to $700
+      await act(async () => {
+        result.current.updatePendingAmount('700');
+      });
+
+      expect(result.current.amountFiat).toBe('700');
+
+      // Replace transaction
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('700');
+
+      // Automatic token selection picks a different token (token B at $800)
+      // This simulates Hyperliquid -> Lighter provider switch picking different chains
+      mockPayToken(ETHEREUM_USDC_ADDRESS, '800');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Amount should still be 700, not changed to new prefill (400 = 50% of 800)
+      expect(result.current.amountFiat).toBe('700');
+
+      // Now user manually changes to a third token (token C at $1200)
+      mockPayToken(ETHEREUM_DAI_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // This was a user-initiated change, so prefill applies: 50% of 1200 = 600
+      expect(result.current.amountFiat).toBe('600');
     });
   });
 });

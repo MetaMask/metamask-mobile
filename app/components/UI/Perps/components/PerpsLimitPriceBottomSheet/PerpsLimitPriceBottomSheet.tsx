@@ -20,9 +20,9 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
+  type PerpsProviderType,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
-  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
@@ -46,12 +46,12 @@ interface PerpsLimitPriceBottomSheetProps {
   onClose: () => void;
   onConfirm: (limitPrice: string) => void;
   asset: string;
+  /** Venue the order or position belongs to; its prices and band are used. */
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   currentPrice?: number;
   direction?: 'long' | 'short';
   isClosingPosition?: boolean;
-  /** Venue the order or position belongs to; its price band is the one checked. */
-  providerId?: PerpsProviderType;
   /** When set (open-order price edit), enable incremental margin validation. */
   restingOrderSize?: string;
   /** Effective asset leverage for open-order margin validation. */
@@ -77,11 +77,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   onClose,
   onConfirm,
   asset,
+  providerId,
   limitPrice: initialLimitPrice,
   currentPrice: passedCurrentPrice,
   direction = 'long',
   isClosingPosition = false,
-  providerId,
   restingOrderSize,
   leverage = PERPS_CONSTANTS.DefaultMaxLeverage,
   reduceOnly = false,
@@ -103,12 +103,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     resetInputMethod,
   } = usePerpsLimitPriceInput({
     asset,
+    providerId,
     currentPrice: passedCurrentPrice,
     direction,
     limitPrice,
     setLimitPrice,
     isClosingPosition,
-    providerId,
     enabled: isVisible,
     testIDs: LIMIT_PRESET_TEST_IDS,
   });
@@ -294,6 +294,7 @@ export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   return (
     prevProps.isVisible === nextProps.isVisible &&
     prevProps.asset === nextProps.asset &&
+    prevProps.providerId === nextProps.providerId &&
     prevProps.limitPrice === nextProps.limitPrice &&
     prevProps.direction === nextProps.direction &&
     prevProps.restingOrderSize === nextProps.restingOrderSize &&

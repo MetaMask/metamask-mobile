@@ -449,8 +449,12 @@ jest.mock('../../../../hooks/usePerpsMaxSlippage', () => ({
   }),
 }));
 
+const mockUsePerpsOICap = jest.fn();
 jest.mock('../../../../hooks/usePerpsOICap', () => ({
-  usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
+  usePerpsOICap: (...args: unknown[]) => {
+    mockUsePerpsOICap(...args);
+    return { isAtCap: mockIsAtCap };
+  },
 }));
 
 jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
@@ -2105,6 +2109,7 @@ describe('usePerpsProOrderForm', () => {
           ...market,
           providerId: 'lighter',
         } as PerpsMarketData;
+        mockUsePerpsOICap.mockClear();
         const { result } = renderProForm(
           true,
           true,
@@ -2117,6 +2122,10 @@ describe('usePerpsProOrderForm', () => {
 
         expect(mockUsePerpsOrderFees).toHaveBeenLastCalledWith(
           expect.objectContaining({ providerId: 'lighter' }),
+        );
+        expect(mockUsePerpsOICap).toHaveBeenLastCalledWith(
+          lighterMarket.symbol,
+          'lighter',
         );
         expect(mockOrderValidationParams?.providerId).toBe('lighter');
         expect(mockPositionModifyPreviewParams?.providerId).toBe('lighter');

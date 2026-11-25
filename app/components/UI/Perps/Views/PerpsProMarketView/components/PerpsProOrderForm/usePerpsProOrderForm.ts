@@ -915,7 +915,7 @@ export const usePerpsProOrderForm = ({
     maxSlippageSource,
   });
 
-  const { isAtCap } = usePerpsOICap(symbol);
+  const { isAtCap } = usePerpsOICap(symbol, market.providerId);
   const vipTier = useVipTier();
 
   const {
@@ -1224,9 +1224,16 @@ export const usePerpsProOrderForm = ({
     isMarginModeLockPendingRef.current = isMarginModeLockPending;
   }, [isMarginModeLockPending]);
 
-  const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
+  const prices = usePerpsLivePrices({
+    providerId: market.providerId,
+    symbols: [symbol],
+    throttleMs: 1000,
+  });
   const currentPrice = prices[symbol];
-  const currentTopOfBook = usePerpsTopOfBook({ symbol });
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol,
+    providerId: market.providerId,
+  });
 
   const marketPrice = parseOrderPrice(currentPrice?.price);
   const markPrice = parseOrderPrice(currentPrice?.markPrice);
@@ -1929,6 +1936,7 @@ export const usePerpsProOrderForm = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: market.providerId,
     sizeUsd: orderUsdAmount,
     currentPrice: marketPrice,
     maxSlippageBps: resolvedMaxSlippageBps,

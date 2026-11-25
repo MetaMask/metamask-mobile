@@ -84,7 +84,7 @@ export const isTokenTrustworthyForPerps = (asset: Partial<TokenI>): boolean => {
 // controller-layer consumers.
 
 /**
- * Redesigned confirmations screen header configuration (Perps)
+ * Confirmations screen header configuration (Perps)
  * Controls whether the Perps header is shown when navigating to the confirmation screen
  */
 export const CONFIRMATION_HEADER_CONFIG = {
@@ -483,6 +483,8 @@ export const PROVIDER_CONFIG = {
   VenueSizedScaleProvider: 'lighter' as const,
   /** Trades from its own balance, so it has no deposit-with-order route. */
   LighterProvider: 'lighter' as const,
+  /** Only venue the dedicated server-aggregated order-book socket serves. */
+  AggregatedOrderBookProvider: 'hyperliquid' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */

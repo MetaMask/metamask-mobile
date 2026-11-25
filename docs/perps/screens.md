@@ -27,46 +27,46 @@ Code: `app/components/UI/Perps/hooks/usePerpsHeaderEntryNavigation.ts` `usePerps
 
 ### Perps stack (`Routes.PERPS.ROOT`)
 
-| Constant                                             | Route name                 | Component                           | Note                               |
-| ---------------------------------------------------- | -------------------------- | ----------------------------------- | ---------------------------------- |
-| `PERPS_TAB`                                          | `PerpsTradingView`         | `PerpsRedirect`                     | No caller navigates here           |
-| `PERPS_HOME`                                         | `PerpsMarketListView`      | `PerpsHomeView`                     |                                    |
-| `MARKET_LIST`                                        | `PerpsTrendingView`        | `PerpsMarketListView`               |                                    |
-| `BALANCE_ORDER`                                      | `PerpsBalanceOrder`        | `PerpsBalanceOrderView`             |                                    |
-| `WITHDRAW`                                           | `PerpsWithdraw`            | `PerpsWithdrawView`                 | Legacy withdraw                    |
-| `MARKET_DETAILS`                                     | `PerpsMarketDetails`       | `PerpsMarketDetailsRouter`          |                                    |
-| `POSITIONS`                                          | `PerpsPositions`           | `PerpsPositionsView`                | No caller navigates here           |
-| `CLOSE_POSITION`                                     | `PerpsClosePosition`       | `PerpsClosePositionRouter`          |                                    |
-| `HIP3_DEBUG`                                         | `PerpsHIP3Debug`           | `HIP3DebugView`                     | Registered only in `__DEV__`       |
-| `TPSL`                                               | `PerpsTPSL`                | `PerpsTPSLRouter`                   |                                    |
-| `ADJUST_MARGIN`                                      | `PerpsAdjustMargin`        | `PerpsAdjustMarginRouter`           |                                    |
-| `ORDER_DETAILS`                                      | `PerpsOrderDetailsView`    | `PerpsOrderDetailsView`             |                                    |
-| `ORDER_BOOK`                                         | `PerpsOrderBook`           | `PerpsOrderBookView`                | Full order book depth              |
-| `PNL_HERO_CARD`                                      | `PerpsPnlHeroCard`         | `PerpsHeroCardView`                 |                                    |
-| `ACTIVITY`                                           | `PerpsActivity`            | `ActivityScreen`                    | Shared activity view               |
-| `MODALS.CLOSE_POSITION_MODALS`                       | `PerpsClosePositionModals` | Modal stack with `PerpsTooltipView` |                                    |
-| `MODALS.ROOT`                                        | `PerpsModals`              | `PerpsModalStack`                   |                                    |
-| `ORDER_REDIRECT`                                     | `PerpsOrderRedirect`       | `PerpsOrderRedirect`                | One-click trade from token details |
-| `FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS` |                            | `PerpsConfirmScreen`                | Hosts `PerpsOrderView`             |
+| Constant                                  | Route name                 | Component                           | Note                               |
+| ----------------------------------------- | -------------------------- | ----------------------------------- | ---------------------------------- |
+| `PERPS_TAB`                               | `PerpsTradingView`         | `PerpsRedirect`                     | No caller navigates here           |
+| `PERPS_HOME`                              | `PerpsMarketListView`      | `PerpsHomeView`                     |                                    |
+| `MARKET_LIST`                             | `PerpsTrendingView`        | `PerpsMarketListView`               |                                    |
+| `BALANCE_ORDER`                           | `PerpsBalanceOrder`        | `PerpsBalanceOrderView`             |                                    |
+| `WITHDRAW`                                | `PerpsWithdraw`            | `PerpsWithdrawView`                 | Legacy withdraw                    |
+| `MARKET_DETAILS`                          | `PerpsMarketDetails`       | `PerpsMarketDetailsRouter`          |                                    |
+| `POSITIONS`                               | `PerpsPositions`           | `PerpsPositionsView`                | No caller navigates here           |
+| `CLOSE_POSITION`                          | `PerpsClosePosition`       | `PerpsClosePositionRouter`          |                                    |
+| `HIP3_DEBUG`                              | `PerpsHIP3Debug`           | `HIP3DebugView`                     | Registered only in `__DEV__`       |
+| `TPSL`                                    | `PerpsTPSL`                | `PerpsTPSLRouter`                   |                                    |
+| `ADJUST_MARGIN`                           | `PerpsAdjustMargin`        | `PerpsAdjustMarginRouter`           |                                    |
+| `ORDER_DETAILS`                           | `PerpsOrderDetailsView`    | `PerpsOrderDetailsView`             |                                    |
+| `ORDER_BOOK`                              | `PerpsOrderBook`           | `PerpsOrderBookView`                | Full order book depth              |
+| `PNL_HERO_CARD`                           | `PerpsPnlHeroCard`         | `PerpsHeroCardView`                 |                                    |
+| `ACTIVITY`                                | `PerpsActivity`            | `ActivityScreen`                    | Shared activity view               |
+| `MODALS.CLOSE_POSITION_MODALS`            | `PerpsClosePositionModals` | Modal stack with `PerpsTooltipView` |                                    |
+| `MODALS.ROOT`                             | `PerpsModals`              | `PerpsModalStack`                   |                                    |
+| `ORDER_REDIRECT`                          | `PerpsOrderRedirect`       | `PerpsOrderRedirect`                | One-click trade from token details |
+| `FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS` |                            | `PerpsConfirmScreen`                | Hosts `PerpsOrderView`             |
 
 ### Modal stack (`Routes.PERPS.MODALS.ROOT`)
 
-| Constant                                             | Component                            |
-| ---------------------------------------------------- | ------------------------------------ |
-| `MODALS.QUOTE_EXPIRED_MODAL`                         | `PerpsQuoteExpiredModal`             |
-| `MODALS.GTM_MODAL`                                   | `PerpsGTMModal`                      |
-| `MODALS.CLOSE_ALL_POSITIONS`                         | `PerpsCloseAllPositionsView`         |
-| `MODALS.CANCEL_ALL_ORDERS`                           | `PerpsCancelAllOrdersView`           |
-| `MODALS.CROSS_MARGIN_WARNING`                        | `PerpsCrossMarginWarningBottomSheet` |
-| `MODALS.SELECT_PROVIDER`                             | `PerpsSelectProviderView`            |
-| `MODALS.MODE_SELECTION`                              | `PerpsModeSelectionView`             |
-| `MODALS.OUTREACH_DETAILS`                            | `PerpsOutreachDetailsView`           |
-| `MODALS.SHARE_POSITION`                              | `PerpsSharePositionView`             |
-| `SELECT_MODIFY_ACTION`                               | `PerpsSelectModifyActionView`        |
-| `SELECT_ADJUST_MARGIN_ACTION`                        | `PerpsSelectAdjustMarginActionView`  |
-| `SELECT_ORDER_TYPE`                                  | `PerpsSelectOrderTypeView`           |
-| `ORDER_REDIRECT`                                     | `PerpsOrderRedirect`                 |
-| `FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS` | `PerpsConfirmScreen`                 |
+| Constant                                  | Component                            |
+| ----------------------------------------- | ------------------------------------ |
+| `MODALS.QUOTE_EXPIRED_MODAL`              | `PerpsQuoteExpiredModal`             |
+| `MODALS.GTM_MODAL`                        | `PerpsGTMModal`                      |
+| `MODALS.CLOSE_ALL_POSITIONS`              | `PerpsCloseAllPositionsView`         |
+| `MODALS.CANCEL_ALL_ORDERS`                | `PerpsCancelAllOrdersView`           |
+| `MODALS.CROSS_MARGIN_WARNING`             | `PerpsCrossMarginWarningBottomSheet` |
+| `MODALS.SELECT_PROVIDER`                  | `PerpsSelectProviderView`            |
+| `MODALS.MODE_SELECTION`                   | `PerpsModeSelectionView`             |
+| `MODALS.OUTREACH_DETAILS`                 | `PerpsOutreachDetailsView`           |
+| `MODALS.SHARE_POSITION`                   | `PerpsSharePositionView`             |
+| `SELECT_MODIFY_ACTION`                    | `PerpsSelectModifyActionView`        |
+| `SELECT_ADJUST_MARGIN_ACTION`             | `PerpsSelectAdjustMarginActionView`  |
+| `SELECT_ORDER_TYPE`                       | `PerpsSelectOrderTypeView`           |
+| `ORDER_REDIRECT`                          | `PerpsOrderRedirect`                 |
+| `FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS` | `PerpsConfirmScreen`                 |
 
 ### Main navigator
 
@@ -183,7 +183,7 @@ Lite order form. It has no Perps-stack route. It renders as the confirmation bod
 
 - Params are `PerpsOrderRouteParams`, including `direction`, `asset`, `providerId`, `leverage`, `amount`, `price`, `orderType`, `existingPosition`, `hideTPSL`, `source` and `useBottomSheet`.
 - Form state holds amount (USD), leverage, order type, limit price and direction. `usePerpsOrderFees` computes the fee, discount and rewards.
-- `navigateToOrder` creates the deposit-and-order transaction, then opens `REDESIGNED_CONFIRMATIONS`. When the order provider is Lighter it opens `BALANCE_ORDER` instead.
+- `navigateToOrder` creates the deposit-and-order transaction, then opens `CONFIRMATIONS`. When the order provider is Lighter it opens `BALANCE_ORDER` instead.
 - TP/SL opens from the form before submit (`TPSL`). See [tpsl.md](./tpsl.md).
 
 Code: `app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx` `PerpsOrderView`; `app/components/UI/Perps/contexts/PerpsOrderContext.tsx` `PerpsOrderProvider`; `app/components/UI/Perps/hooks/usePerpsNavigation.ts` `navigateToOrder`; `app/components/UI/Perps/types/navigation.ts` `PerpsOrderRouteParams`

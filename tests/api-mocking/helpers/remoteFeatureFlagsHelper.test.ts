@@ -64,7 +64,9 @@ describe('Remote Feature Flags Helper', () => {
         'earnMoneyBalanceAnimationEnabled',
         'brazeBannerHomeMinVersion',
         'cardIntercomSupport',
+        'cardLinkApi',
         'crossmintApplePayCheckout',
+        'rewardsMoneyControllerEnabled',
       ];
 
       for (const flagName of disabledFlagNames) {
