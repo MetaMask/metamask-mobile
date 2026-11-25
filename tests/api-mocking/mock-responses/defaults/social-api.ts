@@ -3,6 +3,7 @@ import type {
   BlockedProfilesResponse,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
+import { FEED_CAIP2_CHAINS } from '../../../../app/components/UI/SocialFeed/data/feed-constants';
 import { MockEventsObject } from '../../../framework';
 
 /**
@@ -85,14 +86,7 @@ const NO_BLOCKED_CONTENT: BlockedContentResponse = { items: [], cursor: null };
  * same as when the request fails.
  */
 const SUPPORTED_NETWORKS = {
-  fullSupport: [
-    'eip155:8453',
-    'eip155:1',
-    'eip155:56',
-    'eip155:4663',
-    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    'eip155:999',
-  ],
+  fullSupport: [...FEED_CAIP2_CHAINS],
   partialSupport: [],
 };
 

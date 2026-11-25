@@ -1,3 +1,4 @@
+import { FEED_CAIP2_CHAINS } from '../../../../app/components/UI/SocialFeed/data/feed-constants';
 import { SOCIAL_API_MOCKS } from './social-api';
 
 describe('SOCIAL_API_MOCKS', () => {
@@ -14,7 +15,7 @@ describe('SOCIAL_API_MOCKS', () => {
       expect.objectContaining({
         responseCode: 200,
         response: {
-          fullSupport: expect.arrayContaining(['eip155:1']),
+          fullSupport: [...FEED_CAIP2_CHAINS],
           partialSupport: [],
         },
       }),
