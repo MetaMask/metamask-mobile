@@ -18398,11 +18398,6 @@
       "count": 1
     }
   },
-  "app/components/Views/TrendingView/tabs/CryptoTab.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/Views/TrendingView/tabs/NowTab.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

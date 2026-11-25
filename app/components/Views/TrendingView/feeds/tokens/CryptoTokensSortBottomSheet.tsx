@@ -66,7 +66,7 @@ export interface CryptoTokensSortBottomSheetProps {
 const CryptoTokensSortBottomSheet: React.FC<
   CryptoTokensSortBottomSheetProps
 > = ({ onClose, sort, onApply, testID }) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = Boolean(useSelector(selectGlassHeadersEnabled));
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [draft, setDraft] = useState<CryptoTokensSort | undefined>(sort);
 
