@@ -556,10 +556,25 @@ export function useTransactionCustomAmount({
       );
       if (clampedAmount !== amountFiat) {
         setAmountFiat(clampedAmount);
+        // Also commit the clamped amount to the transaction so the deposit
+        // carries the reduced value, not the original 100%.
+        const clampedAmountHuman = getAmountHumanFromFiat(
+          clampedAmount,
+          tokenFiatRate,
+          skipFiatRateConversion,
+        );
+        updateTransactionPayAmount(clampedAmountHuman);
       }
       pendingClampRef.current = false;
     }
-  }, [amountFiat, balanceUsd, transactionMeta]);
+  }, [
+    amountFiat,
+    balanceUsd,
+    skipFiatRateConversion,
+    tokenFiatRate,
+    transactionMeta,
+    updateTransactionPayAmount,
+  ]);
 
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;

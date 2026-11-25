@@ -77,7 +77,6 @@ import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useSyncPerpsLighterTransactionType } from '../../../hooks/transactions/useSyncPerpsLighterTransactionType';
 import { perpsProviderSelectionForType } from '../../../utils/perps-lighter-transaction-type';
-import { isLighterAccountCreationDeposit } from '../../../temp-lighter/lighter-usdc-deposit';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import {
   MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
@@ -256,12 +255,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
     const isPayAccountLoading = useTransactionPayAccountLoading();
 
-    // The first deposit into Lighter creates the account, so it offers 90%
-    // instead of Max for every token.
-    const isMaxAllowed = !isLighterAccountCreationDeposit(transactionMeta);
-
     const isMaxAvailable =
-      isMaxAllowed &&
       (hasMax || isMoneyDepositNoFee) &&
       (isWithdraw || !isNativePayToken) &&
       !selectedFiatPaymentMethodId &&

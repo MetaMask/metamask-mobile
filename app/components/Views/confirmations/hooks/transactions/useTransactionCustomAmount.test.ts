@@ -2932,6 +2932,9 @@ describe('useTransactionCustomAmount', () => {
 
       // 100% should be clamped to 90% = 900
       expect(result.current.amountFiat).toBe('900');
+      // The clamped amount should also be committed to the transaction
+      // 900 USD / 2 (fiat rate) = 450 tokens
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
     });
 
     it('keeps a normal kept amount below the first-deposit cap unchanged', async () => {
