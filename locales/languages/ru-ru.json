@@ -684,7 +684,6 @@
     "gas_education_3": "MetaMask не получает прибыли от платы за газ.",
     "gas_education_4": "Стоимость газа колеблется в зависимости от сетевого трафика и сложности транзакции.",
     "gas_education_learn_more": "Подробнее о плате за газ",
-    "confusable_title": "Проверьте адрес получателя",
     "confusable_msg": "В имени ENS обнаружен непонятный символ. Убедитесь, что это не обманчивое имя."
   },
   "custom_gas": {
@@ -831,8 +830,6 @@
     "hash_copied_to_clipboard": "Хеш транзакции скопирован в буфер обмена",
     "address_copied_to_clipboard": "Адрес скопирован в буфер обмена",
     "transaction_error": "Ошибка транзакции",
-    "address_to_placeholder": "Поиск, публичный адрес (0x) или ENS",
-    "address_from_balance": "Баланс:",
     "status": "Статус",
     "date": "Дата",
     "nonce": "Случайный код",
@@ -847,11 +844,8 @@
     "delete_contact": "Удалить контакт",
     "delete": "Удалить",
     "cancel": "Отмена",
-    "add_to_address_book": "Добавить в адресную книгу",
-    "enter_an_alias": "Ввести псевдоним",
     "add_this_address": "Добавить этот адрес в свою адресную книгу",
     "next": "Далее",
-    "enter_an_alias_placeholder": "напр., Виталик Б",
     "add_contact_title": "Добавить контакт",
     "add_contact": "Добавить контакт",
     "edit_contact_title": "Изменить контакт",
