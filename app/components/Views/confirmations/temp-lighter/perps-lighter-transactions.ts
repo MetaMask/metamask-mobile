@@ -52,6 +52,12 @@ export interface PerpsTransactionRequest {
   paymentOverride?: PaymentOverride.PerpsLighter;
 }
 
+/**
+ * CAIP-19 asset type of the Lighter perps USDC balance. Declaring it on the
+ * required asset of a Lighter withdraw makes Pay quote from that balance.
+ */
+export const LIGHTER_USDC_ASSET_ID = 'lighter:mainnet/perps:usdc';
+
 /** The Hyperliquid confirmation to recreate when the user switches back. */
 export interface HyperliquidConfirmationSnapshot {
   nestedTransactions: TransactionMeta['nestedTransactions'];
