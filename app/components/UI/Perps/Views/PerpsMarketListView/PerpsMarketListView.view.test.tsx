@@ -668,11 +668,18 @@ describe('Exchange (venue) filter — TAT-4407', () => {
           ),
         ).not.toBeOnTheScreen();
       });
+      const [countLogos] = screen.getAllByTestId(
+        `${sortFiltersId}-secondary-provider-logos`,
+      );
       expect(
-        screen.getAllByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
-      ).not.toHaveLength(0);
+        within(countLogos).getByTestId(
+          PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+        ),
+      ).toBeOnTheScreen();
       expect(
-        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+        within(countLogos).queryByTestId(
+          PerpsProviderLogosSelectorsIDs.LIGHTER,
+        ),
       ).not.toBeOnTheScreen();
 
       // The Lighter-only market left the list; the Hyperliquid one stayed.
@@ -760,19 +767,19 @@ describe('Market-count exchange logos — TAT-4511', () => {
       renderPerpsMarketListView(twoExchange);
 
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      // Scoped to the count marks: the balance row renders its own pair,
+      // driven by the active provider rather than the venue filter.
+      const [countLogos] = await screen.findAllByTestId(
+        `${sortFiltersId}-secondary-provider-logos`,
+      );
       expect(
-        await screen.findAllByTestId(
-          `${sortFiltersId}-secondary-provider-logos`,
-        ),
-      ).not.toHaveLength(0);
-      expect(
-        await screen.findAllByTestId(
+        within(countLogos).getByTestId(
           PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
         ),
-      ).not.toHaveLength(0);
+      ).toBeOnTheScreen();
       expect(
-        await screen.findAllByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
-      ).not.toHaveLength(0);
+        within(countLogos).getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
     });
 
     it('shows only the selected venue logo when one venue is selected', async () => {
@@ -789,20 +796,20 @@ describe('Market-count exchange logos — TAT-4511', () => {
       });
 
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      const [countLogos] = await screen.findAllByTestId(
+        `${sortFiltersId}-secondary-provider-logos`,
+      );
       expect(
-        await screen.findAllByTestId(
-          `${sortFiltersId}-secondary-provider-logos`,
+        within(countLogos).getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
+      // The unselected venue's mark must not appear next to the count. The
+      // query must be scoped: the balance row keeps both marks (they follow
+      // the active provider, not the venue filter).
+      expect(
+        within(countLogos).queryByTestId(
+          PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
         ),
-      ).not.toHaveLength(0);
-      expect(
-        await screen.findAllByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
-      ).not.toHaveLength(0);
-      // The unselected venue's mark must not appear next to the count.
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
-        ).not.toBeOnTheScreen();
-      });
+      ).not.toBeOnTheScreen();
     });
   });
 });
