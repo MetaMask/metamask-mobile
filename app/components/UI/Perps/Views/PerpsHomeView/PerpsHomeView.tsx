@@ -32,7 +32,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontFamily,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   useHeaderStandardAnimated,
   SensitiveText,
   SensitiveTextLength,
@@ -449,7 +452,19 @@ const PerpsHomeView = () => {
         accessibilityRole="button"
         testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
       >
-        {availableBalanceLabel}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          {availableBalanceLabel}
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+            testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON}
+          />
+        </Box>
       </Pressable>
     ) : (
       availableBalanceLabel
