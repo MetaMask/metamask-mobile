@@ -7,7 +7,10 @@ import React, {
 } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -129,6 +132,7 @@ import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
 import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
 import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { BridgeTabKey } from '../BridgeView.constants';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -260,7 +264,7 @@ const BridgeMarketViewContent = ({
   // oxlint-disable-next-line typescript/prefer-nullish-coalescing
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
-  const { latestSourceBalance } = useBridgeSession();
+  const { latestSourceBalance, renderedTab } = useBridgeSession();
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -418,6 +422,8 @@ const BridgeMarketViewContent = ({
   );
 
   useBridgeQuoteEvents({
+    enabled: renderedTab === BridgeTabKey.Market,
+    eventName: UnifiedSwapBridgeEventName.QuotesReceived,
     hasInsufficientBalance,
     hasInsufficientNativeReserveError:
       quoteEventWarningState.hasInsufficientNativeReserveError,

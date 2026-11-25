@@ -29,6 +29,7 @@ import { useInsufficientNativeReserveError } from '../useInsufficientNativeReser
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
 import { useSwapQuotes } from '../useSwapQuotes';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 
 interface UseBridgeQuoteRequestOptions {
@@ -71,7 +72,8 @@ export const useBridgeQuoteRequest = (
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
-  const context = useUnifiedSwapBridgeContext();
+  const featureId = useSwapsFeatureId();
+  const context = useUnifiedSwapBridgeContext(featureId);
   const { latestSourceAtomicBalance } = options;
   const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
 

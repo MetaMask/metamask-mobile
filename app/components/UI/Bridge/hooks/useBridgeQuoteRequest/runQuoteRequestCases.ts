@@ -28,6 +28,7 @@ import {
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { useSwapQuotes } from '../useSwapQuotes';
+import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import type { TraceContext, TraceRequest } from '@metamask/controller-utils';
 import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 
@@ -39,6 +40,9 @@ const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
 const mockUseIsInsufficientBalance = jest.mocked(useIsInsufficientBalance);
 const mockUseLatestBalance = jest.mocked(useLatestBalance);
 const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+const mockUseUnifiedSwapBridgeContext = jest.mocked(
+  useUnifiedSwapBridgeContext,
+);
 const mockUseInsufficientNativeReserveError = jest.mocked(
   useInsufficientNativeReserveError,
 );
@@ -71,13 +75,14 @@ const gasParamsFromBridgeState = (bridge: BridgeState) => {
 };
 
 export const mockContext = {
-  feature_id: 'unified_swap_bridge',
+  feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
   security_warnings: [],
   stx_enabled: false,
   token_security_type_destination: null,
   token_symbol_destination: 'USDC',
   token_symbol_source: 'ETH',
   usd_amount_source: 0,
+  custom_slippage: false,
   warnings: [],
 };
 
@@ -171,6 +176,7 @@ export const runQuoteRequestCases = ({
       });
 
       mockUseSwapsFeatureId.mockReturnValue(featureId);
+      mockUseUnifiedSwapBridgeContext.mockReturnValue(mockContext);
 
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseInsufficientNativeReserveError.mockReturnValue(undefined);
@@ -190,6 +196,37 @@ export const runQuoteRequestCases = ({
       const { result } = renderUseBridgeQuoteRequest();
 
       expect(typeof result.current).toBe('function');
+    });
+
+    it('builds the quote metrics context for the active feature', () => {
+      renderUseBridgeQuoteRequest();
+
+      expect(mockUseUnifiedSwapBridgeContext).toHaveBeenCalledWith(featureId);
+    });
+
+    it('passes recurring-order context into quote requests', () => {
+      const recurringContext = {
+        ...mockContext,
+        feature_id: FeatureId.RECURRING_ORDER,
+      };
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.RECURRING_ORDER);
+      mockUseUnifiedSwapBridgeContext.mockReturnValue(recurringContext);
+      const { result } = renderUseBridgeQuoteRequest();
+
+      act(() => {
+        void result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(mockUseUnifiedSwapBridgeContext).toHaveBeenCalledWith(
+        FeatureId.RECURRING_ORDER,
+      );
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.any(Object),
+        recurringContext,
+        0,
+        1,
+      );
     });
 
     it('updates quote parameters with valid input', async () => {
@@ -368,7 +405,6 @@ export const runQuoteRequestCases = ({
 
     it('does not end a quote trace on unmount when the quote source is inactive', async () => {
       if (isCombinedQuoteHook) {
-        const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
         mockUseSwapsFeatureId
           .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE)
           .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
