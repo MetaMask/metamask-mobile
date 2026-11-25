@@ -208,11 +208,20 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       itemCount,
     });
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'warm';
+    if (isTokenListLoading) {
+      cacheState = 'cold';
+    } else if (isZeroBalanceAccount || showTokensError) {
+      cacheState = 'unknown';
+    }
+
     useSectionPerformance({
       sectionId: HomeSectionNames.TOKENS,
       contentReady,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
+      demandStarted: true,
+      cacheState,
       isLoading: isTokenListLoading,
     });
     useHomepageReady({

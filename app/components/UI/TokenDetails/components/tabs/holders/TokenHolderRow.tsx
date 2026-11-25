@@ -9,7 +9,9 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable } from 'react-native';
+import ProfileVerifiedBadge from '../../../../SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../SocialFeed/components/TraderAvatar';
+import { isProfileVerified } from '../../../../SocialFeed/utils/profileVerified';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import {
   formatAbbreviatedUsd,
@@ -62,15 +64,27 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
         recyclingKey={item.id}
       />
       <Box twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-          testID={TokenDetailsIds.holderRow.NAME}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
         >
-          {item.username}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={TokenDetailsIds.holderRow.NAME}
+          >
+            {item.username}
+          </Text>
+          {isProfileVerified(core.actor) ? (
+            <ProfileVerifiedBadge
+              testID={TokenDetailsIds.holderRow.VERIFIED_BADGE}
+            />
+          ) : null}
+        </Box>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}

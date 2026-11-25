@@ -63,6 +63,8 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { DepositToRow } from '../../rows/deposit-to-row';
+import { MoneyDepositToRow } from '../../rows/money-deposit-to-row';
 import {
   PerpsReceiveToRow,
   type PerpsReceiveDestination,
@@ -184,6 +186,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
+      isClampCommitPending,
+      isClampCommitFailed,
     } = useTransactionCustomAmount({ autoSelectFiatPayment, currency });
 
     const { hasTokens: hasAvailableTokens } =
@@ -284,6 +288,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
         pendingFiatAmount,
+        isClampCommitPending,
+        isClampCommitFailed,
       });
 
     const hasAutoSubmittedPrefill = useRef(false);
@@ -590,8 +596,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (isPayAccountLoading ? (
                   <PayWithRowSkeleton />
                 ) : (
-                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
+                  (hasPaymentOption || hasAccountNoFunds) && (
+                    <>
+                      <PayWithRow />
+                      <DepositToRow />
+                    </>
+                  )
                 ))}
+              <MoneyDepositToRow />
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}
@@ -616,8 +628,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (isPayAccountLoading ? (
                   <PayWithRowSkeleton />
                 ) : (
-                  hasPaymentOption && <PayWithRow isResultReady />
+                  hasPaymentOption && (
+                    <>
+                      <PayWithRow isResultReady />
+                      <DepositToRow isResultReady />
+                    </>
+                  )
                 ))}
+              <MoneyDepositToRow />
               <PerpsReceiveToRow
                 destination={perpsReceiveDestination}
                 onDestinationChange={setPerpsReceiveDestination}

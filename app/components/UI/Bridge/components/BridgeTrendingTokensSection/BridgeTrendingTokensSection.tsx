@@ -34,6 +34,7 @@ import FilterBar, {
   FilterButton,
 } from '../../../Trending/components/FilterBar/FilterBar';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import { filterRiskyTokens } from '../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
 import { BridgeTrendingTokensSectionTestIds } from './BridgeTrendingTokensSection.testIds';
 
 const TOKEN_CHUNK_SIZE = 12;
@@ -81,11 +82,12 @@ const BridgeTrendingTokensSection = ({
   });
 
   const trendingTokens = useMemo(() => {
-    if (results.length === 0 || !selectedPriceChangeOption) {
-      return results;
+    const filteredTokens = filterRiskyTokens(results);
+    if (filteredTokens.length === 0 || !selectedPriceChangeOption) {
+      return filteredTokens;
     }
     return sortTrendingTokens(
-      results,
+      filteredTokens,
       selectedPriceChangeOption,
       priceChangeSortDirection,
       selectedTimeOption,

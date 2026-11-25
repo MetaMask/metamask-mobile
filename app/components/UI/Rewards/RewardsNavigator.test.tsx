@@ -41,12 +41,22 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
-jest.mock('./Views/RewardsTradingCommissionsView', () => {
+jest.mock('./Views/RewardsMoneyReferralsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return function MockRewardsTradingCommissionsView() {
+  return function MockRewardsMoneyReferralsView() {
     return ReactActual.createElement(View, {
-      testID: 'rewards-trading-commissions-view',
+      testID: 'rewards-money-referrals-view',
+    });
+  };
+});
+
+jest.mock('./Views/RewardsCopyTradingView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockRewardsCopyTradingView() {
+    return ReactActual.createElement(View, {
+      testID: 'rewards-copy-trading-view',
     });
   };
 });

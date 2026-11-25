@@ -13,7 +13,7 @@ import {
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 import { useMoneyTokenListCta } from './useMoneyTokenListCta';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -34,7 +34,7 @@ const mockShouldShowMoneyTokenListItemCta = jest.fn();
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 const asset = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -165,11 +165,11 @@ describe('useMoneyTokenListCta', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('redirects new users to onboarding without starting deposit', async () => {
+  it('redirects new users to the splash without starting deposit', async () => {
     mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
       track?.({
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       });
     });
     const { result } = renderHook(() =>
@@ -182,13 +182,13 @@ describe('useMoneyTokenListCta', () => {
 
     expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
       label_en: strings('money.token_list_cta.get_apy', {
         apy: 4,
         locale: 'en',
       }),
       label_localized: strings('money.token_list_cta.get_apy', { apy: 4 }),
-      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       token_symbol: asset.symbol,
       token_position_in_list: tokenContext.tokenPositionInList,
       token_chain_id: asset.chainId,
@@ -198,7 +198,7 @@ describe('useMoneyTokenListCta', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('initiates deposit for users who completed onboarding', async () => {
+  it('initiates deposit for users who completed the splash', async () => {
     const { result } = renderHook(() =>
       useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
     );

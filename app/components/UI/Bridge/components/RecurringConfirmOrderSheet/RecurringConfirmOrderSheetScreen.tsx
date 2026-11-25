@@ -4,15 +4,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
-  selectIsSlippageUserOverride,
   selectRecurring,
   selectDestToken,
   selectRecurringPriceRange,
-  selectSlippage,
+  selectRecurringPriceTolerance,
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -49,9 +48,11 @@ import {
   type RecurringOrderCreateFailurePhase,
   startRecurringOrderCreateTrace,
 } from '../../utils/recurringOrderTrace';
+import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export const RecurringConfirmOrderSheetScreen = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const dispatch = useDispatch();
   const { location } = useParams<RecurringConfirmOrderModalParams>();
   const sourceToken = useSelector(selectSourceToken);
@@ -59,8 +60,11 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const recurring = useSelector(selectRecurring);
   const priceRange = useSelector(selectRecurringPriceRange);
-  const slippage = useSelector(selectSlippage);
-  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+  const recurringPriceTolerance = useSelector(selectRecurringPriceTolerance);
+  const defaultPriceTolerance = useSelector(
+    selectBridgeRecurringBuyDefaultPriceTolerance,
+  );
+  const priceTolerance = recurringPriceTolerance ?? defaultPriceTolerance;
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -90,8 +94,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       recurring.everyUnit,
       recurring.repeatCount,
       priceRange,
-      slippage,
-      isSlippageUserOverride,
+      priceTolerance,
     ],
   );
   const canConvertStoredCurrency =
@@ -128,6 +131,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
     }
 
     isSubmittingRef.current = true;
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     let isAccountUpgraded = false;
     let failurePhase: RecurringOrderCreateFailurePhase = 'account_upgrade';
@@ -145,9 +149,13 @@ export const RecurringConfirmOrderSheetScreen = () => {
         recurring,
         getSelectedAccountByScope,
       });
+      const delegationRequest = {
+        ...delegationParams,
+        ...(usdPriceRange ? { priceRange: usdPriceRange } : {}),
+      };
       const preparedDelegations =
         await recurringOrdersApiClient.prepareRecurringDelegation(
-          delegationParams,
+          delegationRequest,
         );
       // The backend currently returns only the delegations needed to execute.
       // Recurring and limit orders use the same delegation shape, so sign every
@@ -156,11 +164,6 @@ export const RecurringConfirmOrderSheetScreen = () => {
       const signedDelegations = await signLimitOrderDelegations(
         preparedDelegations.delegations,
       );
-      const customSlippage =
-        isSlippageUserOverride && slippage !== undefined
-          ? Number(slippage)
-          : undefined;
-
       failurePhase = 'create';
       await createRecurringOrder({
         accountAddress: delegationParams.accountAddress,
@@ -172,12 +175,8 @@ export const RecurringConfirmOrderSheetScreen = () => {
         dest: {
           assetId: delegationParams.destAssetId,
         },
-        ...(customSlippage !== undefined ? { slippage: customSlippage } : {}),
-        schedule: {
-          every: delegationParams.every,
-          unit: delegationParams.unit,
-          repeatCount: delegationParams.repeatCount,
-        },
+        priceTolerance: Number(priceTolerance),
+        schedule: delegationParams.schedule,
         ...(usdPriceRange ? { priceRange: usdPriceRange } : {}),
         delegations: signedDelegations,
       });
@@ -225,10 +224,9 @@ export const RecurringConfirmOrderSheetScreen = () => {
     createRecurringOrder,
     destToken,
     getSelectedAccountByScope,
-    isSlippageUserOverride,
     priceRange,
+    priceTolerance,
     recurring,
-    slippage,
     sourceAmount,
     sourceToken,
     trackEvent,
@@ -239,15 +237,17 @@ export const RecurringConfirmOrderSheetScreen = () => {
     usdPriceRange,
   ]);
 
-  const handleEditSlippagePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken?.chainId,
-        destChainId: destToken?.chainId,
+  const handleEditPriceTolerancePress = useCallback(() => {
+    navigation.replace(
+      Routes.BRIDGE.MODALS.RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL,
+      {
+        sourceModal: {
+          screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+          params: { location },
+        },
       },
-    });
-  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
+    );
+  }, [location, navigation]);
 
   const handleDelegationFeeInfoPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -263,7 +263,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       isPriceRangeConversionReady={isPriceRangeConversionReady}
       isSubmitting={isSubmitting}
       onConfirm={handleConfirm}
-      onEditSlippagePress={handleEditSlippagePress}
+      onEditPriceTolerancePress={handleEditPriceTolerancePress}
       onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
       goBack={navigation.goBack}
     />

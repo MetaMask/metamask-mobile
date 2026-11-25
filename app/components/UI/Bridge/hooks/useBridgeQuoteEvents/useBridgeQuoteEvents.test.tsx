@@ -4,6 +4,7 @@ import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import {
+  MoneyAccountAction,
   QuoteStreamCompleteReason,
   RequestStatus,
   toQuoteResponseV2,
@@ -197,6 +198,53 @@ describe('useBridgeQuoteEvents', () => {
       expect(mockFinishQuoteTrace).toHaveBeenCalledWith('success');
     },
   );
+
+  it('includes a money deposit action on QuotesReceived', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 1,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          decimals: 6,
+          image: '',
+          name: 'Money',
+          symbol: 'MUSD',
+          chainId: '0x1',
+          isMoneyToken: true,
+        },
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
+        }),
+      { state: testState },
+    );
+
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledWith(
+      'Unified SwapBridge Quotes Received',
+      expect.objectContaining({
+        money_account_action: MoneyAccountAction.Deposit,
+      }),
+    );
+  });
 
   it('publishes the explicit slippage context', () => {
     const testState = createBridgeTestState({

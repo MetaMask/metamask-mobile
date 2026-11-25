@@ -98,6 +98,7 @@ export const SocialEvent = {
     TOKEN_DETAILS_HOLDERS: 'token_details_holders',
     PERPS_MARKET_FEED: 'perps_market_feed',
     PERPS_MARKET_HOLDERS: 'perps_market_holders',
+    MY_PROFILE: 'my_profile',
     /**
      * Feed tab that started a Social V1 action. Valid on Social Screen Viewed
      * and Social UI Interaction only — not on leaderboard, profile, onboarding,

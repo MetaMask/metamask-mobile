@@ -2,7 +2,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   FULL_SCREEN_CONFIRMATIONS,
   POST_QUOTE_TRANSACTION_TYPES,
-  REDESIGNED_TRANSACTION_TYPES,
+  CONFIRMATION_TRANSACTION_TYPES,
 } from './confirmations';
 
 describe('confirmation constants', () => {
@@ -16,8 +16,8 @@ describe('confirmation constants', () => {
     );
   });
 
-  it('does not include perps withdraw in redesigned transaction types (uses FULL_SCREEN_CONFIRMATIONS instead)', () => {
-    expect(REDESIGNED_TRANSACTION_TYPES).not.toContain(
+  it('does not include perps withdraw in confirmation transaction types (uses FULL_SCREEN_CONFIRMATIONS instead)', () => {
+    expect(CONFIRMATION_TRANSACTION_TYPES).not.toContain(
       TransactionType.perpsWithdraw,
     );
   });
@@ -29,13 +29,13 @@ describe('confirmation constants', () => {
     expect(POST_QUOTE_TRANSACTION_TYPES).toContain(
       TransactionType.perpsLighterWithdraw,
     );
-    expect(REDESIGNED_TRANSACTION_TYPES).not.toContain(
+    expect(CONFIRMATION_TRANSACTION_TYPES).not.toContain(
       TransactionType.perpsLighterWithdraw,
     );
   });
 
-  it('keeps a Lighter deposit on the redesigned confirmation', () => {
-    expect(REDESIGNED_TRANSACTION_TYPES).toContain(
+  it('keeps a Lighter deposit on the confirmation screen', () => {
+    expect(CONFIRMATION_TRANSACTION_TYPES).toContain(
       TransactionType.perpsLighterDeposit,
     );
     expect(FULL_SCREEN_CONFIRMATIONS).toContain(

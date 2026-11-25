@@ -5,6 +5,13 @@ import type { FeedScope, SocialFeedRequest } from './socialFeedSource';
 /** Page size requested per feed page. */
 export const FEED_PAGE_LIMIT = 30;
 
+/**
+ * Pages the Live list keeps loaded. Scrolling past it drops the newest page
+ * and fetches it again on the way back up, so memory stays bounded however
+ * far the reader scrolls. 10 pages is 300 posts.
+ */
+export const SOCIAL_LIVE_FEED_MAX_PAGES = 10;
+
 /** Messenger actions that return a `FeedResponse`; also the query-key roots. */
 export const SOCIAL_FEED_QUERY_ACTIONS = [
   'SocialService:fetchFeed',
@@ -88,9 +95,14 @@ export const invalidateFollowingFeed = async (options?: {
 export const fetchSocialFeedPage = (
   request: SocialFeedRequest,
   limit: number,
-  olderThan?: string,
+  cursor?: string,
+  direction: 'older' | 'newer' = 'older',
 ): Promise<FeedResponse> => {
-  const paging = olderThan ? { limit, olderThan } : { limit };
+  const paging = !cursor
+    ? { limit }
+    : direction === 'newer'
+      ? { limit, newerThan: cursor }
+      : { limit, olderThan: cursor };
   switch (request.action) {
     case 'SocialService:fetchFeed': {
       const { chains, assetIds, ...options } = request.options;
@@ -123,3 +135,19 @@ export const fetchSocialFeedPage = (
 export const getSocialFeedNextPageParam = (
   lastPage: FeedResponse,
 ): string | undefined => lastPage.pagination?.olderCursor ?? undefined;
+
+/**
+ * Cursor for the page a bounded feed dropped off the top. `undefined` while
+ * the first page loaded is the newest one (its param is `undefined`), so the
+ * top of the feed never asks for newer posts; realtime and refresh bring those.
+ * An empty page also stops it, in case the API keeps returning a cursor once
+ * nothing newer is left.
+ */
+export const getSocialFeedPreviousPageParam = (
+  firstPage: FeedResponse,
+  _pages: FeedResponse[],
+  firstPageParam: string | undefined,
+): string | undefined =>
+  firstPageParam === undefined || (firstPage.items ?? []).length === 0
+    ? undefined
+    : (firstPage.pagination?.newerCursor ?? undefined);
