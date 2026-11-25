@@ -16,6 +16,7 @@ export function PacksScreen() {
     >
       <HeaderStandard
         title={strings('collectibles.landing.packs')}
+        backButtonProps={{ testID: collectiblesTestIds.packsBackButton }}
         onBack={() => navigation.goBack()}
         includesTopInset
       />

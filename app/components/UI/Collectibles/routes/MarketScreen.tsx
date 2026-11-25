@@ -16,6 +16,7 @@ export function MarketScreen() {
     >
       <HeaderStandard
         title={strings('collectibles.landing.market')}
+        backButtonProps={{ testID: collectiblesTestIds.marketBackButton }}
         onBack={() => navigation.goBack()}
         includesTopInset
       />

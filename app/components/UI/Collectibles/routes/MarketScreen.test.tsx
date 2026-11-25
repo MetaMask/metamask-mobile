@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { MarketScreen } from './MarketScreen';
 
 const mockGoBack = jest.fn();
@@ -30,7 +31,7 @@ describe('MarketScreen', () => {
   it('goes back when the back button is pressed', () => {
     renderWithProvider(<MarketScreen />);
 
-    fireEvent.press(screen.getByTestId('button-icon'));
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.marketBackButton));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

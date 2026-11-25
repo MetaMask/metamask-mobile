@@ -16,6 +16,7 @@ export function CollectionScreen() {
     >
       <HeaderStandard
         title={strings('collectibles.landing.collection')}
+        backButtonProps={{ testID: collectiblesTestIds.collectionBackButton }}
         onBack={() => navigation.goBack()}
         includesTopInset
       />

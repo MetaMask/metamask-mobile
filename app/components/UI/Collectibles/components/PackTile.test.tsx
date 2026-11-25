@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
+import { mockHomePacks } from '../mocks/homePacks';
 import { PackTile } from './PackTile';
 
 const pack = mockHomePacks[0];

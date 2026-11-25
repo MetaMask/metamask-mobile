@@ -1,5 +1,8 @@
 export const collectiblesTestIds = {
   homeBackButton: 'collectibles-home-back',
+  packsBackButton: 'collectibles-packs-back',
+  collectionBackButton: 'collectibles-collection-back',
+  marketBackButton: 'collectibles-market-back',
   homeSection: 'collectibles-home-section',
   carousel: 'collectibles-home-section-carousel',
   skeleton: 'collectibles-home-section-skeleton',
