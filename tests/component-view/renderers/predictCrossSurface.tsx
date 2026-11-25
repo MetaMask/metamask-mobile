@@ -7,6 +7,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import { renderScreenWithRoutes } from '../render';
 import { initialStatePredict } from '../presets/predict';
 import { initialStateActivity } from '../presets/activity';
+import { withReadinessIdentity } from '../presets/predictNext';
 import { initialStateTrending } from '../presets/trending';
 import { deepMerge } from '../stateFixture';
 import {
@@ -115,24 +116,25 @@ export const renderPredictCrossSurface = ({
   const state = [
     initialStateActivity().build(),
     initialStateTrending().build(),
-    initialStatePredict()
-      .withRemoteFeatureFlags({
-        predictTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
-        predictConfig,
-      })
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            PredictVenueController: {
-              venueSelectionPreference: null,
-              lastActiveVenue: null,
-              sessionDefault: null,
-              ...venueState,
+    withReadinessIdentity(
+      initialStatePredict()
+        .withRemoteFeatureFlags({
+          predictTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
+          predictConfig,
+        })
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              PredictVenueController: {
+                venueSelectionPreference: null,
+                lastActiveVenue: null,
+                sessionDefault: null,
+                ...venueState,
+              },
             },
           },
-        },
-      } as DeepPartial<RootState>)
-      .build(),
+        } as DeepPartial<RootState>),
+    ).build(),
   ].reduce(
     (merged, next) => deepMerge(merged, next as Record<string, unknown>),
     {} as Record<string, unknown>,

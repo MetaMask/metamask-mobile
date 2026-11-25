@@ -13,7 +13,7 @@ export const PREDICT_NEXT_ACCOUNT_ADDRESS =
  * The keyring id and the `srpSessionData` key must match: the canonical profile
  * selector resolves identity from the pair, not from a session alias.
  */
-const withReadinessIdentity = (
+export const withReadinessIdentity = (
   fixture: StateFixtureBuilder,
 ): StateFixtureBuilder =>
   fixture.withOverrides({
