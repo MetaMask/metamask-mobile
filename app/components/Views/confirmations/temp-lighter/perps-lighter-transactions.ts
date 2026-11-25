@@ -7,9 +7,9 @@ import {
   generateEIP7702BatchTransaction,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
-import type {
+import {
   PaymentOverride,
-  TransactionConfig,
+  type TransactionConfig,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
@@ -49,22 +49,8 @@ export interface PerpsTransactionRequest {
   params: TransactionParams;
   options: PerpsTransactionOptions;
   /** Set on the new confirmation's pay config once it is added. */
-  paymentOverride?: typeof LIGHTER_PAYMENT_OVERRIDE;
+  paymentOverride?: PaymentOverride.PerpsLighter;
 }
-
-/**
- * Value of `paymentOverride` that makes Pay quote into the Lighter balance.
- *
- * TODO: use `PaymentOverride.PerpsLighter` from `@metamask/transaction-pay-controller`
- * once this app depends on a release with MetaMask/core#11640 and #11705.
- */
-export const LIGHTER_PAYMENT_OVERRIDE = 'perpsLighter';
-
-/**
- * CAIP-19 asset type of the Lighter perps USDC balance. Declaring it on the
- * required asset of a Lighter withdraw makes Pay quote from that balance.
- */
-export const LIGHTER_USDC_ASSET_ID = 'lighter:mainnet/perps:usdc';
 
 /** The Hyperliquid confirmation to recreate when the user switches back. */
 export interface HyperliquidConfirmationSnapshot {
@@ -177,7 +163,7 @@ export function buildLighterExistingAccountDepositRequest({
       skipInitialGasEstimate: true,
       type,
     },
-    paymentOverride: LIGHTER_PAYMENT_OVERRIDE,
+    paymentOverride: PaymentOverride.PerpsLighter,
   };
 }
 
@@ -416,12 +402,12 @@ export async function replacePerpsTransaction(
 
 function setPaymentOverride(
   transactionId: string,
-  paymentOverride: typeof LIGHTER_PAYMENT_OVERRIDE,
+  paymentOverride: PaymentOverride.PerpsLighter,
 ): void {
   Engine.context.TransactionPayController.setTransactionConfig(
     transactionId,
     (config: TransactionConfig) => {
-      config.paymentOverride = paymentOverride as string as PaymentOverride;
+      config.paymentOverride = paymentOverride;
       // The pay token can be the required mainnet USDC itself, which Pay would
       // otherwise skip as a same-token no-op.
       config.isQuoteRequired = true;
