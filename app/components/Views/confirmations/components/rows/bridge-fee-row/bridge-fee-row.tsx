@@ -41,6 +41,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { resolveTransactionType } from '../../../utils/transaction';
 import {
   Text,
   TextVariant,
@@ -296,29 +297,17 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.perps_withdraw.swap_to_token',
 };
 
-/**
- * Returns the tooltip copy key for the transaction, matching a mapped type on
- * the transaction itself or on any nested transaction. This mirrors
- * `hasTransactionType`, so a row that is flagged as a money account deposit
- * always resolves its copy.
- */
 function getTooltipMessageKey(
   transactionMeta: TransactionMeta,
 ): string | undefined {
-  const candidateTypes = [
-    transactionMeta.type,
-    ...(transactionMeta.nestedTransactions ?? []).map((tx) => tx.type),
-  ];
+  const transactionType = resolveTransactionType(
+    transactionMeta,
+    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
+  );
 
-  for (const type of candidateTypes) {
-    const key = type ? TOOLTIP_MESSAGE_KEY[type] : undefined;
-
-    if (key) {
-      return key;
-    }
-  }
-
-  return undefined;
+  return transactionType !== undefined
+    ? TOOLTIP_MESSAGE_KEY[transactionType]
+    : undefined;
 }
 
 function Tooltip({
