@@ -1215,9 +1215,8 @@
       "bic_label": "BIC",
       "payment_reference_label": "Payment reference",
       "copy_label": "Copy {{field}}",
-      "copied_label": "Copied {{field}}",
-      "copy_all_button": "Copy all details",
-      "copied_all_label": "Copied bank details",
+      "copied_label": "{{field}} copied",
+      "share_details_button": "Share details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
@@ -1478,9 +1477,7 @@
       },
       "sub_header": {
         "at_connector": "at",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} at {{price}}",
-        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30d)",
@@ -1995,22 +1992,6 @@
         "4": "Thu",
         "5": "Fri",
         "6": "Sat"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Bought",
-        "sold": "Sold",
-        "perps_closed": "Closed",
-        "perps_long_opened": "Opened long",
-        "perps_long_added": "Added to long",
-        "perps_long_reduced": "Reduced long",
-        "perps_short_opened": "Opened short",
-        "perps_short_added": "Added to short",
-        "perps_short_reduced": "Bought back",
-        "spot_opened": "Bought",
-        "spot_added": "Bought more",
-        "spot_reduced": "Sold some",
-        "spot_closed": "Sold all"
       }
     },
     "trader_position": {
@@ -3000,9 +2981,10 @@
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
       "unsupportedCollateral": "This market's collateral is not supported",
-      "unknownError": "Unknown error occurred",
+      "unknownError": "Something went wrong. Please try again.",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
+      "marketNotFound": "Market not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
       "exchangeAccountNotFound": "Add funds to your account before placing an order",
@@ -3067,6 +3049,8 @@
         "scaleCountInvalid": "Scale order count is invalid",
         "scaleSizeTooSmall": "Each scale order is below the minimum size",
         "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
+        "scaleSizeConservationFailed": "We couldn't place your scale order. Try again.",
+        "scaleExposureExceedsIntent": "We couldn't place your scale order. Try again.",
         "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
         "chaseIntervalInvalid": "Chase interval is invalid",
         "chaseDurationInvalid": "Chase duration is invalid",
@@ -3086,7 +3070,7 @@
       "marketsFailed": "Failed to get markets",
       "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
       "providerNotAvailable": "Provider {{providerId}} not available",
-      "providerRouteRequired": "Choose a provider for this order and try again.",
+      "providerRouteRequired": "No exchange selected. Select one and try again.",
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
@@ -3103,6 +3087,10 @@
       "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
       "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
       "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
+      "batchIncomplete": "Some orders or positions couldn't be updated. Try again.",
+      "ordersFailed": "We couldn't load your orders. Try again.",
+      "orderNoLongerOpen": "This order is no longer open. It may have already been filled or cancelled.",
+      "liquidationPriceUnavailable": "Liquidation price is unavailable. Try again.",
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
@@ -3995,7 +3983,10 @@
       "trending": "Trending",
       "sports": "Sports",
       "games_error": "Games couldn’t be loaded.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "preview_error": "Markets couldn’t be loaded.",
+      "preview_empty": "No markets available.",
+      "open_section": "View {{title}}"
     },
     "get_started_banner": {
       "title": "Get started in a few steps",
@@ -4190,6 +4181,10 @@
       "token_on_network": "{{token}} on {{network}}",
       "available": "{{amount}} USDC available",
       "balance_unavailable": "USDC balance unavailable",
+      "simulated_sandbox": "Simulated deposit (sandbox)",
+      "unavailable": "Deposits aren't available right now.",
+      "unavailable_error": "Deposits aren't available right now. Try again in a moment.",
+      "retry": "Retry",
       "minimum": "Minimum $1",
       "not_enough_usdc": "Not enough USDC on {{network}}",
       "continue": "Continue",
@@ -4208,6 +4203,7 @@
         "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
         "under_review_label": "Your deposit of {{amount}} is under review. Support reference:",
         "unknown": "A deposit is already in progress. Try again in a moment.",
+        "checking_availability": "Checking deposit availability...",
         "continue": "Continue",
         "cancel": "Cancel deposit",
         "close": "Got it",
@@ -4439,6 +4435,10 @@
       "claim": "Claim"
     },
     "crypto_up_down": {
+      "market_break": {
+        "reopens_at": "Market is on a break. Live chart resumes at {{time}}.",
+        "closed": "Market is closed. Live chart resumes when trading reopens."
+      },
       "twap_info": {
         "title": "How this market settles",
         "accessibility_label": "Learn how this market settles",
@@ -5460,6 +5460,18 @@
     "title": "Collectibles",
     "trade_menu": {
       "description": "Explore packs and cards"
+    },
+    "home": {
+      "empty": "No packs available",
+      "empty_description": "Check back soon or browse other packs.",
+      "opens": {
+        "one": "{{formattedCount}} open",
+        "other": "{{formattedCount}} opens"
+      },
+      "opens_trending": {
+        "one": "{{formattedCount}} open, trending",
+        "other": "{{formattedCount}} opens, trending"
+      }
     }
   },
   "collectible": {
@@ -9963,7 +9975,6 @@
     "apy_premium_tag": "Premium",
     "apy_upgrading_pill": "Upgrading to Premium APY",
     "apy_downgrading_pill": "Moving to standard APY",
-    "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
@@ -9997,7 +10008,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Earn, trade, and spend from one balance",
       "body_prefix": "MetaMask Money is a stablecoin account that earns up to ",
-      "body_suffix": "—with trading, sending, and spending built in.",
+      "body_suffix": "- with trading, sending, and spending built in.",
       "body_no_apy": "MetaMask Money is a stablecoin account with trading, sending, and spending built in.",
       "benefit_convert_title": "Converts to MetaMask USD, 1:1",
       "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
@@ -10091,6 +10102,26 @@
     },
     "earnings": {
       "title": "Earnings",
+      "tab_earnings": "Earnings",
+      "tab_apy": "APY",
+      "tab_allocation": "Allocation",
+      "range_1w": "1W",
+      "range_1m": "1M",
+      "range_3m": "3M",
+      "range_6m": "6M",
+      "range_1y": "All",
+      "total_earned": "Total earned",
+      "last_30_days": "Last 30 days",
+      "lifetime": "Lifetime",
+      "projected_in_1_year": "Projected in 1 year",
+      "projection_disclaimer": "Based on current balance and APY",
+      "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
+      "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
+      "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
+      "earn_more": "Earn more",
+      "error": "We couldn't load earnings. Try again.",
+      "retry": "Retry",
+      "empty": "No earnings history yet.",
       "estimated_monthly": "Monthly",
       "estimated_lifetime": "Lifetime",
       "monthly_info_label": "Monthly earnings info",
@@ -10259,15 +10290,32 @@
       "send_destination_predict": "Predict"
     },
     "apy_tooltip": {
-      "title": "Annual Percentage Yield (APY)",
+      "subtitle": "Annual Percentage Yield",
+      "lead": "This is the rate your MetaMask Money balance is earning right now.",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
-      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Pro Premium APY.",
+      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Orange Premium APY.",
       "migration_upgrading": "Your funds are moving to the Premium vault. The APY shown is for the vault your funds are in right now.",
       "migration_downgrading": "Your funds are moving to the standard vault. The APY shown is for the vault your funds are in right now.",
-      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
+      "how_it_works_title": "How it works",
+      "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+      "why_it_changes_title": "Why it changes",
+      "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+      "where_it_comes_from_title": "Where it comes from",
+      "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
-      "paragraph_4": "Money account is powered by Monad.",
-      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
+      "paragraph_4": "Money account is powered by Monad."
+    },
+    "estimated_balance_sheet": {
+      "title": "Your {{depositAmount}} could grow to {{projectedAmount}}",
+      "subtitle_prefix": "Estimated balance after one year in MetaMask Money at ",
+      "subtitle_apy": "{{percentage}}% APY",
+      "subtitle_suffix": ".",
+      "subtitle_no_apy": "Estimated balance after one year in MetaMask Money.",
+      "bullet_compound_title": "Earnings compound automatically",
+      "bullet_compound_body": "Earnings are added to your balance in real time, so they start earning too.",
+      "bullet_no_lockups_title": "No lockups",
+      "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds.",
+      "disclaimer": "This estimate assumes {{percentage}}% APY for a full year. APY is variable and isn't guaranteed."
     },
     "earnings_tooltip": {
       "monthly": {
@@ -10281,7 +10329,6 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "deposit_title": "Projected 1-year balance",
       "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return.",
       "go_to_money_account": "Go to Money account"
     },
@@ -10752,6 +10799,7 @@
       "now": "Now",
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
+      "convert": "Convert",
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
@@ -10924,8 +10972,36 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "projected_balance": "Est. {{projectedYears}}-year balance:",
       "earn_up_to_apy": "Earn {{percentage}}% APY"
+    },
+    "money_deposit": {
+      "to_metamask_money": "MetaMask Money",
+      "to_separator": " • ",
+      "apy_label": "{{percentage}}% APY",
+      "less_than_one_min": "Less than 1 min",
+      "apy_info_sheet": {
+        "subtitle": "Annual Percentage Yield",
+        "lead": "This is the rate your MetaMask Money balance is earning right now.",
+        "how_it_works_title": "How it works",
+        "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+        "why_it_changes_title": "Why it changes",
+        "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+        "where_it_comes_from_title": "Where it comes from",
+        "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk."
+      },
+      "musd_info_sheet": {
+        "title": "You'll receive {{amount}} of MetaMask USD",
+        "lead": "MetaMask USD (mUSD) is a dollar stablecoin.",
+        "bullet_worth_title": "Always worth $1",
+        "bullet_worth_body": "It's backed 1:1 by short-term US Treasury bills and cash.",
+        "bullet_backed_title": "Backed by names you know",
+        "bullet_backed_body": "BlackRock manages the reserves and JPMorgan Chase holds them. mUSD is issued by Bridge, a Stripe company.",
+        "bullet_earns_title_prefix": "Earns up to ",
+        "bullet_earns_body": "It starts earning automatically in your MetaMask Money account.",
+        "bullet_no_lockups_title": "No lockups",
+        "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds."
+      }
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -11002,6 +11078,8 @@
       "try_again": "Try again",
       "today": "Today"
     },
+          "money_name": "MetaMask USD",
+
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expires after: {{timeLeft}}",
@@ -11110,7 +11188,7 @@
       "est_receiving_per_order": "Est. receiving (per order)",
       "est_receiving_all_orders": "Est. receiving (all orders)",
       "expires_after": "Expires after",
-      "slippage_all_orders": "Slippage (all orders)",
+      "default_price_tolerance_description": "Your recurring order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
       "est_network_fee_per_order": "Est. network fee (per order)",
       "account_upgrade_fee": "Account upgrade fee",
       "account_upgrade_fee_info_title": "Account upgrade fee",
@@ -11195,6 +11273,7 @@
       "failed": "Failed",
       "filled": "Filled",
       "skipped": "Skipped",
+      "swap_issue_warning": "Some swaps were skipped or failed",
       "reason": "Reason",
       "swap_details_title": "Swapped {{source}} to {{dest}}",
       "order_not_found": "Order not found",
@@ -11259,6 +11338,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network fee",
+    "stablecoin_account": "Stablecoin account",
     "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
@@ -13042,6 +13122,9 @@
       "title_claim": "Claim Benefit",
       "action": "Claim",
       "empty-list": "You don’t have any benefits right now.",
+      "error_title": "Unable to load benefits",
+      "error_description": "We couldn't load your benefits. Try again.",
+      "retry_button": "Retry",
       "powered_by": "Powered by",
       "available_count": "{{count}} available"
     },
@@ -13064,6 +13147,8 @@
     "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
+      "live_until_date": "Live until {{date}}",
+      "join_campaign": "Join the {{campaignName}}",
       "ended_date": "Ended {{date}}",
       "pill_up_next": "Coming soon",
       "up_next": "Up next",
@@ -13074,6 +13159,9 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "opt_in_section_title": "Discover campaigns and benefits",
+      "opt_in_section_description": "Win prizes, claim perks, and discover more ways to earn!",
+      "opt_in_section_legal": "Turning this on will opt-in all accounts on your devices to Rewards campaigns and Benefits powered by theMiracle.",
       "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",

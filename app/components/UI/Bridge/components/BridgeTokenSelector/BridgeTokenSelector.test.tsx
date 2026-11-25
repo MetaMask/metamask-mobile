@@ -375,7 +375,8 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    key === 'money.splash.eyebrow' ? 'MetaMask Money' : key,
 }));
 
 const mockTrackEvent = jest.fn();
@@ -661,6 +662,23 @@ jest.mock(
   },
 );
 
+const mockUseMoneyToken = jest.fn(
+  (): ReturnType<typeof createMockToken> | undefined => undefined,
+);
+
+jest.mock('../../hooks/useBridgeMoneyToken', () => ({
+  useMoneyToken: () => mockUseMoneyToken(),
+}));
+
+jest.mock('../TokenSelectorMoneyItem', () => ({
+  TokenSelectorMoneyItem: () => {
+    const { createElement } = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+
+    return createElement(Text, { testID: 'money-token-row' }, 'Money');
+  },
+}));
+
 jest.mock('../TokenSelectorItem', () => ({
   TokenSelectorItem: ({
     token,
@@ -770,6 +788,8 @@ const resetMocks = () => {
   mockIsNonEvmChainId.mockReturnValue(false);
   mockNavigationDispatch.mockReset();
   mockGoBack.mockReset();
+  mockUseMoneyToken.mockReset();
+  mockUseMoneyToken.mockReturnValue(undefined);
   mockUsePopularTokens.mockClear();
   mockUseSearchTokens.mockClear();
   mockUseBalancesByAssetId.mockClear();
@@ -3028,6 +3048,84 @@ describe('BridgeTokenSelectorContent', () => {
       await waitFor(() => expect(getByTestId('token-PEPE2')).toBeOnTheScreen());
       expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
     });
+  });
+
+  describe('money token row', () => {
+    const moneyToken = createMockToken({
+      symbol: 'MUSD',
+      name: 'MetaMask Money',
+      address: '0xmoney',
+      chainId: MOCK_CHAIN_IDS.polygon,
+      isMoneyToken: true,
+    });
+
+    beforeEach(() => {
+      mockUseMoneyToken.mockReturnValue(moneyToken);
+    });
+
+    it('shows the money token when All networks is selected', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it('shows the money token when a different network is selected', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.press(getByTestId('select-eth-network'));
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it('hides the money token when search query does not match', () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'zzz');
+
+      expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      { query: 'money', field: 'name' },
+      { query: 'musd', field: 'symbol' },
+      { query: '0xmoney', field: 'address' },
+    ] as const)(
+      'shows the money token when search matches $field',
+      ({ query }) => {
+        const { getByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        fireEvent.changeText(getByTestId('bridge-token-search-input'), query);
+
+        expect(getByTestId('money-token-row')).toBeOnTheScreen();
+      },
+    );
+
+    it('shows the money token for unified swap bridge', () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+      mockUseMoneyToken.mockReturnValue(moneyToken);
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('money-token-row')).toBeOnTheScreen();
+    });
+
+    it.each([FeatureId.LIMIT_ORDER, FeatureId.RECURRING_ORDER] as const)(
+      'hides the money token for %s',
+      (featureId) => {
+        mockUseSwapsFeatureId.mockReturnValue(featureId);
+        mockUseMoneyToken.mockReturnValue(undefined);
+
+        const { queryByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        expect(queryByTestId('money-token-row')).not.toBeOnTheScreen();
+      },
+    );
   });
 
   describe('hostManagesNetworkFilter', () => {

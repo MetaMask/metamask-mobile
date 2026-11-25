@@ -118,6 +118,23 @@ describe('useOpenSocialPostComposer', () => {
     );
   });
 
+  it('forwards the analytics source of a blank composer as a route param', () => {
+    const options = {
+      composerEntry: 'my_profile' as const,
+      analyticsSource: 'my_profile' as const,
+    };
+    const { result } = renderHook(() => useOpenSocialPostComposer(), {
+      wrapper,
+    });
+
+    result.current.openComposer(options);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POST_COMPOSER,
+      options,
+    );
+  });
+
   it('navigates to profile onboarding when no linked wallet is set', () => {
     mockUseMyProfile.mockReturnValue({
       profile: null,

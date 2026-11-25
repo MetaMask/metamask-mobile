@@ -1,4 +1,4 @@
-import { merge } from 'lodash';
+import { isEqual } from 'lodash';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { createSelector } from 'reselect';
@@ -50,7 +50,33 @@ const slice = createSlice({
         };
       }
 
-      state.metricsById[id] = merge(state.metricsById[id], params);
+      const metrics = state.metricsById[id];
+
+      // Overwrite each top-level key instead of deep merging. lodash `merge`
+      // combined arrays by index, so a shrinking list kept stale entries
+      // (`['a', 'b']` + `['b']` gave `['b', 'b']`) and an empty array was
+      // ignored entirely, which corrupted `alert_trigger_name` and
+      // `alert_resolved`.
+      //
+      // Keys are only assigned when the value actually differs. Immer then
+      // returns the previous state object for an identical update, so
+      // subscribers of this slice do not re-render on no-op writes. A plain
+      // object spread would create new references on every dispatch.
+      for (const bag of ['properties', 'sensitiveProperties'] as const) {
+        const updates = params[bag];
+
+        if (!updates) {
+          continue;
+        }
+
+        const target = (metrics[bag] ??= {});
+
+        for (const [key, value] of Object.entries(updates)) {
+          if (!isEqual(target[key], value)) {
+            target[key] = value;
+          }
+        }
+      }
     },
   },
 });

@@ -114,6 +114,9 @@ export const getPerpsMarketDetailsTabSelector = (tab: string) =>
 export const getPerpsLiveTradeRowSelector = (postId: string) =>
   `perps-home-live-trade-${postId}`;
 
+export const getPerpsLiveTradeVerifiedBadgeSelector = (postId: string) =>
+  `perps-home-live-trade-verified-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -1026,7 +1029,6 @@ export const PerpsBalanceBottomSheetSelectorsIDs = {
   ACCOUNT_LEVERAGE_VALUE: 'perps-balance-bottom-sheet-account-leverage-value',
   CROSS_MARGIN_USAGE_VALUE:
     'perps-balance-bottom-sheet-cross-margin-usage-value',
-  CROSS_MARGIN_TOOLTIP: 'perps-balance-bottom-sheet-cross-margin-tooltip',
 };
 
 /** Tappable label of a cross margin summary row, keyed by its tooltip key. */

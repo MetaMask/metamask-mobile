@@ -31,6 +31,7 @@ import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.te
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 
 const makeOutcome = (
@@ -69,6 +70,7 @@ const makeGameMarket = (
   id: id as PredictEntityId,
   question,
   status: 'active',
+  ...fullGameMoneylineMetadata(),
   outcomes: [
     makeOutcome(`${id}-yes`, 'yes', selection),
     makeOutcome(`${id}-no`, 'no'),

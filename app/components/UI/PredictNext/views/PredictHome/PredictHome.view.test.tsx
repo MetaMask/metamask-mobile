@@ -24,13 +24,21 @@ import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cance
 import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
 import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { makeFailedDeposit } from '../../funding/deposit/testUtils';
+import { encodeUsdcTransfer } from '../../funding/deposit/usdcTransfer';
+import {
+  clearAllSessionDepositTransfers,
+  recordSessionDepositTransfer,
+} from '../../funding';
+import { strings } from '../../../../../../locales/i18n';
 import { PredictError, PredictErrorCode } from '../../errors';
 import { POLYMARKET_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
+  PredictAmount,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
+  PredictHex,
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
@@ -132,6 +140,8 @@ describe('PredictHome', () => {
   });
 
   afterEach(() => {
+    clearAllSessionDepositTransfers();
+    Engine.context.TransactionController.state.transactions = [];
     jest.restoreAllMocks();
     onlineManager.setOnline(true);
   });
@@ -302,6 +312,26 @@ describe('PredictHome', () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('keeps browsing, search, and trading available while hiding Add funds for a legacy catalog omitting environment', async () => {
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    configurePredictNextCatalog(legacyCatalog);
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', nflEvents[0].id),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
     ).not.toBeOnTheScreen();
@@ -1416,7 +1446,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
+      await view.findByTestId(EventMarketListTestIds.layoutTab('game_lines')),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([
@@ -1977,6 +2007,8 @@ describe('PredictHome', () => {
           trending: 'test-trending',
         },
         searchSupported: false,
+        // Kalshi's layout: the parser keeps only what this Venue's Feeds serve.
+        home: KALSHI_STATIC_VENUE_CATALOG.home,
       });
       const testEvents = [
         makePredictNextGameEvent('test-1', 'Owls', 'Hawks', 'NCAAF'),
@@ -2263,6 +2295,182 @@ describe('PredictHome', () => {
         view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CLOSE),
       ).toBeOnTheScreen();
     });
+
+    it.each([
+      [
+        'loading',
+        'pending' as const,
+        PredictDepositScreenTestIds.IN_PROGRESS_LOADING,
+        strings('predict_next.deposit.in_progress.checking_availability'),
+      ],
+      [
+        'unavailable',
+        new Error('catalog failed'),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable_error'),
+      ],
+      [
+        'missing_environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable'),
+      ],
+    ])(
+      'shows %s reason and disables Continue while keeping Cancel enabled on the open sheet',
+      async (_label, catalogState, statusTestId, expectedCopy) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:cancelDeposit') {
+              return Promise.resolve({
+                ...awaitingTransferDeposit,
+                status: 'cancelled',
+                next: null,
+              });
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        const cancelButton = view.getByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CANCEL,
+        );
+        expect(continueButton).toBeDisabled();
+        expect(cancelButton).toBeEnabled();
+        expect(view.getByTestId(statusTestId)).toHaveTextContent(expectedCopy);
+
+        await act(async () => {
+          fireEvent.press(cancelButton);
+        });
+
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictFundingService:cancelDeposit',
+          'kalshi',
+          awaitingTransferDeposit.operationId,
+        );
+      },
+    );
+
+    it.each([
+      ['catalog read error', new Error('catalog failed')],
+      [
+        'catalog omitting environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+      ],
+    ])(
+      'keeps Continue enabled, hides Cancel and unavailable copy, and reports a submitted transfer on %s',
+      async (_label, catalogState) => {
+        const txHash: PredictHex = `0x${'ab'.repeat(32)}`;
+        recordSessionDepositTransfer(
+          {
+            venueId: 'kalshi' as PredictVenueId,
+            operationId: awaitingTransferDeposit.operationId,
+            from: '0x0000000000000000000000000000000000000001',
+            plan: {
+              chainId: awaitingTransferDeposit.next.chainId,
+              tokenContract: awaitingTransferDeposit.next
+                .tokenContract as PredictHex,
+              amount: awaitingTransferDeposit.next.amount as PredictAmount,
+              depositAddress: awaitingTransferDeposit.next
+                .depositAddress as PredictHex,
+              planExpiresAt: awaitingTransferDeposit.next
+                .planExpiresAt as PredictTimestamp,
+            },
+          },
+          {
+            txHash,
+            chainId: awaitingTransferDeposit.chainId,
+            to: awaitingTransferDeposit.next.tokenContract,
+            data: encodeUsdcTransfer(
+              awaitingTransferDeposit.next.depositAddress,
+              awaitingTransferDeposit.next.amount as PredictAmount,
+            ),
+          },
+        );
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(awaitingTransferDeposit);
+            }
+            if (action === 'PredictFundingService:reportDepositTransfer') {
+              return Promise.resolve(transferReportedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        expect(continueButton).toBeEnabled();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.getByText(
+            strings('predict_next.deposit.in_progress.processing', {
+              amount: '$25.50',
+            }),
+          ),
+        ).toBeOnTheScreen();
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:reportDepositTransfer',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+            {
+              txHash,
+              chainId: awaitingTransferDeposit.chainId,
+            },
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(callsTo('PredictFundingService:cancelDeposit')).toHaveLength(0);
+      },
+    );
 
     it('keeps two failed notices separate across visits without acknowledging the second on the first visit', async () => {
       const failedA = makeFailedDeposit({

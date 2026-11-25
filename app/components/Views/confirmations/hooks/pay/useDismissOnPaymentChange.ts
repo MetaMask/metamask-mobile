@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 interface UseDismissOnPaymentChangeOptions {
   dismissOnPayTokenChange?: boolean;
@@ -41,12 +41,7 @@ export function useDismissOnPaymentChange({
     const payTokenMatchesInitial =
       !dismissOnPayTokenChange ||
       (!initialPayToken && !payToken) ||
-      (!!initialPayToken &&
-        !!payToken &&
-        isMatchingPayToken(payToken, {
-          address: initialPayToken.address,
-          chainId: initialPayToken.chainId,
-        }));
+      isSameAssetId(initialPayToken?.assetId, payToken?.assetId);
 
     const fiatMatchesInitial =
       selectedPaymentMethodId === initialSelectedPaymentMethodIdRef.current;

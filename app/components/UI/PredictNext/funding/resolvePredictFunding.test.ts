@@ -16,6 +16,7 @@ const descriptor = (
   status: 'ready',
   descriptor: {
     venueId: venueId as PredictVenueId,
+    environment: 'production',
     actions,
     feeds: {},
     categories: [],
@@ -162,6 +163,24 @@ describe('resolvePredictFunding', () => {
       });
 
       expect(result).toStrictEqual({
+        status: 'unavailable',
+        reason: 'unsupported',
+      });
+    });
+
+    it('offers no deposit when a ready descriptor omits environment even if actions list deposit', () => {
+      const legacy = descriptor('kalshi', ['buy', 'sell', 'deposit']);
+      if (legacy.status === 'ready') {
+        delete legacy.descriptor.environment;
+      }
+
+      expect(
+        resolvePredictFunding('deposit', {
+          available: true,
+          activeVenue: active('kalshi'),
+          getCapabilities: () => legacy,
+        }),
+      ).toStrictEqual({
         status: 'unavailable',
         reason: 'unsupported',
       });

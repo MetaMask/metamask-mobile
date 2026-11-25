@@ -1,5 +1,18 @@
-export const COMPOSER_COMMENT_MAX_LENGTH = 250;
+/**
+ * A code point is at most 4 UTF-8 bytes, so 2500 keeps any caption within the
+ * server's 10,000-byte translation request. The server enforces the same limit.
+ */
+export const COMPOSER_COMMENT_MAX_LENGTH = 2500;
 export const COMPOSER_COMMENT_MIN_WORDS = 3;
+
+/**
+ * Counts Unicode code points, not UTF-16 code units: most emoji and every
+ * Korean syllable are one, while a combined emoji such as a flag or a family
+ * counts as several. The server counts the same way, so both reject the same
+ * text.
+ */
+export const countComposerCharacters = (text: string): number =>
+  Array.from(text).length;
 
 const URL_PATTERN =
   /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z]{2,})+\b/i;
@@ -15,7 +28,10 @@ export const commentContainsUrl = (text: string): boolean =>
 
 export const isComposerCommentValid = (text: string): boolean => {
   const trimmed = text.trim();
-  if (trimmed.length === 0 || trimmed.length > COMPOSER_COMMENT_MAX_LENGTH) {
+  if (
+    trimmed.length === 0 ||
+    countComposerCharacters(trimmed) > COMPOSER_COMMENT_MAX_LENGTH
+  ) {
     return false;
   }
   if (countCommentWords(trimmed) < COMPOSER_COMMENT_MIN_WORDS) {

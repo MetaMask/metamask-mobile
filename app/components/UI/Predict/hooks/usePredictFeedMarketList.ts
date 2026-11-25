@@ -10,6 +10,7 @@ export interface UsePredictFeedMarketListOptions
   extends UsePredictMarketListOptions {
   showLiveFirst?: boolean;
   autoAdvanceEmptyPages?: boolean;
+  refine?: (markets: PredictMarket[]) => PredictMarket[];
 }
 
 const LIVE_MARKET_ORDER: NonNullable<PredictMarketListParams['order']> =
@@ -128,6 +129,7 @@ export const usePredictFeedMarketList = (
     autoAdvanceEmptyPages = false,
     filterStaleGameMarkets = false,
     filterByVolume,
+    refine,
   } = options;
   const [emptyPageAdvanceState, setEmptyPageAdvanceState] =
     useState<EmptyPageAdvanceState>(INITIAL_EMPTY_PAGE_ADVANCE_STATE);
@@ -294,12 +296,12 @@ export const usePredictFeedMarketList = (
   ]);
 
   const markets = useMemo(() => {
-    if (!showLiveFirst) {
-      return regularResult.markets;
-    }
+    const combined = showLiveFirst
+      ? dedupeMarkets([...liveResult.markets, ...regularResult.markets])
+      : regularResult.markets;
 
-    return dedupeMarkets([...liveResult.markets, ...regularResult.markets]);
-  }, [liveResult.markets, regularResult.markets, showLiveFirst]);
+    return refine ? refine(combined) : combined;
+  }, [liveResult.markets, regularResult.markets, refine, showLiveFirst]);
 
   const fetchNextPage = useCallback(() => {
     if (showLiveFirst && !liveExhausted) {
@@ -334,6 +336,7 @@ export const usePredictFeedMarketList = (
 
     return {
       ...regularResult,
+      markets,
       isLoading: regularResult.isLoading || isAutoAdvancingInitialRegularPage,
       refetch,
       fetchNextPage,

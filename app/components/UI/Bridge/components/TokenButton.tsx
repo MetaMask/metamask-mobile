@@ -19,6 +19,8 @@ import Badge, {
 import TokenIcon from '../../../Base/TokenIcon';
 import type { CaipAssetType } from '@metamask/utils';
 import SwapsTokenSecurityBadge from './SwapsTokenSecurityBadge';
+import MoneyIcon from '../../../../images/money-icon.svg';
+import { strings } from '../../../../../locales/i18n';
 
 interface TokenProps {
   symbol?: string;
@@ -28,6 +30,7 @@ interface TokenProps {
   testID?: string;
   onPress?: () => void;
   securityBadgeAssetId?: CaipAssetType;
+  isMoneyToken?: boolean;
 }
 
 interface StylesParams {
@@ -76,6 +79,7 @@ export const TokenButton: React.FC<TokenProps> = ({
   testID,
   onPress,
   securityBadgeAssetId,
+  isMoneyToken = false,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -88,19 +92,30 @@ export const TokenButton: React.FC<TokenProps> = ({
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkImageSource}
-            name={networkName}
-          />
+          !isMoneyToken && (
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+              name={networkName}
+            />
+          )
         }
       >
-        <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
+        {isMoneyToken ? (
+          <MoneyIcon
+            width={styles.icon.width}
+            height={styles.icon.height}
+            testID="money-token-icon"
+            name="MoneyIcon"
+          />
+        ) : (
+          <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
+        )}
       </BadgeWrapper>
 
       <View style={styles.tokenSymbolRow}>
         <Text style={styles.tokenSymbol} variant={TextVariant.HeadingMD}>
-          {symbol}
+          {isMoneyToken ? strings('money.title') : symbol}
         </Text>
         {securityBadgeAssetId ? (
           <SwapsTokenSecurityBadge caipAssetId={securityBadgeAssetId} />

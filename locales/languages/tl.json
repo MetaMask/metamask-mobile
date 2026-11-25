@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Kopyahin ang {{field}}",
       "copied_label": "Nakopya ang {{field}}",
-      "copy_all_button": "Kopyahin ang lahat ng mga detalye",
-      "copied_all_label": "Kinopyang mga detalye ng bangko",
       "button": "Tapos na",
       "waiting_for_details": "Lilitaw dito ang mga detalye ng account maya-maya.",
       "loading_details": "Naglo-load ang mga detalye ng account",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "sa",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} sa {{price}}",
-        "size_at_market_cap": "{{size}} sa {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 araw)",
@@ -1995,22 +1991,6 @@
         "4": "Huw",
         "5": "Biy",
         "6": "Sab"
-      },
-      "tooltip": {
-        "label": "{{action}} sa {{price}}",
-        "bought": "Nabili",
-        "sold": "Binenta",
-        "perps_closed": "Nakasara",
-        "perps_long_opened": "Bukas na long",
-        "perps_long_added": "Idinagdag sa long",
-        "perps_long_reduced": "Binawasang long",
-        "perps_short_opened": "Binuksan ang short",
-        "perps_short_added": "Idinagdag sa short",
-        "perps_short_reduced": "Binili pabalik",
-        "spot_opened": "Nabili",
-        "spot_added": "Bumili ng higit pa",
-        "spot_reduced": "Nagbenta ng ilan",
-        "spot_closed": "Ibinenta lahat"
       }
     },
     "trader_position": {
@@ -9914,7 +9894,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Kumita, mag-trade, at gumastos mula sa isang balanse",
       "body_prefix": "Ang MetaMask Money ay isang stablecoin account na kumikita nang hanggang",
-      "body_suffix": "—na may built in sa pagti-trade, pagpapadala, at paggasta.",
+      "body_suffix": "- na may built in sa pagti-trade, pagpapadala, at paggasta.",
       "body_no_apy": "Ang MetaMask Money ay isang stablecoin account na kumikita sa pamamagitan ng pagti-trade, pagpapadala, at paggastos na naka-built in.",
       "benefit_convert_title": "Nako-convert sa MetaMask USD, 1:1",
       "benefit_convert_body": "Ang mga pondo na idinadagdag mo ay nako-convert ng 1:1 sa MetaMask USD, nang walang bayarin.",
