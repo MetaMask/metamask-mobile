@@ -174,16 +174,16 @@ describe('getSelectableCryptoPills', () => {
     expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('trending');
   });
 
-  it('keeps the watchlist selectable while it is still loading', () => {
+  it('defaults to trending while the watchlist is still loading', () => {
     const results = makeResultsWithWatchlist(makeResult(undefined));
 
-    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('watchlist');
+    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('trending');
   });
 
-  it('keeps the watchlist selectable when it has items', () => {
+  it('defaults to trending when the watchlist has items', () => {
     const results = makeResultsWithWatchlist(makeResult([makeToken('WNEW')]));
 
-    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('watchlist');
+    expect(getSelectableCryptoPills(results, true)[0]?.key).toBe('trending');
   });
 
   it('excludes the watchlist entirely when the flag is off', () => {

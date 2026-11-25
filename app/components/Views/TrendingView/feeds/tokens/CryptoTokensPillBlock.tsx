@@ -82,7 +82,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     [isWatchlistEnabled],
   );
 
-  const defaultPillKey = pills[0]?.key ?? 'trending';
+  const defaultPillKey: CryptoPillKey = 'trending';
 
   const { results } = useCryptoPillFeed({
     activePillKey: activePillKey ?? defaultPillKey,

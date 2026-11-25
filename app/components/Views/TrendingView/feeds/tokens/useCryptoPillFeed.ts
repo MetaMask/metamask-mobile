@@ -76,21 +76,16 @@ export const getVisibleCryptoPills = (
 
 /**
  * Pills eligible to be the implicit active pill: every visible pill except
- * a watchlist that has loaded empty. The empty watchlist stays in the pill
- * row for discoverability and remains selectable, but a section nobody has
- * interacted with should show trending content, not an empty state.
+ * the watchlist. The watchlist stays in the pill row and remains selectable,
+ * but the section always opens on Trending (the first non-watchlist pill).
  */
 export const getSelectableCryptoPills = (
   results: Record<string, CryptoPillFeedResult>,
   isWatchlistEnabled: boolean,
-): readonly CryptoPillDefinition[] => {
-  const watchlist = results[CRYPTO_WATCHLIST_PILL.key];
-  const watchlistLoadedEmpty =
-    watchlist?.data !== undefined && watchlist.data.length === 0;
-  return getVisibleCryptoPills(results, isWatchlistEnabled).filter(
-    (pill) => !(watchlistLoadedEmpty && pill.key === CRYPTO_WATCHLIST_PILL.key),
+): readonly CryptoPillDefinition[] =>
+  getVisibleCryptoPills(results, isWatchlistEnabled).filter(
+    (pill) => pill.key !== CRYPTO_WATCHLIST_PILL.key,
   );
-};
 
 /**
  * The pill the section actually displays: the user's selection while it is

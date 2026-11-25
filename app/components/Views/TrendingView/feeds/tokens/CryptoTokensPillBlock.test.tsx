@@ -236,7 +236,7 @@ describe('CryptoTokensPillBlock', () => {
       expect(getByText('Tokens')).toBeOnTheScreen();
     });
 
-    it('renders the watchlist pill first and its items by default', () => {
+    it('renders the watchlist pill first but opens on the trending pill', () => {
       const { getByTestId, queryByTestId, UNSAFE_root: root } = renderBlock();
 
       expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeOnTheScreen();
@@ -258,9 +258,8 @@ describe('CryptoTokensPillBlock', () => {
       expect(getByTestId('crypto-tokens-pill-trending')).toHaveTextContent(
         'trending.crypto_pills.trending',
       );
-      expect(queryByTestId('token-row-WNEW')).toBeOnTheScreen();
-      expect(queryByTestId('token-row-WOLD')).toBeOnTheScreen();
-      expect(queryByTestId('token-row-BTC')).not.toBeOnTheScreen();
+      expect(queryByTestId('token-row-BTC')).toBeOnTheScreen();
+      expect(queryByTestId('token-row-WNEW')).not.toBeOnTheScreen();
     });
 
     it('renders every non-empty pill except those below minItems', () => {
@@ -330,7 +329,7 @@ describe('CryptoTokensPillBlock', () => {
       rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
 
       expect(queryByTestId('token-row-SOL')).not.toBeOnTheScreen();
-      expect(getByTestId('token-row-WNEW')).toBeOnTheScreen();
+      expect(getByTestId('token-row-BTC')).toBeOnTheScreen();
     });
 
     it('resets the selection to a pill with content, skipping an empty watchlist', () => {
@@ -397,7 +396,7 @@ describe('CryptoTokensPillBlock', () => {
   describe('loading state', () => {
     it('shows skeletons while the active pill is loading', () => {
       const results = makeResults({
-        watchlist: { data: undefined, isLoading: true, isError: false },
+        trending: { data: undefined, isLoading: true, isError: false },
       });
       const { getAllByTestId } = renderBlock(results);
 
@@ -469,15 +468,15 @@ describe('CryptoTokensPillBlock', () => {
       const { getByTestId } = renderBlock();
       const mockTrack = trackExploreInteracted as jest.Mock;
 
-      fireEvent.press(getByTestId('token-row-WNEW'));
+      fireEvent.press(getByTestId('token-row-BTC'));
 
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({
           interaction_type: 'section_item_tapped',
           tab_name: 'Crypto',
-          section_name: 'tokens_watchlist',
+          section_name: 'tokens_trending',
           asset_type: 'token',
-          token_symbol: 'WNEW',
+          token_symbol: 'BTC',
         }),
       );
     });
@@ -508,7 +507,7 @@ describe('CryptoTokensPillBlock', () => {
       );
       expect(trackExploreSectionSeeAll).toHaveBeenCalledWith({
         tabName: 'Crypto',
-        sectionName: 'tokens_watchlist',
+        sectionName: 'tokens_trending',
       });
     });
   });

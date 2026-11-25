@@ -39,10 +39,7 @@ import {
   getVisibleCryptoPills,
   useCryptoPillFeed,
 } from '../feeds/tokens/useCryptoPillFeed';
-import {
-  getCryptoPillOrder,
-  type CryptoPillKey,
-} from '../feeds/tokens/cryptoPillConfig';
+import type { CryptoPillKey } from '../feeds/tokens/cryptoPillConfig';
 import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -166,10 +163,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const [activeCryptoPillKey, setActiveCryptoPillKey] =
     useState<CryptoPillKey>();
   const [feedActivePillKey, setFeedActivePillKey] = useState<CryptoPillKey>();
-  const defaultCryptoPillKey = useMemo(
-    () => getCryptoPillOrder(isWatchlistEnabled)[0]?.key ?? 'trending',
-    [isWatchlistEnabled],
-  );
+  const defaultCryptoPillKey: CryptoPillKey = 'trending';
   const tokensFeed = useCryptoPillFeed({
     activePillKey: feedActivePillKey ?? defaultCryptoPillKey,
     refresh,
