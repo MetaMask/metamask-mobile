@@ -53,8 +53,9 @@ export interface CardHomeActionVisibility {
 }
 
 /**
- * Same gating the View card details, View PIN and Freeze rows had in
- * `ManageCardOptions`, so each button shows exactly where its row did.
+ * Which quick actions to show. A signed-in cardholder sees Details, PIN, and
+ * Freeze even at a zero balance. The old Baanx manage rows hid those until
+ * the card was funded; these buttons do not.
  */
 export const getCardHomeActionVisibility = ({
   card,
@@ -69,27 +70,24 @@ export const getCardHomeActionVisibility = ({
     return { details: false, pin: false, freeze: false };
   }
 
-  const showTeaserOptions = !isLoading && !isAuthenticated;
-
   // The quick actions always show for a signed-in cardholder, even with a
   // zero balance (unlike the old Manage rows, which Baanx hid until funded).
+  // Signed-out callers never reach this screen except during KYC review,
+  // and they do not get the cardholder actions.
   const hasManageableCard = isAuthenticated && !isLoading && Boolean(card);
 
   // Providers set hasPin on CardDetails; absent means treat as true.
   const cardHasPin = card?.hasPin !== false;
 
   return {
-    details: hasManageableCard || showTeaserOptions,
+    details: hasManageableCard,
     pin:
-      (hasManageableCard &&
-        Boolean(capabilities?.supportsPinView) &&
-        cardHasPin) ||
-      (showTeaserOptions && Boolean(capabilities?.supportsPinView)),
+      hasManageableCard && Boolean(capabilities?.supportsPinView) && cardHasPin,
     freeze:
-      (hasManageableCard &&
-        Boolean(card?.isFreezable) &&
-        card?.status !== CardStatus.BLOCKED) ||
-      showTeaserOptions,
+      hasManageableCard &&
+      Boolean(capabilities?.supportsFreeze) &&
+      Boolean(card?.isFreezable) &&
+      card?.status !== CardStatus.BLOCKED,
   };
 };
 
@@ -102,8 +100,8 @@ const styles = StyleSheet.create({
 
 /**
  * Card home quick actions under the card panel. Same tiles as the Money home
- * action row (`MainActionButtonGlass`); each button is optional so it follows
- * the gating its list row used to have.
+ * action row (`MainActionButtonGlass`). Each button is optional. Visibility
+ * comes from `getCardHomeActionVisibility`.
  */
 const CardHomeActionButtonRow = ({
   add,
