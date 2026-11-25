@@ -252,6 +252,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition.symbol,
+    providerId: routePosition.providerId,
     mode,
     inputAmount: marginAmount,
   });
@@ -463,10 +464,14 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     };
 
     if (isAddMode) {
-      await handleAddMargin(position.symbol, marginAmount);
+      await handleAddMargin(position.symbol, marginAmount, position.providerId);
       return;
     }
-    await handleRemoveMargin(position.symbol, marginAmount);
+    await handleRemoveMargin(
+      position.symbol,
+      marginAmount,
+      position.providerId,
+    );
   }, [
     enableHaptics,
     handleAddMargin,

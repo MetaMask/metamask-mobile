@@ -1,4 +1,5 @@
 import type {
+  AccountAggregateMetadata,
   AccountState,
   PerpsMarketData,
   PerpsProviderType,
@@ -16,7 +17,8 @@ import {
 
 // These are synthetic two-exchange fixtures, not snapshots of what the
 // installed controller emits. Each scenario still carries per-exchange account
-// states (Lighter down = Lighter 'unavailable').
+// states (Lighter down = Lighter 'unavailable') and the aggregate-completeness
+// metadata the aggregated stream delivers with the combined account.
 export type PerpsAccountProviderStates = AccountState['providerStates'];
 
 interface ExchangeAccount {
@@ -30,6 +32,11 @@ interface Scenario {
   balances: Partial<Record<PerpsProviderType, ExchangeAccount>>;
   markets: PerpsMarketData[];
   positions?: Position[];
+  /**
+   * Venue whose read failed or has not reported (TAT-4407). Its balances
+   * contribute nothing, so the combined total is a partial subtotal.
+   */
+  downVenue?: PerpsProviderType;
 }
 
 const eth = (providerId: PerpsProviderType): PerpsMarketData =>
@@ -69,6 +76,7 @@ const SCENARIOS = {
   lighterDown: {
     balances: { hyperliquid: { total: '100' } },
     markets: [eth('hyperliquid')],
+    downVenue: 'lighter',
   },
 } satisfies Record<string, Scenario>;
 
@@ -85,8 +93,16 @@ export const perpsTwoExchangeState = (
   overrides: DeepPartial<RootState>;
   streamOverrides: PerpsStreamOverrides;
 } => {
-  const { balances, markets, positions = [] }: Scenario = SCENARIOS[name];
-  const entries = Object.entries(balances);
+  const {
+    balances,
+    markets,
+    positions = [],
+    downVenue,
+  }: Scenario = SCENARIOS[name];
+  const entries = Object.entries(balances) as [
+    PerpsProviderType,
+    ExchangeAccount,
+  ][];
   const sum = (
     pick: (account: ExchangeAccount) => string | undefined,
   ): number =>
@@ -95,12 +111,59 @@ export const perpsTwoExchangeState = (
   const marginUsed = sum((account) => account.marginUsed);
   const unrealizedPnl = sum((account) => account.unrealizedPnl);
 
+  // The aggregated account carries one entry per venue: `available` venues
+  // contribute their snapshot, a down venue contributes no verdict, and the
+  // aggregate metadata marks the combined totals as a subtotal.
+  const venueOrder = [
+    ...new Set([
+      ...entries.map(([provider]) => provider),
+      ...(downVenue ? [downVenue] : []),
+    ]),
+  ];
+  const providerStates: PerpsAccountProviderStates = {};
+  const availableProviders: PerpsProviderType[] = [];
+  const unavailableProviders: PerpsProviderType[] = [];
+  for (const provider of venueOrder) {
+    const account = balances[provider];
+    if (provider === downVenue || !account) {
+      unavailableProviders.push(provider);
+      providerStates[provider] = {
+        status: 'unavailable',
+        providerId: provider,
+      };
+      continue;
+    }
+    availableProviders.push(provider);
+    providerStates[provider] = {
+      status: 'available',
+      providerId: provider,
+      state: {
+        ...createFundedAccountForViews(account.total),
+        spendableBalance: String(
+          Number(account.total) - Number(account.marginUsed ?? 0),
+        ),
+        marginUsed: account.marginUsed ?? '0',
+        unrealizedPnl: account.unrealizedPnl ?? '0',
+        providerId: provider,
+      },
+    };
+  }
+  const aggregate: AccountAggregateMetadata = {
+    status: unavailableProviders.length > 0 ? 'partial' : 'complete',
+    availableProviders,
+    unavailableProviders,
+    pendingProviders: [],
+  };
+
   return {
     overrides: {
       engine: {
         backgroundState: {
           PerpsController: {
             activeProvider: 'aggregated',
+            // Grouped market rows display the default venue's data; without
+            // this the venue-filter selector cannot resolve the display row.
+            defaultProvider: 'hyperliquid',
             isEligible: true,
             isFirstTimeUser: { mainnet: false, testnet: false },
             perpsBalances: Object.fromEntries(
@@ -133,42 +196,10 @@ export const perpsTwoExchangeState = (
         withdrawableBalance: String(Number((total - marginUsed).toFixed(2))),
         marginUsed: String(marginUsed),
         unrealizedPnl: String(unrealizedPnl),
-        providerStates: {
-          hyperliquid: {
-            status: 'available',
-            providerId: 'hyperliquid',
-            state: {
-              ...createFundedAccountForViews(
-                balances.hyperliquid?.total ?? '0',
-              ),
-              providerId: 'hyperliquid',
-            },
-          },
-          lighter: balances.lighter
-            ? {
-                status: 'available',
-                providerId: 'lighter',
-                state: {
-                  ...createFundedAccountForViews(balances.lighter.total),
-                  spendableBalance: String(
-                    Number(balances.lighter.total) -
-                      Number(balances.lighter.marginUsed ?? 0),
-                  ),
-                  marginUsed: balances.lighter.marginUsed ?? '0',
-                  unrealizedPnl: balances.lighter.unrealizedPnl ?? '0',
-                  providerId: 'lighter',
-                },
-              }
-            : { status: 'unavailable', providerId: 'lighter' },
-        },
-        aggregate: {
-          status: balances.lighter ? 'complete' : 'partial',
-          availableProviders: balances.lighter
-            ? ['hyperliquid', 'lighter']
-            : ['hyperliquid'],
-          unavailableProviders: balances.lighter ? [] : ['lighter'],
-        },
+        providerStates,
+        aggregate,
       },
+      aggregate,
       positions,
       orders: [],
       marketData: markets,

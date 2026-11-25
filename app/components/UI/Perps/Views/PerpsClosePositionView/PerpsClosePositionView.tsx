@@ -140,6 +140,7 @@ const PerpsClosePositionView: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <PerpsOrderHeader
+        providerId={position.providerId}
         asset={position.symbol}
         price={currentPrice}
         title={strings('perps.close_position.title')}

@@ -875,6 +875,26 @@ describe('PerpsPositionCard', () => {
       expect(returnCard).not.toHaveTextContent(/1250\.00%/);
     });
 
+    it('shows the Hyperliquid display margin instead of raw marginUsed', () => {
+      render(
+        <PerpsPositionCard
+          position={{
+            ...mockPosition,
+            marginUsed: '15',
+            displayMarginUsed: '7.18',
+            leverage: { type: 'cross', value: 20 },
+          }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_VALUE),
+      ).toHaveTextContent('$7.18');
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_VALUE),
+      ).not.toHaveTextContent('$15');
+    });
+
     it('hides margin value when privacy mode is enabled', () => {
       // Arrange
       enablePrivacyMode();

@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../../providers/venueKeys';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLivePrices } from './index';
@@ -451,5 +452,38 @@ describe('usePerpsLivePrices', () => {
     rerender({ symbols: ['SOL-PERP', 'AVAX-PERP'] });
 
     expect(result.current).toEqual({});
+  });
+
+  it('keeps shared BTC prices separate and delivers a Lighter-only symbol', () => {
+    mockSubscribeToSymbols.mockReturnValue(jest.fn());
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({
+        symbols: [
+          buildVenueSymbolKey('BTC', 'hyperliquid'),
+          buildVenueSymbolKey('BTC', 'lighter'),
+          buildVenueSymbolKey('kPEPE', 'lighter'),
+        ],
+      }),
+    );
+    const [hyper, lighter] = mockSubscribeToSymbols.mock.calls.map(
+      ([subscription]) => subscription,
+    );
+    expect(hyper).toMatchObject({
+      providerId: 'hyperliquid',
+      symbols: ['BTC'],
+    });
+    expect(lighter).toMatchObject({
+      providerId: 'lighter',
+      symbols: ['BTC', 'kPEPE'],
+    });
+    act(() => {
+      hyper.callback({ BTC: { price: '100' } });
+      lighter.callback({ BTC: { price: '101' }, kPEPE: { price: '2' } });
+    });
+    expect(result.current).toMatchObject({
+      [buildVenueSymbolKey('BTC', 'hyperliquid')]: { price: '100' },
+      [buildVenueSymbolKey('BTC', 'lighter')]: { price: '101' },
+      [buildVenueSymbolKey('kPEPE', 'lighter')]: { price: '2' },
+    });
   });
 });

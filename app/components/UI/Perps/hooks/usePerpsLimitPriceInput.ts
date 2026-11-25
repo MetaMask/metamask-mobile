@@ -58,7 +58,7 @@ export interface UsePerpsLimitPriceInputParams {
   isClosingPosition?: boolean;
   /** Unsubscribes from live price and book data while a modal is hidden. */
   enabled?: boolean;
-  /** Venue whose deviation limit applies; omitted uses the active route. */
+  /** Venue whose prices and deviation limit apply; omitted uses the active route. */
   providerId?: PerpsProviderType;
 }
 
@@ -100,6 +100,7 @@ export function usePerpsLimitPriceInput({
   const inputMethodRef = useRef<string | null>(null);
 
   const priceData = usePerpsLivePrices({
+    providerId,
     symbols: enabled ? [asset] : [],
     throttleMs: 1000,
   });
@@ -121,7 +122,10 @@ export function usePerpsLimitPriceInput({
       ? orderCapabilities.orderLimits?.maxOraclePriceDeviation
       : undefined;
 
-  const topOfBook = usePerpsTopOfBook({ symbol: enabled ? asset : '' });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: enabled ? asset : '',
+    providerId,
+  });
   const isLong = direction === 'long';
 
   // Destructured so an inline `testIDs` literal from a caller cannot rebuild

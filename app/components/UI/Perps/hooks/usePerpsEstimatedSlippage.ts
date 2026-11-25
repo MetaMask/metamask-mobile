@@ -16,6 +16,7 @@ export interface UsePerpsEstimatedSlippageOptions
   > {
   /** Asset symbol (e.g. 'BTC'). */
   symbol: string;
+  /** Venue whose book to walk. Omit to follow the default venue. */
   providerId?: PerpsProviderType;
   /** USD notional to fill. Pass undefined / 0 to disable the calc. */
   sizeUsd: number | undefined;

@@ -21,7 +21,6 @@ const EMPTY_CANDLE_DATA: CandleData = {
 export interface UsePerpsLiveCandlesOptions {
   /** The asset symbol (e.g., "BTC", "ETH") */
   symbol: string;
-  providerId?: PerpsProviderType;
   /** The candle interval (e.g., "1m", "5m", "15m") */
   interval: CandlePeriod;
   /** The duration for historical data (e.g., "1d", "7d", "1M") - currently informational only */
@@ -32,6 +31,12 @@ export interface UsePerpsLiveCandlesOptions {
   resetKey?: string;
   /** Defers subscription until the requested market context is connected. */
   enabled?: boolean;
+  /**
+   * Venue to route the candle stream to (TAT-4407). An explicit route stays
+   * pinned to that venue even when the default venue changes; without one the
+   * stream follows the default provider.
+   */
+  providerId?: PerpsProviderType;
 }
 
 export interface UsePerpsLiveCandlesReturn {
@@ -78,12 +83,12 @@ export function usePerpsLiveCandles(
 ): UsePerpsLiveCandlesReturn {
   const {
     symbol,
-    providerId,
     interval,
     duration,
     throttleMs = 1000,
     resetKey,
     enabled = true,
+    providerId,
   } = options;
   const stream = usePerpsStream();
   const route = JSON.stringify([symbol, providerId, interval, resetKey]);
@@ -118,9 +123,9 @@ export function usePerpsLiveCandles(
     try {
       const unsubscribe = stream.candles.subscribe({
         symbol,
-        ...(providerId && { providerId }),
         interval,
         duration,
+        providerId,
         callback: (newCandleData) => {
           acceptedDeliveryRef.current = false;
           if (!isActive) return;
@@ -251,7 +256,12 @@ export function usePerpsLiveCandles(
         duration,
       });
 
-      await stream.candles.fetchHistoricalCandles(symbol, interval, duration);
+      await stream.candles.fetchHistoricalCandles(
+        symbol,
+        interval,
+        duration,
+        providerId,
+      );
 
       DevLogger.log(
         'usePerpsLiveCandles: Successfully fetched more historical candles',

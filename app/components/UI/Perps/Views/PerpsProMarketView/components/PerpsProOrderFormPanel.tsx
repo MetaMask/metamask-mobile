@@ -554,6 +554,7 @@ const PerpsProOrderFormPanel = ({
           onRequestClose={closeLeverage}
         >
           <PerpsLeverageBottomSheet
+            providerId={market.providerId}
             isVisible
             onClose={closeLeverage}
             onConfirm={onLeverageConfirm}

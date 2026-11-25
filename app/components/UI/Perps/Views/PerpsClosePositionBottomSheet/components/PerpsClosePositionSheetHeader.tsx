@@ -8,7 +8,10 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  type PerpsProviderType,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import PerpsMarketLimitToggle from '../../../components/PerpsMarketLimitToggle';
@@ -18,6 +21,7 @@ import LivePriceHeader from '../../../components/LivePriceDisplay/LivePriceHeade
 
 export interface PerpsClosePositionSheetHeaderProps {
   symbol: string;
+  providerId?: PerpsProviderType;
   isLong: boolean;
   /** Position leverage; omitted when the venue reports none. */
   leverage?: number;
@@ -37,6 +41,7 @@ const PerpsClosePositionSheetHeader: React.FC<
   PerpsClosePositionSheetHeaderProps
 > = ({
   symbol,
+  providerId,
   isLong,
   leverage,
   currentPrice,
@@ -80,6 +85,7 @@ const PerpsClosePositionSheetHeader: React.FC<
       </Box>
 
       <LivePriceHeader
+        providerId={providerId}
         symbol={symbol}
         currentPrice={currentPrice}
         testIDPrice={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_PRICE}

@@ -294,6 +294,7 @@ export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   return (
     prevProps.isVisible === nextProps.isVisible &&
     prevProps.asset === nextProps.asset &&
+    prevProps.providerId === nextProps.providerId &&
     prevProps.limitPrice === nextProps.limitPrice &&
     prevProps.direction === nextProps.direction &&
     prevProps.restingOrderSize === nextProps.restingOrderSize &&

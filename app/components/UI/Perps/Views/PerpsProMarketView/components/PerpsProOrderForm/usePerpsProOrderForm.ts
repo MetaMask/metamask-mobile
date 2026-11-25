@@ -915,7 +915,7 @@ export const usePerpsProOrderForm = ({
     maxSlippageSource,
   });
 
-  const { isAtCap } = usePerpsOICap(symbol);
+  const { isAtCap } = usePerpsOICap(symbol, market.providerId);
   const vipTier = useVipTier();
 
   const {

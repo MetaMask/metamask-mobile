@@ -511,6 +511,24 @@ describe('usePerpsLiveCandles', () => {
     expect(result.current.isLoadingMore).toBe(false);
   });
 
+  it('does not fetch default-venue history for a pinned venue', async () => {
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+    const { result } = renderHook(() =>
+      usePerpsLiveCandles({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.fetchMoreHistory();
+    });
+
+    expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
+  });
+
   it('fetches more historical candles successfully', async () => {
     mockCandleSubscribe.mockReturnValue(jest.fn());
     mockFetchHistoricalCandles.mockResolvedValue(undefined);
@@ -527,10 +545,13 @@ describe('usePerpsLiveCandles', () => {
       await result.current.fetchMoreHistory();
     });
 
+    // TAT-4407: the venue-scoped fetch now threads an explicit providerId
+    // (undefined = default-routed).
     expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
       'BTC',
       CandlePeriod.OneHour,
       TimeDuration.OneDay,
+      undefined,
     );
   });
 

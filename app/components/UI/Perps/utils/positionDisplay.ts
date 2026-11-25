@@ -72,6 +72,28 @@ export const formatAccountPnl = (
 };
 
 /**
+ * Margin amount to show for a position.
+ *
+ * Hyperliquid reports raw initial margin on `marginUsed`. When cross equity
+ * is below that initial margin, the venue shows a smaller figure, which the
+ * controller puts on `displayMarginUsed`. Isolated positions and a healthy
+ * cross account omit it or set it equal to `marginUsed`.
+ *
+ * @param position - Position carrying the venue margin fields.
+ * @returns The margin string the position card should format.
+ */
+export const getDisplayedPositionMargin = (
+  position: Pick<Position, 'marginUsed' | 'displayMarginUsed'>,
+): string => {
+  const displayed = position.displayMarginUsed?.trim();
+  if (!displayed) {
+    return position.marginUsed;
+  }
+  const value = Number.parseFloat(displayed);
+  return Number.isFinite(value) ? displayed : position.marginUsed;
+};
+
+/**
  * Derives the shared display values used by Lite and Pro position headers.
  *
  * Position size is signed by direction, while return on equity is provided as

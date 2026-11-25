@@ -45,9 +45,9 @@ interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
 const PerpsOrderContext = createContext<PerpsOrderContextType | null>(null);
 
 interface PerpsOrderProviderProps {
-  providerId?: PerpsProviderType;
   children: ReactNode;
   initialAsset?: string;
+  providerId?: PerpsProviderType;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
   fallbackAmount?: string;
@@ -73,7 +73,7 @@ export const PerpsOrderProvider = ({
   effectiveAvailableBalance,
 }: PerpsOrderProviderProps) => {
   const orderFormState = usePerpsOrderForm({
-    providerId,
+    providerId: providerId ?? existingPosition?.providerId,
     initialAsset,
     initialDirection,
     initialAmount,

@@ -130,7 +130,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
   // Get market data for the header
-  const { markets } = usePerpsMarkets();
+  const { markets } = usePerpsMarkets({ fullCatalog: true });
   // Venue size precision for base-currency order book totals.
   const { marketData: marketMetadata } = usePerpsMarketData({
     asset: symbol || '',
@@ -231,16 +231,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Subscribe to top-of-book (best bid/ask) for spread display.
   // This is intentionally independent from order book aggregation/grouping.
-  const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
+  const topOfBook = usePerpsTopOfBook({
+    symbol: symbol || '',
+    providerId: market?.providerId,
+  });
 
   // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
   const focusedPrice = usePerpsLiveFocusedPrice({
+    providerId: market?.providerId,
     symbol: symbol || '',
     enabled: Boolean(symbol),
   });
 
   // allMids baseline as first-render fallback (~2 s)
   const livePrices = usePerpsLivePrices({
+    providerId: market?.providerId,
     symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
   });
@@ -310,6 +315,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     error,
   } = usePerpsLiveOrderBook({
     symbol: symbol || '',
+    providerId: market?.providerId,
     levels: FAST_ORDER_BOOK_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,

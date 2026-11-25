@@ -45,7 +45,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
-import { getPerpsPositionHeaderDisplay } from '../../../utils/positionDisplay';
+import {
+  getDisplayedPositionMargin,
+  getPerpsPositionHeaderDisplay,
+} from '../../../utils/positionDisplay';
 
 interface PerpsProPositionCardProps {
   position: Position;
@@ -218,12 +221,9 @@ const PerpsProPositionCard = ({
     ranges: PRICE_RANGES_UNIVERSAL,
   });
   const isLong = parseFloat(position.size) > 0;
-  const marginDisplay = formatPerpsFiat(
-    position.displayMarginUsed ?? position.marginUsed,
-    {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    },
-  );
+  const marginDisplay = formatPerpsFiat(getDisplayedPositionMargin(position), {
+    ranges: PRICE_RANGES_MINIMAL_VIEW,
+  });
 
   const tpDisplay =
     formatPositionTriggerSummary({

@@ -322,6 +322,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
   const priceData = usePerpsLivePrices({
+    providerId: position?.providerId,
     symbols: asset ? [asset] : [],
     throttleMs: TP_SL_VIEW_CONFIG.PriceThrottleMs,
   });

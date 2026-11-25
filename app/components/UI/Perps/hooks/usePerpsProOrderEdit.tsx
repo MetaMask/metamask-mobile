@@ -219,7 +219,13 @@ export const usePerpsProOrderEdit = ({
       isSubmittingEditRef.current = true;
       closeEditSheet();
       setEditingOrderId(orderToEdit.orderId);
-      stream.orders.updateOrderOptimistic(orderToEdit.orderId, optimisticEdit);
+      stream.orders.updateOrderOptimistic(
+        orderToEdit.orderId,
+        optimisticEdit,
+        // Scope the optimistic paint to the venue the order rests on
+        // (TAT-4407): both venues can use the same order id.
+        orderToEdit.providerId,
+      );
       showToast(PerpsToastOptions.orderManagement.limit.editSubmitting());
 
       try {
@@ -259,6 +265,7 @@ export const usePerpsProOrderEdit = ({
             stream.orders.updateOrderOptimistic(
               orderToEdit.orderId,
               buildOrderOptimisticEdit(field, previousValue),
+              orderToEdit.providerId,
             );
           }
           showToast(
@@ -272,6 +279,7 @@ export const usePerpsProOrderEdit = ({
           stream.orders.updateOrderOptimistic(
             orderToEdit.orderId,
             buildOrderOptimisticEdit(field, previousValue),
+            orderToEdit.providerId,
           );
         }
         showToast(PerpsToastOptions.orderManagement.limit.editFailed());

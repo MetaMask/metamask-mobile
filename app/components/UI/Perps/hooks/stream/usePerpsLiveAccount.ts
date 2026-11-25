@@ -4,6 +4,7 @@ import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import {
   type AccountState,
   type PerpsProviderType,
+  type AccountAggregateMetadata,
 } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
@@ -24,6 +25,13 @@ export interface UsePerpsLiveAccountReturn {
   isInitialLoading: boolean;
   /** Deliveries accepted by this selected-account subscription. */
   deliveryRevision?: number;
+  /**
+   * Completeness metadata from the latest aggregated account update
+   * (TAT-4407): `status: 'partial'` means the totals are subtotals over the
+   * available venues only, so consumers must not present them as the user's
+   * complete portfolio value. Null for direct-mode streams.
+   */
+  aggregate?: AccountAggregateMetadata | null;
 }
 
 /**
@@ -59,6 +67,9 @@ export function usePerpsLiveAccount(
   });
   const [deliveryRevision, setDeliveryRevision] = useState(0);
   const acceptedDeliveryRef = useRef(false);
+  const [aggregate, setAggregate] = useState<
+    AccountAggregateMetadata | null | undefined
+  >(() => streamManager.account.getAggregateMetadata());
 
   useEffect(() => {
     if (!enabled || !streamManager) return;
@@ -68,6 +79,7 @@ export function usePerpsLiveAccount(
       acceptedDeliveryRef.current = false;
       setAccount(newAccount);
       setAccountAddress(selectedAddress);
+      setAggregate(streamManager.account.getAggregateMetadata());
       if (newAccount === null) {
         setIsInitialLoading(true);
         return;
@@ -106,5 +118,6 @@ export function usePerpsLiveAccount(
     isInitialLoading:
       !identityMatches || isInitialLoading || venue?.status === 'pending',
     deliveryRevision,
+    aggregate: identityMatches ? aggregate : null,
   };
 }

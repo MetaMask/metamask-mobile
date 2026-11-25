@@ -98,6 +98,7 @@ const formatLivePrice = (rawPrice: string | undefined): string => {
  */
 const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   symbol,
+  providerId,
   nextFundingTime,
   fundingIntervalHours,
   testID = PerpsProMarketViewSelectorsIDs.STATS_BAR,
@@ -129,6 +130,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
 
   // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({
+    providerId,
     symbols: symbol ? [symbol] : [],
     throttleMs: 2000,
   });

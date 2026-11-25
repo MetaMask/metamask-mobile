@@ -88,6 +88,7 @@ type OrderBookViewMode = 'default' | 'buy' | 'sell';
 export interface PerpsProOrderBookPanelProps {
   /** Market symbol (e.g. 'BTC', 'xyz:TSLA'). */
   symbol: string;
+  /** Venue whose book to show. Omit to follow the default venue. */
   providerId?: PerpsProviderType;
   /**
    * Fallback mid/market price used to derive grouping options before the raw

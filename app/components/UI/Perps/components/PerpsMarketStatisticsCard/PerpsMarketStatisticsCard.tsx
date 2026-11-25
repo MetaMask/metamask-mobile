@@ -35,6 +35,7 @@ import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
+  providerId,
   marketStats,
   onTooltipPress,
   nextFundingTime,
@@ -45,6 +46,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   const livePrices = usePerpsLivePrices({
+    providerId,
     symbols: symbol ? [symbol] : [],
     throttleMs: 2000,
   });

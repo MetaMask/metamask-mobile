@@ -9,6 +9,7 @@ import {
   type CandleData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { buildVenueSymbolKey, parseVenueSymbolKey } from '../venueKeys';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -23,10 +24,7 @@ type CandleDeliverySource =
 
 interface StreamSubscription<T> {
   id: string;
-  cacheKey: string;
-  symbol: string;
-  interval: CandlePeriod;
-  providerId?: PerpsProviderType;
+  cacheKey: string; // Associated cacheKey (symbol-interval) for filtering
   callback: (data: T) => void;
   onDelivery?: (source: CandleDeliverySource) => void;
   throttleMs?: number;
@@ -346,9 +344,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     interval: CandlePeriod,
     providerId?: PerpsProviderType,
   ): string {
-    return providerId
-      ? JSON.stringify([providerId, symbol, interval])
-      : `${symbol}-${interval}`;
+    // Venue-scoped cache key (TAT-4407): candles for the same symbol from two
+    // venues are different data. Untagged keys keep the legacy format.
+    return `${buildVenueSymbolKey(symbol, providerId)}-${interval}`;
   }
 
   /**
@@ -358,9 +356,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    */
   public subscribe(params: {
     symbol: string;
-    providerId?: PerpsProviderType;
     interval: CandlePeriod;
     duration: TimeDuration;
+    providerId?: PerpsProviderType;
     callback: (data: CandleData) => void;
     onDelivery?: (source: CandleDeliverySource) => void;
     throttleMs?: number;
@@ -368,8 +366,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }): () => void {
     const {
       symbol,
-      providerId,
       interval,
+      providerId,
       callback,
       onDelivery,
       throttleMs,
@@ -381,9 +379,6 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const subscription: StreamSubscription<CandleData> = {
       id,
       cacheKey,
-      symbol,
-      interval,
-      providerId,
       callback,
       onDelivery,
       throttleMs,
@@ -409,6 +404,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       onDelivery?.('cache');
       subscription.hasReceivedFirstUpdate = true;
     } else if (cached && providerId === undefined) {
+      // Core's history endpoint ignores the venue, so only a default-routed
+      // cache can refresh from it.
       this.prewarmCandles(symbol, interval, params.duration).catch((error) => {
         DevLogger.log('CandleStreamChannel: Failed to refresh stale cache', {
           symbol,
@@ -536,9 +533,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
-      ...(providerId && { providerId }),
       interval,
       duration,
+      // Pin an explicit route to its venue (TAT-4407): without this the stream
+      // follows the default provider and rebinds if it changes.
+      ...(providerId ? { providerId } : {}),
       callback: (candleData: CandleData) => {
         if (
           this.activeSubscriptionGenerations.get(cacheKey) !==
@@ -648,8 +647,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   public getCachedData(
     symbol: string,
     interval: CandlePeriod,
+    providerId?: PerpsProviderType,
   ): CandleData | null {
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     return this.cache.get(cacheKey) || null;
   }
 
@@ -677,8 +677,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     duration: TimeDuration,
+    providerId?: PerpsProviderType,
   ): Promise<void> {
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     const cachedData = this.cache.get(cacheKey);
     const contextGeneration = this.contextGeneration;
 
@@ -735,6 +736,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
           interval,
           limit,
           endTime,
+          ...(providerId ? { providerId } : {}),
         });
 
       if (contextGeneration !== this.contextGeneration) {
@@ -835,8 +837,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     interval: CandlePeriod,
     duration: TimeDuration,
     force = false,
+    providerId?: PerpsProviderType,
   ): Promise<void> {
-    const cacheKey = this.getCacheKey(symbol, interval);
+    const cacheKey = this.getCacheKey(symbol, interval, providerId);
     const cachedData = this.cache.get(cacheKey);
     const generation = this.prewarmGeneration;
     const requestKey = `${generation}:${cacheKey}`;
@@ -880,6 +883,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
             interval,
             limit,
             endTime,
+            ...(providerId ? { providerId } : {}),
           });
 
         if (generation !== this.prewarmGeneration) {
@@ -958,21 +962,34 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Clears dead subscriptions and re-establishes connections for active subscribers
    */
   public reconnect(): void {
+    // Get unique cache keys from subscribers before disconnecting
+    const activeCacheKeys = new Set(
+      Array.from(this.subscribers.values()).map((sub) => sub.cacheKey),
+    );
+
+    // Disconnect all WebSocket subscriptions (they're dead after reconnection)
+    // Using disconnect() without args to call disconnectAll() internally
     this.disconnect();
 
-    const activeRoutes = new Map(
-      [...this.subscribers.values()].map((subscription) => [
-        subscription.cacheKey,
-        subscription,
-      ]),
-    );
-    for (const {
-      symbol,
-      interval,
-      cacheKey,
-      providerId,
-    } of activeRoutes.values()) {
-      this.connect(symbol, interval, cacheKey, providerId);
-    }
+    // Re-establish connections for each active cache key
+    activeCacheKeys.forEach((cacheKey) => {
+      // Strip the optional venue prefix (TAT-4407, format
+      // "venue-scoped symbol + interval"), then parse coin and interval from the
+      // remainder (format: "coin-interval"). Coin symbols can contain hyphens
+      // (e.g., "ETH-USD"), so split from the right — the interval is always
+      // the last segment after the final hyphen.
+      const { symbol: scopedSymbol, providerId } =
+        parseVenueSymbolKey(cacheKey);
+      const lastHyphenIndex = scopedSymbol.lastIndexOf('-');
+      if (lastHyphenIndex === -1 || lastHyphenIndex === 0) {
+        // Invalid cache key format - skip
+        return;
+      }
+      const coin = scopedSymbol.substring(0, lastHyphenIndex);
+      const interval = scopedSymbol.substring(lastHyphenIndex + 1);
+      if (coin && interval) {
+        this.connect(coin, interval as CandlePeriod, cacheKey, providerId);
+      }
+    });
   }
 }

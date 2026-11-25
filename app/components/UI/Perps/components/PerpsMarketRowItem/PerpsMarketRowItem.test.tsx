@@ -82,6 +82,19 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Component Rendering', () => {
+    it.each(['BTC', 'kPEPE'])(
+      'subscribes a Lighter row to its own venue: %s',
+      (symbol) => {
+        render(
+          <PerpsMarketRowItem
+            market={{ ...mockMarketData, symbol, providerId: 'lighter' }}
+          />,
+        );
+        expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+          expect.objectContaining({ symbols: [symbol], providerId: 'lighter' }),
+        );
+      },
+    );
     it('renders all market data correctly', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 

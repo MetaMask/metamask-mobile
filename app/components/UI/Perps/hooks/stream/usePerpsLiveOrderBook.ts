@@ -3,8 +3,8 @@ import Engine from '../../../../../core/Engine';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   type OrderBookData,
-  type PerpsProviderType,
   type OrderBookConnectionStatus,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   getAggregatedOrderBookConnection,
@@ -21,6 +21,10 @@ export type { OrderBookConnectionStatus } from '@metamask/perps-controller';
 export interface UsePerpsLiveOrderBookOptions {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
   symbol: string;
+  /**
+   * Venue to route the order book to (TAT-4407): the book the user will trade
+   * against. Without one the stream follows the default provider.
+   */
   providerId?: PerpsProviderType;
   /** Number of levels to display (default: 10) */
   levels?: number;
@@ -105,7 +109,7 @@ export function usePerpsLiveOrderBook(
     channel = 'orderBook',
   } = options;
 
-  const isAggregated =
+  const usesAggregatedSocket =
     channel === 'orderBookAggregated' &&
     isServerAggregatedOrderBookRoute(providerId);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
@@ -167,7 +171,7 @@ export function usePerpsLiveOrderBook(
       setOrderBook(null);
       setDataSymbol(null);
       setIsLoading(false);
-      setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+      setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
       return;
     }
 
@@ -176,7 +180,7 @@ export function usePerpsLiveOrderBook(
     setDataRoute(route);
     setIsLoading(true);
     setError(null);
-    setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+    setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
 
     DevLogger.log(
       `usePerpsLiveOrderBook: Subscribing to ${symbol} (${channel})`,
@@ -205,7 +209,7 @@ export function usePerpsLiveOrderBook(
     }
 
     try {
-      if (isAggregated) {
+      if (usesAggregatedSocket) {
         const connection = getAggregatedOrderBookConnection();
         unsubscribe = connection.subscribe({
           symbol,
@@ -228,8 +232,8 @@ export function usePerpsLiveOrderBook(
         const controller = Engine.context.PerpsController;
         unsubscribe = controller.subscribeToOrderBook({
           symbol,
-          ...(providerId && { providerId }),
           levels,
+          ...(providerId ? { providerId } : {}),
           nSigFigs,
           mantissa,
           fast,
@@ -256,7 +260,7 @@ export function usePerpsLiveOrderBook(
       setDataSymbol(symbol);
       setError(catchError);
       setIsLoading(false);
-      if (isAggregated) {
+      if (usesAggregatedSocket) {
         setConnectionStatus('error');
       }
     }
@@ -290,7 +294,7 @@ export function usePerpsLiveOrderBook(
     throttleMs,
     fast,
     channel,
-    isAggregated,
+    usesAggregatedSocket,
     reconnectNonce,
   ]);
 
@@ -301,7 +305,7 @@ export function usePerpsLiveOrderBook(
       isLoading:
         enabled && Boolean(symbol) && (dataRoute !== route || isLoading),
       error: dataRoute === route ? error : null,
-      connectionStatus: isAggregated ? connectionStatus : 'connected',
+      connectionStatus: usesAggregatedSocket ? connectionStatus : 'connected',
       reconnect,
     }),
     [
@@ -314,7 +318,7 @@ export function usePerpsLiveOrderBook(
       isLoading,
       error,
       connectionStatus,
-      isAggregated,
+      usesAggregatedSocket,
       reconnect,
     ],
   );

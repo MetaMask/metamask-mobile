@@ -148,6 +148,22 @@ describe('usePerpsMarginAdjustment', () => {
       });
     });
 
+    it('routes the update to the position venue', async () => {
+      mockUpdateMargin.mockResolvedValue({ success: true });
+
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      await act(async () => {
+        await result.current.handleAddMargin('ETH', 100, 'lighter');
+      });
+
+      expect(mockUpdateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '100',
+        providerId: 'lighter',
+      });
+    });
+
     it('ignores duplicate submissions while an adjustment is pending', async () => {
       let resolveMargin: (value: { success: boolean }) => void;
       mockUpdateMargin.mockImplementation(
@@ -352,6 +368,24 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).not.toHaveBeenCalled();
       expect(mockTrack).not.toHaveBeenCalled();
       expect(result.current.isAdjusting).toBe(false);
+    });
+
+    it('re-checks the position on the venue being adjusted', async () => {
+      mockGetPositions.mockResolvedValue([
+        { ...freshPosition, providerId: 'hyperliquid', marginUsed: '100000' },
+        { ...freshPosition, providerId: 'lighter' },
+      ]);
+      const mockOnAmountChanged = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsMarginAdjustment({ onAmountChanged: mockOnAmountChanged }),
+      );
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 12, 'lighter');
+      });
+
+      expect(mockUpdateMargin).not.toHaveBeenCalled();
+      expect(mockOnAmountChanged).toHaveBeenCalledWith(7);
     });
 
     it.each<[string, object[] | Error, number]>([

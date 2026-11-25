@@ -104,6 +104,15 @@ describe('usePerpsLimitPriceInput', () => {
       expect(mockUsePerpsTopOfBook).toHaveBeenCalledWith({ symbol: 'BTC' });
     });
 
+    it('reads top of book from the requested venue', () => {
+      renderLimitPriceInput({ enabled: true, providerId: 'lighter' });
+
+      expect(mockUsePerpsTopOfBook).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        providerId: 'lighter',
+      });
+    });
+
     it('drops both subscriptions while disabled', () => {
       renderLimitPriceInput({ enabled: false });
 
