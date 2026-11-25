@@ -11,6 +11,7 @@ export function useSectionTracking(
   currentSection: PayWithSectionId,
   isActive: boolean,
   switchKey: string = currentSection,
+  initialSwitchCount = 0,
 ): SectionTrackingResult {
   const presentedRef = useRef<PayWithSectionId | undefined>(undefined);
   if (!presentedRef.current && isActive) {
@@ -18,7 +19,14 @@ export function useSectionTracking(
   }
 
   const previousRef = useRef<string | undefined>(undefined);
-  const switchCountRef = useRef(0);
+  const switchCountRef = useRef(initialSwitchCount);
+
+  if (
+    previousRef.current === undefined &&
+    initialSwitchCount > switchCountRef.current
+  ) {
+    switchCountRef.current = initialSwitchCount;
+  }
 
   if (isActive) {
     if (previousRef.current === undefined) {

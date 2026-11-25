@@ -1526,6 +1526,108 @@ describe('useTransactionPayMetrics', () => {
           });
         },
       );
+
+      it.each([
+        TransactionType.perpsDeposit,
+        TransactionType.perpsLighterDeposit,
+      ] as const)(
+        'carries recipient switch count onto replacement transaction when hook remounts for %s',
+        async (type) => {
+          selectPaymentOverrideMock.mockReturnValue(
+            PaymentOverride.MoneyAccount,
+          );
+
+          const state = merge(
+            {},
+            simpleSendTransactionControllerMock,
+            transactionApprovalControllerMock,
+            otherControllersMock,
+          );
+          const baseTx =
+            state.engine.backgroundState.TransactionController.transactions[0];
+          baseTx.type = type;
+          baseTx.txParams.from = PAYING_ACCOUNT_MOCK;
+
+          const baseApproval =
+            state.engine.backgroundState.ApprovalController.pendingApprovals[
+              transactionIdMock
+            ];
+
+          const firstRender = renderHookWithProvider(useTransactionPayMetrics, {
+            state,
+          });
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: transactionIdMock,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_recipient_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+
+          firstRender.unmount();
+
+          const secondTxId = 'perps-replacement-tx-2';
+          const secondTx = merge({}, baseTx, {
+            id: secondTxId,
+            txParams: { ...baseTx.txParams, from: SECOND_PAYING_ACCOUNT_MOCK },
+          });
+          const secondApproval = merge({}, baseApproval, {
+            id: secondTxId,
+            requestData: { txId: secondTxId },
+          });
+
+          const replacementState = merge({}, state);
+          replacementState.engine.backgroundState.TransactionController.transactions =
+            [secondTx];
+          replacementState.engine.backgroundState.ApprovalController.pendingApprovals =
+            {
+              [secondTxId]: secondApproval,
+            };
+
+          mockSelectConfirmationMetricsById.mockImplementation(
+            (_rootState: unknown, id: string) =>
+              id === secondTxId
+                ? {
+                    properties: { mm_pay_recipient_mm_account_switch_count: 1 },
+                  }
+                : undefined,
+          );
+          useTransactionPayTokenMock.mockReturnValue({
+            payToken: undefined,
+            setPayToken: noop,
+          });
+
+          const secondRender = renderHookWithProvider(
+            useTransactionPayMetrics,
+            { state: replacementState },
+          );
+          await act(async () => noop());
+
+          useTransactionPayTokenMock.mockReturnValue({
+            payToken: PAY_TOKEN_MOCK,
+            setPayToken: noop,
+          });
+          secondRender.rerender({});
+          await act(async () => noop());
+
+          expect(updateConfirmationMetricMock).toHaveBeenLastCalledWith({
+            id: secondTxId,
+            params: {
+              properties: expect.objectContaining({
+                mm_pay_account_type_recipient_presented: 'perps',
+                mm_pay_account_type_recipient_selected: 'perps',
+                mm_pay_recipient_mm_account_switch_count: 1,
+                mm_pay_source_mm_account_switch_count: 0,
+              }),
+              sensitiveProperties: {},
+            },
+          });
+        },
+      );
     });
 
     it('is not included when no pay token', async () => {

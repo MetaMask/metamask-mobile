@@ -20,6 +20,7 @@ const RECIPIENT_SUB_ACCOUNT_TYPES = [
 export function usePaySectionRecipientMetrics(
   sourceSection: PayWithSectionId,
   hasPayToken: boolean,
+  initialSwitchCount = 0,
 ) {
   const transactionMeta = useTransactionMetadataRequest();
   const accountOverride = useTransactionAccountOverride();
@@ -46,6 +47,7 @@ export function usePaySectionRecipientMetrics(
     currentSection,
     hasPayToken && isRecipientAccountReady,
     switchKey,
+    initialSwitchCount,
   );
 }
 
