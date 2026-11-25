@@ -8,6 +8,7 @@ import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 
 const renderBanner = (status: MoneyMfaStatus, isSettingUpDismissed = false) => {
   const onRetry = jest.fn();
+  const onRetrySignIn = jest.fn();
   const onDismissSettingUp = jest.fn();
   const utils = render(
     <MoneyMfaStatusBanner
@@ -15,9 +16,10 @@ const renderBanner = (status: MoneyMfaStatus, isSettingUpDismissed = false) => {
       isSettingUpDismissed={isSettingUpDismissed}
       onDismissSettingUp={onDismissSettingUp}
       onRetry={onRetry}
+      onRetrySignIn={onRetrySignIn}
     />,
   );
-  return { ...utils, onRetry, onDismissSettingUp };
+  return { ...utils, onRetry, onRetrySignIn, onDismissSettingUp };
 };
 
 describe('MoneyMfaStatusBanner', () => {
@@ -31,6 +33,56 @@ describe('MoneyMfaStatusBanner', () => {
 
   afterEach(() => {
     announce.mockRestore();
+  });
+
+  describe('signing_in', () => {
+    it('renders the signing-in title without a description or close button', () => {
+      const { getByTestId, getByText, queryByText, queryByTestId } =
+        renderBanner('signing_in');
+
+      expect(getByTestId(MoneyMfaTestIds.SIGNING_IN_BANNER)).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.signing_in_title')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('money.mfa.setting_up_description')),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('stays visible when the setting-up banner was dismissed', () => {
+      const { getByTestId } = renderBanner('signing_in', true);
+
+      expect(getByTestId(MoneyMfaTestIds.SIGNING_IN_BANNER)).toBeOnTheScreen();
+    });
+  });
+
+  describe('sign_in_failed', () => {
+    it('renders the sign-in failure copy', () => {
+      const { getByTestId, getByText } = renderBanner('sign_in_failed');
+
+      expect(
+        getByTestId(MoneyMfaTestIds.SIGN_IN_FAILED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.sign_in_failed_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.sign_in_failed_description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onRetrySignIn, not onRetry, when Try again is pressed', () => {
+      const { getByTestId, onRetry, onRetrySignIn } =
+        renderBanner('sign_in_failed');
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SIGN_IN_FAILED_BANNER_RETRY));
+
+      expect(onRetrySignIn).toHaveBeenCalledTimes(1);
+      expect(onRetry).not.toHaveBeenCalled();
+    });
   });
 
   describe('setting_up', () => {

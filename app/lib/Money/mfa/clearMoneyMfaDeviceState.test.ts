@@ -6,6 +6,12 @@ import {
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
 } from './moneyAccountMigration';
+import { moneyAccountRestore } from './moneyAccountRestore';
+import { restoreMpcMoneyAccount } from './restoreMpcMoneyAccount';
+
+jest.mock('./restoreMpcMoneyAccount', () => ({
+  restoreMpcMoneyAccount: jest.fn(),
+}));
 
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -61,5 +67,16 @@ describe('clearMoneyMfaDeviceState', () => {
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
     );
+  });
+
+  it('clears a failed Money account sign-in', async () => {
+    jest
+      .mocked(restoreMpcMoneyAccount)
+      .mockRejectedValue(new Error('restore failed'));
+    await moneyAccountRestore.restore('0xabc');
+
+    await clearMoneyMfaDeviceState();
+
+    expect(moneyAccountRestore.getStatus()).toBe('idle');
   });
 });
