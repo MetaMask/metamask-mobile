@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import {
   ButtonIcon,
@@ -37,9 +38,21 @@ export function PacksView() {
   )
     ? selectedCategoryId
     : undefined;
+  if (selectedCategoryId && !activeCategoryId) {
+    setSelectedCategoryId(undefined);
+  }
   const visiblePacks = activeCategoryId
     ? packs.filter((pack) => pack.categoryId === activeCategoryId)
     : packs;
+
+  const isEmpty = !isPending && !packs.length;
+  useEffect(() => {
+    if (isEmpty) {
+      AccessibilityInfo.announceForAccessibility(
+        strings('collectibles.packs.empty'),
+      );
+    }
+  }, [isEmpty]);
 
   function renderItem({ item }: { item: ListedPack }) {
     return (
@@ -57,7 +70,7 @@ export function PacksView() {
     if (isPending) {
       return <PacksScreenSkeleton />;
     }
-    if (!packs.length) {
+    if (isEmpty) {
       return (
         <View
           className="items-center gap-2 px-6 py-10"

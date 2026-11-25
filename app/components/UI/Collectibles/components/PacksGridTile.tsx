@@ -14,7 +14,7 @@ import { Image } from '../../primitives/Image';
 import { Pressable } from '../../primitives/Pressable';
 import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
-import { PackOpensBadge } from './PackOpensBadge';
+import { getOpensLabel, PackOpensBadge } from './PackOpensBadge';
 
 interface Props {
   pack: ListedPack;
@@ -23,12 +23,18 @@ interface Props {
 }
 
 export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
-  const [hasArtFailed, setHasArtFailed] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string>();
+  const hasArtFailed = failedImageUrl === pack.imageUrl;
+  const price = formatPackPrice(pack.priceUsd);
 
   return (
     <View className="gap-2" testID={collectiblesTestIds.packsTile(pack.code)}>
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={strings('collectibles.packs.tile_label', {
+          name: pack.name,
+          opens: getOpensLabel(pack.openedCount),
+        })}
         className="gap-2"
         pressedClassName="opacity-70"
         onPress={() => onOpenDetail(pack)}
@@ -40,7 +46,8 @@ export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
               source={{ uri: pack.imageUrl }}
               contentFit="contain"
               className="h-56 w-full rounded-lg"
-              onError={() => setHasArtFailed(true)}
+              onError={() => setFailedImageUrl(pack.imageUrl)}
+              testID={collectiblesTestIds.packsTileArt(pack.code)}
             />
           ) : (
             <View
@@ -52,6 +59,7 @@ export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
             className="absolute left-2 top-2"
             code={pack.code}
             openedCount={pack.openedCount}
+            isAccessible={false}
           />
         </View>
         <Text
@@ -66,12 +74,14 @@ export function PacksGridTile({ pack, onOpenDetail, onOpenBuy }: Props) {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Sm}
         isFullWidth
+        accessibilityLabel={strings('collectibles.packs.open_pack_price', {
+          name: pack.name,
+          price,
+        })}
         onPress={() => onOpenBuy(pack)}
         testID={collectiblesTestIds.packsTileBuy(pack.code)}
       >
-        {strings('collectibles.packs.open_price', {
-          price: formatPackPrice(pack.priceUsd),
-        })}
+        {strings('collectibles.packs.open_price', { price })}
       </Button>
     </View>
   );

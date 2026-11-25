@@ -13,11 +13,13 @@ describe('PackCategoryChips', () => {
   it('shows "All" first, then the categories', () => {
     render(<PackCategoryChips categories={categories} onSelect={jest.fn()} />);
 
-    expect(
-      screen.getByText(strings('collectibles.packs.all')),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Pokémon')).toBeOnTheScreen();
-    expect(screen.getByText('Sports')).toBeOnTheScreen();
+    const chipIds = screen
+      .getAllByTestId(/^collectibles-packs-chip-/)
+      .map((chip) => chip.props.testID);
+
+    expect(chipIds).toEqual(
+      ['all', 'pokemon', 'sports'].map(collectiblesTestIds.packsCategoryChip),
+    );
   });
 
   it('marks "All" as selected when no category is selected', () => {

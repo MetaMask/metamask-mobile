@@ -46,15 +46,85 @@ describe('PacksGridTile', () => {
     expect(screen.getByText('Lorem ipsum')).toHaveProp('numberOfLines', 1);
   });
 
-  it.each([
-    [19_999, false],
-    [20_000, true],
-  ])('with %d opens shows the flame: %s', (openedCount, hasFlame) => {
-    renderTile({ openedCount });
+  it('shows the flame from 20,000 opens', () => {
+    renderTile({ openedCount: 20_000 });
 
     expect(
-      screen.queryByTestId(collectiblesTestIds.flame(pack.code)) !== null,
-    ).toBe(hasFlame);
+      screen.getByTestId(collectiblesTestIds.flame(pack.code)),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the flame below 20,000 opens', () => {
+    renderTile({ openedCount: 19_999 });
+
+    expect(
+      screen.queryByTestId(collectiblesTestIds.flame(pack.code)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('reads the name and opens as one tile label', () => {
+    renderTile();
+    const opensLabel = strings('collectibles.home.opens', {
+      count: 1234,
+      formattedCount: '1,234',
+    });
+
+    expect(
+      screen.getByLabelText(
+        strings('collectibles.packs.tile_label', {
+          name: 'Lorem ipsum',
+          opens: opensLabel,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByLabelText(opensLabel)).not.toBeOnTheScreen();
+  });
+
+  it('names the pack on the price button', () => {
+    renderTile();
+
+    expect(
+      screen.getByLabelText(
+        strings('collectibles.packs.open_pack_price', {
+          name: 'Lorem ipsum',
+          price: '$25',
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the art of a new pack after the previous art failed', () => {
+    const handlers = { onOpenDetail: jest.fn(), onOpenBuy: jest.fn() };
+    render(
+      <PacksGridTile
+        pack={{ ...pack, imageUrl: 'https://example.com/a.png' }}
+        {...handlers}
+      />,
+    );
+    fireEvent(
+      screen.getByTestId(collectiblesTestIds.packsTileArt(pack.code)),
+      'error',
+    );
+    expect(
+      screen.getByTestId(
+        collectiblesTestIds.packsTileArtPlaceholder(pack.code),
+      ),
+    ).toBeOnTheScreen();
+
+    screen.rerender(
+      <PacksGridTile
+        pack={{
+          ...pack,
+          code: 'pack-2',
+          imageUrl: 'https://example.com/b.png',
+        }}
+        {...handlers}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(collectiblesTestIds.packsTileArt('pack-2')),
+    ).toBeOnTheScreen();
   });
 
   it('shows a neutral placeholder when there is no art', () => {

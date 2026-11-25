@@ -15,28 +15,40 @@ import { CapsuleGlass } from '../../primitives/CapsuleGlass';
 
 const flameThreshold = 20_000;
 
+function formatOpens(openedCount: number) {
+  return getIntlNumberFormatter(I18n.locale).format(openedCount);
+}
+
+export function getOpensLabel(openedCount: number) {
+  return strings(
+    openedCount >= flameThreshold
+      ? 'collectibles.home.opens_trending'
+      : 'collectibles.home.opens',
+    { count: openedCount, formattedCount: formatOpens(openedCount) },
+  );
+}
+
 interface Props {
   code: string;
   openedCount: number;
   className?: string;
+  isAccessible?: boolean;
 }
 
-export function PackOpensBadge({ code, openedCount, className }: Props) {
-  const formattedCount = getIntlNumberFormatter(I18n.locale).format(
-    openedCount,
-  );
+export function PackOpensBadge({
+  code,
+  openedCount,
+  className,
+  isAccessible = true,
+}: Props) {
+  const formattedCount = formatOpens(openedCount);
   const isTrending = openedCount >= flameThreshold;
 
   return (
     <View
       className={className}
-      accessible
-      accessibilityLabel={strings(
-        isTrending
-          ? 'collectibles.home.opens_trending'
-          : 'collectibles.home.opens',
-        { count: openedCount, formattedCount },
-      )}
+      accessible={isAccessible}
+      accessibilityLabel={isAccessible ? getOpensLabel(openedCount) : undefined}
     >
       <CapsuleGlass className="h-6 gap-1 px-2">
         {isTrending && (

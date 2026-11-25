@@ -25,6 +25,7 @@ export const collectiblesTestIds = {
   packsTile: (code: string) => `collectibles-packs-tile-${code}`,
   packsTileDetail: (code: string) => `collectibles-packs-tile-detail-${code}`,
   packsTileBuy: (code: string) => `collectibles-packs-tile-buy-${code}`,
+  packsTileArt: (code: string) => `collectibles-packs-tile-art-${code}`,
   packsTileArtPlaceholder: (code: string) =>
     `collectibles-packs-tile-art-placeholder-${code}`,
   packsComingSoonSheet: 'collectibles-packs-coming-soon-sheet',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -35,6 +36,10 @@ describe('PacksView', () => {
     mockCatalog = loadedCatalog();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('shows the controls, chips and grid', () => {
     renderWithProvider(<PacksView />);
 
@@ -55,7 +60,12 @@ describe('PacksView', () => {
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsFilterSortLine),
-    ).toHaveTextContent('All prices · Lowest price');
+    ).toHaveTextContent(
+      strings('collectibles.packs.filter_sort', {
+        filter: strings('collectibles.packs.all_prices'),
+        sort: strings('collectibles.packs.lowest_price'),
+      }),
+    );
   });
 
   it('selects "All" by default and shows every open priced pack', () => {
@@ -83,7 +93,7 @@ describe('PacksView', () => {
     expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
   });
 
-  it('falls back to "All" when the selected category loses its last pack', () => {
+  it('falls back to "All" when the selected category empties, and stays there', () => {
     const { rerender } = renderWithProvider(<PacksView />);
     fireEvent.press(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('watches')),
@@ -108,6 +118,14 @@ describe('PacksView', () => {
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
     ).toBeSelected();
     expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
+
+    mockCatalog = loadedCatalog();
+    rerender(<PacksView />);
+
+    expect(
+      screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
+    ).toBeSelected();
+    expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
   });
 
   it('shows skeletons while loading', () => {
@@ -120,9 +138,14 @@ describe('PacksView', () => {
     expect(screen.queryByTestId(collectiblesTestIds.packsGrid)).toBeNull();
   });
 
-  it('shows the placeholder when no pack is available', () => {
+  it('shows and announces the placeholder when no pack is available', () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(jest.fn());
     mockCatalog = { packs: [], categories: [], isPending: false };
     renderWithProvider(<PacksView />);
+
+    expect(announce).toHaveBeenCalledWith(strings('collectibles.packs.empty'));
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsEmpty),
