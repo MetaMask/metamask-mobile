@@ -2,11 +2,6 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { WatchlistTokenWithBalance } from '../../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 import { mapWatchlistTokenToTrendingAsset } from './mapWatchlistTokenToTrendingAsset';
 
-/**
- * Shared ordering policy for watchlist rows shown in Explore and on the
- * Homepage: most recently added first, optionally capped, mapped to the
- * `TrendingAsset` row shape.
- */
 export const toWatchlistDisplayTokens = (
   tokens: WatchlistTokenWithBalance[],
   limit?: number,

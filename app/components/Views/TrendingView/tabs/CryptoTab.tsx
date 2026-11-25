@@ -86,8 +86,6 @@ const CryptoTabContent: React.FC<TabProps> = ({
     setFeedActivePillKey(effectiveActiveCryptoPillKey);
   }, [effectiveActiveCryptoPillKey]);
 
-  // Like the Perps tab: Top Traders scrolls away as the list header and
-  // the pill row pins as the sticky header.
   const topTraders = useMemo(
     () =>
       showTopTraders ? (

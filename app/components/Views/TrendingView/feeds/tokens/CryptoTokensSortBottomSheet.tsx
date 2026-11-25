@@ -58,10 +58,8 @@ export interface CryptoTokensSortBottomSheetProps {
 }
 
 /**
- * Sort sheet for the Explore crypto token list, mirroring
- * PerpsMarketSortFieldBottomSheet: changes stay in draft until Apply,
- * tapping the selected option toggles high-to-low / low-to-high, and Reset
- * restores the pill's own order.
+ * Changes stay in draft until Apply; tapping the selected option toggles
+ * the direction, and Reset restores the pill's own order.
  */
 const CryptoTokensSortBottomSheet: React.FC<
   CryptoTokensSortBottomSheetProps

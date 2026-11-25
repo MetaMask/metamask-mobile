@@ -105,7 +105,7 @@ export interface CryptoTokensPillBlockProps {
 }
 
 /**
- * Explore crypto tokens list, laid out like the Perps tab: `ListHeaderComponent`
+ * Explore crypto tokens list: `ListHeaderComponent`
  * and the Tokens section header scroll away, the pill row (watchlist,
  * trending, top gainers, losers, most traded, plus configured chains) pins
  * as a sticky header, and every token of the selected pill is listed below.
@@ -262,9 +262,8 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     return rows;
   }, [activeItems, isListLoading]);
 
-  // Like PerpsMarketList's keepHeaderHiddenOnReset: on a pill change, if the
-  // user has scrolled past the header, jump back to the top of the list with
-  // the pills still pinned. Skips the first render.
+  // On a pill change past the header, jump back to the list top with the
+  // pills still pinned. Skips the first render.
   const hasMountedRef = useRef(false);
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -305,8 +304,6 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
               accessibilityLabel={strings(labelKey)}
               testID={`${testIdPrefix}-pill-${key}`}
               contentWrapperProps={{ gap: 0 }}
-              // Icon-only: ButtonBase pads pl-3 pr-4 for a leading icon (expecting a
-              // label), which leaves the star off-centre. Equal padding keeps it a 32x32 circle.
               twClassName="px-2"
             >
               {null}
@@ -446,9 +443,8 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
         testID={testID ?? listTestId}
       />
       {isSortSheetOpen && (
-        // Rendered in a Modal, like PerpsTab, so the sheet and backdrop cover
-        // the whole screen (above the floating tab bar) instead of being
-        // clipped to the tab. Android: wrap <Modal> in a plain <View>.
+        // A Modal so the sheet covers the floating tab bar. Android: wrap
+        // <Modal> in a plain <View>.
         <View>
           <Modal
             visible

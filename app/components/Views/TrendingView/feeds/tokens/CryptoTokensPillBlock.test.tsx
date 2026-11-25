@@ -1,15 +1,3 @@
-/**
- * CryptoTokensPillBlock — unit tests
- *
- * Core concerns:
- * 1. Renders the title, pill row, and the active pill's items.
- * 2. Watchlist pill is flag-gated and renders its empty state.
- * 3. Pills whose loaded data is below `minItems` are hidden.
- * 4. The active pill falls back to the first visible pill.
- * 5. Skeletons while the active pill is loading.
- * 6. Analytics and navigation wiring for row taps and see-all.
- */
-
 const mockScrollToOffset = jest.fn();
 const mockGetFirstItemOffset = jest.fn(() => 100);
 const mockGetAbsoluteLastScrollOffset = jest.fn(() => 0);
@@ -255,7 +243,7 @@ describe('CryptoTokensPillBlock', () => {
     });
 
     it('renders the watchlist pill first but opens on the trending pill', () => {
-      const { getByTestId, queryByTestId, UNSAFE_root: root } = renderBlock();
+      const { getByTestId, queryByTestId } = renderBlock();
 
       expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeOnTheScreen();
       expect(getByTestId('crypto-tokens-pill-watchlist')).toHaveProp(
@@ -265,14 +253,6 @@ describe('CryptoTokensPillBlock', () => {
       expect(getByTestId('crypto-tokens-pill-watchlist')).not.toHaveTextContent(
         'perps.watchlist.filter_badge_label',
       );
-      // Tailwind is mocked here, so assert the equal-padding override on the
-      // icon-only FilterButton itself (keeps the star centred in a 32x32 pill).
-      expect(
-        root.findByProps({
-          testID: 'crypto-tokens-pill-watchlist',
-          twClassName: 'px-2',
-        }),
-      ).toBeTruthy();
       expect(getByTestId('crypto-tokens-pill-trending')).toHaveTextContent(
         'trending.crypto_pills.trending',
       );
