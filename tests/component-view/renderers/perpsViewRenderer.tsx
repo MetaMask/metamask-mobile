@@ -22,6 +22,7 @@ import { PerpsTradeSheetSelectorsIDs } from '../../../app/components/UI/Perps/Pe
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import {
   createComponentViewQueryClient,
+  getRouteProbeTestId,
   renderComponentViewScreen,
   renderScreenWithRoutes,
   ToasterBoundary,
@@ -737,7 +738,10 @@ interface RenderPerpsViewOptions {
 
 const DefaultRouteProbe =
   (routeName: string): React.ComponentType<unknown> =>
-  () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
+  () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
+
+/** Test ID of the tab button `renderPerpsView({ siblingTab })` renders per tab. */
+export const getTabProbeTestId = (routeName: string) => `tab-${routeName}`;
 
 /**
  * Renders a Perps view with preset state. State is driven by Redux; use overrides
@@ -844,7 +848,7 @@ export function renderPerpsView(
             {tabState.routes.map(({ key, name }) => (
               <Pressable
                 key={key}
-                testID={`tab-${name}`}
+                testID={getTabProbeTestId(name)}
                 onPress={() => navigation.navigate(name)}
               />
             ))}
@@ -931,7 +935,11 @@ export function renderPerpsView(
       React.useEffect(() => {
         navigation.navigate(routeName, initialParams);
       }, [navigation]);
-      return <Text testID={`route-${presentingRoute}`}>{presentingRoute}</Text>;
+      return (
+        <Text testID={getRouteProbeTestId(presentingRoute ?? '')}>
+          {presentingRoute}
+        </Text>
+      );
     };
     const stackTree = (
       <Stack.Navigator

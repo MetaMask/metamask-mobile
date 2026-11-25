@@ -312,20 +312,14 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the real unsupported-account explanation without opening the Lite order sheet', async () => {
+  describe('Lite order sheet account support', () => {
+    // A Lighter market opens the Lite order sheet through BALANCE_ORDER after
+    // switching the venue from aggregated mode.
     const market = createEthMarketForViews({ providerId: 'lighter' });
-    const assignment = createScreenVsBottomSheetAssignmentForViews(
-      ScreenVsBottomSheetVariant.Treatment,
-    );
-    const getAccountSupport = jest.mocked(
-      Engine.context.PerpsController.getAccountSupport,
-    );
-    getAccountSupport.mockResolvedValue({
-      isSupported: false,
-      reason: 'multi_sig_account',
-    });
-
-    try {
+    const renderLiteMarketDetails = () => {
+      const assignment = createScreenVsBottomSheetAssignmentForViews(
+        ScreenVsBottomSheetVariant.Treatment,
+      );
       renderPerpsMarketDetailsView({
         initialParams: { market },
         streamOverrides: { positions: [], marketData: [market] },
@@ -340,18 +334,59 @@ describe('PerpsMarketDetailsView', () => {
             },
           },
         },
-        extraRoutes: [
-          {
-            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          },
-        ],
+        extraRoutes: [{ name: Routes.PERPS.BALANCE_ORDER }],
       });
+    };
 
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-        ),
+    beforeEach(() => {
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+      jest
+        .mocked(Engine.context.PerpsController.switchProvider)
+        .mockReset()
+        .mockResolvedValue({ success: true });
+    });
+
+    it('opens the Lite order sheet after checking support on the market venue', async () => {
+      const getAccountSupport = jest.mocked(
+        Engine.context.PerpsController.getAccountSupport,
       );
+      renderLiteMarketDetails();
+      const longButton = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      // Mount prefetches support with no provider; count only the tap's read.
+      getAccountSupport.mockClear();
+
+      fireEvent.press(longButton);
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.BALANCE_ORDER),
+        ),
+      ).toBeOnTheScreen();
+      expect(getAccountSupport).toHaveBeenCalledWith({
+        providerId: 'lighter',
+      });
+    });
+
+    it('shows the unsupported-account explanation instead of opening the Lite order sheet', async () => {
+      const getAccountSupport = jest.mocked(
+        Engine.context.PerpsController.getAccountSupport,
+      );
+      getAccountSupport.mockResolvedValue({
+        isSupported: false,
+        reason: 'multi_sig_account',
+      });
+      renderLiteMarketDetails();
+      const longButton = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      getAccountSupport.mockClear();
+
+      fireEvent.press(longButton);
 
       expect(
         await screen.findByText(
@@ -367,15 +402,12 @@ describe('PerpsMarketDetailsView', () => {
         providerId: 'lighter',
       });
       expect(
-        screen.queryByTestId(
-          getRouteProbeTestId(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          ),
-        ),
+        Engine.context.PerpsController.switchProvider,
+      ).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.BALANCE_ORDER)),
       ).not.toBeOnTheScreen();
-    } finally {
-      getAccountSupport.mockResolvedValue({ isSupported: true });
-    }
+    });
   });
 
   it('opens market-hours tooltip when info button is pressed for stock markets', async () => {

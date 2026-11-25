@@ -872,6 +872,9 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
       .mocked(Engine.context.PerpsController.getAccountSupport)
       .mockReset()
       .mockResolvedValue({ isSupported: true });
+    // The Cross orders suite places orders; start this suite's
+    // not-called assertions from a clean history.
+    jest.mocked(Engine.context.PerpsController.placeOrder).mockClear();
   });
 
   afterEach(() => {
@@ -888,12 +891,10 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
 
     fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
     fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
-    await waitFor(
-      () =>
-        expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
-      // Blurring the size field starts the async protocol order validation
-      // (and its fee quote); the CTA stays disabled until that resolves.
-      { timeout: 5000 },
+    // Blurring the size field starts async order validation; the CTA stays
+    // disabled until it resolves.
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
     );
 
     fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
@@ -906,6 +907,9 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
     expect(
       screen.getByText(strings('perps.tooltips.account_not_supported.content')),
     ).toBeOnTheScreen();
+    expect(
+      Engine.context.PerpsController.getAccountSupport,
+    ).toHaveBeenCalledWith({ providerId: 'hyperliquid' });
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
 
     fireEvent.press(screen.getByTestId(tooltipIds.GOT_IT_BUTTON));
