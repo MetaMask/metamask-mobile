@@ -22,6 +22,10 @@ class EarnLendingView {
     );
   }
 
+  get transactionsScrollView(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
+  }
+
   get confirmationFooter(): Promise<AppiumElement> {
     return Matchers.getElementByID(CONFIRMATION_FOOTER_TEST_ID);
   }
@@ -91,15 +95,15 @@ class EarnLendingView {
   }
 
   async scrollToWithdrawButton(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.withdrawButton,
-      Matchers.scrollContainer(ActivitiesViewSelectorsIDs.CONTAINER),
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Scroll to Withdraw button',
-      },
-    );
+    // The Token Details sticky footer covers the bottom of the list. WDIO's
+    // default swipe (percent 0.95) starts at ~97.5% of the container height,
+    // inside that footer, so swipe through the middle of the list instead.
+    await Gestures.scrollIntoView(this.withdrawButton, {
+      direction: 'up',
+      scrollableElement: await this.transactionsScrollView,
+      percent: 0.5,
+      maxScrolls: 10,
+    });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
