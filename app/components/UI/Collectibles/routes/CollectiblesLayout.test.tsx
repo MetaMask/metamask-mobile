@@ -12,6 +12,10 @@ import {
 } from '#app/components/UI/Collectibles/routeNames';
 import { CollectiblesLayout } from './CollectiblesLayout';
 
+jest.mock('#app/components/UI/Collectibles/hooks/usePacksCatalog', () => ({
+  usePacksCatalog: () => ({ packs: [], categories: [], isPending: true }),
+}));
+
 interface MockPagerProps {
   children?: React.ReactNode;
   onPageSelected?: (e: { nativeEvent: { position: number } }) => void;

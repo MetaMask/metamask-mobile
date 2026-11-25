@@ -15,4 +15,17 @@ export const collectiblesTestIds = {
   packsView: 'collectibles-packs-view',
   collectionView: 'collectibles-collection-view',
   marketplaceView: 'collectibles-marketplace-view',
+  packsSkeleton: 'collectibles-packs-skeleton',
+  packsEmpty: 'collectibles-packs-empty',
+  packsCategoryChip: (id: string) => `collectibles-packs-chip-${id}`,
+  packsFilterSortLine: 'collectibles-packs-filter-sort-line',
+  packsFilterButton: 'collectibles-packs-filter-button',
+  packsSortButton: 'collectibles-packs-sort-button',
+  packsGrid: 'collectibles-packs-grid',
+  packsTile: (code: string) => `collectibles-packs-tile-${code}`,
+  packsTileDetail: (code: string) => `collectibles-packs-tile-detail-${code}`,
+  packsTileBuy: (code: string) => `collectibles-packs-tile-buy-${code}`,
+  packsTileArtPlaceholder: (code: string) =>
+    `collectibles-packs-tile-art-placeholder-${code}`,
+  packsComingSoonSheet: 'collectibles-packs-coming-soon-sheet',
 } as const;
