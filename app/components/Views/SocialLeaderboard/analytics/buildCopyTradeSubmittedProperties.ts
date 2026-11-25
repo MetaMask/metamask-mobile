@@ -23,6 +23,8 @@ const COPY_TRADE_SCREEN_BY_SOURCE: Partial<
     SocialEvent.Screen.TOKEN_DETAILS_FEED,
   [SocialEvent.Source.TOKEN_DETAILS_HOLDERS]:
     SocialEvent.Screen.TOKEN_DETAILS_HOLDERS,
+  [SocialEvent.Source.TOKEN_DETAILS_CHART]:
+    SocialEvent.Screen.TOKEN_DETAILS_CHART,
   [SocialEvent.Source.PERPS_MARKET_FEED]: SocialEvent.Screen.PERPS_MARKET_FEED,
   [SocialEvent.Source.PERPS_MARKET_HOLDERS]:
     SocialEvent.Screen.PERPS_MARKET_HOLDERS,

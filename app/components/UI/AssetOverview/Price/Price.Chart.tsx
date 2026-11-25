@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
@@ -11,7 +12,14 @@ import LinePriceChart from '../PriceChart/PriceChart';
 import LinePriceChartWithSocialMarkers from '../PriceChart/LinePriceChartWithSocialMarkers';
 import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers';
 import SocialMarkersBottomSheet from '../../Charts/socialMarkers/SocialMarkersBottomSheet';
+import type { CandleAvatarMarkerEntry } from '../../Charts/socialMarkers/mapFollowingPositionsToCandleAvatarMarkers';
 import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import Routes from '../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import { SocialEvent } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import type { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
 import {
@@ -242,12 +250,61 @@ export const PriceChartSection = ({
   const [selectedAvatarIds, setSelectedAvatarIds] = useState<string[] | null>(
     null,
   );
+  // Last group shown in the sheet, so the position sheet's back button can
+  // reopen it after the markers sheet closed to make way for it.
+  const lastAvatarIdsRef = useRef<string[] | null>(null);
   const handleAvatarMarkerPress = useCallback((ids: string[]) => {
-    setSelectedAvatarIds(ids.length ? ids : null);
+    if (!ids.length) {
+      setSelectedAvatarIds(null);
+      return;
+    }
+    // Light "entry" haptic, in sync with the sheet starting to open.
+    playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+    lastAvatarIdsRef.current = ids;
+    setSelectedAvatarIds(ids);
+  }, []);
+  const reopenAvatarSheet = useCallback(() => {
+    if (lastAvatarIdsRef.current) {
+      setSelectedAvatarIds(lastAvatarIdsRef.current);
+    }
   }, []);
   const handleAvatarSheetClose = useCallback(
     () => setSelectedAvatarIds(null),
     [],
+  );
+
+  // Row tap -> Social position sheet. That route is only registered when the
+  // Social experience is on (MainNavigator), so rows stay non-interactive
+  // otherwise.
+  const navigation = useNavigation<AppNavigationProp>();
+  const isSocialV1Enabled = useSelector(selectHasSocialV1Access);
+  const isSocialLeaderboardEnabled = useSelector(
+    selectSocialLeaderboardEnabled,
+  );
+  const canOpenPositionSheet = isSocialV1Enabled || isSocialLeaderboardEnabled;
+  const handleTradePress = useCallback(
+    (entry: CandleAvatarMarkerEntry) => {
+      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: entry.position.positionId,
+        position: entry.position,
+        author: {
+          id: entry.actor.profileId,
+          username: entry.actor.name,
+          address: entry.actor.address,
+          avatarUri: entry.actor.imageUrl ?? null,
+          // Not on the followed-by-me actor; the sheet omits the badge.
+          winRatePercent: null,
+        },
+        // followed-by-me only returns open positions.
+        isClosed: false,
+        // Not streamed here, so the sheet refetches the position on open.
+        isSnapshotLive: false,
+        analyticsSource: SocialEvent.Source.TOKEN_DETAILS_CHART,
+        // Back button: dismiss the position sheet and return to this group.
+        onBack: reopenAvatarSheet,
+      });
+    },
+    [navigation, reopenAvatarSheet],
   );
 
   // The interval bar above the chart already adds 8px of bottom padding.
@@ -386,6 +443,7 @@ export const PriceChartSection = ({
           ids={selectedAvatarIds}
           byId={avatarMarkerLookup}
           onClose={handleAvatarSheetClose}
+          onTradePress={canOpenPositionSheet ? handleTradePress : undefined}
         />
       )}
     </>

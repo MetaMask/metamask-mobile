@@ -875,6 +875,31 @@ describe('PositionDetailsSheet', () => {
     );
   });
 
+  describe('back button', () => {
+    it('is hidden without an onBack param', () => {
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
+    });
+
+    it('dismisses the sheet, then calls onBack', () => {
+      const calls: string[] = [];
+      mockGoBack.mockImplementationOnce(() => calls.push('goBack'));
+      const onBack = jest.fn(() => calls.push('onBack'));
+      mockParams = { ...mockParams, onBack };
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(calls).toEqual(['goBack', 'onBack']);
+      expect(onBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('follow button', () => {
     it('follows the trader from the feed', () => {
       render(<PositionDetailsSheet />);

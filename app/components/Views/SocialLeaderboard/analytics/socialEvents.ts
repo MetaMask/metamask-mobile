@@ -59,6 +59,8 @@ export const SocialEvent = {
     POST_TO_FEED_TOAST: 'post_to_feed_toast',
     TOKEN_DETAILS_FEED: 'token_details_feed',
     TOKEN_DETAILS_HOLDERS: 'token_details_holders',
+    /** Social markers bottom sheet on the token details candlestick chart. */
+    TOKEN_DETAILS_CHART: 'token_details_chart',
     PERPS_MARKET_FEED: 'perps_market_feed',
     PERPS_MARKET_HOLDERS: 'perps_market_holders',
     FOLLOW_CONNECTIONS: 'follow_connections',
@@ -96,6 +98,8 @@ export const SocialEvent = {
     PERP_ASSET_SCREEN: 'perp_asset_screen',
     TOKEN_DETAILS_FEED: 'token_details_feed',
     TOKEN_DETAILS_HOLDERS: 'token_details_holders',
+    /** Trade row in the token details chart's social markers bottom sheet. */
+    TOKEN_DETAILS_CHART: 'token_details_chart',
     PERPS_MARKET_FEED: 'perps_market_feed',
     PERPS_MARKET_HOLDERS: 'perps_market_holders',
     MY_PROFILE: 'my_profile',

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable } from 'react-native';
+import { Modal } from 'react-native';
 // Gesture-handler ScrollView cooperates with the sheet's drag-to-dismiss pan;
 // the plain RN ScrollView loses vertical drags to it and can't scroll.
 import {
@@ -7,27 +7,32 @@ import {
   ScrollView,
 } from 'react-native-gesture-handler';
 import {
+  BadgeIcon,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
-  Icon,
-  IconColor,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
   IconName,
-  IconSize,
+  ListItem,
+  SectionDivider,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+// NOTE: the sheet shell stays on the component-library BottomSheet for now —
+// its drag/scroll interplay inside the Modal was just tuned; migrating to the
+// MMDS BottomSheet is a follow-up.
 import BottomSheet, {
   type BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
+import { playSelection } from '../../../../util/haptics';
 import TraderAvatar from '../../SocialFeed/components/TraderAvatar';
 import {
   formatAbbreviatedUsd,
@@ -53,13 +58,17 @@ export interface SocialMarkersBottomSheetProps {
   /** Marker-id → trade/actor lookup from the markers hook. */
   byId: CandleAvatarMarkerLookup;
   onClose: () => void;
+  /**
+   * Called with the tapped row's trade AFTER the sheet finishes closing, so the
+   * caller can navigate without the new screen opening under this Modal.
+   * Rows are not pressable when omitted.
+   */
+  onTradePress?: (entry: CandleAvatarMarkerEntry) => void;
 }
 
 /**
- * Trader avatar with a buy(+)/sell(-) intent badge. Uses the shared
- * `BadgeWrapper` (circular anchor) so the badge is pinned to the avatar's
- * bottom-right edge consistently with the rest of the app, rather than
- * hand-positioned.
+ * Trader avatar with a buy(+)/sell(-) intent badge, built from MMDS
+ * `BadgeWrapper` (circular anchor, bottom-right) + `BadgeIcon`.
  */
 const AvatarWithIntent: React.FC<{
   entry: CandleAvatarMarkerEntry;
@@ -68,26 +77,14 @@ const AvatarWithIntent: React.FC<{
   const { actor } = entry;
   return (
     <BadgeWrapper
-      // anchorElementShape defaults to Circular (the enum is type-only in the
-      // barrel, so it can't be referenced as a runtime value here).
-      badgePosition={BadgePosition.BottomRight}
-      anchorSize={{ width: ROW_AVATAR_SIZE, height: ROW_AVATAR_SIZE }}
-      badgeElement={
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName={`h-4 w-4 rounded-full border-2 border-background-default ${
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        <BadgeIcon
+          iconName={isBuy ? IconName.Add : IconName.Minus}
+          twClassName={`border-2 border-background-default ${
             isBuy ? 'bg-success-default' : 'bg-error-default'
           }`}
-        >
-          {/* Icon (centered SVG) avoids the baseline/font-padding offset a
-              single +/- text glyph gets. Mirrors PositionSheetChart's marker. */}
-          <Icon
-            name={isBuy ? IconName.Add : IconName.Minus}
-            size={IconSize.Xs}
-            color={IconColor.PrimaryInverse}
-          />
-        </Box>
+        />
       }
     >
       <TraderAvatar
@@ -100,109 +97,76 @@ const AvatarWithIntent: React.FC<{
   );
 };
 
-/** Colored Buy / Sell pill shown beside the trader name. */
-const DirectionPill: React.FC<{ isBuy: boolean }> = ({ isBuy }) => (
-  <Box
-    twClassName={`shrink-0 rounded px-1.5 py-0.5 ${
-      isBuy ? 'bg-success-muted' : 'bg-error-muted'
-    }`}
+/** Buy / Sell tag shown beside the trader name (MMDS `Tag`). */
+const DirectionTag: React.FC<{ isBuy: boolean }> = ({ isBuy }) => (
+  <Tag
+    severity={isBuy ? TagSeverity.Success : TagSeverity.Danger}
+    twClassName="shrink-0"
   >
     {/* NOTE (spike): placeholder copy — add Buy/Sell i18n keys before launch. */}
-    <Text
-      variant={TextVariant.BodyXs}
-      fontWeight={FontWeight.Medium}
-      color={isBuy ? TextColor.SuccessDefault : TextColor.ErrorDefault}
-    >
-      {isBuy ? 'Buy' : 'Sell'}
-    </Text>
-  </Box>
+    {isBuy ? 'Buy' : 'Sell'}
+  </Tag>
 );
 
-/** One trade row: trader avatar (+/-), name + Buy/Sell pill, value + size. */
-const TradeRow: React.FC<{ entry: CandleAvatarMarkerEntry }> = ({ entry }) => {
+export const SOCIAL_MARKERS_SHEET_ROW_TEST_ID = 'social-markers-sheet-row';
+
+/**
+ * One trade row (MMDS `ListItem`): avatar (+/-) start accessory, name + Buy/Sell
+ * tag / date on the left, value / size on the right. Pressable only when
+ * `onPress` is provided.
+ */
+const TradeRow: React.FC<{
+  entry: CandleAvatarMarkerEntry;
+  onPress?: (entry: CandleAvatarMarkerEntry) => void;
+}> = ({ entry, onPress }) => {
   const { actor, trade, position } = entry;
   const isBuy = trade.direction === 'buy';
   const unitPrice =
     trade.tokenAmount > 0 ? trade.usdCost / trade.tokenAmount : null;
 
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={3}
-      twClassName="px-4 py-3"
-    >
-      <AvatarWithIntent entry={entry} isBuy={isBuy} />
-      <Box twClassName="flex-1 min-w-0">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="shrink min-w-0"
-          >
-            {actor.name}
-          </Text>
-          <DirectionPill isBuy={isBuy} />
-        </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {formatTradeDate(trade.timestamp)}
-        </Text>
-      </Box>
-      <Box alignItems={BoxAlignItems.End}>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {formatAbbreviatedUsd(trade.usdCost)}
-        </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {`${formatTokenAmount(trade.tokenAmount)} ${position.tokenSymbol}${
-            unitPrice != null ? ` at ${formatTradeUnitPrice(unitPrice)}` : ''
-          }`}
-        </Text>
-      </Box>
-    </Box>
-  );
-};
-
-/** One filter tab (All / Buys / Sells). */
-const FilterTab: React.FC<{
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}> = ({ label, active, onPress }) => {
-  const tw = useTailwind();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      style={tw.style(
-        'px-3 py-1.5 rounded-full',
-        active ? 'bg-primary-default' : 'bg-muted',
-      )}
-    >
+  const content = {
+    startAccessory: <AvatarWithIntent entry={entry} isBuy={isBuy} />,
+    accessoryGap: 3 as const,
+    title: (
       <Text
         variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={active ? TextColor.PrimaryInverse : TextColor.TextAlternative}
+        color={TextColor.TextDefault}
+        numberOfLines={1}
+        twClassName="shrink min-w-0 font-medium"
       >
-        {label}
+        {actor.name}
       </Text>
-    </Pressable>
-  );
+    ),
+    titleEndAccessory: <DirectionTag isBuy={isBuy} />,
+    description: formatTradeDate(trade.timestamp),
+    value: (
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextDefault}
+        twClassName="font-medium"
+      >
+        {formatAbbreviatedUsd(trade.usdCost)}
+      </Text>
+    ),
+    subvalue: `${formatTokenAmount(trade.tokenAmount)} ${position.tokenSymbol}${
+      unitPrice != null ? ` at ${formatTradeUnitPrice(unitPrice)}` : ''
+    }`,
+    testID: SOCIAL_MARKERS_SHEET_ROW_TEST_ID,
+  };
+
+  if (!onPress) return <ListItem {...content} />;
+  return <ListItem {...content} isInteractive onPress={() => onPress(entry)} />;
 };
+
+const FILTER_OPTIONS: { value: TradeFilter; label: string }[] = [
+  // NOTE (spike): placeholder copy — add i18n keys before launch.
+  { value: 'all', label: 'All' },
+  { value: 'buy', label: 'Buys' },
+  { value: 'sell', label: 'Sells' },
+];
+
+const isTradeFilter = (value: string): value is TradeFilter =>
+  value === 'all' || value === 'buy' || value === 'sell';
 
 /**
  * Bottom sheet listing the trades behind a tapped avatar marker or cluster
@@ -216,15 +180,42 @@ const SocialMarkersBottomSheet: React.FC<SocialMarkersBottomSheetProps> = ({
   ids,
   byId,
   onClose,
+  onTradePress,
 }) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [filter, setFilter] = useState<TradeFilter>('all');
+  // Row tapped while the sheet animates closed; handed to `onTradePress` once
+  // the close completes so navigation never lands under this Modal.
+  const pendingTradeRef = useRef<CandleAvatarMarkerEntry | null>(null);
 
   // Animate the sheet closed via the ref, then let its onClose unmount us.
   const handleRequestClose = useCallback(
     () => sheetRef.current?.onCloseBottomSheet(),
     [],
+  );
+
+  const handleSheetClosed = useCallback(() => {
+    const pending = pendingTradeRef.current;
+    pendingTradeRef.current = null;
+    onClose();
+    if (pending) onTradePress?.(pending);
+  }, [onClose, onTradePress]);
+
+  const handleRowPress = useCallback((entry: CandleAvatarMarkerEntry) => {
+    if (pendingTradeRef.current) return; // already closing for a row tap
+    playSelection().catch(() => undefined);
+    pendingTradeRef.current = entry;
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleFilterChange = useCallback(
+    (value: string) => {
+      if (!isTradeFilter(value) || value === filter) return;
+      playSelection().catch(() => undefined);
+      setFilter(value);
+    },
+    [filter],
   );
 
   // Resolve ids → entries (dropping any missing), newest first.
@@ -243,6 +234,15 @@ const SocialMarkersBottomSheet: React.FC<SocialMarkersBottomSheetProps> = ({
   }, [entries, filter]);
 
   const showTabs = entries.length > 1;
+  // Buys / Sells only help when the group mixes both; a one-sided group keeps
+  // just "All".
+  const filterOptions = useMemo(() => {
+    const hasBuys = entries.some((entry) => entry.trade.direction === 'buy');
+    const hasSells = entries.some((entry) => entry.trade.direction === 'sell');
+    return hasBuys && hasSells
+      ? FILTER_OPTIONS
+      : FILTER_OPTIONS.filter((option) => option.value === 'all');
+  }, [entries]);
 
   return (
     // The component-library BottomSheet fills its PARENT (absoluteFill), so
@@ -259,7 +259,7 @@ const SocialMarkersBottomSheet: React.FC<SocialMarkersBottomSheetProps> = ({
       <GestureHandlerRootView style={tw.style('flex-1')}>
         <BottomSheet
           ref={sheetRef}
-          onClose={onClose}
+          onClose={handleSheetClosed}
           shouldNavigateBack={false}
         >
           {/* NOTE (spike): placeholder title — add an i18n key before launch.
@@ -274,27 +274,24 @@ const SocialMarkersBottomSheet: React.FC<SocialMarkersBottomSheetProps> = ({
           </BottomSheetHeader>
 
           {showTabs && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Start}
-              gap={2}
-              twClassName="px-4 pb-2"
-            >
-              <FilterTab
-                label="All"
-                active={filter === 'all'}
-                onPress={() => setFilter('all')}
-              />
-              <FilterTab
-                label="Buys"
-                active={filter === 'buy'}
-                onPress={() => setFilter('buy')}
-              />
-              <FilterTab
-                label="Sells"
-                active={filter === 'sell'}
-                onPress={() => setFilter('sell')}
-              />
+            <Box twClassName="px-4 pb-2">
+              <FilterButtonGroup
+                value={filter}
+                onChange={handleFilterChange}
+                variant={FilterButtonVariant.Secondary}
+                twClassName="gap-2"
+              >
+                {filterOptions.map((option) => (
+                  <FilterButton
+                    key={option.value}
+                    value={option.value}
+                    size={FilterButtonSize.Sm}
+                    isSelected={option.value === filter}
+                  >
+                    {option.label}
+                  </FilterButton>
+                ))}
+              </FilterButtonGroup>
             </Box>
           )}
 
@@ -306,8 +303,13 @@ const SocialMarkersBottomSheet: React.FC<SocialMarkersBottomSheetProps> = ({
               <React.Fragment
                 key={`${entry.actor.profileId}-${entry.trade.transactionHash}-${entry.trade.timestamp}`}
               >
-                {index > 0 && <Box twClassName="h-px bg-muted mx-4" />}
-                <TradeRow entry={entry} />
+                {index > 0 && (
+                  <SectionDivider marginVertical={0} twClassName="mx-4" />
+                )}
+                <TradeRow
+                  entry={entry}
+                  onPress={onTradePress ? handleRowPress : undefined}
+                />
               </React.Fragment>
             ))}
           </ScrollView>

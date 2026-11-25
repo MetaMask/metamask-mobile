@@ -68,6 +68,7 @@ describe('buildCopyTradeSubmittedProperties', () => {
     ['social_following', SocialEvent.Screen.FOLLOWING],
     ['social_live_trades', SocialEvent.Screen.LIVE_TRADES],
     ['trader_profile', SocialEvent.Screen.TRADER_PROFILE],
+    ['token_details_chart', SocialEvent.Screen.TOKEN_DETAILS_CHART],
   ] as const)('attributes a %s copy to that screen', (source, screenName) => {
     expect(
       buildCopyTradeSubmittedProperties({
