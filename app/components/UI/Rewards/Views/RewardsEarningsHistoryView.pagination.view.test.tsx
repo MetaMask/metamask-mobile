@@ -52,7 +52,7 @@ describe('RewardsEarningsHistoryView pagination', () => {
     const { getByTestId, getAllByTestId } = renderEarningsHistory({
       persona: 'referee',
       handlers: {
-        'RewardsMoneyController:getEarningsLedger': () =>
+        'RewardsMoneyController:getEarningsLedger': async () =>
           Promise.resolve(pages[Math.min(pageCalls, pages.length - 1)]).then(
             (result) => {
               pageCalls += 1;

@@ -32,7 +32,9 @@ describe('RewardsSettingsView accept journey', () => {
       renderRewardsSettingsView({
         persona: 'plain',
         handlers: {
-          'RewardsMoneyController:getReferralMe': (...args: unknown[]) => {
+          'RewardsMoneyController:getReferralMe': async (
+            ...args: unknown[]
+          ) => {
             const params = args[0] as { forceFresh?: boolean } | undefined;
             return Promise.resolve(
               params?.forceFresh ? refereeMe : referralMeFixture('plain'),

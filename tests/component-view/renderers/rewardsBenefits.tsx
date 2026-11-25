@@ -60,6 +60,9 @@ export function renderBenefitsPreview(
 ) {
   const { benefitsCount = 9 } = options;
   const payload = benefitsPayload(benefitsCount);
+  // The Messenger's `call` is a jest.fn across the suite; binding it would
+  // drop the mock API the renderer drives.
+  // oxlint-disable-next-line typescript/unbound-method
   const engine = Engine.controllerMessenger.call as jest.Mock;
   const baseEngineCall = engine.getMockImplementation();
   engine.mockReset();
@@ -100,7 +103,7 @@ export function renderBenefitsPreview(
     .build();
 
   const screen = renderComponentViewScreen(
-    BenefitsPreview as unknown as React.ComponentType,
+    BenefitsPreview,
     { name: 'BenefitsPreview' },
     { state },
   );

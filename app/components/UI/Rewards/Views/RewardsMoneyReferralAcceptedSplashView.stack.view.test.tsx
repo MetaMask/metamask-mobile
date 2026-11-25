@@ -118,8 +118,7 @@ function renderSplashStack({
         : []),
       {
         name: SPLASH_ROUTE,
-        Component:
-          RewardsMoneyReferralAcceptedSplashView as unknown as React.ComponentType,
+        Component: RewardsMoneyReferralAcceptedSplashView,
       },
       { name: Routes.REWARDS_VIEW, Component: RewardsViewWithBack },
     ],

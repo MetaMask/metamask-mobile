@@ -3,11 +3,11 @@ import React from 'react';
 import Engine from '../../../app/core/Engine';
 import PerpsTradingCampaignLeaderboardView from '../../../app/components/UI/Rewards/Views/PerpsTradingCampaignLeaderboardView';
 import Routes from '../../../app/constants/navigation/Routes';
-import { CampaignType } from '../../../app/core/Engine/controllers/rewards-controller/types';
-import type {
-  CampaignDto,
-  PerpsTradingCampaignLeaderboardDto,
-  PerpsTradingCampaignLeaderboardEntry,
+import {
+  CampaignType,
+  type CampaignDto,
+  type PerpsTradingCampaignLeaderboardDto,
+  type PerpsTradingCampaignLeaderboardEntry,
 } from '../../../app/core/Engine/controllers/rewards-controller/types';
 import { createStateFixture } from '../stateFixture';
 import { renderComponentViewScreen } from '../render';
@@ -58,7 +58,7 @@ export function leaderboardFixture(
     totalParticipants: winners + extraRows + 25,
     minVolumeForEligibility: 25_000,
     numberOfWinners: winners,
-  } as PerpsTradingCampaignLeaderboardDto;
+  };
 }
 
 export interface RenderPerpsLeaderboardOptions {
@@ -75,6 +75,9 @@ export function renderPerpsCampaignLeaderboard(
   options: RenderPerpsLeaderboardOptions = {},
 ) {
   const { leaderboard = leaderboardFixture(30) } = options;
+  // The Messenger's `call` is a jest.fn across the suite; binding it would
+  // drop the mock API the renderer drives.
+  // oxlint-disable-next-line typescript/unbound-method
   const engine = Engine.controllerMessenger.call as jest.Mock;
   const baseEngineCall = engine.getMockImplementation();
   engine.mockReset();
@@ -105,7 +108,7 @@ export function renderPerpsCampaignLeaderboard(
     .build();
 
   const screen = renderComponentViewScreen(
-    PerpsTradingCampaignLeaderboardView as unknown as React.ComponentType,
+    PerpsTradingCampaignLeaderboardView,
     { name: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD },
     { state },
     { campaignId: LEADERBOARD_CAMPAIGN_ID },

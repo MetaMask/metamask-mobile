@@ -144,7 +144,7 @@ describe('WaysToEarnTab claim device gaps', () => {
         claimReady: true,
         initiateClaim: 'hang',
         handlers: {
-          'RewardsMoneyController:getTaxMe': () =>
+          'RewardsMoneyController:getTaxMe': async () =>
             Promise.resolve(TAX_ATTESTATION_UNCLEARED),
         },
       });
@@ -189,9 +189,9 @@ describe('WaysToEarnTab claim device gaps', () => {
       claimReady: true,
       initiateClaim: 'hang',
       handlers: {
-        'RewardsMoneyController:getTaxMe': () =>
+        'RewardsMoneyController:getTaxMe': async () =>
           Promise.resolve(TAX_ATTESTATION_UNCLEARED),
-        'RewardsMoneyController:getCommissions': () =>
+        'RewardsMoneyController:getCommissions': async () =>
           Promise.resolve({
             results: [],
             mechanisms: {

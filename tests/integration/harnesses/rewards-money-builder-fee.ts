@@ -25,8 +25,10 @@
  * ─────────────────────────────────────────────────────────────────────────
  */
 
-import { BUILDER_FEE_CONFIG } from '@metamask/perps-controller';
-import type { PerpsControllerConfig } from '@metamask/perps-controller';
+import {
+  BUILDER_FEE_CONFIG,
+  type PerpsControllerConfig,
+} from '@metamask/perps-controller';
 import { createMobileClientConfig } from '../../../app/components/UI/Perps/adapters/mobileInfrastructure';
 import { RewardsController } from '../../../app/core/Engine/controllers/rewards-controller/RewardsController';
 import { getHyperliquidMainnetBuilderAddress } from '../../../app/core/Engine/controllers/rewards-controller/utils/hyperliquid-builder-address';

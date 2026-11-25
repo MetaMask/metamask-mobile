@@ -45,7 +45,7 @@ describe('RewardsNavigator settings gate', () => {
     installRewardsMoneyEngine({
       referralMe: referralMeFixture('plain'),
       handlers: {
-        'AuthenticationController:getSessionProfile': () =>
+        'AuthenticationController:getSessionProfile': async () =>
           Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
         'RewardsMoneyController:canChangeRewardsMoneyEnvUrl': () => false,
         'RewardsMoneyController:getRewardsMoneyEnvUrl': () =>
@@ -64,7 +64,7 @@ describe('RewardsNavigator settings gate', () => {
         [
           {
             name: Routes.REWARDS_FLOW,
-            Component: RewardsNavigator as unknown as React.ComponentType,
+            Component: RewardsNavigator,
           },
         ],
         { state },
