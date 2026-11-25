@@ -214,6 +214,15 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers the Money earnings history flag', () => {
+      expect(
+        getRegistryEntry('earnMoneyEarningHistoryEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.21.0',
+      });
+    });
+
     it('keeps mUSD conversion and Get-mUSD CTAs default-off', () => {
       const musdCtaFlags = [
         'earnMusdCtaEnabled',
@@ -407,21 +416,6 @@ describe('Feature Flag Registry', () => {
         productionDefault: {
           enabled: false,
         },
-      });
-    });
-
-    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
-      expect(
-        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-      expect(
-        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
       });
     });
 

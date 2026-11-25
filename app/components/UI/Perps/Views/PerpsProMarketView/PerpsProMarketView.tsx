@@ -50,6 +50,7 @@ import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { useMinimumOrderAmount, usePerpsMarketData } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
+import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   type PerpsMarketDetailSectionState,
@@ -479,6 +480,7 @@ const PerpsProMarketView = ({
     isInitialLoading: isLoadingAccount,
     deliveryRevision: accountDeliveryRevision = 0,
   } = usePerpsLiveAccount();
+  const { tone: crossMarginTone } = usePerpsCrossMarginSummary();
 
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
@@ -693,6 +695,7 @@ const PerpsProMarketView = ({
           onBackPress={handleBackPress}
           onIdentityPress={handleMarketListPress}
           onWalletPress={handleWalletPress}
+          walletRiskTone={crossMarginTone}
           onFavoritePress={handleFavoritePress}
           isFavorite={isWatchlist}
           onModeChange={handlePerpsModeChange}
@@ -833,6 +836,7 @@ const PerpsProMarketView = ({
       <PerpsBalanceBottomSheet
         isVisible={isBalanceSheetVisible}
         onClose={handleBalanceSheetClose}
+        buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS}
       />
     </View>
   );

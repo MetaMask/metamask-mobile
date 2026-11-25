@@ -326,6 +326,37 @@ describe('AppStateEventListener', () => {
     expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
   });
 
+  describe('getOpenedAt', () => {
+    it('returns the time start() ran', () => {
+      jest.setSystemTime(1_000_000);
+      const listener = new AppStateEventListener();
+
+      listener.start();
+      jest.setSystemTime(5_000_000);
+
+      expect(listener.getOpenedAt()).toBe(1_000_000);
+    });
+
+    it('moves to the resume time when the app comes back from the background', () => {
+      mockAppStateListener('background');
+      jest.setSystemTime(9_000_000);
+      mockAppStateListener('inactive');
+      mockAppStateListener('active');
+
+      expect(appStateManager.getOpenedAt()).toBe(9_000_000);
+    });
+
+    it('does not move when the app returns from inactive only', () => {
+      const openedAt = appStateManager.getOpenedAt();
+      jest.setSystemTime(openedAt + 60_000);
+
+      mockAppStateListener('inactive');
+      mockAppStateListener('active');
+
+      expect(appStateManager.getOpenedAt()).toBe(openedAt);
+    });
+  });
+
   it('handles undefined store gracefully', () => {
     jest.clearAllMocks();
     const { processAttribution: realProcessAttribution } = jest.requireActual(

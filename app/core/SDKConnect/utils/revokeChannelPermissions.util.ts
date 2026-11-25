@@ -14,5 +14,3 @@ export const revokeChannelPermissions = (channelId: string) => {
     PermissionController.revokeAllPermissions(channelId);
   }
 };
-
-export default revokeChannelPermissions;

@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
@@ -39,7 +40,7 @@ const mockPositionsSubscribe = jest.fn();
 const mockStream = { positions: { subscribe: mockPositionsSubscribe } };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
-  usePerpsStream: () => mockStream,
+  usePerpsStream: (): typeof mockStream => mockStream,
 }));
 
 jest.mock('react-redux', () => ({
@@ -57,7 +58,7 @@ jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useNavigation: () => ({
+    useNavigation: (): { navigate: typeof mockNavigate } => ({
       navigate: mockNavigate,
     }),
   };
@@ -138,7 +139,10 @@ const mockPerpsToastOptions = {
 
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
-  default: () => ({
+  default: (): { showToast: typeof mockShowToast } & Record<
+    'PerpsToastOptions',
+    typeof mockPerpsToastOptions
+  > => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
@@ -787,10 +791,10 @@ describe('usePerpsClosePosition', () => {
       });
 
       describe('failure toasts', () => {
-        it('shows already-closed toast when close returns No position found', async () => {
+        it('shows already-closed toast when close returns POSITION_NOT_FOUND', async () => {
           mockClosePosition.mockResolvedValue({
             success: false,
-            error: 'No position found for BTC',
+            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
           });
           const onSuccess = jest.fn();
           const { result } = renderHook(() =>
@@ -807,7 +811,7 @@ describe('usePerpsClosePosition', () => {
 
           expect(closeResult).toEqual({
             success: false,
-            error: 'No position found for BTC',
+            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
           });
           expect(mockShowToast).toHaveBeenCalledWith(
             mockPerpsToastOptions.positionManagement.closePosition
@@ -830,9 +834,55 @@ describe('usePerpsClosePosition', () => {
           expect(Logger.error).not.toHaveBeenCalled();
         });
 
-        it('shows already-closed toast when close throws No position found', async () => {
+        it('reconciles an already-closed position from a normalized Core result', async () => {
+          const normalizedResult = {
+            success: false,
+            error: 'Position is no longer available',
+            errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+            errorDetails: {
+              code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+              provider: 'hyperliquid',
+            },
+          } satisfies OrderResult;
+          mockClosePosition.mockResolvedValue(normalizedResult);
+          const onSuccess = jest.fn();
+          const { result } = renderHook(() =>
+            usePerpsClosePosition({ onSuccess }),
+          );
+
+          let closeResult: OrderResult | undefined;
+          await act(async () => {
+            closeResult = await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'market',
+            });
+          });
+
+          expect(closeResult).toBe(normalizedResult);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition
+              .positionAlreadyClosed,
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'positions',
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'accountState',
+          );
+          expect(endPerpsCufTrace).toHaveBeenCalledWith({
+            id: 'close-cuf-op',
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+            },
+          });
+          expect(onSuccess).not.toHaveBeenCalled();
+          expect(Logger.error).not.toHaveBeenCalled();
+        });
+
+        it('shows already-closed toast when close throws POSITION_NOT_FOUND', async () => {
           mockClosePosition.mockRejectedValue(
-            new Error('No position found for BTC'),
+            new Error(PERPS_ERROR_CODES.POSITION_NOT_FOUND),
           );
           const onSuccess = jest.fn();
           const { result } = renderHook(() =>
@@ -849,7 +899,7 @@ describe('usePerpsClosePosition', () => {
 
           expect(closeResult).toEqual({
             success: false,
-            error: 'No position found for BTC',
+            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
           });
           expect(mockShowToast).toHaveBeenCalledWith(
             mockPerpsToastOptions.positionManagement.closePosition
@@ -897,6 +947,34 @@ describe('usePerpsClosePosition', () => {
             2,
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionFailed,
+          );
+        });
+
+        it('explains the post-only network-upgrade window from a normalized Core result', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'ORDER_POST_ONLY_WINDOW',
+            errorCode: 'ORDER_POST_ONLY_WINDOW',
+            errorDetails: {
+              code: 'ORDER_POST_ONLY_WINDOW',
+              provider: 'hyperliquid',
+            },
+          });
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          const failureToast = mockShowToast.mock.calls.at(-1)?.[0];
+          expect(failureToast.labelOptions).toContainEqual(
+            expect.objectContaining({ label: 'perps.errors.postOnlyWindow' }),
           );
         });
 
@@ -1761,7 +1839,7 @@ describe('usePerpsClosePosition', () => {
         orderId: '42',
         averagePrice: '51000',
       },
-    ) => {
+    ): Promise<void> => {
       if (closeResult instanceof Error) {
         mockClosePosition.mockRejectedValue(closeResult);
       } else {
@@ -1853,13 +1931,14 @@ describe('usePerpsClosePosition', () => {
       expect(successToast).toEqual(
         expect.objectContaining({
           label: 'closed',
-          linkButtonOptions: expect.objectContaining({
+          closeButtonOptions: expect.objectContaining({
+            variant: ButtonVariants.Link,
             label: 'social_leaderboard.post_trade_share.post_to_feed',
           }),
         }),
       );
 
-      successToast.linkButtonOptions.onPress();
+      successToast.closeButtonOptions.onPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1874,6 +1953,43 @@ describe('usePerpsClosePosition', () => {
         }),
       );
       expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    it('replaces the Share PnL button with post to feed after the sheet limit', async () => {
+      closeFullPositionSuccess.mockReturnValueOnce({
+        label: 'closed',
+        closeButtonOptions: {
+          variant: ButtonVariants.Link,
+          label: 'perps.pnl_hero_card.share_button',
+          onPress: jest.fn(),
+        },
+      });
+
+      await close({ kind: 'post_to_feed_toast' });
+
+      const successToast = mockShowToast.mock.calls.at(-1)?.[0];
+      expect(successToast.closeButtonOptions.label).toBe(
+        'social_leaderboard.post_trade_share.post_to_feed',
+      );
+      expect(successToast).not.toHaveProperty('linkButtonOptions');
+    });
+
+    it('keeps the Share PnL button when the post to feed CTA does not apply', async () => {
+      const shareButton = {
+        variant: ButtonVariants.Link,
+        label: 'perps.pnl_hero_card.share_button',
+        onPress: jest.fn(),
+      };
+      closeFullPositionSuccess.mockReturnValueOnce({
+        label: 'closed',
+        closeButtonOptions: shareButton,
+      });
+
+      await close({ kind: 'none' });
+
+      const successToast = mockShowToast.mock.calls.at(-1)?.[0];
+      expect(successToast.closeButtonOptions).toBe(shareButton);
+      expect(successToast).not.toHaveProperty('linkButtonOptions');
     });
 
     it('marks the share sheet failed and skips the failure toast', async () => {

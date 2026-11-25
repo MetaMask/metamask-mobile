@@ -1,4 +1,5 @@
 import type { TraderProfileResponse } from '@metamask/social-controllers';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import { preferTraderAvatarUrl } from './preferTraderAvatarUrl';
 
@@ -13,6 +14,7 @@ export const traderProfileResponseToMySocialProfile = (
   imageUrl: preferTraderAvatarUrl(live.profile.imageUrl, extras?.imageUrl),
   rankingTag: live.rankingTag ?? null,
   xHandle: live.socialHandles?.twitter ?? null,
+  verified: isProfileVerified(live.profile),
   followerCount: live.followerCount,
   followingCount: live.followingCount,
   winRatePercent:

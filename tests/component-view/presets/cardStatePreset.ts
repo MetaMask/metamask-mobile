@@ -58,6 +58,7 @@ const defaultCardHomeData = {
  * The default state includes:
  * - An authenticated user with an active VIRTUAL card (USDC, Linea)
  * - US location so Order Metal Card is eligible when the feature flag is enabled
+ * - An account tree for the selected account
  * - Empty MoneyAccountController so the money-account linkage section is hidden
  *
  * Use `.withOverrides()` to override individual fields (e.g. isAuthenticated: false,
@@ -74,22 +75,38 @@ export const initialStateCard = () =>
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)
     .withMinimalAnalyticsController({ optedIn: false })
+    .withAccountTreeForSelectedAccount()
     .withOverrides({
       engine: {
         backgroundState: {
           CardController: {
             isAuthenticated: true,
-            cardholderAccounts: [`eip155:0:${DEFAULT_WALLET_ADDRESS}`],
+            cardLinks: [
+              {
+                provider: 'baanx',
+                status: 'active',
+                linkedAccountRef: null,
+                closedReason: null,
+                migratedToProvider: null,
+                linkedAt: '2026-09-01T00:00:00.000Z',
+                updatedAt: '2026-09-01T00:00:00.000Z',
+              },
+            ],
+            cardLinksFetchedAt: 1,
             activeProviderId: 'baanx',
             providerData: { baanx: { location: 'us' } },
             cardHomeData: defaultCardHomeData,
             cardHomeDataStatus: 'success',
             selectedCountry: null,
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+          },
           MoneyAccountController: { moneyAccounts: {} },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               cardFeature: defaultCardFeatureFlag,
+              cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
               metalCardCheckoutEnabled: null,
             },
           },

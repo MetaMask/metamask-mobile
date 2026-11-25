@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
+import { CollectiblesSection } from './Sections/Collectibles/CollectiblesSection';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
@@ -26,6 +27,7 @@ import {
   PredictHomeSection,
   selectPredictAvailability,
 } from '../../UI/PredictNext';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -71,6 +73,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
+    const collectiblesSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
@@ -126,6 +129,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictAvailability);
+    const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
@@ -224,6 +228,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             enabled: isPredictEnabled && shouldMountOptionalSections,
           },
           {
+            name: HomeSectionNames.COLLECTIBLES,
+            enabled: isCollectiblesEnabled && shouldMountOptionalSections,
+          },
+          {
             name: HomeSectionNames.WATCHLIST,
             enabled: isWatchlistEnabled && shouldMountOptionalSections,
           },
@@ -246,6 +254,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         showPerpsAboveTokens,
         showTopTradersAboveAllocation,
         isPredictEnabled,
+        isCollectiblesEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
         isWatchlistEnabled,
@@ -267,6 +276,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         tokensSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
+        collectiblesSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
         defiSectionRef.current?.refresh(),
@@ -293,6 +303,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       <HomepagePerpsHomeSlot
         key="perps"
         ref={perpsSectionRef}
+        deviceCapability={homepageDeviceCapability}
         sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
@@ -339,6 +350,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 <PredictHomeSection
                   ref={predictionsSectionRef}
                   sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              {shouldMountOptionalSections && isCollectiblesEnabled && (
+                <CollectiblesSection
+                  ref={collectiblesSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.COLLECTIBLES)}
                   totalSectionsLoaded={totalSectionsLoaded}
                 />
               )}

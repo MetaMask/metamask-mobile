@@ -108,6 +108,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -235,8 +236,11 @@ const MoneyHomeView = () => {
   // session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
-  const { isEligible: isVbaEligible, isLoading: isVbaEligibilityLoading } =
-    useVbaEligibility();
+  const {
+    isEligible: isVbaEligible,
+    isLoading: isVbaEligibilityLoading,
+    market: vbaMarket,
+  } = useVbaEligibility();
   const { hasCrypto, isLoading: isCryptoBalanceLoading } =
     useActiveGroupCryptoPresence();
   const devOverride = useMoneyHomeCardDevOverride();
@@ -301,7 +305,13 @@ const MoneyHomeView = () => {
         refetchInterest(),
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
+        ...(Engine.context.CardController.state.isAuthenticated
+          ? [
+              Engine.context.CardController.fetchCardHomeData({
+                force: true,
+              }),
+            ]
+          : []),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -317,6 +327,9 @@ const MoneyHomeView = () => {
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
+  );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
@@ -408,6 +421,8 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
+    displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -419,7 +434,8 @@ const MoneyHomeView = () => {
     };
   }
 
-  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
+  const showBalanceUnavailableBanner =
+    displayState.kind === 'unavailable' && !isBalanceLoading;
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
@@ -654,7 +670,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_key: 'money.action.transfer',
+      label_key: 'money.action.move',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -680,6 +696,20 @@ const MoneyHomeView = () => {
       },
     ]);
   }, [markCardFlowOpened, navigation, metamaskCardMode]);
+
+  const navigateToCardLogin = useCallback(() => {
+    markCardFlowOpened();
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      },
+    ]);
+  }, [markCardFlowOpened, navigation]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -748,7 +778,12 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage' || mode === 'setup') {
+      if (
+        mode === 'upsell' ||
+        mode === 'manage' ||
+        mode === 'setup' ||
+        mode === 'sign_in'
+      ) {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -836,6 +871,17 @@ const MoneyHomeView = () => {
       params: { variant: 'lifetime' },
     });
   }, [navigation, trackTooltipClicked]);
+
+  const handleEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  }, [navigation, trackSurfaceClicked]);
 
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
@@ -1051,6 +1097,7 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            onSignInPress={navigateToCardLogin}
             setupView={cardSetupView ?? undefined}
             onSetupContinuePress={enableCard ?? navigateToCardHome}
             isSetupContinueLoading={isEnableCardPending}
@@ -1084,6 +1131,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
@@ -1294,6 +1344,7 @@ const MoneyHomeView = () => {
           <MoneyVbaHomeCard
             key={devOverride?.id ?? moneyHomeCard.variant}
             variant={moneyHomeCard.variant}
+            sourceCurrency={vbaMarket?.currency}
             onDismiss={() => {
               if (devOverride?.card.type === 'vba') {
                 if (devOverride.card.variant === 'kyc_decision') {

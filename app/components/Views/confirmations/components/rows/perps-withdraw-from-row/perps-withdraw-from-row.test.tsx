@@ -175,6 +175,15 @@ describe('PerpsWithdrawFromRow', () => {
     expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
   });
 
+  it('stays on screen after the withdraw type switches to Lighter', () => {
+    const { getByTestId } = renderRow(
+      true,
+      TransactionType.perpsLighterWithdraw,
+    );
+
+    expect(getByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeOnTheScreen();
+  });
+
   it('renders nothing when the transaction is not a perps withdraw', () => {
     const { queryByTestId } = renderRow(true, TransactionType.perpsDeposit);
 

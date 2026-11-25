@@ -44,7 +44,7 @@ recommended choice anywhere the DS list-item treatment applies.
 ```tsx
 import Pressable, {
   PressableVariant,
-} from 'app/component-library/components-temp/Pressable';
+} from '#app/component-library/components-temp/Pressable';
 
 // Default: opacity dim — no need to pass `variant` explicitly
 <Pressable onPress={onPress} style={styles.row}>
@@ -67,7 +67,7 @@ Inside a `react-native-gesture-handler` scroll/list tree:
 import {
   PressableGH,
   PressableVariant,
-} from 'app/component-library/components-temp/Pressable';
+} from '#app/component-library/components-temp/Pressable';
 
 <PressableGH
   variant={PressableVariant.Highlight}

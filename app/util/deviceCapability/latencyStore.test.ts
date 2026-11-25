@@ -22,6 +22,7 @@ const netInfoState = (
 
 describe('latencyStore', () => {
   let store: typeof import('./latencyStore');
+  let tierSnapshot: typeof import('./networkTierSnapshot');
   let emitNetInfo: NetInfoListener;
   let emitAppState: AppStateListener;
 
@@ -45,6 +46,7 @@ describe('latencyStore', () => {
     });
     jest.isolateModules(() => {
       store = jest.requireActual('./latencyStore');
+      tierSnapshot = jest.requireActual('./networkTierSnapshot');
     });
     store.startLatencyMonitoring('HIGH');
     emitNetInfo(netInfoState('wifi'));
@@ -324,6 +326,55 @@ describe('latencyStore', () => {
     store.recordFetchSample(30000, epochAtStart);
 
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
+  describe('getSettledLatencySnapshot', () => {
+    it('keeps slow after a background clear', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+
+      emitAppState('background');
+
+      expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+      expect(store.getSettledLatencySnapshot()).toBe('SLOW');
+    });
+
+    it('keeps slow after a transport change', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+
+      emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '4g' }));
+
+      expect(store.getSettledLatencySnapshot()).toBe('SLOW');
+    });
+
+    it('moves to ok once slow is released', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+      emitAppState('background');
+      emitAppState('active');
+
+      [300, 300, 300].forEach((duration) => record(duration));
+
+      expect(store.getSettledLatencySnapshot()).toBe('OK');
+    });
+
+    it('resets to unknown and notifies when the device goes offline', () => {
+      [8000, 8000].forEach((duration) => record(duration));
+      emitAppState('background');
+      const listener = jest.fn();
+      store.subscribeLatency(listener);
+
+      emitNetInfo(netInfoState('none', false));
+
+      expect(store.getSettledLatencySnapshot()).toBe('UNKNOWN');
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('forwards the tier from each NetInfo event to the tier snapshot', () => {
+    expect(tierSnapshot.getNetworkTierSnapshot()).toBe('WIFI');
+
+    emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '3g' }));
+
+    expect(tierSnapshot.getNetworkTierSnapshot()).toBe('SLOW_CELLULAR');
   });
 
   it('uses the HIGH thresholds for a HIGH hardware row', () => {

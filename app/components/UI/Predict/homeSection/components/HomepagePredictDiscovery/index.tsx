@@ -148,6 +148,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
                 <BtcLiveRow
                   key={slot.series.id}
                   series={slot.series}
+                  iconName={slot.iconName}
                   onPress={handleBtcRow}
                 />
               );
@@ -156,6 +157,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
               <ChampionshipRow
                 key={slot.id}
                 state={eventSlotStateById.get(slot.id) ?? { kind: 'empty' }}
+                iconName={slot.iconName}
                 onPress={handleChampionshipRowPress}
                 transactionActiveAbTests={transactionActiveAbTests}
                 testID={`homepage-predict-discovery-market-slot-${index + 1}`}

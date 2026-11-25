@@ -154,7 +154,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const isWithdrawDisabled = availableBalance > 0 && !walletType;
 
   return (
-    <Box testID={PredictHomeSelectorsIDs.PORTFOLIO_MODULE} twClassName="gap-4">
+    <Box testID={PredictHomeSelectorsIDs.PORTFOLIO_MODULE} twClassName="gap-6">
       <PredictPortfolioSummary
         availableBalance={availableBalance}
         hasBalanceError={Boolean(balanceError)}

@@ -225,11 +225,11 @@ Code: `app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionVi
 
 ## PerpsCloseAllPositionsView
 
-Bottom sheet that closes every open position. Shows total margin, PnL and fees.
+Bottom sheet that closes every open position. Shows the total receive and P&L, plus a margin row when a margin mode applies.
 
-| Components                         | Hooks                                                                                                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BottomSheet`, `PerpsCloseSummary` | `usePerpsLivePositions`, `usePerpsLivePrices`, `usePerpsCloseAllCalculations`, `usePerpsCloseAllPositions`, `usePerpsToasts`, `usePerpsEventTracking` |
+| Components                        | Hooks                                                                                                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BottomSheet`, `PerpsCloseTotals` | `usePerpsLivePositions`, `usePerpsLivePrices`, `usePerpsCloseAllCalculations`, `usePerpsCloseAllPositions`, `usePerpsToasts`, `usePerpsEventTracking` |
 
 - Confirm makes one batch call, `PerpsController.closePositions({ symbols })`.
 - Runs embedded in Home through an external `sheetRef`, or as the `MODALS.CLOSE_ALL_POSITIONS` route.
@@ -341,6 +341,21 @@ Development-only tool for HyperLiquid HIP-3 multi-DEX. It casts `PerpsController
 - The route exists only in `__DEV__`. Outside it the view shows "Only available in development builds".
 
 Code: `app/components/UI/Perps/Debug/HIP3DebugView.tsx`; `app/components/UI/Perps/components/PerpsDeveloperOptionsSection/PerpsHIP3DebugButton.tsx`
+
+## Cross margin
+
+Behind `selectPerpsCrossMarginEnabledFlag`. With the flag off, cross positions keep the isolated presentation, except that the Pro position card always shows the venue's margin mode tag.
+
+- `usePerpsCrossMarginSummary` derives account ratio, maintenance margin, account leverage and cross margin usage from `AccountState.crossMarginSummary` and `spotCollateral` through Core `calculateAccountSummary`. The ratio tone is safe below 50%, warning up to 75% and danger above it (`CROSS_MARGIN_RATIO_*_THRESHOLD`).
+- The hook throttles its account and positions streams to `CROSS_MARGIN_SUMMARY_THROTTLE_MS`. On `SLOW_CELLULAR` it slows them to 3 s, or 5 s on `LOW` hardware. A `null` tier keeps the default.
+- Perps Home and the wallet homepage Perps section show `PerpsCrossMarginRatioBanner` when the tone is warning or danger. On Home, the available balance opens `PerpsBalanceBottomSheet`. The Pro header wallet icon opens the same sheet, which lists the four metrics with a tooltip on each label.
+- The Pro order form estimates the liquidation price of a new Cross order with `estimateCrossLiquidationPrice`, on Hyperliquid only. TAT-4668 moves it to Core.
+- Position cards (Lite and Pro) tag the margin mode and explain the cross liquidation price through `PerpsCrossMarginInfoButton`. The venue only adjusts isolated margin, so a cross position's margin is read-only.
+- Close position and close all show P&L on its own row when any position is cross. Margin then excludes P&L, so Margin + P&L - fees equals Receive.
+- An unknown value (spot collateral not published, max leverage loading, no live price) shows `--`, never `0`. Privacy mode masks the ratio figure with the same dots used for other balances.
+- The first switch to Cross in the Pro order form opens `PerpsCrossMarginConfirmBottomSheet`. Confirm stores the lowercase account address in `settings.perpsCrossMarginConfirmedAccounts`, so later Cross selections on any market skip the sheet for that account. Go back stores nothing, so the sheet opens again next time. An account switch while the sheet is open closes it, and deleting the wallet clears the stored accounts.
+
+Code: `app/components/UI/Perps/hooks/usePerpsCrossMarginSummary.ts`; `app/components/UI/Perps/utils/crossMarginSummary.ts`; `app/components/UI/Perps/components/PerpsBalanceBottomSheet/`; `app/components/UI/Perps/components/PerpsCrossMarginRatioBanner/`; `app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderForm/usePerpsProCrossMarginConfirm.ts`; `app/components/UI/Perps/selectors/crossMarginConfirmation/`
 
 ## Shared patterns
 
