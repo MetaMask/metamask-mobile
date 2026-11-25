@@ -36,7 +36,7 @@ let mockNetInfoLoad: 'available' | 'missing' | 'throws' = 'available';
 jest.mock('@react-native-community/netinfo', () => {
   const netInfo = {
     addEventListener: jest.fn(() => jest.fn()),
-    fetch: jest.fn(() => Promise.resolve({ type: 'unknown' })),
+    fetch: jest.fn(async () => ({ type: 'unknown' })),
   };
   return {
     __esModule: true,
