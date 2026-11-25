@@ -6298,7 +6298,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 9
     },
     "typescript/promise-function-async": {
       "count": 2
@@ -6412,7 +6412,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 8
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderForm/usePerpsProSizeInput.test.ts": {
@@ -7688,11 +7688,6 @@
     },
     "typescript/restrict-template-expressions": {
       "count": 6
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsOrderValidation.ts": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/hooks/usePerpsOrders.test.ts": {
