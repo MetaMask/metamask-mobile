@@ -216,7 +216,7 @@ export const usePerpsPositionModifyPreview = (
       setError(null);
     }
 
-    runPreview(requestParams, generation);
+    void runPreview(requestParams, generation);
 
     return () => {
       runPreview.cancel();
