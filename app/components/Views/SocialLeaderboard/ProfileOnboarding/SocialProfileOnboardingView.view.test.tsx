@@ -421,9 +421,7 @@ const awaitDebouncedUsernameCheck = async (
     } finally {
       // Yield two microtasks after resolving so fetchUsernameAvailability and
       // checkHandle both commit their state update before act flushes.
-      Promise.resolve()
-        .then(() => undefined)
-        .then(() => markSettled());
+      queueMicrotask(() => queueMicrotask(markSettled));
     }
   });
 
