@@ -743,7 +743,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('shows action buttons without balance display when balance is hidden', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection showActionButtons source={SOURCE} />,
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          showActionButtons
+          source={SOURCE}
+        />,
         { state: createMockState() },
         false,
       );
@@ -803,7 +807,7 @@ describe('PerpsMarketBalanceActions', () => {
       const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
         renderWithProvider(
           <PerpsMarketBalanceActions
-          source={SOURCE}
+            source={SOURCE}
             hideBalanceSection
             showActionButtons
             isGlass
@@ -833,7 +837,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       const { UNSAFE_queryAllByType } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection isGlass source={SOURCE} />,
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          isGlass
+          source={SOURCE}
+        />,
         { state: createMockState() },
         false,
       );
@@ -843,7 +851,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('keeps the original buttons by default', () => {
       const { UNSAFE_queryAllByType } = renderWithProvider(
-        <PerpsMarketBalanceActions hideBalanceSection showActionButtons source={SOURCE} />,
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          showActionButtons
+          source={SOURCE}
+        />,
         { state: createMockState() },
         false,
       );

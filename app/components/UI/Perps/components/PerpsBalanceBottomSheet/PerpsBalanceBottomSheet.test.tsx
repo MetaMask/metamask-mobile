@@ -130,7 +130,10 @@ describe('PerpsBalanceBottomSheet', () => {
     PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
   ])('attributes deposit and withdraw to the %s opener', (buttonLocation) => {
-    renderSheet({ buttonLocation, source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME });
+    renderSheet({
+      buttonLocation,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    });
 
     expect(usePerpsHomeActions).toHaveBeenCalledWith({
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,

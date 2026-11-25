@@ -27,9 +27,6 @@ import {
   buildPerpsOrderTrackingData,
 } from '../utils/orderParams';
 import { translatePerpsError } from '../utils/translatePerpsError';
-import { createLogRejection } from '../utils/logRejection';
-
-const logRejection = createLogRejection('usePerpsOrderSubmit');
 import { willFlipPosition } from '../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../utils/orderToasts';
 import {
@@ -799,7 +796,12 @@ export const usePerpsOrderSubmit = (
         if (result) notPlaced();
       })
       .catch((error: unknown) => {
-        logRejection('placeOrderAfterDeposit')(error);
+        // Keeps the view's Sentry name so existing issue groups continue.
+        const name = 'PerpsOrderView.placeOrderAfterDeposit';
+        Logger.error(ensureError(error, name), {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name, data: {} },
+        });
         notPlaced();
       });
   }, [showToast, PerpsToastOptions]);

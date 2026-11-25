@@ -47,6 +47,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { getPerformanceTimestamp, TraceName } from '../../../../../util/trace';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import {
   completePerpsTradeSheetInteractiveTrace,
   failPerpsTradeSheetInteractiveTrace,
@@ -246,9 +248,6 @@ import {
   failPerpsPostTradeShare,
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
-import { createLogRejection } from '../../utils/logRejection';
-
-const logRejection = createLogRejection('PerpsOrderView');
 import {
   useCanShareCopyTrade,
   usePostTradePromptResolver,
@@ -321,6 +320,15 @@ interface PerpsOrderViewContentProps {
   /** When the order view route mounted, for CUF spans when the form mounts later. */
   openStartTime?: number;
 }
+
+/** Reports a rejected fire-and-forget promise from this view. */
+const logRejection = (operation: string) => (error: unknown) => {
+  const name = `PerpsOrderView.${operation}`;
+  Logger.error(ensureError(error, name), {
+    tags: { feature: PERPS_CONSTANTS.FeatureName },
+    context: { name, data: {} },
+  });
+};
 
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
