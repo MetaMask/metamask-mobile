@@ -1134,6 +1134,81 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
+  # Shadow mode: compute the selective plan and publish it. Unit and component-view
+  # jobs still run every shard. They log failing suites the plan would have skipped.
+  test-plan:
+    name: Plan test selection
+    permissions:
+      contents: read
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    outputs:
+      reason: ${{ steps.plan.outputs.reason }}
+      thresholds_enforced: ${{ steps.plan.outputs.thresholds_enforced }}
+      unit_mode: ${{ steps.plan.outputs.unit_mode }}
+      unit_count: ${{ steps.plan.outputs.unit_count }}
+      cv_mode: ${{ steps.plan.outputs.cv_mode }}
+      cv_count: ${{ steps.plan.outputs.cv_count }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 200
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 200
+      - uses: ./.github/actions/setup-ci-js-deps
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - uses: actions/setup-node@v6
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+      - name: Plan test selection
+        id: plan
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          RUN_ALL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-all-unit-tests') && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          plan_file="${RUNNER_TEMP}/test-plan.json"
+          node scripts/jest/selective-test-plan.mjs \
+            --event "$EVENT_NAME" \
+            --base "$BASE_SHA" \
+            --run-all "$RUN_ALL" \
+            --out "$plan_file" > /dev/null
+          {
+            echo "### Test plan (shadow mode, every suite still runs)"
+            echo
+            jq -r '.reason' "$plan_file"
+            echo
+            jq -r '.projects | to_entries[] | "- \(.key): \(.value.mode) (\(.value.reason))"' "$plan_file"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test plan (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: jest-test-plan
+          path: ${{ runner.temp }}/test-plan.json
+          if-no-files-found: error
+          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     permissions:
@@ -1150,10 +1225,11 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && needs.test-plan.result == 'success' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
+      - test-plan
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -1187,6 +1263,24 @@ jobs:
       - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=12288
+      - name: Download test plan (Namespace)
+        if: ${{ !cancelled() && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: jest-test-plan
+          path: /tmp/jest-test-plan
+      - name: Download test plan (current)
+        if: ${{ !cancelled() && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: jest-test-plan
+          path: /tmp/jest-test-plan
+      - name: Log failing suites outside the selection
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: node scripts/jest/report-shadow-misses.mjs --plan /tmp/jest-test-plan/test-plan.json --results tests/results/unit-test-results-${{ matrix.shard }}.json --project unit
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -1234,6 +1328,7 @@ jobs:
         }}
     needs:
       - prepare-ci-js-deps
+      - test-plan
       - unit-tests
       - component-view-tests
       - integration-tests
@@ -1342,7 +1437,9 @@ jobs:
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
-      - run: yarn test:validate-coverage
+      - name: Validate coverage thresholds
+        if: ${{ needs.test-plan.outputs.thresholds_enforced == 'true' }}
+        run: yarn test:validate-coverage
       - name: Upload lcov.info (artifact stores)
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
@@ -1450,10 +1547,11 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && needs.test-plan.result == 'success' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
+      - test-plan
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -1490,6 +1588,24 @@ jobs:
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+      - name: Download test plan (Namespace)
+        if: ${{ !cancelled() && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: jest-test-plan
+          path: /tmp/jest-test-plan
+      - name: Download test plan (current)
+        if: ${{ !cancelled() && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: jest-test-plan
+          path: /tmp/jest-test-plan
+      - name: Log failing suites outside the selection
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: node scripts/jest/report-shadow-misses.mjs --plan /tmp/jest-test-plan/test-plan.json --results tests/results/cv-test-results-${{ matrix.shard }}.json --project cv
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -1917,7 +2033,13 @@ jobs:
       actions: write
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    needs:
+      [
+        build-android-apks,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+        get_requirements,
+      ]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1958,7 +2080,13 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
+    needs:
+      [
+        get_requirements,
+        build-ios-apps,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+      ]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -2223,6 +2351,7 @@ jobs:
       - scripts
       - lint-shards
       - lint
+      - test-plan
       - unit-tests
       - component-view-tests
       - component-view-flakiness-detection
