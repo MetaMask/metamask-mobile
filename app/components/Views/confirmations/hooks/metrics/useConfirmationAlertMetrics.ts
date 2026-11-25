@@ -115,6 +115,8 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
   [AlertKeys.HeadlessBuyError]: 'headless_buy_error',
+  [AlertKeys.LighterAccountLookupPending]: 'lighter_account_lookup_pending',
+  [AlertKeys.LighterAccountLookupFailed]: 'lighter_account_lookup_failed',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.GasLimitBelowMinimum]: 'gas_limit_below_minimum',
   [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',

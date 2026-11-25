@@ -15,7 +15,7 @@ import { selectUnapprovedMusdConversions } from '../selectors/musdConversionStat
  * the pending approval should not be rejected.
  */
 const ACTIVE_CONFIRMATION_FLOW_ROUTES = new Set<string>([
-  Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+  Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
   Routes.SHEET.TOOLTIP_MODAL,
 ]);
 
@@ -56,8 +56,7 @@ const rejectStaleApprovals = (transactionIds: string[]) => {
   requestAnimationFrame(() => {
     const orphanedRoute = NavigationService.navigation.getCurrentRoute();
     if (
-      orphanedRoute?.name ===
-      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+      orphanedRoute?.name === Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS
     ) {
       NavigationService.navigation.goBack();
     }

@@ -1334,7 +1334,7 @@ describe('EarnInputView', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
 
       expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
@@ -1377,7 +1377,7 @@ describe('EarnInputView', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
     });
 
@@ -1643,7 +1643,7 @@ describe('EarnInputView', () => {
 
           // Should navigate to redesigned confirmations instead of legacy lending deposit confirmation
           expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           });
 
           // Should NOT navigate to legacy lending deposit confirmation

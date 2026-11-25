@@ -333,11 +333,22 @@ const PredictionsSectionDefault = forwardRef<
       marketsLength: markets.length,
     });
 
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'unknown';
+    if (hasPositions || (showTrendingAbove && markets.length > 0)) {
+      cacheState = 'warm';
+    } else if (isLoading) {
+      cacheState = 'cold';
+    } else if (!hasError) {
+      cacheState = 'warm';
+    }
+
     useSectionPerformance({
       sectionId: analyticsName,
       contentReady: predictTimeToContentReady,
       isEmpty: isEmpty && !hasError,
       contentStateForTrace: hasError ? 'error' : undefined,
+      demandStarted: isPredictEnabled,
+      cacheState,
       isLoading,
       enabled: isPredictEnabled,
     });

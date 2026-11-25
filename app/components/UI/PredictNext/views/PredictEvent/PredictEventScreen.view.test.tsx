@@ -29,6 +29,8 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
+import { MoneylineMarketGroupCardTestIds } from '../../events/markets/MoneylineMarketGroupCard.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
 import type {
@@ -50,7 +52,6 @@ import { EventMarketListTestIds } from './internal/EventMarketList.testIds';
 import { EventMarketLayoutSectionTestIds } from './internal/EventMarketLayoutSection.testIds';
 import { EventMarketPeriodChipsTestIds } from './internal/EventMarketPeriodChips.testIds';
 import { EventMarketSectionTestIds } from './internal/EventMarketSection.testIds';
-import { strings } from '../../../../../../locales/i18n';
 import { Messenger } from '@metamask/messenger';
 import {
   PREDICT_LIVE_DATA_SERVICE_NAME,
@@ -161,9 +162,14 @@ const createGameEvent = (
     },
   });
 
+const GAME_MONEYLINE_KEY = 'moneyline';
+
 const createGameEventWithTeamMarkets = () => {
   const gameEvent = createGameEvent();
-  const baseMarket = gameEvent.markets[0];
+  const baseMarket = {
+    ...gameEvent.markets[0],
+    ...fullGameMoneylineMetadata(GAME_MONEYLINE_KEY),
+  };
   const awayMarket = {
     ...baseMarket,
     id: 'away-market' as PredictEntityId,
@@ -1085,8 +1091,9 @@ describe('PredictEventScreen', () => {
 
   it('lists winner and non-winner Markets under Game lines', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    const { group, layout, ...standardMarket } = awayMarket;
     const totalMarket = {
-      ...awayMarket,
+      ...standardMarket,
       id: 'total-market' as PredictEntityId,
       outcomes: [
         {
@@ -1110,15 +1117,13 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     expect(
-      within(
-        await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
-      ).getAllByText(strings('predict_next.event.game_lines'))[0],
+      await view.findByTestId(
+        MoneylineMarketGroupCardTestIds.card(GAME_MONEYLINE_KEY),
+      ),
     ).toBeOnTheScreen();
-    for (const marketId of ['away-market', 'home-market', 'total-market']) {
-      expect(
-        view.getByTestId(MarketStandardCardTestIds.card(marketId)),
-      ).toBeOnTheScreen();
-    }
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.card(totalMarket.id)),
+    ).toBeOnTheScreen();
     expect(view.getByText('Over')).toBeOnTheScreen();
   });
 
@@ -1135,7 +1140,12 @@ describe('PredictEventScreen', () => {
     );
 
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.yesButton('away-market')),
+      view.getByTestId(
+        MoneylineMarketGroupCardTestIds.price(
+          GAME_MONEYLINE_KEY,
+          awayMarket.id,
+        ),
+      ),
     );
 
     expect(
@@ -1162,8 +1172,9 @@ describe('PredictEventScreen', () => {
 
   it('lists winner Markets beside grouped spreads that also carry Game Selection', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    const { layout, ...marketWithoutLayout } = awayMarket;
     const spreadMarket = {
-      ...awayMarket,
+      ...marketWithoutLayout,
       id: 'spread-away' as PredictEntityId,
       group: {
         key: 'spread-1',
@@ -1188,10 +1199,9 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     expect(
-      await view.findByTestId(MarketStandardCardTestIds.card('away-market')),
-    ).toBeOnTheScreen();
-    expect(
-      view.getByTestId(MarketStandardCardTestIds.card('home-market')),
+      await view.findByTestId(
+        MoneylineMarketGroupCardTestIds.card(GAME_MONEYLINE_KEY),
+      ),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(MarketGroupCardTestIds.card('spread-1')),
@@ -1308,7 +1318,7 @@ describe('PredictEventScreen', () => {
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
-  it('lists winner, total, and spread cards in one Game Event', async () => {
+  it('lists ungrouped team Markets as standard cards beside totals and spreads', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
@@ -1335,46 +1345,6 @@ describe('PredictEventScreen', () => {
     expect(
       view.getByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
     ).toBeOnTheScreen();
-  });
-
-  it('loads ungrouped winner history when grouped Markets come first', async () => {
-    const event = makePredictNextCompositeGameEvent();
-    const groupedMarkets = event.markets.filter(
-      (market) => market.group !== undefined,
-    );
-    const winnerMarkets = event.markets.filter(
-      (market) => market.group === undefined,
-    );
-    resolveEventForRoute({
-      ...event,
-      markets: [...groupedMarkets, ...winnerMarkets],
-    });
-
-    const view = renderPredictEventScreen(routeParams);
-    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-
-    expect(messengerCall.mock.calls).toEqual(
-      expect.arrayContaining([
-        [
-          'PredictMarketDataService:getMarketHistory',
-          venueId,
-          'nfl-composite-away-market',
-          'ALL',
-        ],
-        [
-          'PredictMarketDataService:getMarketHistory',
-          venueId,
-          'nfl-composite-home-market',
-          'ALL',
-        ],
-      ]),
-    );
-    expect(messengerCall).not.toHaveBeenCalledWith(
-      'PredictMarketDataService:getMarketHistory',
-      venueId,
-      'nfl-spread-new-england-2-5',
-      'ALL',
-    );
   });
 
   it('loads Game history from the full-game choice group when period moneylines come first', async () => {
@@ -1409,7 +1379,7 @@ describe('PredictEventScreen', () => {
   });
 
   it('keeps winner Market history when a grouped Game line is selected', async () => {
-    resolveEventForRoute(makePredictNextCompositeGameEvent());
+    resolveEventForRoute(makePredictNextLaidOutGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
@@ -2318,22 +2288,50 @@ describe('PredictEventScreen', () => {
     ]);
   });
 
-  it('renders a completed Game as final with its observed metadata', async () => {
-    resolveEvent(createGameEvent({ status: 'completed' }));
-    const view = renderPredictEventScreen(routeParams);
+  it('renders a finalized Game fetched by id without a moneyline group', async () => {
+    const { awayMarket, homeMarket } = createGameEventWithTeamMarkets();
+    const event = createGameEvent({ status: 'completed' });
+    const markets = [awayMarket, homeMarket].map(
+      ({ group, layout, ...market }): PredictMarket => ({
+        ...market,
+        status: 'finalized',
+      }),
+    );
+    mockPredictNextMessenger(async (action, _venueId, id, range) => {
+      if (action === 'PredictMarketDataService:getEvent') {
+        return { ...event, markets };
+      }
+      if (action === 'PredictMarketDataService:getMarketHistory') {
+        return createHistory(id, range, 0);
+      }
+      return undefined;
+    });
 
+    const view = renderPredictEventScreen(routeParams);
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
       {},
       EVENT_LOAD,
     );
 
+    expectMessengerCalledWith(
+      'PredictMarketDataService:getEvent',
+      venueId,
+      eventId,
+    );
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_STATUS),
     ).toHaveTextContent('FINAL');
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
     ).toHaveTextContent('Q4 · 12:22');
+    expect(
+      await view.findByTestId(PredictMarketHistoryTestIds.EMPTY),
+    ).toBeOnTheScreen();
+    expect(getHistoryCalls(homeMarket.id)).toHaveLength(0);
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.yesButton(awayMarket.id)),
+    ).toBeDisabled();
   });
 
   it('lays out the standard Event header without an image', async () => {

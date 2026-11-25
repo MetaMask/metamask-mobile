@@ -13,6 +13,7 @@ const PROFILE_SOURCE_TO_ENTRY_POINT: Record<
   deep_link: 'trader_profile',
   trader_feed: 'trader_feed',
   explore_perps: 'trader_profile',
+  explore_crypto: 'trader_profile',
 };
 
 const POSITION_SOURCE_TO_ENTRY_POINT: Partial<

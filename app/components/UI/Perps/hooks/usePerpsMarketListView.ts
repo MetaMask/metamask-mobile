@@ -12,6 +12,7 @@ import {
   type SortField,
   type SortDirection,
   type SortOptionId,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   isHip3Filter,
@@ -25,7 +26,11 @@ import {
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
-import { selectPerpsMarketListPreferences } from '../selectors/marketListPreferences';
+import {
+  selectAvailableProviderIds,
+  selectEffectivePerpsVenueFilter,
+  selectPerpsMarketListPreferences,
+} from '../selectors/marketListPreferences';
 import { setPerpsMarketListPreferences } from '../../../../actions/settings';
 import Engine from '../../../../core/Engine';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
@@ -90,6 +95,13 @@ interface UsePerpsMarketListViewReturn {
     setSearchQuery: (query: string) => void;
     clearSearch: () => void;
     searchResultCount: number;
+  };
+  /** TAT-4407: venue filter state for the markets list. */
+  exchangeFilterState: {
+    isVisible: boolean;
+    selectedProviderIds: PerpsProviderType[];
+    onSave: (providerIds: PerpsProviderType[]) => void;
+    availableProviderIds: PerpsProviderType[];
   };
   /**
    * Sort state and controls
@@ -214,6 +226,13 @@ export const usePerpsMarketListView = ({
   );
   const dispatch = useDispatch();
 
+  // TAT-4407: venue filter state for the markets list. The effective filter is
+  // the saved selection ∩ available venues (never empty), and the trigger is
+  // only shown when more than one venue is available.
+  const effectiveVenueFilter = useSelector(selectEffectivePerpsVenueFilter);
+  const availableProviderIds = useSelector(selectAvailableProviderIds);
+  const isExchangeFilterVisible = availableProviderIds.length > 1;
+
   // The category and watchlist filters are mutually exclusive, so they live in
   // one state atom: callers change them through two separate setters within a
   // single handler (see `handleCategorySelect` in PerpsMarketListView), and
@@ -249,6 +268,23 @@ export const usePerpsMarketListView = ({
   // Mirrors `filters` so back-to-back setter calls in one handler read the
   // pending value rather than the one captured at render.
   const filtersRef = useRef(filters);
+
+  const handleExchangeFilterSave = useCallback(
+    (providerIds: PerpsProviderType[]) => {
+      if (providerIds.length === 0) {
+        // The reducer refuses an empty selection; never dispatch one.
+        return;
+      }
+      dispatch(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: filtersRef.current.marketTypeFilter,
+          showFavoritesOnly: filtersRef.current.showFavoritesOnly,
+          selectedProviderIds: providerIds,
+        }),
+      );
+    },
+    [dispatch],
+  );
 
   const applyFilters = useCallback((next: MarketListFilters) => {
     filtersRef.current = next;
@@ -530,5 +566,11 @@ export const usePerpsMarketListView = ({
     marketCounts,
     isLoading: isLoadingMarkets,
     error,
+    exchangeFilterState: {
+      isVisible: isExchangeFilterVisible,
+      selectedProviderIds: effectiveVenueFilter,
+      onSave: handleExchangeFilterSave,
+      availableProviderIds,
+    },
   };
 };

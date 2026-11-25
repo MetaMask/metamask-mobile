@@ -89,7 +89,7 @@ describe('Quote Component', () => {
 
     expect(getByText('Continue with Mock Provider')).toBeTruthy();
     expect(getByText(/0\.005\s*ETH/)).toBeTruthy();
-    expect(getByText(/≈\s*\$\s*98\s*USD/)).toBeTruthy();
+    expect(getByText('≈ $98.00')).toBeTruthy();
   });
 
   it('renders correctly with sell quote', () => {
@@ -104,7 +104,39 @@ describe('Quote Component', () => {
 
     expect(getByText('Continue with Mock Sell Provider')).toBeTruthy();
     expect(getByText(/0\.005\s*ETH/)).toBeTruthy();
-    expect(getByText(/≈\s*\$\s*100\s*USD/)).toBeTruthy();
+    expect(getByText('≈ $100.00')).toBeTruthy();
+  });
+
+  it.each([
+    ['EUR', '€', 1234.5, '≈ €1,234.50'],
+    ['JPY', '¥', 1234.5, '≈ ¥1,235'],
+  ])(
+    'formats the %s fiat amount with its currency rules',
+    (symbol, denomSymbol, amountOutInFiat, expected) => {
+      const quote: QuoteResponse = {
+        ...mockQuote,
+        fiat: { id: symbol, name: symbol, symbol, denomSymbol, decimals: 2 },
+        amountOutInFiat,
+      };
+
+      const { getByText } = renderWithProvider(
+        <Quote quote={quote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+        { state: defaultState },
+      );
+
+      expect(getByText(expected)).toBeTruthy();
+    },
+  );
+
+  it('shows an ellipsis when the fiat amount is not a number', () => {
+    const quote: QuoteResponse = { ...mockQuote, amountOutInFiat: NaN };
+
+    const { getByText } = renderWithProvider(
+      <Quote quote={quote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
+    );
+
+    expect(getByText('≈ ...')).toBeTruthy();
   });
 
   it('calls onPress when not highlighted and pressed', () => {

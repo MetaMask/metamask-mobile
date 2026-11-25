@@ -228,7 +228,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         {
           direction: 'long',
           asset: 'ETH',
@@ -287,7 +287,7 @@ describe('PerpsOrderRedirect', () => {
     // Assert
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.objectContaining({
           direction: 'short',
           asset: 'BTC',
@@ -321,7 +321,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.objectContaining({
           leverage: 8,
           useBottomSheet: true,
@@ -357,7 +357,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.objectContaining({
           stayOnCurrentScreen: true,
         }),
@@ -380,7 +380,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.objectContaining({
           useBottomSheet: true,
           forceBottomSheet: true,
@@ -414,7 +414,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.objectContaining({
           asset: 'xyz:TSLA',
           source: 'trader_feed',
@@ -450,7 +450,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.objectContaining({ copyTradeOrigin }),
       );
     });
@@ -468,7 +468,7 @@ describe('PerpsOrderRedirect', () => {
 
     await waitFor(() => {
       expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         expect.not.objectContaining({ copyTradeOrigin: expect.anything() }),
       );
     });

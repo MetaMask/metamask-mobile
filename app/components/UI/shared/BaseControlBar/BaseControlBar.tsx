@@ -19,6 +19,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
+import { getRegistryNetworkImagesByChainId } from '../../../../selectors/configRegistry';
 import { getNetworkImageSource } from '../../../../util/networks';
 import {
   createTokensBottomSheetNavDetails,
@@ -156,10 +157,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const handleFilterControls = onFilterPress || defaultHandleFilterControls;
 
   // Shared network image logic
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
   const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
-  const networkImageSource = getNetworkImageSource({
-    chainId: firstEnabledChainId,
-  });
+  const networkImageSource = getNetworkImageSource(
+    { chainId: firstEnabledChainId },
+    networkImageUrls,
+  );
 
   const networkLabelValue = useMemo(
     () =>

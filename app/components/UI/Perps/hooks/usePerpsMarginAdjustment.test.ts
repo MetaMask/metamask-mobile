@@ -1,4 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
+import {
+  PERPS_ERROR_CODES,
+  type MarginResult,
+} from '@metamask/perps-controller';
 import Logger from '../../../../util/Logger';
 import { usePerpsMarginAdjustment } from './usePerpsMarginAdjustment';
 
@@ -8,19 +12,27 @@ const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
-  usePerpsTrading: () => ({
+  usePerpsTrading: (): {
+    updateMargin: typeof mockUpdateMargin;
+    getPositions: typeof mockGetPositions;
+  } => ({
     updateMargin: mockUpdateMargin,
     getPositions: mockGetPositions,
   }),
 }));
 
 jest.mock('./usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: mockTrack }),
+  usePerpsEventTracking: (): { track: typeof mockTrack } => ({
+    track: mockTrack,
+  }),
 }));
 
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
-  default: () => ({
+  default: (): { showToast: typeof mockShowToast } & Record<
+    'PerpsToastOptions',
+    { positionManagement: { margin: Record<string, jest.Mock> } }
+  > => ({
     showToast: mockShowToast,
     PerpsToastOptions: {
       positionManagement: {
@@ -60,15 +72,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../utils/translatePerpsError', () => ({
-  translatePerpsError: (error: unknown) => {
-    if (error instanceof Error) {
-      return error.message;
-    }
-    return typeof error === 'string' ? error : 'perps.errors.unknownError';
-  },
-}));
-
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -79,20 +82,26 @@ jest.mock('../constants/perpsConfig', () => ({
   MARGIN_REMOVAL_PRICE_MOVE_BUFFER: 0.01,
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  MARGIN_ADJUSTMENT_CONFIG: { MarginRemovalSafetyBuffer: 0.1 },
-  PERPS_CONSTANTS: { FeatureName: 'perps' },
-  PERPS_EVENT_PROPERTY: {
-    ACTION: 'action',
-    ASSET: 'asset',
-    ERROR_MESSAGE: 'error_message',
-    STATUS: 'status',
-  },
-  PERPS_EVENT_VALUE: {
-    STATUS: { FAILED: 'failed', SUCCESS: 'success' },
-  },
-  getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    MARGIN_ADJUSTMENT_CONFIG: { MarginRemovalSafetyBuffer: 0.1 },
+    PERPS_CONSTANTS: { FeatureName: 'perps' },
+    PERPS_EVENT_PROPERTY: {
+      ACTION: 'action',
+      ASSET: 'asset',
+      ERROR_MESSAGE: 'error_message',
+      STATUS: 'status',
+    },
+    PERPS_EVENT_VALUE: {
+      STATUS: { FAILED: 'failed', SUCCESS: 'success' },
+    },
+    PERPS_ERROR_CODES: actual.PERPS_ERROR_CODES,
+    PROVIDER_CONFIG: actual.PROVIDER_CONFIG,
+    isPerpsErrorCode: actual.isPerpsErrorCode,
+    getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
+  };
+});
 
 describe('usePerpsMarginAdjustment', () => {
   beforeEach(() => {
@@ -161,6 +170,22 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockUpdateMargin).toHaveBeenCalledWith({
         symbol: 'ETH',
         amount: '100',
+      });
+    });
+
+    it('routes the update to the position venue', async () => {
+      mockUpdateMargin.mockResolvedValue({ success: true });
+
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      await act(async () => {
+        await result.current.handleAddMargin('ETH', 100, 'lighter');
+      });
+
+      expect(mockUpdateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '100',
+        providerId: 'lighter',
       });
     });
 
@@ -237,7 +262,8 @@ describe('usePerpsMarginAdjustment', () => {
           type: 'error',
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('Insufficient funds');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
+      expect(mockOnError).not.toHaveBeenCalledWith('Insufficient funds');
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({
           category: 'Perp Margin Adjustment Transaction',
@@ -308,7 +334,52 @@ describe('usePerpsMarginAdjustment', () => {
           type: 'error',
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('Cannot reduce below minimum');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
+      expect(mockOnError).not.toHaveBeenCalledWith(
+        'Cannot reduce below minimum',
+      );
+    });
+
+    it('uses the margin error code for analytics and translated copy for UI', async () => {
+      const diagnostic =
+        'Hyperliquid signer 0xabc returned an internal stack trace';
+      mockUpdateMargin.mockResolvedValue({
+        success: false,
+        error: diagnostic,
+        errorCode: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
+          provider: 'hyperliquid',
+        },
+      } satisfies MarginResult);
+      const mockOnError = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsMarginAdjustment({ onError: mockOnError }),
+      );
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 500);
+      });
+
+      expect(mockOnError).toHaveBeenCalledWith(
+        'perps.errors.insufficientBalance',
+      );
+      expect(mockOnError).not.toHaveBeenCalledWith(diagnostic);
+      expect(mockShowToast).toHaveBeenCalledWith({
+        type: 'error',
+        error: 'perps.errors.insufficientBalance',
+      });
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'remove',
+          asset: 'ETH',
+          error_message: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
+          status: 'failed',
+        },
+      );
     });
   });
 
@@ -348,6 +419,24 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).not.toHaveBeenCalled();
       expect(mockTrack).not.toHaveBeenCalled();
       expect(result.current.isAdjusting).toBe(false);
+    });
+
+    it('re-checks the position on the venue being adjusted', async () => {
+      mockGetPositions.mockResolvedValue([
+        { ...freshPosition, providerId: 'hyperliquid', marginUsed: '100000' },
+        { ...freshPosition, providerId: 'lighter' },
+      ]);
+      const mockOnAmountChanged = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsMarginAdjustment({ onAmountChanged: mockOnAmountChanged }),
+      );
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 12, 'lighter');
+      });
+
+      expect(mockUpdateMargin).not.toHaveBeenCalled();
+      expect(mockOnAmountChanged).toHaveBeenCalledWith(7);
     });
 
     it.each<[string, object[] | Error, number]>([
@@ -416,7 +505,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
-    it('handles exceptions and logs via Logger.error', async () => {
+    it('logs unclassified exceptions and reports retryable copy', async () => {
       const testError = new Error('Network error');
       mockUpdateMargin.mockRejectedValue(testError);
       const mockOnError = jest.fn();
@@ -449,7 +538,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('Network error');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({
           category: 'Perp Margin Adjustment Transaction',
@@ -490,7 +579,7 @@ describe('usePerpsMarginAdjustment', () => {
       );
     });
 
-    it('handles non-Error exceptions', async () => {
+    it('logs a non-Error rejection and reports the retryable fallback', async () => {
       mockUpdateMargin.mockRejectedValue('String error');
       const mockOnError = jest.fn();
 
@@ -515,7 +604,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('String error');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
   });
 
