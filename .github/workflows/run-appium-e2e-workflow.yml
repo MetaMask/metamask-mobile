@@ -530,6 +530,13 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
+          # AI flaky-failure recovery: a tap / wait / scroll / type step that fails
+          # for a flaky reason is diagnosed, fixed and retried once; the test is
+          # then annotated `flaky-ai-recovered`. Off for fixture validation and for
+          # changed-spec flakiness detection (both must surface real flakes), and
+          # off when the key is missing (for example on fork PRs).
+          AI_FLAKY_RECOVERY_ENABLED: ${{ inputs.test_suite_tag != 'FixtureValidation' && inputs.changed_spec_files == '' && 'true' || 'false' }}
+          ANTHROPIC_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
           TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
         run: |
           set -euo pipefail
@@ -594,6 +601,13 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
+          # AI flaky-failure recovery: a tap / wait / scroll / type step that fails
+          # for a flaky reason is diagnosed, fixed and retried once; the test is
+          # then annotated `flaky-ai-recovered`. Off for fixture validation and for
+          # changed-spec flakiness detection (both must surface real flakes), and
+          # off when the key is missing (for example on fork PRs).
+          AI_FLAKY_RECOVERY_ENABLED: ${{ inputs.test_suite_tag != 'FixtureValidation' && inputs.changed_spec_files == '' && 'true' || 'false' }}
+          ANTHROPIC_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
           TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
         run: |
           set -euo pipefail
@@ -674,6 +688,16 @@ jobs:
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
+          if-no-files-found: ignore
+          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
+
+      - name: Upload AI flaky recovery summary (artifact stores)
+        if: ${{ always() && steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: ai-flaky-recovery-${{ inputs.test-suite-name }}
+          path: tests/test-reports/ai-flaky-recovery/
           if-no-files-found: ignore
           retention-days: 7
           runner-provider: ${{ inputs.runner_provider }}

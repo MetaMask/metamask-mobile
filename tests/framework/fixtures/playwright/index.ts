@@ -7,6 +7,7 @@ import { driverFixture } from './driver.fixture.ts';
 import { performanceTrackerFixture } from './performanceTracker.fixture.ts';
 import { phaseTimerFixture } from './phaseTimer.fixture.ts';
 import { appProfilingFixture } from './appProfiling.fixture.ts';
+import { aiFlakyRecoveryFixture } from './aiFlakyRecovery.fixture.ts';
 import { androidDeviceLogsFixture } from './androidDeviceLogs.fixture.ts';
 
 export type {
@@ -33,4 +34,5 @@ export const test = base.extend<TestLevelFixtures, WorkerLevelFixtures>({
   ...androidDeviceLogsFixture,
   ...phaseTimerFixture,
   ...appProfilingFixture,
+  ...aiFlakyRecoveryFixture,
 });

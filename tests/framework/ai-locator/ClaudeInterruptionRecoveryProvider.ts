@@ -36,7 +36,7 @@ export interface InterruptionRecoveryProvider {
  * Words that mean the control consents, accepts, pays or moves the flow
  * forward. A dismiss candidate matching any of these is never tapped.
  */
-const UNSAFE_ACTION_PATTERN =
+export const UNSAFE_ACTION_PATTERN =
   /\b(accept|agree|i agree|confirm|sign|buy|purchase|pay|subscribe|approve|allow|enable|turn on|opt[\s-]?in|yes|continue|get started|try now|start|deposit|send|swap|trade|connect|submit|claim|upgrade|install|update|ok|okay|next|done|save|import|create|reveal|unlock|delete|remove|reset|close[\s_-]+(?:position|order|trade|market|long|short)s?)\b/i;
 
 /**

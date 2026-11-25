@@ -14,7 +14,10 @@ import AppiumGestures from './AppiumGestures.ts';
 import Matchers from './Matchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { getDriver } from './AppiumUtilities.ts';
-import { findWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
+import {
+  findWithSelfHealingLocator,
+  getElementForLocator,
+} from './ai-locator/SelfHealingLocator.ts';
 import {
   getPerformanceLocatorRecovery,
   isPerformanceSuiteActive,
@@ -143,23 +146,26 @@ export default class Gestures {
     options: TapOptions,
   ): Promise<void> {
     const intent = options.elemDescription ?? 'tap the current mobile control';
+    const waitAndTap = async (target: AppiumElement): Promise<void> =>
+      AppiumGestures.waitAndTap(target, {
+        timeout: options.timeout,
+        delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed ?? true,
+        checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        enabledStableReads: options.enabledStableReads,
+        postEnabledSettleMs: options.postEnabledSettleMs,
+        checkForStable: options.checkStability,
+      });
     const tap = async (target: AppiumElement): Promise<void> => {
       await interruptingScreenGuard.retryTapAfterInterruption(
-        () =>
-          AppiumGestures.waitAndTap(target, {
-            timeout: options.timeout,
-            delay: options.delay,
-            checkForDisplayed: options.checkForDisplayed ?? true,
-            checkForEnabled: options.checkEnabled,
-            waitForInteractive: options.waitForInteractive,
-            enabledStableReads: options.enabledStableReads,
-            postEnabledSettleMs: options.postEnabledSettleMs,
-            checkForStable: options.checkStability,
-          }),
+        () => waitAndTap(target),
         {
           intent,
           trigger: 'tap-failure',
           describeTarget: () => describeElement(target),
+          retryWithLocator: async (locator) =>
+            waitAndTap(await getElementForLocator(locator)),
         },
       );
     };
@@ -274,7 +280,16 @@ export default class Gestures {
     options: TypeTextOptions = {},
   ): Promise<void> {
     const el = await elem;
-    await el.fill(text);
+    await interruptingScreenGuard.retryStepWithFlakyRecovery(
+      async () => el.fill(text),
+      {
+        kind: 'type',
+        intent: 'type into the current mobile input',
+        describeTarget: async () => describeElement(el),
+        retryWithLocator: async (locator) =>
+          (await getElementForLocator(locator)).fill(text),
+      },
+    );
 
     if (options.hideKeyboard ?? true) {
       await AppiumGestures.hideKeyboard();
@@ -308,17 +323,30 @@ export default class Gestures {
   ): Promise<void> {
     const timeout = options.timeout ?? 15_000;
     const el = await elem;
-    // Wait for a fresh displayed node before clearValue — otherwise Appium
-    // fails with "Can't call clearValue ... because element wasn't found"
-    // when navigation to the input screen is still settling.
-    await el.waitForDisplayed({
-      timeout,
-      timeoutMsg: options.elemDescription
-        ? `${options.elemDescription} was not displayed within ${timeout}ms`
-        : `Element was not displayed within ${timeout}ms before replaceText`,
-    });
-    await el.clear();
-    await el.fill(text);
+    const replace = async (target: AppiumElement): Promise<void> => {
+      // Wait for a fresh displayed node before clearValue — otherwise Appium
+      // fails with "Can't call clearValue ... because element wasn't found"
+      // when navigation to the input screen is still settling.
+      await target.waitForDisplayed({
+        timeout,
+        timeoutMsg: options.elemDescription
+          ? `${options.elemDescription} was not displayed within ${timeout}ms`
+          : `Element was not displayed within ${timeout}ms before replaceText`,
+      });
+      await target.clear();
+      await target.fill(text);
+    };
+    await interruptingScreenGuard.retryStepWithFlakyRecovery(
+      async () => replace(el),
+      {
+        kind: 'type',
+        intent:
+          options.elemDescription ?? 'replace text in the current mobile input',
+        describeTarget: async () => describeElement(el),
+        retryWithLocator: async (locator) =>
+          replace(await getElementForLocator(locator)),
+      },
+    );
   }
 
   /**
@@ -369,13 +397,21 @@ export default class Gestures {
       ? Math.max(3, Math.min(12, Math.ceil(options.timeout / 5000)))
       : 10;
 
-    await AppiumGestures.scrollIntoView(el, {
-      scrollParams: {
-        direction: Gestures.toScrollIntoViewDirection(options.direction),
+    await interruptingScreenGuard.retryStepWithFlakyRecovery(
+      async () =>
+        AppiumGestures.scrollIntoView(el, {
+          scrollParams: {
+            direction: Gestures.toScrollIntoViewDirection(options.direction),
+          },
+          scrollableElement,
+          maxScrolls,
+        }),
+      {
+        kind: 'scroll-to',
+        intent: 'scroll the target element into view',
+        describeTarget: async () => describeElement(el),
       },
-      scrollableElement,
-      maxScrolls,
-    });
+    );
   }
 
   /**
@@ -626,14 +662,22 @@ export default class Gestures {
     },
   ): Promise<void> {
     const target = (await Promise.resolve(elem)) as AppiumElement;
-    await AppiumGestures.scrollIntoView(target, {
-      scrollParams: { direction: options?.direction ?? 'up' },
-      maxScrolls: options?.maxScrolls,
-      scrollableElement: options?.scrollableElement,
-      percent: options?.percent,
-      from: options?.from,
-      to: options?.to,
-    });
+    await interruptingScreenGuard.retryStepWithFlakyRecovery(
+      async () =>
+        AppiumGestures.scrollIntoView(target, {
+          scrollParams: { direction: options?.direction ?? 'up' },
+          maxScrolls: options?.maxScrolls,
+          scrollableElement: options?.scrollableElement,
+          percent: options?.percent,
+          from: options?.from,
+          to: options?.to,
+        }),
+      {
+        kind: 'scroll-to',
+        intent: 'scroll the target element into view',
+        describeTarget: async () => describeElement(target),
+      },
+    );
   }
 
   /**
@@ -652,13 +696,21 @@ export default class Gestures {
     },
   ): Promise<void> {
     const target = (await Promise.resolve(elem)) as AppiumElement;
-    await AppiumGestures.scrollIntoViewFullyVisible(target, {
-      scrollParams: { direction: options?.direction ?? 'up' },
-      maxScrolls: options?.maxScrolls,
-      scrollableElement: options?.scrollableElement,
-      percent: options?.percent,
-      from: options?.from,
-      to: options?.to,
-    });
+    await interruptingScreenGuard.retryStepWithFlakyRecovery(
+      async () =>
+        AppiumGestures.scrollIntoViewFullyVisible(target, {
+          scrollParams: { direction: options?.direction ?? 'up' },
+          maxScrolls: options?.maxScrolls,
+          scrollableElement: options?.scrollableElement,
+          percent: options?.percent,
+          from: options?.from,
+          to: options?.to,
+        }),
+      {
+        kind: 'scroll-to',
+        intent: 'scroll the target element fully into view',
+        describeTarget: async () => describeElement(target),
+      },
+    );
   }
 }

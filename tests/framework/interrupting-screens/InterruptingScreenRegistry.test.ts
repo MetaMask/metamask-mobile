@@ -74,6 +74,26 @@ describe('InterruptingScreenRegistry', () => {
       ]);
     });
 
+    it('detects the wallet-home "Get started on MetaMask" onboarding card and dismisses it with Skip', () => {
+      const pageSource = [
+        '<hierarchy>',
+        '<android.view.ViewGroup resource-id="wallet-screen"/>',
+        '<android.view.ViewGroup resource-id="wallet-home-onboarding-steps">',
+        '<android.widget.Button resource-id="wallet-home-onboarding-steps-skip" text="Skip"/>',
+        '</android.view.ViewGroup>',
+        '</hierarchy>',
+      ].join('');
+
+      const screens = findInterruptingScreensInPageSource(pageSource);
+
+      expect(screens.map((screen) => screen.name)).toEqual([
+        'wallet-home-onboarding-steps',
+      ]);
+      expect(screens[0].dismiss).toEqual([
+        { strategy: 'testID', value: 'wallet-home-onboarding-steps-skip' },
+      ]);
+    });
+
     it('returns nothing for a clean wallet home', () => {
       const pageSource =
         '<hierarchy><android.view.ViewGroup resource-id="wallet-screen"/></hierarchy>';

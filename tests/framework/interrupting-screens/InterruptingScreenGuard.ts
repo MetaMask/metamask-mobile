@@ -22,6 +22,20 @@ import {
 } from '../ai-locator/ClaudeInterruptionRecoveryProvider.ts';
 import { pageSourceContainsSecrets } from '../ai-locator/ClaudeLocatorRecoveryProvider.ts';
 import {
+  assessStepEligibility,
+  isSafeAlternativeFix,
+  isSafeDismissFix,
+  validateDiagnosis,
+} from '../flaky-recovery/FlakyRecoveryGuardrails.ts';
+import type { FlakyRecoveryRuntime } from '../flaky-recovery/FlakyRecoverySession.ts';
+import {
+  describeLocator,
+  type AppliedFlakyFix,
+  type FlakyFix,
+  type FlakyStep,
+  type FlakyStepKind,
+} from '../flaky-recovery/FlakyRecoveryTypes.ts';
+import {
   findInterruptingScreensInPageSource,
   INTERRUPTING_SCREEN_REGISTRY,
   pageSourceContainsLocator,
@@ -35,6 +49,9 @@ export const INTERRUPTING_SCREEN_SETTLE_PHASE = 'interrupting_screens_settle';
 /** Phase that accumulates dismiss-and-retry recoveries (overlaps its enclosing phase). */
 export const INTERRUPTING_SCREEN_RECOVERY_PHASE =
   'interrupting_screens_recovery';
+
+/** Phase that accumulates AI flaky-recovery diagnosis and fixes (overlaps its enclosing phase). */
+export const FLAKY_RECOVERY_PHASE = 'flaky_recovery';
 
 export const DEFAULT_SETTLE_WINDOW_MS = 4_000;
 export const DEFAULT_SETTLE_POLL_INTERVAL_MS = 500;
@@ -84,6 +101,14 @@ export interface InterruptingScreenGuardConfig {
   onDismissed?: (event: InterruptingScreenDismissal) => Promise<void> | void;
   /** Receives diagnostic page sources (e.g. on a wallet-home timeout). */
   onPageSource?: (label: string, pageSource: string) => Promise<void> | void;
+  /**
+   * AI flaky-failure recovery for E2E smoke. When set, the guard only reacts
+   * after a step has failed (the post-login settle window and the polling
+   * dismissals are skipped, so the happy path pays nothing), and every
+   * recovered step is reported through the runtime. Omit it for performance
+   * runs: nothing in this file changes their behavior.
+   */
+  flakyRecovery?: FlakyRecoveryRuntime;
 }
 
 export interface SettleOptions {
@@ -91,14 +116,39 @@ export interface SettleOptions {
   pollIntervalMs?: number;
 }
 
-export interface RetryContext {
+export interface RetryContext<TResult = unknown> {
   intent: string;
   trigger: Exclude<InterruptionTrigger, 'settle'>;
+  /**
+   * Re-runs the step against another locator. Only used by AI flaky recovery
+   * when the model finds an equivalent control for a stale locator.
+   */
+  retryWithLocator?: (locator: RecoveredLocator) => Promise<TResult>;
 }
 
-export interface TapRetryContext extends RetryContext {
+export interface TapRetryContext extends RetryContext<void> {
   /** testID / text / label of the control the tap was aimed at. */
-  describeTarget(): Promise<string[]>;
+  describeTarget: () => Promise<string[]>;
+}
+
+/** A step that AI flaky recovery may fix; a no-op when recovery is not configured. */
+export interface FlakyStepContext<TResult = void> {
+  kind: FlakyStepKind;
+  intent: string;
+  /** testID / text / label of the control the step is aimed at. */
+  describeTarget?: () => Promise<string[]>;
+  retryWithLocator?: (locator: RecoveredLocator) => Promise<TResult>;
+}
+
+type FlakyRetry =
+  | { kind: 'rerun' }
+  | { kind: 'done' }
+  | { kind: 'locator'; locator: RecoveredLocator };
+
+interface FlakyAttempt {
+  step: FlakyStep;
+  applied: AppliedFlakyFix;
+  retry: FlakyRetry;
 }
 
 function errorMessage(error: unknown): string {
@@ -274,7 +324,11 @@ export class InterruptingScreenGuard {
     if (this.#inGuardWork()) {
       return [];
     }
-    if (this.#config === undefined || windowMs <= 0) {
+    if (
+      this.#config === undefined ||
+      this.#config.flakyRecovery !== undefined ||
+      windowMs <= 0
+    ) {
       await this.#turn;
       return [];
     }
@@ -397,7 +451,10 @@ export class InterruptingScreenGuard {
     if (this.#inGuardWork()) {
       return false;
     }
-    if (this.#config === undefined) {
+    if (
+      this.#config === undefined ||
+      this.#config.flakyRecovery !== undefined
+    ) {
       await this.#turn;
       return false;
     }
@@ -452,7 +509,7 @@ export class InterruptingScreenGuard {
    */
   async retryAfterInterruption<TResult>(
     action: () => Promise<TResult>,
-    context: RetryContext,
+    context: RetryContext<TResult>,
   ): Promise<TResult> {
     if (!this.#inGuardWork()) {
       await this.#turn;
@@ -460,6 +517,18 @@ export class InterruptingScreenGuard {
     try {
       return await action();
     } catch (error) {
+      if (this.#config?.flakyRecovery) {
+        return this.#flakyRetry(
+          action,
+          {
+            kind: 'wait',
+            intent: context.intent,
+            retryWithLocator: context.retryWithLocator,
+          },
+          context.trigger,
+          error,
+        );
+      }
       if (!(await this.recoverFromFailure({ ...context, error }))) {
         throw error;
       }
@@ -486,6 +555,20 @@ export class InterruptingScreenGuard {
     try {
       await tap();
     } catch (error) {
+      if (this.#config?.flakyRecovery) {
+        return this.#flakyRetry(
+          tap,
+          {
+            kind: 'tap',
+            intent: context.intent,
+            describeTarget: context.describeTarget,
+            retryWithLocator: context.retryWithLocator,
+          },
+          context.trigger,
+          error,
+          () => undefined,
+        );
+      }
       if (!(await this.recoverFromFailure({ ...context, error }))) {
         throw error;
       }
@@ -499,6 +582,355 @@ export class InterruptingScreenGuard {
         `Retrying "${context.intent}" after dismissing an interrupting screen`,
       );
       await tap();
+    }
+  }
+
+  /**
+   * Runs a scroll-to / type step. With AI flaky recovery configured, a failure
+   * is diagnosed and the step retried once after the fix; otherwise this is
+   * exactly `action()` (so performance runs behave as before).
+   */
+  async retryStepWithFlakyRecovery<TResult>(
+    action: () => Promise<TResult>,
+    context: FlakyStepContext<TResult>,
+  ): Promise<TResult> {
+    if (!this.#config?.flakyRecovery) {
+      return action();
+    }
+    if (!this.#inGuardWork()) {
+      await this.#turn;
+    }
+    try {
+      return await action();
+    } catch (error) {
+      return this.#flakyRetry(action, context, 'wait-failure', error);
+    }
+  }
+
+  /**
+   * Diagnoses the failure, applies one fix and retries the step once. The
+   * ORIGINAL error is rethrown, unchanged, when nothing was recovered or the
+   * retry fails too.
+   */
+  async #flakyRetry<TResult>(
+    action: () => Promise<TResult>,
+    context: FlakyStepContext<TResult>,
+    trigger: Exclude<InterruptionTrigger, 'settle'>,
+    originalError: unknown,
+    completedResult?: () => TResult,
+  ): Promise<TResult> {
+    const runtime = this.#config?.flakyRecovery;
+    if (!runtime || this.#inGuardWork()) {
+      throw originalError;
+    }
+    const attempt = await this.#attemptFlakyFix(
+      runtime,
+      context,
+      trigger,
+      originalError,
+    );
+    if (!attempt) {
+      throw originalError;
+    }
+
+    let result: TResult;
+    try {
+      if (attempt.retry.kind === 'done' && completedResult) {
+        result = completedResult();
+      } else if (attempt.retry.kind === 'locator') {
+        if (!context.retryWithLocator) {
+          throw originalError;
+        }
+        result = await context.retryWithLocator(attempt.retry.locator);
+      } else {
+        result = await action();
+      }
+    } catch (retryError) {
+      logger.warn(
+        `"${context.intent}" still failed after the flaky-recovery fix (${attempt.applied.solution}): ${errorMessage(retryError)}. Rethrowing the original error.`,
+      );
+      throw originalError;
+    }
+
+    await this.#reportFlakyRecovery(runtime, attempt);
+    return result;
+  }
+
+  async #reportFlakyRecovery(
+    runtime: FlakyRecoveryRuntime,
+    attempt: FlakyAttempt,
+  ): Promise<void> {
+    if (this.#abandoned()) {
+      return;
+    }
+    let afterBase64: string | undefined;
+    try {
+      afterBase64 = await runtime.executor.takeScreenshot();
+    } catch (error) {
+      logger.debug(`After-fix screenshot failed: ${errorMessage(error)}`);
+    }
+    logger.warn(
+      `Step "${attempt.step.intent}" PASSED AFTER AI FLAKY RECOVERY (${attempt.applied.cause}): ${attempt.applied.solution}`,
+    );
+    try {
+      await runtime.recordRecovery(attempt.step, attempt.applied, {
+        beforeBase64: attempt.applied.screenshotBeforeBase64,
+        afterBase64,
+      });
+    } catch (error) {
+      logger.debug(`Flaky recovery report failed: ${errorMessage(error)}`);
+    }
+  }
+
+  /**
+   * Known screens first (no model call), then the model. Everything runs in
+   * the excluded section; the retry itself is left to the caller.
+   */
+  async #attemptFlakyFix<TResult>(
+    runtime: FlakyRecoveryRuntime,
+    context: FlakyStepContext<TResult>,
+    trigger: Exclude<InterruptionTrigger, 'settle'>,
+    error: unknown,
+  ): Promise<FlakyAttempt | undefined> {
+    const failure = errorMessage(error);
+    if (!runtime.canRecover()) {
+      logger.info(
+        `Flaky recovery budget (${runtime.limits.maxRecoveriesPerTest}) used up; "${context.intent}" fails as before`,
+      );
+      return undefined;
+    }
+    const eligibility = assessStepEligibility({
+      kind: context.kind,
+      intent: context.intent,
+      errorMessage: failure,
+    });
+    if (!eligibility.eligible) {
+      logger.info(`Not recovering "${context.intent}": ${eligibility.reason}`);
+      return undefined;
+    }
+
+    this.#recoveryTarget = [];
+    this.#tappedRecoveryLocator = undefined;
+    this.#tappedRecoveryTarget = false;
+
+    return this.#runExcluded(FLAKY_RECOVERY_PHASE, async () => {
+      if (this.#abandoned()) {
+        return undefined;
+      }
+      const startedAt = this.#adapter.now();
+      const pageSource = await this.#safePageSource();
+      if (this.#abandoned() || pageSource === null) {
+        return undefined;
+      }
+      if (pageSourceContainsSecrets(pageSource)) {
+        logger.info('Not recovering: the screen can expose secrets');
+        return undefined;
+      }
+
+      const targetDescriptors = await this.#readFlakyTarget(context);
+      this.#recoveryTarget = targetDescriptors.map(normalizeDescriptor);
+      const step: FlakyStep = {
+        kind: context.kind,
+        intent: context.intent,
+        targetDescriptors,
+        errorMessage: failure,
+        supportsAlternativeLocator: context.retryWithLocator !== undefined,
+      };
+
+      let screenshotBeforeBase64: string | undefined;
+      try {
+        screenshotBeforeBase64 = await runtime.executor.takeScreenshot();
+      } catch (screenshotError) {
+        logger.debug(`Screenshot failed: ${errorMessage(screenshotError)}`);
+      }
+      if (this.#abandoned()) {
+        return undefined;
+      }
+
+      const known = await this.#dismissFirstKnownScreenEvent(
+        pageSource,
+        trigger,
+        context.intent,
+      );
+      if (known) {
+        const completed = await this.#tapCompletedByDismissal(step.kind);
+        return {
+          step,
+          retry: completed ? { kind: 'done' } : { kind: 'rerun' },
+          applied: {
+            source: 'registry',
+            cause: 'unexpected-overlay',
+            reason: `Known screen "${known.screen}" was covering the app`,
+            solution: `Dismissed known screen "${known.screen}" via ${describeLocator(known.locator)}`,
+            fix: {
+              type: 'registry-dismiss',
+              screen: known.screen,
+              locator: known.locator,
+            },
+            screenshotBeforeBase64,
+            durationMs: this.#adapter.now() - startedAt,
+          },
+        };
+      }
+      if (this.#abandoned()) {
+        return undefined;
+      }
+
+      return this.#diagnoseAndFix(runtime, {
+        step,
+        pageSource,
+        screenshotBeforeBase64,
+        startedAt,
+      });
+    });
+  }
+
+  async #readFlakyTarget(context: {
+    describeTarget?: () => Promise<string[]>;
+  }): Promise<string[]> {
+    if (!context.describeTarget) {
+      return [];
+    }
+    try {
+      return await context.describeTarget();
+    } catch (error) {
+      logger.debug(`Reading the step target failed: ${errorMessage(error)}`);
+      return [];
+    }
+  }
+
+  /** True when the dismissal tapped the very control a tap step was aimed at, and it is gone. */
+  async #tapCompletedByDismissal(kind: FlakyStepKind): Promise<boolean> {
+    const tapped = this.#tappedRecoveryLocator;
+    if (kind !== 'tap' || !tapped) {
+      return false;
+    }
+    this.#tappedRecoveryTarget = !(await this.#controlStillOnScreen(tapped));
+    return this.#tappedRecoveryTarget;
+  }
+
+  async #diagnoseAndFix(
+    runtime: FlakyRecoveryRuntime,
+    input: {
+      step: FlakyStep;
+      pageSource: string;
+      screenshotBeforeBase64: string | undefined;
+      startedAt: number;
+    },
+  ): Promise<FlakyAttempt | undefined> {
+    const { step, pageSource, screenshotBeforeBase64, startedAt } = input;
+    if (!runtime.canDiagnose() || !screenshotBeforeBase64) {
+      return undefined;
+    }
+    runtime.noteDiagnosis();
+
+    let diagnosis;
+    try {
+      diagnosis = await runtime.provider.diagnose({
+        step,
+        pageSource,
+        screenshotBase64: screenshotBeforeBase64,
+      });
+    } catch (error) {
+      logger.warn(`AI flaky diagnosis failed: ${errorMessage(error)}`);
+      return undefined;
+    }
+    if (this.#abandoned()) {
+      return undefined;
+    }
+    if (!diagnosis) {
+      logger.info('AI gave no usable flaky diagnosis; failing as before');
+      return undefined;
+    }
+    if (diagnosis.classification === 'real-failure') {
+      logger.info(
+        `AI classified "${step.intent}" as a REAL failure: ${diagnosis.reason}`,
+      );
+      return undefined;
+    }
+
+    const validation = validateDiagnosis(diagnosis, step);
+    if (!validation.valid) {
+      logger.warn(`Refused AI flaky fix: ${validation.reason}`);
+      return undefined;
+    }
+    const retry = await this.#executeFlakyFix(runtime, step, validation.fix);
+    if (!retry || !diagnosis.cause || !diagnosis.solution) {
+      return undefined;
+    }
+    return {
+      step,
+      retry,
+      applied: {
+        source: 'ai',
+        cause: diagnosis.cause,
+        reason: diagnosis.reason,
+        solution: diagnosis.solution,
+        fix: validation.fix,
+        screenshotBeforeBase64,
+        durationMs: this.#adapter.now() - startedAt,
+      },
+    };
+  }
+
+  /** Applies the fix on the device. Undefined when it was refused or could not be applied. */
+  async #executeFlakyFix(
+    runtime: FlakyRecoveryRuntime,
+    step: FlakyStep,
+    fix: FlakyFix,
+  ): Promise<FlakyRetry | undefined> {
+    try {
+      switch (fix.type) {
+        case 'dismiss-overlay': {
+          const onDevice = await this.#adapter.describe(fix.locator);
+          if (this.#abandoned()) {
+            return undefined;
+          }
+          if (!isSafeDismissFix(fix, onDevice)) {
+            logger.warn(
+              `Refused AI dismiss of ${describeLocator(fix.locator)} (label "${fix.label ?? ''}", on-device [${onDevice.join(', ')}]): not a safe non-consenting control`,
+            );
+            return undefined;
+          }
+          if (!(await this.#adapter.tap(fix.locator))) {
+            return undefined;
+          }
+          this.#noteDismissTap(fix.locator);
+          return (await this.#tapCompletedByDismissal(step.kind))
+            ? { kind: 'done' }
+            : { kind: 'rerun' };
+        }
+        case 'wait':
+          await runtime.executor.sleep(fix.waitMs);
+          return { kind: 'rerun' };
+        case 'scroll':
+          await runtime.executor.scroll(fix.direction, fix.times);
+          return { kind: 'rerun' };
+        case 'hide-keyboard':
+          await runtime.executor.hideKeyboard();
+          return { kind: 'rerun' };
+        case 'alternative-locator': {
+          const onDevice = await this.#adapter.describe(fix.locator);
+          if (this.#abandoned()) {
+            return undefined;
+          }
+          if (
+            onDevice.length === 0 ||
+            !isSafeAlternativeFix(fix, step, onDevice)
+          ) {
+            logger.warn(
+              `Refused AI alternative locator ${describeLocator(fix.locator)} (on-device [${onDevice.join(', ')}]): not found or not the same control`,
+            );
+            return undefined;
+          }
+          return { kind: 'locator', locator: fix.locator };
+        }
+      }
+    } catch (error) {
+      logger.warn(
+        `Applying the AI flaky fix "${fix.type}" failed: ${errorMessage(error)}`,
+      );
+      return undefined;
     }
   }
 
@@ -534,12 +966,27 @@ export class InterruptingScreenGuard {
     trigger: InterruptionTrigger,
     intent: string,
   ): Promise<boolean> {
+    return (
+      (await this.#dismissFirstKnownScreenEvent(
+        pageSource,
+        trigger,
+        intent,
+      )) !== undefined
+    );
+  }
+
+  async #dismissFirstKnownScreenEvent(
+    pageSource: string,
+    trigger: InterruptionTrigger,
+    intent: string,
+  ): Promise<InterruptingScreenDismissal | undefined> {
     for (const screen of this.#findKnownScreens(pageSource)) {
-      if (await this.#dismissKnownScreen(screen, trigger, intent)) {
-        return true;
+      const event = await this.#dismissKnownScreen(screen, trigger, intent);
+      if (event) {
+        return event;
       }
     }
-    return false;
+    return undefined;
   }
 
   #findKnownScreens(pageSource: string): InterruptingScreenDefinition[] {

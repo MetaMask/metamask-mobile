@@ -38,6 +38,7 @@ const DEFAULT_IOS_APP =
  * - IOS_APP_WARM_LAUNCH_SETTLE_MS — prepare-step warm launch dwell time (CI: 15000)
  * - IOS_PRE_LAUNCH_SETTLE_MS — pause after terminate before Appium relaunch (default: 1500)
  * - APPIUM_SMOKE_SUITE_NAME — CI suite id for per-job report/video paths
+ * - AI_FLAKY_RECOVERY_ENABLED — `true` (with ANTHROPIC_API_KEY) lets AI recover flaky interaction failures; recovered tests are annotated `flaky-ai-recovered` (CI sets it)
  * - PLAYWRIGHT_JSON_OUTPUT_FILE — CI path for Playwright JSON report (always playwright-report.json per job; suite id is the artifact name)
  *
  * Usage:
@@ -89,6 +90,7 @@ export default defineConfig({
     ['junit', { outputFile: junitReportPath }],
     ['list'],
     ['./reporters/appium-timing-reporter.ts'],
+    ['./reporters/ai-flaky-recovery-reporter.ts'],
     ...(jsonReportPath
       ? ([['json', { outputFile: jsonReportPath }] as const] as const)
       : []),

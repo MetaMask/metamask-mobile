@@ -225,8 +225,22 @@ Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare aga
 | JUnit                         | `test-reports/appium-smoke-junit.xml` |
 | Failure videos (when enabled) | `test-reports/appium-smoke-videos/`   |
 | Phase timings                 | `test-reports/appium-timings/`        |
+| AI flaky recoveries           | `test-reports/ai-flaky-recovery/`     |
 
 CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`. `appium-timings-<suite>` is always published to GitHub Artifacts (plus Namespace storage on Namespace runners).
+
+## AI flaky-failure recovery
+
+CI can recover a step that failed for a flaky reason instead of failing the test, and marks the test so the flake still gets fixed. It is off unless `AI_FLAKY_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` are both set (CI passes the `E2E_CLAUDE_API_KEY` secret; fork PRs have no key, so it stays off). It never runs for `@Performance` tests, which keep their own recovery, nor for fixture validation or changed-spec flakiness detection.
+
+- **Trigger:** only after a `Gestures` tap / type / scroll-to or an `Assertions.expectElementToBeVisible` wait has failed. Passing steps pay nothing.
+- **Fast path:** screens in `INTERRUPTING_SCREEN_REGISTRY` (including the wallet-home "Get started on MetaMask" card) are dismissed without a model call.
+- **Diagnosis:** otherwise Claude gets the page source, a screenshot, the step and the error, and classifies it as recoverable (unexpected overlay, slow element, missing scroll, keyboard covering the target, stale locator with an equivalent control) or a real failure. A recoverable answer carries one fix; the step is retried once.
+- **Real failures still fail:** the original error is rethrown unchanged when the AI says real failure, a guardrail refuses the fix, or the retry fails.
+- **Guardrails:** `AI_FLAKY_RECOVERY_MAX_PER_TEST` (default 2) caps recoveries per test and `AI_FLAKY_RECOVERY_MAX_DIAGNOSES_PER_TEST` (default 4) caps model calls. Value assertions (amounts, balances, expected text), close position / order / trade steps and secret-bearing screens are never recovered; dismiss fixes pass `isSafeDismissControl`.
+- **Marking:** the test passes with a `flaky-ai-recovered` annotation (visible in the Playwright HTML report and the JSON report) and `ai-flaky-recovery-<n>.json` / `.md` attachments with the step, diagnosed cause, solution and before / after screenshots. The reporter `tests/reporters/ai-flaky-recovery-reporter.ts` writes `tests/test-reports/ai-flaky-recovery/<suite>.json|md`, appends the table to the job summary and CI uploads it as `ai-flaky-recovery-<suite>`.
+
+Code: `tests/framework/flaky-recovery/`, hooked in through `InterruptingScreenGuard` (`flakyRecovery` config) and the `aiFlakyRecovery` auto fixture.
 
 ## Adding a new Appium smoke spec
 
