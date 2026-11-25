@@ -7542,7 +7542,7 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Contract interaction",
-    "money_account_deposit": "Added to Money account",
+    "money_account_deposit": "Transfer to Money account",
     "money_account_withdraw": "Transfer from Money account",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
@@ -10059,7 +10059,7 @@
       }
     },
     "first_time_deposit": {
-      "title": "You added funds!",
+      "title": "You’re all set",
       "content": "It’s in your Money account —\n and already earning.",
       "button_text": "Done"
     },
@@ -13445,7 +13445,7 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
-      "money_account_deposit": "Added to Money account",
+      "money_account_deposit": "Transfer to Money account",
       "money_account_withdraw": "Transfer from Money account",
       "default": "Transaction details"
     },
