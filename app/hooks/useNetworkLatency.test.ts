@@ -15,7 +15,8 @@ import {
   useNetworkLatency,
   useSettledNetworkLatency,
 } from './useNetworkLatency';
-import { useNetworkTier } from './useNetworkTier';
+import { useNetworkTier, useNetworkTierState } from './useNetworkTier';
+import { setDeviceCapabilityOverride } from '../util/deviceCapability/override';
 
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
@@ -85,6 +86,44 @@ describe('useNetworkLatency', () => {
       });
     },
   );
+
+  it('reflects a dev override in both transport and both latency reads', () => {
+    mockNetInfoState({
+      type: 'unknown',
+      isInternetReachable: null,
+      details: {},
+    });
+    const dev = jest.replaceProperty(
+      global as typeof global & { __DEV__: boolean },
+      '__DEV__',
+      true,
+    );
+
+    try {
+      const { result } = renderHook(() => ({
+        tier: useNetworkTier(),
+        state: useNetworkTierState(),
+        latency: useNetworkLatency(),
+        settled: useSettledNetworkLatency(),
+      }));
+      act(() =>
+        setDeviceCapabilityOverride({
+          network: 'SLOW_CELLULAR',
+          latency: 'SLOW',
+        }),
+      );
+
+      expect(result.current).toEqual({
+        tier: 'SLOW_CELLULAR',
+        state: { tier: 'SLOW_CELLULAR', isResolved: true },
+        latency: 'SLOW',
+        settled: 'SLOW',
+      });
+    } finally {
+      act(() => setDeviceCapabilityOverride());
+      dev.restore();
+    }
+  });
 
   it('reports ok on 3g without changing SLOW_CELLULAR', () => {
     mockNetInfoState({

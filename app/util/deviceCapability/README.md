@@ -38,6 +38,10 @@ Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network
 
 Outside render (analytics, callbacks), read `getNetworkTierSnapshot()` from `app/util/deviceCapability` instead. It returns the last tier from the process NetInfo listener, with the same `computeNetworkTier` rules, and adds no listener or re-render. It is `null` before the first NetInfo event and when latency monitoring has not started, since that listener feeds it. React screens keep using `useNetworkTier()`.
 
+For imperative policy code, `getNetworkConditions()` returns `{ hardware, network, latency }`. `subscribeNetworkConditions(listener)` notifies when those values change and returns a teardown. Both reuse the process NetInfo listener; neither adds a native subscription.
+
+For development, set `MM_DEVICE_CAPABILITY_OVERRIDE=hardware=LOW,network=SLOW_CELLULAR,latency=SLOW` in the bundler environment, or call `setDeviceCapabilityOverride({ hardware: 'LOW' })`. Omit fields to use measured values; pass `{}` to clear all overrides or call with no argument to restore the environment defaults. Release builds ignore both inputs.
+
 **Transport tier** (`tier`) comes from NetInfo only and is never changed by measured latency: 2g / 3g are `SLOW_CELLULAR`, `wifi` / `ethernet` are `WIFI`, 4g / 5g are `FAST_CELLULAR`.
 
 **Measured latency** is a separate hook, `useNetworkLatency()` (`'UNKNOWN' | 'OK' | 'SLOW'`):

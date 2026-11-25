@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { getTotalMemorySync } from 'react-native-device-info';
-import { getHardwareTier } from './index';
+import { getHardwareTier, setDeviceCapabilityOverride } from './index';
 
 jest.mock('react-native-device-info', () => ({
   getTotalMemorySync: jest.fn(),
@@ -49,6 +49,24 @@ describe('getHardwareTier', () => {
     const result = getHardwareTier();
 
     expect(result).toBe('LOW');
+  });
+
+  it('returns the dev override without reading native memory', () => {
+    const dev = jest.replaceProperty(
+      global as typeof global & { __DEV__: boolean },
+      '__DEV__',
+      true,
+    );
+
+    try {
+      setDeviceCapabilityOverride({ hardware: 'LOW' });
+
+      expect(getHardwareTier()).toBe('LOW');
+      expect(mockGetTotalMemorySync).not.toHaveBeenCalled();
+    } finally {
+      setDeviceCapabilityOverride();
+      dev.restore();
+    }
   });
 
   it('returns null when memory is unavailable', () => {

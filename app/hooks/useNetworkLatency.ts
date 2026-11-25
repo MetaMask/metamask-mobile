@@ -4,7 +4,17 @@ import {
   getSettledLatencySnapshot,
   subscribeLatency,
 } from '../util/deviceCapability/latencyStore';
+import { subscribeDeviceCapabilityOverride } from '../util/deviceCapability/override';
 import type { LatencyBucket } from '../util/deviceCapability/types';
+
+function subscribe(listener: () => void): () => void {
+  const unsubscribeLatency = subscribeLatency(listener);
+  const unsubscribeOverride = subscribeDeviceCapabilityOverride(listener);
+  return () => {
+    unsubscribeLatency();
+    unsubscribeOverride();
+  };
+}
 
 /**
  * Measured fetch latency, independent of the transport tier. `UNKNOWN` while
@@ -13,7 +23,7 @@ import type { LatencyBucket } from '../util/deviceCapability/types';
  * the transport.
  */
 export function useNetworkLatency(): LatencyBucket {
-  return useSyncExternalStore(subscribeLatency, getLatencySnapshot);
+  return useSyncExternalStore(subscribe, getLatencySnapshot);
 }
 
 /**
@@ -21,5 +31,5 @@ export function useNetworkLatency(): LatencyBucket {
  * `UNKNOWN` only before the first reading or while offline.
  */
 export function useSettledNetworkLatency(): LatencyBucket {
-  return useSyncExternalStore(subscribeLatency, getSettledLatencySnapshot);
+  return useSyncExternalStore(subscribe, getSettledLatencySnapshot);
 }

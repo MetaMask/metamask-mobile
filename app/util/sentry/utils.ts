@@ -18,6 +18,7 @@ import { TraceName, hasMetricsConsent } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import {
   installStandaloneOutgoingFetchSpan,
+  redactOutgoingRequestSpan,
   registerOutgoingRequestAnnotation,
 } from './outgoingRequestContext';
 import { getTraceTags } from './tags';
@@ -746,6 +747,7 @@ export async function setupSentry(
         return rewritten as typeof report;
       },
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
+      beforeSendSpan: redactOutgoingRequestSpan,
       beforeSendTransaction: (event) => {
         const filtered = excludeEvents(event as SentryEvent);
         if (filtered) {
@@ -768,9 +770,8 @@ export async function setupSentry(
       },
     });
 
-    // Route and connection type are captured here, at request start.
-    // beforeSendSpan runs when the span is sent, after the parent has ended,
-    // so it would record a later screen.
+    // Capture route and conditions at request start, not in beforeSendSpan:
+    // the screen and connection may have changed by the time it is sent.
     const client = Sentry.getClient();
     if (client && typeof client.on === 'function') {
       registerOutgoingRequestAnnotation(client);

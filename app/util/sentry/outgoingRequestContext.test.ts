@@ -1,4 +1,10 @@
-import { getActiveSpan, startSpan, type Span } from '@sentry/core';
+import {
+  getActiveSpan,
+  startSpan,
+  type Span,
+  type SpanJSON,
+} from '@sentry/core';
+import { getNetworkConditions } from '../deviceCapability/conditions';
 import NetInfo from '@react-native-community/netinfo';
 import NavigationService from '../../core/NavigationService';
 import {
@@ -6,6 +12,7 @@ import {
   OUTGOING_REQUEST_ROUTE_ATTRIBUTE,
   annotateOutgoingRequestSpan,
   installStandaloneOutgoingFetchSpan,
+  redactOutgoingRequestSpan,
   registerOutgoingRequestAnnotation,
   resetOutgoingRequestAnnotationForTesting,
 } from './outgoingRequestContext';
@@ -22,6 +29,14 @@ jest.mock('../../core/NavigationService', () => ({
   default: {
     getCurrentRoute: jest.fn(() => ({ name: 'WalletView' })),
   },
+}));
+
+jest.mock('../deviceCapability/conditions', () => ({
+  getNetworkConditions: jest.fn(() => ({
+    hardware: null,
+    network: null,
+    latency: 'UNKNOWN',
+  })),
 }));
 
 let mockNetInfoLoad: 'available' | 'missing' | 'throws' = 'available';
@@ -52,6 +67,41 @@ function createSpan(): Span & { setAttribute: jest.Mock } {
     setAttribute: jest.fn(),
   } as unknown as Span & { setAttribute: jest.Mock };
 }
+
+describe('redactOutgoingRequestSpan', () => {
+  it('keeps only safe HTTP dimensions and removes SDK request details', () => {
+    const sensitiveUrl = 'https://example.com/private?account=secret';
+    const span: SpanJSON = {
+      trace_id: 'trace',
+      span_id: 'span',
+      start_timestamp: 1,
+      timestamp: 2,
+      op: 'http.client',
+      description: `POST ${sensitiveUrl}`,
+      data: {
+        url: sensitiveUrl,
+        'url.full': sensitiveUrl,
+        'http.url': sensitiveUrl,
+        'http.query': 'account=secret',
+        'http.target': '/private',
+        'http.request.header.authorization': 'Bearer secret',
+        'http.request.body': 'secret',
+        'http.method': 'POST',
+        'http.status_code': 201,
+        'hardware.tier': 'MID',
+      },
+    };
+
+    const result = redactOutgoingRequestSpan(span);
+
+    expect(result.description).toBe('POST');
+    expect(JSON.parse(JSON.stringify(result.data))).toEqual({
+      'http.method': 'POST',
+      'http.status_code': 201,
+      'hardware.tier': 'MID',
+    });
+  });
+});
 
 describe('annotateOutgoingRequestSpan', () => {
   it('sets route and connection type when each is present', () => {
@@ -126,6 +176,33 @@ describe('registerOutgoingRequestAnnotation', () => {
       OUTGOING_REQUEST_CONNECTION_ATTRIBUTE,
       'cellular',
     );
+  });
+
+  it('reads tier attributes at request start, including unknown tiers', () => {
+    const span = createSpan();
+    const client = {
+      on: jest.fn((_hook, _callback: (value: Span) => void) => jest.fn()),
+    };
+    registerOutgoingRequestAnnotation(client);
+    const [, onRequest] = client.on.mock.calls[0];
+    jest.mocked(getNetworkConditions).mockReturnValueOnce({
+      hardware: 'LOW',
+      network: 'SLOW_CELLULAR',
+      latency: 'SLOW',
+    });
+
+    onRequest(span);
+    onRequest(span);
+
+    expect(span.setAttribute).toHaveBeenCalledWith('hardware.tier', 'LOW');
+    expect(span.setAttribute).toHaveBeenCalledWith(
+      'network.tier',
+      'SLOW_CELLULAR',
+    );
+    expect(span.setAttribute).toHaveBeenCalledWith('latency.bucket', 'SLOW');
+    expect(span.setAttribute).toHaveBeenCalledWith('hardware.tier', 'UNKNOWN');
+    expect(span.setAttribute).toHaveBeenCalledWith('network.tier', 'UNKNOWN');
+    expect(span.setAttribute).toHaveBeenCalledWith('latency.bucket', 'UNKNOWN');
   });
 
   it('leaves connection type unset when NetInfo is still unknown', () => {
@@ -220,7 +297,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
     expect(result).toBe(response);
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
-        name: 'POST https://example.com/price',
+        name: 'POST',
         op: 'http.request',
       },
       expect.any(Function),
@@ -275,7 +352,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
 
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
-        name: 'GET https://example.com/price',
+        name: 'GET',
         op: 'http.request',
       },
       expect.any(Function),
@@ -295,7 +372,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
 
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
-        name: 'PUT https://example.com/quote',
+        name: 'PUT',
         op: 'http.request',
       },
       expect.any(Function),

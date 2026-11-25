@@ -1,5 +1,11 @@
-import { getActiveSpan, startSpan, type Span } from '@sentry/core';
+import {
+  getActiveSpan,
+  startSpan,
+  type Span,
+  type SpanJSON,
+} from '@sentry/core';
 import NavigationService from '../../core/NavigationService';
+import { getNetworkConditions } from '../deviceCapability/conditions';
 
 /**
  * Attributes added to every `http.client` span when the request starts.
@@ -11,6 +17,41 @@ import NavigationService from '../../core/NavigationService';
  */
 export const OUTGOING_REQUEST_ROUTE_ATTRIBUTE = 'route.name';
 export const OUTGOING_REQUEST_CONNECTION_ATTRIBUTE = 'connection_type';
+
+/** Retain only bounded HTTP telemetry, not arbitrary SDK request details. */
+export function redactOutgoingRequestSpan(span: SpanJSON): SpanJSON {
+  if (span.op !== 'http.client') return span;
+  const data = span.data;
+  const method = safeMethod(
+    data?.['http.request.method'] ?? data?.['http.method'],
+  );
+  return {
+    ...span,
+    description: method,
+    data: {
+      'http.method': method,
+      'http.status_code': data?.['http.status_code'],
+      'http.response.status_code': data?.['http.response.status_code'],
+      'sentry.origin': data?.['sentry.origin'],
+      [OUTGOING_REQUEST_ROUTE_ATTRIBUTE]:
+        data?.[OUTGOING_REQUEST_ROUTE_ATTRIBUTE],
+      [OUTGOING_REQUEST_CONNECTION_ATTRIBUTE]:
+        data?.[OUTGOING_REQUEST_CONNECTION_ATTRIBUTE],
+      'hardware.tier': data?.['hardware.tier'],
+      'network.tier': data?.['network.tier'],
+      'latency.bucket': data?.['latency.bucket'],
+    },
+  };
+}
+
+function safeMethod(value: unknown): string {
+  const method = typeof value === 'string' ? value.toUpperCase() : '';
+  return /^(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)$/u.test(
+    method,
+  )
+    ? method
+    : 'HTTP';
+}
 
 interface ConnectionState {
   type?: string | null;
@@ -87,6 +128,10 @@ export function registerOutgoingRequestAnnotation(
         routeName: readRouteName(),
         connectionType,
       });
+      const { hardware, network, latency } = getNetworkConditions();
+      span.setAttribute('hardware.tier', hardware ?? 'UNKNOWN');
+      span.setAttribute('network.tier', network ?? 'UNKNOWN');
+      span.setAttribute('latency.bucket', latency);
     } catch {
       // Annotation must not change the request.
     }
@@ -117,10 +162,13 @@ export function installStandaloneOutgoingFetchSpan(): void {
         return wrappedFetch(input, init);
       }
 
-      const { method, url } = describeOutgoingFetch(input, init);
+      const requestMethod =
+        typeof Request !== 'undefined' && input instanceof Request
+          ? input.method
+          : undefined;
       return startSpan(
         {
-          name: url ? `${method} ${url}` : method,
+          name: safeMethod(init?.method ?? requestMethod ?? 'GET'),
           op: 'http.request',
         },
         (span) => {
@@ -135,28 +183,6 @@ export function installStandaloneOutgoingFetchSpan(): void {
       return wrappedFetch(input, init);
     }
   }) as typeof fetch;
-}
-
-function describeOutgoingFetch(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-): { method: string; url: string } {
-  const requestMethod =
-    typeof Request !== 'undefined' && input instanceof Request
-      ? input.method
-      : undefined;
-  const method = (init?.method ?? requestMethod ?? 'GET').toUpperCase();
-
-  if (typeof input === 'string') {
-    return { method, url: input };
-  }
-  if (input instanceof URL) {
-    return { method, url: input.toString() };
-  }
-  if (typeof Request !== 'undefined' && input instanceof Request) {
-    return { method, url: input.url };
-  }
-  return { method, url: '' };
 }
 
 function readRouteName(): string | undefined {

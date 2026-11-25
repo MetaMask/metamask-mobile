@@ -1,4 +1,9 @@
+import { useSyncExternalStore } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
+import {
+  getDeviceCapabilityOverride,
+  subscribeDeviceCapabilityOverride,
+} from '../util/deviceCapability/override';
 import {
   computeNetworkTier,
   readCellularGeneration,
@@ -10,6 +15,10 @@ export type { NetworkTier };
 export interface NetworkTierState {
   tier: NetworkTier | null;
   isResolved: boolean;
+}
+
+function getNetworkOverride(): NetworkTier | null | undefined {
+  return getDeviceCapabilityOverride().network;
 }
 
 /**
@@ -29,11 +38,18 @@ export function useNetworkTier(): NetworkTier | null {
  */
 export function useNetworkTierState(): NetworkTierState {
   const { type, isInternetReachable, details } = useNetInfo();
-  const tier = computeNetworkTier({
-    type,
-    cellularGeneration: readCellularGeneration(details),
-    isInternetReachable,
-  });
+  const override = useSyncExternalStore(
+    subscribeDeviceCapabilityOverride,
+    getNetworkOverride,
+  );
+  const tier =
+    override === undefined
+      ? computeNetworkTier({
+          type,
+          cellularGeneration: readCellularGeneration(details),
+          isInternetReachable,
+        })
+      : override;
 
   return {
     tier,

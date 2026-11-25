@@ -11,6 +11,7 @@ import {
   readCellularGeneration,
 } from './computeNetworkTier';
 import { updateNetworkTierSnapshot } from './networkTierSnapshot';
+import { getDeviceCapabilityOverride } from './override';
 import { LATENCY_SAMPLE_SIZE, LATENCY_THRESHOLDS } from './thresholds';
 import type { HardwareTier, LatencyBucket, LatencyThresholds } from './types';
 
@@ -92,7 +93,7 @@ export function subscribeLatency(listener: () => void): () => void {
 
 /** `useSyncExternalStore` snapshot. Changes only when the bucket changes. */
 export function getLatencySnapshot(): LatencyBucket {
-  return bucket;
+  return getDeviceCapabilityOverride().latency ?? bucket;
 }
 
 /**
@@ -100,7 +101,7 @@ export function getLatencySnapshot(): LatencyBucket {
  * on resume or a transport change, only when the device goes offline.
  */
 export function getSettledLatencySnapshot(): LatencyBucket {
-  return settledBucket;
+  return getDeviceCapabilityOverride().latency ?? settledBucket;
 }
 
 /** Hardware-row cutoffs selected by `startLatencyMonitoring`. */
@@ -153,14 +154,16 @@ export function startLatencyMonitoring(
     previousNetInfoKey = key;
     const wasTransportNone = isTransportNone;
     const tier = computeNetworkTier(input);
-    updateNetworkTierSnapshot(tier);
     isTransportNone = tier === 'NONE';
     // `wasTransportNone` covers leaving NONE without a transport key change
     // (reachability false → true on the same transport): in-flight fetches
     // span the offline gap, so their elapsed time is not a latency signal.
-    if (changed || isTransportNone || wasTransportNone) {
-      clearLatencySamples();
-    }
+    updateNetworkTierSnapshot(
+      tier,
+      changed || isTransportNone || wasTransportNone
+        ? clearLatencySamples
+        : undefined,
+    );
   });
 
   AppState.addEventListener('change', (next) => {
