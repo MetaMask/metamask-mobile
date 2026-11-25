@@ -34,8 +34,6 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 
-const ORIGINAL_CONFIRMATION_ENV =
-  process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED;
 const ORIGINAL_PROVIDER_ENV = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
 function ControlledRow() {
@@ -98,7 +96,6 @@ function renderRow(
 
 describe('PerpsReceiveToRow', () => {
   beforeEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'true';
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
     mockUsePerpsLiveAccount.mockReturnValue({
       account: { totalBalance: '50.389' },
@@ -107,8 +104,6 @@ describe('PerpsReceiveToRow', () => {
   });
 
   afterEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED =
-      ORIGINAL_CONFIRMATION_ENV;
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = ORIGINAL_PROVIDER_ENV;
   });
 
@@ -170,14 +165,6 @@ describe('PerpsReceiveToRow', () => {
         )}, $12.34`,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders nothing when the confirmation env is off', () => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'false';
-
-    const { queryByTestId } = renderRow();
-
-    expect(queryByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeNull();
   });
 
   it('renders nothing when the provider env is off', () => {

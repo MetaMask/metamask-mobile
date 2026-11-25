@@ -70,13 +70,12 @@ Code: `app/components/UI/Perps/selectors/featureFlags/index.ts`; `app/components
 
 ## Other Mobile-read values
 
-| Value                                   | Read by                                     | Behaviour                                                                                                                                                                          |
-| --------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `perpsPayWithAnyTokenAllowlistAssets`   | `selectPerpsPayWithAnyTokenAllowlistAssets` | Not version-gated. A non-empty `MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS` (`chainId.address`, comma-separated) overrides the remote list. Empty everywhere means no allowlist. |
-| `hip3ConfigVersion`                     | `selectHip3ConfigVersion`                   | Controller state, not a flag. `PerpsConnectionManager` reconnects when it changes.                                                                                                 |
-| `MM_PERPS_LIGHTER_CONFIRMATION_ENABLED` | `isPerpsLighterConfirmationEnabled`         | Shows the deposit confirmation "Receive to" row. Also needs the Lighter provider flags.                                                                                            |
+| Value                                 | Read by                                     | Behaviour                                                                                                                                                                          |
+| ------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `perpsPayWithAnyTokenAllowlistAssets` | `selectPerpsPayWithAnyTokenAllowlistAssets` | Not version-gated. A non-empty `MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS` (`chainId.address`, comma-separated) overrides the remote list. Empty everywhere means no allowlist. |
+| `hip3ConfigVersion`                   | `selectHip3ConfigVersion`                   | Controller state, not a flag. `PerpsConnectionManager` reconnects when it changes.                                                                                                 |
 
-Code: `app/components/UI/Perps/selectors/featureFlags/index.ts` `selectPerpsPayWithAnyTokenAllowlistAssets`, `selectHip3ConfigVersion`; `app/components/UI/Perps/utils/lighterFeatureFlags.ts` `isPerpsLighterConfirmationEnabled`.
+Code: `app/components/UI/Perps/selectors/featureFlags/index.ts` `selectPerpsPayWithAnyTokenAllowlistAssets`, `selectHip3ConfigVersion`; `app/components/UI/Perps/utils/lighterFeatureFlags.ts`.
 
 ## Env passed to Core
 
