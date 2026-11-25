@@ -10009,6 +10009,8 @@
     "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
+    "balance_hide_hint": "Hides your balance",
+    "balance_show_hint": "Shows your balance",
     "onboarding": {
       "step_1": {
         "title": "Earn up to {{apy}}% APY",
@@ -12288,6 +12290,7 @@
       "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
+      "available_balance_info": "Learn what makes up your available balance",
       "action_buttons": {
         "add": "Add",
         "details": "Details",

@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import ManageCardOptions from './ManageCardOptions';
+import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
 import {
@@ -84,7 +85,7 @@ const renderComponent = (
     hasAlertOnlyState?: boolean;
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
-    hideQuickActionRows?: boolean;
+    hiddenQuickActionRows?: CardHomeActionVisibility;
     spendingLimitReadOnly?: boolean;
     spendingLimitOnly?: boolean;
     privacyMode?: boolean;
@@ -137,7 +138,7 @@ const renderComponent = (
       onOrderMetalCard={jest.fn()}
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
-      hideQuickActionRows={overrides.hideQuickActionRows}
+      hiddenQuickActionRows={overrides.hiddenQuickActionRows}
       onCashback={jest.fn()}
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
@@ -576,7 +577,7 @@ describe('ManageCardOptions quick-action row seam', () => {
   it('hides the View details, View PIN and Freeze rows when the quick-action row covers them', () => {
     const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsPinView: true }),
-      { hideQuickActionRows: true },
+      { hiddenQuickActionRows: { details: true, pin: true, freeze: true } },
     );
 
     expect(
@@ -587,10 +588,23 @@ describe('ManageCardOptions quick-action row seam', () => {
     expect(queryByTestId('freeze-card-list-item')).toBeNull();
   });
 
+  it('hides only the rows whose tile is showing', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      { hiddenQuickActionRows: { details: true, pin: true, freeze: false } },
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+    expect(getByTestId('freeze-card-list-item')).toBeOnTheScreen();
+  });
+
   it('keeps the rows when the quick-action row is not showing them', () => {
     const { getByTestId, queryByTestId } = renderComponent(
       buildCapabilities({ supportsPinView: true }),
-      { hideQuickActionRows: false },
+      { hiddenQuickActionRows: { details: false, pin: false, freeze: false } },
     );
 
     expect(
