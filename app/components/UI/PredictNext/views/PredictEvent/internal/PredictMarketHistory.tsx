@@ -258,7 +258,7 @@ export const PredictMarketHistory = ({
   const yesTrail = useLiveQuoteTrail(market, yesOutcome, isTrailEnabled);
   const noTrail = useLiveQuoteTrail(market, noOutcome, isTrailEnabled);
   const historyPoints = historyQuery.data?.points;
-  const yesLabel = yesOutcome?.label || strings('predict.market_details.yes');
+  const yesLabel = yesOutcome?.label ?? strings('predict.market_details.yes');
   const noLabel =
     noOutcome?.label && noOutcome.label !== yesOutcome?.label
       ? noOutcome.label
@@ -336,7 +336,7 @@ interface PredictGameMarketHistoryProps {
 
 const getCompactTeamLabel = (team: PredictTeam) => {
   const words = team.name.trim().split(/\s+/);
-  return words.at(-1) || team.abbreviation || team.name;
+  return words.at(-1) ?? team.abbreviation ?? team.name;
 };
 
 export const PredictGameMarketHistory = ({
@@ -540,7 +540,7 @@ export const PredictTopMarketsHistory = ({
       return [
         {
           id: market.id,
-          label: yesOutcome?.label || market.question,
+          label: yesOutcome?.label ?? market.question,
           color,
           points: appendLiveEndpoint(
             toChartPoints(points ?? [], 'yesPrice'),
