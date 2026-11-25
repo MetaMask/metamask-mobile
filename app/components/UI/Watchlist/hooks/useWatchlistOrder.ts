@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -64,7 +64,7 @@ export const useWatchlistOrder = (
 ): UseWatchlistOrderResult => {
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const queueKey = getOrderQueueKey(accountGroupId);
-  const fallbackOrderRef = useRef<{
+  const [fallbackOrder, setFallbackOrder] = useState<{
     queueKey: string;
     keys: string[];
   }>({ queueKey, keys: [] });
@@ -147,19 +147,36 @@ export const useWatchlistOrder = (
     [availableItems, orderQuery.data, persistOrder, queryClient, queryKey],
   );
 
+  const isUsingFallback = !enabled || orderQuery.data === undefined;
+  const fallbackKeys = useMemo(() => {
+    if (!isUsingFallback) {
+      return fallbackOrder.keys;
+    }
+    const baseKeys =
+      fallbackOrder.queueKey === queueKey ? fallbackOrder.keys : [];
+    return reconcileWatchlistItemOrder(baseKeys, availableItems);
+  }, [
+    availableItems,
+    fallbackOrder.keys,
+    fallbackOrder.queueKey,
+    isUsingFallback,
+    queueKey,
+  ]);
+
+  if (
+    isUsingFallback &&
+    (fallbackOrder.queueKey !== queueKey ||
+      !areOrdersEqual(fallbackOrder.keys, fallbackKeys))
+  ) {
+    setFallbackOrder({ queueKey, keys: fallbackKeys });
+  }
+
   const orderedKeys = useMemo(() => {
-    if (!enabled || orderQuery.data === undefined) {
-      if (fallbackOrderRef.current.queueKey !== queueKey) {
-        fallbackOrderRef.current = { queueKey, keys: [] };
-      }
-      fallbackOrderRef.current.keys = reconcileWatchlistItemOrder(
-        fallbackOrderRef.current.keys,
-        availableItems,
-      );
-      return fallbackOrderRef.current.keys;
+    if (isUsingFallback) {
+      return fallbackKeys;
     }
     return reconcileWatchlistItemOrder(orderQuery.data, availableItems);
-  }, [availableItems, enabled, orderQuery.data, queueKey]);
+  }, [availableItems, fallbackKeys, isUsingFallback, orderQuery.data]);
   const itemsByKey = useMemo(
     () => new Map(availableItems.map((item) => [item.key, item])),
     [availableItems],

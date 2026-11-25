@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectPerpsEnabledFlag } from '../../Perps/selectors/featureFlags';
 import { selectPerpsWatchlistMarkets } from '../../Perps/selectors/perpsController';
 import { usePerpsMarkets } from '../../Perps/hooks';
 import {
+  selectIsUnifiedWatchlistActive,
   selectTokenWatchlistEnabled,
-  selectUnifiedWatchlistEnabled,
 } from '../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { useTokenWatchlistMembershipQuery } from '../../Assets/watchlist/hooks/useTokenWatchlist';
@@ -37,16 +36,13 @@ const EMPTY_ASSET_IDS: string[] = [];
  */
 export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedEnabled = useSelector(selectUnifiedWatchlistEnabled);
-  const isPerpsFeatureEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsEnabled = useSelector(selectIsUnifiedWatchlistActive);
   const watchlistSymbols =
     useSelector(selectPerpsWatchlistMarkets) ?? EMPTY_SYMBOLS;
   const networkTier = useNetworkTier();
   const [hardwareTier] = useState(() => getHardwareTier());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const isPerpsEnabled =
-    isTokenWatchlistEnabled && isUnifiedEnabled && isPerpsFeatureEnabled;
   const isOffline = networkTier === 'NONE';
 
   const {
@@ -163,23 +159,20 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     const refreshes: Promise<unknown>[] = [];
-    try {
-      if (isTokenWatchlistEnabled) {
-        refreshes.push(refetchTokenMembership());
-      }
-      if (!isOffline) {
-        refreshes.push(refetchTokens());
-      }
-      if (isPerpsEnabled && !isOffline) {
-        refreshes.push(refreshPerps());
-      }
-      if (isPerpsEnabled && orderError) {
-        refreshes.push(retryOrder());
-      }
-      await Promise.allSettled(refreshes);
-    } finally {
-      setIsRefreshing(false);
+    if (isTokenWatchlistEnabled) {
+      refreshes.push(Promise.resolve().then(() => refetchTokenMembership()));
     }
+    if (!isOffline) {
+      refreshes.push(Promise.resolve().then(() => refetchTokens()));
+    }
+    if (isPerpsEnabled && !isOffline) {
+      refreshes.push(Promise.resolve().then(() => refreshPerps()));
+    }
+    if (isPerpsEnabled && orderError) {
+      refreshes.push(Promise.resolve().then(() => retryOrder()));
+    }
+    await Promise.allSettled(refreshes);
+    setIsRefreshing(false);
   }, [
     isOffline,
     isPerpsEnabled,

@@ -21,8 +21,8 @@ import WatchlistSuggestedSection from './components/WatchlistSuggestedSection';
 import WatchlistEmptyFallback from './components/WatchlistEmptyFallback';
 import WatchlistAnimatedRow from './components/WatchlistAnimatedRow';
 import {
+  selectIsUnifiedWatchlistActive,
   selectTokenWatchlistEnabled,
-  selectUnifiedWatchlistEnabled,
 } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { useSuggestedWatchlistItemsQuery } from '../../../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery';
@@ -44,13 +44,11 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../types';
-import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { useUnifiedWatchlist } from '../../../../UI/Watchlist/hooks/useUnifiedWatchlist';
+import { useUnifiedWatchlistPerpsHandlers } from '../../../../UI/Watchlist/hooks/useUnifiedWatchlistPerpsHandlers';
 import WatchlistUnavailablePerpRow from '../../../../UI/Watchlist/WatchlistUnavailablePerpRow';
 import WatchlistErrorRow from '../../../../UI/Watchlist/WatchlistErrorRow';
 import PerpsMarketRowItem from '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
-import { usePerpsNavigation } from '../../../../UI/Perps/hooks/usePerpsNavigation';
-import { usePerpsWatchlistActions } from '../../../../UI/Perps/hooks/usePerpsWatchlistActions';
 import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -309,6 +307,7 @@ const MixedWatchlistSection = forwardRef<
     items,
     tokens,
     perps,
+    orderError,
     suggestedPerps,
     canUseLivePerpsPrices,
     canUseMotion,
@@ -325,11 +324,16 @@ const MixedWatchlistSection = forwardRef<
   } = useUnifiedWatchlist();
   const { data: suggestedPool, isLoading: isSuggestedLoading } =
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
-  const { navigateToMarketDetails } = usePerpsNavigation();
-  const { addToWatchlist: addPerpToWatchlist, removeFromWatchlist } =
-    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.WALLET_HOME, {
-      showToasts: false,
-    });
+  const {
+    addPerpToWatchlist,
+    removePerpFromWatchlist: removeFromWatchlist,
+    handlePerpPress,
+    retryHandler,
+  } = useUnifiedWatchlistPerpsHandlers({
+    source: PERPS_EVENT_VALUE.SOURCE.WALLET_HOME,
+    canRefresh,
+    refresh,
+  });
 
   const handleAfterTokenAdd = useCallback(
     (assetId: string) => {
@@ -352,13 +356,6 @@ const MixedWatchlistSection = forwardRef<
       );
     },
     [addPerpToWatchlist, appendOrderKey, isOrderReady],
-  );
-
-  const handlePerpPress = useCallback(
-    (market: PerpsMarketData) => {
-      navigateToMarketDetails(market, PERPS_EVENT_VALUE.SOURCE.WALLET_HOME);
-    },
-    [navigateToMarketDetails],
   );
 
   const displayItems = items.slice(0, MAX_ITEMS_DISPLAYED);
@@ -386,13 +383,8 @@ const MixedWatchlistSection = forwardRef<
     ],
   );
 
-  const hasError = Boolean(tokens.error ?? perps.error);
+  const hasError = Boolean(tokens.error ?? perps.error ?? orderError);
   const isEmpty = !isInitialLoading && displayItems.length === 0 && !hasError;
-  const retryHandler = canRefresh
-    ? (): void => {
-        refresh().catch(() => undefined);
-      }
-    : undefined;
 
   return (
     <WatchlistSectionShell
@@ -478,11 +470,9 @@ const WatchlistSection = forwardRef<
   SectionRefreshHandle,
   WatchlistSectionProps
 >((props, ref) => {
-  const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isUnifiedWatchlistActive = useSelector(selectIsUnifiedWatchlistActive);
 
-  if (isTokenWatchlistEnabled && isUnifiedWatchlistEnabled && isPerpsEnabled) {
+  if (isUnifiedWatchlistActive) {
     return <MixedWatchlistSection {...props} ref={ref} />;
   }
 

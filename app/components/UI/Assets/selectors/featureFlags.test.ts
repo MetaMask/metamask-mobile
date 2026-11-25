@@ -2,6 +2,7 @@ import type { Json } from '@metamask/utils';
 import {
   ASSET_GLOBAL_WATCHLIST_FLAG_KEY,
   ASSET_UNIFIED_WATCHLIST_FLAG_KEY,
+  selectIsUnifiedWatchlistActive,
   selectTokenWatchlistEnabled,
   selectUnifiedWatchlistEnabled,
 } from './featureFlags';
@@ -142,4 +143,22 @@ describe('selectTokenWatchlistEnabled', () => {
 
     expect(result).toBe(false);
   });
+
+  it.each([
+    [true, true, true, true],
+    [false, true, true, false],
+    [true, false, true, false],
+    [true, true, false, false],
+  ])(
+    'selectIsUnifiedWatchlistActive(%s, %s, %s) returns %s',
+    (isTokenEnabled, isUnifiedEnabled, isPerpsEnabled, expected) => {
+      expect(
+        selectIsUnifiedWatchlistActive.resultFunc(
+          isTokenEnabled,
+          isUnifiedEnabled,
+          isPerpsEnabled,
+        ),
+      ).toBe(expected);
+    },
+  );
 });

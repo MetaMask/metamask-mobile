@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import { selectPerpsEnabledFlag } from '../../Perps/selectors/featureFlags';
 import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
@@ -34,4 +35,15 @@ export const selectUnifiedWatchlistEnabled = createSelector(
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
+);
+
+/**
+ * Whether the unified token + Perps watchlist experience is active.
+ */
+export const selectIsUnifiedWatchlistActive = createSelector(
+  selectTokenWatchlistEnabled,
+  selectUnifiedWatchlistEnabled,
+  selectPerpsEnabledFlag,
+  (isTokenWatchlistEnabled, isUnifiedWatchlistEnabled, isPerpsEnabled): boolean =>
+    isTokenWatchlistEnabled && isUnifiedWatchlistEnabled && isPerpsEnabled,
 );

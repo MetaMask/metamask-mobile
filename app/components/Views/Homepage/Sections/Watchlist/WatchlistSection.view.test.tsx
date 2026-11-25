@@ -29,6 +29,7 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { getPerpsMarketRowItemSelector } from '../../../../UI/Perps/Perps.testIds';
+import { createEthMarketForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 
@@ -95,17 +96,10 @@ describeForPlatforms('WatchlistSection', () => {
       perpsWatchlistSymbols: ['ETH'],
       streamOverrides: {
         marketData: [
-          {
-            symbol: 'ETH',
+          createEthMarketForViews({
             name: 'Ethereum Perpetual',
-            maxLeverage: '50x',
-            price: '$2,000.00',
-            change24h: '+$50.00',
-            change24hPercent: '+2.50%',
-            volume: '$1.5B',
-            openInterest: '$500M',
             marketType: 'index',
-          },
+          }),
         ],
       },
     });
@@ -141,17 +135,13 @@ describeForPlatforms('WatchlistSection', () => {
     ]);
     setupReadOnlyNetworkStoreMock();
 
-    const suggestedPerps = ['SOL', 'XRP', 'DOGE', 'AVAX'].map((symbol) => ({
-      symbol,
-      name: `${symbol} Perpetual`,
-      maxLeverage: '50x',
-      price: '$2,000.00',
-      change24h: '+$50.00',
-      change24hPercent: '+2.50%',
-      volume: '$1.5B',
-      openInterest: '$500M',
-      marketType: 'index',
-    }));
+    const suggestedPerps = ['SOL', 'XRP', 'DOGE', 'AVAX'].map((symbol) =>
+      createEthMarketForViews({
+        symbol,
+        name: `${symbol} Perpetual`,
+        marketType: 'index',
+      }),
+    );
     const { findByTestId, getByTestId, queryByTestId } =
       renderWatchlistSectionWithRoutes({
         unifiedWatchlist: true,
@@ -191,16 +181,12 @@ describeForPlatforms('WatchlistSection', () => {
       renderWatchlistSectionWithRoutes({
         unifiedWatchlist: true,
         streamOverrides: {
-          marketData: ['ETH', 'SOL', 'XRP', 'DOGE'].map((symbol) => ({
-            symbol,
-            name: `${symbol} Perpetual`,
-            maxLeverage: '50x',
-            price: '$2,000.00',
-            change24h: '+$50.00',
-            change24hPercent: '+2.50%',
-            volume: '$1.5B',
-            openInterest: '$500M',
-          })),
+          marketData: ['ETH', 'SOL', 'XRP', 'DOGE'].map((symbol) =>
+            createEthMarketForViews({
+              symbol,
+              name: `${symbol} Perpetual`,
+            }),
+          ),
         },
       });
 
@@ -223,16 +209,9 @@ describeForPlatforms('WatchlistSection', () => {
       perpsWatchlistSymbols: ['ETH'],
       streamOverrides: {
         marketData: [
-          {
-            symbol: 'ETH',
+          createEthMarketForViews({
             name: 'Ethereum Perpetual',
-            maxLeverage: '50x',
-            price: '$2,000.00',
-            change24h: '+$50.00',
-            change24hPercent: '+2.50%',
-            volume: '$1.5B',
-            openInterest: '$500M',
-          },
+          }),
         ],
       },
     });

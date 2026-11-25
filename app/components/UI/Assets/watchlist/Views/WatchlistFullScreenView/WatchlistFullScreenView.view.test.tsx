@@ -43,6 +43,7 @@ import {
   getUnavailablePerpRowTestId,
 } from '../../../../Watchlist/WatchlistUnavailablePerpRow';
 import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
+import { createEthMarketForViews } from '../../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import Engine from '../../../../../../core/Engine';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
@@ -117,17 +118,10 @@ describeForPlatforms('WatchlistFullScreenView', () => {
         perpsWatchlistSymbols: ['ETH'],
         streamOverrides: {
           marketData: [
-            {
-              symbol: 'ETH',
+            createEthMarketForViews({
               name: 'Ethereum Perpetual',
-              maxLeverage: '50x',
-              price: '$2,000.00',
-              change24h: '+$50.00',
-              change24hPercent: '+2.50%',
-              volume: '$1.5B',
-              openInterest: '$500M',
               marketType: 'index',
-            },
+            }),
           ],
         },
       });
@@ -203,31 +197,24 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     expect(await findByTestId(WatchlistErrorRowTestIds.ROW)).toBeOnTheScreen();
   });
 
-  it('removes an unavailable watched Perps market from edit mode', async () => {
-    const toggleWatchlistMarket = Engine.context.PerpsController
-      .toggleWatchlistMarket as jest.Mock;
-    const getWatchlistMarkets = Engine.context.PerpsController
-      .getWatchlistMarkets as jest.Mock;
-    toggleWatchlistMarket.mockClear();
-    getWatchlistMarkets.mockReturnValueOnce(['DOGE']).mockReturnValueOnce([]);
-    const { findByTestId, getByTestId, getAllByTestId, queryByTestId } =
-      renderWatchlistFullScreenViewWithRoutes({
-        unifiedWatchlist: true,
-        perpsWatchlistSymbols: ['DOGE'],
-        streamOverrides: { marketData: [] },
-      });
+  const removeUnavailablePerpInEditMode = async (symbol: string) => {
+    const view = renderWatchlistFullScreenViewWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: [symbol],
+      streamOverrides: { marketData: [] },
+    });
 
     expect(
-      await findByTestId(getUnavailablePerpRowTestId('DOGE')),
+      await view.findByTestId(getUnavailablePerpRowTestId(symbol)),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(getUnavailablePerpRemoveButtonTestId('DOGE')),
+      view.queryByTestId(getUnavailablePerpRemoveButtonTestId(symbol)),
     ).not.toBeOnTheScreen();
 
     fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      await view.findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     );
-    const unwatchButtons = getAllByTestId(
+    const unwatchButtons = view.getAllByTestId(
       WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
     );
     const unavailablePerpButton = unwatchButtons[unwatchButtons.length - 1];
@@ -236,8 +223,21 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     }
     fireEvent.press(unavailablePerpButton);
     fireEvent.press(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      view.getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
     );
+
+    return view;
+  };
+
+  it('removes an unavailable watched Perps market from edit mode', async () => {
+    const toggleWatchlistMarket = Engine.context.PerpsController
+      .toggleWatchlistMarket as jest.Mock;
+    const getWatchlistMarkets = Engine.context.PerpsController
+      .getWatchlistMarkets as jest.Mock;
+    toggleWatchlistMarket.mockClear();
+    getWatchlistMarkets.mockReturnValueOnce(['DOGE']).mockReturnValueOnce([]);
+
+    await removeUnavailablePerpInEditMode('DOGE');
 
     await waitFor(() => {
       expect(toggleWatchlistMarket).toHaveBeenCalledWith('DOGE');
@@ -253,28 +253,8 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     toggleWatchlistMarket.mockRejectedValueOnce(
       new Error('Persistence failed'),
     );
-    const { findByTestId, getByTestId, getAllByTestId } =
-      renderWatchlistFullScreenViewWithRoutes({
-        unifiedWatchlist: true,
-        perpsWatchlistSymbols: ['DOGE'],
-        streamOverrides: { marketData: [] },
-      });
 
-    await findByTestId(getUnavailablePerpRowTestId('DOGE'));
-    fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-    );
-    const removeButtons = getAllByTestId(
-      WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
-    );
-    const perpRemoveButton = removeButtons[removeButtons.length - 1];
-    if (!perpRemoveButton) {
-      throw new Error('Expected the Perps remove button');
-    }
-    fireEvent.press(perpRemoveButton);
-    fireEvent.press(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-    );
+    const { findByTestId } = await removeUnavailablePerpInEditMode('DOGE');
 
     await waitFor(() => {
       expect(toggleWatchlistMarket).toHaveBeenCalledWith('DOGE');

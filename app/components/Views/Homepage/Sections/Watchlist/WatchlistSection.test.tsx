@@ -6,6 +6,7 @@ import WatchlistSection, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
+import { WatchlistErrorRowTestIds } from '../../../../UI/Watchlist/WatchlistErrorRow.testIds';
 import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -34,11 +35,21 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) => {
-    const { selectTokenWatchlistEnabled, selectUnifiedWatchlistEnabled } =
-      jest.requireMock('../../../../UI/Assets/selectors/featureFlags');
+    const {
+      selectIsUnifiedWatchlistActive,
+      selectTokenWatchlistEnabled,
+      selectUnifiedWatchlistEnabled,
+    } = jest.requireMock('../../../../UI/Assets/selectors/featureFlags');
     const { selectPerpsEnabledFlag } = jest.requireMock(
       '../../../../UI/Perps/selectors/featureFlags',
     );
+    if (selector === selectIsUnifiedWatchlistActive) {
+      return (
+        mockIsWatchlistEnabled &&
+        mockIsUnifiedWatchlistEnabled &&
+        mockIsPerpsEnabled
+      );
+    }
     if (selector === selectTokenWatchlistEnabled) return mockIsWatchlistEnabled;
     if (selector === selectUnifiedWatchlistEnabled)
       return mockIsUnifiedWatchlistEnabled;
@@ -48,6 +59,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../UI/Assets/selectors/featureFlags', () => ({
+  selectIsUnifiedWatchlistActive: jest.fn(),
   selectTokenWatchlistEnabled: jest.fn(),
   selectUnifiedWatchlistEnabled: jest.fn(),
 }));
@@ -553,6 +565,38 @@ describe('WatchlistSection', () => {
       market,
       PERPS_EVENT_VALUE.SOURCE.WALLET_HOME,
     );
+  });
+
+  it('surfaces order load errors with a retry action in unified mode', () => {
+    const mockRefresh = jest.fn().mockResolvedValue(undefined);
+    mockIsUnifiedWatchlistEnabled = true;
+    mockIsPerpsEnabled = true;
+    mockUseUnifiedWatchlist.mockReturnValue({
+      items: [],
+      tokens: { items: [], error: null },
+      perps: { items: [], error: null },
+      suggestedPerps: [],
+      canUseLivePerpsPrices: false,
+      canUseMotion: false,
+      canRefresh: true,
+      canFetchSuggestions: false,
+      tokenMembershipAssetIds: [],
+      perpsMembershipSymbols: [],
+      tokenCount: 0,
+      perpsCount: 0,
+      isInitialLoading: false,
+      isOrderReady: false,
+      orderError: 'Failed to read watchlist order',
+      persistOrder: jest.fn(),
+      appendOrderKey: jest.fn(),
+      refresh: mockRefresh,
+    });
+
+    const { getByTestId, getByText } = renderSection();
+
+    expect(getByTestId(WatchlistErrorRowTestIds.ROW)).toBeTruthy();
+    fireEvent.press(getByText('Try again'));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 });
 

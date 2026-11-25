@@ -5,11 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import ReorderableList, {
   type ReorderableListReorderEvent,
-  useReorderableDrag,
 } from 'react-native-reorderable-list';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -23,10 +22,8 @@ import {
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -40,6 +37,7 @@ import TrendingTokensSkeleton from '../../../../Trending/components/TrendingToke
 import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import WatchlistEditableRow from './WatchlistEditableRow';
+import WatchlistEditableRowChrome from './WatchlistEditableRowChrome';
 import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
 import WatchlistSearchContent from './WatchlistSearchContent';
 import { useWatchlistEditDraft } from './useWatchlistEditDraft';
@@ -48,12 +46,9 @@ import { useSelector } from 'react-redux';
 import CapsuleGlass from '../../../../../../component-library/components-temp/CapsuleGlass';
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
-import {
-  selectTokenWatchlistEnabled,
-  selectUnifiedWatchlistEnabled,
-} from '../../../selectors/featureFlags';
-import { selectPerpsEnabledFlag } from '../../../../Perps/selectors/featureFlags';
+import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags';
 import { useUnifiedWatchlist } from '../../../../Watchlist/hooks/useUnifiedWatchlist';
+import { useUnifiedWatchlistPerpsHandlers } from '../../../../Watchlist/hooks/useUnifiedWatchlistPerpsHandlers';
 import type {
   UnifiedWatchlistItem,
   UnifiedWatchlistPerp,
@@ -61,8 +56,6 @@ import type {
 import WatchlistUnavailablePerpRow from '../../../../Watchlist/WatchlistUnavailablePerpRow';
 import WatchlistErrorRow from '../../../../Watchlist/WatchlistErrorRow';
 import PerpsMarketRowItem from '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
-import { usePerpsNavigation } from '../../../../Perps/hooks/usePerpsNavigation';
-import { usePerpsWatchlistActions } from '../../../../Perps/hooks/usePerpsWatchlistActions';
 import { selectSelectedAccountGroupId } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   PERPS_EVENT_VALUE,
@@ -114,8 +107,6 @@ const MixedPerpsRow = ({
   onPress,
   onRemove,
 }: MixedPerpsRowProps): React.JSX.Element => {
-  const { styles } = useStyles(styleSheet, {});
-  const drag = useReorderableDrag();
   const rowClassName = isEditMode ? 'px-0' : '-mx-4 w-auto px-4';
 
   const row =
@@ -142,36 +133,9 @@ const MixedPerpsRow = ({
   }
 
   return (
-    <View style={styles.editableRow}>
-      <Pressable
-        style={styles.dragArea}
-        onLongPress={drag}
-        delayLongPress={300}
-        testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
-        accessibilityRole="button"
-        accessibilityLabel="Drag to reorder"
-      >
-        <View style={styles.dragHandle} pointerEvents="none">
-          <Icon
-            name={IconName.Menu}
-            size={IconSize.Md}
-            color={IconColor.IconMuted}
-          />
-        </View>
-        <View style={styles.editableRowContent} pointerEvents="none">
-          {row}
-        </View>
-      </Pressable>
-      <View style={styles.unwatchStar}>
-        <ButtonIcon
-          iconName={IconName.Trash}
-          size={ButtonIconSize.Md}
-          onPress={onRemove}
-          testID={WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR}
-          accessibilityLabel="Remove from watchlist"
-        />
-      </View>
-    </View>
+    <WatchlistEditableRowChrome isEditMode onRemove={onRemove}>
+      {row}
+    </WatchlistEditableRowChrome>
   );
 };
 
@@ -450,6 +414,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     items,
     tokens,
     perps,
+    orderError,
     canUseLivePerpsPrices,
     canUseMotion,
     canRefresh,
@@ -460,11 +425,15 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     refresh,
   } = useUnifiedWatchlist();
   const updateTokenListMutation = useTokenWatchlistUpdateListMutation();
-  const { removeFromWatchlist: removePerpFromWatchlist } =
-    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
-      showToasts: false,
-    });
-  const { navigateToMarketDetails } = usePerpsNavigation();
+  const {
+    removePerpFromWatchlist,
+    handlePerpPress,
+    retryHandler: retryLoadHandler,
+  } = useUnifiedWatchlistPerpsHandlers({
+    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+    canRefresh,
+    refresh,
+  });
   const [draftItems, setDraftItems] = useState<UnifiedWatchlistItem[] | null>(
     null,
   );
@@ -491,7 +460,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
 
   const visibleItems = draftItems ?? items;
   const hasItems = visibleItems.length > 0;
-  const hasError = Boolean(tokens.error ?? perps.error);
+  const hasError = Boolean(tokens.error ?? perps.error ?? orderError);
   const isEmpty = !isInitialLoading && !hasItems && !hasError;
 
   const exitEditMode = useCallback(() => {
@@ -508,16 +477,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
 
     exitEditMode();
   }, [accountGroupId, exitEditMode, isEditMode]);
-
-  const handlePerpPress = useCallback(
-    (market: PerpsMarketData) => {
-      navigateToMarketDetails(
-        market,
-        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-      );
-    },
-    [navigateToMarketDetails],
-  );
 
   const handleEditPress = useCallback(() => {
     if (!isOrderReady || isInitialLoading) {
@@ -579,6 +538,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       );
 
       if (draftAccountGroupIdRef.current !== draftAccountGroupId) {
+        isCommittingRef.current = false;
         return;
       }
 
@@ -591,9 +551,8 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       if (draftAccountGroupIdRef.current === draftAccountGroupId) {
         setCommitError(true);
       }
-    } finally {
-      isCommittingRef.current = false;
     }
+    isCommittingRef.current = false;
   }, [
     draftItems,
     exitEditMode,
@@ -620,28 +579,32 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
 
   const handleReorder = useCallback(
     ({ from, to }: ReorderableListReorderEvent) => {
-      if (!isOrderReady || draftItems === null) {
-        return;
-      }
-      if (
-        from < 0 ||
-        to < 0 ||
-        from >= draftItems.length ||
-        to >= draftItems.length
-      ) {
+      if (!isOrderReady) {
         return;
       }
 
-      const nextItems = draftItems.slice();
-      const [movedItem] = nextItems.splice(from, 1);
-      if (!movedItem) {
-        return;
-      }
+      setDraftItems((currentItems) => {
+        if (
+          currentItems === null ||
+          from < 0 ||
+          to < 0 ||
+          from >= currentItems.length ||
+          to >= currentItems.length
+        ) {
+          return currentItems;
+        }
 
-      nextItems.splice(to, 0, movedItem);
-      setDraftItems(nextItems);
+        const nextItems = currentItems.slice();
+        const [movedItem] = nextItems.splice(from, 1);
+        if (!movedItem) {
+          return currentItems;
+        }
+
+        nextItems.splice(to, 0, movedItem);
+        return nextItems;
+      });
     },
-    [draftItems, isOrderReady],
+    [isOrderReady],
   );
 
   const animateEditRow = isEditMode && canUseMotion;
@@ -678,12 +641,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       isEditMode,
     ],
   );
-
-  const retryLoadHandler = canRefresh
-    ? (): void => {
-        refresh().catch(() => undefined);
-      }
-    : undefined;
 
   return (
     <WatchlistFullScreenShell
@@ -744,15 +701,9 @@ interface WatchlistFullScreenViewProps {
 const WatchlistFullScreenView = ({
   testStreamManager,
 }: WatchlistFullScreenViewProps = {}): React.JSX.Element => {
-  const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isUnifiedWatchlistActive = useSelector(selectIsUnifiedWatchlistActive);
 
-  if (
-    !isTokenWatchlistEnabled ||
-    !isUnifiedWatchlistEnabled ||
-    !isPerpsEnabled
-  ) {
+  if (!isUnifiedWatchlistActive) {
     return <LegacyWatchlistFullScreenView />;
   }
 
