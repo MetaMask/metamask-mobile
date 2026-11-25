@@ -1202,15 +1202,16 @@ jobs:
             ignore="$(node -p "require('./package.json').scripts['test:unit'].match(/--testPathIgnorePatterns='([^']+)'/)[1]")"
             yarn jest \
               --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} \
-              --workerIdleMemoryLimit=2GB --forceExit --silent --coverage=false --passWithNoTests \
+              --workerIdleMemoryLimit=2GB --forceExit --silent --coverage $JEST_COVERAGE_ARGS --coverageReporters=json --passWithNoTests \
               --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json \
               --testPathIgnorePatterns "$ignore" \
               --findRelatedTests "${changed[@]}"
           else
-            yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+            yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
           fi
         env:
           NODE_OPTIONS: --max_old_space_size=12288
+          JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
           JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
       - name: Rename coverage report and extract test count for this shard
@@ -1220,7 +1221,7 @@ jobs:
         run: |
           # The related-tests tier collects no coverage; the merge job still expects
           # one coverage file per shard.
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+          if [[ ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
           fi
@@ -1377,10 +1378,10 @@ jobs:
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
-      # The global thresholds need whole-app coverage, which the related-tests tier
-      # does not collect.
+      # Global thresholds need whole-app coverage. Pull requests collect coverage
+      # for changed files only, so the thresholds are enforced on main.
       - name: Validate global coverage thresholds
-        if: ${{ needs.get_requirements.outputs.jest_related_only != 'true' }}
+        if: ${{ github.event_name != 'pull_request' }}
         run: yarn test:validate-coverage
       - name: Upload lcov.info (artifact stores)
         uses: ./.github/actions/dual-upload-e2e-artifact
@@ -1533,17 +1534,19 @@ jobs:
             fi
             TEST_OS=ios yarn jest -c jest.config.view.js --no-watchman \
               --shard=${{ matrix.shard }}/6 \
-              --forceExit --silent --coverage=false --passWithNoTests \
+              --forceExit --silent --coverage $JEST_COVERAGE_ARGS --coverageReporters=json --passWithNoTests \
               --json --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json \
               --findRelatedTests "${changed[@]}"
           else
             yarn test:view:ci \
               --shard=${{ matrix.shard }}/6 \
+              $JEST_COVERAGE_ARGS \
               --json \
               --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
           fi
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+          JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
           JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
       - name: Rename coverage report and extract test count for this shard
@@ -1551,7 +1554,7 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+          if [[ ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
           fi
@@ -1726,17 +1729,19 @@ jobs:
             fi
             TEST_OS=ios yarn jest -c jest.config.integration.js --no-watchman \
               --shard=${{ matrix.shard }}/2 \
-              --forceExit --silent --coverage=false --passWithNoTests \
+              --forceExit --silent --coverage $JEST_COVERAGE_ARGS --coverageReporters=json --passWithNoTests \
               --json --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json \
               --findRelatedTests "${changed[@]}"
           else
             yarn test:integration:ci \
               --shard=${{ matrix.shard }}/2 \
+              $JEST_COVERAGE_ARGS \
               --json \
               --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
           fi
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
+          JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
           JEST_RELATED_FILES: ${{ needs.get_requirements.outputs.jest_related_files }}
       - name: Rename coverage report and extract test count for this shard
@@ -1744,7 +1749,7 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
+          if [[ ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
           fi
