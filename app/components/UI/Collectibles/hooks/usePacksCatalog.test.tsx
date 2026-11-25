@@ -1,13 +1,18 @@
 import React, { type ReactNode } from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mockPackCategoryMapping } from '#app/components/UI/Collectibles/mocks/packsCatalog';
-import { usePacksCatalog } from './usePacksCatalog';
+import {
+  mockCatalogPacks,
+  mockPackCategoryMapping,
+} from '#app/components/UI/Collectibles/mocks/packsCatalog';
+import { usePacksCatalog } from '#app/components/UI/Collectibles/hooks/usePacksCatalog';
 
+const mockFetchPacks = jest.fn();
 const mockFetchMapping = jest.fn();
 
 jest.mock('#app/components/UI/Collectibles/mocks/packsCatalog', () => ({
   ...jest.requireActual('#app/components/UI/Collectibles/mocks/packsCatalog'),
+  fetchMockCatalogPacks: () => mockFetchPacks(),
   fetchMockPackCategoryMapping: () => mockFetchMapping(),
 }));
 
@@ -25,6 +30,7 @@ function renderCatalog() {
 
 describe('usePacksCatalog', () => {
   beforeEach(() => {
+    mockFetchPacks.mockResolvedValue(mockCatalogPacks);
     mockFetchMapping.mockResolvedValue(mockPackCategoryMapping);
   });
 
