@@ -88,10 +88,21 @@ jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: () => mockGetHardwareTier(),
 }));
 
-jest.mock('../feeds/tokens/CryptoTokensPillBlock', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => mockCryptoTokensPillBlock(props),
-}));
+jest.mock('../feeds/tokens/CryptoTokensPillBlock', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockCryptoTokensPillBlock(props);
+      return (
+        <>
+          {props.ListHeaderComponent as React.ReactNode}
+          <View testID="explore-section-tokens" />
+        </>
+      );
+    },
+  };
+});
 
 jest.mock('../feeds/tokens/useCryptoPillFeed', () => {
   const actual = jest.requireActual('../feeds/tokens/useCryptoPillFeed');
@@ -320,6 +331,11 @@ describe('CryptoTab — tokens pill block', () => {
       idPrefix: 'tokens',
       testIdPrefix: 'crypto-tokens',
       listTestId: 'crypto-tokens-list',
+      onQuickTrade: undefined,
+      ListHeaderComponent: expect.anything(),
+      refreshing: false,
+      onRefresh: defaultTabProps.onRefresh,
+      testID: 'explore-crypto-scroll-view',
     });
   });
 

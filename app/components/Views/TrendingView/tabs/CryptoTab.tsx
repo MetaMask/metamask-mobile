@@ -5,10 +5,6 @@ import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { strings } from '../../../../../locales/i18n';
 import ExploreScroll from '../components/ExploreScroll';
-import ExploreSectionList, {
-  type ExploreSectionItem,
-} from '../components/ExploreSectionList';
-import SectionHeader from '../components/SectionHeader';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSection';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -90,62 +86,57 @@ const CryptoTabContent: React.FC<TabProps> = ({
     setFeedActivePillKey(effectiveActiveCryptoPillKey);
   }, [effectiveActiveCryptoPillKey]);
 
+  // Like the Perps tab: Top Traders scrolls away as the list header and
+  // the pill row pins as the sticky header.
+  const topTraders = useMemo(
+    () =>
+      showTopTraders ? (
+        <>
+          <Box twClassName="pb-1">
+            <TopTradersSection
+              source="explore_crypto"
+              prefetchProfiles={prefetchTraderProfiles}
+            />
+          </Box>
+          <SectionDivider />
+        </>
+      ) : null,
+    [showTopTraders, prefetchTraderProfiles],
+  );
 
-  const sections = useMemo((): ExploreSectionItem[] => {
-    const items: ExploreSectionItem[] = [];
-
-    if (showTokensSection) {
-      items.push({
-        key: 'tokens',
-        isVerticalList: true,
-        content: (
-          <CryptoTokensPillBlock
-            title={strings('trending.crypto_tokens_section')}
-            activePillKey={activeCryptoPillKey}
-            onActivePillChange={setActiveCryptoPillKey}
-            onQuickTrade={
-              quickBuyVariant.showQuickTradeButton
-                ? tokensOnQuickTrade
-                : undefined
-            }
-            tabName="Crypto"
-            headerTestID="section-header-view-all-tokens"
-            idPrefix="tokens"
-            testIdPrefix="crypto-tokens"
-            listTestId="crypto-tokens-list"
-          />
-        ),
-      });
-    }
-
-    return items;
-  }, [
-    showTokensSection,
-    activeCryptoPillKey,
-    quickBuyVariant.showQuickTradeButton,
-    tokensOnQuickTrade,
-  ]);
+  if (!showTokensSection) {
+    return (
+      <View style={styles.container}>
+        <ExploreScroll
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+        >
+          {topTraders}
+        </ExploreScroll>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <ExploreScroll
+      <CryptoTokensPillBlock
+        title={strings('trending.crypto_tokens_section')}
+        activePillKey={activeCryptoPillKey}
+        onActivePillChange={setActiveCryptoPillKey}
+        onQuickTrade={
+          quickBuyVariant.showQuickTradeButton ? tokensOnQuickTrade : undefined
+        }
+        tabName="Crypto"
+        headerTestID="section-header-view-all-tokens"
+        idPrefix="tokens"
+        testIdPrefix="crypto-tokens"
+        listTestId="crypto-tokens-list"
+        ListHeaderComponent={topTraders}
         refreshing={refreshing}
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
-      >
-        {showTopTraders && (
-          <>
-            <Box twClassName="pb-1">
-              <TopTradersSection
-                source="explore_crypto"
-                prefetchProfiles={prefetchTraderProfiles}
-              />
-            </Box>
-            <SectionDivider />
-          </>
-        )}
-        <ExploreSectionList sections={sections} />
-      </ExploreScroll>
+      />
     </View>
   );
 };

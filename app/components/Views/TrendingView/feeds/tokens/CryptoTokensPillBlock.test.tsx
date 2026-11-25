@@ -10,9 +10,24 @@
  * 6. Analytics and navigation wiring for row taps and see-all.
  */
 
+const mockScrollToOffset = jest.fn();
+const mockGetFirstItemOffset = jest.fn(() => 100);
+const mockGetAbsoluteLastScrollOffset = jest.fn(() => 0);
 jest.mock('@shopify/flash-list', () => {
-  const RN = jest.requireActual<typeof import('react-native')>('react-native');
-  return { FlashList: RN.FlatList };
+  const ReactActual = jest.requireActual('react');
+  const { FlatList } = jest.requireActual('react-native');
+  return {
+    FlashList: ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          scrollToOffset: mockScrollToOffset,
+          getFirstItemOffset: mockGetFirstItemOffset,
+          getAbsoluteLastScrollOffset: mockGetAbsoluteLastScrollOffset,
+        }));
+        return ReactActual.createElement(FlatList, props);
+      },
+    ),
+  };
 });
 
 jest.mock('../../search/analytics', () => ({
@@ -169,6 +184,8 @@ const DEFAULT_PROPS: Omit<
   idPrefix: 'tokens',
   testIdPrefix: 'crypto-tokens',
   listTestId: 'crypto-tokens-list',
+  refreshing: false,
+  onRefresh: jest.fn(),
 };
 
 let mockIsWatchlistEnabled = true;
@@ -393,6 +410,48 @@ describe('CryptoTokensPillBlock', () => {
     });
   });
 
+  describe('full list with sticky pills', () => {
+    it('renders every token of the active pill without a row cap', () => {
+      const results = makeResults({
+        trending: {
+          data: ['A', 'B', 'C', 'D', 'E'].map((symbol) => makeToken(symbol)),
+          isLoading: false,
+          isError: false,
+        },
+      });
+      const { getByTestId } = renderBlock(results);
+
+      ['A', 'B', 'C', 'D', 'E'].forEach((symbol) => {
+        expect(getByTestId(`token-row-${symbol}`)).toBeOnTheScreen();
+      });
+    });
+
+    it('pins the pill row as the first sticky row below the list header', () => {
+      const { getByTestId } = renderBlock();
+
+      expect(getByTestId('crypto-tokens-list')).toHaveProp(
+        'stickyHeaderIndices',
+        [0],
+      );
+      expect(getByTestId('crypto-tokens-sticky-header')).toBeOnTheScreen();
+    });
+
+    it('scrolls back to the pinned pills on a pill change once scrolled past the header', () => {
+      mockGetAbsoluteLastScrollOffset.mockReturnValue(500);
+      const { getByTestId } = renderBlock();
+
+      act(() => {
+        fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
+      });
+
+      expect(mockScrollToOffset).toHaveBeenCalledWith({
+        offset: 100,
+        animated: true,
+      });
+      mockGetAbsoluteLastScrollOffset.mockReturnValue(0);
+    });
+  });
+
   describe('loading state', () => {
     it('shows skeletons while the active pill is loading', () => {
       const results = makeResults({
@@ -430,7 +489,7 @@ describe('CryptoTokensPillBlock', () => {
       );
 
       expect(getByTestId('watchlist-empty-fallback')).toBeOnTheScreen();
-      expect(queryByTestId('crypto-tokens-list')).not.toBeOnTheScreen();
+      expect(queryByTestId('token-row-BTC')).not.toBeOnTheScreen();
     });
 
     it('hides the watchlist pill and falls back instead of showing the empty state on error', () => {

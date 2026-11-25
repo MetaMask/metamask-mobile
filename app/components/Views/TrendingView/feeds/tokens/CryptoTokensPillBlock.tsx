@@ -1,7 +1,9 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import type { ListRenderItem } from '@shopify/flash-list';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   FilterButton,
@@ -16,7 +18,6 @@ import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/fea
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { getCaipChainIdFromAssetId } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import CardList from '../../components/CardList';
 import SectionHeader from '../../components/SectionHeader';
 import {
   type ExploreTabName,
@@ -25,10 +26,11 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import WatchlistEmptyFallback from '../../../Homepage/Sections/Watchlist/components/WatchlistEmptyFallback';
 import { TokenRowItem } from './TokenRowItem';
+import { useTheme } from '../../../../../util/theme';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import {
   CRYPTO_WATCHLIST_PILL,
   getCryptoPillOrder,
-  type CryptoPillDefinition,
   type CryptoPillKey,
 } from './cryptoPillConfig';
 import {
@@ -38,7 +40,15 @@ import {
   useCryptoPillFeed,
 } from './useCryptoPillFeed';
 
-const TrendingTokensSingleSkeleton: React.FC = () => <TrendingTokensSkeleton />;
+const SKELETON_COUNT = 8;
+const STICKY_HEADER_INDICES = [0];
+const STICKY_ROW_KEY = '__crypto-tokens-sticky-header__';
+
+type CryptoTokensListRow =
+  | { type: 'sticky' }
+  | { type: 'token'; token: TrendingAsset; index: number };
+
+const STICKY_ROW: CryptoTokensListRow = { type: 'sticky' };
 
 export interface CryptoTokensPillBlockProps {
   title: string;
@@ -54,14 +64,21 @@ export interface CryptoTokensPillBlockProps {
   idPrefix: string;
   testIdPrefix: string;
   listTestId: string;
+  /** Rendered above the section header; scrolls away (e.g. Top Traders). */
+  ListHeaderComponent?: React.ReactElement | null;
+  refreshing: boolean;
+  onRefresh: () => void;
+  /** Test ID of the scrolling list. */
+  testID?: string;
 }
 
 /**
- * Explore crypto tokens section: a pill row (watchlist, trending, top
- * gainers, losers, most traded, plus configured chains) above a card
- * list backed by one query per pill. Pills whose loaded data falls below
- * their `minItems` are hidden; the active pill falls back to the first
- * visible one.
+ * Explore crypto tokens list, laid out like the Perps tab: `ListHeaderComponent`
+ * and the Tokens section header scroll away, the pill row (watchlist,
+ * trending, top gainers, losers, most traded, plus configured chains) pins
+ * as a sticky header, and every token of the selected pill is listed below.
+ * Pills whose loaded data falls below their `minItems` are hidden; the active
+ * pill falls back to the first selectable one.
  */
 const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   title,
@@ -73,7 +90,15 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   idPrefix,
   testIdPrefix,
   listTestId,
+  ListHeaderComponent,
+  refreshing,
+  onRefresh,
+  testID,
 }) => {
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const floatingTabBarInset = useFloatingTabBarInset();
+  const listRef = useRef<FlashListRef<CryptoTokensListRow>>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
@@ -142,8 +167,8 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     [onActivePillChange],
   );
 
-  const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => (
+  const renderTokenRow = useCallback(
+    (item: TrendingAsset, index: number) => (
       <TokenRowItem
         token={item}
         index={index}
@@ -166,16 +191,12 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     [tabName, activeSectionName, onQuickTrade],
   );
 
-  if (visiblePills.length === 0) {
-    return null;
-  }
-
   const activeResult = results[effectiveActiveKey] ?? {
     data: undefined,
     isLoading: false,
     isError: false,
   };
-  const activeItems = activeResult.data ?? [];
+  const activeItems = activeResult.data;
   const isListLoading =
     activeResult.isLoading ||
     (activeResult.data === undefined && !activeResult.isError);
@@ -184,19 +205,36 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     isWatchlistActive &&
     !isListLoading &&
     !activeResult.isError &&
-    activeItems.length === 0;
+    (activeItems?.length ?? 0) === 0;
 
-  return (
-    <Box testID={testIdPrefix}>
-      <SectionHeader
-        title={title}
-        onViewAll={() =>
-          navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
-        }
-        testID={headerTestID}
-        tabName={tabName}
-        sectionName={activeSectionName}
-      />
+  const listData = useMemo<CryptoTokensListRow[]>(() => {
+    const rows: CryptoTokensListRow[] = [STICKY_ROW];
+    if (isListLoading) return rows;
+    (activeItems ?? []).forEach((token, index) => {
+      rows.push({ type: 'token', token, index });
+    });
+    return rows;
+  }, [activeItems, isListLoading]);
+
+  // Like PerpsMarketList's keepHeaderHiddenOnReset: on a pill change, if the
+  // user has scrolled past the header, jump back to the top of the list with
+  // the pills still pinned. Skips the first render.
+  const hasMountedRef = useRef(false);
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const list = listRef.current;
+    if (!list) return;
+    const headerHeight = list.getFirstItemOffset();
+    if (list.getAbsoluteLastScrollOffset() > headerHeight) {
+      list.scrollToOffset({ offset: headerHeight, animated: true });
+    }
+  }, [effectiveActiveKey]);
+
+  const stickyHeader = (
+    <Box twClassName="bg-default" testID={`${testIdPrefix}-sticky-header`}>
       <FilterButtonGroup
         value={effectiveActiveKey}
         onChange={handleSelectPill}
@@ -230,19 +268,85 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
           ),
         )}
       </FilterButtonGroup>
-      {showWatchlistEmpty ? (
-        <WatchlistEmptyFallback />
-      ) : (
-        <CardList<TrendingAsset>
-          data={activeItems}
-          isLoading={isListLoading}
-          renderItem={renderTokenItem}
-          Skeleton={TrendingTokensSingleSkeleton}
-          idPrefix={idPrefix}
-          listTestId={listTestId}
-        />
-      )}
     </Box>
+  );
+
+  const renderItem = ({ item }: { item: CryptoTokensListRow }) =>
+    item.type === 'sticky' ? (
+      stickyHeader
+    ) : (
+      <Box twClassName="px-4">{renderTokenRow(item.token, item.index)}</Box>
+    );
+
+  const keyExtractor = useCallback(
+    (item: CryptoTokensListRow) =>
+      item.type === 'sticky'
+        ? STICKY_ROW_KEY
+        : `${idPrefix}-${item.token.assetId}-${item.index}`,
+    [idPrefix],
+  );
+
+  const getItemType = useCallback((item: CryptoTokensListRow) => item.type, []);
+
+  if (visiblePills.length === 0) {
+    return null;
+  }
+
+  const listHeader = (
+    <Box testID={testIdPrefix}>
+      {ListHeaderComponent}
+      <SectionHeader
+        title={title}
+        onViewAll={() =>
+          navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
+        }
+        testID={headerTestID}
+        tabName={tabName}
+        sectionName={activeSectionName}
+      />
+    </Box>
+  );
+
+  let listFooter: React.ReactElement | null = null;
+  if (isListLoading) {
+    listFooter = (
+      <Box twClassName="px-4" testID="explore-card-list">
+        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          <TrendingTokensSkeleton key={`${idPrefix}-skeleton-${i}`} />
+        ))}
+      </Box>
+    );
+  } else if (showWatchlistEmpty) {
+    listFooter = <WatchlistEmptyFallback />;
+  }
+
+  return (
+    <FlashList
+      ref={listRef}
+      data={listData}
+      extraData={`${effectiveActiveKey}|${visiblePills.length}`}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      getItemType={getItemType}
+      stickyHeaderIndices={STICKY_HEADER_INDICES}
+      ListHeaderComponent={listHeader}
+      ListFooterComponent={listFooter}
+      contentContainerStyle={tw.style(
+        `pt-3 pb-[${16 + floatingTabBarInset}px]`,
+      )}
+      keyboardShouldPersistTaps="handled"
+      maintainVisibleContentPosition={{ disabled: true }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.icon.default}
+          colors={[colors.primary.default]}
+        />
+      }
+      testID={testID ?? listTestId}
+    />
   );
 };
 
