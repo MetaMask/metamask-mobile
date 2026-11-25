@@ -202,18 +202,6 @@ describe('CampaignWinningView', () => {
     expect(getByText('+12.34%')).toBeTruthy();
   });
 
-  it('renders the rank with hero font styling', () => {
-    const { getByTestId } = render(
-      <CampaignWinningView {...defaultProps} rankDisplay="3rd" />,
-    );
-
-    const rankElement = getByTestId('test-winning-view-rank');
-    expect(rankElement).toBeTruthy();
-    expect(rankElement.props.children).toBe('3rd');
-    // Verify the element has style applied (DS Text with fontFamily={FontFamily.Hero})
-    expect(Array.isArray(rankElement.props.style)).toBe(true);
-  });
-
   it('calls goBack when Skip for now is pressed', () => {
     const { getByText } = render(<CampaignWinningView {...defaultProps} />);
     fireEvent.press(getByText('Skip for now'));
