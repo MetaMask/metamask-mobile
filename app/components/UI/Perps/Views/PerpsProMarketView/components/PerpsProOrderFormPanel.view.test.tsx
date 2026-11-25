@@ -57,15 +57,19 @@ interface CrossGateCase {
 const blockedMarkets: CrossGateCase[] = [
   { name: 'rollout flag off', flag: false },
   { name: 'Pro inactive', pro: false },
-  { name: 'HIP-3 market', market: { marketSource: 'xyz' } },
   { name: 'Lighter market', market: { providerId: 'lighter' } },
   { name: 'isolated-only asset', metadata: { onlyIsolated: true } },
   { name: 'noCross asset', metadata: { marginMode: 'noCross' } },
   { name: 'strictIsolated asset', metadata: { marginMode: 'strictIsolated' } },
   {
-    name: 'HIP-3 market on the Terminal backend',
-    terminal: true,
+    name: 'noCross HIP-3 market',
     market: { marketSource: 'xyz' },
+    metadata: { marginMode: 'noCross' },
+  },
+  {
+    name: 'strictIsolated HIP-3 market',
+    market: { marketSource: 'xyz' },
+    metadata: { marginMode: 'strictIsolated' },
   },
   {
     name: 'Lighter market on the Terminal backend',
@@ -674,6 +678,49 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       screen.getByTestId(formIds.MARGIN_MODE_BUTTON),
     ).not.toHaveTextContent(strings('perps.margin_mode.cross_title'));
   });
+
+  it.each([
+    { name: 'HIP-3 market', terminal: false },
+    { name: 'HIP-3 market on the Terminal backend', terminal: true },
+  ])(
+    'offers Cross on an XYZ $name whose venue metadata permits it',
+    async ({ terminal }) => {
+      jest
+        .mocked(Engine.context.PerpsController.getMarkets)
+        .mockResolvedValue([{ ...crossMarginMarketInfo }]);
+      const market = createEthMarketForViews({ marketSource: 'xyz' });
+      renderPerpsCrossMarginOrderFormPanel({
+        crossMarginEnabled: true,
+        initialParams: { market },
+        streamOverrides: { marketData: [market] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsTerminalBackendEnabled: {
+                    enabled: terminal,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await openMarginModeSheet();
+      await selectCrossMarginMode();
+
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.cross_title'),
+      );
+    },
+  );
 
   it.each(blockedMarkets)('keeps Cross unavailable for $name', async (gate) => {
     jest
