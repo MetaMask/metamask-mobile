@@ -48,6 +48,7 @@ import { useUnifiedWatchlist } from '../../../../UI/Watchlist/hooks/useUnifiedWa
 import { useUnifiedWatchlistPerpsHandlers } from '../../../../UI/Watchlist/hooks/useUnifiedWatchlistPerpsHandlers';
 import WatchlistUnavailablePerpRow from '../../../../UI/Watchlist/WatchlistUnavailablePerpRow';
 import WatchlistErrorRow from '../../../../UI/Watchlist/WatchlistErrorRow';
+import WatchlistTokenRowItem from '../../../../UI/Watchlist/WatchlistTokenRowItem';
 import PerpsMarketRowItem from '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
 import {
   PERPS_EVENT_VALUE,
@@ -410,10 +411,11 @@ const MixedWatchlistSection = forwardRef<
           if (item.kind === 'token') {
             return (
               <WatchlistAnimatedRow key={item.key} enableMotion={canUseMotion}>
-                <TrendingTokenRowItem
+                <WatchlistTokenRowItem
                   token={item.token}
                   position={index}
                   tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+                  showTypeTag
                   twClassName="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
@@ -428,6 +430,7 @@ const MixedWatchlistSection = forwardRef<
                   onRemove={() => {
                     removeFromWatchlist(item.symbol).catch(() => undefined);
                   }}
+                  showTypeTag
                   twClassName="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
@@ -440,6 +443,7 @@ const MixedWatchlistSection = forwardRef<
                 market={item.market}
                 compact
                 showBadge={false}
+                showTypeTag
                 enableLivePrices={canUseLivePerpsPrices}
                 twClassName="-mx-4 w-auto px-4"
                 onPress={handlePerpPress}
@@ -459,6 +463,7 @@ const MixedWatchlistSection = forwardRef<
             }}
             canUseLivePerpsPrices={canUseLivePerpsPrices}
             enableMotion={canUseMotion}
+            showTypeTag
           />
         ) : null}
       </>

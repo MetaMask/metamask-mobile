@@ -4,6 +4,8 @@ import {
   ButtonIconSize,
   IconName,
   ListItem,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import type { UnifiedWatchlistUnavailablePerp } from './types';
@@ -18,6 +20,7 @@ interface WatchlistUnavailablePerpRowProps {
   onRemove: () => void;
   onLongPress?: () => void;
   showRemoveAction?: boolean;
+  showTypeTag?: boolean;
   twClassName?: string;
   accessibilityActions?: ComponentProps<
     typeof ListItem
@@ -32,6 +35,7 @@ const WatchlistUnavailablePerpRow = ({
   onRemove,
   onLongPress,
   showRemoveAction = true,
+  showTypeTag = false,
   twClassName,
   accessibilityActions,
   onAccessibilityAction,
@@ -39,6 +43,18 @@ const WatchlistUnavailablePerpRow = ({
   <ListItem
     isInteractive
     title={item.symbol}
+    titleProps={{
+      numberOfLines: 1,
+      // eslint-disable-next-line react-native/no-inline-styles
+      style: { flexShrink: 1 },
+    }}
+    titleEndAccessory={
+      showTypeTag ? (
+        <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+          {strings('token_watchlist.perp_tag')}
+        </Tag>
+      ) : undefined
+    }
     description={strings('token_watchlist.market_data_unavailable')}
     onLongPress={onLongPress}
     accessibilityActions={accessibilityActions}

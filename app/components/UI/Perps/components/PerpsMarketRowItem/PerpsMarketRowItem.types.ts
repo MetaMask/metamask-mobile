@@ -38,6 +38,8 @@ export interface PerpsMarketRowItemProps {
    * @default true
    */
   showBadge?: boolean;
+  /** Whether to show a "Perp" type tag next to the title. */
+  showTypeTag?: boolean;
   /**
    * When true, uses reduced vertical padding (8px instead of 16px).
    * Useful when embedded in feed cards alongside other row item types.

@@ -8,6 +8,8 @@ import {
   ButtonIconSize,
   IconName,
   ListItem,
+  Tag,
+  TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { formatPriceWithSubscriptNotation } from '../../../util/number/subscriptNotation';
@@ -35,6 +37,7 @@ interface WatchlistTokenRowItemProps {
   onAddPress?: () => void;
   onWatchlistPress?: () => void;
   isWatchlisted?: boolean;
+  showTypeTag?: boolean;
   tokenDetailsSource?: TokenDetailsSource;
   twClassName?: string;
   accessibilityActions?: ComponentProps<
@@ -60,6 +63,7 @@ const WatchlistTokenRowItem = ({
   onAddPress,
   onWatchlistPress,
   isWatchlisted = false,
+  showTypeTag = false,
   tokenDetailsSource = TokenDetailsSource.WatchlistFullscreen,
   twClassName,
   accessibilityActions,
@@ -124,7 +128,18 @@ const WatchlistTokenRowItem = ({
         </BadgeWrapper>
       }
       title={token.name ?? token.symbol}
-      titleProps={{ numberOfLines: 1 }}
+      titleProps={{
+        numberOfLines: 1,
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flexShrink: 1 },
+      }}
+      titleEndAccessory={
+        showTypeTag ? (
+          <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+            {strings('token_watchlist.token_tag')}
+          </Tag>
+        ) : undefined
+      }
       description={`${token.symbol} · ${formatMarketStats(
         token.marketCap ?? 0,
         token.aggregatedUsdVolume ?? 0,
@@ -158,7 +173,6 @@ const WatchlistTokenRowItem = ({
                 : 'token_watchlist.add_to_watchlist',
             )}
             testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
-            twClassName="-mr-2"
           />
         ) : undefined
       }

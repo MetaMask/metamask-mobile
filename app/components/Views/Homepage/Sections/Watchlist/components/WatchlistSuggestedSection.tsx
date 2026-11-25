@@ -17,6 +17,7 @@ import WatchlistAnimatedRow, {
 } from './WatchlistAnimatedRow';
 import type { SuggestedWatchlistRow } from '../../../../../UI/Watchlist/utils';
 import PerpsMarketRowItem from '../../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
+import WatchlistTokenRowItem from '../../../../../UI/Watchlist/WatchlistTokenRowItem';
 
 interface WatchlistSuggestedSectionProps {
   tokens?: WatchlistTokenWithBalance[];
@@ -29,6 +30,7 @@ interface WatchlistSuggestedSectionProps {
   onAddPerpPress?: (market: PerpsMarketData) => void;
   canUseLivePerpsPrices?: boolean;
   enableMotion?: boolean;
+  showTypeTag?: boolean;
 }
 
 const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
@@ -42,6 +44,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   onAddPerpPress,
   canUseLivePerpsPrices = false,
   enableMotion = true,
+  showTypeTag = false,
 }) => {
   const suggestedRows: SuggestedWatchlistRow[] =
     rows ??
@@ -72,20 +75,31 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
             enableMotion={enableMotion}
           >
             {suggestion.kind === 'token' ? (
-              <TrendingTokenRowItem
-                token={mapWatchlistTokenToTrendingAsset(suggestion.token)}
-                tokenDetailsSource={tokenDetailsSource}
-                twClassName={rowTwClassName}
-                endAction={{
-                  type: 'watchlist',
-                  onPress: () => onAddPress(suggestion.token),
-                }}
-              />
+              showTypeTag ? (
+                <WatchlistTokenRowItem
+                  token={mapWatchlistTokenToTrendingAsset(suggestion.token)}
+                  tokenDetailsSource={tokenDetailsSource}
+                  twClassName={rowTwClassName}
+                  showTypeTag
+                  onAddPress={() => onAddPress(suggestion.token)}
+                />
+              ) : (
+                <TrendingTokenRowItem
+                  token={mapWatchlistTokenToTrendingAsset(suggestion.token)}
+                  tokenDetailsSource={tokenDetailsSource}
+                  twClassName={rowTwClassName}
+                  endAction={{
+                    type: 'watchlist',
+                    onPress: () => onAddPress(suggestion.token),
+                  }}
+                />
+              )
             ) : (
               <PerpsMarketRowItem
                 market={suggestion.market}
                 compact
                 showBadge={false}
+                showTypeTag={showTypeTag}
                 enableLivePrices={canUseLivePerpsPrices}
                 twClassName={rowTwClassName}
                 onPress={onPerpPress}

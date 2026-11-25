@@ -79,6 +79,7 @@ const WatchlistReorderableRow = ({
         onLongPress={isDragEnabled ? handleLongPress : undefined}
         onWatchlistPress={() => onRemoveFromWatchlist(item)}
         isWatchlisted
+        showTypeTag
         twClassName="px-4"
         accessibilityActions={accessibilityActions}
         onAccessibilityAction={handleAccessibilityAction}
@@ -88,6 +89,7 @@ const WatchlistReorderableRow = ({
         market={item.market}
         compact
         showBadge={false}
+        showTypeTag
         twClassName="px-4"
         enableLivePrices={canUseLivePerpsPrices}
         onLongPress={isDragEnabled ? handleLongPress : undefined}
@@ -107,6 +109,7 @@ const WatchlistReorderableRow = ({
         item={item}
         onLongPress={isDragEnabled ? handleLongPress : undefined}
         onRemove={() => onRemoveFromWatchlist(item)}
+        showTypeTag
         twClassName="px-4 py-2 min-h-0"
         accessibilityActions={accessibilityActions}
         onAccessibilityAction={handleAccessibilityAction}

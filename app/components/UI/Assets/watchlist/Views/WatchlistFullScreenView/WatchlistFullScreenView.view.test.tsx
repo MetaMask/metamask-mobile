@@ -136,6 +136,16 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
     ).toBeOnTheScreen();
     expect(
+      within(
+        await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+      ).getByText('Token'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+      ).getByText('Perp'),
+    ).toBeOnTheScreen();
+    expect(
       queryByTestId(getPerpsMarketRowItemSelector.badge('ETH')),
     ).not.toBeOnTheScreen();
     expect(

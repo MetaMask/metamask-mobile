@@ -13937,6 +13937,8 @@
     "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
+    "token_tag": "Token",
+    "perp_tag": "Perp",
     "move_up": "Move up",
     "move_down": "Move down",
     "loading_more_results": "Loading more results",

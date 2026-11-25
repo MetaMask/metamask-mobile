@@ -3,10 +3,15 @@ import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   IconName,
   ListItem,
+  Tag,
+  TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import {
@@ -38,6 +43,7 @@ const PerpsMarketRowItem = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false,
+  showTypeTag = false,
   compact = false,
   enableLivePrices = true,
   onAddPress,
@@ -200,7 +206,20 @@ const PerpsMarketRowItem = ({
         style: { flexShrink: 1 },
       }}
       titleEndAccessory={
-        <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+        showTypeTag ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+              {strings('token_watchlist.perp_tag')}
+            </Tag>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+          </Box>
+        ) : (
+          <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+        )
       }
       description={description}
       descriptionProps={{
