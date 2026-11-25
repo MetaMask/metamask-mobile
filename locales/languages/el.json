@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Αντιγραφή του πεδίου {{field}}",
       "copied_label": "Αντιγράφηκε το πεδίο {{field}}",
-      "copy_all_button": "Αντιγραφή όλων των στοιχείων",
-      "copied_all_label": "Τα τραπεζικά στοιχεία αντιγράφηκαν",
       "button": "Τέλος",
       "waiting_for_details": "Τα στοιχεία του λογαριασμού σας θα εμφανιστούν εδώ σύντομα.",
       "loading_details": "Φόρτωση στοιχείων λογαριασμού",
@@ -2477,9 +2475,7 @@
         "funding": "Χρηματοδότηση",
         "close": "Κλείσιμο",
         "reverse": "Αντιστροφή",
-        "share": "Κοινοπ.",
-        "isolated": "Απομονωμένο",
-        "cross": "Κοινό περιθώριο"
+        "share": "Κοινοπ."
       },
       "order_card": {
         "size": "Μέγεθος",
@@ -3618,8 +3614,7 @@
     "cross_position": {
       "badge": "Κοινό περιθώριο",
       "no_liquidation_price": "Μη διαθέσιμη",
-      "liquidation_info": "Σχετικά με την τιμή ρευστοποίησης σε λειτουργία Cross",
-      "margin_used": "Περιθώριο που χρησιμοποιείται για τη θέση"
+      "liquidation_info": "Σχετικά με την τιμή ρευστοποίησης σε λειτουργία Cross"
     },
     "crossMargin": {
       "title": "Η διασπορά περιθωρίου δεν υποστηρίζεται",
@@ -4116,8 +4111,7 @@
       "retry": "Προσπαθήστε ξανά",
       "review": "Έλεγχος εντολής",
       "buy": "Αγορά",
-      "venue_changed": "Η αγορά προβλέψεων έχει αλλάξει. Κλείστε αυτή την εντολή για να συνεχίσετε.",
-      "delete": "Διαγραφή"
+      "venue_changed": "Η αγορά προβλέψεων έχει αλλάξει. Κλείστε αυτή την εντολή για να συνεχίσετε."
     },
     "order_approval": {
       "title": "Έλεγχος εντολής",
@@ -4898,9 +4892,7 @@
     "bullet3": "Άλλο σχετικό προωθητικό υλικό",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Συμφωνώ",
-    "cancel": "Όχι, ευχαριστώ",
-    "paragraph1a": "Εκτός από τo ",
-    "link": "από το MetaMetrics"
+    "cancel": "Όχι, ευχαριστώ"
   },
   "multi_rpc_migration_modal": {
     "description": "Υποστηρίζουμε πλέον πολλαπλά RPC για ένα ενιαίο δίκτυο. Το πιο πρόσφατο RPC σας έχει επιλεχθεί ως το προεπιλεγμένο για την επίλυση αντικρουόμενων πληροφοριών",
@@ -9992,7 +9984,6 @@
     },
     "action": {
       "add": "Προσθήκη",
-      "transfer": "Αποστολή",
       "card": "Κάρτα",
       "details": "Λεπτομέρειες"
     },
@@ -10114,8 +10105,6 @@
       "contact_support": "Επικοινωνία με την υποστήριξη"
     },
     "transfer_sheet": {
-      "title": "Αποστολή χρημάτων προς",
-      "between_accounts": "Άλλος λογαριασμός",
       "perps_account": "Λογαριασμός Perps",
       "predictions_account": "Λογαριασμός προβλέψεων",
       "send_external": "Εξωτερική διεύθυνση",
@@ -11079,7 +11068,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} εντολές",
-      "spend_summary": "Δαπανάτε {{amount}} {{symbol}} κάθε {{everyValue}} {{unit}}, για {{repeatCount}} επαναλήψεις",
+      "spend_summary": {
+        "swapping": "Ανταλλαγή",
+        "for": "για",
+        "every": "κάθε",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "μόλις",
         "other": "{{count}} times"

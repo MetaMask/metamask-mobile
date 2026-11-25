@@ -197,7 +197,6 @@ const config = {
     '.github/workflows/post-merge-validation.yml',
 
     // Release/branch bookkeeping (merges, syncs, changelog) - no native or OTA build step.
-    '.github/workflows/create-cherry-pick-pr.yml',
     '.github/workflows/create-release-draft.yml',
     '.github/workflows/merge-previous-release-branches.yml',
     '.github/workflows/merge-stable-sync-pr.yml',

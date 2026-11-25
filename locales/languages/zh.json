@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "复制 {{field}}",
       "copied_label": "已复制 {{field}}",
-      "copy_all_button": "复制所有信息",
-      "copied_all_label": "银行账户信息已复制",
       "button": "完成",
       "waiting_for_details": "您的账户详情将很快显示在这里。",
       "loading_details": "正在加载账户详情",
@@ -2477,9 +2475,7 @@
         "funding": "资金",
         "close": "关闭",
         "reverse": "反转",
-        "share": "共享",
-        "isolated": "逐仓",
-        "cross": "全仓"
+        "share": "共享"
       },
       "order_card": {
         "size": "规模",
@@ -3618,8 +3614,7 @@
     "cross_position": {
       "badge": "全仓",
       "no_liquidation_price": "不适用",
-      "liquidation_info": "关于全仓清算价格",
-      "margin_used": "已用仓位保证金"
+      "liquidation_info": "关于全仓清算价格"
     },
     "crossMargin": {
       "title": "不支持全仓保证金",
@@ -4116,8 +4111,7 @@
       "retry": "请重试",
       "review": "查看订单",
       "buy": "买入",
-      "venue_changed": "您的预测市场已变更。请关闭此订单以继续。",
-      "delete": "删除"
+      "venue_changed": "您的预测市场已变更。请关闭此订单以继续。"
     },
     "order_approval": {
       "title": "查看您的订单",
@@ -4898,9 +4892,7 @@
     "bullet3": "其他相关宣传材料",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "我同意",
-    "cancel": "不，谢谢",
-    "paragraph1a": "除了 ",
-    "link": "MetaMetrics"
+    "cancel": "不，谢谢"
   },
   "multi_rpc_migration_modal": {
     "description": "我们现在支持单个网络的多个 RPC（远程过程调用）。您最近的 RPC 已选为默认 RPC，以解决冲突信息。",
@@ -9992,7 +9984,6 @@
     },
     "action": {
       "add": "添加",
-      "transfer": "发送",
       "card": "卡",
       "details": "详情"
     },
@@ -10114,8 +10105,6 @@
       "contact_support": "联系支持团队"
     },
     "transfer_sheet": {
-      "title": "发送资金到",
-      "between_accounts": "其他账户",
       "perps_account": "永续合约（Perps）账户",
       "predictions_account": "预测（Predictions）账户",
       "send_external": "外部地址",
@@ -11079,7 +11068,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} 笔订单",
-      "spend_summary": "您每 {{everyValue}} {{unit}} 花费 {{amount}} {{symbol}}，重复 {{repeatCount}} 次",
+      "spend_summary": {
+        "swapping": "正在兑换",
+        "for": "用于",
+        "every": "每隔",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "一次",
         "other": "{{count}} times"

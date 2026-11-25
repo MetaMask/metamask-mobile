@@ -42,7 +42,26 @@ describe('getVbaEligibility', () => {
       isRegionEligible: true,
       isDevBypassEnabled: false,
       location: 'BR-SP',
+      market: brl,
     });
+  });
+
+  it('exposes the market that serves the effective location', () => {
+    const eur = { currency: 'EUR', regions: ['DE'] } as const;
+
+    const result = getVbaEligibility({
+      ...base,
+      location: 'DE-BE',
+      markets: [eur],
+    });
+
+    expect(result.market).toEqual(eur);
+  });
+
+  it('has no market when the location is outside every open region', () => {
+    const result = getVbaEligibility({ ...base, location: 'ES' });
+
+    expect(result.market).toBeUndefined();
   });
 
   it('accepts a lowercase Brazil IP location', () => {

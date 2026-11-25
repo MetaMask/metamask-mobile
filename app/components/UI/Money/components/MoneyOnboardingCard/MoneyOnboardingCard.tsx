@@ -71,7 +71,10 @@ const MoneyOnboardingCard = ({
 
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
-  const { apyPercent } = useMoneyVaultApy();
+  // Money home's positions query owns this key, including the offline pause.
+  const { apyPercent } = useMoneyVaultApy({
+    positionsRefetchInterval: false,
+  });
   const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
@@ -332,7 +335,9 @@ const MoneyOnboardingCard = ({
           ),
           primaryCta: {
             text: strings(
-              'money.onboarding.step_2.unlinked_card_account.cta_primary',
+              isCardholder && !isCardAuthenticated
+                ? 'money.onboarding.step_2.unlinked_card_account.cta_log_in'
+                : 'money.onboarding.step_2.unlinked_card_account.cta_primary',
             ),
             onPress: () =>
               handleCardCtaPress(
@@ -396,6 +401,8 @@ const MoneyOnboardingCard = ({
     apyPercent,
     handleStep1CtaPressed,
     shouldShowLinkCardAction,
+    isCardholder,
+    isCardAuthenticated,
     isLinking,
     handleCardCtaPress,
     handleSkipPress,

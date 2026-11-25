@@ -63,7 +63,7 @@ describe('PerpsProPositionCard', () => {
         PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
       );
       if (liquidationPrice === null) {
-        expect(liquidationValue).toHaveTextContent('No liquidation price');
+        expect(liquidationValue).toHaveTextContent('N/A');
       } else {
         expect(liquidationValue).toHaveTextContent('$2,500');
         expect(
@@ -75,7 +75,7 @@ describe('PerpsProPositionCard', () => {
           screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND),
         ).toBeOnTheScreen();
       }
-      expect(screen.getByText('Position margin used')).toBeOnTheScreen();
+      expect(screen.getByText('Margin')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN,
@@ -84,7 +84,7 @@ describe('PerpsProPositionCard', () => {
     },
   );
 
-  it('falls back to the isolated presentation when the Cross margin flag is off', () => {
+  it('keeps the venue margin tag but drops the Cross liquidation info when the Cross margin flag is off', () => {
     // Arrange - every selector false, including the Cross margin flag
     (useSelector as jest.Mock).mockReturnValue(false);
     const onEditMargin = jest.fn();
@@ -101,16 +101,17 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    // Assert - none of this PR's Cross affordances render.
-    // Margin stays non-editable because canEditMargin already keyed off
-    // leverage.type === 'isolated' before this PR; the flag does not change that.
-    expect(
-      screen.queryByTestId('cross-margin-tag-pro-ETH'),
-    ).not.toBeOnTheScreen();
+    // Assert - the tag shows the venue's margin mode, and the margin stays
+    // read-only because the venue only adjusts isolated margin.
+    expect(screen.getByTestId('cross-margin-tag-pro-ETH')).toHaveTextContent(
+      'Cross',
+    );
     expect(
       screen.queryByTestId('cross-liquidation-info-pro-ETH'),
     ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Position margin used')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
+    ).not.toBeOnTheScreen();
   });
 
   it.each([null, '2500'])(
@@ -135,7 +136,7 @@ describe('PerpsProPositionCard', () => {
         PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
       );
       if (liquidationPrice === null) {
-        expect(liquidationValue).not.toHaveTextContent('No liquidation price');
+        expect(liquidationValue).not.toHaveTextContent('N/A');
       } else {
         expect(liquidationValue).not.toHaveTextContent('$2,500');
       }
@@ -295,6 +296,14 @@ describe('PerpsProPositionCard', () => {
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL),
     ).toBeOnTheScreen();
+  });
+
+  it('tags an isolated position with its symbol-scoped Isolated tag', () => {
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByTestId('isolated-margin-tag-pro-ETH')).toHaveTextContent(
+      'Isolated',
+    );
   });
 
   it('renders margin edit control for isolated positions when handler is provided', () => {

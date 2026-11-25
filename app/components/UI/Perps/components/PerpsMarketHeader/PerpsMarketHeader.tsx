@@ -1,7 +1,11 @@
 import {
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -33,12 +37,26 @@ import CapsuleGlass from '../../../../../component-library/components-temp/Capsu
 import HeaderGlass from '../../../../../component-library/components-temp/HeaderGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import {
   PERPS_MARKET_HEADER_HEIGHT,
   type PerpsMarketHeaderProps,
 } from './PerpsMarketHeader.types';
 
 export { PERPS_MARKET_HEADER_HEIGHT };
+
+/**
+ * Cross margin risk badge on the wallet button. The "!" is the non-colour cue.
+ * The spoken name is the Figma label for the metric.
+ */
+const WALLET_RISK_BADGE = {
+  warning: {
+    backgroundClassName: 'bg-warning-default',
+  },
+  danger: {
+    backgroundClassName: 'bg-error-default',
+  },
+} as const;
 
 const COMPACT_PRICE_ENTER_OFFSET_PX = 8;
 const SUBTITLE_CROSSFADE_HEIGHT = 20;
@@ -57,6 +75,10 @@ const styles = StyleSheet.create({
   },
   sizer: {
     opacity: 0,
+  },
+  walletRiskBadgeText: {
+    fontSize: 10,
+    lineHeight: 12,
   },
 });
 
@@ -118,6 +140,7 @@ const PerpsMarketHeader = ({
   showMarketIdentity = true,
   endAccessory,
   onWalletPress,
+  walletRiskTone,
   onFavoritePress,
   isFavorite = false,
   mode,
@@ -250,16 +273,64 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
+  const walletRiskAlert = getCrossMarginRatioAlert(walletRiskTone);
+  const walletRiskBadge = walletRiskAlert
+    ? WALLET_RISK_BADGE[walletRiskAlert]
+    : undefined;
+
   const iconButtons = [
     onWalletPress ? (
-      <ButtonIcon
+      <BadgeWrapper
         key="wallet"
-        iconName={IconName.Wallet}
-        size={ButtonIconSize.Md}
-        onPress={handleWalletPress}
-        accessibilityLabel={strings('perps.market_details.wallet')}
-        testID={testIDs.walletButton}
-      />
+        // The wrapper pins itself to the top of the row. Center it with the star.
+        twClassName="self-center"
+        testID={
+          testIDs.walletButton ? `${testIDs.walletButton}-wrapper` : undefined
+        }
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        positionXOffset={-4}
+        positionYOffset={4}
+        badge={
+          walletRiskBadge ? (
+            <Box
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              testID={
+                testIDs.walletButton
+                  ? `${testIDs.walletButton}-risk-badge`
+                  : undefined
+              }
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.PrimaryInverse}
+                style={styles.walletRiskBadgeText}
+              >
+                !
+              </Text>
+            </Box>
+          ) : null
+        }
+      >
+        <ButtonIcon
+          iconName={IconName.Wallet}
+          size={ButtonIconSize.Md}
+          onPress={handleWalletPress}
+          accessibilityLabel={
+            walletRiskBadge
+              ? `${strings('perps.market_details.wallet')}, ${strings(
+                  'perps.crossMarginSummary.account_ratio',
+                )}`
+              : strings('perps.market_details.wallet')
+          }
+          testID={testIDs.walletButton}
+        />
+      </BadgeWrapper>
     ) : null,
     onFavoritePress ? (
       <ButtonIcon
@@ -288,7 +359,7 @@ const PerpsMarketHeader = ({
         {/* On glass the icons share one capsule, as on the home header. */}
         {isBrandRefresh && iconButtons.length > 0 ? (
           <CapsuleGlass
-            twClassName="gap-1 px-1"
+            twClassName="gap-1 px-1.5"
             testID={`${testIDs.container}-actions-capsule`}
           >
             {iconButtons}

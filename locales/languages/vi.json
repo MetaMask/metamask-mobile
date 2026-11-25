@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Sao chép {{field}}",
       "copied_label": "Đã sao chép {{field}}",
-      "copy_all_button": "Sao chép tất cả thông tin",
-      "copied_all_label": "Đã sao chép thông tin ngân hàng",
       "button": "Hoàn tất",
       "waiting_for_details": "Thông tin tài khoản của bạn sẽ sớm xuất hiện tại đây.",
       "loading_details": "Đang tải thông tin tài khoản",
@@ -2477,9 +2475,7 @@
         "funding": "Tài trợ",
         "close": "Đóng",
         "reverse": "Đảo ngược",
-        "share": "Chia sẻ",
-        "isolated": "Ký quỹ cô lập",
-        "cross": "Toàn phần"
+        "share": "Chia sẻ"
       },
       "order_card": {
         "size": "Kích thước",
@@ -3618,8 +3614,7 @@
     "cross_position": {
       "badge": "Toàn phần",
       "no_liquidation_price": "Không áp dụng",
-      "liquidation_info": "Giới thiệu về giá thanh lý toàn phần",
-      "margin_used": "Ký quỹ vị thế đã sử dụng"
+      "liquidation_info": "Giới thiệu về giá thanh lý toàn phần"
     },
     "crossMargin": {
       "title": "Không hỗ trợ ký quỹ chéo",
@@ -4116,8 +4111,7 @@
       "retry": "Thử lại",
       "review": "Xem lại lệnh",
       "buy": "Mua",
-      "venue_changed": "Thị trường dự đoán của bạn đã thay đổi. Hãy đóng lệnh này để tiếp tục.",
-      "delete": "Xóa"
+      "venue_changed": "Thị trường dự đoán của bạn đã thay đổi. Hãy đóng lệnh này để tiếp tục."
     },
     "order_approval": {
       "title": "Xem lại đơn hàng của bạn",
@@ -4898,9 +4892,7 @@
     "bullet3": "Các tài liệu khuyến mại liên quan khác",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Tôi đồng ý",
-    "cancel": "Không, cảm ơn",
-    "paragraph1a": "Ngoài ",
-    "link": "MetaMetrics"
+    "cancel": "Không, cảm ơn"
   },
   "multi_rpc_migration_modal": {
     "description": "Chúng tôi hiện hỗ trợ nhiều RPC cho một mạng duy nhất. RPC gần đây nhất của bạn đã được chọn làm RPC mặc định để giải quyết thông tin xung đột",
@@ -9992,7 +9984,6 @@
     },
     "action": {
       "add": "Thêm",
-      "transfer": "Gửi",
       "card": "Thẻ",
       "details": "Chi tiết"
     },
@@ -10114,8 +10105,6 @@
       "contact_support": "Liên hệ bộ phận hỗ trợ"
     },
     "transfer_sheet": {
-      "title": "Gửi tiền đến",
-      "between_accounts": "Tài khoản khác",
       "perps_account": "Tài khoản hợp đồng vĩnh cửu",
       "predictions_account": "Tài khoản dự đoán",
       "send_external": "Địa chỉ bên ngoài",
@@ -11079,7 +11068,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} lệnh",
-      "spend_summary": "Bạn chi tiêu {{amount}} {{symbol}} sau mỗi {{everyValue}} {{unit}}, tổng cộng {{repeatCount}} lần",
+      "spend_summary": {
+        "swapping": "Đang hoán đổi",
+        "for": "để lấy",
+        "every": "mỗi",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "một lần",
         "other": "{{count}} times"

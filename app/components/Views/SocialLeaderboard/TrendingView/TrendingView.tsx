@@ -7,7 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
@@ -82,6 +85,8 @@ export interface TrendingViewProps {
   /** Clears the applied Trending filters. */
   onClearFilters?: () => void;
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   testID?: string;
   scrollTestID?: string;
 }
@@ -105,6 +110,8 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   testID,
   scrollTestID,
 }) => {
@@ -240,6 +247,9 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           onRefresh={handleRefresh}
           performance={feedPerformance}
           onScroll={onScroll}
+          contentTopInset={contentTopInset}
+          refreshProgressViewOffset={contentTopInset}
+          pendingPostsTopOffset={pendingPostsTopOffset}
           pageRef={feedPageRef}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}

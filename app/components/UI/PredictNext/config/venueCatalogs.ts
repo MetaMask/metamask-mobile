@@ -1,22 +1,22 @@
 /**
- * Static Venue catalogs: client configuration for each Venue's product
- * support, in the catalog wire shape. Every value is parsed with
+ * Venue catalogs in the wire shape. Polymarket's is client configuration
+ * until PRED-1356; Kalshi's is a test fixture because its production catalog
+ * comes from the Predict API. Every value is parsed with
  * `parsePredictVenueCatalog` before use, like a backend response.
  */
 
 /**
- * Kalshi V1: American football discovery, search, and buy and sell, plus the
- * Politics topic Feeds (Trump, Congress, Iran). The Categories are Sports and
- * Politics; `politics` is the Politics Category's Feed, which for V1 is Trump. No Claim (Kalshi settles
- * automatically) and no Deposit or Withdraw until the funding slices
- * (PRED-1161, PRED-1163) ship real implementations. `sports` is the Venue's
- * general sports discovery Feed, which for V1 is NFL Games. Each Politics key
- * maps to the Feed ID of the same name (va-mmcx-predict-api#71). PRED-1403
- * replaces this with the Predict API catalog behind the same adapter method.
+ * A test fixture in the Kalshi catalog wire shape: discovery Feeds, the
+ * Politics topic Feeds (Trump, Congress, Iran), and the Categories Sports and
+ * Politics. No production code reads it; Kalshi's adapter serves the Predict
+ * API catalog, which alone decides which actions a deployment supports.
+ * Tests that need a catalog use this shape instead of inventing one. Withdraw
+ * is listed here only so fixtures can exercise the UI path; it is not a claim
+ * that a deployment serves it.
  */
 export const KALSHI_STATIC_VENUE_CATALOG = {
   venueId: 'kalshi',
-  actions: ['buy', 'sell'],
+  actions: ['buy', 'sell', 'deposit', 'withdraw'],
   feeds: {
     sports: 'sports-football-nfl-games',
     'nfl-games': 'sports-football-nfl-games',

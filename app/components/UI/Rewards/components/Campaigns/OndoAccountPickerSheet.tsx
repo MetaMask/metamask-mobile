@@ -5,7 +5,6 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -31,6 +30,8 @@ import {
   type AccountPickerConfig,
 } from './OndoPortfolio';
 import { strings } from '../../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface OndoAccountPickerSheetProps {
   pendingPicker: AccountPickerConfig;
@@ -45,6 +46,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
   onClose,
   onGroupSelect,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
   const { height: screenHeight } = useWindowDimensions();
   const listStyle = useMemo(
@@ -54,7 +56,8 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
 
   return (
     <BottomSheet onClose={onClose} ref={sheetRef}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={() => sheetRef.current?.onCloseBottomSheet(onClose)}
       >
         <Box
@@ -90,7 +93,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
             {` ${pendingPicker.row.tokenSymbol}`}
           </Text>
         </Box>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pb-3">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings(

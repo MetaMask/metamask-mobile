@@ -3,7 +3,6 @@ import {
   SnapControllerMessenger,
 } from '@metamask/snaps-controllers';
 import { Duration, inMilliseconds } from '@metamask/utils';
-import { hmacSha512 } from '@metamask/native-utils';
 import { MessengerClientInitFunction } from '../../types';
 import { SnapControllerInitMessenger } from '../../messengers/snaps';
 import {
@@ -12,11 +11,7 @@ import {
   ExcludedSnapPermissions,
   detectSnapLocation,
 } from '../../../Snaps';
-import {
-  Encryptor,
-  LEGACY_DERIVATION_OPTIONS,
-  pbkdf2,
-} from '../../../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
@@ -106,10 +101,6 @@ export const snapControllerInit: MessengerClientInitFunction<
     ensureOnboardingComplete,
 
     detectSnapLocation,
-    clientCryptography: {
-      pbkdf2Sha512: pbkdf2,
-      hmacSha512: async (key, data) => hmacSha512(key, data),
-    },
 
     clientConfig: getClientConfig(),
   });

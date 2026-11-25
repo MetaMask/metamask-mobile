@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Kopyala: {{field}}",
       "copied_label": "Kopyalandı: {{field}}",
-      "copy_all_button": "Tüm bilgileri kopyala",
-      "copied_all_label": "Banka bilgileri kopyalandı",
       "button": "Bitti",
       "waiting_for_details": "Hesap bilgileriniz kısa bir süre sonra burada gösterilecek.",
       "loading_details": "Hesap bilgileri yükleniyor",
@@ -2477,9 +2475,7 @@
         "funding": "Fonlama",
         "close": "Kapat",
         "reverse": "Ters Çevir",
-        "share": "Paylaş",
-        "isolated": "İzole",
-        "cross": "Çapraz"
+        "share": "Paylaş"
       },
       "order_card": {
         "size": "Boyut",
@@ -3618,8 +3614,7 @@
     "cross_position": {
       "badge": "Çapraz",
       "no_liquidation_price": "Yok",
-      "liquidation_info": "Çapraz likidasyon fiyatı hakkında",
-      "margin_used": "Kullanılan pozisyon marjı"
+      "liquidation_info": "Çapraz likidasyon fiyatı hakkında"
     },
     "crossMargin": {
       "title": "Çapraz marj desteklenmiyor",
@@ -4116,8 +4111,7 @@
       "retry": "Tekrar dene",
       "review": "Emri gözden geçirin",
       "buy": "Satın Al",
-      "venue_changed": "Tahmin piyasanız değişti. Devam etmek için bu emri kapatın.",
-      "delete": "Sil"
+      "venue_changed": "Tahmin piyasanız değişti. Devam etmek için bu emri kapatın."
     },
     "order_approval": {
       "title": "Emrinizi inceleyin",
@@ -4898,9 +4892,7 @@
     "bullet3": "İlgili diğer promosyon materyalleri",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Kabul ediyorum",
-    "cancel": "Hayır, istemiyorum",
-    "paragraph1a": "Biz ",
-    "link": "MetaMetrics"
+    "cancel": "Hayır, istemiyorum"
   },
   "multi_rpc_migration_modal": {
     "description": "Artık tek bir ağ için birden fazla RPC destekliyoruz. Bilgilerin çakışmasını çözmek amacıyla en son RPC'niz varsayılan olarak seçilmiştir",
@@ -9992,7 +9984,6 @@
     },
     "action": {
       "add": "Ekle",
-      "transfer": "Gönder",
       "card": "Kart",
       "details": "Ayrıntılar"
     },
@@ -10114,8 +10105,6 @@
       "contact_support": "Destek ile iletişime geç"
     },
     "transfer_sheet": {
-      "title": "Fon gönder",
-      "between_accounts": "Başka hesap",
       "perps_account": "Perps hesabı",
       "predictions_account": "Tahminler hesabı",
       "send_external": "Harici adres",
@@ -11079,7 +11068,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} emir",
-      "spend_summary": "Her {{everyValue}} {{unit}} için {{repeatCount}} kez {{amount}} {{symbol}} harcarsınız",
+      "spend_summary": {
+        "swapping": "Takas",
+        "for": "şununla",
+        "every": "her",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "bir kez",
         "other": "{{count}} times"

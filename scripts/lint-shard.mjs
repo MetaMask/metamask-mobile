@@ -209,6 +209,19 @@ Options:
 `);
 }
 
+function runOxlint(cwd) {
+  const oxlintBin = path.join(cwd, 'node_modules', '.bin', 'oxlint');
+  const result = spawnSync(oxlintBin, [], {
+    cwd,
+    stdio: 'inherit',
+    env: process.env,
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  return result.status ?? 1;
+}
+
 function runMessenger(cwd) {
   const yarnBin = resolveYarnBinary(cwd);
   const result = spawnSync(yarnBin, ['messenger-action-types:check'], {
@@ -284,6 +297,22 @@ async function main() {
   }
   const bins = shardFiles(files, shards);
   const selected = bins[shard - 1];
+  // Once per `yarn lint`, on shard 1. Oxlint checks the whole tree, so the
+  // later shards would repeat it. Shard 1 is required, so a failure still
+  // fails the aggregate lint job.
+  if (shard === 1) {
+    const oxlintStarted = Date.now();
+    const oxlintStatus = runOxlint(cwd);
+    const oxlintSeconds = ((Date.now() - oxlintStarted) / 1000).toFixed(1);
+    console.error(
+      `OXLINT_TIMING shard=${shard}/${shards} oxlint_s=${oxlintSeconds} status=${oxlintStatus}`,
+    );
+    if (oxlintStatus !== 0) {
+      process.exitCode = oxlintStatus;
+      return;
+    }
+  }
+
   const started = Date.now();
   const errorCount = await lintPaths(cwd, selected.files);
   const eslintSeconds = ((Date.now() - started) / 1000).toFixed(1);

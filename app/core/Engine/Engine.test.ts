@@ -1391,6 +1391,17 @@ describe('Engine', () => {
       expect(clearStateSpy).toHaveBeenCalled();
     });
 
+    it('calls MoneyAccountLifecycleController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountLifecycleController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
     it('calls SubscriptionController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
@@ -1479,12 +1490,48 @@ describe('Engine', () => {
 
       await engine.resetState();
 
-      expect(abandonSpy).toHaveBeenCalledTimes(1);
+      // reset() abandons commits before the journal clear and again after it.
+      // The first one still precedes the account-data purge.
+      expect(abandonSpy).toHaveBeenCalledTimes(2);
       expect(clearSpy).toHaveBeenCalledTimes(1);
       // Abandoning first is what stops a receipt from refilling the cache the
       // purge is about to drop.
       expect(abandonSpy.mock.invocationCallOrder[0]).toBeLessThan(
         clearSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('clears the deposits the funding service remembers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+      const clearStateSpy = jest.spyOn(
+        engine.context.PredictFundingService,
+        'clearState',
+      );
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('purges PredictNext account data when the order journal cannot be cleared', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'reset')
+        .mockRejectedValue(new Error('journal clear failed'));
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'journal clear failed' }),
+        'Engine: failed to clear the PredictNext order dispatch journal',
       );
     });
 

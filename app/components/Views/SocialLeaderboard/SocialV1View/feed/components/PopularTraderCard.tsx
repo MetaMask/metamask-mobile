@@ -1,6 +1,7 @@
 import {
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -17,12 +18,14 @@ import { strings } from '../../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../../Homepage/Sections/TopTraders/types';
 
+import ProfileVerifiedBadge from '../../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
 import { formatFollowerCountLabel } from '../../../../../UI/SocialFeed/utils/formatters';
 import {
   getPopularTraderCardAvatarTestId,
   getPopularTraderCardFollowTestId,
   getPopularTraderCardTestId,
+  getPopularTraderCardVerifiedBadgeTestId,
 } from './PopularTraderCard.testIds';
 
 export interface PopularTraderCardProps {
@@ -93,15 +96,28 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
             testID={getPopularTraderCardAvatarTestId(trader.id)}
           />
           <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+              twClassName="max-w-full"
             >
-              {trader.username}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                twClassName="shrink"
+              >
+                {trader.username}
+              </Text>
+              {trader.verified ? (
+                <ProfileVerifiedBadge
+                  testID={getPopularTraderCardVerifiedBadgeTestId(trader.id)}
+                />
+              ) : null}
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}

@@ -134,7 +134,13 @@ const AccountGroupBalance = ({
   const zeroBalance = formatCurrency(0, userCurrency);
   const skipBalanceAnimation = Boolean(previousPrivacyMode) && !privacyMode;
 
-  const isLoading = !groupBalance || !hasBalanceFetched;
+  // Soft-gate like extension: keep a non-zero balance visible while the
+  // latched load is still settling so returning users are not blanked by
+  // background Snap/RPC work.
+  const isLoading =
+    !groupBalance ||
+    (!hasBalanceFetched &&
+      (groupBalance.totalBalanceInUserCurrency ?? 0) === 0);
   const awaitBalanceForPostOnboardingSteps =
     isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
