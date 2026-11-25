@@ -16080,7 +16080,7 @@
   },
   "app/components/Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect.tsx": {
     "typescript/no-floating-promises": {
-      "count": 4
+      "count": 2
     },
     "typescript/no-misused-promises": {
       "count": 1
