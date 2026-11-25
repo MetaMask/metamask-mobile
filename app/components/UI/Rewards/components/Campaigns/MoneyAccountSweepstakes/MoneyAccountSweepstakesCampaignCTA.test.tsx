@@ -13,7 +13,7 @@ import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlag
 import { selectProfileControllerProfile } from '../../../../../../selectors/profileController';
 
 const mockNavigate = jest.fn();
-const mockNavigateToSocialTab = jest.fn();
+const mockOpenComposer = jest.fn();
 const mockUseSelector = jest.fn();
 let mockIsSocialV1Enabled = false;
 let mockProfile: { profileId?: string } | undefined;
@@ -23,10 +23,9 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock(
-  '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  '../../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
   () => ({
-    navigateToSocialTab: (...args: unknown[]) =>
-      mockNavigateToSocialTab(...args),
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
   }),
 );
 let mockFocusEffectCallback: (() => void) | null;
@@ -351,7 +350,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
 
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
-    expect(mockNavigateToSocialTab).toHaveBeenCalledWith(mockNavigate);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
     expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
   });
 
@@ -369,7 +368,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-    expect(mockNavigateToSocialTab).not.toHaveBeenCalled();
+    expect(mockOpenComposer).not.toHaveBeenCalled();
   });
 
   it('opens the opt-in sheet when not yet opted in', () => {

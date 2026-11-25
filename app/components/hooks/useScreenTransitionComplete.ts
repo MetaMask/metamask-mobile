@@ -1,6 +1,27 @@
-import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationEventMap } from '@react-navigation/bottom-tabs';
+import {
+  useNavigation,
+  type NavigationProp,
+  type NavigationState,
+  type ParamListBase,
+} from '@react-navigation/native';
+import type { NativeStackNavigationEventMap } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
-import type { AppStackNavigationProp } from '../../core/NavigationService/types';
+
+type ScreenTransitionNavigationProp = NavigationProp<
+  ParamListBase,
+  string,
+  string | undefined,
+  NavigationState,
+  object,
+  {
+    transitionEnd: {
+      data:
+        | NativeStackNavigationEventMap['transitionEnd']['data']
+        | BottomTabNavigationEventMap['transitionEnd']['data'];
+    };
+  }
+>;
 
 /**
  * Delay, in ms, after which the screen is treated as settled when the navigator
@@ -23,7 +44,7 @@ export const SCREEN_TRANSITION_FALLBACK_MS = 450;
  * @returns `true` once the transition has ended or the fallback has elapsed.
  */
 export function useScreenTransitionComplete(): boolean {
-  const navigation = useNavigation<AppStackNavigationProp>();
+  const navigation = useNavigation<ScreenTransitionNavigationProp>();
   const [isTransitionComplete, setIsTransitionComplete] = useState(false);
 
   useEffect(() => {
@@ -45,8 +66,8 @@ export function useScreenTransitionComplete(): boolean {
     const unsubscribeTransition = navigation.addListener(
       'transitionEnd',
       (event) => {
-        // `closing` belongs to the screen leaving the stack.
-        if (event.data.closing) {
+        // `closing` belongs to the screen leaving the stack. JS bottom tabs send no data.
+        if (event.data?.closing) {
           return;
         }
         markComplete();

@@ -79,26 +79,6 @@ export const RIVE_TRIGGERS = {
   MAYBE_LATER: 'maybeLater',
 } as const;
 
-export type OnboardingSlideId = 'trade' | 'follow' | 'notify';
-
-/**
- * Analytics slide reported for each RN `stepIndex`:
- * - 0 Trade  (step 1)
- * - 1 Follow (step 2)
- * - 2 Notify (step 3 — reached via "Follow the top ten")
- * - 3 Notify (step 3.1 — reached via "Maybe later"; same `notify` screen)
- *
- * The Notify step is terminal: "Allow notifications"/"Got it" complete the flow.
- * Step 2's "Follow the top ten"/"Maybe later" only advance to Notify, so they
- * are NOT terminal.
- */
-export const SLIDE_BY_STEP_INDEX: readonly OnboardingSlideId[] = [
-  'trade',
-  'follow',
-  'notify',
-  'notify',
-];
-
 /** Analytics `nux_step` reported for each RN `stepIndex`. */
 export const NUX_STEP_BY_STEP_INDEX = [
   'step_1',

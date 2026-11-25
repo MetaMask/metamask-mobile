@@ -70,9 +70,6 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
 
 export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];
 
-/** Same asset chips on every V1 tab — Predictions is not in V1. */
-export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = TYPE_OPTIONS;
-
 export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   all: 'social_leaderboard.shell.filters.type.all',
   tokens: 'social_leaderboard.shell.filters.type.tokens',
@@ -91,12 +88,6 @@ export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   // TODO: add `verified` once the leaderboard payload has a real verified field
   // (the row badge is mocked today).
 ];
-
-/** @deprecated Use COHORT_OPTIONS_LIVE. Kept for existing imports. */
-export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE;
-
-/** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
-export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
 
 export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   all: 'social_leaderboard.shell.filters.trader_cohort.all',
@@ -154,14 +145,6 @@ export const NETWORK_OPTIONS: SocialFilterNetwork[] = [
   'solana',
   'base',
 ];
-
-export const NETWORK_LABEL_KEY: Record<SocialFilterNetwork, string> = {
-  all: 'social_leaderboard.shell.filters.network.all',
-  robinhood: 'social_leaderboard.shell.filters.network.robinhood',
-  bnb: 'social_leaderboard.shell.filters.network.bnb',
-  solana: 'social_leaderboard.shell.filters.network.solana',
-  base: 'social_leaderboard.shell.filters.network.base',
-};
 
 /**
  * Maps filter-sheet network ids to social-service chain ids. The sheet

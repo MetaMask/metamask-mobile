@@ -17,6 +17,7 @@ import {
   calcUsdAmountFromFiat,
 } from '../../utils/exchange-rates';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
+import { resolveMoneyAccountOperation } from '../../../../../util/bridge/money-operations';
 
 export const useUnifiedSwapBridgeContext = (
   featureId: FeatureId = FeatureId.UNIFIED_SWAP_BRIDGE,
@@ -74,6 +75,7 @@ export const useUnifiedSwapBridgeContext = (
       usd_amount_source: usdAmountSource,
       custom_slippage: isSlippageUserOverride,
       feature_id: featureId ?? FeatureId.UNIFIED_SWAP_BRIDGE,
+      operation: resolveMoneyAccountOperation(fromToken, toToken),
     }),
     [
       smartTransactionsEnabled,

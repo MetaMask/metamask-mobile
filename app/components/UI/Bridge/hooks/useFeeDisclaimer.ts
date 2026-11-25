@@ -36,7 +36,7 @@ export const useFeeDisclaimer = ({
     !isNullOrUndefined(discountType) && discountType !== '';
 
   const hasFee = activeQuote && feePercentage > 0;
-  const isFree = discountType === 'free';
+  const isFree = discountType === DiscountType.FREE;
 
   const isDiscounted =
     activeQuote &&
@@ -55,7 +55,10 @@ export const useFeeDisclaimer = ({
     }
 
     if (isFree) {
-      return { type: 'free', label: strings('bridge.discount_badge_free') };
+      return {
+        type: DiscountType.FREE,
+        label: strings('bridge.discount_badge_free'),
+      };
     }
 
     if (discountType === DiscountType.DAO) {

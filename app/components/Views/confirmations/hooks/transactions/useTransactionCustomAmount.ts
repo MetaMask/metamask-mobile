@@ -47,6 +47,9 @@ import {
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
+import { useFirstDepositAmountClamp } from './useFirstDepositAmountClamp';
+import { useKeepAmountAfterReplacement } from './useKeepAmountAfterReplacement';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -142,18 +145,29 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
-  const payTokenKey = `${payToken?.chainId ?? ''}:${
-    payToken?.address.toLowerCase() ?? ''
-  }`;
+  const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
-  useEffect(() => {
-    userHasEditedRef.current = false;
-    prefetchQuoteRequestRef.current = undefined;
-    prefetchedQuoteAmountHumanRef.current = undefined;
-    prefetchedQuotePayTokenKeyRef.current = undefined;
-    setPrefetchedQuoteAmountHuman(undefined);
-    setPrefetchedQuotePayTokenKey(undefined);
-  }, [payToken?.address, payToken?.chainId]);
+  const clearPrefetchForTokenChange = useCallback(
+    (keptAcrossReplacement: boolean): void => {
+      if (!keptAcrossReplacement) {
+        userHasEditedRef.current = false;
+      }
+      prefetchQuoteRequestRef.current = undefined;
+      prefetchedQuoteAmountHumanRef.current = undefined;
+      prefetchedQuotePayTokenKeyRef.current = undefined;
+      setPrefetchedQuoteAmountHuman(undefined);
+      setPrefetchedQuotePayTokenKey(undefined);
+    },
+    [],
+  );
+  const { ignoreNextAutomaticTokenChangeRef, keepAmountAfterReplacementRef } =
+    useKeepAmountAfterReplacement({
+      onGenuineTokenChange: clearPrefetchForTokenChange,
+      payTokenAddress: payTokenAsset?.address,
+      payTokenChainId: payTokenAsset?.chainId,
+      payTokenKey,
+    });
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -292,7 +306,10 @@ export function useTransactionCustomAmount({
 
   const isFixedSpreadRoute = isSubsidizedRoute(
     relayFixedSpreadConfig,
-    { chainId: payToken?.chainId ?? '', address: payToken?.address ?? '' },
+    {
+      chainId: payTokenAsset?.chainId ?? '',
+      address: payTokenAsset?.address ?? '',
+    },
     { chainId, address: tokenAddress ?? '' },
   );
   const shouldHintAtomicMax = isAtomicMaxEnabled && isFixedSpreadRoute;
@@ -355,6 +372,7 @@ export function useTransactionCustomAmount({
       }
 
       userHasEditedRef.current = true;
+      keepAmountAfterReplacementRef.current = false;
       amountChangeTimeRef.current = Date.now();
 
       if (lastAmountInputTypeRef.current !== 'manual') {
@@ -374,6 +392,7 @@ export function useTransactionCustomAmount({
       isFiatBuyLimited,
       fiatMaxAmount,
       isMaxAmount,
+      keepAmountAfterReplacementRef,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -447,6 +466,27 @@ export function useTransactionCustomAmount({
     ],
   );
 
+  const amountHumanFromFiat = useCallback(
+    (value: string): string =>
+      getAmountHumanFromFiat(value, tokenFiatRate, skipFiatRateConversion),
+    [skipFiatRateConversion, tokenFiatRate],
+  );
+
+  const { isClampCommitFailed, isClampCommitPending } =
+    useFirstDepositAmountClamp({
+      amountFiat,
+      amountHumanFromFiat,
+      balanceUsd,
+      ignoreNextAutomaticTokenChangeRef,
+      keepAmountAfterReplacementRef,
+      setAmountFiat,
+      skipFiatRateConversion,
+      tokenFiatRate,
+      transactionId,
+      transactionMeta,
+      updateTransactionPayAmount,
+    });
+
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;
   const prevHasPrefilled = useRef(isDepositPrefilled);
@@ -459,7 +499,7 @@ export function useTransactionCustomAmount({
     // Skip if the user has manually typed on the keypad — a transient
     // hasPrefilled toggle (from tokenKey changes) must not overwrite
     // their input. The ref resets when the pay token genuinely changes.
-    if (userHasEditedRef.current) {
+    if (userHasEditedRef.current || keepAmountAfterReplacementRef.current) {
       prevHasPrefilled.current = isDepositPrefilled;
       return;
     }
@@ -584,6 +624,8 @@ export function useTransactionCustomAmount({
     updatePendingAmount,
     updatePendingAmountPercentage,
     updateTokenAmount,
+    isClampCommitPending,
+    isClampCommitFailed,
   };
 }
 

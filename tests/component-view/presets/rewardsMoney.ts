@@ -38,22 +38,33 @@ export { MONAD_MAINNET_CHAIN_ID };
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
+  nextSteps: 'Next steps',
   overviewTab: 'Overview',
-  earningsTab: 'Earnings',
+  earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  earnEligibleFeesDescription:
+    'When friends join with your code and trade, you earn a share of their trading fees.',
+  referFriends: 'Refer friends',
+  tradeAndEarn: 'Trade and earn',
+  postTrades: 'Post trades',
   yourReferralCode: 'Your referral code',
   share: 'Share',
   referrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
   recordedEarnings: 'Recorded earnings',
   availableToClaim: 'Available to claim',
+  availableToClaimSubtext: 'mUSD paid into your Money account',
   claim: 'Claim',
   claimed: 'Claimed',
   held: 'Held',
+  heldSubtext:
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   blocked: 'Blocked',
   voided: 'Voided',
   pending: 'Pending',
+  pendingSubtext:
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   claimSuccessToast: 'Claim sent',
   claimPartialSuccessToast: 'Part of your claim was sent',
   claimFailureToast: 'Claim failed',
@@ -72,6 +83,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
+  yourEarnings: 'Your earnings',
   breakdownTrading: 'Trading',
   breakdownTradingDescription: 'Trading description',
   breakdownReferralsDescription: 'Referrals description',
@@ -101,9 +113,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   tradingCommissionsSection: 'Trading commissions',
   copyTradingEmptyDescription:
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
-  copyTradingEmptyAction: 'Start sharing',
+  copyTradingEmptyAction: 'Post a trade',
   copyTradingInfoDescription:
-    'Earn 15% from fees when someone copies your trade.',
+    'Earn 15% from fees when someone copies your trade',
+  copyTradingDescription:
+    'Post a trade with a take. When others copy it, you earn a share of their trading fees.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -129,12 +143,15 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteAcceptedViewRewards: 'View rewards',
   inviteAcceptedStartTrading: 'Start trading',
   invitedBenefitTitle: 'Invited benefit',
+  invitedBenefitDescription:
+    'Every eligible trade you make returns 10% of its trading fee to your rewards balance.',
   offerEndsIn: 'Offer ends in',
   offerDurationDay: 'day',
   offerDurationDays: 'days',
   offerDurationHour: 'hour',
   offerDurationHours: 'hours',
   invitedReferredBy: 'Referred by',
+  invitedOptInTitle: 'Opt in title',
   invitedOptInDescription: 'Opt in description',
   invitedOptInAction: 'Opt in',
   invitedOptInSuccessToast: 'Opted in',
@@ -144,6 +161,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   termsLearnMore: 'Learn more',
   termsUrl: 'https://example.com/terms',
   balance: 'Balance',
+  balanceSubtext: 'mUSD in total earnings',
   mUSD: 'mUSD',
   paused: 'Paused',
   claimsPausedTitle: 'Claims paused',
@@ -152,6 +170,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   rewardsPausedDescription: 'These rewards are paused while they are reviewed.',
   rewardsPausedBanner: '{amount} of rewards paused.',
   rewardsPausedLearnMore: 'Learn more',
+  rewardsHeldTitle: 'Rewards held',
+  rewardsHeldDescription:
+    'These rewards are held until your tax determination is cleared.',
+  rewardsHeldBanner: '{heldAmount} of rewards held.',
+  rewardsHeldLearnMore: 'Learn more',
   settingsReferralTitle: 'Referral Code',
   settingsReferralLinkedDescription:
     'You are all set. Start trading to earn rewards.',
@@ -255,10 +278,14 @@ export interface EarningsSummaryFixtureOptions {
   pending?: string;
   cashbackClaimable?: string;
   cashbackBlocked?: string;
+  cashbackHeld?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
   /** Follow-trade claimable base units. Omitted leaves that family out. */
   followTradeClaimable?: string;
+  /** Follow-trade held base units, with the reason the family reports. */
+  followTradeHeld?: string;
+  followTradeBlockingReason?: SummaryTotalsDto['blocking_reason'];
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -290,6 +317,9 @@ export function earningsSummaryFixture(
             ...(options.cashbackBlocked === undefined
               ? {}
               : { blocked: options.cashbackBlocked }),
+            ...(options.cashbackHeld === undefined
+              ? {}
+              : { held: options.cashbackHeld }),
             ...(options.cashbackBlockingReason === undefined
               ? {}
               : { blocking_reason: options.cashbackBlockingReason }),
@@ -307,6 +337,12 @@ export function earningsSummaryFixture(
           : {
               SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
                 claimable: followTradeClaimable,
+                ...(options.followTradeHeld === undefined
+                  ? {}
+                  : { held: options.followTradeHeld }),
+                ...(options.followTradeBlockingReason === undefined
+                  ? {}
+                  : { blocking_reason: options.followTradeBlockingReason }),
               }),
             }),
       },
@@ -362,6 +398,20 @@ export const UNDER_REVIEW_EARNINGS_SUMMARY = earningsSummaryFixture({
   cashbackClaimable: '0',
   cashbackBlocked: '12000000',
   cashbackBlockingReason: 'UNDER_REVIEW',
+});
+
+/**
+ * $9.15 of follow-trade income held for tax, while cashback and revenue share
+ * hold nothing. Only the copy-trading family reads `TAX_DETERMINATION_REQUIRED`.
+ */
+export const TAX_HELD_EARNINGS_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '9150000',
+  claimable: '0',
+  held: '9150000',
+  cashbackClaimable: '0',
+  followTradeClaimable: '0',
+  followTradeHeld: '9150000',
+  followTradeBlockingReason: 'TAX_DETERMINATION_REQUIRED',
 });
 
 /** Summary a refusal refresh returns, with the hold that opens the sheet. */
@@ -503,11 +553,24 @@ export function earnRatesFixture(
   };
 }
 
+/**
+ * What a test changes on a persona's referral-me. Fields replace the persona's
+ * value. `localizedText` merges key by key into `localized_text`, and a key set to `undefined`
+ * stands for a payload cached before the server added it.
+ */
+export type ReferralMeOverrides = Partial<
+  Omit<ReferralMeDto, 'localized_text'>
+> & {
+  localizedText?: { [Key in keyof ReferralLocalizedText]?: string };
+};
+
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
+  overrides: ReferralMeOverrides = {},
 ): ReferralMeDto {
   const referrer = persona === 'referrer';
   const referee = persona === 'referee';
+  const { localizedText, ...fields } = overrides;
 
   return {
     roles: referrer ? ['REFERRER'] : referee ? ['REFEREE'] : [],
@@ -525,9 +588,10 @@ export function referralMeFixture(
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
     earn_rates: earnRatesFixture(),
-    localized_text: REFERRAL_LOCALIZED_TEXT,
+    localized_text: { ...REFERRAL_LOCALIZED_TEXT, ...localizedText },
     invite_hero: null,
     excluded_regions: [],
+    ...fields,
   };
 }
 
@@ -536,14 +600,9 @@ export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
 export function referralMeWithInvitedBenefit(
   invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
 ): ReferralMeDto {
-  const referralMe = referralMeFixture('referee');
-  return {
-    ...referralMe,
-    localized_text: {
-      ...referralMe.localized_text,
-      invitedBenefitTitle,
-    },
-  };
+  return referralMeFixture('referee', {
+    localizedText: { invitedBenefitTitle },
+  });
 }
 
 /**

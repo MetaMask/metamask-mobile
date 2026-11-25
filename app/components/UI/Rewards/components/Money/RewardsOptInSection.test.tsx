@@ -136,16 +136,36 @@ describe('RewardsOptInSection', () => {
     ).toBeOnTheScreen();
   });
 
-  it('falls back to the campaign copy when the served description and action are missing', () => {
+  it('shows the served title when there is one', () => {
+    const { getByText, queryByText } = render(
+      <RewardsOptInSection
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          invitedOptInTitle: 'Served opt-in title',
+        }}
+      />,
+    );
+
+    expect(getByText('Served opt-in title')).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaign.opt_in_section_title')),
+    ).toBeNull();
+  });
+
+  it('falls back to the campaign copy when the served title, description and action are missing', () => {
     const { getByTestId, getByText } = render(
       <RewardsOptInSection
         localizedText={{
+          invitedOptInTitle: undefined,
           invitedOptInDescription: undefined,
           invitedOptInAction: undefined,
         }}
       />,
     );
 
+    expect(
+      getByText(strings('rewards.campaign.opt_in_section_title')),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('rewards.campaign.opt_in_section_description')),
     ).toBeOnTheScreen();

@@ -29,6 +29,3 @@ export const selectOtaUpdatesEnabledFlag = createSelector(
     );
   },
 );
-
-/** @deprecated Use selectOtaUpdatesEnabledFlag — basic functionality is gated centrally. */
-export const selectOtaUpdatesEnabledRawFlag = selectOtaUpdatesEnabledFlag;

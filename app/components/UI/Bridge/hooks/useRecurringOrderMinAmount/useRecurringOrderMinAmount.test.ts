@@ -72,7 +72,7 @@ describe('useRecurringOrderMinAmount', () => {
     jest.mocked(useFiatToUsdRate).mockReturnValue(1.25);
 
     expect(renderMinAmount('1').formattedMinAmountInSelectedCurrency).toBe(
-      '€40.00',
+      '€40',
     );
   });
 
