@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added Gold and Silver 15-minute Up/Down markets under a 15m filter on the Predict Finance feed (#40313)
+
+### Fixed
+
+- Fixed every TransactionController update throwing "No metadata found for 'swapsTransactions'" after creating or importing a wallet, by no longer writing the legacy swapsTransactions key when resetting state (#40207)
+- Show the existing post-only messages for Hyperliquid order rejections, and report a cancelled original when a post-only edit would cross the spread
+- Show "Something went wrong. Please try again." instead of raw exchange text for unrecognized Perps errors, and "Order validation failed" for unrecognized order validation errors
+
 ## [8.21.1]
 
 ### Changed
