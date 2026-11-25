@@ -2755,9 +2755,6 @@ describe('MainNavigator', () => {
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
         expect(screenNames).not.toContain(
-          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        );
-        expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
@@ -2939,7 +2936,6 @@ describe('MainNavigator', () => {
 
         expect(screenNames).toEqual(
           expect.arrayContaining([
-            Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
@@ -2972,7 +2968,7 @@ describe('MainNavigator', () => {
           )
           .find((candidate) =>
             screenNamesIn(candidate).includes(
-              Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+              Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             ),
           );
 
@@ -2980,7 +2976,6 @@ describe('MainNavigator', () => {
           transparentModalStackOptions,
         );
         expect(screenNamesIn(group)).toEqual([
-          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
           Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
