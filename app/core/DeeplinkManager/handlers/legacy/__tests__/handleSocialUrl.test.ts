@@ -1,5 +1,6 @@
 import { handleSocialUrl } from '../handleSocialUrl';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
+import { handleSocialPostDecisionUrl } from '../handleSocialPostDecisionUrl';
 import { handleSocialPostUrl } from '../handleSocialPostUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 import { handleSocialTraderUrl } from '../handleSocialTraderUrl';
@@ -9,6 +10,9 @@ jest.mock('../handleSocialLeaderboardUrl', () => ({
 }));
 jest.mock('../handleSocialPostUrl', () => ({
   handleSocialPostUrl: jest.fn(),
+}));
+jest.mock('../handleSocialPostDecisionUrl', () => ({
+  handleSocialPostDecisionUrl: jest.fn(),
 }));
 jest.mock('../handleSocialTraderPositionUrl', () => ({
   handleSocialTraderPositionUrl: jest.fn(),
@@ -28,6 +32,17 @@ describe('handleSocialUrl', () => {
 
     expect(handleSocialPostUrl).toHaveBeenCalledWith({ actionPath });
     expect(handleSocialTraderPositionUrl).not.toHaveBeenCalled();
+    expect(handleSocialLeaderboardUrl).not.toHaveBeenCalled();
+  });
+
+  it('routes /social/post/decision to the decision handler, not the post handler', () => {
+    const actionPath =
+      '/social/post/decision?handle=alphawhale&text=hello&reason=spam';
+
+    handleSocialUrl({ actionPath });
+
+    expect(handleSocialPostDecisionUrl).toHaveBeenCalledWith({ actionPath });
+    expect(handleSocialPostUrl).not.toHaveBeenCalled();
     expect(handleSocialLeaderboardUrl).not.toHaveBeenCalled();
   });
 

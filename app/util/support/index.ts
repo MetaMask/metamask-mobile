@@ -15,6 +15,17 @@ export const SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN =
 export const SUPPORT_URL_PARAM_VERSION = 'metamask_version';
 
 /**
+ * Support URL params that carry what the user typed (the social moderation
+ * appeal form). They are redacted from logs along with the customer service
+ * token.
+ */
+export const SUPPORT_URL_PARAMS_REDACTED_FROM_LOGS = [
+  SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN,
+  'appeal_email',
+  'appeal_message',
+];
+
+/**
  * Appends support metadata to a base support URL.
  *
  * @param baseUrl - Support URL to enrich (defaults to the generic help center URL).
@@ -37,20 +48,19 @@ export const buildSupportUrl = (
 };
 
 /**
- * Replaces the customer service token value in a support URL with a
- * placeholder so it is safe to log (e.g. as a Sentry breadcrumb) without
- * leaking the JWT off-device.
+ * Replaces the sensitive values in a support URL (the customer service token
+ * and anything the user typed into an appeal) with a placeholder so it is
+ * safe to log (e.g. as a Sentry breadcrumb) without leaking them off-device.
  *
- * @param url - Support URL potentially containing a `customer_service_token` param.
- * @returns The same URL with the token value redacted, if present.
+ * @param url - Support URL potentially containing sensitive params.
+ * @returns The same URL with those values redacted, if present.
  */
 export const redactCustomerServiceToken = (url: string): string => {
   const redacted = new URL(url);
-  if (redacted.searchParams.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)) {
-    redacted.searchParams.set(
-      SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN,
-      '[REDACTED]',
-    );
+  for (const name of SUPPORT_URL_PARAMS_REDACTED_FROM_LOGS) {
+    if (redacted.searchParams.has(name)) {
+      redacted.searchParams.set(name, '[REDACTED]');
+    }
   }
   return redacted.toString();
 };
@@ -140,7 +150,7 @@ export const rejectSupportConsent = async (
   const url = baseUrl ?? METAMASK_SUPPORT_URL;
   Logger.log(
     '[SupportConsent] Opening support URL without device details',
-    url,
+    redactCustomerServiceToken(url),
   );
   try {
     await open(url);

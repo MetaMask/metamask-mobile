@@ -475,6 +475,8 @@ const Routes = {
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
+    POST_DECISION: 'SocialPostDecisionView',
+    POST_APPEAL: 'SocialPostAppealView',
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
     TRADER_PREVIEW_SHEET: 'SocialTraderPreviewSheet',

@@ -110,6 +110,17 @@ describe('redactCustomerServiceToken', () => {
     expect(url.searchParams.get(SUPPORT_URL_PARAM_VERSION)).toBe('7.1.0');
   });
 
+  it('replaces what the user typed into a social appeal', () => {
+    const result = redactCustomerServiceToken(
+      'https://support.metamask.io/?appeal_email=alex%40example.com&appeal_message=hello&appeal_decision=post-removed',
+    );
+
+    const url = new URL(result);
+    expect(url.searchParams.get('appeal_email')).toBe('[REDACTED]');
+    expect(url.searchParams.get('appeal_message')).toBe('[REDACTED]');
+    expect(url.searchParams.get('appeal_decision')).toBe('post-removed');
+  });
+
   it('leaves the URL unchanged when there is no customer service token', () => {
     const input = 'https://support.metamask.io/?metamask_version=7.1.0';
 

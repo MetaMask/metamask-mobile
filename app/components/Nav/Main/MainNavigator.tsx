@@ -215,6 +215,8 @@ import {
   SocialV0View,
   SocialV1View,
   SocialPostComposerView,
+  SocialPostDecisionView,
+  SocialPostAppealView,
   MyProfileView,
   FollowConnectionsView,
   ProfilesToFollowView,
@@ -1547,6 +1549,14 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.POST_COMPOSER}
             component={SocialPostComposerView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_DECISION}
+            component={SocialPostDecisionView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_APPEAL}
+            component={SocialPostAppealView}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}

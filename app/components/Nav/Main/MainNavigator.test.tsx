@@ -941,6 +941,8 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).toEqual([
         Routes.SOCIAL.V1,
         Routes.SOCIAL.POST_COMPOSER,
+        Routes.SOCIAL.POST_DECISION,
+        Routes.SOCIAL.POST_APPEAL,
         Routes.SOCIAL.MY_PROFILE,
         Routes.SOCIAL.V1_PROFILE,
         Routes.SOCIAL.FOLLOW_CONNECTIONS,

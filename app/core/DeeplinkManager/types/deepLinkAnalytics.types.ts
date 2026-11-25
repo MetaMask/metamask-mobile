@@ -49,6 +49,7 @@ export enum DeepLinkRoute {
   SOCIAL_TRADER = 'social-trader',
   SOCIAL_TRADER_POSITION = 'social-trader-position',
   SOCIAL_POST = 'social-post',
+  SOCIAL_POST_DECISION = 'social-post-decision',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',

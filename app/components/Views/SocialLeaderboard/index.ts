@@ -57,6 +57,10 @@ export const SocialProfileOnboardingView = withSocialAccountGate(
   SocialProfileOnboardingViewScreen,
 );
 
+// Not gated: a poster whose account is disabled still has to be able to read
+// why their post was removed and to appeal it.
+export { default as SocialPostDecisionView } from './SocialPostDecisionView';
+export { default as SocialPostAppealView } from './SocialPostAppealView';
 export { default as TopTradersView } from './TopTradersView';
 export { default as FeedView } from './FeedView';
 export { default as PositionDetailsSheet } from './PositionDetailsSheet';

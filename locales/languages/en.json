@@ -1327,6 +1327,54 @@
       "contact_support_description": "Contact support at {{email}} or in the app for help.",
       "contact_support": "Contact support"
     },
+    "post_decision": {
+      "terms_link": "Terms of Service",
+      "reason_label": "Reason",
+      "ai_disclosure": "We used automated tools, including AI, to help make this decision.",
+      "appeal": "Appeal",
+      "done": "Done",
+      "post_removed": {
+        "title": "We removed your post",
+        "subtitle": "It violates our acceptable use requirements, as set out in our {{termsLink}}."
+      },
+      "profile_hidden": {
+        "title": "Your profile not visible to others",
+        "subtitle": "It violates our acceptable use requirements, as set out in our {{termsLink}}. Others can’t see the profile, posts, or replies."
+      },
+      "report_post_removed": {
+        "title": "We removed the post you reported",
+        "subtitle": "It violates our acceptable use requirements, as set out in our {{termsLink}}."
+      },
+      "report_post_left_up": {
+        "title": "We left the post up",
+        "subtitle": "We reviewed it and it doesn’t violate our acceptable use requirements, as set out in our {{termsLink}}. You can appeal this decision."
+      },
+      "report_profile_hidden": {
+        "title": "We hid the profile you reported",
+        "subtitle": "It violates our acceptable use requirements, as set out in our {{termsLink}}. Others can’t see the profile, posts, or replies."
+      },
+      "report_profile_left_up": {
+        "title": "We left the profile up",
+        "subtitle": "We reviewed it and it doesn’t violate our acceptable use requirements, as set out in our {{termsLink}}. You can appeal this decision."
+      }
+    },
+    "post_appeal": {
+      "title": "Appeal this decision",
+      "subtitle": "Tell us why you think we got it wrong. We’ll review it again and email you what we decide.",
+      "email_label": "Email address",
+      "email_placeholder": "name@example.com",
+      "email_helper": "We’ll email you updates on your appeal.",
+      "email_error": "Enter a valid email address, like name@example.com",
+      "message_label": "Message",
+      "message_placeholder": "Tell us why you disagree with this decision",
+      "submit": "Submit appeal",
+      "error_title": "We couldn’t send your appeal",
+      "error_description": "Check your connection and try again.",
+      "error_dismiss": "Dismiss",
+      "success_title": "We received your appeal",
+      "success_description": "We’ll review it again and email you at {{email}} with what we decide.",
+      "done": "Done"
+    },
     "entry_options": {
       "title": "Options",
       "report": "Report",
