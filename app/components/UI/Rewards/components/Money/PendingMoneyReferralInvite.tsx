@@ -153,9 +153,10 @@ const PendingMoneyReferralInvitePresenter = ({
           // for the newer one.
           openInvite(appInstalled);
         })
-        .catch(async () =>
-          appInstallationPromise.then(openInvite, () => openInvite(true)),
-        );
+        .catch(async () => {
+          const appInstalled = await appInstallationPromise;
+          openInvite(appInstalled);
+        });
     });
 
     return () => {
