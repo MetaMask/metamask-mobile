@@ -16,11 +16,13 @@ import { WatchlistErrorRowTestIds } from './WatchlistErrorRow.testIds';
 interface WatchlistErrorRowProps {
   onRetry?: () => void;
   message?: string;
+  testID?: string;
 }
 
 const WatchlistErrorRow = ({
   onRetry,
   message = strings('token_watchlist.load_error'),
+  testID = WatchlistErrorRowTestIds.ROW,
 }: WatchlistErrorRowProps): React.JSX.Element => {
   const handleRetry = useCallback((): void => {
     onRetry?.();
@@ -35,7 +37,7 @@ const WatchlistErrorRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="justify-between py-3"
-      testID={WatchlistErrorRowTestIds.ROW}
+      testID={testID}
     >
       <Text
         variant={TextVariant.BodySm}

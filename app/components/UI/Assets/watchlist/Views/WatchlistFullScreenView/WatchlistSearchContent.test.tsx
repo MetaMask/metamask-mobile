@@ -1,11 +1,21 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { NetworkTier } from '../../../../../../util/deviceCapability/types';
 import WatchlistSearchContent from './WatchlistSearchContent';
 import { WatchlistSearchContentTestIds } from './WatchlistSearchContent.testIds';
 
 const mockUseTokensFeed = jest.fn();
+const mockUsePerpsFeed = jest.fn();
 const mockOnDismiss = jest.fn();
+const mockAddPerp = jest.fn().mockResolvedValue(true);
+const mockRemovePerp = jest.fn().mockResolvedValue(true);
+const mockNavigateToMarketDetails = jest.fn();
+const mockUseNetworkTier = jest.fn((): NetworkTier | null => null);
+
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockUseNetworkTier(),
+}));
 
 jest.mock(
   '../../../../../Views/TrendingView/components/ExploreSearchBar/ExploreSearchBar',
@@ -51,6 +61,65 @@ jest.mock(
   () => ({
     useTokensFeed: (...args: unknown[]) => mockUseTokensFeed(...args),
   }),
+);
+
+jest.mock('../../../../../Views/TrendingView/feeds/perps/usePerpsFeed', () => ({
+  usePerpsFeed: (...args: unknown[]) => mockUsePerpsFeed(...args),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: () => ({
+    addToWatchlist: mockAddPerp,
+    removeFromWatchlist: mockRemovePerp,
+  }),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({
+    navigateToMarketDetails: mockNavigateToMarketDetails,
+  }),
+}));
+
+jest.mock(
+  '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { Pressable, Text, View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        market,
+        onAddPress,
+        onWatchlistPress,
+        onPress,
+        isWatchlisted,
+      }: {
+        market: { symbol: string };
+        onAddPress?: (market: { symbol: string }) => void;
+        onWatchlistPress?: (market: { symbol: string }) => void;
+        onPress?: (market: { symbol: string }) => void;
+        isWatchlisted?: boolean;
+      }) =>
+        ReactActual.createElement(
+          View,
+          { testID: `mock-perps-search-row-${market.symbol}` },
+          ReactActual.createElement(Text, null, market.symbol),
+          ReactActual.createElement(Pressable, {
+            testID: `mock-perps-search-add-${market.symbol}`,
+            onPress: () => onAddPress?.(market),
+          }),
+          ReactActual.createElement(Pressable, {
+            testID: `mock-perps-search-remove-${market.symbol}`,
+            onPress: () => onWatchlistPress?.(market),
+            accessibilityState: { selected: isWatchlisted },
+          }),
+          ReactActual.createElement(Pressable, {
+            testID: `mock-perps-search-open-${market.symbol}`,
+            onPress: () => onPress?.(market),
+          }),
+        ),
+    };
+  },
 );
 
 jest.mock(
@@ -104,16 +173,33 @@ const makeToken = (symbol: string): TrendingAsset =>
     name: symbol,
   }) as TrendingAsset;
 
+const makePerp = (symbol: string, isWatchlisted = false) => ({
+  market: {
+    id: `hyperliquid:${symbol}`,
+    symbol,
+    name: symbol,
+  },
+  isWatchlisted,
+});
+
 describe('WatchlistSearchContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockUseNetworkTier.mockReturnValue(null);
     mockUseTokensFeed.mockReturnValue({
       data: [makeToken('eth'), makeToken('btc')],
       isLoading: false,
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasMore: false,
+    });
+    mockUsePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'volume',
     });
   });
 
@@ -140,7 +226,10 @@ describe('WatchlistSearchContent', () => {
       jest.advanceTimersByTime(200);
     });
 
-    expect(mockUseTokensFeed).toHaveBeenLastCalledWith({ query: 'pepe' });
+    expect(mockUseTokensFeed).toHaveBeenLastCalledWith({
+      query: 'pepe',
+      enabled: true,
+    });
   });
 
   it('renders skeleton while loading', () => {
@@ -234,6 +323,32 @@ describe('WatchlistSearchContent', () => {
     expect(getByText('Check out other popular assets')).toBeDefined();
   });
 
+  it('renders a retryable error instead of empty results when Perps search fails', () => {
+    const refetch = jest.fn().mockResolvedValue(undefined);
+    mockUsePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: 'Perps market search unavailable',
+      refetch,
+      defaultSortOptionId: 'volume',
+    });
+    const { getByTestId, getByText, queryByTestId } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} activeFilter="perps" />,
+    );
+
+    fireEvent.changeText(getByTestId('mock-watchlist-search-input'), 'eth');
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+    fireEvent.press(getByText('Try again'));
+
+    expect(
+      getByTestId(WatchlistSearchContentTestIds.ERROR_STATE),
+    ).toBeDefined();
+    expect(queryByTestId(WatchlistSearchContentTestIds.EMPTY_STATE)).toBeNull();
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps results mounted when loading refetches with existing data', () => {
     const { getByTestId, getByText, rerender } = render(
       <WatchlistSearchContent onDismiss={mockOnDismiss} />,
@@ -304,5 +419,71 @@ describe('WatchlistSearchContent', () => {
     expect(
       queryByTestId(WatchlistSearchContentTestIds.SKELETON_OVERLAY),
     ).toBeNull();
+  });
+
+  it('composes Perps search results and uses add/remove actions', () => {
+    mockUseTokensFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasMore: false,
+    });
+    mockUsePerpsFeed.mockReturnValue({
+      data: [makePerp('ETH', false), makePerp('BTC', true)],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'volume',
+    });
+
+    const { getByTestId, getByText } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} activeFilter="perps" />,
+    );
+
+    fireEvent.changeText(getByTestId('mock-watchlist-search-input'), 'eth');
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(getByText('ETH')).toBeDefined();
+    expect(getByText('BTC')).toBeDefined();
+
+    fireEvent.press(getByTestId('mock-perps-search-add-ETH'));
+    fireEvent.press(getByTestId('mock-perps-search-remove-BTC'));
+    fireEvent.press(getByTestId('mock-perps-search-open-ETH'));
+
+    expect(mockAddPerp).toHaveBeenCalledWith('ETH');
+    expect(mockRemovePerp).toHaveBeenCalledWith('BTC');
+    expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'ETH' }),
+      expect.any(String),
+    );
+  });
+
+  it('skips both remote search feeds when the network is offline', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+
+    const { getByTestId, queryByTestId } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} activeFilter="all" />,
+    );
+
+    fireEvent.changeText(getByTestId('mock-watchlist-search-input'), 'eth');
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(mockUseTokensFeed).toHaveBeenLastCalledWith({
+      query: 'eth',
+      enabled: false,
+    });
+    expect(mockUsePerpsFeed).toHaveBeenLastCalledWith({
+      query: 'eth',
+      skipInitialFetch: true,
+    });
+    expect(
+      getByTestId(WatchlistSearchContentTestIds.ERROR_STATE),
+    ).toBeDefined();
+    expect(queryByTestId(WatchlistSearchContentTestIds.EMPTY_STATE)).toBeNull();
   });
 });

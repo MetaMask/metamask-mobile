@@ -50,6 +50,12 @@ export interface PerpsMarketRowItemProps {
    * The callback receives the current displayMarket (with live price merged in).
    */
   onAddPress?: (market: PerpsMarketData) => void;
+  /**
+   * When provided, renders a trailing watchlist toggle star button.
+   */
+  onWatchlistPress?: (market: PerpsMarketData) => void;
+  /** Whether the market is currently watchlisted (renders a filled star). */
+  isWatchlisted?: boolean;
   /** Optional utility classes when embedding the row in another list. */
   twClassName?: string;
 }

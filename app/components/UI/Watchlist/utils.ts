@@ -10,9 +10,10 @@ import type {
   UnifiedWatchlistPerp,
   UnifiedWatchlistToken,
 } from './types';
+import { isEvmCaip19AssetId } from '../../../util/multichain/isEvmCaip19AssetId';
 
 const normalizeTokenAssetId = (assetId: string): string =>
-  assetId.toLowerCase();
+  isEvmCaip19AssetId(assetId) ? assetId.toLowerCase() : assetId;
 
 export const INITIAL_TOKEN_SUGGESTION_COUNT = 2;
 export const INITIAL_PERP_SUGGESTION_COUNT = 3;

@@ -40,6 +40,8 @@ const PerpsMarketRowItem = ({
   compact = false,
   enableLivePrices = true,
   onAddPress,
+  onWatchlistPress,
+  isWatchlisted = false,
   twClassName,
 }: PerpsMarketRowItemProps): React.JSX.Element => {
   // Subscribe to live prices for just this symbol
@@ -215,21 +217,23 @@ const PerpsMarketRowItem = ({
           : TextColor.ErrorDefault,
       }}
       endAccessory={
-        onAddPress ? (
+        onWatchlistPress || onAddPress ? (
           <ButtonIcon
-            iconName={IconName.Star}
+            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}
-            onPress={() => onAddPress(displayMarket)}
-            accessibilityLabel={strings(
-              'perps.market_details.add_to_watchlist',
-            )}
+            onPress={() => (onWatchlistPress ?? onAddPress)?.(displayMarket)}
+            accessibilityLabel={
+              isWatchlisted
+                ? strings('token_watchlist.remove_from_watchlist')
+                : strings('perps.market_details.add_to_watchlist')
+            }
             testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
             )}
           />
         ) : undefined
       }
-      accessoryGap={onAddPress ? 3 : undefined}
+      accessoryGap={onWatchlistPress || onAddPress ? 3 : undefined}
       twClassName={
         [compact ? 'py-2 min-h-0' : undefined, twClassName]
           .filter(Boolean)

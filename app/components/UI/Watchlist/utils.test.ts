@@ -6,6 +6,7 @@ import {
   canUseWatchlistLivePrices,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  getTokenWatchlistKey,
   reconcileWatchlistItemOrder,
   selectWatchlistSuggestions,
 } from './utils';
@@ -184,5 +185,15 @@ describe('watchlist utils', () => {
         row.kind === 'token' ? row.token.symbol : row.market.symbol,
       ),
     ).toEqual(['ADA', 'ETH', 'XRP']);
+  });
+
+  it('lowercases EVM token keys while preserving non-EVM CAIP-19 case', () => {
+    expect(
+      getTokenWatchlistKey('eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE'),
+    ).toBe('token:eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce');
+
+    const solanaAssetId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    expect(getTokenWatchlistKey(solanaAssetId)).toBe(`token:${solanaAssetId}`);
   });
 });
