@@ -12,7 +12,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from '../../../app/components/UI/Earn
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositReceiveSection/DepositReceiveSection.testIds';
 import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ProgressStepper/ProgressStepper.testIds';
 import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
-import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { TokenDetailsIds } from '../../../app/components/UI/TokenDetails/testIds';
 import { type AppiumElement } from '../../framework';
 
 class EarnLendingView {
@@ -20,6 +20,10 @@ class EarnLendingView {
     return Matchers.getElementByID(
       EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
     );
+  }
+
+  get tokenDetailsScrollView(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TokenDetailsIds.scrollView);
   }
 
   get confirmationFooter(): Promise<AppiumElement> {
@@ -91,15 +95,15 @@ class EarnLendingView {
   }
 
   async scrollToWithdrawButton(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.withdrawButton,
-      Matchers.scrollContainer(ActivitiesViewSelectorsIDs.CONTAINER),
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Scroll to Withdraw button',
-      },
-    );
+    // The Token Details sticky footer covers the bottom of the list. WDIO's
+    // default swipe (percent 0.95) starts at ~97.5% of the container height,
+    // inside that footer, so swipe through the middle of the list instead.
+    await Gestures.scrollIntoView(this.withdrawButton, {
+      direction: 'up',
+      scrollableElement: await this.tokenDetailsScrollView,
+      percent: 0.5,
+      maxScrolls: 10,
+    });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
