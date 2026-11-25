@@ -11,7 +11,7 @@ import FCMService, {
   toPushTapResult,
 } from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
-import { ACTIONS } from '../../constants/deeplinks';
+import { isSupportedAction } from './types/deepLink.types';
 import { isMetaMaskUniversalLink } from './util/deeplinks';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
@@ -36,17 +36,14 @@ import { getUnlockAppStartType } from '../Performance/unlockTraces';
 // example when the user dismisses the interstitial during startup resolution.
 export type DeeplinkResolveResult = DeeplinkIntent | false | null;
 
-// ACTIONS.EMPTY is '' and can never match: the caller rejects empty segments.
-const KNOWN_DEEPLINK_ACTIONS = new Set<string>(Object.values(ACTIONS));
-
 export const BRANCH_SHORTLINK_FALLBACK_MS = 1500;
 const BRANCH_RESOLUTION_WINDOW_MS = 5000;
 
 /**
- * Returns true when a universal link on a MetaMask Branch host has an unknown
- * first path segment (for example `link.metamask.io/invite-perps` or
- * `metamask.app.link/1WkF6GmE40b`), meaning it is likely a Branch short link
- * whose destination arrives asynchronously via Branch `$deeplink_path`.
+ * Returns true when a universal link on a MetaMask Branch host has a first path
+ * segment the deeplink pipeline does not route (for example `invite-perps` or
+ * `1WkF6GmE40b`), meaning it is likely a Branch short link whose destination
+ * arrives asynchronously via Branch `$deeplink_path`.
  */
 export function isPendingBranchShortlink(url: string): boolean {
   if (!isMetaMaskUniversalLink(url)) {
@@ -56,7 +53,7 @@ export function isPendingBranchShortlink(url: string): boolean {
   try {
     const { pathname } = new URL(url);
     const firstSegment = pathname.split('/')[1] ?? '';
-    return firstSegment.length > 0 && !KNOWN_DEEPLINK_ACTIONS.has(firstSegment);
+    return firstSegment.length > 0 && !isSupportedAction(firstSegment);
   } catch {
     return false;
   }

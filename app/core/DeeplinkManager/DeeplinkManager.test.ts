@@ -1002,19 +1002,24 @@ describe('isPendingBranchShortlink', () => {
     'https://metamask.app.link/invite-home?ref=5SYFDM',
     'https://metamask-alternate.app.link/1WkF6GmE40b?amount=100',
     'https://link.metamask.com/invite-perps',
-  ])('returns true for unknown path on Branch host: %s', (url) => {
+    // ACTIONS members that the universal-link pipeline does not route are held
+    // too, so a `/ramp` or `/deposit` alias cannot flash the invalid modal.
+    'https://link.metamask.io/ramp?ref=5SYFDM',
+    'https://link.metamask.io/oauth-redirect?code=123',
+  ])('returns true for an unrouted path on a Branch host: %s', (url) => {
     expect(isPendingBranchShortlink(url)).toBe(true);
   });
 
   it.each([
     'https://link.metamask.io/perps?ref=5SYFDM',
     'https://metamask.app.link/swap?amount=100',
-    'https://link.metamask.io/oauth-redirect?code=123',
+    'https://link.metamask.io/card-kyc-notification',
+    'https://link.metamask.io/earn-musd',
     'https://link.metamask.io/',
     'https://example.com/invite-home',
     'metamask://invite-home',
   ])(
-    'returns false for known action, empty path, or non-Branch URL: %s',
+    'returns false for a routed action, empty path, or non-Branch URL: %s',
     (url) => {
       expect(isPendingBranchShortlink(url)).toBe(false);
     },
