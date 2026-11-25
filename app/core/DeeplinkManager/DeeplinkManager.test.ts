@@ -1155,6 +1155,35 @@ describe('DeeplinkManager.start Android shortlink deferral', () => {
     expect(handleDeeplink).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores a late Linking initial URL whose query differs from the Branch resolution', async () => {
+    Platform.OS = 'android';
+    let resolveInitialUrl!: (url: string | null) => void;
+    jest.spyOn(Linking, 'getInitialURL').mockReturnValue(
+      new Promise<string | null>((resolve) => {
+        resolveInitialUrl = resolve;
+      }),
+    );
+
+    const { emitBranch } = startAndCaptureListeners();
+
+    // Branch reports the stored link with its attribution params, while Android
+    // hands React Native the bare alias for the same tap.
+    emitBranch({
+      uri: 'https://metamask.app.link/invite-perps?ref=5SYFDM&_branch_match_id=123&_branch_referrer=H4sIA',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'perps?sig_params=&sig=xyz',
+      },
+    });
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+
+    resolveInitialUrl('https://metamask.app.link/invite-perps?ref=5SYFDM');
+    await Promise.resolve();
+
+    jest.advanceTimersByTime(BRANCH_SHORTLINK_FALLBACK_MS + 100);
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+  });
+
   it('does not defer unknown paths from Linking on iOS', () => {
     Platform.OS = 'ios';
     const { emitLinkingUrl } = startAndCaptureListeners();

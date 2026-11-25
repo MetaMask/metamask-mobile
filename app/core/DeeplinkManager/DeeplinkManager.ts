@@ -63,6 +63,13 @@ export function isPendingBranchShortlink(url: string): boolean {
   }
 }
 
+/**
+ * Keys a short link by origin and path so the bare alias Android delivers via
+ * `Linking` matches the same alias as reported by Branch. Cold-start Branch
+ * reports the stored `~referring_link`, which carries attribution params
+ * (`_branch_match_id`, `_branch_referrer`) that the intent often lacks, so a
+ * full-URL comparison would miss the duplicate and replay the invalid modal.
+ */
 function getShortlinkMatchKey(uri: string): string {
   try {
     const parsed = new URL(uri);
