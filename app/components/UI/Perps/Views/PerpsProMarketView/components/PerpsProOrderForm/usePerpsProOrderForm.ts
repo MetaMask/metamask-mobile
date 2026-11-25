@@ -297,6 +297,16 @@ const formatChaseDistanceValue = (value: BigNumber): string => {
   return trimmedFraction.length > 0 ? `${whole}.${trimmedFraction}` : whole;
 };
 
+const getChaseMaxDistanceBps = (
+  distance: number,
+  unit: 'usd' | 'percent',
+  midPrice: number | undefined,
+): number => {
+  if (unit === 'percent') return distance * 100;
+  if (midPrice === undefined) return Number.NaN;
+  return (distance / midPrice) * BASIS_POINTS_DIVISOR;
+};
+
 const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
   minPrice > 0 && maxPrice > minPrice
     ? ((maxPrice - minPrice) / minPrice) * 100
@@ -1230,12 +1240,11 @@ export const usePerpsProOrderForm = ({
     price: marketPrice,
   });
   const isMarketDataBlocking = marketDataBlockingReason !== null;
-  const chaseMaxDistanceBps =
-    chaseMaxDistanceUnit === 'percent'
-      ? parsedChaseMaxDistance * 100
-      : marketPrice !== undefined
-        ? (parsedChaseMaxDistance / marketPrice) * BASIS_POINTS_DIVISOR
-        : Number.NaN;
+  const chaseMaxDistanceBps = getChaseMaxDistanceBps(
+    parsedChaseMaxDistance,
+    chaseMaxDistanceUnit,
+    marketPrice,
+  );
   const isChaseMaxDistanceBpsResolvable =
     chaseMaxDistanceUnit === 'percent' || marketPrice !== undefined;
   const isChaseMaxDistanceInvalid =
@@ -3431,12 +3440,11 @@ export const usePerpsProOrderForm = ({
 
       const latestChaseMaxDistanceBps =
         orderForm.type === 'chase' && chaseMaxDistance.trim()
-          ? chaseMaxDistanceUnit === 'percent'
-            ? parsedChaseMaxDistance * 100
-            : latestMidPriceRef.current !== undefined
-              ? (parsedChaseMaxDistance / latestMidPriceRef.current) *
-                BASIS_POINTS_DIVISOR
-              : Number.NaN
+          ? getChaseMaxDistanceBps(
+              parsedChaseMaxDistance,
+              chaseMaxDistanceUnit,
+              latestMidPriceRef.current,
+            )
           : undefined;
       if (
         latestChaseMaxDistanceBps !== undefined &&

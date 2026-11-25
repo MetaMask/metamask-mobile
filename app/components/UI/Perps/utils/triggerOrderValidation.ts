@@ -414,7 +414,7 @@ export const getLimitPriceCrossingWarning = ({
     return undefined;
   }
 
-  if (midPrice === undefined || !(midPrice > 0)) {
+  if (midPrice === undefined || Number.isNaN(midPrice) || midPrice <= 0) {
     return undefined;
   }
 

@@ -298,7 +298,7 @@ export function usePerpsClosePositionValidation(
       return;
     }
 
-    performValidation();
+    void performValidation();
   }, [performValidation, symbol, currentPrice, skipValidation]);
 
   return validation;

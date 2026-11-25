@@ -284,6 +284,20 @@ describe('getLimitPriceCrossingWarning', () => {
     },
   );
 
+  it.each([undefined, Number.NaN, 0, -1])(
+    'does not warn when the mid price is %s',
+    (midPrice) => {
+      const warning = getLimitPriceCrossingWarning({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '2500',
+        midPrice,
+      });
+
+      expect(warning).toBeUndefined();
+    },
+  );
+
   it('returns undefined when the limit does not cross mid', () => {
     expect(
       getLimitPriceCrossingWarning({

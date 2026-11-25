@@ -480,16 +480,7 @@ export function usePerpsOrderFees({
           !Number.isFinite(coreFeesResult.metamaskFeeRate) ||
           !Number.isFinite(coreFeesResult.protocolFeeRate)
         ) {
-          // Rates unavailable - set all states to undefined for UI fallback display
-          // UI will show FALLBACK_DATA_DISPLAY ('--') instead of misleading $0
-          updateFeeState(
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-          );
+          clearFeeState();
           return;
         }
 
