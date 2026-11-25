@@ -3215,40 +3215,119 @@ describe('useTransactionCustomAmount', () => {
         jest.runAllTimers();
       });
 
-      // Make updateTransactionPayAmount fail on the first attempt
-      updateTransactionPayAmountMock.mockRejectedValueOnce(
-        new Error('Network failure'),
-      );
+      // Make updateTransactionPayAmount fail on the first attempt, then succeed
+      updateTransactionPayAmountMock
+        .mockRejectedValueOnce(new Error('Network failure'))
+        .mockResolvedValue(true);
 
       mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
       await act(async () => {
         rerender({});
         jest.runAllTimers();
-        // Wait for the async update to complete
+        // Wait for the async update to complete and trigger the retry
+        await Promise.resolve();
         await Promise.resolve();
       });
 
       // The UI should show the clamped 90% = 900
       expect(result.current.amountFiat).toBe('900');
-      // updateTransactionPayAmount was called but failed
+      // updateTransactionPayAmount was called, failed, then retried and succeeded
       expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
+    });
 
-      // Now make updateTransactionPayAmount succeed
-      updateTransactionPayAmountMock.mockResolvedValue(true);
+    it('does not clear pendingClampRef while commit is in flight', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
 
-      // Trigger a rerender that should retry the clamp
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' }, // approve
+            { data: '0x8a857083' }, // deposit
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
       await act(async () => {
         rerender({});
         jest.runAllTimers();
-        // Wait for the async retry to complete
+      });
+
+      // Make updateTransactionPayAmount hang (never resolve)
+      let resolveUpdate: (value: boolean) => void;
+      const hangingPromise = new Promise<boolean>((resolve) => {
+        resolveUpdate = resolve;
+      });
+      updateTransactionPayAmountMock.mockReturnValue(hangingPromise);
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      // First render: triggers the clamp and starts the async commit
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // The UI should show the clamped 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+      // updateTransactionPayAmount was called
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      // Second render: amountFiat === clampedAmount, but commit is still in flight
+      // The effect should return early and NOT clear pendingClampRef
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Should not have called updateTransactionPayAmount again
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+
+      // Now resolve the update
+      await act(async () => {
+        resolveUpdate!(true);
         await Promise.resolve();
       });
 
-      // The clamp should have retried and succeeded
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
-      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
+      // After success, pendingClampRef should be cleared
+      // A subsequent rerender should not trigger another clamp
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
       expect(result.current.amountFiat).toBe('900');
     });
 

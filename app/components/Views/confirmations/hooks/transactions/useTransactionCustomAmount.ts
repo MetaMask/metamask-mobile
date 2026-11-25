@@ -200,6 +200,9 @@ export function useTransactionCustomAmount({
   const previousTransactionIdRef = useRef(transactionId);
   const keepAmountAfterReplacementRef = useRef(false);
   const pendingClampRef = useRef(false);
+  const clampCommitInFlightRef = useRef(false);
+  const targetClampedAmountRef = useRef<string | null>(null);
+  const [clampRetryCounter, setClampRetryCounter] = useState(0);
   const ignoreNextAutomaticTokenChangeRef = useRef(false);
 
   const previousPayTokenKeyRef = useRef(payTokenKey);
@@ -560,40 +563,69 @@ export function useTransactionCustomAmount({
       return;
     }
 
+    // Return early if a commit is already in flight to avoid clearing the
+    // pending flag while the async update is still running.
+    if (clampCommitInFlightRef.current) {
+      return;
+    }
+
     const clampedAmount = AmountCapHelper.clampToFirstDepositCap(
       amountFiat,
       balanceUsd,
       transactionMeta,
     );
 
-    if (clampedAmount !== amountFiat) {
-      setAmountFiat(clampedAmount);
-      // Also commit the clamped amount to the transaction so the deposit
-      // carries the reduced value, not the original 100%.
+    // Check if we need to clamp or retry a failed commit. The retry path
+    // re-commits even when amountFiat already equals the target.
+    const needsClamp = clampedAmount !== amountFiat;
+    const needsRetry =
+      targetClampedAmountRef.current !== null &&
+      amountFiat === targetClampedAmountRef.current;
+
+    if (needsClamp || needsRetry) {
+      const targetAmount = needsRetry
+        ? targetClampedAmountRef.current!
+        : clampedAmount;
+
+      if (needsClamp) {
+        setAmountFiat(clampedAmount);
+        targetClampedAmountRef.current = clampedAmount;
+      }
+
+      // Commit the clamped amount to the transaction so the deposit carries
+      // the reduced value, not the original 100%.
       const clampedAmountHuman = getAmountHumanFromFiat(
-        clampedAmount,
+        targetAmount,
         tokenFiatRate,
         skipFiatRateConversion,
       );
 
-      // Await the update and only clear the pending flag on success, so the
-      // effect can retry if the update fails.
+      clampCommitInFlightRef.current = true;
+
       void (async () => {
         try {
           await updateTransactionPayAmount(clampedAmountHuman);
-          // Clear the pending flag only after the update succeeds
+          // Clear both flags only after the update succeeds
           pendingClampRef.current = false;
+          clampCommitInFlightRef.current = false;
+          targetClampedAmountRef.current = null;
         } catch (error: unknown) {
           Logger.error(
             error as Error,
             'Failed to update transaction pay amount with clamped value',
           );
-          // Keep pendingClampRef.current = true so the effect retries
+          // Set pendingClampRef back to true and bump the retry counter to
+          // re-trigger the effect. Keep the target so the retry knows what to
+          // commit even when amountFiat already shows the clamped value.
+          clampCommitInFlightRef.current = false;
+          pendingClampRef.current = true;
+          setClampRetryCounter((prev) => prev + 1);
         }
       })();
-    } else {
-      // No clamp needed; clear the pending flag
+    } else if (!clampCommitInFlightRef.current) {
+      // No clamp needed and no commit in flight; clear the pending flag
       pendingClampRef.current = false;
+      targetClampedAmountRef.current = null;
     }
   }, [
     amountFiat,
@@ -602,6 +634,7 @@ export function useTransactionCustomAmount({
     tokenFiatRate,
     transactionMeta,
     updateTransactionPayAmount,
+    clampRetryCounter,
   ]);
 
   const isDepositPrefilled =
