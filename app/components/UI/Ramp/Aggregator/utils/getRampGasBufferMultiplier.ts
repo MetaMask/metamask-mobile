@@ -28,7 +28,7 @@ export function getRampGasBufferMultiplier(
   chainId: Hex,
   networkClientId: NetworkClientId,
 ): number {
-  // TODO: Replace with TransactionController.getGasEstimateBuffer once a core
+  // Replace with TransactionController.getGasEstimateBuffer once a core
   // release ships it: https://consensyssoftware.atlassian.net/browse/TRAM-4526
   // Until then this mirrors core's getGasEstimateBuffer from
   // @metamask/transaction-controller 74.2.0 and can drift if core changes the

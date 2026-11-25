@@ -30,7 +30,7 @@ export default function useRampNetworkClientId(
 
     const caipChainId = toCaipChainId(
       'eip155',
-      parseInt(hexChainId, 16).toString(10),
+      Number.parseInt(hexChainId, 16).toString(10),
     );
     const networkConfig = networkConfigurations?.[caipChainId];
     if (!networkConfig || !('rpcEndpoints' in networkConfig)) {

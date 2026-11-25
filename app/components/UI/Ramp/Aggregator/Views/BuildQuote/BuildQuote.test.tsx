@@ -179,7 +179,7 @@ jest.mock('../../hooks/useCryptoCurrencies', () =>
 );
 
 const mockGetFiatCurrencies = jest.fn();
-const mockGetDefaultFiatCurrencies = jest.fn();
+const mockGetDefaultFiatCurrencies = jest.fn().mockResolvedValue(undefined);
 
 const mockUseFiatCurrenciesInitialValues: Partial<
   ReturnType<typeof useFiatCurrencies>

@@ -10376,9 +10376,6 @@
     }
   },
   "app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     },

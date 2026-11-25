@@ -340,7 +340,7 @@ function SendTransaction() {
       // The order has no valid amount, deposit wallet or asset to send.
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_REJECTED',
-        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        //@ts-expect-error - Ramps team needs to resolve discrepancy between
         // transactionAnalyticsPayload expecting chain_id_source to be a string
         // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,

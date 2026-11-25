@@ -805,7 +805,7 @@ const BuildQuote = () => {
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
     } else if (errorFiatCurrency) {
-      queryDefaultFiatCurrency();
+      queryDefaultFiatCurrency().catch(() => undefined);
       return queryGetFiatCurrencies();
     } else if (errorRegions) {
       return queryGetRegions();
