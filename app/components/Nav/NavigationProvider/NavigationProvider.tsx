@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   DarkTheme,
   DefaultTheme,
@@ -11,13 +11,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
-import {
-  trace,
-  endTrace,
-  TraceOperation,
-  TraceName,
-} from '../../../util/trace';
-import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NAVIGATION_CHILDREN_ROUTE } from './constants';
 import { NavigationProviderProps } from './types';
@@ -64,25 +57,10 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const navigationTheme =
     themeAppearance === AppThemeKey.dark ? DarkTheme : DefaultTheme;
 
-  // Start the navigation-init trace exactly once, on first render. A lazy
-  // useState initializer runs a single time and—unlike reading/writing a ref
-  // during render—is compatible with the React Compiler, while preserving the
-  // original "start during the first render" timing.
-  useState(() => {
-    trace({
-      name: TraceName.NavInit,
-      parentContext: getUIStartupSpan(),
-      op: TraceOperation.NavInit,
-    });
-    return true;
-  });
-
   /**
    * Triggers when the navigation is ready
    */
   const onReady = () => {
-    // End trace when navigation is ready
-    endTrace({ name: TraceName.NavInit });
     // Trim standalone App Start to this point via the Navigation
     // Initialization child started in setupSentry after Sentry.init.
     endNavigationInitializationAppStart();

@@ -1472,7 +1472,26 @@ describe('setupSentry', () => {
     expect(integrationNames).toContain('ReactNativeTracing');
     expect(reactNativeTracingIntegration).toHaveBeenCalledWith({
       traceFetch: true,
+      shouldCreateSpanForRequest: expect.any(Function),
     });
+  });
+
+  it('skips request spans for the NetInfo ping only', async () => {
+    await setupSentry();
+
+    const { shouldCreateSpanForRequest } = (
+      reactNativeTracingIntegration as jest.Mock
+    ).mock.calls[0][0] as {
+      shouldCreateSpanForRequest: (url: string) => boolean;
+    };
+
+    expect(
+      shouldCreateSpanForRequest('https://clients3.google.com/generate_204'),
+    ).toBe(false);
+    expect(shouldCreateSpanForRequest('https://example.com/price')).toBe(true);
+    expect(
+      shouldCreateSpanForRequest('http://localhost:8081/index.bundle'),
+    ).toBe(true);
   });
 
   it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
