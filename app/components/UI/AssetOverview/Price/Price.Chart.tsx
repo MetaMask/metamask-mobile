@@ -9,11 +9,9 @@ import TimeRangeSelector from '../../Charts/AdvancedChart/TimeRangeSelector';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import LinePriceChart from '../PriceChart/PriceChart';
-import LinePriceChartWithSocialMarkers from '../PriceChart/LinePriceChartWithSocialMarkers';
 import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers';
 import SocialMarkersBottomSheet from '../../Charts/socialMarkers/SocialMarkersBottomSheet';
 import type { CandleAvatarMarkerEntry } from '../../Charts/socialMarkers/mapFollowingPositionsToCandleAvatarMarkers';
-import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
 import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Routes from '../../../../constants/navigation/Routes';
@@ -194,7 +192,6 @@ export const PriceChartSection = ({
   uniformSpacing = false,
   isGlass = false,
 }: PriceChartSectionProps) => {
-  const isSocialMarkersEnabled = useSelector(selectChartSocialMarkersEnabled);
   const {
     activeIndicators,
     ambientErrorRed,
@@ -328,34 +325,17 @@ export const PriceChartSection = ({
           twClassName={`${chartMarginTop}w-full overflow-hidden`}
           style={{ height: chartHeight }}
         >
-          {isSocialMarkersEnabled ? (
-            <LinePriceChartWithSocialMarkers
-              assetId={assetId}
-              prices={distributedRealtimePrices}
-              priceDiff={priceDiff}
-              isLoading={isLoading}
-              onChartIndexChange={handleLineChartInteraction}
-              chartColorOverride={initialAmbientColor ?? undefined}
-              hasInsufficientCoverage={hasInsufficientCoverage}
-              timePeriodMs={
-                TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ??
-                undefined
-              }
-            />
-          ) : (
-            <LinePriceChart
-              prices={distributedRealtimePrices}
-              priceDiff={priceDiff}
-              isLoading={isLoading}
-              onChartIndexChange={handleLineChartInteraction}
-              chartColorOverride={initialAmbientColor ?? undefined}
-              hasInsufficientCoverage={hasInsufficientCoverage}
-              timePeriodMs={
-                TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ??
-                undefined
-              }
-            />
-          )}
+          <LinePriceChart
+            prices={distributedRealtimePrices}
+            priceDiff={priceDiff}
+            isLoading={isLoading}
+            onChartIndexChange={handleLineChartInteraction}
+            chartColorOverride={initialAmbientColor ?? undefined}
+            hasInsufficientCoverage={hasInsufficientCoverage}
+            timePeriodMs={
+              TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ?? undefined
+            }
+          />
         </Box>
       )}
 

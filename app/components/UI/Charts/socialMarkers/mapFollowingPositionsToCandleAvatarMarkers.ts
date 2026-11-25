@@ -31,9 +31,7 @@ export interface CandleAvatarMarkersResult {
  * Flattens the followed-by-me positions response into {@link AvatarMarker}s for
  * the candlestick (TradingView) chart.
  *
- * Unlike {@link mapFollowingPositionsToAvatarMarkers} (line chart, which anchors
- * to an index in the price series), candle markers carry the raw trade
- * timestamp in **milliseconds** — the WebView snaps each to the nearest bar and
+ * Candle markers carry the raw trade timestamp in **milliseconds** — the WebView snaps each to the nearest bar and
  * derives the Y from that bar's close. No price series is needed here, so
  * out-of-window filtering happens in the WebView (off-screen markers are
  * hidden) rather than being dropped up front.
