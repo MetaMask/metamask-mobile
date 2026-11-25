@@ -2,7 +2,7 @@
   "android_devices": [
     {
       "name": "Samsung Galaxy A12",
-      "os_version": "11.0",
+      "os_version": "12.0",
       "category": "low",
       "description": "TEMPORARY, do not merge: LOW hardware tier (3 GB RAM) for the one-off perps baseline run (TAT-4429)."
     }
