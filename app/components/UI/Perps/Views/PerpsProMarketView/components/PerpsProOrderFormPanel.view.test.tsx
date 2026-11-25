@@ -879,6 +879,72 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
 
   afterEach(() => {
     cleanup();
+    // Restore the shared default so later suites (which do not reset this
+    // mock) are not left on an unsupported account.
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockReset()
+      .mockResolvedValue({ isSupported: true });
+  });
+
+  it('places the revalidated order when the price ticks during the account check', async () => {
+    const { stream } = renderPerpsProMarketView({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+    const support = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    let allowSupport!: () => void;
+    support.mockClear().mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          allowSupport = () => resolve({ isSupported: true });
+        }),
+    );
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+    await waitFor(() =>
+      expect(support).toHaveBeenCalledWith({ providerId: 'hyperliquid' }),
+    );
+
+    // Keep the quote-triggered debounce validation in flight when support
+    // resolves. It must not be mistaken for a new user-entered draft.
+    const validate = jest.mocked(Engine.context.PerpsController.validateOrder);
+    let finishPriceValidation!: () => void;
+    validate.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishPriceValidation = () => resolve({ isValid: true });
+        }),
+    );
+    act(() =>
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2501',
+          markPrice: '2501',
+          percentChange24h: '2',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      }),
+    );
+    await waitFor(() => expect(finishPriceValidation).toBeDefined());
+    await act(async () => {
+      allowSupport();
+    });
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledTimes(
+        1,
+      ),
+    );
+    await act(async () => {
+      finishPriceValidation();
+    });
   });
 
   it('explains an unsupported account instead of placing the order and dismisses the explanation', async () => {

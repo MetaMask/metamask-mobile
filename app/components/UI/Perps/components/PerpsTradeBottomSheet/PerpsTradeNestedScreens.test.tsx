@@ -449,7 +449,12 @@ describe('PerpsTradeNestedScreens', () => {
   describe('PerpsTradeAccountUnsupportedScreen', () => {
     it('shows the unsupported account explanation and returns to Trade', () => {
       const onDismiss = jest.fn();
-      render(<PerpsTradeAccountUnsupportedScreen onDismiss={onDismiss} />);
+      render(
+        <PerpsTradeAccountUnsupportedScreen
+          contentKey="account_not_supported"
+          onDismiss={onDismiss}
+        />,
+      );
 
       expect(screen.getByText('Account not supported')).toBeOnTheScreen();
       expect(

@@ -9,6 +9,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
+import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 import type {
   ConfirmationLaunchSource,
@@ -40,18 +41,11 @@ import {
   type UsePerpsAccountSupportReturn,
 } from './usePerpsAccountSupport';
 
-/**
- * The withdrawal support check is bound to the venue the withdrawal signs on.
- * Core owns that venue: `resolveWithdrawalRoute` resolves it with the same
- * provider routing and the same refusal as `withdraw` itself, so Mobile does
- * not duplicate provider-routing policy. The support check watches the live
- * active provider mode during the read, so a pending supported result from
- * one venue cannot sign on another after a provider switch.
- */
-
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
 export interface UsePerpsHomeActionsOptions {
+  /** Screen presenting an unsupported-account explanation. */
+  source?: string;
   /** Callback invoked when add funds succeeds */
   onAddFundsSuccess?: () => void;
   /** Callback invoked when withdraw succeeds */
@@ -78,8 +72,8 @@ export interface UsePerpsHomeActionsReturn {
   isEligible: boolean;
   /** Whether eligibility modal is visible */
   isEligibilityModalVisible: boolean;
-  /** Whether the unsupported-account modal is visible */
-  isAccountUnsupportedModalVisible: boolean;
+  /** Content for the visible unsupported-account explanation, or null. */
+  unsupportedContentKey: UsePerpsAccountSupportReturn['unsupportedContentKey'];
   /** Whether an action is currently processing */
   isProcessing: boolean;
   /** Last error that occurred */
@@ -129,10 +123,13 @@ export const usePerpsHomeActions = (
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
   const {
-    isAccountUnsupportedModalVisible,
+    unsupportedContentKey,
     checkAccountSupport,
     closeAccountUnsupportedModal,
-  } = usePerpsAccountSupport();
+  } = usePerpsAccountSupport(
+    options?.source ?? PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
+  );
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -308,6 +305,7 @@ export const usePerpsHomeActions = (
     showEligibilityModal,
   ]);
 
+  /** Bind support to Core's withdrawal route and reject a live venue switch before signing. */
   const handleWithdraw = useCallback(async () => {
     // The support check is async, so a second tap would otherwise start a
     // second withdrawal while the first is still waiting on it.
@@ -342,12 +340,18 @@ export const usePerpsHomeActions = (
       const route =
         await Engine.context.PerpsController.resolveWithdrawalRoute();
       if (route.status !== 'resolved') {
-        // Core refuses a withdrawal it cannot route; there is no venue to
-        // bind the support check to, so the withdrawal cannot start.
+        const routeError = new Error(route.error);
+        setError(routeError);
+        onError?.(routeError, 'withdraw');
+        showToast(
+          PerpsToastOptions.accountManagement.withdrawal.withdrawalFailed(
+            route.error,
+          ),
+        );
         return;
       }
       const support = await checkAccountSupport(route.providerId, {
-        watchActiveProvider: (activeProvider) => activeProvider ?? '',
+        bindActiveProvider: true,
       });
       if (support !== 'supported' || !navigation.isFocused()) {
         return;
@@ -398,6 +402,8 @@ export const usePerpsHomeActions = (
     navigation,
     perpsWithdrawConfig.enabled,
     withdrawWithConfirmation,
+    PerpsToastOptions,
+    showToast,
     onWithdrawSuccess,
     onError,
     track,
@@ -413,7 +419,7 @@ export const usePerpsHomeActions = (
   return {
     isEligible,
     isEligibilityModalVisible,
-    isAccountUnsupportedModalVisible,
+    unsupportedContentKey,
     isProcessing,
     error,
     handleAddFunds,

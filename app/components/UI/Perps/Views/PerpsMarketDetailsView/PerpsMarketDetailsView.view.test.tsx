@@ -346,18 +346,28 @@ describe('PerpsMarketDetailsView', () => {
       jest
         .mocked(Engine.context.PerpsController.switchProvider)
         .mockReset()
-        .mockResolvedValue({ success: true });
+        .mockResolvedValue({ success: true, providerId: 'lighter' });
     });
 
-    it('opens the Lite order sheet after checking support on the market venue', async () => {
+    afterEach(() => {
+      // Restore the shared default so later suites (which do not reset this
+      // mock) are not left on an unsupported account.
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+    });
+
+    it('opens the Lite order sheet without waiting for a pending venue read', async () => {
       const getAccountSupport = jest.mocked(
         Engine.context.PerpsController.getAccountSupport,
       );
+      getAccountSupport.mockImplementation(() => new Promise(() => undefined));
       renderLiteMarketDetails();
       const longButton = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
       );
-      // Mount prefetches support with no provider; count only the tap's read.
+      expect(getAccountSupport).toHaveBeenCalledWith({ providerId: 'lighter' });
       getAccountSupport.mockClear();
 
       fireEvent.press(longButton);
@@ -367,9 +377,7 @@ describe('PerpsMarketDetailsView', () => {
           getRouteProbeTestId(Routes.PERPS.BALANCE_ORDER),
         ),
       ).toBeOnTheScreen();
-      expect(getAccountSupport).toHaveBeenCalledWith({
-        providerId: 'lighter',
-      });
+      expect(getAccountSupport).not.toHaveBeenCalled();
     });
 
     it('shows the unsupported-account explanation instead of opening the Lite order sheet', async () => {
@@ -384,6 +392,7 @@ describe('PerpsMarketDetailsView', () => {
       const longButton = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
       );
+      expect(getAccountSupport).toHaveBeenCalledWith({ providerId: 'lighter' });
       getAccountSupport.mockClear();
 
       fireEvent.press(longButton);
@@ -398,9 +407,7 @@ describe('PerpsMarketDetailsView', () => {
           strings('perps.tooltips.account_not_supported.content'),
         ),
       ).toBeOnTheScreen();
-      expect(getAccountSupport).toHaveBeenCalledWith({
-        providerId: 'lighter',
-      });
+      expect(getAccountSupport).not.toHaveBeenCalled();
       expect(
         Engine.context.PerpsController.switchProvider,
       ).not.toHaveBeenCalled();

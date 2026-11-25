@@ -123,9 +123,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
-    isAccountUnsupportedModalVisible,
+    unsupportedContentKey,
     closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
+    source: 'perps_market_balance_actions',
     buttonLocation,
   });
 
@@ -371,7 +372,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         </View>
       )}
       <PerpsAccountUnsupportedModal
-        isVisible={isAccountUnsupportedModalVisible}
+        contentKey={unsupportedContentKey}
         onClose={closeAccountUnsupportedModal}
       />
     </>

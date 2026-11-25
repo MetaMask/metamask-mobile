@@ -1,4 +1,6 @@
 import React from 'react';
+import Logger from '../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { Provider } from 'react-redux';
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
@@ -9,6 +11,11 @@ import type {
 } from '@metamask/perps-controller';
 import { usePerpsAccountSupport } from './usePerpsAccountSupport';
 
+const mockTrack = jest.fn();
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+jest.mock('../../../../util/Logger', () => ({ error: jest.fn() }));
 const mockGetAccountSupport = jest.fn();
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -69,7 +76,9 @@ const renderAccountSupport = () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   );
-  const hook = renderHook(() => usePerpsAccountSupport(), { wrapper });
+  const hook = renderHook(() => usePerpsAccountSupport('test-screen'), {
+    wrapper,
+  });
 
   return {
     ...hook,
@@ -101,7 +110,7 @@ describe('usePerpsAccountSupport', () => {
 
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalledTimes(1));
 
-    expect(result.current.isAccountUnsupportedModalVisible).toBe(false);
+    expect(result.current.unsupportedContentKey).toBeNull();
   });
 
   it('blocks an action and opens the modal for a multi-signature account', async () => {
@@ -120,7 +129,7 @@ describe('usePerpsAccountSupport', () => {
     expect(mockGetAccountSupport).toHaveBeenLastCalledWith({
       providerId: 'hyperliquid',
     });
-    expect(result.current.isAccountUnsupportedModalVisible).toBe(true);
+    expect(result.current.unsupportedContentKey).toBe('account_not_supported');
   });
 
   it.each([
@@ -138,12 +147,14 @@ describe('usePerpsAccountSupport', () => {
       await act(async () => {
         await hook.result.current.checkAccountSupport();
       });
-      expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(true);
+      expect(hook.result.current.unsupportedContentKey).toBe(
+        'account_not_supported',
+      );
       holdNextSupportRead();
 
       hook.changeContext(change);
 
-      expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+      expect(hook.result.current.unsupportedContentKey).toBeNull();
     },
   );
 
@@ -165,7 +176,7 @@ describe('usePerpsAccountSupport', () => {
     expect(mockGetAccountSupport).toHaveBeenLastCalledWith({
       providerId: 'lighter',
     });
-    expect(result.current.isAccountUnsupportedModalVisible).toBe(false);
+    expect(result.current.unsupportedContentKey).toBeNull();
   });
 
   it.each([
@@ -194,7 +205,7 @@ describe('usePerpsAccountSupport', () => {
       });
 
       expect(support).toBe('stale');
-      expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+      expect(hook.result.current.unsupportedContentKey).toBeNull();
     },
   );
 
@@ -208,8 +219,7 @@ describe('usePerpsAccountSupport', () => {
     let checkPromise: Promise<string> = Promise.resolve('supported');
     act(() => {
       checkPromise = hook.result.current.checkAccountSupport('lighter', {
-        watchActiveProvider: (provider) =>
-          provider === 'lighter' ? 'lighter' : 'hyperliquid',
+        bindActiveProvider: true,
       });
     });
     hook.changeContext({ provider: 'hyperliquid' });
@@ -220,29 +230,7 @@ describe('usePerpsAccountSupport', () => {
     });
 
     expect(support).toBe('stale');
-    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
-  });
-
-  it('keeps an explicit check current when the watched signing venue stays the same', async () => {
-    const hook = renderAccountSupport();
-    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
-    const resolveSupport = holdNextSupportRead();
-
-    let checkPromise: Promise<string> = Promise.resolve('stale');
-    act(() => {
-      checkPromise = hook.result.current.checkAccountSupport('hyperliquid', {
-        watchActiveProvider: () => 'hyperliquid',
-      });
-    });
-    hook.changeContext({ provider: 'lighter' });
-    let support = 'stale';
-    await act(async () => {
-      resolveSupport({ isSupported: true });
-      support = await checkPromise;
-    });
-
-    expect(support).toBe('supported');
-    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+    expect(hook.result.current.unsupportedContentKey).toBeNull();
   });
 
   it('opens the modal when the watched signing venue stays unsupported', async () => {
@@ -253,7 +241,7 @@ describe('usePerpsAccountSupport', () => {
     let checkPromise: Promise<string> = Promise.resolve('supported');
     act(() => {
       checkPromise = hook.result.current.checkAccountSupport('hyperliquid', {
-        watchActiveProvider: () => 'hyperliquid',
+        bindActiveProvider: true,
       });
     });
     let support = 'supported';
@@ -263,7 +251,9 @@ describe('usePerpsAccountSupport', () => {
     });
 
     expect(support).toBe('unsupported');
-    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(true);
+    expect(hook.result.current.unsupportedContentKey).toBe(
+      'account_not_supported',
+    );
   });
 
   it('keeps an explicit execution route current when only the default provider changes', async () => {
@@ -321,7 +311,7 @@ describe('usePerpsAccountSupport', () => {
     });
 
     expect(support).toBe('unsupported');
-    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+    expect(hook.result.current.unsupportedContentKey).toBeNull();
   });
 
   it('returns stale when the account changes before the caller unmounts', async () => {
@@ -424,6 +414,41 @@ describe('usePerpsAccountSupport', () => {
     });
 
     expect(support).toBe('supported');
-    expect(result.current.isAccountUnsupportedModalVisible).toBe(false);
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: {
+          name: 'usePerpsAccountSupport.readAccountSupport',
+          data: { providerId: 'hyperliquid', network: 'mainnet' },
+        },
+      }),
+    );
+    expect(result.current.unsupportedContentKey).toBeNull();
+  });
+
+  it('tracks one view per presentation, not per read or prefetch', async () => {
+    mockGetAccountSupport.mockResolvedValue({
+      isSupported: false,
+      reason: 'multi_sig_account',
+    });
+    const { result } = renderAccountSupport();
+    await act(async () => {
+      await result.current.checkAccountSupport();
+      await result.current.checkAccountSupport();
+    });
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      {
+        screen_type: 'account_unsupported',
+        source: 'test-screen',
+      },
+    );
+    expect(result.current.unsupportedContentKey).toBe('account_not_supported');
+    act(() => result.current.closeAccountUnsupportedModal());
+    await act(async () => {
+      await result.current.checkAccountSupport();
+    });
+    expect(mockTrack).toHaveBeenCalledTimes(2);
   });
 });

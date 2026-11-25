@@ -324,7 +324,7 @@ const PerpsHomeView = () => {
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
-    isAccountUnsupportedModalVisible,
+    unsupportedContentKey,
     closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
@@ -1591,7 +1591,7 @@ const PerpsHomeView = () => {
       )}
 
       <PerpsAccountUnsupportedModal
-        isVisible={isAccountUnsupportedModalVisible}
+        contentKey={unsupportedContentKey}
         onClose={closeAccountUnsupportedModal}
       />
 

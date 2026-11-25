@@ -166,7 +166,7 @@ interface PerpsTradeScreenProps {
    * parent can record the picker being opened.
    */
   onPayWithPress: () => void;
-  onSubmit: () => void | Promise<void | 'accountUnsupported'>;
+  onSubmit: () => Promise<'accountUnsupported' | undefined>;
 }
 
 export interface PerpsTradeError {

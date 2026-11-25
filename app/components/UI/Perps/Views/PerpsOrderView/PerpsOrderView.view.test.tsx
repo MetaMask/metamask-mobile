@@ -68,6 +68,7 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
+  PerpsLeverageBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
   createCrossMarginAccountForViews,
@@ -499,6 +500,39 @@ describe('PerpsOrderView', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
     ).toBeOnTheScreen();
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('keeps the leverage editor open when the support context changes', async () => {
+    const { stream, store } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        useBottomSheet: true,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    fireEvent.press(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.LEVERAGE_ROW),
+    );
+    expect(
+      await screen.findByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    switchPerpsSupportContext(store);
+    expect(
+      screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('pops the Trade sheet unsupported explanation when the support context changes while the next read is pending', async () => {

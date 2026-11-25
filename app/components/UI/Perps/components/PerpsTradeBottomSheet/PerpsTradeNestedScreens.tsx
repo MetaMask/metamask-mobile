@@ -1,3 +1,4 @@
+import type { UnsupportedContentKey } from '../../hooks/usePerpsAccountSupport';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import {
   type PerpsProviderType,
@@ -82,19 +83,20 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = (
 
 export const PerpsTradeAccountUnsupportedScreen: React.FC<{
   onDismiss: () => void;
-}> = ({ onDismiss }) => {
+  contentKey: UnsupportedContentKey | null;
+}> = ({ onDismiss, contentKey }) => {
   const { goBack } = usePerpsTradeSheet();
   const handleBack = useCallback(() => {
     onDismiss();
     goBack();
   }, [goBack, onDismiss]);
 
-  return (
-    <PerpsInlineInfoScreen
-      contentKey="account_not_supported"
-      onBack={handleBack}
-    />
-  );
+  useEffect(() => {
+    if (!contentKey) goBack();
+  }, [contentKey, goBack]);
+  return contentKey ? (
+    <PerpsInlineInfoScreen contentKey={contentKey} onBack={handleBack} />
+  ) : null;
 };
 
 /**

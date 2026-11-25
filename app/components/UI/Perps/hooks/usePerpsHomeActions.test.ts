@@ -17,6 +17,16 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 
+const mockShowToast = jest.fn();
+const mockWithdrawalToasts = {
+  showToast: mockShowToast,
+  PerpsToastOptions: {
+    accountManagement: {
+      withdrawal: { withdrawalFailed: (error: string) => ({ error }) },
+    },
+  },
+};
+jest.mock('./usePerpsToasts', () => () => mockWithdrawalToasts);
 const mockCheckAccountSupport = jest.fn();
 const mockResolveWithdrawalRoute = jest.fn();
 
@@ -73,7 +83,7 @@ jest.mock('./usePerpsTrading', () => ({
 
 jest.mock('./usePerpsAccountSupport', () => ({
   usePerpsAccountSupport: () => ({
-    isAccountUnsupportedModalVisible: false,
+    unsupportedContentKey: null,
     checkAccountSupport: mockCheckAccountSupport,
     closeAccountUnsupportedModal: jest.fn(),
   }),
@@ -627,7 +637,7 @@ describe('usePerpsHomeActions', () => {
       });
 
       expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter', {
-        watchActiveProvider: expect.any(Function),
+        bindActiveProvider: true,
       });
     });
 
@@ -636,35 +646,23 @@ describe('usePerpsHomeActions', () => {
         status: 'route_required',
         error: 'PROVIDER_ROUTE_REQUIRED',
       });
-      const { result } = renderHook(() => usePerpsHomeActions());
+      const onError = jest.fn();
+      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
 
       await act(async () => {
         await result.current.handleWithdraw();
       });
 
+      expect(result.current.error).toEqual(
+        new Error('PROVIDER_ROUTE_REQUIRED'),
+      );
+      expect(onError).toHaveBeenCalledWith(result.current.error, 'withdraw');
+      expect(mockShowToast).toHaveBeenCalledWith({
+        error: 'PROVIDER_ROUTE_REQUIRED',
+      });
       expect(mockCheckAccountSupport).not.toHaveBeenCalled();
       expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-
-    it('watches the live provider mode during the support read', async () => {
-      mockResolveWithdrawalRoute.mockResolvedValue({
-        status: 'resolved',
-        providerId: 'lighter',
-      });
-      const { result } = renderHook(() => usePerpsHomeActions());
-
-      await act(async () => {
-        await result.current.handleWithdraw();
-      });
-
-      const watchActiveProvider = mockCheckAccountSupport.mock.calls[0][1]
-        .watchActiveProvider as (provider?: string) => string;
-
-      expect(watchActiveProvider('lighter')).toBe('lighter');
-      expect(watchActiveProvider('hyperliquid')).toBe('hyperliquid');
-      expect(watchActiveProvider('aggregated')).toBe('aggregated');
-      expect(watchActiveProvider(undefined)).toBe('');
     });
 
     it('does not start a withdrawal when the signing venue check is stale', async () => {

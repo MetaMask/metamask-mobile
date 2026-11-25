@@ -83,9 +83,9 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
-    isAccountUnsupportedModalVisible,
+    unsupportedContentKey,
     closeAccountUnsupportedModal,
-  } = usePerpsHomeActions({ buttonLocation });
+  } = usePerpsHomeActions({ source: 'perps_balance_sheet', buttonLocation });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
   const spendableBalance = perpsAccount?.spendableBalance || '0';
@@ -292,7 +292,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
       )}
 
       <PerpsAccountUnsupportedModal
-        isVisible={isAccountUnsupportedModalVisible}
+        contentKey={unsupportedContentKey}
         onClose={closeAccountUnsupportedModal}
       />
     </>

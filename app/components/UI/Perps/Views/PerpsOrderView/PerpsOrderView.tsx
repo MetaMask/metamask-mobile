@@ -134,7 +134,10 @@ import {
   toPerpsSizeUnitAnalyticsValue,
 } from '../../utils/perpsSizeDenomination';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
-import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
+import {
+  usePerpsLiteOrderSubmitGate,
+  type SubmitOrigin,
+} from '../../hooks/usePerpsOrderSubmitGate';
 import type { ValidationAttempt } from '../../hooks/usePerpsOrderValidation';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
@@ -244,7 +247,6 @@ import {
   selectPerpsOrderProvider,
   selectPerpsProvider,
 } from '../../selectors/perpsController';
-import { selectIsProfileTradingActivityPrivate } from '../../../../../selectors/profileController';
 import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
@@ -328,9 +330,8 @@ interface OrderRouteParams {
 }
 
 type PlaceOrderHandler = (
-  forceTrade?: boolean,
-  hasCheckedAccountSupport?: boolean,
-) => Promise<'accountUnsupported' | undefined>;
+  origin: SubmitOrigin,
+) => Promise<'accountUnsupported' | 'abort' | undefined>;
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
@@ -546,7 +547,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Held only while the pay-with-token deposit confirmation is awaited, so a
   // second tap cannot start a parallel confirmation. It is separate from
   // `isSubmittingRef` because the deposit tracker re-enters
-  // `handlePlaceOrder(true)` from the transaction-confirmed event, which can
+  // `handlePlaceOrder({ origin: 'postDeposit' })` from the transaction-confirmed event, which can
   // fire while that await is still pending (`waitForResult` confirmations);
   // that programmatic re-entry must place the order, not be treated as a
   // double tap.
@@ -557,7 +558,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasPlacedOrderAfterDepositRef = useRef(false);
   // Set by the deposit branch once it has committed to leaving this screen
   // with the order deferred to the deposit tracker. The tracker's later
-  // re-entry (`handlePlaceOrder(true)`) then fires long after this screen is
+  // re-entry (`handlePlaceOrder({ origin: 'postDeposit' })`) then fires long after this screen is
   // gone, while the user is on some other screen, so it must still place the
   // order but not navigate back to this order's market.
   const hasLeftAfterDepositRef = useRef(false);
@@ -574,12 +575,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // approval and unmounts this view while the user is still on the sheet, and
   // that path still needs to leave once the confirmation settles.
   const isClosedByUserRef = useRef(false);
-  // Bumped on a real exit (back, gesture, tab switch) that may leave this view
-  // mounted, so a user submit awaiting a check started before it is retired.
-  const submissionGenerationRef = useRef(0);
-  const retireSubmissionAttempts = useCallback(() => {
-    submissionGenerationRef.current += 1;
-  }, []);
   useEffect(() => {
     isDismissedRef.current = false;
     return () => {
@@ -602,9 +597,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
   const resolvePostTradePrompt = usePostTradePromptResolver();
   const canShareCopyTrade = useCanShareCopyTrade();
-  const isProfileTradingActivityPrivate = useSelector(
-    selectIsProfileTradingActivityPrivate,
-  );
   const isPerpsProModeActive = useIsPerpsProModeActive();
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
@@ -613,13 +605,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
-  const {
-    isAccountUnsupportedModalVisible,
-    checkAccountSupport,
-    closeAccountUnsupportedModal,
-    supportContextKey,
-    unsupportedContextKey,
-  } = usePerpsAccountSupport();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -830,6 +815,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
   );
   const payTokenIdentity = payToken?.assetId ?? '';
+  const {
+    checkBeforeSubmit,
+    retireAttempts,
+    unsupportedContentKey,
+    closeAccountUnsupportedModal,
+  } = usePerpsLiteOrderSubmitGate({
+    orderForm,
+    payTokenIdentity,
+    hasCustomTokenSelected,
+    orderProviderId,
+    isDismissedRef,
+  });
 
   // The Trade sheet's payment token picker is an inline screen, so there is
   // no focus change to observe: the screen reports when it is left and the
@@ -1450,7 +1447,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsAbandonOrderTracking({
     getAbandonProperties,
     hasCommittedRef: hasPlacedOrderRef,
-    onExit: retireSubmissionAttempts,
+    onExit: retireAttempts,
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
@@ -1973,7 +1970,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const navigateToMarketAfterOrder = useCallback(() => {
     if (stayOnCurrentScreen) {
       // A pay-token deposit already dismissed back to the presenting screen.
-      // Funds arriving later re-enter via `handlePlaceOrder(true)` so the
+      // Funds arriving later re-enter via `handlePlaceOrder({ origin: 'postDeposit' })` so the
       // order still places; do not goBack again or the feed (or whatever is
       // now on top) gets popped.
       if (hasDismissedAfterSubmitRef.current) {
@@ -2000,13 +1997,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
-  const submissionInputKey = JSON.stringify({
-    orderForm,
-    payTokenIdentity,
-    hasCustomTokenSelected,
-  });
-  const submissionInputKeyRef = useRef(submissionInputKey);
-  submissionInputKeyRef.current = submissionInputKey;
   // The post-deposit re-entry calls handlePlaceOrder again; a callback cannot
   // reference itself under React Compiler, so it goes through this ref.
   const handlePlaceOrderRef = useRef<PlaceOrderHandler | null>(null);
@@ -2029,59 +2019,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
     });
   }, [track, orderForm.asset, orderForm.direction, readShownSizeUnit]);
-
-  // A user-initiated submit no longer owns the action once the user has
-  // left: sheet close, unmount, or a real exit that keeps this view
-  // mounted. The committed post-deposit re-entry keeps running so a
-  // confirmed deposit still produces its order.
-  const createAttemptRetiredCheck = useCallback((forceTrade: boolean) => {
-    const attemptGeneration = submissionGenerationRef.current;
-    return () =>
-      !forceTrade &&
-      (isDismissedRef.current ||
-        submissionGenerationRef.current !== attemptGeneration);
-  }, []);
-
-  const checkAccountSupportBeforeSubmit = useCallback(
-    async (
-      forceTrade: boolean,
-      isAttemptRetired: () => boolean,
-    ): Promise<'continue' | 'accountUnsupported' | 'abort'> => {
-      const inputKeyAtTap = submissionInputKeyRef.current;
-      // Cover this await with the submit lock. The validating path sets the
-      // same lock only after this read, so a second tap in the same turn
-      // would otherwise start a parallel placement.
-      isSubmittingRef.current = true;
-      const accountSupport = await checkAccountSupport(orderProviderId).finally(
-        () => {
-          isSubmittingRef.current = false;
-        },
-      );
-      // The post-deposit re-entry runs after this view unmounts, so an
-      // unmounted support read is not a reason to drop it. A changed
-      // account context still is.
-      if (isAttemptRetired()) {
-        return 'abort';
-      }
-      if (accountSupport === 'unsupported') {
-        return 'accountUnsupported';
-      }
-      if (
-        accountSupport === 'stale' ||
-        (accountSupport === 'unmounted' && !forceTrade)
-      ) {
-        return 'abort';
-      }
-      // Inputs edited during the check describe an order the user has not
-      // submitted yet. Otherwise continue on the latest render so blockers,
-      // validation and price reflect the state after the wait.
-      if (submissionInputKeyRef.current !== inputKeyAtTap) {
-        return 'abort';
-      }
-      return 'continue';
-    },
-    [checkAccountSupport, orderProviderId],
-  );
 
   /** Shows a toast and returns true when liquidity or slippage blocks the order. */
   const showPreSubmitBlocker = useCallback((): boolean => {
@@ -2269,7 +2206,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
       if (hasPlacedOrderAfterDepositRef.current) {
         // The deposit confirmed while this await was still pending and the
-        // tracker already re-entered `handlePlaceOrder(true)`, which placed
+        // tracker already re-entered `handlePlaceOrder({ origin: 'postDeposit' })`, which placed
         // the order and navigated away; a second navigation here would pop
         // the market screen it just landed on.
         return;
@@ -2328,19 +2265,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // A Social V1 copy-trade that can return an order id shows the share sheet
   // instead of the submitted toast.
   const preparePostTradePrompt = useCallback(() => {
-    perpsShareSessionIdRef.current = isProfileTradingActivityPrivate
-      ? undefined
-      : beginPerpsPostTradeShare({
-          canShare: canShareCopyTrade(),
-          copyTradeOrigin,
-          orderType: orderForm.type,
-          activeProvider: activePerpsProvider,
-          asset: orderForm.asset,
-          direction: orderForm.direction,
-          leverage: orderForm.leverage,
-          amountUsd: orderForm.amount,
-          analyticsSource: shareAnalyticsSource,
-        });
+    perpsShareSessionIdRef.current = beginPerpsPostTradeShare({
+      canShare: canShareCopyTrade(),
+      copyTradeOrigin,
+      orderType: orderForm.type,
+      activeProvider: activePerpsProvider,
+      asset: orderForm.asset,
+      direction: orderForm.direction,
+      leverage: orderForm.leverage,
+      amountUsd: orderForm.amount,
+      analyticsSource: shareAnalyticsSource,
+    });
     const resolvedPerpsPostTradePrompt =
       !perpsShareSessionIdRef.current &&
       !isPerpsProModeActive &&
@@ -2367,7 +2302,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       });
     }
   }, [
-    isProfileTradingActivityPrivate,
     canShareCopyTrade,
     copyTradeOrigin,
     orderForm.type,
@@ -2620,17 +2554,34 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ],
   );
 
-  // Runs once the account support check has passed. An already-valid form
-  // skips the validating-branch guard, so dismissal is read again on this
-  // continuation, which is what can still submit after the support request
-  // resolves. A committed post-deposit re-entry is not retired.
+  // The tracker may re-enter after the sheet is gone. Give its progress
+  // toast a terminal outcome even when there is no screen left to notify.
+  const placeOrderAfterDeposit = useCallback(() => {
+    const notPlaced = () =>
+      showToast(PerpsToastOptions.accountManagement.deposit.orderNotPlaced);
+    handlePlaceOrderRef
+      .current?.({ origin: 'postDeposit' })
+      .then((result) => {
+        if (result) notPlaced();
+      })
+      .catch((error: unknown) => {
+        logRejection('placeOrderAfterDeposit')(error);
+        notPlaced();
+      });
+  }, [showToast, PerpsToastOptions]);
+
   const submitCheckedOrder = useCallback(
     async (
-      forceTrade: boolean,
+      origin: SubmitOrigin,
       isAttemptRetired: () => boolean,
-      placeOrderAfterDeposit: () => void,
-    ) => {
-      if (isAttemptRetired() || showPreSubmitBlocker()) {
+    ): Promise<'abort' | undefined> => {
+      const forceTrade = origin.origin === 'postDeposit';
+      if (isAttemptRetired()) return 'abort';
+      if (isDraggingSlider) {
+        commitAmount(liveDragAmount);
+        return 'abort';
+      }
+      if (showPreSubmitBlocker()) {
         return;
       }
 
@@ -2639,9 +2590,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
 
       const validation = await resolveSubmissionValidation(isAttemptRetired);
-      if (!validation) {
-        return;
-      }
+      if (!validation) return 'abort';
       if (!validation.isValid) {
         reportValidationFailure(validation.errors);
         return;
@@ -2660,8 +2609,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
 
       await placeOrderDirectly(forceTrade);
+      return undefined;
     },
     [
+      isDraggingSlider,
+      commitAmount,
+      liveDragAmount,
+      placeOrderAfterDeposit,
       showPreSubmitBlocker,
       useBottomSheet,
       fireImpact,
@@ -2676,66 +2630,52 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ],
   );
 
+  // Resume on the latest committed form after an async support read. The
+  // deposit callback can intentionally outlive this view.
+  const submitCurrentOrderRef = useRef(submitCheckedOrder);
   const handlePlaceOrder = useCallback<PlaceOrderHandler>(
-    async (forceTrade = false, hasCheckedAccountSupport = false) => {
+    async (origin) => {
+      const postDeposit = origin.origin === 'postDeposit';
       if (
         isSubmittingRef.current ||
-        (!forceTrade && isConfirmingDepositRef.current)
+        (!postDeposit && isConfirmingDepositRef.current)
       ) {
-        return;
+        return 'abort';
       }
-
-      // Guard against submitting a stale committed `orderForm.amount` while
-      // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
-      // that never reached commitAmount (see handleSliderDragCancel above).
-      // Flush the last live value and bail; `orderForm.amount` reflects it
-      // on the next render, so the very next tap submits the right amount
-      // instead of racing a same-tick submit against a state update.
       if (isDraggingSlider) {
         commitAmount(liveDragAmount);
-        return;
+        return 'abort';
       }
-
-      const isAttemptRetired = createAttemptRetiredCheck(forceTrade);
-
-      if (!hasCheckedAccountSupport) {
-        // `forceTrade` marks the post-deposit re-invocation, not a user tap.
-        if (!forceTrade) {
-          trackPlaceOrderTap();
-        }
-        const accountSupport = await checkAccountSupportBeforeSubmit(
-          forceTrade,
-          isAttemptRetired,
-        );
-        if (accountSupport !== 'continue') {
-          return accountSupport === 'accountUnsupported'
-            ? accountSupport
-            : undefined;
-        }
-        return handlePlaceOrderRef.current?.(forceTrade, true);
-      }
-
-      await submitCheckedOrder(forceTrade, isAttemptRetired, () => {
-        handlePlaceOrderRef
-          .current?.(true)
-          .catch(logRejection('placeOrderAfterDeposit'));
-      });
-      return undefined;
+      if (!postDeposit) trackPlaceOrderTap();
+      isSubmittingRef.current = true;
+      const decision = await checkBeforeSubmit(orderProviderId, origin).finally(
+        () => {
+          isSubmittingRef.current = false;
+        },
+      );
+      if (decision.status !== 'continue') return decision.status;
+      return submitCurrentOrderRef.current(origin, decision.isRetired);
     },
     [
+      checkBeforeSubmit,
+      orderProviderId,
+      trackPlaceOrderTap,
       isDraggingSlider,
       commitAmount,
       liveDragAmount,
-      createAttemptRetiredCheck,
-      trackPlaceOrderTap,
-      checkAccountSupportBeforeSubmit,
-      submitCheckedOrder,
     ],
   );
-  // Layout effect: a tap can never run before the committed callback is stored.
   useLayoutEffect(() => {
     handlePlaceOrderRef.current = handlePlaceOrder;
-  }, [handlePlaceOrder]);
+    submitCurrentOrderRef.current = submitCheckedOrder;
+  }, [handlePlaceOrder, submitCheckedOrder]);
+  const submitUserOrder = useCallback(
+    async () =>
+      (await handlePlaceOrder({ origin: 'userTap' })) === 'accountUnsupported'
+        ? ('accountUnsupported' as const)
+        : undefined,
+    [handlePlaceOrder],
+  );
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
@@ -3261,15 +3201,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           rootScreen="trade"
           screenDepth={TRADE_SHEET_SCREEN_DEPTH}
           contentSizedScreens={TRADE_SHEET_CONTENT_SIZED_SCREENS}
-          popToRootOnChange={
-            // The nested unsupported explanation is bound to the context it
-            // was shown for: an account/provider/network switch pops the
-            // sheet back to the root at once, while the next support read is
-            // still pending.
-            unsupportedContextKey !== supportContextKey
-              ? supportContextKey
-              : undefined
-          }
           screens={{
             trade: (
               <PerpsTradeScreen
@@ -3357,7 +3288,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
                 onPayWithPress={handlePayWithPress}
-                onSubmit={() => handlePlaceOrder()}
+                onSubmit={submitUserOrder}
               />
             ),
             leverage: (
@@ -3401,6 +3332,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ),
             accountUnsupported: (
               <PerpsTradeAccountUnsupportedScreen
+                contentKey={unsupportedContentKey}
                 onDismiss={closeAccountUnsupportedModal}
               />
             ),
@@ -3859,7 +3791,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           <PerpsDirectionButton
             direction={orderForm.direction}
-            onPress={() => handlePlaceOrder()}
+            onPress={submitUserOrder}
             isFullWidth
             size={ButtonBaseSize.Lg}
             isDisabled={isOrderSubmissionBlocked}
@@ -4025,7 +3957,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         />
       )}
       <PerpsAccountUnsupportedModal
-        isVisible={!useBottomSheet && isAccountUnsupportedModalVisible}
+        contentKey={useBottomSheet ? null : unsupportedContentKey}
         onClose={closeAccountUnsupportedModal}
       />
     </SafeAreaView>

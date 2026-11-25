@@ -2943,6 +2943,15 @@ describe('PerpsHomeView', () => {
         .mockResolvedValue({ status: 'resolved', providerId: 'hyperliquid' });
     });
 
+    afterEach(() => {
+      // Restore the shared default so later suites (which do not reset this
+      // mock) are not left on an unsupported account.
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+    });
+
     it('checks support on the resolved withdrawal venue and starts the withdrawal', async () => {
       const getAccountSupport = jest.mocked(
         Engine.context.PerpsController.getAccountSupport,

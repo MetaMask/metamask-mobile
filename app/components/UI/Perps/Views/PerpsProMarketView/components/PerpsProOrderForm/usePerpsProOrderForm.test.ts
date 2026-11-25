@@ -397,7 +397,7 @@ jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
     isEligibilityModalVisible: false,
     closeEligibilityModal: mockCloseEligibilityModal,
     showEligibilityModal: mockShowEligibilityModal,
-    isAccountUnsupportedModalVisible: false,
+    unsupportedContentKey: null,
     checkAccountSupport: mockCheckAccountSupport,
     closeAccountUnsupportedModal: mockCloseAccountUnsupportedModal,
   }),
@@ -2690,7 +2690,7 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).not.toHaveBeenCalled();
     });
 
-    it('uses committed Chase refs during a render-phase compliance callback', async () => {
+    it('retires the Chase attempt when the new account commits during the support read', async () => {
       let capturedAction: (() => Promise<unknown>) | undefined;
       mockComplianceGate.mockImplementationOnce((action) => {
         capturedAction = action;
@@ -2724,7 +2724,11 @@ describe('usePerpsProOrderForm', () => {
       form.rerender({});
       await act(async () => capturedResult);
 
-      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid');
+      expect(refresh).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.error'),
+      );
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(playImpact).not.toHaveBeenCalled();
     });
@@ -3510,7 +3514,12 @@ describe('usePerpsProOrderForm', () => {
 
         expect(mockExecuteOrder).not.toHaveBeenCalled();
         expect(playImpact).not.toHaveBeenCalled();
-        expect(mockShowToast).not.toHaveBeenCalled();
+        if (transition === 'unmount')
+          expect(mockShowToast).not.toHaveBeenCalled();
+        else
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({ id: 'validationError' }),
+          );
       },
     );
 
@@ -6688,7 +6697,12 @@ describe('usePerpsProOrderForm', () => {
 
         expect(mockExecuteOrder).not.toHaveBeenCalled();
         expect(playImpact).not.toHaveBeenCalled();
-        expect(mockShowToast).not.toHaveBeenCalled();
+        if (transition === 'unmount')
+          expect(mockShowToast).not.toHaveBeenCalled();
+        else
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({ id: 'validationError' }),
+          );
       },
     );
 

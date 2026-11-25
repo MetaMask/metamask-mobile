@@ -14,7 +14,7 @@ jest.mock('../PerpsBottomSheetTooltip', () => {
 describe('PerpsAccountUnsupportedModal', () => {
   it('does not render when hidden', () => {
     render(
-      <PerpsAccountUnsupportedModal isVisible={false} onClose={jest.fn()} />,
+      <PerpsAccountUnsupportedModal contentKey={null} onClose={jest.fn()} />,
     );
 
     expect(
@@ -25,7 +25,12 @@ describe('PerpsAccountUnsupportedModal', () => {
   });
 
   it('renders the tooltip inside the modal gesture root', () => {
-    render(<PerpsAccountUnsupportedModal isVisible onClose={jest.fn()} />);
+    render(
+      <PerpsAccountUnsupportedModal
+        contentKey="account_not_supported"
+        onClose={jest.fn()}
+      />,
+    );
 
     const gestureRoot = screen.getByTestId(
       PerpsAccountUnsupportedModalSelectorsIDs.GESTURE_ROOT,
@@ -38,7 +43,10 @@ describe('PerpsAccountUnsupportedModal', () => {
   it('forwards Android back requests to the close handler', () => {
     const onClose = jest.fn();
     const { UNSAFE_getByType } = render(
-      <PerpsAccountUnsupportedModal isVisible onClose={onClose} />,
+      <PerpsAccountUnsupportedModal
+        contentKey="account_not_supported"
+        onClose={onClose}
+      />,
     );
 
     UNSAFE_getByType(Modal).props.onRequestClose();

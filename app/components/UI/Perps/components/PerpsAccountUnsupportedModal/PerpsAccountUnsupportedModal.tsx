@@ -1,3 +1,4 @@
+import type { UnsupportedContentKey } from '../../hooks/usePerpsAccountSupport';
 import React from 'react';
 import { Modal, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -7,17 +8,17 @@ import { PerpsAccountUnsupportedModalSelectorsIDs } from '../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 
 interface PerpsAccountUnsupportedModalProps {
-  isVisible: boolean;
+  contentKey: UnsupportedContentKey | null;
   onClose: () => void;
 }
 
 const PerpsAccountUnsupportedModal = ({
-  isVisible,
+  contentKey,
   onClose,
 }: PerpsAccountUnsupportedModalProps) => {
   const tw = useTailwind();
 
-  if (!isVisible) {
+  if (!contentKey) {
     return null;
   }
 
@@ -39,7 +40,7 @@ const PerpsAccountUnsupportedModal = ({
             <PerpsBottomSheetTooltip
               isVisible
               onClose={onClose}
-              contentKey="account_not_supported"
+              contentKey={contentKey}
             />
           </GestureHandlerRootView>
         </ModalSafeAreaProvider>

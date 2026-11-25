@@ -169,7 +169,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   closeOrderType: jest.fn(),
   isEligibilityModalVisible: false,
   closeEligibilityModal: jest.fn(),
-  isAccountUnsupportedModalVisible: false,
+  unsupportedContentKey: null,
   closeAccountUnsupportedModal: jest.fn(),
   selectedTooltip: null as string | null,
   closeTooltip: jest.fn(),

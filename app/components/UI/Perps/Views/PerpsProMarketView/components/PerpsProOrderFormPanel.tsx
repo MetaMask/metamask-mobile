@@ -260,7 +260,7 @@ const PerpsProOrderFormPanel = ({
     closeOrderType,
     isEligibilityModalVisible,
     closeEligibilityModal,
-    isAccountUnsupportedModalVisible,
+    unsupportedContentKey,
     closeAccountUnsupportedModal,
     selectedTooltip,
     closeTooltip,
@@ -627,12 +627,12 @@ const PerpsProOrderFormPanel = ({
           />
         </PerpsProModalPortal>
       )}
-      {isAccountUnsupportedModalVisible && (
+      {unsupportedContentKey && (
         <PerpsProModalPortal onRequestClose={closeAccountUnsupportedModal}>
           <PerpsBottomSheetTooltip
             isVisible
             onClose={closeAccountUnsupportedModal}
-            contentKey="account_not_supported"
+            contentKey={unsupportedContentKey}
           />
         </PerpsProModalPortal>
       )}
