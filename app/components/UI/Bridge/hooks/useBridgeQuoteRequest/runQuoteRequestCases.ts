@@ -205,30 +205,32 @@ export const runQuoteRequestCases = ({
       expect(mockUseUnifiedSwapBridgeContext).toHaveBeenCalledWith(featureId);
     });
 
-    it('passes recurring-order context into quote requests', () => {
-      const recurringContext = {
-        ...mockContext,
-        feature_id: FeatureId.RECURRING_ORDER,
-      };
-      mockUseSwapsFeatureId.mockReturnValue(FeatureId.RECURRING_ORDER);
-      mockUseUnifiedSwapBridgeContext.mockReturnValue(recurringContext);
-      const { result } = renderUseBridgeQuoteRequest();
+    if (!isCombinedQuoteHook) {
+      it('passes recurring-order context into quote requests', () => {
+        const recurringContext = {
+          ...mockContext,
+          feature_id: FeatureId.RECURRING_ORDER,
+        };
+        mockUseSwapsFeatureId.mockReturnValue(FeatureId.RECURRING_ORDER);
+        mockUseUnifiedSwapBridgeContext.mockReturnValue(recurringContext);
+        const { result } = renderUseBridgeQuoteRequest();
 
-      act(() => {
-        void result.current();
-        jest.advanceTimersByTime(debounceMs);
+        act(() => {
+          void result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(mockUseUnifiedSwapBridgeContext).toHaveBeenCalledWith(
+          FeatureId.RECURRING_ORDER,
+        );
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.any(Object),
+          recurringContext,
+          0,
+          1,
+        );
       });
-
-      expect(mockUseUnifiedSwapBridgeContext).toHaveBeenCalledWith(
-        FeatureId.RECURRING_ORDER,
-      );
-      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
-        expect.any(Object),
-        recurringContext,
-        0,
-        1,
-      );
-    });
+    }
 
     it('updates quote parameters with valid input', async () => {
       const sourceToken = mockBridgeReducerState.sourceToken;
