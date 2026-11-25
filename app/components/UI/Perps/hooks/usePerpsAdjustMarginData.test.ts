@@ -663,6 +663,74 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.positionLeverage).toBe(25);
     });
 
+    it("prefers the position venue's market over an untagged row", () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            providerId: 'lighter',
+            leverage: { value: 0, type: 'cross' as const },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [
+          { ...mockMarkets[0], maxLeverage: '40x' },
+          { ...mockMarkets[0], providerId: 'lighter', maxLeverage: '20x' },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.positionLeverage).toBe(20);
+    });
+
+    it('uses an untagged market when the venue has no row of its own', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            providerId: 'lighter',
+            leverage: { value: 0, type: 'cross' as const },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [
+          { ...mockMarkets[0], providerId: 'hyperliquid', maxLeverage: '40x' },
+          { ...mockMarkets[0], maxLeverage: '30x' },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.positionLeverage).toBe(30);
+    });
+
     it("falls back to the position venue's market from the full catalog", () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [

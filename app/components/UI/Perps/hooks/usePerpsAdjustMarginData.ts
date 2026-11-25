@@ -132,19 +132,21 @@ export function usePerpsAdjustMarginData(
     throttleMs: 1000,
   });
   // Get market info for max leverage fallback
-  const marketInfo = useMemo(
-    () =>
-      symbol
-        ? markets.find(
-            (m) =>
-              m.symbol === symbol &&
-              (!m.providerId ||
-                !position?.providerId ||
-                m.providerId === position.providerId),
-          )
-        : null,
-    [symbol, markets, position?.providerId],
-  );
+  // Prefer the position venue's own row. An untagged row (or any row, when
+  // the position has no venue) is only a fallback, so it cannot win over the
+  // venue's listing just by coming first.
+  const marketInfo = useMemo(() => {
+    if (!symbol) return null;
+    const venueId = position?.providerId;
+    const venueMarket = venueId
+      ? markets.find((m) => m.symbol === symbol && m.providerId === venueId)
+      : undefined;
+    return (
+      venueMarket ??
+      markets.find((m) => m.symbol === symbol && (!m.providerId || !venueId)) ??
+      null
+    );
+  }, [symbol, markets, position?.providerId]);
   const parsedMaxLeverage = parseMaxLeverage(
     marketInfo?.maxLeverage,
     MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage,
