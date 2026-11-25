@@ -840,23 +840,126 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.balanceForValidation).toBe(900);
     });
 
-    it('does not fall back to withdrawable when the stream errors', () => {
+    interface AvailableToTradeSubscription {
+      callback: (update: {
+        providerId: 'hyperliquid';
+        symbol: string;
+        long: string;
+        short: string;
+      }) => void;
+      onError?: (error: Error) => void;
+    }
+    const latestAvailableToTradeSubscription =
+      (): AvailableToTradeSubscription =>
+        (
+          Engine.context.PerpsController
+            .subscribeToAvailableToTrade as jest.Mock
+        ).mock.calls.at(-1)?.[0] as AvailableToTradeSubscription;
+    const accountWithSpendable = (spendableBalance: string) => ({
+      account: {
+        spendableBalance,
+        withdrawableBalance: spendableBalance,
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: spendableBalance,
+      },
+      isInitialLoading: false,
+    });
+
+    it('keeps the balance unknown, and sizes nothing from it, until the venue reports', () => {
+      mockHoldAvailableToTrade = true;
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
-      const subscription = (
-        Engine.context.PerpsController.subscribeToAvailableToTrade as jest.Mock
-      ).mock.calls.at(-1)?.[0] as {
-        onError?: (error: Error) => void;
-      };
-
-      act(() => {
-        subscription.onError?.(new Error('stream closed'));
-      });
+      const initialAmount = result.current.orderForm.amount;
 
       expect(result.current.perpsAvailableToTrade).toBeUndefined();
-      expect(result.current.balanceForValidation).toBe(0);
       expect(result.current.isAvailableToTradeLoading).toBe(true);
+      expect(result.current.maxPossibleAmount).toBe(0);
+
+      act(() => {
+        result.current.handleMaxAmount();
+        result.current.handlePercentageAmount(0.5);
+      });
+
+      expect(result.current.orderForm.amount).toBe(initialAmount);
+    });
+
+    it('leaves loading and uses the account spendable balance when the stream errors before a value', () => {
+      mockHoldAvailableToTrade = true;
+      mockUsePerpsLiveAccount.mockReturnValue(accountWithSpendable('400'));
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      expect(result.current.isAvailableToTradeLoading).toBe(true);
+
+      act(() => {
+        latestAvailableToTradeSubscription().onError?.(
+          new Error('stream closed'),
+        );
+      });
+
+      expect(result.current.isAvailableToTradeLoading).toBe(false);
+      expect(result.current.perpsAvailableToTrade).toBe(400);
+      expect(result.current.balanceForValidation).toBe(400);
+      expect(result.current.maxPossibleAmount).toBeGreaterThan(0);
+    });
+
+    it('falls back to the account spendable balance when the stream errors after a value', () => {
+      mockUsePerpsLiveAccount.mockReturnValue(accountWithSpendable('400'));
+      mockAvailableToTradeSides = { long: '800', short: '800' };
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      expect(result.current.balanceForValidation).toBe(800);
+
+      act(() => {
+        latestAvailableToTradeSubscription().onError?.(
+          new Error('stream closed'),
+        );
+      });
+
+      expect(result.current.isAvailableToTradeLoading).toBe(false);
+      expect(result.current.balanceForValidation).toBe(400);
+    });
+
+    it('returns to the venue figure when the stream reports again after an error', () => {
+      mockHoldAvailableToTrade = true;
+      mockUsePerpsLiveAccount.mockReturnValue(accountWithSpendable('400'));
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      act(() => {
+        latestAvailableToTradeSubscription().onError?.(
+          new Error('stream closed'),
+        );
+      });
+      expect(result.current.perpsAvailableToTrade).toBe(400);
+
+      act(() => {
+        latestAvailableToTradeSubscription().callback({
+          providerId: 'hyperliquid',
+          symbol: 'BTC',
+          long: '900',
+          short: '900',
+        });
+      });
+
+      expect(result.current.perpsAvailableToTrade).toBe(900);
+      expect(result.current.balanceForValidation).toBe(900);
+    });
+
+    it('does not treat an unknown Perps balance as zero while a payment balance caps the order', () => {
+      mockHoldAvailableToTrade = true;
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ effectiveAvailableBalance: 125 }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(result.current.perpsAvailableToTrade).toBeUndefined();
+      expect(result.current.isAvailableToTradeLoading).toBe(false);
+      expect(result.current.balanceForValidation).toBe(125);
     });
 
     it('keeps a typed amount when available to trade arrives later', () => {

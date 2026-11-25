@@ -152,8 +152,10 @@ import {
 } from '../../utils/depositConfirmationGuard';
 import {
   readMaxAvailableToTradeUsd,
-  usePerpsLiveAccount,
   usePerpsLiveAvailableToTrade,
+} from '../../hooks/stream/usePerpsLiveAvailableToTrade';
+import {
+  usePerpsLiveAccount,
   usePerpsLiveOrders,
   usePerpsLivePrices,
   usePerpsLiveFocusedPrice,

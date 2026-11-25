@@ -15,7 +15,6 @@ import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider
 import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchPill';
 import type { OhlcData } from '../../components/TradingViewChart';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
-import type { UsePerpsLiveAvailableToTradeReturn } from '../../hooks/stream/usePerpsLiveAvailableToTrade';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -539,18 +538,6 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
     fundingCountdown: '5h 30m',
     refresh: mockRefreshMarketStats,
   }),
-}));
-
-const mockUsePerpsLiveAvailableToTrade = jest.fn(
-  (_params: unknown): UsePerpsLiveAvailableToTradeReturn => ({
-    availableToTrade: null,
-    isInitialLoading: false,
-  }),
-);
-jest.mock('../../hooks/stream/usePerpsLiveAvailableToTrade', () => ({
-  ...jest.requireActual('../../hooks/stream/usePerpsLiveAvailableToTrade'),
-  usePerpsLiveAvailableToTrade: (params: unknown) =>
-    mockUsePerpsLiveAvailableToTrade(params),
 }));
 
 const mockUsePerpsLiveCandles = jest.fn();
@@ -1943,77 +1930,6 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeNull();
-    });
-
-    describe('venue available to trade', () => {
-      afterEach(() => {
-        mockUsePerpsLiveAvailableToTrade.mockReturnValue({
-          availableToTrade: null,
-          isInitialLoading: false,
-        });
-      });
-
-      const zeroAccount = {
-        account: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalBalance: '0',
-        },
-        isInitialLoading: false,
-      };
-
-      it('shows long/short buttons when available to trade covers the order but withdrawable is zero', () => {
-        mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-        mockUsePerpsLiveAvailableToTrade.mockReturnValue({
-          availableToTrade: {
-            providerId: 'hyperliquid',
-            symbol: 'ETH',
-            long: '250',
-            short: '0',
-          },
-          isInitialLoading: false,
-        });
-        mockUsePerpsAccount.mockReturnValue(zeroAccount);
-        mockUsePerpsLiveAccount.mockReturnValue(zeroAccount);
-
-        const { getByTestId, queryByTestId } = renderWithProvider(
-          <PerpsConnectionProvider>
-            <PerpsMarketDetailsView />
-          </PerpsConnectionProvider>,
-          { state: initialState },
-        );
-
-        expect(
-          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
-        ).toBeNull();
-      });
-
-      it('hides add funds CTA while available to trade is still loading', () => {
-        mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
-        mockUsePerpsLiveAvailableToTrade.mockReturnValue({
-          availableToTrade: null,
-          isInitialLoading: true,
-        });
-        mockUsePerpsAccount.mockReturnValue(zeroAccount);
-        mockUsePerpsLiveAccount.mockReturnValue(zeroAccount);
-
-        const { queryByTestId } = renderWithProvider(
-          <PerpsConnectionProvider>
-            <PerpsMarketDetailsView />
-          </PerpsConnectionProvider>,
-          { state: initialState },
-        );
-
-        expect(
-          queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
-        ).toBeNull();
-      });
     });
 
     it('shows add funds CTA when user balance is below threshold and no allowlist token', () => {

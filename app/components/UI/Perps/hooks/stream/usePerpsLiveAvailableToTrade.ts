@@ -19,8 +19,16 @@ export interface UsePerpsLiveAvailableToTradeReturn {
    * again after the stream reports an error. Nothing is estimated locally.
    */
   availableToTrade: PerpsAvailableToTrade | null;
-  /** True from subscribe until the first value or a terminal stream error. */
+  /** True from subscribe until the first value or a stream error. */
   isInitialLoading: boolean;
+  /**
+   * True once the stream reported an error, or could not be set up, and no
+   * value has arrived since. The controller keeps the subscription open after
+   * an error, so a later update clears it. Without this a caller that only
+   * reads `availableToTrade` cannot tell a failed stream from one that has not
+   * reported yet.
+   */
+  isUnavailable: boolean;
 }
 
 /**
@@ -71,27 +79,33 @@ export function usePerpsLiveAvailableToTrade({
   const [isInitialLoading, setIsInitialLoading] = useState(
     enabled && symbol.length > 0,
   );
+  const [isUnavailable, setIsUnavailable] = useState(false);
 
   useEffect(() => {
     if (!enabled || symbol.length === 0) {
       setAvailableToTrade(null);
       setIsInitialLoading(false);
+      setIsUnavailable(false);
       return;
     }
 
     setAvailableToTrade(null);
     setIsInitialLoading(true);
+    setIsUnavailable(false);
 
     let active = true;
     let unsubscribe: (() => void) | undefined;
     const params: SubscribeAvailableToTradeParams = {
       symbol,
       callback: (update) => {
+        // The controller reports `symbol` as subscribed, routing prefix
+        // included, so an exact match drops only an update for another market.
         if (!active || update.symbol !== symbol) {
           return;
         }
         setAvailableToTrade(update);
         setIsInitialLoading(false);
+        setIsUnavailable(false);
       },
       onError: (error) => {
         if (!active) {
@@ -103,6 +117,7 @@ export function usePerpsLiveAvailableToTrade({
         );
         setAvailableToTrade(null);
         setIsInitialLoading(false);
+        setIsUnavailable(true);
       },
     };
 
@@ -113,6 +128,7 @@ export function usePerpsLiveAvailableToTrade({
       DevLogger.log('usePerpsLiveAvailableToTrade: Setup error', error);
       setAvailableToTrade(null);
       setIsInitialLoading(false);
+      setIsUnavailable(true);
     }
 
     return () => {
@@ -121,5 +137,5 @@ export function usePerpsLiveAvailableToTrade({
     };
   }, [enabled, symbol]);
 
-  return { availableToTrade, isInitialLoading };
+  return { availableToTrade, isInitialLoading, isUnavailable };
 }

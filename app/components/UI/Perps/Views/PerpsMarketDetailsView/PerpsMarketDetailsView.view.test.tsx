@@ -149,6 +149,68 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('funding path from venue available to trade', () => {
+    const zeroWithdrawableAccount = createFundedAccountForViews('0');
+
+    it('offers long and short instead of Add funds when available to trade covers the order but withdrawable is zero', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: { long: '250', short: '0' },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not offer Add funds while available to trade is still loading', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: null,
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('offers Add funds once available to trade is confirmed zero', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: { long: '0', short: '0' },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('removes long and short when the market hits its open interest cap', async () => {
     const depositWithOrder = jest.mocked(
       Engine.context.PerpsController.depositWithOrder,

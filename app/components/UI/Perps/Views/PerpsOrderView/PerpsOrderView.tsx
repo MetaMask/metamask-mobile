@@ -2590,14 +2590,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // defaulting, so opt this flow into the shared money-account selection.
   // A funded Perps balance is this view's default funding source and the
   // shared selection only reads the EOA token balance, so hold it back until
-  // the live account proves the Perps balance cannot cover the order.
-  const perpsSpendableBalance = perpsAvailableToTrade ?? 0;
+  // the live account proves the Perps balance cannot cover the order. An
+  // unknown Perps balance is not a zero one, so it also holds the selection
+  // back, even when a pay-token balance stops `isAvailableToTradeLoading`.
+  const isPerpsBalanceUnknown = perpsAvailableToTrade === undefined;
   useMoneyAccountDepositAndOrder({
     disable:
       !isOpenComplete ||
       isLoadingAccount ||
       isAvailableToTradeLoading ||
-      perpsSpendableBalance >= PERPS_MIN_BALANCE_THRESHOLD,
+      isPerpsBalanceUnknown ||
+      perpsAvailableToTrade >= PERPS_MIN_BALANCE_THRESHOLD,
   });
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
@@ -2783,15 +2786,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
     }
     // Perps balance on the order form is the venue's available to trade for
-    // this market and side. Until that stream reports, show the placeholder.
+    // this market and side. While that figure is unknown, show the
+    // placeholder instead of a zero.
     // Withdraw surfaces keep the venue withdrawable amount.
+    const payWithBalanceUsd = isPayTokenPerpsBalance
+      ? perpsAvailableToTrade
+      : payTokenBalanceUsd;
     const payWithBalance =
-      isPayTokenPerpsBalance && isAvailableToTradeLoading
+      payWithBalanceUsd === undefined
         ? PERPS_CONSTANTS.FallbackPriceDisplay
-        : formatPerpsFiat(
-            isPayTokenPerpsBalance ? perpsSpendableBalance : payTokenBalanceUsd,
-            { ranges: PRICE_RANGES_MINIMAL_VIEW },
-          );
+        : formatPerpsFiat(payWithBalanceUsd, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          });
     const marginDisplay =
       marginRequired !== undefined && marginRequired !== null
         ? formatPerpsFiat(marginRequired, {

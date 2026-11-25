@@ -1,4 +1,6 @@
-// Export individual hooks with proper naming convention
+// Export individual hooks with proper naming convention.
+// `usePerpsLiveAvailableToTrade` and its readers are imported from their own
+// file, which is the one import style used for that hook.
 export { usePerpsLivePrices } from './usePerpsLivePrices';
 export { usePerpsLiveOrders } from './usePerpsLiveOrders';
 export {
@@ -7,11 +9,6 @@ export {
 } from './usePerpsLivePositions';
 export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
-export {
-  readAvailableToTradeUsd,
-  readMaxAvailableToTradeUsd,
-  usePerpsLiveAvailableToTrade,
-} from './usePerpsLiveAvailableToTrade';
 export { usePerpsVenueBalances } from './usePerpsVenueBalances';
 export type {
   PerpsVenueBalance,
@@ -31,10 +28,6 @@ export type {
   UsePerpsLiveAccountOptions,
   UsePerpsLiveAccountReturn,
 } from './usePerpsLiveAccount';
-export type {
-  UsePerpsLiveAvailableToTradeOptions,
-  UsePerpsLiveAvailableToTradeReturn,
-} from './usePerpsLiveAvailableToTrade';
 export type {
   UsePerpsTopOfBookOptions,
   TopOfBookData,

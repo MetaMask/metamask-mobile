@@ -114,6 +114,97 @@ describe('usePerpsLiveAvailableToTrade', () => {
 
     expect(result.current.availableToTrade).toBeNull();
     expect(result.current.isInitialLoading).toBe(false);
+    expect(result.current.isUnavailable).toBe(true);
+  });
+
+  it('reports the stream as unavailable when it errors before the first value', () => {
+    const { result } = renderHook(() =>
+      usePerpsLiveAvailableToTrade({ symbol: 'ETH' }),
+    );
+    expect(result.current.isUnavailable).toBe(false);
+
+    act(() => {
+      latestParams().onError?.(new Error('stream closed'));
+    });
+
+    expect(result.current.availableToTrade).toBeNull();
+    expect(result.current.isInitialLoading).toBe(false);
+    expect(result.current.isUnavailable).toBe(true);
+  });
+
+  it('reports the stream as unavailable when the subscription cannot be set up', () => {
+    subscribe().mockImplementation(() => {
+      throw new Error('no provider');
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLiveAvailableToTrade({ symbol: 'ETH' }),
+    );
+
+    expect(result.current.availableToTrade).toBeNull();
+    expect(result.current.isInitialLoading).toBe(false);
+    expect(result.current.isUnavailable).toBe(true);
+  });
+
+  it('clears the unavailable state when the stream reports a value again', () => {
+    const { result } = renderHook(() =>
+      usePerpsLiveAvailableToTrade({ symbol: 'ETH' }),
+    );
+    act(() => {
+      latestParams().onError?.(new Error('stream closed'));
+    });
+    expect(result.current.isUnavailable).toBe(true);
+
+    act(() => {
+      latestParams().callback({
+        providerId: 'hyperliquid',
+        symbol: 'ETH',
+        long: '300',
+        short: '200',
+      });
+    });
+
+    expect(result.current.isUnavailable).toBe(false);
+    expect(result.current.availableToTrade?.long).toBe('300');
+  });
+
+  it('resolves a market whose symbol carries a routing prefix', () => {
+    const { result } = renderHook(() =>
+      usePerpsLiveAvailableToTrade({ symbol: 'xyz:TSLA' }),
+    );
+
+    act(() => {
+      latestParams().callback({
+        providerId: 'hyperliquid',
+        symbol: 'xyz:TSLA',
+        long: '75',
+        short: '60',
+      });
+    });
+
+    expect(subscribe()).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'xyz:TSLA' }),
+    );
+    expect(result.current.availableToTrade?.long).toBe('75');
+    expect(result.current.isInitialLoading).toBe(false);
+  });
+
+  it('ignores an update for another market', () => {
+    const { result } = renderHook(() =>
+      usePerpsLiveAvailableToTrade({ symbol: 'xyz:TSLA' }),
+    );
+
+    act(() => {
+      latestParams().callback({
+        providerId: 'hyperliquid',
+        symbol: 'TSLA',
+        long: '75',
+        short: '60',
+      });
+    });
+
+    expect(result.current.availableToTrade).toBeNull();
+    expect(result.current.isInitialLoading).toBe(true);
   });
 
   it('unsubscribes and ignores a late update', () => {
@@ -145,5 +236,6 @@ describe('usePerpsLiveAvailableToTrade', () => {
     expect(subscribe()).not.toHaveBeenCalled();
     expect(result.current.availableToTrade).toBeNull();
     expect(result.current.isInitialLoading).toBe(false);
+    expect(result.current.isUnavailable).toBe(false);
   });
 });

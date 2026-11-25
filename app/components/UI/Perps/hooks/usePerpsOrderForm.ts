@@ -16,7 +16,11 @@ import {
   type OrderFormState,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
-import { usePerpsLivePositions, usePerpsLivePrices } from './stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePositions,
+  usePerpsLivePrices,
+} from './stream';
 import {
   readAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
@@ -135,14 +139,18 @@ export interface UsePerpsOrderFormReturn {
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
   /**
-   * Venue available to trade for the current side, in USD. Undefined until
-   * `subscribeToAvailableToTrade` reports it. Not used when a payment balance
-   * caps the order.
+   * Perps balance that caps the order for the current side, in USD: the venue
+   * figure from `subscribeToAvailableToTrade`. If that stream reports an
+   * error, it is the account `spendableBalance` (the pre-stream source), so the
+   * form leaves loading instead of waiting forever. Undefined while it is
+   * unknown. Not used when a payment balance caps the order.
    */
   perpsAvailableToTrade: number | undefined;
   /**
-   * True while the perps balance is the venue figure and that figure has not
-   * arrived. A selected payment balance does not wait on the stream.
+   * True while the perps balance is unknown: the venue figure has not arrived
+   * and the stream has not failed. A selected payment balance does not wait on
+   * the stream. `balanceForValidation` is 0 while this is true, so callers
+   * must not treat that 0 as a real balance.
    */
   isAvailableToTradeLoading: boolean;
 }
@@ -167,6 +175,7 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
+  const { account } = usePerpsLiveAccount();
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     providerId: params.providerId,
@@ -258,15 +267,27 @@ export function usePerpsOrderForm(
     type: defaultOrderType,
   });
 
-  const { availableToTrade } = usePerpsLiveAvailableToTrade({
-    symbol: orderForm.asset,
-  });
+  const { availableToTrade, isUnavailable: isAvailableToTradeStreamFailed } =
+    usePerpsLiveAvailableToTrade({
+      symbol: orderForm.asset,
+    });
   // A wallet or Money Account payment caps size at that balance. Perps
-  // balance is the venue's available to trade for this market and side.
-  const perpsAvailableToTrade = readAvailableToTradeUsd(
+  // balance is the venue's available to trade for this market and side. It
+  // stays undefined until the venue reports. If the stream fails, fall back to
+  // the account `spendableBalance` so the form does not wait forever, which is
+  // the same fallback `useDefaultPayWithTokenWhenNoPerpsBalance` uses.
+  const venueAvailableToTrade = readAvailableToTradeUsd(
     availableToTrade,
     orderForm.direction,
   );
+  const accountSpendableBalance = Number.parseFloat(
+    account?.spendableBalance?.toString() ?? '0',
+  );
+  const perpsAvailableToTrade =
+    venueAvailableToTrade ??
+    (isAvailableToTradeStreamFailed && Number.isFinite(accountSpendableBalance)
+      ? accountSpendableBalance
+      : undefined);
   const parsedPaymentBalance =
     effectiveAvailableBalanceParam != null
       ? Number.parseFloat(effectiveAvailableBalanceParam.toString())
@@ -274,10 +295,11 @@ export function usePerpsOrderForm(
   const hasPaymentBalance = Number.isFinite(parsedPaymentBalance);
   const isAvailableToTradeLoading =
     !hasPaymentBalance && perpsAvailableToTrade === undefined;
-  const spendableBalance = hasPaymentBalance
+  // Stays undefined while the Perps balance is unknown. Sizing below waits on
+  // it instead of treating it as zero.
+  const balanceForMax: number | undefined = hasPaymentBalance
     ? parsedPaymentBalance
-    : (perpsAvailableToTrade ?? 0);
-  const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
+    : perpsAvailableToTrade;
 
   // Priority for amount: navigation param > pending config > calculated default.
   // The memo updates when the venue figure arrives so the effect can cap the seed.
@@ -297,6 +319,10 @@ export function usePerpsOrderForm(
 
     if (fallbackAmount === '') {
       return '';
+    }
+
+    if (balanceForMax === undefined) {
+      return fallbackAmount;
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
@@ -368,6 +394,10 @@ export function usePerpsOrderForm(
   // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
+    // No cap can be derived until the Perps balance is known.
+    if (balanceForMax === undefined) {
+      return 0;
+    }
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
     const feeAdjustedBalance =
       balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
@@ -445,8 +475,14 @@ export function usePerpsOrderForm(
     (isAvailableToTradeLoading || !currentPrice?.price);
   useEffect(() => {
     // The default amount is capped by available to trade at the current
-    // price. Wait for both; a confirmed zero balance still commits.
-    if (hasSetInitialAmount.current || isInitialAmountCapPending) {
+    // price. Wait for both; a confirmed zero balance still commits. The form
+    // is already seeded, so waiting for an unknown balance changes only the
+    // balance percent.
+    if (
+      hasSetInitialAmount.current ||
+      isInitialAmountCapPending ||
+      balanceForMax === undefined
+    ) {
       return;
     }
     const parsedAmount = Number.parseFloat(initialAmountValue);
@@ -671,7 +707,7 @@ export function usePerpsOrderForm(
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
-      if (balanceForMax === 0) return;
+      if (!balanceForMax) return;
       const raw = balanceForMax * orderForm.leverage * percentage;
       const clamped = Math.min(raw, maxPossibleAmount);
       const newAmount = Math.floor(clamped).toString();
@@ -684,7 +720,7 @@ export function usePerpsOrderForm(
   // Handle max amount selection (respects custom token amount when set).
   // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
-    if (balanceForMax === 0) return;
+    if (!balanceForMax) return;
     hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({
       ...prev,
@@ -735,7 +771,8 @@ export function usePerpsOrderForm(
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
       setEstimatedFeeRate,
-      balanceForValidation: balanceForMax,
+      // 0 only while `isAvailableToTradeLoading`; callers gate on that flag.
+      balanceForValidation: balanceForMax ?? 0,
       perpsAvailableToTrade,
       isAvailableToTradeLoading,
     }),

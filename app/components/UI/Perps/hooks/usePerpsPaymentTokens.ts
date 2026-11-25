@@ -16,6 +16,7 @@ import {
 import { usePerpsNetwork } from './index';
 import {
   readAvailableToTradeUsd,
+  readMaxAvailableToTradeUsd,
   usePerpsLiveAvailableToTrade,
 } from './stream/usePerpsLiveAvailableToTrade';
 
@@ -31,12 +32,15 @@ import {
  *
  * Shows all tokens owned by the user, regardless of balance amount.
  *
- * The Hyperliquid USDC row uses the venue's available to trade for `symbol`
- * (the long side; the list is not tied to an order direction). Without a
- * symbol the row stays at zero until a market is known. Withdraw surfaces do
- * not use this hook.
+ * The Hyperliquid USDC row uses the venue's available to trade for `symbol`:
+ * the figure for `direction` when one is given, otherwise the larger side.
+ * While the venue figure is unknown, or without a symbol, the row carries no
+ * balance instead of showing $0. Withdraw surfaces do not use this hook.
  */
-export function usePerpsPaymentTokens(symbol?: string): PerpsToken[] {
+export function usePerpsPaymentTokens(
+  symbol?: string,
+  direction?: 'long' | 'short',
+): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   // Use ref to store previous token array
@@ -47,8 +51,11 @@ export function usePerpsPaymentTokens(symbol?: string): PerpsToken[] {
     symbol: symbol ?? '',
     enabled: Boolean(symbol),
   });
+  // Undefined while the venue has not reported, so the row can omit it.
   const hyperliquidBalance =
-    readAvailableToTradeUsd(availableToTrade, 'long') ?? 0;
+    direction === undefined
+      ? readMaxAvailableToTradeUsd(availableToTrade)
+      : readAvailableToTradeUsd(availableToTrade, direction);
 
   // Get all chain IDs to search for tokens (exclude Hyperliquid chains)
   const allChainIds = useMemo(() => {
@@ -83,11 +90,13 @@ export function usePerpsPaymentTokens(symbol?: string): PerpsToken[] {
       decimals: USDC_DECIMALS,
       chainId: hyperliquidChainId as Hex,
       image: USDC_TOKEN_ICON_URL,
-      balance: (hyperliquidBalance * 1e6).toString(),
-      balanceFiat: `$${hyperliquidBalance.toFixed(2)}`,
+      ...(hyperliquidBalance !== undefined && {
+        balance: (hyperliquidBalance * 1e6).toString(),
+        balanceFiat: `$${hyperliquidBalance.toFixed(2)}`,
+      }),
     };
 
-    // Always show Hyperliquid USDC first (even if balance is 0)
+    // Always show Hyperliquid USDC first (even if its balance is 0 or unknown)
     tokens.push(hyperliquidUsdc);
 
     // Get all tokens (not filtered by minimum order requirement)

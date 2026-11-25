@@ -15,6 +15,7 @@ jest.mock('./stream/usePerpsLiveAvailableToTrade', () => ({
   usePerpsLiveAvailableToTrade: jest.fn(() => ({
     availableToTrade: null,
     isInitialLoading: false,
+    isUnavailable: false,
   })),
 }));
 
@@ -92,6 +93,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
     mockUsePerpsLiveAvailableToTrade.mockReturnValue({
       availableToTrade: null,
       isInitialLoading: false,
+      isUnavailable: false,
     });
   });
 
@@ -112,6 +114,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
           short: '0',
         },
         isInitialLoading: false,
+        isUnavailable: false,
       });
 
       const { result } = runHookForSymbol(
@@ -138,6 +141,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
           short: '0',
         },
         isInitialLoading: false,
+        isUnavailable: false,
       });
 
       const { result } = runHookForSymbol(
@@ -155,6 +159,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
       mockUsePerpsLiveAvailableToTrade.mockReturnValue({
         availableToTrade: null,
         isInitialLoading: true,
+        isUnavailable: false,
       });
 
       const { result } = runHookForSymbol(
@@ -169,6 +174,11 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
 
     it('falls back to spendable balance when the stream reports no value', () => {
       mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: null,
+        isInitialLoading: false,
+        isUnavailable: true,
+      });
 
       const { result } = runHookForSymbol(
         getState({

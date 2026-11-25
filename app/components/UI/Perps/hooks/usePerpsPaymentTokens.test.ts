@@ -3,6 +3,7 @@ import type { BridgeToken } from '../../Bridge/types';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
 let mockHyperliquidAvailable: string | null = '1000.50';
+let mockHyperliquidSides: { long: string; short: string } | null = null;
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -21,8 +22,8 @@ jest.mock('../../../../core/Engine', () => ({
             params.callback({
               providerId: 'hyperliquid',
               symbol: params.symbol,
-              long: mockHyperliquidAvailable,
-              short: mockHyperliquidAvailable,
+              long: mockHyperliquidSides?.long ?? mockHyperliquidAvailable,
+              short: mockHyperliquidSides?.short ?? mockHyperliquidAvailable,
             });
           }
           return jest.fn();
@@ -122,6 +123,7 @@ describe('usePerpsPaymentTokens', () => {
       mockTokensWithBalance,
     );
     mockHyperliquidAvailable = '1000.50';
+    mockHyperliquidSides = null;
     mockUsePerpsNetwork.mockReturnValue('mainnet');
   });
 
@@ -316,15 +318,48 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
     });
 
-    it('stays at zero until the venue reports available to trade', () => {
+    it('omits the balance, instead of showing $0, until the venue reports available to trade', () => {
       mockHyperliquidAvailable = null;
 
       const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
-      expect(hyperliquidUsdc.balance).toBe('0');
-      expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
+      expect(hyperliquidUsdc.symbol).toBe('USDC');
+      expect(hyperliquidUsdc.balance).toBeUndefined();
+      expect(hyperliquidUsdc.balanceFiat).toBeUndefined();
     });
+
+    it('omits the balance when no market is known', () => {
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBeUndefined();
+      expect(hyperliquidUsdc.balanceFiat).toBeUndefined();
+    });
+
+    it('uses the larger side when no direction is given', () => {
+      mockHyperliquidSides = { long: '100', short: '300' };
+
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
+
+      expect(result.current[0].balanceFiat).toBe('$300.00');
+    });
+
+    it.each([
+      { direction: 'long' as const, expected: '$100.00' },
+      { direction: 'short' as const, expected: '$300.00' },
+    ])(
+      'uses the $direction figure when that direction is given',
+      ({ direction, expected }) => {
+        mockHyperliquidSides = { long: '100', short: '300' };
+
+        const { result } = renderHook(() =>
+          usePerpsPaymentTokens('BTC', direction),
+        );
+
+        expect(result.current[0].balanceFiat).toBe(expected);
+      },
+    );
 
     it('handles empty tokens with balance', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue([]);
