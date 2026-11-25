@@ -563,7 +563,10 @@ export function useTransactionCustomAmount({
           tokenFiatRate,
           skipFiatRateConversion,
         );
-        updateTransactionPayAmount(clampedAmountHuman);
+        void updateTransactionPayAmount(clampedAmountHuman).catch(() => {
+          // Fire-and-forget: the clamped amount is already set locally.
+          // Silently continue if the background update fails.
+        });
       }
       pendingClampRef.current = false;
     }
