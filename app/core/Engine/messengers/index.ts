@@ -32,7 +32,6 @@ import { getMultichainTransactionsControllerMessenger } from './multichain-trans
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
-import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
@@ -212,10 +211,6 @@ export const MESSENGER_FACTORIES = {
   },
   PreferencesController: {
     getMessenger: getPreferencesControllerMessenger,
-    getInitMessenger: noop,
-  },
-  SignatureController: {
-    getMessenger: getSignatureControllerMessenger,
     getInitMessenger: noop,
   },
   DeFiPositionsController: {
