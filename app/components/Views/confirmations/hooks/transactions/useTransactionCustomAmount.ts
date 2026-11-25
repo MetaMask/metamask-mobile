@@ -584,7 +584,7 @@ export function useTransactionCustomAmount({
 
     if (needsClamp || needsRetry) {
       const targetAmount = needsRetry
-        ? targetClampedAmountRef.current!
+        ? (targetClampedAmountRef.current ?? clampedAmount)
         : clampedAmount;
 
       if (needsClamp) {

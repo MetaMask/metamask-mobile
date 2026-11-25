@@ -3316,7 +3316,9 @@ describe('useTransactionCustomAmount', () => {
 
       // Now resolve the update
       await act(async () => {
-        resolveUpdate!(true);
+        if (resolveUpdate) {
+          resolveUpdate(true);
+        }
         await Promise.resolve();
       });
 
