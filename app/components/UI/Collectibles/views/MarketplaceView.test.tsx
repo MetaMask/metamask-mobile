@@ -2,14 +2,14 @@ import React from 'react';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { MarketView } from './MarketView';
+import { MarketplaceView } from './MarketplaceView';
 
-describe('MarketView', () => {
+describe('MarketplaceView', () => {
   it('shows the coming soon placeholder', () => {
-    renderWithProvider(<MarketView />);
+    renderWithProvider(<MarketplaceView />);
 
     expect(
-      screen.getByText(strings('collectibles.market.coming_soon')),
+      screen.getByText(strings('collectibles.marketplace.coming_soon')),
     ).toBeOnTheScreen();
   });
 });

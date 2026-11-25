@@ -1,23 +1,19 @@
-import type { NavigatorScreenParams } from '@react-navigation/native';
-
 export const collectiblesRoutes = {
   root: 'Collectibles',
-  home: 'CollectiblesHome',
-  packs: 'CollectiblesPacks',
-  collection: 'CollectiblesCollection',
-  market: 'CollectiblesMarket',
 } as const;
 
-export type CollectiblesStackParamList = Record<
-  | typeof collectiblesRoutes.home
-  | typeof collectiblesRoutes.packs
-  | typeof collectiblesRoutes.collection
-  | typeof collectiblesRoutes.market,
-  undefined
->;
+export const collectiblesTabs = [
+  'popular',
+  'packs',
+  'collection',
+  'marketplace',
+] as const;
+
+export type CollectiblesTab = (typeof collectiblesTabs)[number];
+
+export interface CollectiblesParams {
+  tab?: CollectiblesTab;
+}
 
 export type CollectiblesParamList = ReactNavigation.RootParamList &
-  Record<
-    typeof collectiblesRoutes.root,
-    NavigatorScreenParams<CollectiblesStackParamList> | undefined
-  >;
+  Record<typeof collectiblesRoutes.root, CollectiblesParams | undefined>;

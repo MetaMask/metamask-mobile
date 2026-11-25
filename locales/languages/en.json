@@ -5473,15 +5473,18 @@
         "other": "{{formattedCount}} opens, trending"
       }
     },
-    "landing": {
+    "tabs": {
+      "popular": "Popular",
       "packs": "Packs",
       "collection": "Collection",
-      "market": "Market",
+      "marketplace": "Marketplace"
+    },
+    "landing": {
       "just_opened": "Just opened",
       "epic_vs_odds": "Epic vs Odds",
       "greatest_hits": "Greatest hits"
     },
-    "market": {
+    "marketplace": {
       "coming_soon": "Coming soon"
     }
   },
