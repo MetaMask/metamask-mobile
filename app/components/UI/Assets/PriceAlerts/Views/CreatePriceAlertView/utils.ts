@@ -34,7 +34,7 @@ export const getKeypadDecimalPlaces = (price: number): number => {
  * Always preserves 6 significant figures and never produces scientific notation.
  * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.000000000000011".
  * When `decimals` is provided, uses that exact fraction-digit count — perps
- * callers pass the price-display sig-dig count (TAT-4186) so entry and
+ * callers pass the price-display sig-dig count so entry and
  * display agree.
  */
 export const toKeypadString = (price: number, decimals?: number): string => {

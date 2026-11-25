@@ -48,7 +48,7 @@ interface AbsolutePriceAlertFormProps {
   /**
    * Perps mode. Keypad decimals then follow the perps price-display
    * sig-dig rules — the same decimals the market header shows — so entry
-   * cannot be finer than what the app displays (TAT-4186).
+   * cannot be finer than what the app displays.
    */
   isPerps?: boolean;
 }
@@ -65,19 +65,18 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   isPerps,
 }) => {
   const isEditing = Boolean(editingAlert);
-  // TAT-4186: perps targets use the display sig-dig rules, not the
-  // Hyperliquid tick size (`MaxPriceDecimals - szDecimals`), which allowed
-  // finer entry than the price the user sees (ETH 2 decimals vs 1 shown).
+  // Perps targets use the display sig-dig rules, not the Hyperliquid tick
+  // size (`MaxPriceDecimals - szDecimals`), which allowed finer entry than
+  // the price the user sees (ETH 2 decimals vs 1 shown).
   const keypadDecimals = isPerps
     ? getUniversalPriceFractionDigits(currentPrice)
     : getKeypadDecimalPlaces(currentPrice);
   const [targetAmount, setTargetAmount] = useState(() =>
     editingAlert
-      ? // Prefill the stored threshold exactly. Rounding it to the display
-        // cap made `isUnchanged` false on open, enabling a no-op save that
-        // silently rewrote the stored target (bugbot on TAT-4186). The
-        // keypad cap still applies once the user edits the amount, and
-        // alerts saved after TAT-4186 never exceed it.
+      ? // Prefill the stored threshold unrounded: opening an edit is not a
+        // change, and rounding here would enable a no-op save that silently
+        // rewrites the stored target. The keypad cap still applies once the
+        // user edits the amount.
         toKeypadString(editingAlert.threshold)
       : toKeypadString(currentPrice, keypadDecimals),
   );

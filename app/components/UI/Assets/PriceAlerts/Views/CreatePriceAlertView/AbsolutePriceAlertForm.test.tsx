@@ -597,7 +597,7 @@ describe('AbsolutePriceAlertForm', () => {
     ).toHaveTextContent('$0.008764');
   });
 
-  it('caps ETH at one decimal in perps mode, matching the displayed price (TAT-4186)', () => {
+  it('caps ETH at one decimal in perps mode, matching the displayed price', () => {
     const screen = renderForm({
       currentPrice: 2406.64,
       isPerps: true,
@@ -612,14 +612,14 @@ describe('AbsolutePriceAlertForm', () => {
     ).toHaveTextContent('$2,406.6');
   });
 
-  it('prefills a legacy finer threshold exactly and keeps Save disabled (TAT-4186 regression)', () => {
+  it('prefills a legacy finer threshold exactly and keeps Save disabled', () => {
     const screen = renderForm({
       currentPrice: 2406.64,
       isPerps: true,
       displayTicker: 'ETH',
       marketId: 'eth-hyperliquid-mainnet',
-      // An alert saved before TAT-4186 with tick precision (2 decimals),
-      // finer than the display cap of 1.
+      // An alert saved at tick precision (2 decimals), finer than the
+      // display cap of 1.
       editingAlert: { ...editingAlert, threshold: 2406.64 },
     });
 
@@ -634,7 +634,27 @@ describe('AbsolutePriceAlertForm', () => {
     ).toBeDisabled();
   });
 
-  it('rejects a second decimal when typing an ETH target in perps mode (TAT-4186)', () => {
+  it('caps quick-percentage pills at the displayed decimals in perps mode', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+    });
+
+    // +10% of 2406.64 is 2647.304 — the pill must land on the display cap
+    // (1 decimal), not tick precision.
+    fireEvent.press(
+      screen.getByTestId(
+        `${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-10`,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2647.3');
+  });
+
+  it('rejects a second decimal when typing an ETH target in perps mode', () => {
     const screen = renderForm({
       currentPrice: 2406.64,
       isPerps: true,

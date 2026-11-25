@@ -5,7 +5,7 @@ import {
 } from './utils';
 
 describe('toKeypadString', () => {
-  it('uses the provided decimal count exactly (TAT-4186)', () => {
+  it('uses the provided decimal count exactly', () => {
     // Perps callers pass the price-display sig-dig count.
     expect(toKeypadString(2406.64, 1)).toBe('2406.6');
     expect(toKeypadString(83714, 0)).toBe('83714');
