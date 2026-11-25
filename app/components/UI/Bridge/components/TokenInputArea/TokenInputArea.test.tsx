@@ -956,7 +956,11 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(getByText('$50.00')).toBeTruthy();
-      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith('1', mockToken);
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '1',
+        mockToken,
+        undefined,
+      );
     });
 
     it('hides currency value when amount is 0', () => {
@@ -1041,7 +1045,35 @@ describe('TokenInputArea', () => {
       );
 
       // Assert
-      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith('5', mockToken);
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '5',
+        mockToken,
+        undefined,
+      );
+    });
+
+    it('passes the token fiat rate override to useDisplayCurrencyValue', () => {
+      renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_ORDER}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="10"
+              tokenFiatRate={0.9994}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '10',
+        mockToken,
+        0.9994,
+      );
     });
 
     it('passes undefined amount and token when both omitted', () => {
@@ -1061,6 +1093,7 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        undefined,
         undefined,
         undefined,
       );
@@ -1117,6 +1150,29 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(queryByText('$0.00')).toBeNull();
+    });
+
+    it('uses a provided fiat rate when Redux has no price for the token', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('$9.99');
+
+      const { getByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_ORDER}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="10"
+              tokenFiatRate={0.9994}
+              hideFiatValueWhenUnpriced
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByText('$9.99')).toBeOnTheScreen();
     });
 
     it('keeps the currency value of a priced token when hideFiatValueWhenUnpriced is set', () => {
@@ -1256,6 +1312,7 @@ describe('TokenInputArea', () => {
       expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
         '1.234567',
         mockToken,
+        undefined,
       );
     });
 
@@ -1269,6 +1326,7 @@ describe('TokenInputArea', () => {
       expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
         '1.234567890123456789',
         mockToken,
+        undefined,
       );
     });
 
