@@ -3,7 +3,6 @@ import {
   CurrencyRateState,
   NftControllerState,
   TokenRatesControllerState,
-  TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import { NetworkState } from '@metamask/network-controller';
@@ -36,7 +35,6 @@ export interface EngineState {
       TransactionController: TransactionControllerState;
       SnapController: SnapController;
       GasFeeController: GasFeeController;
-      TokensController: TokensControllerState;
       ApprovalController: ApprovalControllerState;
       AccountsController: AccountsControllerState;
       AccountTreeController: AccountTreeControllerState;
