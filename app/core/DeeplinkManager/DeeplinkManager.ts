@@ -36,9 +36,8 @@ import { getUnlockAppStartType } from '../Performance/unlockTraces';
 // example when the user dismisses the interstitial during startup resolution.
 export type DeeplinkResolveResult = DeeplinkIntent | false | null;
 
-const KNOWN_DEEPLINK_ACTIONS = new Set<string>(
-  Object.values(ACTIONS).filter((action) => action !== ACTIONS.EMPTY),
-);
+// ACTIONS.EMPTY is '' and can never match: the caller rejects empty segments.
+const KNOWN_DEEPLINK_ACTIONS = new Set<string>(Object.values(ACTIONS));
 
 export const BRANCH_SHORTLINK_FALLBACK_MS = 1500;
 const BRANCH_RESOLUTION_WINDOW_MS = 5000;
