@@ -7,8 +7,7 @@ import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Text } from 'react-native';
-import { useEffect } from 'react';
-import type { ComponentType } from 'react';
+import React, { useEffect, type ComponentType } from 'react';
 import {
   PERPS_ERROR_CODES,
   type Position,
