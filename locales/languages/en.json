@@ -139,6 +139,9 @@
     "deposit_limit": {
       "title": "Max deposit: {{amount}}"
     },
+    "lighter_withdraw_minimum": {
+      "message": "Minimum withdrawal is {{amount}}"
+    },
     "lighter_account_lookup_pending": {
       "message": "Verifying Lighter account..."
     },
