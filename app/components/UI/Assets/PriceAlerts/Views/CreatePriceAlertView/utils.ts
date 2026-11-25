@@ -1,4 +1,3 @@
-import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 
 export const KEYPAD_EMPTY = '0';
@@ -31,24 +30,17 @@ export const getKeypadDecimalPlaces = (price: number): number => {
 };
 
 /**
- * Hyperliquid price tick decimals: `MaxPriceDecimals - szDecimals` (never negative).
- */
-export const getPerpsKeypadDecimalPlaces = (szDecimals: number): number =>
-  Math.max(0, DECIMAL_PRECISION_CONFIG.MaxPriceDecimals - szDecimals);
-
-/**
  * Converts a computed price into a plain decimal string suitable for the keypad.
  * Always preserves 6 significant figures and never produces scientific notation.
  * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.000000000000011".
- * When `szDecimals` is provided, uses Hyperliquid tick precision instead.
+ * When `decimals` is provided, uses that exact fraction-digit count — perps
+ * callers pass the price-display sig-dig count (TAT-4186) so entry and
+ * display agree.
  */
-export const toKeypadString = (price: number, szDecimals?: number): string => {
+export const toKeypadString = (price: number, decimals?: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;
 
-  const decimalPlaces =
-    szDecimals === undefined
-      ? getKeypadDecimalPlaces(price)
-      : getPerpsKeypadDecimalPlaces(szDecimals);
+  const decimalPlaces = decimals ?? getKeypadDecimalPlaces(price);
   const str = trimTrailingZeros(price.toFixed(decimalPlaces));
 
   return str || KEYPAD_EMPTY;

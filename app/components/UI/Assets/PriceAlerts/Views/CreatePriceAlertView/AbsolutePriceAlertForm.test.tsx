@@ -572,10 +572,10 @@ describe('AbsolutePriceAlertForm', () => {
     });
   });
 
-  it('pre-fills BTC with integer keypad precision when szDecimals is 5', () => {
+  it('pre-fills BTC with integer keypad precision in perps mode', () => {
     const screen = renderForm({
       currentPrice: 83714,
-      szDecimals: 5,
+      isPerps: true,
       displayTicker: 'BTC',
       marketId: 'btc-hyperliquid-mainnet',
     });
@@ -585,15 +585,52 @@ describe('AbsolutePriceAlertForm', () => {
     ).toHaveTextContent('$83,714');
   });
 
-  it('allows 6 keypad decimal places when szDecimals is 0', () => {
+  it('allows 6 keypad decimal places for a sub-cent perps price', () => {
     const screen = renderForm({
       currentPrice: 0.008764,
-      szDecimals: 0,
+      isPerps: true,
       displayTicker: 'kPEPE',
     });
 
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
     ).toHaveTextContent('$0.008764');
+  });
+
+  it('caps ETH at one decimal in perps mode, matching the displayed price (TAT-4186)', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+      marketId: 'eth-hyperliquid-mainnet',
+    });
+
+    // Tick precision (szDecimals 4 → 2 decimals) used to prefill $2,406.64;
+    // the display rule pre-fills what the market header shows.
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2,406.6');
+  });
+
+  it('rejects a second decimal when typing an ETH target in perps mode (TAT-4186)', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+    });
+    const { getByTestId } = screen;
+
+    clearKeypad(getByTestId);
+    // Type 2406.64 — the trailing 4 must be dropped by the one-decimal cap.
+    for (const digit of ['2', '4', '0', '6']) {
+      fireEvent.press(getByTestId(`keypad-key-${digit}`));
+    }
+    fireEvent.press(getByTestId('keypad-key-dot'));
+    fireEvent.press(getByTestId('keypad-key-6'));
+    fireEvent.press(getByTestId('keypad-key-4'));
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2406.6');
   });
 });
