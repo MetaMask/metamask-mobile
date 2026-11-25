@@ -18,6 +18,7 @@ import { TraceName, hasMetricsConsent } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import {
   installStandaloneOutgoingFetchSpan,
+  isNetInfoReachabilityUrl,
   registerOutgoingRequestAnnotation,
 } from './outgoingRequestContext';
 import { getTraceTags } from './tags';
@@ -711,7 +712,13 @@ export async function setupSentry(
     const integrations = [
       Sentry.dedupeIntegration(),
       Sentry.extraErrorDataIntegration(),
-      Sentry.reactNativeTracingIntegration({ traceFetch: true }),
+      Sentry.reactNativeTracingIntegration({
+        traceFetch: true,
+        // Skip the span for NetInfo's reachability ping request to clients3.google.com.
+        // NetInfo uses this URL to check if the device has an internet connection.
+        shouldCreateSpanForRequest: (url: string) =>
+          !isNetInfoReachabilityUrl(url),
+      }),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(

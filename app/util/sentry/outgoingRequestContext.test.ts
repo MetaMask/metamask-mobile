@@ -1,4 +1,9 @@
-import { getActiveSpan, startSpan, type Span } from '@sentry/core';
+import {
+  getActiveSpan,
+  startNewTrace,
+  startSpan,
+  type Span,
+} from '@sentry/core';
 import NetInfo from '@react-native-community/netinfo';
 import NavigationService from '../../core/NavigationService';
 import {
@@ -6,12 +11,14 @@ import {
   OUTGOING_REQUEST_ROUTE_ATTRIBUTE,
   annotateOutgoingRequestSpan,
   installStandaloneOutgoingFetchSpan,
+  isNetInfoReachabilityUrl,
   registerOutgoingRequestAnnotation,
   resetOutgoingRequestAnnotationForTesting,
 } from './outgoingRequestContext';
 
 jest.mock('@sentry/core', () => ({
   getActiveSpan: jest.fn(),
+  startNewTrace: jest.fn((callback: () => unknown) => callback()),
   startSpan: jest.fn((_options: unknown, callback: (span: Span) => unknown) =>
     callback({ setAttribute: jest.fn() } as unknown as Span),
   ),
@@ -29,7 +36,7 @@ let mockNetInfoLoad: 'available' | 'missing' | 'throws' = 'available';
 jest.mock('@react-native-community/netinfo', () => {
   const netInfo = {
     addEventListener: jest.fn(() => jest.fn()),
-    fetch: jest.fn(() => Promise.resolve({ type: 'unknown' })),
+    fetch: jest.fn(async () => ({ type: 'unknown' })),
   };
   return {
     __esModule: true,
@@ -46,6 +53,7 @@ const mockedGetCurrentRoute = jest.mocked(NavigationService.getCurrentRoute);
 const mockedAddEventListener = jest.mocked(NetInfo.addEventListener);
 const mockedGetActiveSpan = jest.mocked(getActiveSpan);
 const mockedStartSpan = jest.mocked(startSpan);
+const mockedStartNewTrace = jest.mocked(startNewTrace);
 
 function createSpan(): Span & { setAttribute: jest.Mock } {
   return {
@@ -169,6 +177,19 @@ describe('registerOutgoingRequestAnnotation', () => {
   });
 });
 
+describe('isNetInfoReachabilityUrl', () => {
+  it.each([
+    ['https://clients3.google.com/generate_204', true],
+    ['https://clients3.google.com/generate_204?x=1', true],
+    ['https://clients3.google.com/other', false],
+    ['https://example.com/clients3.google.com/generate_204', false],
+    ['https://example.com/price', false],
+    ['not a url', false],
+  ])('returns the expected result for %s', (url, expected) => {
+    expect(isNetInfoReachabilityUrl(url)).toBe(expected);
+  });
+});
+
 describe('installStandaloneOutgoingFetchSpan', () => {
   const originalFetch = global.fetch;
 
@@ -176,6 +197,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
     resetOutgoingRequestAnnotationForTesting();
     mockedGetActiveSpan.mockReset();
     mockedStartSpan.mockClear();
+    mockedStartNewTrace.mockClear();
     mockedGetCurrentRoute.mockReturnValue({
       key: 'WalletView-key',
       name: 'WalletView',
@@ -204,6 +226,25 @@ describe('installStandaloneOutgoingFetchSpan', () => {
     expect(mockedStartSpan).not.toHaveBeenCalled();
   });
 
+  it('does not open a root span for the NetInfo reachability ping', () => {
+    const response = Promise.resolve(new Response(null));
+    const innerFetch = jest.fn(() => response);
+    global.fetch = innerFetch as typeof fetch;
+    mockedGetActiveSpan.mockReturnValue(undefined);
+
+    installStandaloneOutgoingFetchSpan();
+    const result = global.fetch('https://clients3.google.com/generate_204', {
+      method: 'HEAD',
+    });
+
+    expect(result).toBe(response);
+    expect(innerFetch).toHaveBeenCalledWith(
+      'https://clients3.google.com/generate_204',
+      { method: 'HEAD' },
+    );
+    expect(mockedStartSpan).not.toHaveBeenCalled();
+  });
+
   it('opens a root span for a fetch that has no active span', () => {
     const response = Promise.resolve(new Response(null));
     const innerFetch = jest.fn(() => response);
@@ -218,6 +259,7 @@ describe('installStandaloneOutgoingFetchSpan', () => {
     });
 
     expect(result).toBe(response);
+    expect(mockedStartNewTrace).toHaveBeenCalledTimes(1);
     expect(mockedStartSpan).toHaveBeenCalledWith(
       {
         name: 'POST https://example.com/price',

@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
-import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
 import {
   isE2EOrExpEnvironment,
@@ -90,18 +89,8 @@ class Performance {
         const appLaunchTime = now - appStartTime;
         this.appLaunchTime = appLaunchTime;
 
-        const parentSpan = getUIStartupSpan(appLaunchTime);
-
-        trace({
-          name: TraceName.LoadScripts,
-          startTime: appLaunchTime,
-          parentContext: parentSpan,
-          op: TraceOperation.LoadScripts,
-        });
-        endTrace({
-          name: TraceName.LoadScripts,
-          timestamp: now,
-        });
+        // Starts UI Startup at the launch time. Later traces reuse this span.
+        getUIStartupSpan(appLaunchTime);
       }
     }).observe({ type: 'react-native-mark', buffered: true });
   };

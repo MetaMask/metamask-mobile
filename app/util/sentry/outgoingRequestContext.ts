@@ -1,4 +1,9 @@
-import { getActiveSpan, startSpan, type Span } from '@sentry/core';
+import {
+  getActiveSpan,
+  startNewTrace,
+  startSpan,
+  type Span,
+} from '@sentry/core';
 import NavigationService from '../../core/NavigationService';
 
 /**
@@ -118,23 +123,56 @@ export function installStandaloneOutgoingFetchSpan(): void {
       }
 
       const { method, url } = describeOutgoingFetch(input, init);
-      return startSpan(
-        {
-          name: url ? `${method} ${url}` : method,
-          op: 'http.request',
-        },
-        (span) => {
-          annotateOutgoingRequestSpan(span, {
-            routeName: readRouteName(),
-            connectionType,
-          });
-          return wrappedFetch(input, init);
-        },
+      if (isNetInfoReachabilityUrl(url)) {
+        // https://clients3.google.com/generate_204 is the URL that
+        // @react-native-community/netinfo requests to detect connectivity: it
+        // runs a periodic reachability ping (every 5-60 s) to tell whether the
+        // internet is actually reachable, not just whether a network is up.
+        // Those pings are background housekeeping, not user activity, so they
+        // must not start a root span. Otherwise each one is filed under the
+        // last screen's trace (e.g. Onboarding) as an unrelated transaction.
+        return wrappedFetch(input, init);
+      }
+
+      // startNewTrace gives each background request its own trace ID. Without
+      // it the root span inherits the last screen's trace (e.g. ChoosePassword)
+      // and every later request piles into that one trace.
+      return startNewTrace(() =>
+        startSpan(
+          {
+            name: url ? `${method} ${url}` : method,
+            op: 'http.request',
+          },
+          (span) => {
+            annotateOutgoingRequestSpan(span, {
+              routeName: readRouteName(),
+              connectionType,
+            });
+            return wrappedFetch(input, init);
+          },
+        ),
       );
     } catch {
       return wrappedFetch(input, init);
     }
   }) as typeof fetch;
+}
+
+/**
+ * True for NetInfo's internet-reachability ping
+ * (`https://clients3.google.com/generate_204`). Matches on host and path so
+ * unrelated URLs that merely contain the string are still traced.
+ */
+export function isNetInfoReachabilityUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'clients3.google.com' &&
+      parsed.pathname === '/generate_204'
+    );
+  } catch {
+    return false;
+  }
 }
 
 function describeOutgoingFetch(

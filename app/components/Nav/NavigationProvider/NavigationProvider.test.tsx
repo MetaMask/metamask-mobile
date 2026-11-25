@@ -386,16 +386,9 @@ describe('NavigationProvider', () => {
     expect(handleDeeplinkNavigationStateChange).not.toHaveBeenCalled();
   });
 
-  it('Measures performance trace order when navigation provider is initialized', () => {
-    const traceCalls: { functionName: string; name: string }[] = [];
-    const mockTraceCall =
-      (functionName: string) =>
-      ({ name }: { name: string }) => {
-        traceCalls.push({ functionName, name });
-        return undefined;
-      };
-    jest.mocked(trace).mockImplementation(mockTraceCall('trace'));
-    jest.mocked(endTrace).mockImplementation(mockTraceCall('endTrace'));
+  it('does not start a standalone Navigation Initialization trace', () => {
+    jest.mocked(trace).mockClear();
+    jest.mocked(endTrace).mockClear();
 
     render(
       <NavigationProvider>
@@ -403,9 +396,9 @@ describe('NavigationProvider', () => {
       </NavigationProvider>,
     );
 
-    expect(traceCalls).toEqual([
-      { functionName: 'trace', name: TraceName.NavInit },
-      { functionName: 'endTrace', name: TraceName.NavInit },
-    ]);
+    expect(trace).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: TraceName.NavInit }),
+    );
+    expect(endTrace).not.toHaveBeenCalled();
   });
 });
