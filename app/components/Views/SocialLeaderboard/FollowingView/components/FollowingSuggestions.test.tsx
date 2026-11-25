@@ -73,6 +73,7 @@ describe('FollowingSuggestions', () => {
       isLoading: false,
       isFetching: false,
       hasFetched: true,
+      cacheState: 'warm',
       error: null,
       refresh: jest.fn().mockResolvedValue(undefined),
       toggleFollow: mockToggleFollow,

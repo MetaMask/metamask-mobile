@@ -197,6 +197,8 @@ export const SwapsMarketOrderConfirmButton = ({
     hasInsufficientNativeReserveError ||
     isNetworkFeeUnavailable ||
     isSubmittingTx ||
+    // withdraw tx requires delegation, which is not supported for HW accounts
+    (isHardwareAddress && sourceToken?.isMoneyToken) ||
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
     hasInsufficientGas ||

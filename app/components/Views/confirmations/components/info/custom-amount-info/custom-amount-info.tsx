@@ -186,6 +186,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
+      isClampCommitPending,
+      isClampCommitFailed,
     } = useTransactionCustomAmount({ autoSelectFiatPayment, currency });
 
     const { hasTokens: hasAvailableTokens } =
@@ -286,6 +288,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
         pendingFiatAmount,
+        isClampCommitPending,
+        isClampCommitFailed,
       });
 
     const hasAutoSubmittedPrefill = useRef(false);

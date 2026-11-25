@@ -49,7 +49,7 @@ export const Send = () => {
             options={sendScreenOptions}
           />
           <Stack.Screen
-            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
             component={Confirm}
             options={emptyNavHeaderOptions}
           />
