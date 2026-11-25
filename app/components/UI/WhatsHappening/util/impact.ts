@@ -1,4 +1,4 @@
-import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
+import { TagSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 
@@ -26,33 +26,5 @@ export const getImpactTagSeverity = (
       return TagSeverity.Danger;
     default:
       return TagSeverity.Neutral;
-  }
-};
-
-/** Returns just the background colour class for the impact badge. */
-export const getImpactBackgroundClass = (
-  impact: WhatsHappeningItem['impact'],
-): string => {
-  switch (impact) {
-    case 'positive':
-      return 'bg-success-muted';
-    case 'negative':
-      return 'bg-error-muted';
-    default:
-      return 'bg-muted';
-  }
-};
-
-/** Returns the text colour token for the impact badge. */
-export const getImpactTextColor = (
-  impact: WhatsHappeningItem['impact'],
-): TextColor => {
-  switch (impact) {
-    case 'positive':
-      return TextColor.SuccessDefault;
-    case 'negative':
-      return TextColor.ErrorDefault;
-    default:
-      return TextColor.TextAlternative;
   }
 };

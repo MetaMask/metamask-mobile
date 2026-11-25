@@ -18,7 +18,6 @@ import { avatarIconNameIn } from './testUtils';
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => true),
 }));
-import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
 jest.mock('../../hooks/useReferralMe');
@@ -256,16 +255,6 @@ describe('RefereeHeroCard', () => {
     ).toBeLessThan(childTestIds.indexOf(REFEREE_HERO_CARD_TEST_IDS.IDENTITY));
   });
 
-  it('opens the terms sheet from the info icon', () => {
-    const { getByTestId } = renderHero();
-
-    fireEvent.press(getByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
-    );
-  });
-
   it('hides referred by when the caller was not referred', () => {
     const { queryByTestId, queryByText } = renderHero({ referredBy: null });
 
@@ -344,9 +333,6 @@ describe('RefereeHeroCard', () => {
     ).not.toBeOnTheScreen();
     expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN)).toBeNull();
     expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON),
-    ).toBeNull();
-    expect(
       getByTestId(
         `${REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL}-info`,
       ),
@@ -373,7 +359,7 @@ describe('RefereeHeroCard', () => {
   });
 
   it('keeps the referred-by code without the header for a sharer', () => {
-    const { getByText, queryByTestId } = renderHero({
+    const { getByText, queryByText } = renderHero({
       summary: SUMMARY,
       referralData: {
         roles: ['COPY_TRADING'],
@@ -381,13 +367,11 @@ describe('RefereeHeroCard', () => {
     });
 
     expect(getByText('INVITER')).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON),
-    ).toBeNull();
+    expect(queryByText('Your referral benefit')).not.toBeOnTheScreen();
   });
 
   it('keeps the identity header for a cashback member without copy trading', () => {
-    const { getByText, getByTestId } = renderHero({
+    const { getByText } = renderHero({
       summary: SUMMARY,
       referralData: {
         roles: ['CASHBACK_EXPERIMENT'],
@@ -395,9 +379,6 @@ describe('RefereeHeroCard', () => {
     });
 
     expect(getByText('Your referral benefit')).toBeOnTheScreen();
-    expect(
-      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON),
-    ).toBeOnTheScreen();
   });
 
   it('hides trading commissions for a cashback experiment member', () => {

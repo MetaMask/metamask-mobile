@@ -24,7 +24,7 @@ describe('useSendNavigation', () => {
   });
 
   describe('navigateToSendPage', () => {
-    it('navigates to redesigned send page', () => {
+    it('navigates to send page', () => {
       const { result } = renderHookWithProvider(() => useSendNavigation());
 
       result.current.navigateToSendPage({

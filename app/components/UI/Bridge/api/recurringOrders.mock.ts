@@ -194,7 +194,7 @@ function createMockRecurringOrder({
       repeatCount: REPEAT_COUNT,
     },
     priceRange,
-    slippage: 0.5,
+    priceTolerance: 0.5,
     timingData: {
       createdAt,
       startsAt: createdAt,
@@ -229,9 +229,11 @@ export const MOCK_RECURRING_PREPARE_QUERY: PrepareRecurringDelegationQuery = {
   srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
   srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
   destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
-  every: 2,
-  unit: 'day',
-  repeatCount: 4,
+  schedule: {
+    every: 2,
+    unit: 'day',
+    repeatCount: 4,
+  },
 };
 
 export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({

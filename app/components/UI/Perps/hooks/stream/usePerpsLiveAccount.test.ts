@@ -37,6 +37,8 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     account: {
       subscribe: mockSubscribe,
       getSnapshot: () => mockChannelAccountSnapshot,
+      getAggregateMetadata: () => null,
+      getVenueAccountStates: () => [],
     },
   })),
 }));
@@ -70,6 +72,7 @@ describe('usePerpsLiveAccount', () => {
         account: null,
         isInitialLoading: true,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
 
@@ -85,6 +88,7 @@ describe('usePerpsLiveAccount', () => {
         account: null,
         isInitialLoading: true,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
   });
@@ -111,6 +115,7 @@ describe('usePerpsLiveAccount', () => {
         account: mockAccountState,
         isInitialLoading: false,
         deliveryRevision: 0,
+        aggregate: null,
       });
     });
 
@@ -145,6 +150,7 @@ describe('usePerpsLiveAccount', () => {
         account: mockAccountState,
         isInitialLoading: false,
         deliveryRevision: 1,
+        aggregate: null,
       });
 
       act(() => callback(null));
@@ -176,6 +182,7 @@ describe('usePerpsLiveAccount', () => {
         account: mockAccountState,
         isInitialLoading: false,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
       expect(result.current?.account?.spendableBalance).toBe('0');
       expect(result.current?.account?.totalBalance).toBe('0');
@@ -219,6 +226,7 @@ describe('usePerpsLiveAccount', () => {
         account: null,
         isInitialLoading: true,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
   });
@@ -353,6 +361,7 @@ describe('usePerpsLiveAccount', () => {
         account: cachedAccount,
         isInitialLoading: false,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
 
@@ -369,6 +378,7 @@ describe('usePerpsLiveAccount', () => {
         account: null,
         isInitialLoading: true,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
 
@@ -385,6 +395,7 @@ describe('usePerpsLiveAccount', () => {
         account: null,
         isInitialLoading: true,
         deliveryRevision: expect.any(Number),
+        aggregate: null,
       });
     });
   });

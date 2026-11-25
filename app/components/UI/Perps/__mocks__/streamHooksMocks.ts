@@ -171,6 +171,7 @@ export const mockStreamContext = {
     subscribe: jest.fn(() => jest.fn()),
   },
   account: {
+    getAggregateMetadata: (): null => null,
     subscribe: jest.fn(() => jest.fn()),
   },
 };

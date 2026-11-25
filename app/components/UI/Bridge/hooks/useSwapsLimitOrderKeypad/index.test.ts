@@ -28,6 +28,7 @@ const sourceAmountInput: ReturnType<typeof useSourceAmountInput> = {
   amount: '1.5',
   balanceCheckAmount: '1.5',
   canToggle: false,
+  fiatRate: undefined,
   handleFocus: jest.fn(),
   handleKeypadChange: mockHandleAmountKeypadChange,
   handleSelectionChange: jest.fn(),
