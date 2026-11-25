@@ -513,7 +513,6 @@ export const resolveVerdict = (
 ): SecurityVerdict =>
   VERDICT_BY_RESULT_TYPE[securityData.resultType] ?? 'unscreened';
 
-/** The ranked wallet subset used by Security and Holders. */
 export const getTopTenWalletHolders = (
   holders: TokenSecurityFinancialStats['topHolders'] | undefined,
 ): NonNullable<TokenSecurityFinancialStats['topHolders']> =>

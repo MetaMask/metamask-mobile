@@ -6,7 +6,6 @@ const WRAPPED_SOL_MINT = 'So11111111111111111111111111111111111111112';
 const normalize = (assetId: string): string =>
   assetId.startsWith('eip155:') ? assetId.toLowerCase() : assetId;
 
-/** Checks the current query response rather than the post-trade matcher's global cache. */
 export const isTokenDetailsQuoteAsset = (
   assetId: CaipAssetType,
   { natives, stablecoins }: QuoteTokensResponse,

@@ -679,8 +679,6 @@ describeForPlatforms('TokenDetailsV1', () => {
       method: 'GET',
       path: '/assets',
     };
-    // Nock matches in registration order. Replace the feature's security and
-    // fallback replies, then move the shared defaults behind the replacement.
     nock.removeInterceptor({ ...assetsInterceptor });
     nock.removeInterceptor({ ...assetsInterceptor });
     nock(TOKEN_API_BASE_URL)

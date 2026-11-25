@@ -177,7 +177,6 @@ export interface UseTokenDetailsV1TabsOptions {
   initialTab?: TokenDetailsV1TabKey;
   /** Tabs currently shown. Swipes stay inside this list. */
   tabs?: readonly TokenDetailsV1TabKey[];
-  /** Called only for a swipe that resolves to another visible tab. */
   onSwipeTab?: () => void;
   onTabChange?: (
     targetTab: TokenDetailsV1TabKey,

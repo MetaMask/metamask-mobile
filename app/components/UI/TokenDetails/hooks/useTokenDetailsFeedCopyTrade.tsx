@@ -19,7 +19,6 @@ interface TokenDetailsFeedCopyTrade {
   feedCopyTradeSheet: React.ReactElement;
 }
 
-/** Wires the spot Feed CTA to the existing Quick Buy and post-trade flow. */
 export function useTokenDetailsFeedCopyTrade(): TokenDetailsFeedCopyTrade {
   const isFocused = useIsFocused();
   const [copyTrade, setCopyTrade] = useState<{
