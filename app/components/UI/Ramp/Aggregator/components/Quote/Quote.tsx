@@ -14,11 +14,11 @@ import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '../Box';
 import Title from '../../../../../Base/Title';
 import {
-  renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../../../util/number/bigint';
 import { strings } from '../../../../../../../locales/i18n';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../../Base/RemoteImage';
 import TagColored, {
@@ -89,7 +89,7 @@ const Quote: React.FC<Props> = ({
   const price = amountIn - totalFees;
 
   const fiatCode = fiat?.symbol ?? '';
-  const fiatSymbol = fiat?.denomSymbol ?? '';
+  const { formatCurrency } = useFormatters();
 
   const shouldShowTags =
     previouslyUsedProvider || tags?.isBestRate || tags?.isMostReliable;
@@ -230,11 +230,7 @@ const Quote: React.FC<Props> = ({
                   {crypto?.symbol}
                 </>
               ) : (
-                `≈ ${fiatSymbol} ${renderFiat(
-                  amountOut,
-                  fiatCode,
-                  fiat?.decimals,
-                )}`
+                `≈ ${formatCurrency(amountOut, fiatCode) || '...'}`
               )}
             </Text>
           </ListItemColumn>
@@ -243,12 +239,8 @@ const Quote: React.FC<Props> = ({
             <Text variant={TextVariant.BodyLGMedium}>
               {isBuyQuote(quote, rampType) ? (
                 <>
-                  ≈ {fiatSymbol}{' '}
-                  {renderFiat(
-                    amountOutInFiat ?? price,
-                    fiatCode,
-                    fiat?.decimals,
-                  )}
+                  ≈{' '}
+                  {formatCurrency(amountOutInFiat ?? price, fiatCode) || '...'}
                 </>
               ) : (
                 <>

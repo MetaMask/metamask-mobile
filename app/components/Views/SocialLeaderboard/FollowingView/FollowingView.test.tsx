@@ -21,6 +21,8 @@ import { SOCIAL_FILTER_EMPTY_STATE_TEST_ID } from '../shared/SocialFilterEmptySt
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
 import type { UsePopularTradersResult } from '../SocialV1View/feed/hooks/usePopularTraders';
+import type { NetworkTier } from '../../../../hooks/useNetworkTier';
+import type { HardwareTier } from '../../../../util/deviceCapability';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import { FOLLOWING_SUGGESTIONS_TEST_ID } from './components/FollowingSuggestions';
 import { FOLLOWING_EMPTY_LOADING_TEST_ID } from './components/FollowingEmptyContent';
@@ -36,6 +38,7 @@ interface MockSocialFeedProps {
   isActive?: boolean;
   renderHeader?: () => React.ReactNode;
   emptyState?: React.ReactNode;
+  prepareRefresh?: () => void | Promise<void>;
   onRefresh?: () => void;
   onListStateChange?: (state: {
     showSkeleton: boolean;
@@ -58,8 +61,19 @@ const mockFeedListState = {
   current: { showSkeleton: false, showEmpty: false, showRetry: false },
 };
 const mockUseFollowedTraders = jest.fn();
+const mockSocialHints = {
+  isUnlocked: true,
+  followingProfileIds: [] as string[],
+};
+const mockDeviceTiers: {
+  hardware: HardwareTier | null;
+  network: NetworkTier | null;
+} = { hardware: 'MID', network: 'WIFI' };
+const mockInvalidateFollowingFeed = jest.fn(
+  (_options?: { refetchType?: 'none' }) => Promise.resolve(),
+);
 const mockUsePopularTraders = jest.fn(
-  (): UsePopularTradersResult => ({
+  (_enabled?: boolean): UsePopularTradersResult => ({
     traders: [],
     isLoading: false,
     isFetching: false,
@@ -69,6 +83,11 @@ const mockUsePopularTraders = jest.fn(
     toggleFollow: jest.fn(),
   }),
 );
+
+jest.mock('../../../UI/SocialFeed/data/socialFeedQueries', () => ({
+  invalidateFollowingFeed: (options?: { refetchType?: 'none' }) =>
+    mockInvalidateFollowingFeed(options),
+}));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
@@ -112,11 +131,32 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../NotificationPreferences/hooks/useFollowedTraders', () => ({
-  useFollowedTraders: () => mockUseFollowedTraders(),
+  useFollowedTraders: (options?: { enabled?: boolean }) =>
+    mockUseFollowedTraders(options),
 }));
 
 jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
-  usePopularTraders: () => mockUsePopularTraders(),
+  usePopularTraders: (enabled?: boolean) => mockUsePopularTraders(enabled),
+}));
+
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
+  selectIsUnlocked: () => mockSocialHints.isUnlocked,
+}));
+
+jest.mock('../../../../selectors/socialController', () => ({
+  ...jest.requireActual('../../../../selectors/socialController'),
+  selectFollowingProfileIds: () => mockSocialHints.followingProfileIds,
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  ...jest.requireActual('../../../../hooks/useNetworkTier'),
+  useNetworkTier: () => mockDeviceTiers.network,
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: () => mockDeviceTiers.hardware,
 }));
 
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
@@ -177,6 +217,10 @@ const chooseSort = (sort: 'most_recent' | 'popular') => {
 describe('FollowingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSocialHints.isUnlocked = true;
+    mockSocialHints.followingProfileIds = [];
+    mockDeviceTiers.hardware = 'MID';
+    mockDeviceTiers.network = 'WIFI';
     mockFeedListState.current = {
       showSkeleton: false,
       showEmpty: false,
@@ -323,6 +367,106 @@ describe('FollowingView', () => {
     expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
   });
 
+  // The feed and follow list are stubbed here. A view test would have to boot
+  // the social query client to reach the same hold.
+  it('keeps suggested traders on screen after a follow', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    const { rerender } = renderWithProvider(<FollowingView />);
+
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    rerender(<FollowingView />);
+
+    expect(screen.getByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR),
+    ).toBeNull();
+    expect(mockInvalidateFollowingFeed).not.toHaveBeenCalled();
+  });
+
+  it('reloads the following feed when the tab is opened again', async () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    const { rerender } = renderWithProvider(<FollowingView />);
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    rerender(<FollowingView isActive={false} />);
+    rerender(<FollowingView isActive />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockInvalidateFollowingFeed).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('leaves suggestions after a pull to refresh once someone is followed', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    const { rerender } = renderWithProvider(<FollowingView />);
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    rerender(<FollowingView />);
+
+    act(() => {
+      void lastFeedProps().prepareRefresh?.();
+      lastFeedProps().onRefresh?.();
+    });
+
+    expect(mockInvalidateFollowingFeed).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateFollowingFeed).toHaveBeenCalledWith({
+      refetchType: 'none',
+    });
+    expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
   it('says no one has posted yet when followed traders have no posts', () => {
     mockFeedListState.current = {
       showSkeleton: false,
@@ -447,5 +591,81 @@ describe('FollowingView', () => {
         pendingPostsTopOffset: 96,
       }),
     );
+  });
+
+  // The feed and follow list are stubbed here, so these tests check only which
+  // requests may start early. What renders still follows the feed's empty state.
+  describe('early suggestion requests', () => {
+    it('starts the follow list and suggestions while the feed loads for a viewer who follows nobody', () => {
+      renderWithProvider(<FollowingView />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: true,
+      });
+      expect(mockUsePopularTraders).toHaveBeenCalled();
+      expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
+    });
+
+    it('does not start the requests while the viewer follows someone', () => {
+      mockSocialHints.followingProfileIds = ['id-1'];
+
+      renderWithProvider(<FollowingView />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: false,
+      });
+      expect(mockUsePopularTraders).not.toHaveBeenCalled();
+    });
+
+    it('does not start the requests while the wallet is locked', () => {
+      mockSocialHints.isUnlocked = false;
+
+      renderWithProvider(<FollowingView />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: false,
+      });
+      expect(mockUsePopularTraders).not.toHaveBeenCalled();
+    });
+
+    it('does not start the requests while a filter is applied', () => {
+      renderWithProvider(<FollowingView isFilterActive />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: false,
+      });
+      expect(mockUsePopularTraders).not.toHaveBeenCalled();
+    });
+
+    it('does not start the requests before the tab is opened', () => {
+      renderWithProvider(<FollowingView isActive={false} />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: false,
+      });
+      expect(mockUsePopularTraders).not.toHaveBeenCalled();
+    });
+
+    it('does not start the requests without a network', () => {
+      mockDeviceTiers.network = 'NONE';
+
+      renderWithProvider(<FollowingView />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: false,
+      });
+      expect(mockUsePopularTraders).not.toHaveBeenCalled();
+    });
+
+    it('does not start the requests on low-end hardware with a known network', () => {
+      mockDeviceTiers.hardware = 'LOW';
+
+      renderWithProvider(<FollowingView />);
+
+      expect(mockUseFollowedTraders).toHaveBeenLastCalledWith({
+        enabled: false,
+      });
+      expect(mockUsePopularTraders).not.toHaveBeenCalled();
+    });
   });
 });

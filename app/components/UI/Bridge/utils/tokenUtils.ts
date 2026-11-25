@@ -292,3 +292,18 @@ export const isTokenSupportedForNonMarketSwapTab = (
       isNetworkSupportedForNonMarketSwapTab(token.chainId, enabledChainIds) &&
       filterOutRwaTokens([token]).length === 1,
   );
+
+/**
+ * Returns true when a non-market swap tab (Limit or Recurring) supports both
+ * tokens and can trade one for the other on a single network.
+ */
+export const isPairSupportedForNonMarketSwapTab = (
+  sourceToken: BridgeToken | undefined,
+  destToken: BridgeToken | undefined,
+  enabledChainIds: CaipChainId[],
+): boolean =>
+  isTokenSupportedForNonMarketSwapTab(sourceToken, enabledChainIds) &&
+  isTokenSupportedForNonMarketSwapTab(destToken, enabledChainIds) &&
+  formatChainIdToCaip(sourceToken.chainId) ===
+    formatChainIdToCaip(destToken.chainId) &&
+  !isSameBridgeToken(sourceToken, destToken);

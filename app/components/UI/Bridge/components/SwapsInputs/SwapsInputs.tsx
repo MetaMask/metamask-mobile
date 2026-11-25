@@ -84,6 +84,7 @@ export const SwapsInputs = ({
             isSourceToken
             inputPrefix={sourceAmountInput.inputPrefix}
             secondaryValue={sourceAmountInput.secondaryValue}
+            tokenFiatRate={sourceAmountInput.fiatRate}
             balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
             onAmountTypeTogglePress={
               sourceAmountInput.canToggle

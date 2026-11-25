@@ -41,6 +41,9 @@ export const useMarketInsightsEntryTrace = ({
   report,
   source,
 }: UseMarketInsightsEntryTraceParams): string | undefined => {
+  // Opted out of React Compiler: it drops the useMemo gate below, so trace()
+  // would restart on every render. Jest doesn't run the compiler.
+  'use no memo';
   const traceId = assetIdentifier
     ? getMarketInsightsTraceId(assetIdentifier, source, 'entry_card')
     : undefined;

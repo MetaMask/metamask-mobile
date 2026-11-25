@@ -770,7 +770,6 @@
     "cardHomeDataError": null,
     "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
-    "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
@@ -778,7 +777,6 @@
     "signInLink": null,
     "cardLinks": null,
     "cardLinksFetchedAt": null,
-    "cardLinksSeeded": false,
     "cardLinkApiBlocked": false,
     "accountLookupCache": {}
   },
@@ -955,6 +953,7 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
+  "CollectiblesController": {},
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
@@ -973,6 +972,7 @@
     "vbaAutorampListFetchedAt": null,
     "vbaCustomerAbilities": null,
     "userRegion": null,
+    "userSelectedProviderId": null,
     "countries": {
       "data": [],
       "selected": null,
@@ -980,6 +980,7 @@
       "error": null
     },
     "providerAutoSelected": false,
+    "userSelectedProviderId": null,
     "providers": {
       "data": [],
       "selected": null,
@@ -1038,5 +1039,9 @@
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
+  },
+  "MoneyAccountLifecycleController": {
+    "moneyAccounts": {},
+    "addressRegistrations": {}
   }
 }

@@ -5,6 +5,7 @@ import type {
 } from '@metamask/social-controllers';
 import { useCallback, useMemo } from 'react';
 import type { FollowedTrader } from '../../NotificationPreferences/hooks';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
@@ -76,6 +77,7 @@ export const useTraderFollowing = (
       username: profile.name,
       address: profile.address,
       avatarUri: profile.imageUrl ?? undefined,
+      verified: isProfileVerified(profile),
     }));
   }, [data]);
 

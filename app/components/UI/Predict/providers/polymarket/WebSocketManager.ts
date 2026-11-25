@@ -25,6 +25,7 @@ import {
   type PolyBoltChannel,
   type PolyBoltCredentials,
   type PolyBoltSubscription,
+  toPolyboltChannel,
   toPolyboltWireSymbol,
 } from './polyboltCryptoFeed';
 
@@ -331,6 +332,20 @@ export class WebSocketManager {
     this.polyboltFeed.setCredentials(feed.credentials);
     if (this.cryptoPriceSubscriptions.size > 0) {
       this.syncPolyboltSubscriptions();
+    }
+  }
+
+  /**
+   * Replaces the PolyBolt credentials, for example when a Chainlink key
+   * arrives from remote flags. A change opens a new connection, or applies to
+   * the next one while the feed is disconnected. Does nothing while RTDS
+   * serves crypto prices.
+   *
+   * @param credentials - CLOB API credentials and the optional Chainlink key.
+   */
+  updateCryptoFeedCredentials(credentials: PolyBoltCredentials): void {
+    if (this.cryptoFeedMode === 'polybolt') {
+      this.polyboltFeed.setCredentials(credentials);
     }
   }
 
@@ -1041,8 +1056,8 @@ export class WebSocketManager {
     const subscriptions = new Map<string, PolyBoltSubscription>();
     this.cryptoPriceSubscriptions.forEach((_callbacks, key) => {
       const { topic, symbols, provider } = parseCryptoSubscriptionKey(key);
-      const channel = this.polyboltChannelForTopic(topic);
-      if (!channel) {
+      const topicChannel = this.polyboltChannelForTopic(topic);
+      if (!topicChannel) {
         return;
       }
 
@@ -1052,6 +1067,9 @@ export class WebSocketManager {
           return;
         }
 
+        // Callers subscribe to `xau/usd` like any crypto symbol; PolyBolt
+        // serves metals on `price.equity`.
+        const channel = toPolyboltChannel(topicChannel, wireSymbol);
         const subscription: PolyBoltSubscription = {
           channel,
           callerSymbol: symbol,
@@ -1094,7 +1112,13 @@ export class WebSocketManager {
       return false;
     }
 
-    return this.polyboltChannelForTopic(parsedSubscription.topic) === channel;
+    const topicChannel = this.polyboltChannelForTopic(parsedSubscription.topic);
+    const wireSymbol = toPolyboltWireSymbol(symbol);
+    if (!topicChannel || !wireSymbol) {
+      return false;
+    }
+
+    return toPolyboltChannel(topicChannel, wireSymbol) === channel;
   }
 
   private invokeCryptoPriceCallbacks(
@@ -1340,6 +1364,10 @@ export class WebSocketManager {
   }
 
   private sendMarketUnsubscribe(tokenIds: string[]): void {
+    // Nobody listens to these tokens any more, so their cached quote stops
+    // updating. Drop it so a later subscriber is not replayed a stale price.
+    tokenIds.forEach((tokenId) => this.marketPriceCache.delete(tokenId));
+
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
       return;
     }

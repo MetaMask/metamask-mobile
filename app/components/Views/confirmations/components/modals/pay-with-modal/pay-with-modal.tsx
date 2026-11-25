@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -40,6 +40,10 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
+import { selectEvmAssetIdEncoder } from '../../../../../../selectors/assets/assets-controller';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
+import { isSameAssetId } from '../../../../../../util/transactions/payment-token';
 
 export interface PayWithModalParams {
   /**
@@ -55,6 +59,7 @@ export interface PayWithModalParams {
 }
 
 export function PayWithModal() {
+  const isGlassHeader = useIsGlassHeader();
   const navigation = useNavigation<AppNavigationProp>();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
@@ -63,6 +68,7 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -134,15 +140,20 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      // Held tokens carry their `AssetsController` key; allowlisted withdraw
+      // tokens the user does not hold yet are resolved from chain and address.
+      const assetId =
+        token.caipAssetId ??
+        encodeAssetId({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        });
+
       // An explicit token selection always replaces any dedicated payment
       // override (e.g. Money Account). This is deliberately done here rather
       // than when the picker is opened, so closing the picker without
       // choosing a token leaves the previous selection intact.
-      if (
-        payToken &&
-        payToken.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
-      ) {
+      if (isSameAssetId(payToken?.assetId, assetId)) {
         close(() => {
           clearPaymentOverride();
           if (dismissOnSelectCount > 1) {
@@ -191,10 +202,7 @@ export function PayWithModal() {
           });
         }
 
-        setPayToken({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        });
+        setPayToken({ assetId });
       };
 
       close(onClosed);
@@ -210,6 +218,7 @@ export function PayWithModal() {
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
       payToken,
+      encodeAssetId,
       setPayToken,
       transactionMeta,
     ],
@@ -274,7 +283,9 @@ export function PayWithModal() {
         }
       }}
     >
-      <BottomSheetHeader onClose={handleClose}>{modalTitle}</BottomSheetHeader>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
+        {modalTitle}
+      </BottomSheetHeaderGlass>
       <Asset
         includeNoBalance
         hideNfts

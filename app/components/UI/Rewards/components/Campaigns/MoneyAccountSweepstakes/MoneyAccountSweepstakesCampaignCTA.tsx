@@ -7,6 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type {
   CampaignDto,
@@ -22,8 +23,14 @@ import { useMoneyAccountSweepstakesParticipation } from '../../../hooks/useMoney
 import useRewardsToast from '../../../hooks/useRewardsToast';
 import type { MoneyAccountSweepstakesSeriesStatus } from '../../../utils/moneyAccountSweepstakesSeries';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectProfileControllerProfile } from '../../../../../../selectors/profileController';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { navigateToSocialTab } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import CampaignOptInSheet from '../CampaignOptInSheet';
-import { CAMPAIGN_CTA_TEST_IDS } from '../CampaignOptInCta';
+import {
+  CAMPAIGN_CTA_TEST_IDS,
+  shouldOpenSocialTabBeforeCampaignOptIn,
+} from '../CampaignOptInCta';
 
 interface MoneyAccountSweepstakesCampaignCTAProps {
   campaign: CampaignDto;
@@ -36,6 +43,10 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   MoneyAccountSweepstakesCampaignCTAProps
 > = ({ campaign, seriesStatus, localizedText, inline = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const hasSocialProfile = Boolean(
+    useSelector(selectProfileControllerProfile)?.profileId,
+  );
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   // Toast after Add Money closes — Rewards toast sits under native modals.
   const pendingNoFundingToastRef = useRef(false);
@@ -46,9 +57,16 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   const { ensureOptedIn } = useMoneyAccountSweepstakesOptIn();
   const { ensureBound, bindingConflict } = useMoneyAccountSweepstakesBinding();
   const hasActionableAddMoneyOptions = useHasActionableAddMoneyOptions();
+  const opensSocialOnboarding = shouldOpenSocialTabBeforeCampaignOptIn({
+    isSocialV1Enabled,
+    socialProfileRequired: campaign.socialProfileRequired,
+    hasSocialProfile,
+  });
   const buttonLabel = optedInAny
     ? localizedText.addFundsTitle
-    : localizedText.joinTheSweepstakesTitle;
+    : opensSocialOnboarding
+      ? strings('rewards.campaign.create_username')
+      : localizedText.joinTheSweepstakesTitle;
   const optInSheetTitle = localizedText.joinTheSweepstakesTitle;
 
   const showBindingConflictToast = useCallback(() => {
@@ -147,6 +165,16 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
       navigateToAddMoney();
       return;
     }
+    if (
+      shouldOpenSocialTabBeforeCampaignOptIn({
+        isSocialV1Enabled,
+        socialProfileRequired: campaign.socialProfileRequired,
+        hasSocialProfile,
+      })
+    ) {
+      navigateToSocialTab(navigation.navigate);
+      return;
+    }
     setIsOptInSheetOpen(true);
   }, [
     isGeoLoading,
@@ -157,6 +185,10 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     ensureBound,
     showBindingConflictToast,
     navigateToAddMoney,
+    isSocialV1Enabled,
+    hasSocialProfile,
+    campaign.socialProfileRequired,
+    navigation,
   ]);
 
   if (seriesStatus !== 'active') {

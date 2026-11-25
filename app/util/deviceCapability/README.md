@@ -36,6 +36,8 @@ const { tier, isResolved } = useNetworkTierState();
 
 Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network changes, so this is a hook, not `getNetworkTier()`.
 
+Outside render (analytics, callbacks), read `getNetworkTierSnapshot()` from `app/util/deviceCapability` instead. It returns the last tier from the process NetInfo listener, with the same `computeNetworkTier` rules, and adds no listener or re-render. It is `null` before the first NetInfo event and when latency monitoring has not started, since that listener feeds it. React screens keep using `useNetworkTier()`.
+
 **Transport tier** (`tier`) comes from NetInfo only and is never changed by measured latency: 2g / 3g are `SLOW_CELLULAR`, `wifi` / `ethernet` are `WIFI`, 4g / 5g are `FAST_CELLULAR`.
 
 **Measured latency** is a separate hook, `useNetworkLatency()` (`'UNKNOWN' | 'OK' | 'SLOW'`):
@@ -46,9 +48,11 @@ import { useNetworkLatency } from '../../hooks/useNetworkLatency';
 const latency = useNetworkLatency(); // 'UNKNOWN' | 'OK' | 'SLOW'
 ```
 
-It comes from the newest in-memory samples over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). The newest five decide. `SLOW` is entered when two of those calls pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row. Samples leave only when a newer one replaces them or a clear runs. Entering the background, or a NetInfo transport change, resets it to `UNKNOWN` and blocks new samples until the app is active. A fetch still in flight across that clear is not recorded. Each sample is only a duration in milliseconds — no URL, hostname, headers, or body — and never goes to Redux, Sentry, or analytics.
+It comes from the newest in-memory samples over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). The newest five decide. `SLOW` is entered when two of those calls pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row. Samples leave only when a newer one replaces them or a clear runs. Entering the background, or a NetInfo transport change, resets it to `UNKNOWN` and blocks new samples until the app is active. A fetch still in flight across that clear is not recorded. Each sample is only a duration in milliseconds — no URL, hostname, headers, or body — and never goes to Redux, Sentry, or analytics. This module reports nothing itself. A consumer may still track its own events (for example when it reacts to `SLOW`) for research or product reasons.
 
-**No fold.** `useNetworkTier()` and `useNetworkTierState()` do not read latency and do not re-render on it, so `SLOW_CELLULAR` still means 2g / 3g only. `useNetworkLatency()` returns `UNKNOWN` while the transport is `NONE`. `latency === 'SLOW'` is the trigger for a slow-connection signal, on any transport (including `WIFI`) and any hardware tier. Nothing in the UX matrix reads it yet.
+`useSettledNetworkLatency()` returns the last `OK` or `SLOW` reading and keeps it across app resumes and transport changes. It is `UNKNOWN` only before the first reading or while offline. Use it for UI that must not flicker back on resume (for example a banner). Use `useNetworkLatency()` for the live bucket.
+
+**No fold.** `useNetworkTier()` and `useNetworkTierState()` do not read latency and do not re-render on it, so `SLOW_CELLULAR` still means 2g / 3g only. `useNetworkLatency()` returns `UNKNOWN` while the transport is `NONE`. `latency === 'SLOW'` is the trigger for a slow-connection signal, on any transport (including `WIFI`) and any hardware tier. The UX matrix below does not cover latency. Each consumer decides how to react to `SLOW`.
 
 **Hardware tier calibrates latency only.** The JS timer includes JS-thread wait, so `getHardwareTier()` (read once when the fetch wrapper is installed; `null` uses `MID`) selects the `LATENCY_THRESHOLDS` row. It never changes the network tier: a slow phone on a good link stays off `SLOW_CELLULAR`.
 
@@ -102,18 +106,19 @@ Not sampled: non-HTTP URLs (`data:`, `file:`, `content:`), `stream: true` fetche
 
 ## Files
 
-| File                             | Role                                           |
-| -------------------------------- | ---------------------------------------------- |
-| `types.ts`                       | `HardwareTier`, `NetworkTier`, `LatencyBucket` |
-| `thresholds.ts`                  | Per-platform RAM cutoffs, latency cutoffs      |
-| `computeHardwareTier.ts`         | Pure RAM → tier                                |
-| `computeNetworkTier.ts`          | Pure NetInfo fields → transport tier           |
-| `classifyFetchSample.ts`         | Pure settled fetch → duration or skip          |
-| `computeLatencyBucket.ts`        | Pure samples → `UNKNOWN` / `OK` / `SLOW`       |
-| `latencyStore.ts`                | In-memory samples, bucket, and reset listeners |
-| `index.ts`                       | `getHardwareTier()`                            |
-| `app/hooks/useNetworkTier.ts`    | NetInfo hooks (transport tier only)            |
-| `app/hooks/useNetworkLatency.ts` | `useNetworkLatency()` (measured latency)       |
+| File                             | Role                                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `types.ts`                       | `HardwareTier`, `NetworkTier`, `LatencyBucket`                                                              |
+| `thresholds.ts`                  | Per-platform RAM cutoffs, latency cutoffs                                                                   |
+| `computeHardwareTier.ts`         | Pure RAM → tier                                                                                             |
+| `computeNetworkTier.ts`          | Pure NetInfo fields → transport tier                                                                        |
+| `classifyFetchSample.ts`         | Pure settled fetch → duration or skip                                                                       |
+| `computeLatencyBucket.ts`        | Pure samples → `UNKNOWN` / `OK` / `SLOW`                                                                    |
+| `latencyStore.ts`                | In-memory samples, bucket, and reset listeners                                                              |
+| `networkTierSnapshot.ts`         | Last transport tier from the process NetInfo listener; `getNetworkTierSnapshot()` for imperative reads only |
+| `index.ts`                       | `getHardwareTier()`, `getNetworkTierSnapshot()`                                                             |
+| `app/hooks/useNetworkTier.ts`    | NetInfo hooks (transport tier only)                                                                         |
+| `app/hooks/useNetworkLatency.ts` | Latency hooks (live and settled)                                                                            |
 
 ## Out of scope (this module)
 

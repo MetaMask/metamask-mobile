@@ -74,6 +74,8 @@ export interface BridgeToken {
   rwaData?: TokenRwaData;
   securityData?: SecurityData;
   badgeLabel?: string;
+  isMoneyToken?: boolean;
+  apy?: number;
 }
 
 export enum BridgeViewMode {

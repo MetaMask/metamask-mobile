@@ -28,7 +28,7 @@ import {
 } from '../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../core/Engine';
 import { updateBgState } from '../../../../core/redux/slices/engine';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { SEARCH_RESULT_LIMIT } from '../hooks/useSearchEvents';
 import { PredictNextRoutes } from '../navigation/routes';

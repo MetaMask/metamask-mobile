@@ -436,22 +436,16 @@ jobs:
   # file set from eslint.config.mjs and bin-packs by size. Per-file cache
   # stays off the persisted paths: #33370 reverted it because cross-file and
   # type-aware rules go stale.
+  #
+  # Pinned to GitHub-hosted runners. After Oxlint, four lint shards finish in
+  # about two minutes and no longer need Namespace 8x16 capacity. Keep this
+  # job off the runner_provider switch so a Namespace default does not pull
+  # it back onto paid Namespace profiles.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
     permissions:
       contents: read
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+    runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -460,27 +454,13 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        with:
-          fetch-depth: 2
       - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 2
-      - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+          cache: yarn
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -497,11 +477,9 @@ jobs:
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # Namespace ci-linux is 8x16. 13312 leaves about 3 GB for the rest of
-          # the process and the runner; a higher heap trades the V8 heap error
-          # for the kernel OOM killer. ubuntu-latest matches the other test
-          # jobs at 20480. Local yarn lint stays at 12288.
-          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '13312' || '20480' }}
+          # ubuntu-latest matches the other GitHub-hosted test jobs. Local
+          # yarn lint stays at 12288.
+          LINT_HEAP_MB: 20480
       - name: Require clean working directory
         shell: bash
         run: |
@@ -517,11 +495,7 @@ jobs:
   lint:
     name: Run `lint`
     permissions: {}
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    runs-on: ubuntu-latest
     needs:
       - get_requirements
       - lint-shards
@@ -1095,10 +1069,12 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        # actionlint 1.7.1 predates the `cache-mode` workflow key.
+        # actionlint 1.7.1 predates the `cache-mode` workflow key and the
+        # `output-env-credentials` input of aws-actions/configure-aws-credentials@v4.
         run: >-
           ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
           -ignore 'unexpected key "cache-mode" for "(workflow|job)" section'
+          -ignore 'input "output-env-credentials" is not defined in action "aws-actions/configure-aws-credentials@v4"'
         shell: bash
 
   deploy-platform-api-docs:
@@ -1531,6 +1507,87 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
+  # CV counterpart of the Appium changed-spec copies (run-appium-e2e-workflow.yml):
+  # on PRs targeting main, added or modified *.view.test.tsx files are re-run N
+  # times so a flake surfaces before merge. Detection comes from get-requirements
+  # (changed_cv_test_files); deleted paths are dropped, the file list is capped,
+  # and the script reports per-iteration results and names every failing test.
+  component-view-flakiness-detection:
+    name: Component view flakiness detection
+    permissions:
+      contents: read
+      # PR label check for skip-cv-flakiness-detection.
+      pull-requests: read
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        needs.prepare-ci-js-deps.result == 'success' &&
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.base.ref == 'main' &&
+        needs.get_requirements.outputs.changed_cv_test_files != ''
+      }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
+    # Budget default is 60 minutes; the job ceiling adds checkout/setup slack.
+    timeout-minutes: 75
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        id: download-ci-js-deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Repeat changed component view tests
+        run: node .github/scripts/qa-automation/cv-flakiness/cv-flakiness-detection.mjs
+        env:
+          CHANGED_CV_TEST_FILES: ${{ needs.get_requirements.outputs.changed_cv_test_files }}
+          REPEAT_COUNT: '5'
+          MAX_FILES: '10'
+          TIME_BUDGET_MINUTES: '60'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # Matches the component view gate job's heap.
+          NODE_OPTIONS: --max-old-space-size=12288
+      - name: Upload flakiness detection results (artifact stores)
+        if: ${{ always() }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: cv-flakiness-results
+          path: tests/results/cv-flakiness/
+          if-no-files-found: ignore
+          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
@@ -1922,95 +1979,6 @@ jobs:
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
     secrets: inherit
 
-  # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on Android only, so on PRs into main it runs when path filters select
-  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
-  # release/* that build Android.
-  validate-e2e-fixtures:
-    name: 'Validate E2E Fixtures'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.build-android-apks.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' ||
-          needs.prepare-e2e-timings.result == 'skipped' ||
-          needs.prepare-e2e-timings.result == 'failure')
-      }}
-    permissions:
-      contents: read
-      checks: write
-      id-token: write
-      # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
-      actions: read
-      pull-requests: read
-    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: validate-e2e-fixtures
-      platform: android
-      test_suite_tag: FixtureValidation
-      split_number: 1
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: 'main'
-      metamask_environment: 'e2e'
-      # Skip golden AVD cache restore; boot-mode cold keeps intent explicit.
-      cache-android-golden-snapshot: false
-      android-emulator-boot-mode: cold
-      # Mirrors build-android-apps' resolution chain so this consumer always matches
-      # the builder's artifact store (GitHub on current, Namespace store on namespace).
-      runner_provider: >-
-        ${{
-          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
-        }}
-    secrets: inherit
-
-  report-fixture-validation:
-    name: 'Report Fixture Validation'
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
-    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
-    needs: [validate-e2e-fixtures]
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-      - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-
-      # run-appium-e2e-workflow uploads fixture validation results unconditionally via
-      # actions/upload-artifact (no Namespace-store arm), so results always land in the
-      # GitHub Actions artifact store — download via actions/* regardless of provider.
-      - name: Download fixture validation results
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: fixture-validation-results-validate-e2e-fixtures
-          path: fixture-results/
-
-      - name: Report results
-        env:
-          RESULTS_PATH: fixture-results
-          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: node .github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs
-
   sonar-cloud:
     name: SonarCloud analysis
     permissions:
@@ -2257,6 +2225,7 @@ jobs:
       - lint
       - unit-tests
       - component-view-tests
+      - component-view-flakiness-detection
       - merge-unit-and-component-view-tests
       - check-workflows
       - prepare-ci-js-deps
@@ -2287,6 +2256,7 @@ jobs:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
           e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          flakiness-job-regex: '^(component-view-flakiness-detection)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

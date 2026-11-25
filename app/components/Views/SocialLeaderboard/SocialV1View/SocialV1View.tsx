@@ -83,12 +83,14 @@ import LiveView from '../LiveView';
 import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { SocialFeedPageActiveContext } from '../../../UI/SocialFeed/components/SocialFeedPageActiveContext';
+import { SocialFeedWindowOffsetContext } from '../../../UI/SocialFeed/components/SocialFeedWindowOffsetContext';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import { useScreenTransitionComplete } from '../../../hooks/useScreenTransitionComplete';
 import Routes from '../../../../constants/navigation/Routes';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
@@ -194,11 +196,14 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
 const SocialFeedPageProviders: React.FC<{
   isActive: boolean;
   rotatesTraderStats: boolean;
+  windowOffsetY: number;
   children: React.ReactNode;
-}> = ({ isActive, rotatesTraderStats, children }) => (
+}> = ({ isActive, rotatesTraderStats, windowOffsetY, children }) => (
   <SocialFeedPageActiveContext.Provider value={isActive}>
     <TraderStatRotationContext.Provider value={rotatesTraderStats}>
-      {children}
+      <SocialFeedWindowOffsetContext.Provider value={windowOffsetY}>
+        {children}
+      </SocialFeedWindowOffsetContext.Provider>
     </TraderStatRotationContext.Provider>
   </SocialFeedPageActiveContext.Provider>
 );
@@ -216,6 +221,15 @@ const SocialV1ViewContent: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
+
+  // Hold the tab pages out of the opening transition: the landing page is the
+  // whole cost of this screen's first commit. The header and tab bar stay
+  // eager so the screen paints its chrome immediately.
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+  const isTransitionComplete = useScreenTransitionComplete();
+  // A tab has no entering transition to protect, so it never waits.
+  const isDeferredReady = !isPushedScreen || isTransitionComplete;
+
   const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const accountAddress = useSelector(
@@ -441,8 +455,11 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer({ composerEntry: SocialEvent.ComposerEntry.SOCIAL_FEED });
-  }, [openComposer]);
+    openComposer({
+      composerEntry: SocialEvent.ComposerEntry.SOCIAL_FEED,
+      analyticsSource,
+    });
+  }, [analyticsSource, openComposer]);
 
   const handleOpenRewards = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);
@@ -514,7 +531,7 @@ const SocialV1ViewContent: React.FC = () => {
 
       openQuickBuy(
         target,
-        commentId ? { commentId } : undefined,
+        commentId ? { commentId, authorId: item.author.id } : undefined,
         'buy',
         source,
         item.author.address,
@@ -883,8 +900,11 @@ const SocialV1ViewContent: React.FC = () => {
         <SocialFeedPageProviders
           isActive={isFocused && isPageActive}
           rotatesTraderStats={isFocused && isPageActive}
+          windowOffsetY={pagerTopInset}
         >
-          {renderPage(tab, isPageActive, pageRefs[tab])}
+          {isDeferredReady
+            ? renderPage(tab, isPageActive, pageRefs[tab])
+            : null}
         </SocialFeedPageProviders>
       </View>
     );
