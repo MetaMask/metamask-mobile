@@ -2754,11 +2754,11 @@ describe('useTransactionCustomAmount', () => {
     function mockPayToken(address: Hex | undefined, balanceUsd = '500') {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: address
-          ? ({
+          ? buildPaymentTokenMock({
               address,
               balanceUsd,
-              chainId: '0x1' as Hex,
-            } as TransactionPaymentToken)
+              chainId: '0x1',
+            })
           : undefined,
       } as ReturnType<typeof useTransactionPayToken>);
     }

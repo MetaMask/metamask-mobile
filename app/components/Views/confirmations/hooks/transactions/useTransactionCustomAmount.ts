@@ -205,7 +205,7 @@ export function useTransactionCustomAmount({
   useEffect(() => {
     // Only reset when the pay token genuinely changes to a different token.
     // Becoming undefined (during transaction replacement) should not reset.
-    const hasToken = Boolean(payToken?.address && payToken?.chainId);
+    const hasToken = Boolean(payTokenAsset?.address && payTokenAsset?.chainId);
     const isGenuineChange =
       hasToken && previousPayTokenKeyRef.current !== payTokenKey;
 
@@ -226,7 +226,7 @@ export function useTransactionCustomAmount({
       setPrefetchedQuotePayTokenKey(undefined);
       previousPayTokenKeyRef.current = payTokenKey;
     }
-  }, [payToken?.address, payToken?.chainId, payTokenKey]);
+  }, [payTokenAsset?.address, payTokenAsset?.chainId, payTokenKey]);
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
