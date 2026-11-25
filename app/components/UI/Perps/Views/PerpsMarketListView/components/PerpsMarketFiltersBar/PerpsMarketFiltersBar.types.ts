@@ -3,6 +3,7 @@ import {
   type SortOptionId,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
+import type { PerpsProviderLogoId } from '../../../../hooks/usePerpsProviderLogoIds';
 
 /**
  * Props for PerpsMarketFiltersBar component
@@ -77,6 +78,13 @@ export interface PerpsMarketFiltersBarProps {
    * selected venue names). Rendered only with `onExchangeFilterPress`.
    */
   exchangeFilterLabel?: string;
+
+  /**
+   * Exchange marks to draw immediately left of the market count, in
+   * left-to-right order. Omitted or empty renders no mark (single-provider
+   * mode or the Lighter flag off). TAT-4511.
+   */
+  providerIds?: readonly PerpsProviderLogoId[];
 
   /**
    * Optional test ID for testing

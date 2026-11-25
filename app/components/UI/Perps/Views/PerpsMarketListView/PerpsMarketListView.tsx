@@ -71,6 +71,7 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsProviderLogoIds } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
@@ -167,6 +168,14 @@ const PerpsMarketListView = ({
 
   // Destructure sort state for easier access
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
+
+  // TAT-4511: exchange mark(s) for the market-count row. Empty unless the
+  // Lighter flag is on (usePerpsProviderLogoIds), so the flag-off layout is
+  // unchanged. Passed to every PerpsMarketFiltersBar, including the
+  // watchlist one.
+  const providerLogoIds = usePerpsProviderLogoIds();
+  const marketCountLogoIds =
+    providerLogoIds.length > 0 ? providerLogoIds : undefined;
 
   // Destructure favorites state for easier access
   const {
@@ -861,6 +870,7 @@ const PerpsMarketListView = ({
             marketTypeFilter={marketTypeFilter}
             onCategorySelect={handleCategorySelect}
             marketCount={visibleWatchlistMarkets.length}
+            providerIds={marketCountLogoIds}
             isWatchlistSelected={showFavoritesOnly}
             showCategoryRow={false}
             onExchangeFilterPress={
@@ -961,6 +971,7 @@ const PerpsMarketListView = ({
         marketTypeFilter={marketTypeFilter}
         onCategorySelect={handleCategorySelect}
         marketCount={filteredMarkets.length}
+        providerIds={marketCountLogoIds}
         isWatchlistSelected={showFavoritesOnly}
         showCategoryRow={false}
         onExchangeFilterPress={
@@ -1049,6 +1060,7 @@ const PerpsMarketListView = ({
               ? visibleWatchlistMarkets.length
               : filteredMarkets.length
           }
+          providerIds={marketCountLogoIds}
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}

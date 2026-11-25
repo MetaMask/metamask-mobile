@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketFiltersBar from './PerpsMarketFiltersBar';
 import { type MarketTypeFilter } from '@metamask/perps-controller';
+import { PerpsProviderLogosSelectorsIDs } from '../../../../Perps.testIds';
 
 jest.mock('../../../../components/PerpsMarketSortDropdowns', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -276,6 +277,58 @@ describe('PerpsMarketFiltersBar', () => {
           getByTestId('filters-bar-categories-selected'),
         ).toHaveTextContent(category);
       });
+    });
+  });
+
+  describe('Provider logos — TAT-4511', () => {
+    it('renders no logos when providerIds is omitted', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      expect(queryByTestId('filters-bar-provider-logos')).toBeNull();
+      // The count row itself is unchanged.
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders no logos for an empty providerIds list', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} providerIds={[]} />,
+      );
+
+      expect(queryByTestId('filters-bar-provider-logos')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders the single provider logo next to the count', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          providerIds={['hyperliquid']}
+        />,
+      );
+
+      expect(getByTestId('filters-bar-provider-logos')).toBeTruthy();
+      expect(
+        getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeTruthy();
+      expect(queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders both provider logos overlapped in aggregated mode', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          providerIds={['hyperliquid', 'lighter']}
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeTruthy();
+      expect(getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeTruthy();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
     });
   });
 });

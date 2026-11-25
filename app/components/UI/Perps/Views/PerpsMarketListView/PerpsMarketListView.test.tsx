@@ -54,6 +54,13 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+// TAT-4511: the market-count exchange logos come from this hook. The unit
+// suite covers the flag-off path (empty list); the component-view suite
+// covers the flag-on paths with real selector state.
+jest.mock('../../hooks/usePerpsProviderLogoIds', () => ({
+  usePerpsProviderLogoIds: jest.fn(() => []),
+}));
+
 jest.mock('../../hooks/usePerpsOrderFees', () => ({
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0,
@@ -341,6 +348,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showWatchlistBadge,
     onWatchlistToggle,
     onCategorySelect,
+    providerIds,
     showCategoryRow = true,
     showSortRow = true,
     testID,
@@ -357,6 +365,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     isWatchlistSelected?: boolean;
     onWatchlistToggle?: () => void;
     onCategorySelect?: (category: string) => void;
+    providerIds?: readonly string[];
     showCategoryRow?: boolean;
     showSortRow?: boolean;
     testID?: string;
@@ -389,6 +398,13 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     return MockReact.createElement(
       View,
       { testID },
+      // TAT-4511: surface the provider-logo prop so tests can assert what
+      // the view passes to the filters bar.
+      MockReact.createElement(
+        Text,
+        { testID: testID ? `${testID}-provider-logos` : undefined },
+        providerIds && providerIds.length > 0 ? providerIds.join(',') : 'none',
+      ),
       showCategoryRow &&
         showMarketTypeDropdown &&
         onMarketTypePress &&
@@ -3126,6 +3142,25 @@ describe('PerpsMarketListView', () => {
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('passes no provider logos to the filters bar while the Lighter flag is off (TAT-4511)', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Both sort bars receive an empty provider list: the mock surfaces the
+      // joined ids, or 'none' when the view passes undefined.
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-provider-logos`,
+        ),
+      ).toHaveTextContent('none');
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary-provider-logos`,
+        ),
+      ).toHaveTextContent('none');
     });
   });
 

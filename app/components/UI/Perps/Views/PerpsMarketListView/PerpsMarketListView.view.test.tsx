@@ -13,6 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsMarketListViewSelectorsIDs,
   getPerpsMarketRowItemSelector,
+  PerpsProviderLogosSelectorsIDs,
 } from '../../Perps.testIds';
 import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../../selectors/featureFlags';
 import { PerpsMarketData } from '@metamask/perps-controller';
@@ -580,6 +581,51 @@ describe('Exchange (venue) filter — TAT-4407', () => {
       expect(
         screen.queryByTestId(`${sortFiltersId}-secondary-exchange-filter`),
       ).not.toBeOnTheScreen();
+    });
+  });
+});
+
+describe('Market-count exchange logos — TAT-4511', () => {
+  describe('with the Lighter flag off', () => {
+    it('renders no exchange logo next to the market count', async () => {
+      renderPerpsMarketListView();
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      await screen.findByText('Markets');
+      expect(
+        screen.queryByTestId(`${sortFiltersId}-provider-logos`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(`${sortFiltersId}-secondary-provider-logos`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('with the Lighter flag on in aggregated mode', () => {
+    withLighterBuildEnabled();
+
+    it('shows both exchange logos overlapped next to the count', async () => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView(twoExchange);
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      expect(
+        await screen.findAllByTestId(`${sortFiltersId}-provider-logos`),
+      ).not.toHaveLength(0);
+      expect(
+        await screen.findAllByTestId(
+          PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+        ),
+      ).not.toHaveLength(0);
+      expect(
+        await screen.findAllByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).not.toHaveLength(0);
     });
   });
 });

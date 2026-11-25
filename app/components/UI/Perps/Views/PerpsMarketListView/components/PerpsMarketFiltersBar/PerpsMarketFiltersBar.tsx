@@ -1,11 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
-import { useStyles } from '../../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../../locales/i18n';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
 import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategoryBadges';
+import PerpsProviderLogos from '../../../../components/PerpsProviderLogos';
+import { PERPS_AVAILABLE_BALANCE_LOGO_SIZE } from '../../../../constants/perpsUIConfig';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
-import styleSheet from './PerpsMarketFiltersBar.styles';
 import {
   Box,
   FontWeight,
@@ -48,6 +47,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   marketTypeFilter,
   onCategorySelect,
   marketCount,
+  providerIds,
   showWatchlistBadge,
   isWatchlistSelected,
   onWatchlistToggle,
@@ -57,10 +57,10 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   showSortRow = true,
   testID,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const hasProviderLogos = providerIds !== undefined && providerIds.length > 0;
 
   return (
-    <View style={styles.container} testID={testID}>
+    <Box twClassName="w-full bg-default" testID={testID}>
       {/* Row 1: Category Badges (+ optional watchlist star badge) */}
       {showCategoryRow && (
         <PerpsMarketCategoryBadges
@@ -75,17 +75,29 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
 
       {/* Row 2: Market count (left) + Sort dropdown (right) */}
       {showSortRow && (
-        <View style={styles.sortRow}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            fontWeight={FontWeight.Medium}
-            testID={testID ? `${testID}-market-count` : undefined}
-          >
-            {marketCount === 1
-              ? strings('perps.market_count', { count: marketCount })
-              : strings('perps.market_count_plural', { count: marketCount })}
-          </Text>
+        <Box twClassName="flex-row items-center justify-between py-1.5 pl-4 pr-1">
+          <Box twClassName="flex-row items-center">
+            {/* TAT-4511: exchange mark(s) immediately left of the count.
+                PerpsProviderLogos renders nothing when no mark is drawable. */}
+            {hasProviderLogos ? (
+              <PerpsProviderLogos
+                providerIds={providerIds}
+                size={PERPS_AVAILABLE_BALANCE_LOGO_SIZE}
+                testID={testID ? `${testID}-provider-logos` : undefined}
+                twClassName="mr-1"
+              />
+            ) : null}
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
+              testID={testID ? `${testID}-market-count` : undefined}
+            >
+              {marketCount === 1
+                ? strings('perps.market_count', { count: marketCount })
+                : strings('perps.market_count_plural', { count: marketCount })}
+            </Text>
+          </Box>
           <Box twClassName="flex-row items-center gap-2">
             {onExchangeFilterPress ? (
               <SelectButton
@@ -116,9 +128,9 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
               testID={testID ? `${testID}-sort` : undefined}
             />
           </Box>
-        </View>
+        </Box>
       )}
-    </View>
+    </Box>
   );
 };
 
