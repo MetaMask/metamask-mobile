@@ -101,6 +101,7 @@ interface RunOptions {
   repeatCount?: string;
   maxFiles?: string;
   deadlineMs?: string;
+  hangTimeoutMinutes?: string;
   labels?: string[];
   fetchOk?: boolean;
   failSubstring?: string;
@@ -152,6 +153,9 @@ function runScript(options: RunOptions): RunResult {
   };
   if (options.deadlineMs !== undefined) {
     env.CV_FLAKINESS_DEADLINE_MS = options.deadlineMs;
+  }
+  if (options.hangTimeoutMinutes !== undefined) {
+    env.HANG_TIMEOUT_MINUTES = options.hangTimeoutMinutes;
   }
   if (options.jestNodePath !== undefined) {
     env.JEST_NODE_PATH = options.jestNodePath;
@@ -323,6 +327,29 @@ describe('cv-flakiness-detection', () => {
     expect(stderr).toContain('ReportedThenKilled.view.test.tsx › Stub failing test name');
   });
 
+  // With budget still remaining, a kill at the spawn timeout is the hang limit
+  // firing: a hung run must fail the job, not ride the budget as a stop
+  // (Bugbot r4681021621 follow-up).
+  it('fails the job when a hung run exceeds the hang limit with budget remaining', () => {
+    const file = makeCvFile(tempDir, 'Hangs.view.test.tsx');
+    const { status, calls, output, stderr } = runScript({
+      changedFiles: file,
+      repeatCount: '1',
+      // The stub outlasts the 6-second hang limit; the 10-minute deadline
+      // keeps the budget from binding, so the kill is a hang.
+      sleepMs: 30000,
+      hangTimeoutMinutes: '0.1',
+      deadlineMs: String(new Date().getTime() + 10 * 60 * 1000),
+    });
+
+    expect(status).toBe(1);
+    expect(calls).toHaveLength(1);
+    expect(output).toContain('status=failed');
+    expect(output).toContain('budget_exhausted=false');
+    expect(stderr).toContain('suspected hang');
+    expect(stderr).toContain('0.1 minute(s) without finishing');
+  });
+
   it('fails the job when Jest cannot be spawned at all', () => {
     const file = makeCvFile(tempDir, 'Unspawnable.view.test.tsx');
     const missingNode = path.join(tmpdir(), 'cv-flakiness-no-such-node');
@@ -440,11 +467,16 @@ describe('collectIterationFailures budget-kill classification', () => {
     expect(failures).toHaveLength(0);
   });
 
-  it('still reports a non-budget kill as a failure', () => {
-    const failures = collectIterationFailures({ signal: 'SIGTERM' }, unreadableReport, {});
+  it('still reports a kill at the hang limit as a failure', () => {
+    const failures = collectIterationFailures({ signal: 'SIGTERM' }, unreadableReport, {
+      killLimitMinutes: 20,
+    });
 
     expect(failures).toEqual([
-      { kind: 'clean-run', reason: expect.stringContaining('aborted (SIGTERM)') },
+      {
+        kind: 'clean-run',
+        reason: 'Jest was killed after 20 minute(s) without finishing (suspected hang)',
+      },
     ]);
   });
 });

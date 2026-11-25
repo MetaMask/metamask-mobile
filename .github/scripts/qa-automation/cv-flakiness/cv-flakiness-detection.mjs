@@ -15,14 +15,17 @@
  * paths are reported and skipped), the list is capped at MAX_FILES, the
  * `skip-cv-flakiness-detection` label opts a PR out (fail-open: a GitHub API
  * error also skips, like the E2E mechanism), and TIME_BUDGET_MINUTES stops
- * further repetitions before they start with a warning instead of failing; a
- * Jest run killed by that budget mid-way is a warning-only budget stop too,
- * never a hang failure, so a healthy run cannot be failed by the budget
- * (Bugbot r4681021621).
+ * further repetitions with a warning instead of failing — both when the
+ * budget runs out between repetitions and when it kills a running one — so
+ * the budget never fails a healthy run (Bugbot r4681021621). A run killed
+ * with budget still remaining is a hang instead: each repetition is capped
+ * at HANG_TIMEOUT_MINUTES (default 20), and exceeding that limit fails the
+ * job (Bugbot r4681021621 follow-up).
  *
  * Env: CHANGED_CV_TEST_FILES space-separated changed paths; REPEAT_COUNT
  * repetitions per file (default 5); MAX_FILES cap (default 10);
- * TIME_BUDGET_MINUTES budget, 0 disables (default 60); JEST_BIN_PATH and
+ * TIME_BUDGET_MINUTES budget, 0 disables (default 60); HANG_TIMEOUT_MINUTES
+ * per-repetition hang limit, 0 disables (default 20); JEST_BIN_PATH and
  * JEST_NODE_PATH override the Jest entry and Node runtime (test hooks);
  * CV_FLAKINESS_DEADLINE_MS test hook: absolute epoch-ms budget deadline;
  * GITHUB_TOKEN, REPOSITORY, PR_NUMBER label check inputs; GITHUB_OUTPUT,
@@ -41,6 +44,9 @@ import { spawnSync } from 'node:child_process';
 const DEFAULT_JEST_BIN = 'node_modules/jest/bin/jest.js';
 const SKIP_LABEL = 'skip-cv-flakiness-detection';
 const CV_TEST_FILE_PATTERN = /\.view\.test\.(ts|tsx)$/u;
+// Spawn safety net for a repetition when both the time budget and the hang
+// limit are disabled: a hung Jest cannot outlive the run on its own.
+const SPAWN_SAFETY_NET_MINUTES = 30;
 // CV_FLAKINESS_RESULTS_DIR keeps unit tests out of the repository working tree.
 const RESULTS_DIR = process.env.CV_FLAKINESS_RESULTS_DIR || 'tests/results/cv-flakiness';
 
@@ -49,6 +55,7 @@ const env = {
   REPEAT_COUNT: Number(process.env.REPEAT_COUNT || 5),
   MAX_FILES: Number(process.env.MAX_FILES || 10),
   TIME_BUDGET_MINUTES: Number(process.env.TIME_BUDGET_MINUTES ?? 60),
+  HANG_TIMEOUT_MINUTES: Number(process.env.HANG_TIMEOUT_MINUTES || 20),
   JEST_BIN_PATH: process.env.JEST_BIN_PATH || DEFAULT_JEST_BIN,
   TEST_OS: process.env.TEST_OS || 'ios',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
@@ -241,7 +248,11 @@ function markSkipped(summaryLine) {
 }
 
 /** Every failure in one repetition — assertions plus crashes, unreadable reports and suite-level errors. Pure: callers decide how to surface them. */
-export function collectIterationFailures(run, report, { budgetKilled = false } = {}) {
+export function collectIterationFailures(
+  run,
+  report,
+  { budgetKilled = false, killLimitMinutes = 'unknown' } = {},
+) {
   const found = [];
   for (const suite of report.suites) {
     if (suite.status !== 'failed') continue;
@@ -260,7 +271,7 @@ export function collectIterationFailures(run, report, { budgetKilled = false } =
   // A kill at the spawn timeout with a finite deadline is the time budget
   // cutting a healthy repetition short, not a hang: it is handled as a budget
   // stop by the caller and must not become a failure (Bugbot r4681021621).
-  const crashReason = budgetKilled ? '' : describeCleanRunGap(run, report);
+  const crashReason = budgetKilled ? '' : describeCleanRunGap(run, report, killLimitMinutes);
   if (crashReason && found.length === 0) {
     found.push({ kind: 'clean-run', reason: crashReason });
   }
@@ -268,10 +279,10 @@ export function collectIterationFailures(run, report, { budgetKilled = false } =
 }
 
 /** Why a repetition did not end cleanly, independent of parsed assertions; empty when clean. */
-function describeCleanRunGap(run, report) {
+function describeCleanRunGap(run, report, killLimitMinutes) {
   if (run.error?.code === 'ETIMEDOUT' || run.signal === 'SIGTERM') {
     // spawnSync reports its own timeout as ETIMEDOUT + SIGTERM; SIGTERM has no other source here.
-    return 'Jest was aborted (SIGTERM) after exceeding the remaining time budget';
+    return `Jest was killed after ${killLimitMinutes} minute(s) without finishing (suspected hang)`;
   }
   if (run.signal) return `Jest was terminated by signal ${run.signal}`;
   if (run.error) return `Jest could not be started (${run.error.code || run.error.message})`;
@@ -302,9 +313,12 @@ export function resolveDeadline(minutes) {
 /**
  * Shared repetition core behind the CI job and the local `yarn test:view:repeat`
  * entry point: repeats `files` once per repetition with the file order shuffled
- * and Jest `--randomize`, honouring the time budget. A repetition killed at the
- * spawn timeout with a finite deadline is a warning-only budget stop — never a
- * failure, so a healthy run cannot be failed by the budget (Bugbot r4681021621).
+ * and Jest `--randomize`, honouring the time budget and the per-repetition
+ * hang limit. A repetition killed at the spawn timeout is a warning-only
+ * budget stop when the remaining budget bound the timeout — never a failure,
+ * so a healthy run cannot be failed by the budget (Bugbot r4681021621) — and
+ * a suspected hang that fails the run when the hang limit bound it with
+ * budget still remaining.
  *
  * Reports each repetition through `onIteration` and returns everything the
  * callers need for their summaries. With `stopOnFirstFailure` (local mode) the
@@ -349,26 +363,44 @@ export function runRepetitions(
     const iterationStartedAt = Date.now();
 
     console.log(`\n🔁 Iteration ${iteration}/${repeatCount} (seed ${seed})…`);
-    // Safety net so a hung Jest run cannot outlive the budget on its own:
-    // the remaining budget (at least 1s), or 30 minutes when it is disabled.
-    const timeoutMs = Number.isFinite(deadlineMs)
+    // Safety net so a hung Jest run cannot outlive the run on its own: the
+    // smaller of the remaining time budget and the per-repetition hang limit,
+    // or 30 minutes when both are disabled. Whichever bound the timeout also
+    // decides what a kill at it means.
+    const remainingBudgetMs = Number.isFinite(deadlineMs)
       ? Math.max(deadlineMs - Date.now(), 1000)
-      : 30 * 60000;
+      : Number.POSITIVE_INFINITY;
+    const hangTimeoutMs =
+      Number.isFinite(env.HANG_TIMEOUT_MINUTES) && env.HANG_TIMEOUT_MINUTES > 0
+        ? env.HANG_TIMEOUT_MINUTES * 60000
+        : Number.POSITIVE_INFINITY;
+    const timeoutMs = Math.min(remainingBudgetMs, hangTimeoutMs);
+    const spawnTimeoutMs = Number.isFinite(timeoutMs) ? timeoutMs : SPAWN_SAFETY_NET_MINUTES * 60000;
     const run = spawnSync(command, args, {
       env: { ...process.env, TEST_OS: env.TEST_OS },
       encoding: 'utf8',
-      timeout: timeoutMs,
+      timeout: spawnTimeoutMs,
     });
     const durationSeconds = Math.round((Date.now() - iterationStartedAt) / 1000);
 
     const report = parseJestReport(outputFile);
-    // A kill that lasted the full spawn timeout with a finite deadline is the
-    // budget cutting the repetition short; anything earlier is not budget-driven.
-    const budgetKilled =
-      Number.isFinite(deadlineMs) &&
+    // A kill that lasted the full spawn timeout is budget-driven when the
+    // remaining budget bound the timeout — a warning-only budget stop, never
+    // a failure, so the budget cannot fail a healthy run (Bugbot r4681021621).
+    // With budget still remaining the hang limit bound the timeout instead:
+    // the run is a suspected hang and fails the job (Bugbot follow-up).
+    const killedAtSpawnTimeout =
       (run.error?.code === 'ETIMEDOUT' || run.signal === 'SIGTERM') &&
-      Date.now() - iterationStartedAt >= timeoutMs - 1000;
-    const iterationFailures = collectIterationFailures(run, report, { budgetKilled });
+      Date.now() - iterationStartedAt >= spawnTimeoutMs - 1000;
+    const budgetBound = Number.isFinite(deadlineMs) && remainingBudgetMs <= hangTimeoutMs;
+    const budgetKilled = killedAtSpawnTimeout && budgetBound;
+    const killLimitMinutes = Number.isFinite(hangTimeoutMs)
+      ? env.HANG_TIMEOUT_MINUTES
+      : SPAWN_SAFETY_NET_MINUTES;
+    const iterationFailures = collectIterationFailures(run, report, {
+      budgetKilled,
+      killLimitMinutes,
+    });
     const stopped = budgetKilled && iterationFailures.length === 0;
     const iterationPassed = !stopped && iterationFailures.length === 0;
 
