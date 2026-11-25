@@ -869,7 +869,7 @@ const TokenDetails: React.FC<{
             {overview}
             <ActivitySection token={token} includeNonEvm showEvmFooter />
           </View>
-          {showFeedTab && caip19AssetId && mountedTabs.has('feed') && (
+          {showFeedTab && Boolean(caip19AssetId) && mountedTabs.has('feed') && (
             <View
               style={isFeedActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
               testID={TokenDetailsIds.tabPage('feed')}
