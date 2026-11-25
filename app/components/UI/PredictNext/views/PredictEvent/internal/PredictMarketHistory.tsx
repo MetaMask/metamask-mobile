@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import {
   Box,
@@ -124,15 +124,20 @@ const MarketHistoryContent = ({
   legend,
 }: MarketHistoryContentProps) => {
   const chartStateStyle = { height: PREDICT_MARKET_CHART_HEIGHT };
-  const chartSeries: PredictMarketChartSeries[] = series
-    .filter((entry) => entry.points.length >= 2)
-    .map((entry) => ({
-      id: entry.id,
-      label: entry.label,
-      color: entry.color,
-      data: entry.points,
-      endValue: entry.endValue,
-    }));
+  // PredictMarketChart rebuilds d3 paths when this array's identity changes.
+  const chartSeries = useMemo<PredictMarketChartSeries[]>(
+    () =>
+      series
+        .filter((entry) => entry.points.length >= 2)
+        .map((entry) => ({
+          id: entry.id,
+          label: entry.label,
+          color: entry.color,
+          data: entry.points,
+          endValue: entry.endValue,
+        })),
+    [series],
+  );
   const hasDrawableSeries = chartSeries.length > 0;
 
   const renderChartState = () => {
@@ -252,43 +257,63 @@ export const PredictMarketHistory = ({
   const isTrailEnabled = !isStandardEvent && range === 'LIVE';
   const yesTrail = useLiveQuoteTrail(market, yesOutcome, isTrailEnabled);
   const noTrail = useLiveQuoteTrail(market, noOutcome, isTrailEnabled);
-  const points = historyQuery.data?.points ?? [];
-  const extendPoints = (
-    field: 'yesPrice' | 'noPrice',
-    trail: readonly PredictMarketChartPoint[],
-  ) => {
-    const chartPoints = toChartPoints(points, field);
-    if (!isStandardEvent) {
-      return appendLiveQuoteTrail(chartPoints, trail);
-    }
-    const side = field === 'noPrice' ? 'no' : 'yes';
-    return appendLiveEndpoint(chartPoints, market, side);
-  };
-  const series: MarketHistorySeries[] = [
-    ...(yesOutcome
-      ? [
-          {
-            id: yesOutcome.id,
-            label: yesOutcome.label || strings('predict.market_details.yes'),
-            color: colors.primary.default,
-            points: extendPoints('yesPrice', yesTrail),
-          },
-        ]
-      : []),
-    ...(noOutcome
-      ? [
-          {
-            id: noOutcome.id,
-            label:
-              noOutcome.label && noOutcome.label !== yesOutcome?.label
-                ? noOutcome.label
-                : strings('predict.market_details.no'),
-            color: colors.error.default,
-            points: extendPoints('noPrice', noTrail),
-          },
-        ]
-      : []),
-  ];
+  const historyPoints = historyQuery.data?.points;
+  const yesLabel = yesOutcome?.label || strings('predict.market_details.yes');
+  const noLabel =
+    noOutcome?.label && noOutcome.label !== yesOutcome?.label
+      ? noOutcome.label
+      : strings('predict.market_details.no');
+  // Same plotted inputs must keep the same series array. A list scroll or a
+  // quote for another Market re-renders this header without moving this line.
+  const series = useMemo<MarketHistorySeries[]>(() => {
+    const points = historyPoints ?? [];
+    const extendPoints = (
+      field: 'yesPrice' | 'noPrice',
+      trail: readonly PredictMarketChartPoint[],
+    ) => {
+      const chartPoints = toChartPoints(points, field);
+      if (!isStandardEvent) {
+        return appendLiveQuoteTrail(chartPoints, trail);
+      }
+      const side = field === 'noPrice' ? 'no' : 'yes';
+      return appendLiveEndpoint(chartPoints, market, side);
+    };
+
+    return [
+      ...(yesOutcome
+        ? [
+            {
+              id: yesOutcome.id,
+              label: yesLabel,
+              color: colors.primary.default,
+              points: extendPoints('yesPrice', yesTrail),
+            },
+          ]
+        : []),
+      ...(noOutcome
+        ? [
+            {
+              id: noOutcome.id,
+              label: noLabel,
+              color: colors.error.default,
+              points: extendPoints('noPrice', noTrail),
+            },
+          ]
+        : []),
+    ];
+  }, [
+    colors.error.default,
+    colors.primary.default,
+    historyPoints,
+    isStandardEvent,
+    market,
+    noLabel,
+    noOutcome,
+    noTrail,
+    yesLabel,
+    yesOutcome,
+    yesTrail,
+  ]);
 
   return (
     <MarketHistoryContent
@@ -334,34 +359,56 @@ export const PredictGameMarketHistory = ({
     range === 'LIVE',
   );
   const hasCompleteData = Boolean(homeHistory.data && awayHistory.data);
+  const homePoints = homeHistory.data?.points;
+  const awayPoints = awayHistory.data?.points;
+  const homeLabel = getCompactTeamLabel(home.team);
+  const awayLabel = getCompactTeamLabel(away.team);
+  const homeColor = home.team.primaryColor ?? colors.success.default;
+  const awayColor = away.team.primaryColor ?? colors.info.default;
   // Each line plots the last-traded probability of the Outcome that
-  // carries that Team's Game Selection.
-  const series: MarketHistorySeries[] = [
-    {
-      id: home.outcome.id,
-      label: getCompactTeamLabel(home.team),
-      color: home.team.primaryColor ?? colors.success.default,
-      points: appendLiveQuoteTrail(
-        toChartPoints(
-          homeHistory.data?.points ?? [],
-          home.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+  // carries that Team's Game Selection. A score tick does not change these.
+  const series = useMemo<MarketHistorySeries[]>(
+    () => [
+      {
+        id: home.outcome.id,
+        label: homeLabel,
+        color: homeColor,
+        points: appendLiveQuoteTrail(
+          toChartPoints(
+            homePoints ?? [],
+            home.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+          ),
+          homeTrail,
         ),
-        homeTrail,
-      ),
-    },
-    {
-      id: away.outcome.id,
-      label: getCompactTeamLabel(away.team),
-      color: away.team.primaryColor ?? colors.info.default,
-      points: appendLiveQuoteTrail(
-        toChartPoints(
-          awayHistory.data?.points ?? [],
-          away.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+      },
+      {
+        id: away.outcome.id,
+        label: awayLabel,
+        color: awayColor,
+        points: appendLiveQuoteTrail(
+          toChartPoints(
+            awayPoints ?? [],
+            away.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+          ),
+          awayTrail,
         ),
-        awayTrail,
-      ),
-    },
-  ];
+      },
+    ],
+    [
+      away.outcome.id,
+      away.outcome.side,
+      awayColor,
+      awayLabel,
+      awayPoints,
+      awayTrail,
+      home.outcome.id,
+      home.outcome.side,
+      homeColor,
+      homeLabel,
+      homePoints,
+      homeTrail,
+    ],
+  );
 
   return (
     <MarketHistoryContent
@@ -447,40 +494,75 @@ export const PredictTopMarketsHistory = ({
   const [range, setRange] = useState<PredictMarketHistoryRange>('ALL');
   const [first, second, third] = markets;
   // Theme colors in rank order, so the lines follow light and dark mode.
-  const seriesColors = [
-    colors.success.default,
-    colors.primary.default,
-    colors.warning.default,
-  ];
+  const firstColor = colors.success.default;
+  const secondColor = colors.primary.default;
+  const thirdColor = colors.warning.default;
   // Fixed slots keep the hook order stable when fewer Markets are charted.
-  const histories = [
-    useMarketHistory(venueId, first?.id ?? '', range, Boolean(first)),
-    useMarketHistory(venueId, second?.id ?? '', range, Boolean(second)),
-    useMarketHistory(venueId, third?.id ?? '', range, Boolean(third)),
-  ];
+  const firstHistory = useMarketHistory(
+    venueId,
+    first?.id ?? '',
+    range,
+    Boolean(first),
+  );
+  const secondHistory = useMarketHistory(
+    venueId,
+    second?.id ?? '',
+    range,
+    Boolean(second),
+  );
+  const thirdHistory = useMarketHistory(
+    venueId,
+    third?.id ?? '',
+    range,
+    Boolean(third),
+  );
+  const histories = [firstHistory, secondHistory, thirdHistory];
   const charted = [first, second, third].flatMap((market, index) =>
     market ? [{ market, history: histories[index] }] : [],
   );
   const hasCompleteData = charted.every(({ history }) => history.data);
-  const series: MarketHistorySeries[] = charted.map(
-    ({ market, history }, index) => {
+  const firstPoints = firstHistory.data?.points;
+  const secondPoints = secondHistory.data?.points;
+  const thirdPoints = thirdHistory.data?.points;
+  const series = useMemo<MarketHistorySeries[]>(() => {
+    const slots = [
+      { market: first, points: firstPoints, color: firstColor },
+      { market: second, points: secondPoints, color: secondColor },
+      { market: third, points: thirdPoints, color: thirdColor },
+    ];
+    return slots.flatMap(({ market, points, color }) => {
+      if (!market) {
+        return [];
+      }
       const yesOutcome = market.outcomes.find(
         (outcome) => outcome.side === 'yes',
       );
-      return {
-        id: market.id,
-        label: yesOutcome?.label || market.question,
-        color: seriesColors[index],
-        points: appendLiveEndpoint(
-          toChartPoints(history.data?.points ?? [], 'yesPrice'),
-          market,
-          'yes',
-        ),
-        // No ask: a dash, as in the legend, not the last plotted value.
-        endValue: getYesAskProbability(market) ?? null,
-      };
-    },
-  );
+      return [
+        {
+          id: market.id,
+          label: yesOutcome?.label || market.question,
+          color,
+          points: appendLiveEndpoint(
+            toChartPoints(points ?? [], 'yesPrice'),
+            market,
+            'yes',
+          ),
+          // No ask: a dash, as in the legend, not the last plotted value.
+          endValue: getYesAskProbability(market) ?? null,
+        },
+      ];
+    });
+  }, [
+    first,
+    firstColor,
+    firstPoints,
+    second,
+    secondColor,
+    secondPoints,
+    third,
+    thirdColor,
+    thirdPoints,
+  ]);
 
   return (
     <MarketHistoryContent
