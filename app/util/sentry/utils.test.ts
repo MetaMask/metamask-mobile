@@ -8,6 +8,7 @@ import {
   reactNativeTracingIntegration,
   reactNavigationIntegration,
   setTag as sentrySetTag,
+  spotlightIntegration,
 } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
@@ -1472,6 +1473,68 @@ describe('setupSentry', () => {
     expect(integrationNames).toContain('ReactNativeTracing');
     expect(reactNativeTracingIntegration).toHaveBeenCalledWith({
       traceFetch: true,
+    });
+  });
+
+  describe('Spotlight', () => {
+    const originalSpotlight = process.env.SENTRY_SPOTLIGHT;
+    const originalDev = (global as { __DEV__?: boolean }).__DEV__;
+
+    const getInitOptions = () =>
+      mockedInit.mock.calls[0][0] as {
+        integrations: { name: string }[];
+        spotlight?: unknown;
+      };
+
+    afterEach(() => {
+      if (originalSpotlight === undefined) {
+        delete process.env.SENTRY_SPOTLIGHT;
+      } else {
+        process.env.SENTRY_SPOTLIGHT = originalSpotlight;
+      }
+      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
+      jest.mocked(spotlightIntegration).mockClear();
+    });
+
+    it('adds the Spotlight integration, not the init option, in dev when SENTRY_SPOTLIGHT is "true"', async () => {
+      process.env.SENTRY_SPOTLIGHT = 'true';
+      (global as { __DEV__?: boolean }).__DEV__ = true;
+
+      await setupSentry();
+
+      const options = getInitOptions();
+      expect(spotlightIntegration).toHaveBeenCalledTimes(1);
+      expect(options.integrations.map((i) => i.name)).toContain('Spotlight');
+      // The init option is also forwarded to the native SDKs, which sends a
+      // second copy of every envelope to the sidecar.
+      expect(options).not.toHaveProperty('spotlight');
+    });
+
+    it.each(['false', '1', ''])(
+      'does not add the Spotlight integration when SENTRY_SPOTLIGHT is "%s"',
+      async (value) => {
+        process.env.SENTRY_SPOTLIGHT = value;
+        (global as { __DEV__?: boolean }).__DEV__ = true;
+
+        await setupSentry();
+
+        expect(spotlightIntegration).not.toHaveBeenCalled();
+        expect(getInitOptions().integrations.map((i) => i.name)).not.toContain(
+          'Spotlight',
+        );
+      },
+    );
+
+    it('does not add the Spotlight integration in a release build', async () => {
+      process.env.SENTRY_SPOTLIGHT = 'true';
+      (global as { __DEV__?: boolean }).__DEV__ = false;
+
+      await setupSentry();
+
+      expect(spotlightIntegration).not.toHaveBeenCalled();
+      expect(getInitOptions().integrations.map((i) => i.name)).not.toContain(
+        'Spotlight',
+      );
     });
   });
 
