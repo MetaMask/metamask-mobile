@@ -8,12 +8,15 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import {
   startRampsBuyCufTrace,
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
   isRampsNativeProviderId,
+  buildRampsBuyOrderDetailsCufEndData,
+  endRampsBuyHeadlessCallbackCuf,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
   buildRampsBuyQuoteFetchStartTags,
@@ -29,6 +32,7 @@ import {
   RAMPS_BUY_CUF_SURFACE,
   RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
+  RAMPS_BUY_CUF_BOUNDARY,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_TIMEOUT_MS,
@@ -514,6 +518,95 @@ describe('rampsBuyCufTrace', () => {
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({ id: nativeId }),
       );
+    });
+  });
+
+  describe('Order Details parent end data (TRAM-4173)', () => {
+    it.each([
+      RampsOrderStatus.Created,
+      RampsOrderStatus.Pending,
+      RampsOrderStatus.Completed,
+      RampsOrderStatus.Cancelled,
+    ])('ends the parent as successful for a %s order', (status) => {
+      expect(buildRampsBuyOrderDetailsCufEndData(status, 'ord-1')).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: 'ord-1',
+      });
+    });
+
+    it.each([RampsOrderStatus.Failed, RampsOrderStatus.IdExpired])(
+      'ends the parent as an error for a %s order',
+      (status) => {
+        expect(buildRampsBuyOrderDetailsCufEndData(status, 'ord-1')).toEqual({
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+          orderId: 'ord-1',
+        });
+      },
+    );
+  });
+
+  describe('Headless callback completion (TRAM-4173)', () => {
+    const startWithNativeChild = () => {
+      startRampsBuyCufTrace();
+      const nativeId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeToOrderCreated,
+      });
+      mockEndTrace.mockClear();
+      return nativeId;
+    };
+
+    it('closes the native child as successful, then ends the parent as headless', () => {
+      const nativeId = startWithNativeChild();
+
+      endRampsBuyHeadlessCallbackCuf({ orderId: 'ord-1', failed: false });
+
+      const calls = mockEndTrace.mock.calls.map(([args]) => args);
+      const childEnds = calls.filter((args) => args.id === nativeId);
+      expect(childEnds).toHaveLength(1);
+      expect(childEnds[0].data).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: 'ord-1',
+      });
+      const parentEnd = calls.find((args) => args.id !== nativeId);
+      expect(parentEnd?.data).toEqual(
+        expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.HEADLESS,
+          orderId: 'ord-1',
+        }),
+      );
+      expect(calls.findIndex((args) => args.id === nativeId)).toBeLessThan(
+        calls.findIndex((args) => args.id !== nativeId),
+      );
+    });
+
+    it('ends both the native child and the parent as errors on failure', () => {
+      const nativeId = startWithNativeChild();
+
+      endRampsBuyHeadlessCallbackCuf({ orderId: 'ord-1', failed: true });
+
+      const calls = mockEndTrace.mock.calls.map(([args]) => args);
+      expect(calls.find((args) => args.id === nativeId)?.data).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        orderId: 'ord-1',
+      });
+      expect(calls.find((args) => args.id !== nativeId)?.data).toEqual(
+        expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        }),
+      );
+    });
+
+    it('is a no-op when no journey is active', () => {
+      expect(() =>
+        endRampsBuyHeadlessCallbackCuf({ orderId: 'ord-1', failed: false }),
+      ).not.toThrow();
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
   });
 

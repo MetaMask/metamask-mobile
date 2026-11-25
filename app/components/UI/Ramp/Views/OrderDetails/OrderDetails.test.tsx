@@ -10,7 +10,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { TraceName } from '../../../../../util/trace';
-import { RAMPS_BUY_CUF_TAG } from '../../constants/rampsBuyCufTags';
+import {
+  RAMPS_BUY_CUF_BOUNDARY,
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
 import {
   cancelWalletHomeOnboardingFundFlow,
   consumeWalletHomeOnboardingFundFlowCompletion,
@@ -326,6 +330,68 @@ describe('OrderDetails', () => {
         TraceName.RampBuyNativeToOrderCreated,
         { [RAMPS_BUY_CUF_TAG.SUCCESS]: true, orderId: 'ord-native-failed' },
       );
+    });
+  });
+
+  it('ends the buy journey as an error when the order has already failed', async () => {
+    const failedOrder = {
+      providerOrderId: 'ord-failed',
+      status: RampsOrderStatus.Failed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(failedOrder);
+    mockGetOrderFromCallback.mockResolvedValue(failedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndBuyCufTrace).toHaveBeenCalledTimes(1);
+    });
+    expect(mockEndBuyCufTrace).toHaveBeenCalledWith({
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: 'ord-failed',
+      },
+    });
+  });
+
+  it('ends the buy journey as successful for a created order', async () => {
+    const createdOrder = {
+      providerOrderId: 'ord-created',
+      status: RampsOrderStatus.Created,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(createdOrder);
+    mockGetOrderFromCallback.mockResolvedValue(createdOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEndBuyCufTrace).toHaveBeenCalledWith({
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+          orderId: 'ord-created',
+        },
+      });
     });
   });
 

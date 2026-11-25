@@ -1,4 +1,5 @@
 import { AppState, type AppStateStatus } from 'react-native';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
@@ -16,6 +17,7 @@ import {
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_SURFACE,
   RAMPS_BUY_CUF_PATH,
+  RAMPS_BUY_CUF_BOUNDARY,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_LOG_MARKER,
@@ -523,6 +525,67 @@ export function isRampsNativeProviderId(providerId?: string | null): boolean {
     return false;
   }
   return providerId.replace(/^\/providers\//, '').startsWith('transak-native');
+}
+
+/**
+ * End data for the parent `Ramp Buy To Order Details` journey once the order
+ * shows on Order Details.
+ *
+ * Reaching Order Details is the success boundary, but an order that is already
+ * `FAILED` or `ID_EXPIRED` means the buy did not deliver crypto, so it ends as
+ * `reason:error` (the signal F1 alerts on) instead of a clean success.
+ */
+export function buildRampsBuyOrderDetailsCufEndData(
+  status: RampsOrderStatus,
+  orderId: string,
+): Record<string, TraceValue> {
+  const failed =
+    status === RampsOrderStatus.Failed || status === RampsOrderStatus.IdExpired;
+  return {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: !failed,
+    ...(failed
+      ? { [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR }
+      : {}),
+    [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+    orderId,
+  };
+}
+
+/**
+ * Closes the Buy journey for a headless checkout callback, which never shows
+ * Order Details. The native child is closed first because ending the parent
+ * abandons any child still open (TRAM-4173).
+ *
+ * On success the child is `success:true` (the order was created) and the parent
+ * ends with `reason:headless`, matching the headless Order Processing path. On
+ * failure both end with `reason:error`.
+ */
+export function endRampsBuyHeadlessCallbackCuf({
+  orderId,
+  failed,
+}: {
+  orderId: string;
+  failed: boolean;
+}): void {
+  endOpenRampsBuyCufChildrenByName(
+    TraceName.RampBuyNativeToOrderCreated,
+    failed
+      ? {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          orderId,
+        }
+      : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true, orderId },
+  );
+  endRampsBuyCufTrace({
+    data: {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: failed
+        ? RAMPS_BUY_CUF_END_REASON.ERROR
+        : RAMPS_BUY_CUF_END_REASON.HEADLESS,
+      orderId,
+    },
+  });
 }
 
 function abandonOpenChildTraces(reason: string): void {
