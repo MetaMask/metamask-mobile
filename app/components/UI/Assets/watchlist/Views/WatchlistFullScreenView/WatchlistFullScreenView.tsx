@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import Animated, {
   FadeIn,
@@ -66,12 +66,12 @@ import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags'
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useUnifiedWatchlist } from '../../../../Watchlist/hooks/useUnifiedWatchlist';
+import { useOptimisticPerpsWatchlist } from '../../../../Watchlist/hooks/useOptimisticPerpsWatchlist';
 import type {
   UnifiedWatchlistItem,
   WatchlistFilter,
 } from '../../../../Watchlist/types';
 import {
-  createUnifiedWatchlistPerp,
   filterWatchlistItems,
   getPerpsWatchlistKey,
   getTokenWatchlistKey,
@@ -81,10 +81,7 @@ import {
 import WatchlistErrorRow from '../../../../Watchlist/WatchlistErrorRow';
 import { usePerpsNavigation } from '../../../../Perps/hooks/usePerpsNavigation';
 import { usePerpsWatchlistActions } from '../../../../Perps/hooks/usePerpsWatchlistActions';
-import {
-  PERPS_EVENT_VALUE,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   PerpsStreamProvider,
   type PerpsStreamManager,
@@ -107,8 +104,6 @@ const rowEnterAnimation = FadeIn.duration(ANIMATION_DURATION);
 const rowExitAnimation = FadeOut.duration(ANIMATION_DURATION);
 const rowLayoutAnimation = LinearTransition.duration(ANIMATION_DURATION);
 
-const normalizePerpSymbol = (symbol: string): string => symbol.toLowerCase();
-
 interface WatchlistFullViewRouteParams {
   source?: string;
 }
@@ -126,7 +121,6 @@ interface WatchlistFullScreenShellProps {
   canEdit?: boolean;
   onEditPress?: () => void;
   onDonePress?: () => Promise<void>;
-  onExitEditMode?: () => void;
   filterBar?: React.ReactNode;
   showInitialSkeletons: boolean;
   showEmptyCta: boolean;
@@ -146,7 +140,6 @@ const WatchlistFullScreenShell = ({
   canEdit = false,
   onEditPress,
   onDonePress,
-  onExitEditMode,
   filterBar,
   showInitialSkeletons,
   showEmptyCta,
@@ -250,7 +243,7 @@ const WatchlistFullScreenShell = ({
     onEditPress,
   ]);
 
-  const headerBackHandler = isEditMode ? onExitEditMode : handleBack;
+  const headerBackHandler = isEditMode ? undefined : handleBack;
 
   const renderBody = (): React.ReactNode => {
     if (showInitialSkeletons) {
@@ -445,62 +438,35 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
 
   const [activeFilter, setActiveFilter] = useState<WatchlistFilter>('all');
   const [isDragging, setIsDragging] = useState(false);
-  const [optimisticPerpAdds, setOptimisticPerpAdds] = useState<
-    Map<string, PerpsMarketData>
-  >(() => new Map());
-  const [optimisticPerpRemovals, setOptimisticPerpRemovals] = useState<
-    Set<string>
-  >(() => new Set());
 
   const shouldReduceMotion = reduceMotion || !canUseMotion;
   const enterAnimation = shouldReduceMotion ? undefined : rowEnterAnimation;
   const exitAnimation = shouldReduceMotion ? undefined : rowExitAnimation;
   const layoutAnimation = shouldReduceMotion ? undefined : rowLayoutAnimation;
 
-  const persistedPerpSymbols = useMemo(
-    () => new Set(perps.items.map((item) => normalizePerpSymbol(item.symbol))),
-    [perps.items],
+  const handlePerpAdded = useCallback(
+    (symbol: string) => {
+      if (isOrderReady) {
+        appendOrderKey(getPerpsWatchlistKey(symbol)).catch(() => undefined);
+      }
+    },
+    [appendOrderKey, isOrderReady],
   );
 
-  useEffect(() => {
-    setOptimisticPerpAdds((current) => {
-      const next = new Map(current);
-      current.forEach((_market, symbol) => {
-        if (persistedPerpSymbols.has(symbol)) {
-          next.delete(symbol);
-        }
-      });
-      return next.size === current.size ? current : next;
-    });
-    setOptimisticPerpRemovals((current) => {
-      const next = new Set(current);
-      current.forEach((symbol) => {
-        if (!persistedPerpSymbols.has(symbol)) {
-          next.delete(symbol);
-        }
-      });
-      return next.size === current.size ? current : next;
-    });
-  }, [persistedPerpSymbols]);
-
-  const displayOrderedItems = useMemo(() => {
-    const existingPerpSymbols = new Set<string>();
-    const filtered = orderedItems.filter((item) => {
-      if (item.kind === 'token') {
-        return true;
-      }
-      const symbol = normalizePerpSymbol(item.symbol);
-      existingPerpSymbols.add(symbol);
-      return !optimisticPerpRemovals.has(symbol);
-    });
-
-    optimisticPerpAdds.forEach((market, symbol) => {
-      if (!existingPerpSymbols.has(symbol)) {
-        filtered.push(createUnifiedWatchlistPerp(market));
-      }
-    });
-    return filtered;
-  }, [optimisticPerpAdds, optimisticPerpRemovals, orderedItems]);
+  const {
+    displayOrderedItems,
+    watchlistedPerpSymbols,
+    hasPendingPerpMutations,
+    addPerp: handleAddPerp,
+    removePerp,
+  } = useOptimisticPerpsWatchlist({
+    orderedItems,
+    persistedPerps: perps.items,
+    perpsMembershipSymbols,
+    addPerpToWatchlist,
+    removePerpFromWatchlist: removeFromWatchlist,
+    onPerpAdded: handlePerpAdded,
+  });
 
   const visibleItems = useMemo(
     () => filterWatchlistItems(displayOrderedItems, activeFilter),
@@ -526,16 +492,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     !isDragging &&
     watchedItemCount <= MAX_WATCHED_ITEMS_FOR_SUGGESTIONS &&
     remainingSuggestedCount > 0;
-
-  const watchlistedPerpSymbols = useMemo(
-    () => [
-      ...perpsMembershipSymbols.filter(
-        (symbol) => !optimisticPerpRemovals.has(normalizePerpSymbol(symbol)),
-      ),
-      ...Array.from(optimisticPerpAdds.values()).map((market) => market.symbol),
-    ],
-    [optimisticPerpAdds, optimisticPerpRemovals, perpsMembershipSymbols],
-  );
 
   const visibleSuggestions = useMemo(() => {
     if (!canShowSuggestions) {
@@ -593,91 +549,29 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     [addTokenMutation, analytics, appendOrderKey, isOrderReady],
   );
 
-  const handleAddPerp = useCallback(
-    (market: PerpsMarketData) => {
-      const symbol = normalizePerpSymbol(market.symbol);
-      setOptimisticPerpRemovals((current) => {
-        if (!current.has(symbol)) {
-          return current;
-        }
-        const next = new Set(current);
-        next.delete(symbol);
-        return next;
-      });
-      setOptimisticPerpAdds((current) => {
-        const next = new Map(current);
-        next.set(symbol, market);
-        return next;
-      });
-
-      addPerpToWatchlist(market.symbol)
-        .then((wasAdded) => {
-          if (wasAdded) {
-            if (isOrderReady) {
-              appendOrderKey(getPerpsWatchlistKey(market.symbol)).catch(
-                () => undefined,
-              );
-            }
-            return;
-          }
-          setOptimisticPerpAdds((current) => {
-            const next = new Map(current);
-            next.delete(symbol);
-            return next;
-          });
-        })
-        .catch(() => {
-          setOptimisticPerpAdds((current) => {
-            const next = new Map(current);
-            next.delete(symbol);
-            return next;
-          });
-        });
-    },
-    [addPerpToWatchlist, appendOrderKey, isOrderReady],
-  );
-
   const handleRemoveFromWatchlist = useCallback(
     (item: UnifiedWatchlistItem) => {
       if (item.kind === 'token') {
-        removeTokenMutation.mutate(item.assetId as CaipAssetType);
+        removeTokenMutation.mutate(item.assetId as CaipAssetType, {
+          onSuccess: () => {
+            analytics.trackEvent(
+              analytics
+                .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
+                .addProperties({
+                  source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+                  asset_id: item.assetId,
+                  asset_type: getWatchlistAssetType(item.assetId),
+                })
+                .build(),
+            );
+          },
+        });
         return;
       }
 
-      const symbol = normalizePerpSymbol(item.symbol);
-      setOptimisticPerpAdds((current) => {
-        if (!current.has(symbol)) {
-          return current;
-        }
-        const next = new Map(current);
-        next.delete(symbol);
-        return next;
-      });
-      setOptimisticPerpRemovals((current) => {
-        const next = new Set(current);
-        next.add(symbol);
-        return next;
-      });
-      removeFromWatchlist(item.symbol)
-        .then((wasRemoved) => {
-          if (wasRemoved) {
-            return;
-          }
-          setOptimisticPerpRemovals((current) => {
-            const next = new Set(current);
-            next.delete(symbol);
-            return next;
-          });
-        })
-        .catch(() => {
-          setOptimisticPerpRemovals((current) => {
-            const next = new Set(current);
-            next.delete(symbol);
-            return next;
-          });
-        });
+      removePerp(item.symbol);
     },
-    [removeFromWatchlist, removeTokenMutation],
+    [analytics, removePerp, removeTokenMutation],
   );
 
   const handleDragStart = useCallback(() => {
@@ -715,8 +609,8 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     activeFilter === 'all' &&
     isOrderReady &&
     !isInitialLoading &&
-    optimisticPerpAdds.size === 0 &&
-    optimisticPerpRemovals.size === 0;
+    !hasPendingPerpMutations &&
+    displayOrderedItems.length > 1;
 
   const handleReorder = useCallback(
     ({ from, to }: ReorderableListReorderEvent) => {

@@ -140,7 +140,7 @@ const WatchlistTokenRowItem = ({
           </Tag>
         ) : undefined
       }
-      description={`${token.symbol} · ${formatMarketStats(
+      description={`${token.symbol} • ${formatMarketStats(
         token.marketCap ?? 0,
         token.aggregatedUsdVolume ?? 0,
         currentCurrency,

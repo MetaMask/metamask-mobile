@@ -323,6 +323,42 @@ describe('WatchlistSearchContent', () => {
     expect(getByText('Check out other popular assets')).toBeDefined();
   });
 
+  it('shows Perps markets immediately on the Perps filter even before typing a query', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        {
+          market: {
+            symbol: 'ETH',
+            name: 'Ethereum Perpetual',
+            price: '$2,000.00',
+            change24h: '+$50.00',
+            change24hPercent: '+2.50%',
+            volume: '$1.5B',
+            maxLeverage: '50x',
+            openInterest: '$500M',
+            marketType: 'crypto',
+          },
+          isWatchlisted: false,
+          sparklineData: [],
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+      defaultSortOptionId: 'volume',
+    });
+
+    const { getByTestId } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} activeFilter="perps" />,
+    );
+
+    expect(mockUsePerpsFeed).toHaveBeenCalledWith({
+      query: '',
+      skipInitialFetch: false,
+    });
+    expect(getByTestId('mock-perps-search-row-ETH')).toBeDefined();
+  });
+
   it('renders a retryable error instead of empty results when Perps search fails', () => {
     const refetch = jest.fn().mockResolvedValue(undefined);
     mockUsePerpsFeed.mockReturnValue({

@@ -138,7 +138,11 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
       );
     }
 
-    if (activeFilter !== 'tokens' && hasActiveQuery && perps.data.length > 0) {
+    if (
+      activeFilter !== 'tokens' &&
+      (activeFilter === 'perps' || hasActiveQuery) &&
+      perps.data.length > 0
+    ) {
       items.push({ kind: 'header', key: 'header:perps', domain: 'perps' });
       items.push(
         ...perps.data.map(({ market, isWatchlisted }, index) => ({
@@ -156,7 +160,7 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
   const resultCount = listData.filter((item) => item.kind !== 'header').length;
   const hasActivePerpsError =
     activeFilter !== 'tokens' &&
-    hasActiveQuery &&
+    (activeFilter === 'perps' || hasActiveQuery) &&
     !perps.isLoading &&
     Boolean(perps.error);
   const hasOfflineSearch = hasActiveQuery && !canFetchRemoteSearch;
@@ -431,7 +435,9 @@ const WatchlistSearchContentWithPerps: React.FC<
   const perps = usePerpsFeed({
     query: props.debouncedQuery,
     skipInitialFetch:
-      props.debouncedQuery.trim().length === 0 || !props.canFetchRemoteSearch,
+      (props.activeFilter !== 'perps' &&
+        props.debouncedQuery.trim().length === 0) ||
+      !props.canFetchRemoteSearch,
   });
 
   return <WatchlistSearchContentBody {...props} perps={perps} />;
