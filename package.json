@@ -125,6 +125,7 @@
     "test:view:coverage": "yarn test:view:base --coverage --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view:coverage:folder": "sh -c 'yarn test:view:base --coverage --testPathPattern=\"$1.*\\\\.view\\\\.test\\\\.(ts|tsx|js|jsx)$\" --collectCoverageFrom=\"$1/**/*.{ts,tsx,js,jsx}\" --coverageReporters=text-summary --coverageReporters=lcov' --",
     "test:view:ci": "TEST_OS=ios yarn test:view:coverage --forceExit --silent --coverageReporters=json",
+    "test:view:repeat": "node .github/scripts/qa-automation/cv-flakiness/cv-flakiness-local.mjs",
     "test:integration:base": "jest -c jest.config.integration.js --no-watchman --silent",
     "test:integration": "yarn test:integration:base --coverage=false --testPathPattern='.*\\.integration\\.test\\.(ts|tsx|js|jsx)$'",
     "test:integration:one": "yarn test:integration:base --verbose --coverage=false --testTimeout=30000",
