@@ -47,7 +47,8 @@ export const AmountKeyboard = ({
 }) => {
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
+  const { isMaxAmountSupported, getPercentageAmount, getMaxAmount } =
+    usePercentageAmount();
   const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
@@ -66,8 +67,11 @@ export const AmountKeyboard = ({
   }>();
 
   const updateToPercentageAmount = useCallback(
-    (percentage: number) => {
-      const percentageAmount = getPercentageAmount(percentage) ?? '0';
+    async (percentage: number) => {
+      const percentageAmount =
+        (percentage === 100
+          ? await getMaxAmount()
+          : getPercentageAmount(percentage)) ?? '0';
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
@@ -79,6 +83,7 @@ export const AmountKeyboard = ({
     [
       fiatMode,
       getFiatValue,
+      getMaxAmount,
       getPercentageAmount,
       setAmountInputMethodPressedMax,
       updateAmount,
@@ -110,11 +115,11 @@ export const AmountKeyboard = ({
         return;
       }
     }
-    captureAmountSelected();
+    void captureAmountSelected();
     // Skip the recipient screen if a predefined recipient is provided
     if (predefinedRecipient) {
       updateTo(predefinedRecipient.address);
-      handleSubmitPress(predefinedRecipient.address);
+      void handleSubmitPress(predefinedRecipient.address);
       return;
     }
     gotToSendScreen(Routes.SEND.RECIPIENT);
@@ -158,7 +163,9 @@ export const AmountKeyboard = ({
         enableEmptyValueString
         hideDoneButton
         onChange={updateToNewAmount}
-        onPercentagePress={updateToPercentageAmount}
+        onPercentagePress={(percentage) =>
+          void updateToPercentageAmount(percentage)
+        }
         showAdditionalKeyboard={amount.length < 1 && !isNFT}
         value={amount}
       />

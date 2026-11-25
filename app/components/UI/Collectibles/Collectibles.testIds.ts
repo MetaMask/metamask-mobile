@@ -1,4 +1,5 @@
 export const collectiblesTestIds = {
+  homeBackButton: 'collectibles-home-back',
   homeSection: 'collectibles-home-section',
   carousel: 'collectibles-home-section-carousel',
   skeleton: 'collectibles-home-section-skeleton',
@@ -6,4 +7,12 @@ export const collectiblesTestIds = {
   tradeMenuItem: 'collectibles-trade-menu-item',
   tile: (code: string) => `collectibles-pack-tile-${code}`,
   flame: (code: string) => `collectibles-pack-tile-flame-${code}`,
+  landing: 'collectibles-landing',
+  tabBar: 'collectibles-tab-bar',
+  landingHero: 'collectibles-landing-hero',
+  landingSection: (name: string) => `collectibles-landing-section-${name}`,
+  popularView: 'collectibles-popular-view',
+  packsView: 'collectibles-packs-view',
+  collectionView: 'collectibles-collection-view',
+  marketplaceView: 'collectibles-marketplace-view',
 } as const;

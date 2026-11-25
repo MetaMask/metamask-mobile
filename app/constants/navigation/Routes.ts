@@ -128,7 +128,8 @@ const Routes = {
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
-  REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
+  REWARDS_MONEY_REFERRALS_VIEW: 'RewardsMoneyReferralsView',
+  REWARDS_COPY_TRADING_VIEW: 'RewardsCopyTradingView',
   REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
   REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
   REWARDS_TAX_FORM_VIEW: 'RewardsTaxFormView',
@@ -391,6 +392,10 @@ const Routes = {
         'SwapsLimitOrderDefaultCostToleranceModal',
       SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
         'SwapsLimitOrderCustomCostToleranceModal',
+      RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL:
+        'RecurringDefaultPriceToleranceModal',
+      RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL:
+        'RecurringCustomPriceToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
@@ -562,7 +567,7 @@ const Routes = {
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
-    REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    CONFIRMATIONS: 'Confirmations',
     NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {

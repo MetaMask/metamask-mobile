@@ -25,7 +25,7 @@ jest.mock('./passkeyAdapter', () => ({
   mobilePasskeyAdapter: {},
 }));
 
-jest.mock('../../Logger', () => ({ error: jest.fn() }));
+jest.mock('../../Logger', () => ({ error: jest.fn(), log: jest.fn() }));
 
 jest.mock('../../analytics/analytics', () => ({
   analytics: { trackEvent: jest.fn() },
@@ -146,6 +146,23 @@ describe('useMfa', () => {
     );
   });
 
+  describe('listActiveSocialLoginMethods', () => {
+    it('returns verifiable methods in cost order from social credentials', async () => {
+      const refreshEnrolledCredentials = jest.fn().mockResolvedValue([
+        { id: 'email', type: 'email_otp', status: 'active', verified: true },
+        { id: 'pk', type: 'passkey', status: 'active', verified: true },
+        { id: 'old', type: 'totp', status: 'disabled', verified: true },
+      ]);
+      jest.mocked(createSocialLoginControllerAdapter).mockReturnValue({
+        refreshEnrolledCredentials,
+      } as unknown as MfaControllerAdapter);
+
+      expect(await renderUseMfa().listActiveSocialLoginMethods()).toStrictEqual(
+        ['passkey', 'email_otp'],
+      );
+    });
+  });
+
   describe('verifyForSocialLogin', () => {
     beforeEach(() => {
       mockStartMfaFlow.mockClear();
@@ -170,6 +187,24 @@ describe('useMfa', () => {
         reportError: expect.any(Function),
         trackEvent: expect.any(Function),
       });
+    });
+
+    it('verifies only the requested method from the host', async () => {
+      await renderUseMfa().verifyForSocialLogin({
+        reason,
+        method: 'totp',
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
     });
 
     it('resolves with the flow result', async () => {

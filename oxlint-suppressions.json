@@ -1704,16 +1704,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderCustomCostToleranceModal.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderDefaultCostToleranceModal.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/components/UI/Bridge/components/SwapsLimitOrderExpirationModal/SwapsLimitOrderExpirationModal.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
@@ -8028,7 +8018,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 3
     },
     "typescript/promise-function-async": {
       "count": 1
@@ -8834,9 +8824,6 @@
     }
   },
   "app/components/UI/Predict/hooks/usePredictPrices.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/prefer-optional-chain": {
       "count": 1
     }
@@ -12057,19 +12044,9 @@
       "count": 2
     }
   },
-  "app/components/UI/Rewards/components/Money/MoneyMetricCard.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/Money/PendingMoneyReferralInvite.tsx": {
     "typescript/promise-function-async": {
       "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/RefererHeroCard.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
     }
   },
   "app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal.tsx": {
@@ -12111,11 +12088,6 @@
     }
   },
   "app/components/UI/Rewards/components/Money/TaxFormQuestionSheet.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/TradingActivityListView.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -12742,11 +12714,6 @@
       "count": 1
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/hooks/useMoneyHeroEntries.test.ts": {
-    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -15386,6 +15353,11 @@
       "count": 2
     }
   },
+  "app/components/Views/Homepage/Sections/NFTs/NFTsSection.tsx": {
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
   "app/components/Views/Homepage/Sections/Perpetuals/PerpsSection.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -16404,15 +16376,7 @@
       "count": 2
     }
   },
-  "app/components/Views/OAuthRehydration/index.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 5
-    }
-  },
   "app/components/Views/OAuthRehydration/index.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 2
-    },
     "typescript/unbound-method": {
       "count": 1
     }
@@ -19126,9 +19090,6 @@
     }
   },
   "app/components/Views/confirmations/components/send/amount/amount-keyboard/amount-keyboard.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-misused-promises": {
       "count": 1
     }
@@ -23321,11 +23282,6 @@
   "app/selectors/cardController.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 7
-    }
-  },
-  "app/selectors/configRegistry.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/selectors/configRegistry.ts": {

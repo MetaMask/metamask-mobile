@@ -454,7 +454,7 @@ describe('usePerpsNavigation', () => {
       await waitFor(() => {
         expect(mockDepositWithOrder).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           {
             ...params,
             showPerpsHeader:
@@ -475,7 +475,7 @@ describe('usePerpsNavigation', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           {
             ...params,
             showPerpsHeader:
@@ -660,7 +660,7 @@ describe('usePerpsNavigation', () => {
       await waitFor(() => {
         expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           expect.objectContaining(params),
         );
       });
@@ -698,7 +698,7 @@ describe('usePerpsNavigation', () => {
         expect(mockSwitchProvider).toHaveBeenCalledWith('hyperliquid');
         expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           expect.objectContaining(params),
         );
       });
@@ -775,7 +775,7 @@ describe('usePerpsNavigation', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           {
             ...params,
             useBottomSheet: true,
@@ -813,7 +813,7 @@ describe('usePerpsNavigation', () => {
           mockDepositWithOrder,
         );
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
           expect.objectContaining({
             transactionActiveAbTests,
           }),

@@ -979,6 +979,9 @@ export type RootStackParamList = {
   BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
   BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
   SwapsLimitOrderExpirationModal: BridgeModalsNavigationParamList['SwapsLimitOrderExpirationModal'];
+  RecurringDefaultPriceToleranceModal: BridgeModalsNavigationParamList['RecurringDefaultPriceToleranceModal'];
+  RecurringCustomPriceToleranceModal: BridgeModalsNavigationParamList['RecurringCustomPriceToleranceModal'];
+  RecurringConfirmOrderModal: BridgeModalsNavigationParamList['RecurringConfirmOrderModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
     | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
@@ -1170,7 +1173,7 @@ export type RootStackParamList = {
   // Full screen confirmation routes
   // FullScreenConfirmationParams covers confirmation entry points; Partial<PerpsOrderRouteParams>
   // covers Perps deposit+order navigation that reuses the same root route key.
-  RedesignedConfirmations:
+  Confirmations:
     | FullScreenConfirmationParams
     | Partial<PerpsOrderRouteParams>
     | undefined;

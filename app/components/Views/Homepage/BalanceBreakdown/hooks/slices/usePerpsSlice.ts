@@ -11,6 +11,8 @@ import {
 } from '../../../../../UI/Perps/selectors/perpsController';
 import type { BalanceSlice, FiatConverter } from '../../types';
 import { PERPS_HOMEPAGE_THROTTLE_MS } from '../../constants';
+import { getBaselineVenueIds } from '../../../../../UI/Perps/utils/getBaselineVenueIds';
+import { PROVIDER_CONFIG } from '../../../../../UI/Perps/constants/perpsConfig';
 
 export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPerpsEnabledFlag);
@@ -18,7 +20,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const activeProvider = useSelector(selectPerpsProvider) as
     | PerpsActiveProviderMode
     | undefined;
-  const { account, isInitialLoading } = usePerpsLiveAccount({
+  const { account, aggregate, isInitialLoading } = usePerpsLiveAccount({
     enabled: isEnabled,
     throttleMs: PERPS_HOMEPAGE_THROTTLE_MS,
   });
@@ -30,20 +32,24 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
 
   const totalBalanceUsd = parseFloat(account?.totalBalance ?? '0') || 0;
   const convertedValue = toUserCurrency(totalBalanceUsd);
+  const isPartial = aggregate?.status === 'partial';
   const totalBalance1dAgoFiat = useMemo(() => {
-    const rows =
-      activeProvider === 'aggregated' || activeProvider === undefined
-        ? Object.values(perpsBalances)
-        : [perpsBalances[activeProvider]];
-    // A provider without a 1d-ago observation makes the baseline unavailable:
-    // a partial sum or a zero would misstate the 24h change.
+    // Match the baseline to the venues represented in the live total. A
+    // missing or non-finite observation makes the change figure unavailable.
+    const venueIds = getBaselineVenueIds(
+      account,
+      activeProvider && activeProvider !== 'aggregated'
+        ? activeProvider
+        : PROVIDER_CONFIG.DefaultProvider,
+    );
+    if (venueIds.length === 0) {
+      return undefined;
+    }
     let totalUsd = 0;
-    for (const row of rows) {
-      if (!row || typeof row !== 'object') {
-        continue;
-      }
+    for (const providerId of venueIds) {
+      const row = perpsBalances[providerId];
       const value1dAgo =
-        row.accountValue1dAgo === undefined
+        row?.accountValue1dAgo === undefined
           ? undefined
           : new BigNumber(row.accountValue1dAgo);
       if (!value1dAgo?.isFinite()) {
@@ -52,7 +58,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
       totalUsd += value1dAgo.toNumber();
     }
     return toUserCurrency(totalUsd);
-  }, [activeProvider, perpsBalances, toUserCurrency]);
+  }, [account, perpsBalances, activeProvider, toUserCurrency]);
 
   const status = useMemo(() => {
     if (isIneligible) return 'ineligible' as const;
@@ -60,6 +66,10 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     if (isInitialLoading) return 'loading' as const;
     if (!account) return 'loading' as const;
     if (convertedValue === undefined) return 'error' as const;
+    // TAT-4407: a partial total (a venue failed to report) is degraded, not
+    // the complete portfolio value — surface it through the slice's status so
+    // the homepage does not present a subtotal as the full balance.
+    if (isPartial) return 'partial' as const;
     return 'ready' as const;
   }, [
     account,
@@ -67,13 +77,17 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     convertedValue,
     isIneligible,
     isInitialLoading,
+    isPartial,
   ]);
 
   return useMemo<BalanceSlice>(
     () => ({
       key: 'perps',
       isVisible: isEnabled,
-      valueFiat: status === 'ready' ? (convertedValue ?? 0) : 0,
+      // A partial total is real money on the venues that reported, so it is
+      // shown; the 1-day change is withheld until every venue reports.
+      valueFiat:
+        status === 'ready' || status === 'partial' ? (convertedValue ?? 0) : 0,
       status,
       value1dAgoFiat: status === 'ready' ? totalBalance1dAgoFiat : undefined,
     }),

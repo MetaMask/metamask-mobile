@@ -127,6 +127,10 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
             position.symbol,
             takeProfitPrice,
             stopLossPrice,
+            // Scope the optimistic paint to the venue the user edited
+            // (TAT-4407): a same-symbol position on the other venue keeps its
+            // own TP/SL until its venue confirms.
+            position.providerId,
           );
 
           showToast(

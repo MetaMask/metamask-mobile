@@ -953,6 +953,7 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
+  "CollectiblesController": {},
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { decEthToConvertedCurrency } from '../../../../util/conversions';
-import { formatCurrency } from '../../../../util/confirm-tx';
+import { useFormatters } from '../../../hooks/useFormatters';
 import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
@@ -33,6 +33,7 @@ export function useEthFiatAmount(
       selectConversionRateByChainId(state, chainId),
     ) ?? 0;
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const { formatCurrency } = useFormatters();
 
   const showFiat = overrides.showFiat;
 
@@ -51,28 +52,16 @@ export function useEthFiatAmount(
     return undefined;
   }
 
-  // Calculate the fiat amount
   const fiatAmount = new BigNumber(ethAmount.toString()).times(conversionRate);
+  const isBelowOneCent = fiatAmount.gt(0) && fiatAmount.lt(0.01);
+  const currencyCode = currentCurrency.toUpperCase();
 
-  // Handle small fiat amounts
-  if (
-    ethAmount &&
-    fiatAmount.lt(new BigNumber(0.01)) &&
-    fiatAmount.isGreaterThan(new BigNumber(0))
-  ) {
-    return hideCurrencySymbol
-      ? `< ${formatCurrency(0.01, currentCurrency)}`
-      : `< ${formatCurrency(
-          0.01,
-          currentCurrency,
-        )} ${currentCurrency.toUpperCase()}`;
-  }
+  // Keeps the "< $0.01" spacing used by the other confirmation fee rows (utils/gas.ts).
+  const formattedAmount = isBelowOneCent
+    ? `< ${formatCurrency(0.01, currencyCode)}`
+    : formatCurrency(Number(formattedFiat), currencyCode);
 
-  // Return the formatted fiat amount
   return hideCurrencySymbol
-    ? formatCurrency(formattedFiat, currentCurrency)
-    : `${formatCurrency(
-        formattedFiat,
-        currentCurrency,
-      )} ${currentCurrency.toUpperCase()}`;
+    ? formattedAmount
+    : `${formattedAmount} ${currencyCode}`;
 }
