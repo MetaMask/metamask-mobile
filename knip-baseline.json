@@ -62,8 +62,6 @@
     "files|app/components/UI/Stake/components/UpsellBanner/UpsellBanner.styles.tsx",
     "files|app/components/UI/TransactionActionModal/TransactionActionContent/index.js",
     "files|app/components/UI/TransactionActionModal/index.js",
-    "files|app/components/UI/primitives/Image.tsx",
-    "files|app/components/UI/primitives/Pressable.tsx",
     "files|app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants.ts",
     "files|app/components/Views/Homepage/Sections/Perpetuals/index.ts",
     "files|app/components/Views/Homepage/components/HomepageActionButtonsGrid/buttons/BatchSwapButton.tsx",
