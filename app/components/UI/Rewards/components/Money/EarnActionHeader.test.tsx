@@ -17,6 +17,14 @@ describe('EarnActionHeader', () => {
     ).toHaveTextContent('Friends trade');
   });
 
+  it('marks the title as a heading for screen readers', () => {
+    const { getByRole } = render(
+      <EarnActionHeader title="Earn fees" description="Friends trade" />,
+    );
+
+    expect(getByRole('header')).toHaveTextContent('Earn fees');
+  });
+
   it('runs the CTA when it is pressed', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(

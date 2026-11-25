@@ -42,6 +42,7 @@ describe.each([
   {
     name: 'RewardsPausedBanner',
     Banner: RewardsPausedBanner,
+    bannerKey: 'rewardsPausedBanner',
     testIds: REWARDS_PAUSED_BANNER_TEST_IDS,
     amountText: '$9.15 of rewards paused.Learn more',
     blankText: 'of rewards paused.Learn more',
@@ -54,6 +55,7 @@ describe.each([
   {
     name: 'RewardsHeldBanner',
     Banner: RewardsHeldBanner,
+    bannerKey: 'rewardsHeldBanner',
     testIds: REWARDS_HELD_BANNER_TEST_IDS,
     amountText: '$9.15 of rewards held.Learn more',
     blankText: 'of rewards held.Learn more',
@@ -63,7 +65,7 @@ describe.each([
         'These rewards are held until your tax determination is cleared.',
     },
   },
-])('$name', ({ Banner, testIds, amountText, blankText, sheet }) => {
+])('$name', ({ Banner, bannerKey, testIds, amountText, blankText, sheet }) => {
   beforeEach(() => {
     mockNavigate.mockClear();
   });
@@ -96,5 +98,21 @@ describe.each([
     );
 
     expect(getByTestId(testIds.BANNER)).toHaveTextContent(blankText);
+  });
+
+  it('renders nothing when the banner copy key is missing', () => {
+    const { queryByTestId } = renderWithProvider(
+      <Banner
+        baseUnits="9150000"
+        localizedText={
+          {
+            ...LOCALIZED_TEXT,
+            [bannerKey]: undefined,
+          } as unknown as ReferralLocalizedText
+        }
+      />,
+    );
+
+    expect(queryByTestId(testIds.BANNER)).toBeNull();
   });
 });

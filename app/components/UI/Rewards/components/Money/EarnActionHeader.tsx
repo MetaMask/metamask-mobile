@@ -40,6 +40,7 @@ const EarnActionHeader: React.FC<EarnActionHeaderProps> = ({
   >
     <Text
       variant={TextVariant.HeadingSm}
+      accessibilityRole="header"
       testID={EARN_ACTION_HEADER_TEST_IDS.TITLE}
     >
       {title}

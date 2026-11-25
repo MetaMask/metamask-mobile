@@ -54,6 +54,13 @@ const RewardsAmountBanner: React.FC<RewardsAmountBannerProps> = ({
     });
   }, [navigation, sheetDescription, sheetTitle]);
 
+  // The server fills every key, but a payload cached before a key existed can
+  // lack it. The types say it is there, so check at runtime and show no banner
+  // rather than throw on `.split` and take the screen's error boundary with it.
+  if (!bannerText) {
+    return null;
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
