@@ -14,7 +14,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyVaultComposition } from '../../hooks/useMoneyVaultComposition';
 import MoneyVaultCompositionChart from './components/MoneyVaultCompositionChart';
-import MoneyMarketExposure from './components/MoneyMarketExposure';
 import MoneyVaultCompositionMarketsTable from './components/MoneyVaultCompositionMarketsTable';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import { CHART_VIEWBOX_SIZE } from './components/MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
@@ -156,7 +155,6 @@ const AllocationTab = (): React.ReactElement => {
             networkLabel={strings('money.earnings.monad')}
           />
         </Box>
-        <MoneyMarketExposure protocols={data.protocols} />
       </Box>
     );
   };

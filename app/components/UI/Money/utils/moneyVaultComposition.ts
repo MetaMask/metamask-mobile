@@ -1,9 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
-import type {
-  VaultCompositionComponent,
-  VaultCompositionProtocol,
-} from '../types/moneyVaultComposition';
+import type { VaultCompositionComponent } from '../types/moneyVaultComposition';
 
 const VERSION_PATTERN = /^v\d+$/i;
 const DECIMAL_PATTERN = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
@@ -63,45 +60,6 @@ export const formatVaultCompositionLabel = (
   `${formatVaultCompositionProtocolName(component.protocol)} · ${getVaultCompositionPrimaryAssetSymbol(component)}`;
 
 /**
- * Returns protocols sorted by descending allocation.
- *
- * The input array is copied before sorting. Protocol keys provide a stable
- * order when allocations are equal.
- *
- * @param protocols - Protocol allocations returned by the API.
- * @returns A validated, allocation-descending protocol array.
- */
-export const getVaultCompositionProtocolsInAllocationOrder = (
-  protocols: VaultCompositionProtocol[],
-): VaultCompositionProtocol[] =>
-  protocols
-    .map((protocol) => ({
-      protocol,
-      allocation: parseProtocolAllocation(
-        protocol.allocation_fraction,
-        'order',
-      ),
-    }))
-    .sort((first, second) => {
-      if (first.allocation.gt(second.allocation)) {
-        return -1;
-      }
-
-      if (first.allocation.lt(second.allocation)) {
-        return 1;
-      }
-
-      if (first.protocol.protocol_key === second.protocol.protocol_key) {
-        return 0;
-      }
-
-      return first.protocol.protocol_key < second.protocol.protocol_key
-        ? -1
-        : 1;
-    })
-    .map(({ protocol }) => protocol);
-
-/**
  * Converts a protocol allocation fraction into a percentage bar width.
  *
  * @param allocationFraction - Decimal fraction between `0` and `1`.
@@ -109,15 +67,9 @@ export const getVaultCompositionProtocolsInAllocationOrder = (
  */
 export const getVaultCompositionBarWidth = (
   allocationFraction: string,
-): number =>
-  parseProtocolAllocation(allocationFraction, 'bar width')
-    .times(100)
-    .toNumber();
+): number => parseProtocolAllocation(allocationFraction).times(100).toNumber();
 
-function parseProtocolAllocation(
-  allocationFraction: string,
-  context: 'order' | 'bar width',
-): BigNumber {
+function parseProtocolAllocation(allocationFraction: string): BigNumber {
   const parsedAllocation = DECIMAL_PATTERN.test(allocationFraction)
     ? new BigNumber(allocationFraction)
     : null;
@@ -129,9 +81,7 @@ function parseProtocolAllocation(
     parsedAllocation.gt(MAX_ALLOCATION_FRACTION)
   ) {
     throw new Error(
-      context === 'order'
-        ? `Cannot order vault composition protocols with invalid allocation fraction '${allocationFraction}'`
-        : `Cannot calculate vault composition bar width from invalid allocation fraction '${allocationFraction}'`,
+      `Cannot calculate vault composition bar width from invalid allocation fraction '${allocationFraction}'`,
     );
   }
 

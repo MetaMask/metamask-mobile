@@ -1,12 +1,8 @@
-import type {
-  VaultCompositionComponent,
-  VaultCompositionProtocol,
-} from '../types/moneyVaultComposition';
+import type { VaultCompositionComponent } from '../types/moneyVaultComposition';
 import {
   formatVaultCompositionLabel,
   formatVaultCompositionProtocolName,
   getVaultCompositionBarWidth,
-  getVaultCompositionProtocolsInAllocationOrder,
   getVaultCompositionPrimaryAssetSymbol,
 } from './moneyVaultComposition';
 
@@ -26,18 +22,6 @@ const createComponent = (
   weighted_incentive_apr_contribution: null,
   campaign_ends_at: null,
   source_links: [],
-  ...overrides,
-});
-
-const createProtocol = (
-  overrides: Partial<VaultCompositionProtocol> = {},
-): VaultCompositionProtocol => ({
-  protocol_key: 'aave_v3',
-  allocation_value_usd: '1',
-  allocation_fraction: '0.5',
-  organic_supply_apy: '0',
-  incentive_apr: null,
-  estimated_total_annual_rate: null,
   ...overrides,
 });
 
@@ -137,61 +121,6 @@ describe('vault composition label helpers', () => {
       'Cannot format vault composition component without an asset symbol',
     );
   });
-});
-
-describe('getVaultCompositionProtocolsInAllocationOrder', () => {
-  it('sorts protocols by exact decimal allocation without mutating the input', () => {
-    const protocols = [
-      createProtocol({
-        protocol_key: 'morpho_v2',
-        allocation_fraction: '0.10000000000000000001',
-      }),
-      createProtocol({
-        protocol_key: 'aave_v3',
-        allocation_fraction: '0.10000000000000000002',
-      }),
-      createProtocol({
-        protocol_key: 'liquidity_buffer',
-        allocation_fraction: '0.8',
-      }),
-    ];
-
-    const result = getVaultCompositionProtocolsInAllocationOrder(protocols);
-
-    expect(result.map((protocol) => protocol.protocol_key)).toEqual([
-      'liquidity_buffer',
-      'aave_v3',
-      'morpho_v2',
-    ]);
-    expect(protocols[0].protocol_key).toBe('morpho_v2');
-  });
-
-  it('uses protocol key as a deterministic tie-breaker', () => {
-    const protocols = [
-      createProtocol({ protocol_key: 'morpho_v2' }),
-      createProtocol({ protocol_key: 'aave_v3' }),
-    ];
-
-    const result = getVaultCompositionProtocolsInAllocationOrder(protocols);
-
-    expect(result.map((protocol) => protocol.protocol_key)).toEqual([
-      'aave_v3',
-      'morpho_v2',
-    ]);
-  });
-
-  it.each(['not-a-decimal', 'Infinity', '-0.1', '1.1'])(
-    'throws for invalid allocation fraction %s',
-    (allocationFraction) => {
-      expect(() =>
-        getVaultCompositionProtocolsInAllocationOrder([
-          createProtocol({ allocation_fraction: allocationFraction }),
-        ]),
-      ).toThrow(
-        `Cannot order vault composition protocols with invalid allocation fraction '${allocationFraction}'`,
-      );
-    },
-  );
 });
 
 describe('getVaultCompositionBarWidth', () => {
