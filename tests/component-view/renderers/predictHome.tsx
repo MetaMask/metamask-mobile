@@ -17,13 +17,12 @@ import PredictMarketListRoute from '../../../app/components/UI/Predict/routes/Pr
 import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/contexts';
 import PredictPositionsView from '../../../app/components/UI/Predict/views/PredictPositionsView';
 import { initialStatePredict } from '../presets/predict';
-import { renderScreenWithRoutes } from '../render';
-import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
 import {
   getRouteParamsProbeTestId,
   getRouteProbeTestId,
   renderScreenWithRoutes,
 } from '../render';
+import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
 
 interface RenderPredictHomeOptions {
   overrides?: DeepPartial<RootState>;
