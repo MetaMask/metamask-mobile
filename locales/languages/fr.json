@@ -9294,28 +9294,13 @@
     "nickname": "pseudonyme"
   },
   "network_information": {
-    "things_to_keep_in_mind": "À garder à l’esprit",
     "testnet_network": "{{type}} testnet",
-    "first_description": "Le jeton natif de ce réseau est {{ticker}}. C'est le jeton utilisé pour les frais de réseau.",
-    "second_description": "Si vous essayez d’envoyer des actifs directement d’un réseau à un autre, une perte permanente des actifs pourrait en résulter. Assurez-vous d’utiliser une passerelle.",
-    "third_description": "Vos tokens n’apparaîtront peut-être pas automatiquement dans votre portefeuille.",
-    "private_network": "Ce réseau est inconnu et peut utiliser un jeton spécial pour les frais de réseau.",
     "unknown_network": "Réseau inconnu",
-    "switched_network": "Vous avez basculé sur",
-    "learn_more": "En savoir plus",
     "add_token": "Cliquez ici pour ajouter les jetons manuellement",
-    "add_token_manually": "Ajouter les jetons manuellement.",
     "got_it": "D’accord",
     "error_title": "Quelque chose a mal tourné",
     "error_message": "Une erreur s’est produite lors du chargement des informations réseau. Veuillez réessayer plus tard.",
-    "private_network_third_description": "Saisissez un nom pour ce réseau afin de faciliter son identification.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Activer la détection automatique des jetons",
-    "token_detection_mainnet_title": "La détection des jetons est activée, ce qui signifie que les jetons apparaîtront automatiquement dans votre portefeuille.",
-    "token_detection_mainnet_link": "Vous pouvez également ajouter des jetons manuellement.",
-    "or": "ou",
-    "non_evm_first_description": "L’actif natif de ce réseau est {{ticker}}. C’est l’actif utilisé pour les frais de gaz.",
-    "non_evm_second_description": "Vous perdrez vos actifs si vous tentez de les envoyer depuis ou vers un autre réseau."
+    "private_network_third_description": "Saisissez un nom pour ce réseau afin de faciliter son identification."
   },
   "download_files": {
     "error": "Échec du téléchargement de la pièce jointe.",

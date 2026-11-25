@@ -9294,28 +9294,13 @@
     "nickname": "palayaw"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Mga bagay na dapat tandaan",
     "testnet_network": "{{type}} testnet",
-    "first_description": "Ang native token sa network na ito ay {{ticker}}. Ito ang token na ginagamit para sa mga bayad sa network.",
-    "second_description": "Kapag sinubukan mong ipadala ang mga asset nang direkta mula sa isang network patungo sa iba, maaari itong magresulta sa permanenteng pagkawala ng asset. Tiyaking gumamit ng tulay.",
-    "third_description": "Maaaring hindi awtomatikong lumabas ang iyong mga token sa iyong wallet.",
-    "private_network": "Hindi kilala ang network na ito at maaaring gumagamit ito ng espesyal na token para sa mga bayad sa network.",
     "unknown_network": "Hindi kilalang network",
-    "switched_network": "Lumipat ka sa",
-    "learn_more": "Matuto pa",
     "add_token": "I-click dito para mano-manong idagdag ang mga token",
-    "add_token_manually": "Idagdag ang mga ito ng manu-mano.",
     "got_it": "Kuha ko na",
     "error_title": "Mayroong nang mali",
     "error_message": "Nagkaroon ng error sa pag-load ng impormasyon ng network. Subukan muli mamaya.",
-    "private_network_third_description": "Lagyan ng pangalan ang network na ito para mas madaling tukuyin.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Paganahin ang awtomatikong pagtuklas ng token",
-    "token_detection_mainnet_title": "Pinagana ang pagtuklas ng token kaya maraming mga token ang awtomatikong lalabas sa iyong wallet.",
-    "token_detection_mainnet_link": "Maaari ka ring magdagdag ng mga token ng manu-mano.",
-    "or": "o",
-    "non_evm_first_description": "Ang native asset sa network na ito ay {{ticker}}. Ginagamit ito para sa mga bayad sa transaksyon.",
-    "non_evm_second_description": "Mawawala ang mga asset mo kapag sinubukan mong ipadala ang mga ito mula sa o papunta sa ibang network."
+    "private_network_third_description": "Lagyan ng pangalan ang network na ito para mas madaling tukuyin."
   },
   "download_files": {
     "error": "Nabigong i-download ang attachment.",

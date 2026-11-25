@@ -9294,28 +9294,13 @@
     "nickname": "उपनाम"
   },
   "network_information": {
-    "things_to_keep_in_mind": "ध्यान रखने योग्य बातें",
     "testnet_network": "{{type}} टेस्टनेट",
-    "first_description": "{{ticker}} इस नेटवर्क पर मूल टोकन है। यह नेटवर्क शुल्क के लिए इस्तेमाल किया जाने वाला टोकन है।",
-    "second_description": "यदि आप ऐसेट्स को सीधे एक नेटवर्क से दूसरे नेटवर्क पर भेजने का प्रयास करते हैं, तो इसके परिणामस्वरूप स्थायी ऐसेट्स का नुकसान हो सकता है। अंतर को पाटना सुनिश्चित करें।",
-    "third_description": "हो सकता है आपके वॉलेट में आपके टोकन स्वतः दिखाई नहीं दें।",
-    "private_network": "यह नेटवर्क अज्ञात है और नेटवर्क शुल्क के लिए एक विशेष टोकन का उपयोग कर सकता है।",
     "unknown_network": "अज्ञात नेटवर्क",
-    "switched_network": "आपने स्विच कर लिया है",
-    "learn_more": "ज्यादा जानें",
     "add_token": "मैन्युअल रूप से टोकन जोड़ने के लिए यहां क्लिक करें",
-    "add_token_manually": "उन्हें मैन्युअल रूप से जोड़ें।",
     "got_it": "समझ लिया",
     "error_title": "कुछ गलत हो गया",
     "error_message": "नेटवर्क जानकारी लोड करने में त्रुटि हुई है। बाद में पुन: प्रयास करें।",
-    "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "ऑटो टोकन डिटेक्शन सक्षम करें",
-    "token_detection_mainnet_title": "टोकन डिटेक्शन एनेबल किया हुआ है इसलिए आपके वॉलेट में कई टोकन अपने आप दिखाई देंगे।",
-    "token_detection_mainnet_link": "आप मैन्युअल रूप से टोकन भी जोड़ सकते हैं।",
-    "or": "या",
-    "non_evm_first_description": "इस नेटवर्क पर मूल एसेट {{ticker}} है। इसका उपयोग ट्रांसेक्शन ट्रांसेक्शन फीस के लिए किया जाता है।",
-    "non_evm_second_description": "यदि आप अपनी एसेट्स को किसी अन्य नेटवर्क से या किसी अन्य नेटवर्क पर भेजने का प्रयास करेंगे तो आप उन्हें खो देंगे।"
+    "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।"
   },
   "download_files": {
     "error": "अटैचमेंट डाउनलोड करने में विफल।",

@@ -9294,28 +9294,13 @@
     "nickname": "псевдоним"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Что нужно помнить",
     "testnet_network": "тестнет {{type}}",
-    "first_description": "Нативным токеном в этой сети является {{ticker}}. Этот токен используется для оплаты комиссий сети.",
-    "second_description": "Попытка отправки активов напрямую из одной сети в другую может привести к необратимой потере активов. Следует использовать мост.",
-    "third_description": "Ваши токены могут не отображаться автоматически в вашем кошельке.",
-    "private_network": "Эта сеть неизвестна и может использовать специальный токен для комиссий сети.",
     "unknown_network": "Неизвестная сеть",
-    "switched_network": "Вы переключились на",
-    "learn_more": "Подробнее",
     "add_token": "Нажмите для добавления токенов вручную",
-    "add_token_manually": "Добавьте их вручную.",
     "got_it": "Понятно",
     "error_title": "Что-то пошло не так",
     "error_message": "При загрузке информации сети произошла ошибка. Повторите попытку.",
-    "private_network_third_description": "Введите название для этой сети, чтобы ее было проще идентифицировать.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Включить автоопределение токенов",
-    "token_detection_mainnet_title": "Определение токенов включено, поэтому многие токены автоматически появятся в вашем кошельке.",
-    "token_detection_mainnet_link": "Вы также можете добавлять токены вручную.",
-    "or": "или",
-    "non_evm_first_description": "Собственный актив этой сети — {{ticker}}. Он используется для оплаты комиссий за транзакции.",
-    "non_evm_second_description": "Вы потеряете свои активы, если попытаетесь отправить их из другой сети или в другую сеть."
+    "private_network_third_description": "Введите название для этой сети, чтобы ее было проще идентифицировать."
   },
   "download_files": {
     "error": "Не удалось загрузить вложение.",

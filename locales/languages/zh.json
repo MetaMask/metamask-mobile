@@ -9294,28 +9294,13 @@
     "nickname": "昵称"
   },
   "network_information": {
-    "things_to_keep_in_mind": "注意事项",
     "testnet_network": "{{type}} testnet",
-    "first_description": "此网络的原生代币为 {{ticker}}。该代币用于支付网络费用。",
-    "second_description": "如果您试图将资产从一个网络直接发送到另一个网络，这可能会导致永久的资产损失。请务必使用跨链桥进行操作。",
-    "third_description": "您的代币可能不会在您的钱包中自动出现。",
-    "private_network": "此网络未知，可能使用特殊代币支付网络费用。",
     "unknown_network": "未知网络",
-    "switched_network": "您已切换到",
-    "learn_more": "了解更多",
     "add_token": "请点击此处以手动添加代币",
-    "add_token_manually": "请手动添加。",
     "got_it": "明白了",
     "error_title": "出错了......",
     "error_message": "加载网络信息时出错，请稍后重试。",
-    "private_network_third_description": "请输入此网络的名称，以便识别。",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "启用自动代币检测",
-    "token_detection_mainnet_title": "已启用代币检测，因此代币将会自动显示在您的钱包中。",
-    "token_detection_mainnet_link": "您也可以手动添加代币。",
-    "or": "或",
-    "non_evm_first_description": "该网络上的原生资产是 {{ticker}}。它用于交易费用。",
-    "non_evm_second_description": "如果您尝试从另一个网络发送资产或向另一个网络发送资产，您将会损失资产。"
+    "private_network_third_description": "请输入此网络的名称，以便识别。"
   },
   "download_files": {
     "error": "未能下载附件。",
