@@ -43,7 +43,12 @@ import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
-import { endRampsBuyCufTrace } from '../../utils/rampsBuyCufTrace';
+import {
+  buildRampsBuyNativeOrderCreatedCufCompletion,
+  endOpenRampsBuyCufChildrenByName,
+  endRampsBuyCufTrace,
+} from '../../utils/rampsBuyCufTrace';
+import { TraceName } from '../../../../../util/trace';
 import {
   RAMPS_BUY_CUF_BOUNDARY,
   RAMPS_BUY_CUF_END_REASON,
@@ -269,6 +274,15 @@ const OrderDetails = () => {
       return;
     }
     hasEndedBuyCuf.current = true;
+    // Close the native child before the parent: ending the parent abandons any
+    // child still open (TRAM-4173). No-op when no native child is open.
+    endOpenRampsBuyCufChildrenByName(
+      TraceName.RampBuyNativeToOrderCreated,
+      buildRampsBuyNativeOrderCreatedCufCompletion(
+        order.status,
+        order.providerOrderId,
+      ),
+    );
     endRampsBuyCufTrace({
       data: {
         [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
