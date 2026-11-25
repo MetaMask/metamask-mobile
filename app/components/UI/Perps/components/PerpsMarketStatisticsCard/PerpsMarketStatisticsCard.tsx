@@ -36,6 +36,7 @@ import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
+  providerId,
   marketStats,
   onTooltipPress,
   nextFundingTime,
@@ -46,12 +47,13 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   const livePrices = usePerpsLivePrices({
+    providerId,
     symbols: symbol ? [symbol] : [],
     throttleMs: 2000,
   });
 
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
-  const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
+  const liveOraclePrice = symbol ? livePrices[symbol]?.oraclePrice : undefined;
 
   const { fundingRate } = marketStats;
 

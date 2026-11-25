@@ -33,6 +33,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { getRegistryNetworkImagesByChainId } from '../../../selectors/configRegistry';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import {
   selectIsEvmNetworkSelected,
@@ -173,11 +174,15 @@ const AccountRightButton = ({
     dappOrigin || undefined,
   );
 
+  const networkImageUrls = useSelector(getRegistryNetworkImagesByChainId);
   const nonEvmNetworkImageSource = useMemo(() => {
     if (!isEvmSelected && selectedNonEvmNetworkChainId) {
-      return getNetworkImageSource({ chainId: selectedNonEvmNetworkChainId });
+      return getNetworkImageSource(
+        { chainId: selectedNonEvmNetworkChainId },
+        networkImageUrls,
+      );
     }
-  }, [isEvmSelected, selectedNonEvmNetworkChainId]);
+  }, [isEvmSelected, selectedNonEvmNetworkChainId, networkImageUrls]);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={avatarAccountType} accountAddress={selectedAddress} />

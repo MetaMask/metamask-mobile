@@ -38,22 +38,31 @@ export { MONAD_MAINNET_CHAIN_ID };
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
+  nextSteps: 'Next steps',
   overviewTab: 'Overview',
-  earningsTab: 'Earnings',
+  earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  referFriends: 'Refer friends',
+  tradeAndEarn: 'Trade and earn',
+  postTrades: 'Post trades',
   yourReferralCode: 'Your referral code',
   share: 'Share',
   referrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
   recordedEarnings: 'Recorded earnings',
   availableToClaim: 'Available to claim',
+  availableToClaimSubtext: 'mUSD paid into your Money account',
   claim: 'Claim',
   claimed: 'Claimed',
   held: 'Held',
+  heldSubtext:
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   blocked: 'Blocked',
   voided: 'Voided',
   pending: 'Pending',
+  pendingSubtext:
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   claimSuccessToast: 'Claim sent',
   claimPartialSuccessToast: 'Part of your claim was sent',
   claimFailureToast: 'Claim failed',
@@ -72,6 +81,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
+  yourEarnings: 'Your earnings',
   breakdownTrading: 'Trading',
   breakdownTradingDescription: 'Trading description',
   breakdownReferralsDescription: 'Referrals description',
@@ -103,7 +113,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
   copyTradingEmptyAction: 'Start sharing',
   copyTradingInfoDescription:
-    'Earn 15% from fees when someone copies your trade.',
+    'Earn 15% from fees when someone copies your trade',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -135,6 +145,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   offerDurationHour: 'hour',
   offerDurationHours: 'hours',
   invitedReferredBy: 'Referred by',
+  invitedOptInTitle: 'Opt in title',
   invitedOptInDescription: 'Opt in description',
   invitedOptInAction: 'Opt in',
   invitedOptInSuccessToast: 'Opted in',
@@ -144,6 +155,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   termsLearnMore: 'Learn more',
   termsUrl: 'https://example.com/terms',
   balance: 'Balance',
+  balanceSubtext: 'mUSD in total earnings',
   mUSD: 'mUSD',
   paused: 'Paused',
   claimsPausedTitle: 'Claims paused',
@@ -503,11 +515,24 @@ export function earnRatesFixture(
   };
 }
 
+/**
+ * What a test changes on a persona's referral-me. Fields replace the persona's
+ * value. `localizedText` merges key by key into `localized_text`, and a key set to `undefined`
+ * stands for a payload cached before the server added it.
+ */
+export type ReferralMeOverrides = Partial<
+  Omit<ReferralMeDto, 'localized_text'>
+> & {
+  localizedText?: { [Key in keyof ReferralLocalizedText]?: string };
+};
+
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
+  overrides: ReferralMeOverrides = {},
 ): ReferralMeDto {
   const referrer = persona === 'referrer';
   const referee = persona === 'referee';
+  const { localizedText, ...fields } = overrides;
 
   return {
     roles: referrer ? ['REFERRER'] : referee ? ['REFEREE'] : [],
@@ -525,9 +550,10 @@ export function referralMeFixture(
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
     earn_rates: earnRatesFixture(),
-    localized_text: REFERRAL_LOCALIZED_TEXT,
+    localized_text: { ...REFERRAL_LOCALIZED_TEXT, ...localizedText },
     invite_hero: null,
     excluded_regions: [],
+    ...fields,
   };
 }
 
@@ -536,14 +562,9 @@ export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
 export function referralMeWithInvitedBenefit(
   invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
 ): ReferralMeDto {
-  const referralMe = referralMeFixture('referee');
-  return {
-    ...referralMe,
-    localized_text: {
-      ...referralMe.localized_text,
-      invitedBenefitTitle,
-    },
-  };
+  return referralMeFixture('referee', {
+    localizedText: { invitedBenefitTitle },
+  });
 }
 
 /**

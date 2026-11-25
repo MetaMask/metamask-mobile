@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "bei",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} zum {{price}}",
-        "size_at_market_cap": "{{size}} bei {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} GuV (30 Tage)",
@@ -1993,22 +1991,6 @@
         "4": "Do.",
         "5": "Fr.",
         "6": "Sa."
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Gekauft",
-        "sold": "Verkauft",
-        "perps_closed": "Geschlossen",
-        "perps_long_opened": "Geöffnete Long-Position",
-        "perps_long_added": "Zu Long hinzugefügt",
-        "perps_long_reduced": "Long wurde reduziert",
-        "perps_short_opened": "Short-Position eröffnet",
-        "perps_short_added": "Zu Short hinzugefügt",
-        "perps_short_reduced": "Zurückgekauft",
-        "spot_opened": "Gekauft",
-        "spot_added": "Mehr gekauft",
-        "spot_reduced": "Einige verkauft",
-        "spot_closed": "Alle verkauft"
       }
     },
     "trader_position": {

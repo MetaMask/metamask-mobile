@@ -37,7 +37,7 @@ jest.mock('./useFiatNormalizer', () => ({
 function makeSlice(
   key: 'tokens' | 'money' | 'perps' | 'predict' | 'defi',
   valueFiat: number,
-  status: 'ready' | 'loading' | 'error' | 'ineligible' = 'ready',
+  status: import('../types').SliceStatus = 'ready',
 ) {
   return {
     key,
@@ -73,6 +73,16 @@ describe('useBalanceBreakdown', () => {
     // 50000 + 30000 + 20000 + 10000 = 110000
     expect(result.current.hero.totalFiat).toBe(110000);
     expect(result.current.hero.isPartiallyLoaded).toBe(false);
+  });
+
+  it('includes a reported subtotal without marking it as complete or still loading', () => {
+    mockUsePerpsSlice.mockReturnValue(makeSlice('perps', 1500, 'partial'));
+    const { result } = renderHook(() => useBalanceBreakdown());
+    expect(result.current.hero).toMatchObject({
+      totalFiat: 81500,
+      status: 'partial',
+      isPartiallyLoaded: false,
+    });
   });
 
   it('computes percentOfTotal for each slice', () => {

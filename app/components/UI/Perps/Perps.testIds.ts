@@ -114,6 +114,9 @@ export const getPerpsMarketDetailsTabSelector = (tab: string) =>
 export const getPerpsLiveTradeRowSelector = (postId: string) =>
   `perps-home-live-trade-${postId}`;
 
+export const getPerpsLiveTradeVerifiedBadgeSelector = (postId: string) =>
+  `perps-home-live-trade-verified-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -1278,7 +1281,6 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
   MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
   MARGIN_MODE_TAG: 'close-position-bottom-sheet-margin-mode-tag',
-  MARGIN_INFO_BUTTON: 'close-position-bottom-sheet-margin-info-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
   TOTAL_PNL_ROW: 'close-position-bottom-sheet-total-pnl-row',

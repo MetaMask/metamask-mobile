@@ -982,6 +982,7 @@ const MyProfileView: React.FC = () => {
                     />
                   ) : undefined
                 }
+                isVerified={displayProfile.verified === true}
                 variant="compact"
                 testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
               />

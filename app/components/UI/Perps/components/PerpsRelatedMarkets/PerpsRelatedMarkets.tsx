@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../../providers/venueKeys';
 import React, { memo, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -52,7 +53,8 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   const markets = relatedMarketsResult?.markets;
 
   const symbols = useMemo(
-    () => (markets ?? []).map((m) => m.symbol),
+    () =>
+      (markets ?? []).map((m) => buildVenueSymbolKey(m.symbol, m.providerId)),
     [markets],
   );
   const livePrices = usePerpsLivePrices({
@@ -63,7 +65,8 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   const feedItems: PerpsFeedItem[] = useMemo(
     () =>
       (markets ?? []).map((market) => {
-        const livePrice = livePrices[market.symbol];
+        const livePrice =
+          livePrices[buildVenueSymbolKey(market.symbol, market.providerId)];
         if (!livePrice?.percentChange24h) {
           return { market, isWatchlisted: false };
         }

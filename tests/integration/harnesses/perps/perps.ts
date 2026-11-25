@@ -119,13 +119,9 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
     chainId: 'eip155:42161',
     contractAddress: '0x1234567890123456789012345678901234567890',
   }),
-  createErrorResult: jest.fn(
-    (error: unknown, defaultResponse: Record<string, unknown>) => ({
-      ...defaultResponse,
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    }),
-  ),
+  createErrorResult: jest.requireActual(
+    '@metamask/perps-controller/utils/hyperLiquidValidation',
+  ).createErrorResult,
 }));
 
 import {
@@ -452,6 +448,11 @@ export function buildPerpsIntegrationHarness(
     getFreshPositionsForAllDexs: jest.fn(() => getCachedPositions()),
     isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
     getCachedOrders: jest.fn().mockReturnValue([]),
+    // `null` means no live stream for the wallet, so reads fall back to REST.
+    getCachedOpenOrdersForDex: jest.fn().mockReturnValue(null),
+    getCachedActiveTwapOrders: jest.fn().mockReturnValue(null),
+    getCachedActiveAssetLeverage: jest.fn().mockReturnValue(null),
+    getFreshCrossMarginContext: jest.fn().mockReturnValue(null),
     getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
     // `null` is the uninitialized-cache signal, not an empty result.
     getFillsCacheIfInitialized: jest.fn().mockReturnValue(null),
