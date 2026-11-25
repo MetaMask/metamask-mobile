@@ -10148,7 +10148,7 @@
       "markets": "Markets",
       "market": "Market",
       "allocation": "Allocation",
-      "supply_apy": "Supply APY",
+      "apy": "APY",
       "incentive_apr": "Incentive APR",
       "unavailable": "Unavailable",
       "monad": "Monad",

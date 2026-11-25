@@ -177,6 +177,20 @@ describe('MoneyVaultCompositionChart', () => {
     ).toHaveTextContent('Cash reserve · mUSD');
   });
 
+  it('shows a lower bound for a positive allocation below one tenth of a percent', () => {
+    const component = createComponent('direct_idle_musd', {
+      allocation_fraction: '0.0005',
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <MoneyVaultCompositionChart components={[component]} />,
+    );
+
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_PERCENTAGE),
+    ).toHaveTextContent('<0.1%');
+  });
+
   it('centers the SVG ring inside its viewBox', () => {
     const { getByTestId } = renderWithProvider(
       <MoneyVaultCompositionChart

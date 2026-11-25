@@ -4,11 +4,11 @@ import { G, Path, Svg } from 'react-native-svg';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatVaultCompositionLabel } from '../../../../utils/moneyVaultComposition';
+import { formatPercentage } from '../../../../utils/formatPercentage';
 import { useTheme } from '../../../../../../../util/theme';
 import {
   buildVaultCompositionChartModel,
   CHART_VIEWBOX_SIZE,
-  formatAllocationPercentage,
   getVaultCompositionComponentColor,
 } from './MoneyVaultCompositionChart.utils';
 import type {
@@ -44,7 +44,7 @@ const MoneyVaultCompositionChart = ({
   const previousActiveKey = useRef<ComponentKey | null>(null);
 
   const centerPercentage = activeWedge
-    ? formatAllocationPercentage(activeWedge.allocationFraction)
+    ? formatPercentage(activeWedge.allocationFraction)
     : null;
   const accessibilityText = activeWedge
     ? strings('money.earnings.chart_allocation_accessibility_label', {

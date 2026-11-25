@@ -128,7 +128,7 @@ describe('AllocationTab', () => {
     ).toBeOnTheScreen();
   });
 
-  it('passes components unchanged and shows a degraded-data notice', () => {
+  it('passes components and table labels unchanged and shows a degraded-data notice', () => {
     const degradedData = {
       ...compositionData,
       data_freshness: 'degraded',
@@ -152,6 +152,9 @@ describe('AllocationTab', () => {
       | MoneyVaultCompositionMarketsTableProps
       | undefined;
     expect(marketsTableProps?.components).toBe(degradedData.components);
+    expect(marketsTableProps?.marketLabel).toBe('Markets');
+    expect(marketsTableProps?.allocationLabel).toBe('Allocation');
+    expect(marketsTableProps?.apyLabel).toBe('APY');
     expect(
       getByTestId(MoneyEarningsViewTestIds.ALLOCATION_DEGRADED),
     ).toBeOnTheScreen();
@@ -170,6 +173,8 @@ describe('AllocationTab', () => {
     expect(mockMarketsTable).toHaveBeenCalledWith(
       expect.objectContaining({
         components: compositionData.components,
+        marketLabel: 'Markets',
+        apyLabel: 'APY',
       }),
     );
   });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../../../../util/theme';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -19,7 +20,7 @@ const createComponent = (
   allocation_fraction: '0.38',
   organic_supply_apy: '0.1234',
   incentive_apr: null,
-  estimated_total_annual_rate: null,
+  estimated_total_annual_rate: '0.051',
   weighted_organic_apy_contribution: '0',
   weighted_incentive_apr_contribution: null,
   campaign_ends_at: null,
@@ -28,7 +29,7 @@ const createComponent = (
 });
 
 describe('MoneyVaultCompositionMarketRow', () => {
-  it('renders asset, protocol, allocation, and rate values', () => {
+  it('renders market, asset, allocation, and estimated APY values', () => {
     const component = createComponent();
 
     const { getByTestId } = renderWithProvider(
@@ -44,14 +45,14 @@ describe('MoneyVaultCompositionMarketRow', () => {
           component.component_key,
         ),
       ),
-    ).toHaveTextContent('mUSD');
+    ).toHaveTextContent('Aave v3 • Monad');
     expect(
       getByTestId(
         MoneyVaultCompositionMarketRowTestIds.SECONDARY_LABEL(
           component.component_key,
         ),
       ),
-    ).toHaveTextContent('Aave v3 · Monad');
+    ).toHaveTextContent('MetaMask USD');
     expect(
       getByTestId(
         MoneyVaultCompositionMarketRowTestIds.ALLOCATION(
@@ -61,25 +62,14 @@ describe('MoneyVaultCompositionMarketRow', () => {
     ).toHaveTextContent('38%');
     expect(
       getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.SUPPLY_APY(
-          component.component_key,
-        ),
+        MoneyVaultCompositionMarketRowTestIds.APY(component.component_key),
       ),
-    ).toHaveTextContent('12.34%');
-    expect(
-      getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.INCENTIVE_APR(
-          component.component_key,
-        ),
-      ),
-    ).toHaveTextContent(strings('money.earnings.unavailable'));
+    ).toHaveTextContent('5.1%');
   });
 
-  it('formats non-null incentive APR without checking protocol', () => {
+  it('renders unavailable when estimated APY is null', () => {
     const component = createComponent({
-      component_key: 'morpho_v2_musd',
-      protocol: 'morpho_v2',
-      incentive_apr: '0.0155',
+      estimated_total_annual_rate: null,
     });
 
     const { getByTestId } = renderWithProvider(
@@ -91,15 +81,13 @@ describe('MoneyVaultCompositionMarketRow', () => {
 
     expect(
       getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.INCENTIVE_APR(
-          component.component_key,
-        ),
+        MoneyVaultCompositionMarketRowTestIds.APY(component.component_key),
       ),
-    ).toHaveTextContent('1.55%');
+    ).toHaveTextContent(strings('money.earnings.unavailable'));
   });
 
-  it('renders a dash for a zero incentive APR', () => {
-    const component = createComponent({ incentive_apr: '0' });
+  it('renders a dash for a zero estimated APY', () => {
+    const component = createComponent({ estimated_total_annual_rate: '0' });
 
     const { getByTestId } = renderWithProvider(
       <MoneyVaultCompositionMarketRow
@@ -110,34 +98,9 @@ describe('MoneyVaultCompositionMarketRow', () => {
 
     expect(
       getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.INCENTIVE_APR(
-          component.component_key,
-        ),
+        MoneyVaultCompositionMarketRowTestIds.APY(component.component_key),
       ),
     ).toHaveTextContent('—');
-  });
-
-  it('renders unavailable for a non-Aave component with a null incentive APR', () => {
-    const component = createComponent({
-      component_key: 'morpho_v2_musd',
-      protocol: 'morpho_v2',
-      incentive_apr: null,
-    });
-
-    const { getByTestId } = renderWithProvider(
-      <MoneyVaultCompositionMarketRow
-        component={component}
-        networkLabel="Monad"
-      />,
-    );
-
-    expect(
-      getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.INCENTIVE_APR(
-          component.component_key,
-        ),
-      ),
-    ).toHaveTextContent(strings('money.earnings.unavailable'));
   });
 
   it('renders cash reserve without a network suffix', () => {
@@ -155,18 +118,24 @@ describe('MoneyVaultCompositionMarketRow', () => {
 
     expect(
       getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.SECONDARY_LABEL(
+        MoneyVaultCompositionMarketRowTestIds.PRIMARY_LABEL(
           component.component_key,
         ),
       ),
     ).toHaveTextContent('Cash reserve');
+    expect(
+      getByTestId(
+        MoneyVaultCompositionMarketRowTestIds.SECONDARY_LABEL(
+          component.component_key,
+        ),
+      ),
+    ).toHaveTextContent('MetaMask USD');
   });
 
-  it('renders a dash for a zero Supply APY', () => {
+  it('uses estimated APY instead of organic supply APY', () => {
     const component = createComponent({
-      component_key: 'direct_idle_musd',
-      protocol: 'liquidity_buffer',
-      organic_supply_apy: '0',
+      organic_supply_apy: '0.9',
+      estimated_total_annual_rate: '0.0123',
     });
 
     const { getByTestId } = renderWithProvider(
@@ -178,15 +147,16 @@ describe('MoneyVaultCompositionMarketRow', () => {
 
     expect(
       getByTestId(
-        MoneyVaultCompositionMarketRowTestIds.SUPPLY_APY(
-          component.component_key,
-        ),
+        MoneyVaultCompositionMarketRowTestIds.APY(component.component_key),
       ),
-    ).toHaveTextContent('—');
+    ).toHaveTextContent('1.2%');
   });
 
-  it('uses the shared chart color and hides decorative elements from accessibility', () => {
-    const component = createComponent();
+  it('rounds allocation and APY values to one decimal place', () => {
+    const component = createComponent({
+      allocation_fraction: '0.1235',
+      estimated_total_annual_rate: '0.1235',
+    });
 
     const { getByTestId } = renderWithProvider(
       <MoneyVaultCompositionMarketRow
@@ -194,20 +164,54 @@ describe('MoneyVaultCompositionMarketRow', () => {
         networkLabel="Monad"
       />,
     );
+
+    expect(
+      getByTestId(
+        MoneyVaultCompositionMarketRowTestIds.ALLOCATION(
+          component.component_key,
+        ),
+      ),
+    ).toHaveTextContent('12.4%');
+    expect(
+      getByTestId(
+        MoneyVaultCompositionMarketRowTestIds.APY(component.component_key),
+      ),
+    ).toHaveTextContent('12.4%');
+  });
+
+  it('uses the shared chart color and hides the indicator from accessibility', () => {
+    const component = createComponent();
+
+    const { getByTestId, UNSAFE_getAllByProps: getAllByProps } =
+      renderWithProvider(
+        <MoneyVaultCompositionMarketRow
+          component={component}
+          networkLabel="Monad"
+        />,
+      );
     const row = getByTestId(
       MoneyVaultCompositionMarketRowTestIds.ROW(component.component_key),
     );
-    const dot = getByTestId(
-      MoneyVaultCompositionMarketRowTestIds.DOT(component.component_key),
+    const indicator = getByTestId(
+      MoneyVaultCompositionMarketRowTestIds.INDICATOR(component.component_key),
     );
-
     expect(row.props.accessible).toBe(false);
-    expect(dot.props.accessible).toBe(false);
-    expect(StyleSheet.flatten(dot.props.style).backgroundColor).toBe(
+    expect(indicator.props.accessible).toBe(false);
+    expect(StyleSheet.flatten(indicator.props.style)).toEqual(
+      expect.objectContaining({ height: 40, width: 8 }),
+    );
+    expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe(
       getVaultCompositionComponentColor(
         component.component_key,
         mockTheme.colors,
       ),
     );
+    expect(
+      getAllByProps({
+        testID: MoneyVaultCompositionMarketRowTestIds.APY(
+          component.component_key,
+        ),
+      }).find((node) => node.props.color !== undefined)?.props.color,
+    ).toBe(TextColor.SuccessDefault);
   });
 });

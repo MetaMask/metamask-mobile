@@ -143,15 +143,11 @@ const AllocationTab = (): React.ReactElement => {
           setScrollEnabled={setScrollEnabled}
         />
         <Box twClassName="w-full gap-2">
-          <Text variant={TextVariant.HeadingMd} twClassName="self-start">
-            {strings('money.earnings.markets')}
-          </Text>
           <MoneyVaultCompositionMarketsTable
             components={data.components}
-            marketLabel={strings('money.earnings.market')}
+            marketLabel={strings('money.earnings.markets')}
             allocationLabel={strings('money.earnings.allocation')}
-            supplyApyLabel={strings('money.earnings.supply_apy')}
-            incentiveAprLabel={strings('money.earnings.incentive_apr')}
+            apyLabel={strings('money.earnings.apy')}
             networkLabel={strings('money.earnings.monad')}
           />
         </Box>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import type { VaultCompositionComponent } from '../../../../types/moneyVaultComposition';
 import MoneyVaultCompositionMarketsTable from './MoneyVaultCompositionMarketsTable';
@@ -27,42 +28,40 @@ const createComponent = (
 
 describe('MoneyVaultCompositionMarketsTable', () => {
   it('renders localized headers', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyVaultCompositionMarketsTable
-        components={[createComponent('aave_v3_musd', '1')]}
-        marketLabel="Market"
-        allocationLabel="Allocation"
-        supplyApyLabel="Supply APY"
-        incentiveAprLabel="Incentive APR"
-        networkLabel="Monad"
-      />,
-    );
+    const { getByTestId, UNSAFE_getAllByProps: getAllByProps } =
+      renderWithProvider(
+        <MoneyVaultCompositionMarketsTable
+          components={[createComponent('aave_v3_musd', '1')]}
+          marketLabel="Markets"
+          allocationLabel="Allocation"
+          apyLabel="APY"
+          networkLabel="Monad"
+        />,
+      );
 
+    const marketHeader = getByTestId(
+      MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER,
+    );
+    expect(marketHeader).toHaveTextContent('Markets');
     expect(
-      getByTestId(MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER),
-    ).toHaveTextContent('Market');
+      getAllByProps({
+        testID: MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER,
+      }).find((node) => node.props.variant !== undefined)?.props.variant,
+    ).toBe(TextVariant.HeadingMd);
     const allocationHeader = getByTestId(
       MoneyVaultCompositionMarketsTableTestIds.ALLOCATION_HEADER,
     );
     expect(allocationHeader).toHaveTextContent('Allocation');
     expect(StyleSheet.flatten(allocationHeader.props.style)).toEqual(
-      expect.objectContaining({ width: 80 }),
+      expect.objectContaining({ width: 64 }),
     );
 
-    const supplyApyHeader = getByTestId(
-      MoneyVaultCompositionMarketsTableTestIds.SUPPLY_APY_HEADER,
+    const apyHeader = getByTestId(
+      MoneyVaultCompositionMarketsTableTestIds.APY_HEADER,
     );
-    expect(supplyApyHeader).toHaveTextContent('Supply APY');
-    expect(StyleSheet.flatten(supplyApyHeader.props.style)).toEqual(
-      expect.objectContaining({ width: 80 }),
-    );
-
-    const incentiveAprHeader = getByTestId(
-      MoneyVaultCompositionMarketsTableTestIds.INCENTIVE_APR_HEADER,
-    );
-    expect(incentiveAprHeader).toHaveTextContent('Incentive APR');
-    expect(StyleSheet.flatten(incentiveAprHeader.props.style)).toEqual(
-      expect.objectContaining({ width: 80 }),
+    expect(apyHeader).toHaveTextContent('APY');
+    expect(StyleSheet.flatten(apyHeader.props.style)).toEqual(
+      expect.objectContaining({ width: 64 }),
     );
   });
 
@@ -76,10 +75,9 @@ describe('MoneyVaultCompositionMarketsTable', () => {
     const { getAllByTestId, queryByTestId } = renderWithProvider(
       <MoneyVaultCompositionMarketsTable
         components={components}
-        marketLabel="Market"
+        marketLabel="Markets"
         allocationLabel="Allocation"
-        supplyApyLabel="Supply APY"
-        incentiveAprLabel="Incentive APR"
+        apyLabel="APY"
         networkLabel="Monad"
       />,
     );

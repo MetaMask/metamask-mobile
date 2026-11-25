@@ -2,7 +2,6 @@ import BigNumber from 'bignumber.js';
 import { arc } from 'd3-shape';
 import type { VaultCompositionResponse } from '../../../../types/moneyVaultComposition';
 import type { Colors } from '../../../../../../../util/theme/models';
-import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import type {
   ComponentKey,
   VaultCompositionChartModel,
@@ -20,16 +19,6 @@ export const MINIMUM_PAINTED_ANGLE_DEGREES = 4;
 const DEGREES_IN_CIRCLE = new BigNumber(360);
 const RADIANS_PER_DEGREE = Math.PI / 180;
 const DECIMAL_PATTERN = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
-const MONEY_PERCENTAGE_LOCALE = 'en-US';
-const PERCENTAGE_FORMAT_OPTIONS = {
-  style: 'percent',
-  maximumFractionDigits: 2,
-} satisfies Intl.NumberFormatOptions;
-const LOWER_BOUND_PERCENTAGE_FORMAT_OPTIONS = {
-  style: 'percent',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-} satisfies Intl.NumberFormatOptions;
 
 type VaultComponent = VaultCompositionResponse['components'][number];
 
@@ -273,39 +262,6 @@ export const getVaultCompositionComponentsInChartOrder = (
     hasFeasibleGeometry(positiveComponents.length)
     ? positiveComponents.map(({ component }) => component)
     : [];
-};
-
-/**
- * Formats a fractional allocation as a US English percentage.
- *
- * @param allocationFraction - Decimal fraction such as `0.38`.
- * @returns A percentage string.
- */
-export const formatAllocationPercentage = (
-  allocationFraction: string,
-): string => {
-  const parsedAllocation = parseAllocationFraction(allocationFraction);
-  if (parsedAllocation === null) {
-    throw new Error(
-      `Cannot format invalid allocation fraction '${allocationFraction}'`,
-    );
-  }
-
-  const formatter = getIntlNumberFormatter(
-    MONEY_PERCENTAGE_LOCALE,
-    PERCENTAGE_FORMAT_OPTIONS,
-  );
-
-  if (parsedAllocation.gt(0) && parsedAllocation.lt(new BigNumber('0.0001'))) {
-    const lowerBoundFormatter = getIntlNumberFormatter(
-      MONEY_PERCENTAGE_LOCALE,
-      LOWER_BOUND_PERCENTAGE_FORMAT_OPTIONS,
-    );
-
-    return `<${lowerBoundFormatter.format(0.0001)}`;
-  }
-
-  return formatter.format(parsedAllocation.toNumber());
 };
 
 function parseAllocationFraction(value: string): BigNumber | null {

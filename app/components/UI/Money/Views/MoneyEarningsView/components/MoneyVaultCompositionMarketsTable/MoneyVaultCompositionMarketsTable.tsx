@@ -20,11 +20,10 @@ import { MoneyVaultCompositionMarketsTableTestIds } from './MoneyVaultCompositio
  */
 const MoneyVaultCompositionMarketsTable = ({
   allocationLabel,
+  apyLabel,
   components,
-  incentiveAprLabel,
   marketLabel,
   networkLabel,
-  supplyApyLabel,
 }: MoneyVaultCompositionMarketsTableProps): React.ReactElement => {
   const tw = useTailwind();
   const orderedComponents =
@@ -43,10 +42,9 @@ const MoneyVaultCompositionMarketsTable = ({
       >
         <Text
           testID={MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER}
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          twClassName="min-w-0 flex-1 pl-4"
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
+          twClassName="min-w-0 flex-1"
         >
           {marketLabel}
         </Text>
@@ -62,22 +60,13 @@ const MoneyVaultCompositionMarketsTable = ({
           {allocationLabel}
         </Text>
         <Text
-          testID={MoneyVaultCompositionMarketsTableTestIds.SUPPLY_APY_HEADER}
+          testID={MoneyVaultCompositionMarketsTableTestIds.APY_HEADER}
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           twClassName="w-16 text-right"
         >
-          {supplyApyLabel}
-        </Text>
-        <Text
-          testID={MoneyVaultCompositionMarketsTableTestIds.INCENTIVE_APR_HEADER}
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          twClassName="w-16 text-right"
-        >
-          {incentiveAprLabel}
+          {apyLabel}
         </Text>
       </Box>
       {orderedComponents.map((component) => (

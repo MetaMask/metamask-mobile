@@ -3,8 +3,7 @@ import type { VaultCompositionResponse } from '../../../../types/moneyVaultCompo
 export interface MoneyVaultCompositionMarketsTableProps {
   allocationLabel: string;
   components: VaultCompositionResponse['components'];
-  incentiveAprLabel: string;
+  apyLabel: string;
   marketLabel: string;
   networkLabel: string;
-  supplyApyLabel: string;
 }

@@ -12,13 +12,14 @@ import {
   formatVaultCompositionProtocolName,
   getVaultCompositionPrimaryAssetSymbol,
 } from '../../../../utils/moneyVaultComposition';
+import { formatPercentage } from '../../../../utils/formatPercentage';
 import { useTheme } from '../../../../../../../util/theme';
-import {
-  formatAllocationPercentage,
-  getVaultCompositionComponentColor,
-} from '../MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
+import { getVaultCompositionComponentColor } from '../MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
 import type { MoneyVaultCompositionMarketRowProps } from './MoneyVaultCompositionMarketRow.types';
 import { MoneyVaultCompositionMarketRowTestIds } from './MoneyVaultCompositionMarketRow.testIds';
+
+const formatMarketAssetSymbol = (assetSymbol: string): string =>
+  assetSymbol === 'mUSD' ? 'MetaMask USD' : assetSymbol;
 
 /**
  * Renders one vault component in the markets table.
@@ -34,10 +35,13 @@ const MoneyVaultCompositionMarketRow = ({
   const { colors } = useTheme();
   const componentKey = component.component_key;
   const protocolLabel = formatVaultCompositionProtocolName(component.protocol);
-  const secondaryLabel =
+  const primaryLabel =
     component.protocol === 'liquidity_buffer'
       ? protocolLabel
-      : `${protocolLabel} · ${networkLabel}`;
+      : `${protocolLabel} • ${networkLabel}`;
+  const secondaryLabel = formatMarketAssetSymbol(
+    getVaultCompositionPrimaryAssetSymbol(component),
+  );
 
   return (
     <Box
@@ -46,10 +50,10 @@ const MoneyVaultCompositionMarketRow = ({
       twClassName="flex-row items-center gap-3 py-3"
     >
       <Box
-        testID={MoneyVaultCompositionMarketRowTestIds.DOT(componentKey)}
+        testID={MoneyVaultCompositionMarketRowTestIds.INDICATOR(componentKey)}
         accessible={false}
         style={[
-          tw.style('h-2 w-2 shrink-0 rounded-full'),
+          tw.style('h-10 w-2 shrink-0'),
           {
             backgroundColor: getVaultCompositionComponentColor(
               componentKey,
@@ -66,7 +70,7 @@ const MoneyVaultCompositionMarketRow = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
         >
-          {getVaultCompositionPrimaryAssetSymbol(component)}
+          {primaryLabel}
         </Text>
         <Text
           testID={MoneyVaultCompositionMarketRowTestIds.SECONDARY_LABEL(
@@ -83,29 +87,24 @@ const MoneyVaultCompositionMarketRow = ({
         variant={TextVariant.BodyMd}
         twClassName="w-16 text-right"
       >
-        {formatAllocationPercentage(component.allocation_fraction)}
+        {formatPercentage(component.allocation_fraction)}
       </Text>
       <Text
-        testID={MoneyVaultCompositionMarketRowTestIds.SUPPLY_APY(componentKey)}
+        testID={MoneyVaultCompositionMarketRowTestIds.APY(componentKey)}
         variant={TextVariant.BodyMd}
+        color={
+          component.estimated_total_annual_rate !== null &&
+          component.estimated_total_annual_rate !== '0'
+            ? TextColor.SuccessDefault
+            : TextColor.TextDefault
+        }
         twClassName="w-16 text-right"
       >
-        {component.organic_supply_apy === '0'
-          ? '—'
-          : formatAllocationPercentage(component.organic_supply_apy)}
-      </Text>
-      <Text
-        testID={MoneyVaultCompositionMarketRowTestIds.INCENTIVE_APR(
-          componentKey,
-        )}
-        variant={TextVariant.BodyMd}
-        twClassName="w-16 text-right"
-      >
-        {component.incentive_apr === null
+        {component.estimated_total_annual_rate === null
           ? strings('money.earnings.unavailable')
-          : component.incentive_apr === '0'
+          : component.estimated_total_annual_rate === '0'
             ? '—'
-            : formatAllocationPercentage(component.incentive_apr)}
+            : formatPercentage(component.estimated_total_annual_rate)}
       </Text>
     </Box>
   );
