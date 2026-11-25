@@ -30,10 +30,7 @@ import {
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
 import { selectCandidateSubscriptionId } from '../../../../../../reducers/rewards/selectors';
-import {
-  navigateToSocialLeaderboard,
-  navigateToSocialTab,
-} from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import type {
   ClaimDto,
   EarningsSummaryDto,
@@ -65,7 +62,6 @@ import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
 import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
-import { underReviewBlockedBaseUnits } from '../../../utils/earningsSummaryTotals';
 import { isShareableReferralCode } from '../../../utils/shareableReferralCode';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
 import type {
@@ -73,7 +69,7 @@ import type {
   ClaimsPausedTotals,
 } from '../RewardsMoneyClaimsPausedModal';
 import { EarningsHistoryRow } from '../EarningsHistoryRows';
-import RewardsPausedBanner from '../RewardsPausedBanner';
+import RewardsEarningsBanners from '../RewardsEarningsBanners';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
 import {
@@ -196,7 +192,7 @@ const EarningsErrorBanner: React.FC<{
   const copy =
     source === 'history'
       ? 'rewards.trading_activity_error'
-      : 'rewards.referral_details_error';
+      : 'rewards.earnings_summary_error';
   const retry = {
     summary: onRetrySummary,
     history: onRetryHistory,
@@ -234,8 +230,11 @@ const HistorySection: React.FC<{
   followsSection: boolean;
   /** Copy-trading-only sharers get the copy-trading empty copy and action. */
   copyTradingOnly: boolean;
-  /** Under-review base units from the summary, or null when none are held. */
-  pausedBaseUnits: string | null;
+  /**
+   * The summary the paused and held banners read, or null while it or the
+   * history is still loading.
+   */
+  bannerSummary: EarningsSummaryDto | null;
   onEmptyAction: () => void;
   onOpenList: () => void;
 }> = ({
@@ -243,7 +242,7 @@ const HistorySection: React.FC<{
   state,
   followsSection,
   copyTradingOnly,
-  pausedBaseUnits,
+  bannerSummary,
   onEmptyAction,
   onOpenList,
 }) => {
@@ -318,14 +317,11 @@ const HistorySection: React.FC<{
         testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_HEADER}
       />
       <Box twClassName="px-4 pb-8">
-        {pausedBaseUnits ? (
-          <Box twClassName="mb-4">
-            <RewardsPausedBanner
-              baseUnits={pausedBaseUnits}
-              localizedText={localizedText}
-            />
-          </Box>
-        ) : null}
+        <RewardsEarningsBanners
+          summary={bannerSummary}
+          localizedText={localizedText}
+          twClassName="mb-4"
+        />
         {body}
       </Box>
     </>
@@ -379,9 +375,10 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
     referralMe?.referral_code_status,
   );
   const copyTradingOnly = isCopyTradingOnly(roles);
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
+  const { openComposer } = useOpenSocialPostComposer();
+  const openComposerPress = useCallback(() => {
+    openComposer();
+  }, [openComposer]);
   const socialEnabled = useSelector(selectIsSocialV1Enabled);
   const {
     categorizedCampaigns: { active: activeCampaigns },
@@ -414,7 +411,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
           onOpenCampaigns();
         }
       } else {
-        navigateToSocialTab(navigation.navigate);
+        openComposerPress();
       }
     },
     [
@@ -422,6 +419,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
       navigation,
       onOpenCampaigns,
       onOpenShareCode,
+      openComposerPress,
       openTradeActions,
       subscriptionId,
     ],
@@ -670,12 +668,10 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
           state={history}
           followsSection={summary.show || nextStepRows.length > 0}
           copyTradingOnly={copyTradingOnly}
-          pausedBaseUnits={
-            summary.loading || history.loading
-              ? null
-              : underReviewBlockedBaseUnits(summary.data)
+          bannerSummary={
+            summary.loading || history.loading ? null : summary.data
           }
-          onEmptyAction={copyTradingOnly ? openSocialTab : openTradeActions}
+          onEmptyAction={copyTradingOnly ? openComposerPress : openTradeActions}
           onOpenList={openHistory}
         />
       ) : null}

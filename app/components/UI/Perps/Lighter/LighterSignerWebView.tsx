@@ -198,6 +198,13 @@ export function isValidLighterSignerResult(
       Number.isFinite(result.deadline)
     );
   }
+  // TODO: temporary cast. Remove it once this app depends on a
+  // `@metamask/perps-controller` release with MetaMask/core#11730, which adds
+  // `_getTransferTransaction` to the signer function names.
+  if ((functionName as string) === '_getTransferTransaction') {
+    // The transfer plaintext to sign with the L1 account, not a signed tx.
+    return typeof result.body === 'string';
+  }
   return (
     typeof result.txInfo === 'string' && hasOptionalString(result, 'txHash')
   );

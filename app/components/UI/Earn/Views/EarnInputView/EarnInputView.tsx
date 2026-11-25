@@ -471,7 +471,7 @@ const EarnInputView = () => {
       });
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
     };
 
@@ -598,7 +598,7 @@ const EarnInputView = () => {
       );
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       });
 
       const withRedesignedPropEventProperties = {
