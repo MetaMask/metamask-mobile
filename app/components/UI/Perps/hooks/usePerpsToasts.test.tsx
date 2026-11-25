@@ -1547,7 +1547,11 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toEqual([
-          { label: 'Order validation failed', isBold: true },
+          {
+            label:
+              'We couldn’t check this order. Review the details and try again.',
+            isBold: true,
+          },
           { label: '\n', isBold: false },
           { label: 'Insufficient balance', isBold: false },
         ]);
