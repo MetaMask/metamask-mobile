@@ -130,6 +130,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a gray placeholder shown while token details load by showing price, chart, and action skeletons in the same layout as the loaded page (#39501)
 - Fixed Android skipping the biometric prompt for a few seconds after the phone was unlocked (#39163)
 
+## [8.21.1]
+
+### Changed
+
+- Changed generated social profile usernames to remove underscores and capitalize each word (#40368)
+
 ## [8.21.0]
 
 ### Added
@@ -15546,7 +15552,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.22.0...HEAD
-[8.22.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...v8.22.0
+[8.22.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...v8.22.0
+[8.21.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...v8.21.1
 [8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.2...v8.21.0
 [8.20.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.1...v8.20.2
 [8.20.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...v8.20.1
