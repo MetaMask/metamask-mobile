@@ -41,6 +41,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
 import { getAdvancedOrderTokenProperties } from '../../utils/advancedOrders';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -252,6 +253,7 @@ export const LimitOrderConfirmationModalScreen = () => {
       return;
     }
 
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsCreatingOrder(true);
 
     try {
