@@ -120,7 +120,6 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@metamask/snaps-sdk', () => ({}));
 jest.mock('@metamask/snaps-utils', () => ({}));
-jest.mock('@metamask/keyring-snap-client', () => ({}));
 
 jest.mock('../../../util/transactions', () => ({}));
 
