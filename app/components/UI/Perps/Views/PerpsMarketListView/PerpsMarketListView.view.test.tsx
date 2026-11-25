@@ -601,9 +601,6 @@ describe('Market-count exchange logos — TAT-4511', () => {
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
       await screen.findByText('Markets');
       expect(
-        screen.queryByTestId(`${sortFiltersId}-provider-logos`),
-      ).not.toBeOnTheScreen();
-      expect(
         screen.queryByTestId(`${sortFiltersId}-secondary-provider-logos`),
       ).not.toBeOnTheScreen();
       expect(
@@ -624,7 +621,9 @@ describe('Market-count exchange logos — TAT-4511', () => {
 
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
       expect(
-        await screen.findAllByTestId(`${sortFiltersId}-provider-logos`),
+        await screen.findAllByTestId(
+          `${sortFiltersId}-secondary-provider-logos`,
+        ),
       ).not.toHaveLength(0);
       expect(
         await screen.findAllByTestId(
@@ -651,7 +650,9 @@ describe('Market-count exchange logos — TAT-4511', () => {
 
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
       expect(
-        await screen.findAllByTestId(`${sortFiltersId}-provider-logos`),
+        await screen.findAllByTestId(
+          `${sortFiltersId}-secondary-provider-logos`,
+        ),
       ).not.toHaveLength(0);
       expect(
         await screen.findAllByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),

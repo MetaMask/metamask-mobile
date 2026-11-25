@@ -40,6 +40,17 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
  * />
  * ```
  */
+/**
+ * Vertical hit slop so the ~22px count row meets the ~44px touch-target
+ * floor; the right slop reaches past the chevron.
+ */
+const COUNT_SELECTOR_HIT_SLOP = {
+  top: 11,
+  bottom: 11,
+  left: 0,
+  right: 8,
+} as const;
+
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
@@ -109,7 +120,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
               accessibilityRole="button"
               testID={testID ? `${testID}-exchange-filter` : undefined}
               onPress={onExchangeFilterPress}
-              hitSlop={{ top: 8, bottom: 8, left: 0, right: 8 }}
+              hitSlop={COUNT_SELECTOR_HIT_SLOP}
               style={({ pressed }) =>
                 tw.style('flex-row items-center gap-1', pressed && 'opacity-70')
               }
