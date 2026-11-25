@@ -261,19 +261,20 @@ describe('usePerpsLiquidationPrice', () => {
   it('clears the value when the entry price becomes undefined', async () => {
     mockCalculateLiquidationPrice.mockResolvedValue('45000.00');
 
+    // Typed from the hook's own parameter type, so renderHook's TProps —
+    // inferred from initialProps — allows the undefined entry price below.
+    const initialProps: Parameters<
+      typeof usePerpsLiquidationPrice
+    >[0] = {
+      entryPrice: 50000,
+      leverage: 10,
+      direction: 'long',
+      asset: 'BTC',
+    };
+
     const { result, rerender } = renderHook(
-      // Props come from the hook's own parameter type, so the rerender below
-      // can pass an undefined entry price.
-      (props: Parameters<typeof usePerpsLiquidationPrice>[0]) =>
-        usePerpsLiquidationPrice(props),
-      {
-        initialProps: {
-          entryPrice: 50000,
-          leverage: 10,
-          direction: 'long' as const,
-          asset: 'BTC',
-        },
-      },
+      (props) => usePerpsLiquidationPrice(props),
+      { initialProps },
     );
 
     await waitFor(() => {
