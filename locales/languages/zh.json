@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "像专业人士一样交易",
+        "description": "实时追踪他们兑换或交易永续合约、代币和现实世界资产的动态。"
+      },
+      "slide_follow": {
+        "title": "关注顶尖交易者",
+        "description": "点击关注本周收益最高的十大交易者。"
+      },
+      "slide_notify": {
+        "title": "绝不错过任何市场行情",
+        "description_followed": "当您关注的交易者进行操作时，您会收到通知。一键即可跟单。",
+        "description_default": "准备好后，关注一位交易者，即可在他们操作的第一时间收到通知。"
+      },
+      "next": "下一步",
+      "follow_top_ten": "关注十大顶尖交易者",
+      "maybe_later": "以后再说",
+      "got_it": "知道了",
+      "allow_notifications": "允许通知"
+    },
     "notification_preferences": {
       "title": "顶级交易员",
       "allow_push_notifications": "允许推送通知",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "社交排行榜",
+        "description": "重设社交排行榜的新手引导，以便下次打开该功能时再次显示。",
+        "onboarding_seen": "新手引导已查看：{{seen}}",
+        "reset_onboarding": "重设新手引导",
         "terms_accepted": "社交使用条款已接受：{{accepted}}",
         "reset_terms": "重设社交使用条款"
       },

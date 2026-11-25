@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Giao dịch như một chuyên gia",
+        "description": "Theo dõi theo thời gian thực khi họ hoán đổi hoặc giao dịch hợp đồng vĩnh cửu, token và tài sản thế giới thực."
+      },
+      "slide_follow": {
+        "title": "Theo dõi những người giỏi nhất",
+        "description": "Nhấn để theo dõi 10 nhà giao dịch hàng đầu có mức lợi nhuận cao nhất trong tuần này."
+      },
+      "slide_notify": {
+        "title": "Đừng bỏ lỡ bất kỳ biến động nào",
+        "description_followed": "Khi một nhà giao dịch mà bạn theo dõi thực hiện giao dịch, bạn sẽ nhận được thông báo. Chỉ cần một lần nhấn để thực hiện giao dịch tương tự.",
+        "description_default": "Khi đã sẵn sàng, hãy theo dõi một nhà giao dịch để nhận thông báo ngay khi họ thực hiện giao dịch."
+      },
+      "next": "Tiếp theo",
+      "follow_top_ten": "Theo dõi 10 nhà giao dịch hàng đầu",
+      "maybe_later": "Để sau",
+      "got_it": "Tôi đã hiểu",
+      "allow_notifications": "Cho phép thông báo"
+    },
     "notification_preferences": {
       "title": "Nhà giao dịch hàng đầu",
       "allow_push_notifications": "Cho phép thông báo đẩy",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "Bảng xếp hạng xã hội",
+        "description": "Đặt lại hướng dẫn sử dụng Bảng xếp hạng xã hội để hướng dẫn này hiển thị lại vào lần tiếp theo khi bạn mở tính năng.",
+        "onboarding_seen": "Đã xem hướng dẫn: {{seen}}",
+        "reset_onboarding": "Đặt lại hướng dẫn",
         "terms_accepted": "Đã chấp nhận Điều khoản sử dụng tính năng mạng xã hội: {{accepted}}",
         "reset_terms": "Đặt lại Điều khoản sử dụng tính năng mạng xã hội"
       },

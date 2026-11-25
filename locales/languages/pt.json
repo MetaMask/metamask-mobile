@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Negocie como um profissional",
+        "description": "Acompanhe em tempo real quando eles fizerem swap ou negociarem contratos perpétuos, tokens e ativos do mundo real."
+      },
+      "slide_follow": {
+        "title": "Siga os melhores",
+        "description": "Toque para seguir os dez melhores traders que tiveram grandes ganhos nesta semana."
+      },
+      "slide_notify": {
+        "title": "Não perca nenhum movimento",
+        "description_followed": "Quando um trader que você segue realiza uma operação, você recebe uma notificação. Basta um toque para fazer o mesmo.",
+        "description_default": "Quando estiver pronto(a), siga um trader para ser notificado no momento em que ele realizar uma operação."
+      },
+      "next": "Avançar",
+      "follow_top_ten": "Siga os dez melhores",
+      "maybe_later": "Talvez mais tarde",
+      "got_it": "Entendi",
+      "allow_notifications": "Permitir notificações"
+    },
     "notification_preferences": {
       "title": "Melhores traders",
       "allow_push_notifications": "Permitir notificações push",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "Placar social",
+        "description": "Redefina a integração inicial do Placar social para que ela seja exibida novamente na próxima vez que o recurso for aberto.",
+        "onboarding_seen": "Integração inicial vista: {{seen}}",
+        "reset_onboarding": "Reiniciar integração inicial",
         "terms_accepted": "Termos de uso das redes sociais aceitos: {{accepted}}",
         "reset_terms": "Redefinir Termos de uso das redes sociais"
       },

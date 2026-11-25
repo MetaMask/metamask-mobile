@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "プロのようにトレード",
+        "description": "スワップの実行やパーペチュアル、トークン、現実資産の取引をリアルタイムで確認できます。"
+      },
+      "slide_follow": {
+        "title": "凄腕トレーダーをフォロー",
+        "description": "タップすると、今週大きく利益を上げている上位10人のトレーダーをフォローできます。"
+      },
+      "slide_notify": {
+        "title": "価格変動を見逃さない",
+        "description_followed": "フォロー中のトレーダーに動きがあると通知が届きます。ワンタップで同じ取引を実行できます。",
+        "description_default": "準備ができたらトレーダーをフォローしましょう。相手が取引を行うと通知が届きます。"
+      },
+      "next": "次へ",
+      "follow_top_ten": "上位10人をフォロー",
+      "maybe_later": "後で",
+      "got_it": "了解",
+      "allow_notifications": "通知を許可する"
+    },
     "notification_preferences": {
       "title": "トップトレーダー",
       "allow_push_notifications": "プッシュ通知を許可する",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "ソーシャルリーダーボード",
+        "description": "次にソーシャルリーダーボードを開いたときにオンボーディングが表示されるようにリセットしてください。",
+        "onboarding_seen": "オンボーディング表示済み: {{seen}}",
+        "reset_onboarding": "オンボーディングをリセットする",
         "terms_accepted": "Social利用規約が承諾されました: {{accepted}}",
         "reset_terms": "Social利用規約をリセット"
       },

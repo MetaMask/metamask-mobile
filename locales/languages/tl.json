@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Mag-trade na parang pro",
+        "description": "Sumubaybay ng real time kapag sila ay nag-swap o nag-trade ng perps, tokens, at mga real-world asset."
+      },
+      "slide_follow": {
+        "title": "I-follow ang pinakamahusay",
+        "description": "I-tap para i-follow ang nangungunang sampu na malaki ang lamang ngayong linggo."
+      },
+      "slide_notify": {
+        "title": "Walang dapat palampasin",
+        "description_followed": "Makakatanggap ka ng notipikasyon kapag kumilos ang trader na pina-follow mo. Isang tap para gawin din iyon.",
+        "description_default": "Kapag handa ka na, i-follow ang trader para maabisuhan ka sa sandaling kumilos sila."
+      },
+      "next": "Susunod",
+      "follow_top_ten": "I-follow ang nangungunang sampu",
+      "maybe_later": "Baka mamaya",
+      "got_it": "Nakuha ko",
+      "allow_notifications": "Payagan ang mga notipikasyon"
+    },
     "notification_preferences": {
       "title": "Mga nangungunang trader",
       "allow_push_notifications": "Payagan ang mga push na notipikasyon",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "Social Leaderboard",
+        "description": "I-reset ang pag-onboard sa Social Leaderboard para makita itong muli sa susunod na buksan ang feature.",
+        "onboarding_seen": "Seen sa pag-onboard: {{seen}}",
+        "reset_onboarding": "I-reset ang pag-onboard",
         "terms_accepted": "Tinanggap ang Mga Tuntunin ng Paggamit ng Social: {{accepted}}",
         "reset_terms": "I-reset ang Mga Tuntunin ng Paggamit ng Social"
       },

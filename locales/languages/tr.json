@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Profesyonel gibi işlem yapın",
+        "description": "Token, perps ve gerçek dünya varlıklarıyla takas veya işlem yaptıklarında gerçek zamanlı olarak takip edin."
+      },
+      "slide_follow": {
+        "title": "En iyileri takip edin",
+        "description": "Bu hafta büyük kazanç sağlayan en iyi on yatırımcıyı takip etmek için dokunun."
+      },
+      "slide_notify": {
+        "title": "Hiçbir hamleyi kaçırmayın",
+        "description_followed": "Takip ettiğiniz bir yatırımcı hamle yaptığında bildirim alırsınız. Aynı işlemi yapmak için tek dokunuş yeterli.",
+        "description_default": "Hazır olduğunuzda, bir yatırımcıyı takip ederek işlem yaptığı an bildirim alın."
+      },
+      "next": "Sonraki",
+      "follow_top_ten": "En iyi on yatırımcıyı takip edin",
+      "maybe_later": "Belki daha sonra",
+      "got_it": "Anladım",
+      "allow_notifications": "Bildirimlere izin ver"
+    },
     "notification_preferences": {
       "title": "En iyi yatırımcılar",
       "allow_push_notifications": "Anlık bildirimlere izin ver",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "Sosyal Liderlik Tablosu",
+        "description": "Bir sonraki açılışında özelliğin tekrar gösterilmesi için Sosyal Liderlik Tablosu girişini sıfırlayın.",
+        "onboarding_seen": "Kayıt durumu görüldü: {{seen}}",
+        "reset_onboarding": "Kayıt durumunu sıfırla",
         "terms_accepted": "Sosyal Medya Kullanım Şartları kabul edildi: {{accepted}}",
         "reset_terms": "Sosyal Medya Kullanım Şartlarını sıfırla"
       },

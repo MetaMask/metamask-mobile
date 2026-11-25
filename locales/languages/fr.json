@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Tradez comme un pro",
+        "description": "Suivez en temps réel leurs opérations d’échange ou de trading de perps, de jetons ou d’actifs réels."
+      },
+      "slide_follow": {
+        "title": "Suivez les meilleurs",
+        "description": "Appuyez pour suivre les dix meilleurs traders qui ont enregistré de forts gains cette semaine."
+      },
+      "slide_notify": {
+        "title": "Ne manquez jamais une opportunité",
+        "description_followed": "Lorsqu’un trader que vous suivez effectue une opération, vous recevez une notification. Un simple clic suffit pour copier sa position.",
+        "description_default": "Lorsque vous êtes prêt, suivez un trader pour être averti dès qu’il effectue une opération."
+      },
+      "next": "Suivant",
+      "follow_top_ten": "Suivez les dix meilleurs traders",
+      "maybe_later": "Peut-être plus tard",
+      "got_it": "J’ai compris",
+      "allow_notifications": "Autoriser les notifications"
+    },
     "notification_preferences": {
       "title": "Meilleurs traders",
       "allow_push_notifications": "Autoriser les notifications push",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "Classement social",
+        "description": "Réinitialiser la procédure d’intégration au classement social afin qu’elle s’affiche à nouveau lors de la prochaine activation de la fonctionnalité.",
+        "onboarding_seen": "Affichage de la procédure d’intégration : {{seen}}",
+        "reset_onboarding": "Réinitialiser la procédure d’intégration",
         "terms_accepted": "Conditions d'utilisation des réseaux sociaux acceptées : {{accepted}}",
         "reset_terms": "Réinitialiser les conditions d'utilisation des réseaux sociaux"
       },

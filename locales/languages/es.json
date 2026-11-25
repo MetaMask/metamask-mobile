@@ -1645,6 +1645,26 @@
         }
       }
     },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Opera como un experto",
+        "description": "Haz seguimiento en tiempo real cuando canjeen u operen perps, tokens y activos del mundo real."
+      },
+      "slide_follow": {
+        "title": "Sigue a los mejores",
+        "description": "Toca para seguir a los diez traders con mayores ganancias de esta semana."
+      },
+      "slide_notify": {
+        "title": "No te pierdas ningún movimiento",
+        "description_followed": "Cuando un trader al que sigues realice una operación, recibirás una notificación. Solo tienes que tocar para hacer lo mismo.",
+        "description_default": "Cuando estés listo, sigue a un trader para recibir una notificación en cuanto realice una operación."
+      },
+      "next": "Siguiente",
+      "follow_top_ten": "Sigue a los diez mejores",
+      "maybe_later": "Quizás más tarde",
+      "got_it": "Entendido",
+      "allow_notifications": "Permitir notificaciones"
+    },
     "notification_preferences": {
       "title": "Traders principales",
       "allow_push_notifications": "Permitir notificaciones push",
@@ -6094,6 +6114,9 @@
       },
       "social_leaderboard": {
         "title": "Clasificación social",
+        "description": "Restablece la configuración inicial de la clasificación social para que vuelva a mostrarse la próxima vez que abras esta función.",
+        "onboarding_seen": "Configuración inicial vista: {{seen}}",
+        "reset_onboarding": "Reiniciar configuración inicial",
         "terms_accepted": "Términos de uso de redes sociales aceptados: {{accepted}}",
         "reset_terms": "Restablecer Términos de uso de redes sociales"
       },
