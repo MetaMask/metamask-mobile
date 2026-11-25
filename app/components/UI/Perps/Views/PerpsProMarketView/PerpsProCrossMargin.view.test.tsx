@@ -1,6 +1,8 @@
 import '../../../../../../tests/component-view/mocks';
 
 import type React from 'react';
+import type { CrossLiquidationEstimate } from '@metamask/perps-controller';
+import { createDeferredPromise } from '@metamask/utils';
 import {
   act,
   cleanup,
@@ -10,7 +12,10 @@ import {
 } from '@testing-library/react-native';
 import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import {
+  createCrossMarginAccountForViews,
+  createFundedAccountForViews,
+} from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   openMarginModeSheet,
@@ -130,6 +135,37 @@ describeForPlatforms('Pro Cross margin risk editors', () => {
     expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
       /--/,
     );
+  });
+
+  it('does not request another Cross estimate when only the account stream changes', async () => {
+    const pending = createDeferredPromise<CrossLiquidationEstimate>();
+    const estimate = jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockReturnValue(pending.promise);
+    const stream = await selectCross();
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() => expect(estimate).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      stream.emitAccount(
+        createCrossMarginAccountForViews({
+          balance: '10000',
+          accountValue: '10020',
+          maintenanceMargin: '5',
+          marginUsed: '100',
+          notional: '500',
+        }),
+      );
+    });
+    await act(async () => pending.resolve({ status: 'price', price: '1842' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
+        /\$1,842/,
+      ),
+    );
+    expect(estimate).toHaveBeenCalledTimes(1);
   });
 
   it('saves a Cross stop beyond the isolated liquidation threshold after opening TP/SL', async () => {

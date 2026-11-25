@@ -4,7 +4,6 @@ import {
   type EstimateCrossLiquidationParams,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
-import { usePerpsLiveAccount } from './stream';
 
 type CrossEstimateInput = Omit<EstimateCrossLiquidationParams, 'entryPrice'> & {
   entryPrice: number | undefined;
@@ -23,7 +22,6 @@ export function usePerpsCrossLiquidationPrice({
   leverage,
   providerId,
 }: CrossEstimateInput): string | undefined {
-  const { account } = usePerpsLiveAccount({ enabled });
   const params = useMemo(
     () =>
       enabled &&
@@ -71,13 +69,7 @@ export function usePerpsCrossLiquidationPrice({
       active = false;
       clearTimeout(timer);
     };
-  }, [
-    params,
-    draftKey,
-    account?.crossMarginSummary?.accountValue,
-    account?.crossMarginSummary?.maintenanceMargin,
-    account?.spotCollateral,
-  ]);
+  }, [params, draftKey]);
   return result && result.draftKey === activeDraftKey
     ? result.price
     : undefined;
