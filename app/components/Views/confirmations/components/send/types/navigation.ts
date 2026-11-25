@@ -8,7 +8,7 @@ import type {
 } from '../../../utils/send';
 
 /**
- * Params shared by screens inside the redesigned Send stack.
+ * Params shared by screens inside the Send stack.
  *
  * Includes modern send-flow fields (`asset` / `location` / `predefinedRecipient`)
  * and legacy deeplink `txMeta` still passed into nested screens.

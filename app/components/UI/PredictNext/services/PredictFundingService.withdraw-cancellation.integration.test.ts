@@ -192,9 +192,11 @@ describe('PredictFundingService withdrawal transport', () => {
       PREVIEW_ID,
       { signal: caller.signal },
     );
-    const cancelled = await expect(second).rejects.toMatchObject({
-      name: 'AbortError',
-    });
+    const cancelled = (async () => {
+      await expect(second).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+    })();
     await tokenRequested.promise;
     caller.abort();
     await cancelled;

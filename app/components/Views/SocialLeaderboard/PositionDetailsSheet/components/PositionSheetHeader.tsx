@@ -19,6 +19,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
@@ -116,6 +117,11 @@ const PositionSheetHeader = ({
           >
             {author.username}
           </Text>
+          {author.verified ? (
+            <ProfileVerifiedBadge
+              testID={PositionDetailsSheetSelectorsIDs.VERIFIED_BADGE}
+            />
+          ) : null}
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}

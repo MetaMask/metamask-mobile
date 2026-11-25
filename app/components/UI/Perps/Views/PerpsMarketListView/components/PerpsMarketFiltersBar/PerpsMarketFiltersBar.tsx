@@ -7,7 +7,14 @@ import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategor
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
 import {
+  Box,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  SelectButton,
+  SelectButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -44,6 +51,8 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   showWatchlistBadge,
   isWatchlistSelected,
   onWatchlistToggle,
+  onExchangeFilterPress,
+  exchangeFilterLabel,
   showCategoryRow = true,
   showSortRow = true,
   testID,
@@ -77,12 +86,36 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
               ? strings('perps.market_count', { count: marketCount })
               : strings('perps.market_count_plural', { count: marketCount })}
           </Text>
-          <PerpsMarketSortDropdowns
-            selectedOptionId={selectedOptionId}
-            onSortPress={onSortPress}
-            sortDirection={sortDirection}
-            testID={testID ? `${testID}-sort` : undefined}
-          />
+          <Box twClassName="flex-row items-center gap-2">
+            {onExchangeFilterPress ? (
+              <SelectButton
+                testID={testID ? `${testID}-exchange-filter` : undefined}
+                variant={SelectButtonVariant.Secondary}
+                placeholder={exchangeFilterLabel ?? ''}
+                value={exchangeFilterLabel ?? ''}
+                onPress={onExchangeFilterPress}
+                hideEndArrow
+                textProps={{
+                  variant: TextVariant.BodyMd,
+                  fontWeight: FontWeight.Medium,
+                  numberOfLines: 1,
+                }}
+                endAccessory={
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                }
+              />
+            ) : null}
+            <PerpsMarketSortDropdowns
+              selectedOptionId={selectedOptionId}
+              onSortPress={onSortPress}
+              sortDirection={sortDirection}
+              testID={testID ? `${testID}-sort` : undefined}
+            />
+          </Box>
         </View>
       )}
     </View>

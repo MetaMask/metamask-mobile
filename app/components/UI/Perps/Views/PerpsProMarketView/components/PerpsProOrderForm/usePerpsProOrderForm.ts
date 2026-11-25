@@ -901,7 +901,7 @@ export const usePerpsProOrderForm = ({
     maxSlippageSource,
   });
 
-  const { isAtCap } = usePerpsOICap(symbol);
+  const { isAtCap } = usePerpsOICap(symbol, market.providerId);
   const vipTier = useVipTier();
 
   const {
@@ -1210,9 +1210,16 @@ export const usePerpsProOrderForm = ({
     isMarginModeLockPendingRef.current = isMarginModeLockPending;
   }, [isMarginModeLockPending]);
 
-  const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
+  const prices = usePerpsLivePrices({
+    providerId: market.providerId,
+    symbols: [symbol],
+    throttleMs: 1000,
+  });
   const currentPrice = prices[symbol];
-  const currentTopOfBook = usePerpsTopOfBook({ symbol });
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol,
+    providerId: market.providerId,
+  });
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -1921,6 +1928,7 @@ export const usePerpsProOrderForm = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: market.providerId,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps: resolvedMaxSlippageBps,
@@ -2157,7 +2165,7 @@ export const usePerpsProOrderForm = ({
       currentMarketPosition ||
       marketMaxLeverage === undefined
     ) {
-      return '';
+      return undefined;
     }
     const estimate = estimateCrossLiquidationPrice({
       entryPrice: effectivePrice,
@@ -2168,7 +2176,9 @@ export const usePerpsProOrderForm = ({
       spotCollateral: liveAccount?.spotCollateral,
       providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
     });
-    return estimate === undefined ? '' : new BigNumber(estimate).toFixed();
+    return estimate === undefined
+      ? undefined
+      : new BigNumber(estimate).toFixed();
   }, [
     marginMode,
     isScaleOrder,
@@ -2200,7 +2210,13 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    // perps-controller 26.0.0 projects held Cross positions; the before→after
+    // row stays off for them until product signs off on Cross projections.
+    enabled:
+      isPositionModifyPreviewEnabled &&
+      !isScaleOrder &&
+      !isTwapOrder &&
+      currentMarketPosition?.leverage?.type !== 'cross',
   });
 
   const existingPositionLeverageForValidation =
@@ -2618,7 +2634,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -3319,9 +3335,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3625,7 +3639,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4357,7 +4371,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

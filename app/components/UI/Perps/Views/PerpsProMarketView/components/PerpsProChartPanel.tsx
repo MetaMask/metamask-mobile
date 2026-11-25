@@ -408,6 +408,7 @@ const PerpsProChartPanel = ({
   return (
     <>
       <PerpsMarketSummary
+        providerId={marketData?.providerId}
         symbol={symbol}
         currentPrice={currentPrice}
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}

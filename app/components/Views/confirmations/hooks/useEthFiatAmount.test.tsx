@@ -3,6 +3,7 @@ import { useEthFiatAmount } from './useEthFiatAmount';
 import BigNumber from 'bignumber.js';
 import { transferTransactionStateMock } from '../__mocks__/transfer-transaction-mock';
 import { merge } from 'lodash';
+import I18n from '../../../../../locales/i18n';
 import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
@@ -120,4 +121,26 @@ describe('useEthFiatAmount', () => {
 
     expect(result.current).toBe('$3,000.00 USD');
   });
+
+  it.each([
+    ['EUR', 'de', '0.4', '1.200,00\u00a0€'],
+    ['EUR', 'de', '0.000001', '< 0,01\u00a0€'],
+    ['JPY', 'en', '0.4', '¥1,200'],
+  ])(
+    'formats %s in the %s app language',
+    (currency, locale, ethAmount, expected) => {
+      const originalLocale = I18n.locale;
+      I18n.locale = locale;
+      mockSelectConversionRate.mockReturnValue(3000);
+      mockCurrentCurrency.mockReturnValue(currency);
+
+      const { result } = renderHookWithProvider(
+        () => useEthFiatAmount(ethAmount, { showFiat: true }, true),
+        { state: mockState },
+      );
+
+      I18n.locale = originalLocale;
+      expect(result.current).toBe(expected);
+    },
+  );
 });

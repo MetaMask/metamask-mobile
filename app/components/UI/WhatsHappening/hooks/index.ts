@@ -9,3 +9,4 @@ export type {
 } from './useWhatsHappening';
 export { useTradablePerpsMarketSymbols } from './useTradablePerpsMarketSymbols';
 export type { UseTradablePerpsMarketSymbolsResult } from './useTradablePerpsMarketSymbols';
+export { useWhatsHappeningCardViewTracking } from './useWhatsHappeningCardViewTracking';

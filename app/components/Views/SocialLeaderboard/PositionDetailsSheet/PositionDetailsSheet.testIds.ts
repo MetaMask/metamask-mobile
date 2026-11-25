@@ -4,6 +4,8 @@ export const PositionDetailsSheetSelectorsIDs = {
   BACK_BUTTON: 'position-details-sheet-back-button',
   IDENTITY: 'position-details-sheet-identity',
   TITLE: 'position-details-sheet-title',
+  VERIFIED_BADGE: 'position-details-sheet-verified-badge',
+  POST_VERIFIED_BADGE: 'position-details-sheet-post-verified-badge',
   FOLLOW_BUTTON: 'position-details-sheet-follow-button',
   SHARE_BUTTON: 'position-details-sheet-share-button',
   SHARE_SPINNER: 'position-details-sheet-share-spinner',

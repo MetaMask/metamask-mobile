@@ -1,8 +1,15 @@
+import type { PerpsProviderType } from '@metamask/perps-controller';
+
 export interface PerpsOICapWarningProps {
   /**
    * Market symbol to check OI cap status for
    */
   symbol: string;
+
+  /**
+   * Venue the market trades on. Omit to follow the default venue.
+   */
+  providerId?: PerpsProviderType;
 
   /**
    * Variant determines the display style
