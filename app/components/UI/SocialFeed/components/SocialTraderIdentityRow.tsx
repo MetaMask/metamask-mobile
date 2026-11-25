@@ -19,6 +19,7 @@ import TraderAvatar from './TraderAvatar';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
 import XTrustMark from './XTrustMark';
+import ProfileVerifiedBadge from './ProfileVerifiedBadge';
 import { buildTraderStatLabels } from '../utils/traderStats';
 import FeedPostAge from './FeedPostAge';
 import {
@@ -104,6 +105,14 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           >
             {handle}
           </Text>
+          {author.verified ? (
+            <ProfileVerifiedBadge
+              testID={
+                testIDs?.verifiedBadge ??
+                SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
+              }
+            />
+          ) : null}
           {author.xHandle ? <XTrustMark /> : null}
         </Box>
         <FeedPostAge

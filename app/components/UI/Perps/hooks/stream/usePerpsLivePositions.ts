@@ -53,9 +53,12 @@ export function enrichPositionsWithLivePnL(
       return position;
     }
 
-    // Use mark price if available, fallback to mid price
+    // Both venues compute unrealized PnL from the mark price (HyperLiquid
+    // markPx, Lighter mark_price). Fall back to the mid only until the first
+    // mark arrives: HyperLiquid mid-only updates and Lighter's REST fallback
+    // carry none.
     const currentPrice = Number.parseFloat(
-      priceUpdate.price ?? priceUpdate.markPrice,
+      priceUpdate.markPrice ?? priceUpdate.price,
     );
 
     if (!currentPrice || Number.isNaN(currentPrice) || currentPrice <= 0) {

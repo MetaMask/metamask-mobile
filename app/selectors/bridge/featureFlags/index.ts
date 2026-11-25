@@ -3,6 +3,7 @@ import { CaipChainId, Json } from '@metamask/utils';
 import { selectRemoteFeatureFlags } from '../../featureFlagController';
 import { parseLimitOrderCostTolerance } from '../../../components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/constants';
 import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../../components/UI/Bridge/constants/limitOrders';
+import { RECURRING_ORDER_DEFAULT_PRICE_TOLERANCE } from '../../../components/UI/Bridge/constants/recurringOrders';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
@@ -16,6 +17,7 @@ interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
   baseUrl: string;
+  defaultPriceTolerance: number;
 }
 
 interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
@@ -23,6 +25,18 @@ interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
 }
 
 export const DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS = 15 * 60 * 1000;
+
+function resolveDefaultPriceTolerance(
+  defaultPriceTolerance: number | undefined,
+  fallback: string,
+): string {
+  const remoteValue =
+    typeof defaultPriceTolerance === 'number'
+      ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
+      : undefined;
+
+  return remoteValue ?? fallback;
+}
 
 /**
  * Builds a selector for a Bridge swap feature flag (Limit Order, Recurring
@@ -82,7 +96,7 @@ export const selectSwapFromMoneyEnabled = createSelector(
  * Provides both whether the "Recurring" tab should be shown and which chains
  * its token selectors are restricted to.
  *
- * @returns `{ enabled, enabledChainIds, baseUrl }` for the Recurring Buy feature.
+ * @returns Recurring Buy enablement, chains, API base URL, and default price tolerance.
  */
 export const selectBridgeRecurringBuyFeatureFlags =
   createBridgeSwapFeatureFlagsSelector<RawBridgeRecurringBuyFeatureFlagValue>(
@@ -126,15 +140,11 @@ export const selectBridgeLimitOrderBaseUrl = createSelector(
  */
 export const selectBridgeLimitOrderDefaultCostTolerance = createSelector(
   selectBridgeLimitOrderFeatureFlags,
-  (flags): string => {
-    const defaultPriceTolerance = flags?.defaultPriceTolerance;
-    const remoteValue =
-      typeof defaultPriceTolerance === 'number'
-        ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
-        : undefined;
-
-    return remoteValue ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE;
-  },
+  (flags): string =>
+    resolveDefaultPriceTolerance(
+      flags?.defaultPriceTolerance,
+      LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+    ),
 );
 
 /**
@@ -146,6 +156,15 @@ export const selectBridgeLimitOrderDefaultCostTolerance = createSelector(
 export const selectBridgeRecurringBuyBaseUrl = createSelector(
   selectBridgeRecurringBuyFeatureFlags,
   (flags): string | undefined => flags?.baseUrl,
+);
+
+export const selectBridgeRecurringBuyDefaultPriceTolerance = createSelector(
+  selectBridgeRecurringBuyFeatureFlags,
+  (flags): string =>
+    resolveDefaultPriceTolerance(
+      flags?.defaultPriceTolerance,
+      RECURRING_ORDER_DEFAULT_PRICE_TOLERANCE,
+    ),
 );
 
 /**

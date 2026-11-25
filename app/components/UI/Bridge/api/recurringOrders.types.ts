@@ -101,24 +101,6 @@ export const RecurringScheduleSchema = type({
 });
 export type RecurringSchedule = Infer<typeof RecurringScheduleSchema>;
 
-export const PrepareRecurringDelegationQuerySchema = type({
-  clientOrderId: string(),
-  accountAddress: CaipAccountIdSchema,
-  srcAssetId: CaipAssetIdSchema,
-  srcAmount: AtomicStringSchema,
-  destAssetId: CaipAssetIdSchema,
-  every: number(),
-  unit: RecurringIntervalUnitSchema,
-  repeatCount: number(),
-});
-export type PrepareRecurringDelegationQuery = Infer<
-  typeof PrepareRecurringDelegationQuerySchema
->;
-
-export const PrepareRecurringDelegationResponseSchema =
-  LimitOrderDelegationsResponseSchema;
-export type PrepareRecurringDelegationResponse = LimitOrderDelegationsResponse;
-
 export const RecurringOrderPriceRangeSchema = type({
   side: enums(['src', 'dest']),
   currency: enums(['USD']),
@@ -128,6 +110,23 @@ export const RecurringOrderPriceRangeSchema = type({
 export type RecurringOrderPriceRange = Infer<
   typeof RecurringOrderPriceRangeSchema
 >;
+
+export const PrepareRecurringDelegationQuerySchema = type({
+  clientOrderId: string(),
+  accountAddress: CaipAccountIdSchema,
+  srcAssetId: CaipAssetIdSchema,
+  srcAmount: AtomicStringSchema,
+  destAssetId: CaipAssetIdSchema,
+  schedule: RecurringScheduleSchema,
+  priceRange: optional(RecurringOrderPriceRangeSchema),
+});
+export type PrepareRecurringDelegationQuery = Infer<
+  typeof PrepareRecurringDelegationQuerySchema
+>;
+
+export const PrepareRecurringDelegationResponseSchema =
+  LimitOrderDelegationsResponseSchema;
+export type PrepareRecurringDelegationResponse = LimitOrderDelegationsResponse;
 
 export const CreateRecurringOrderRequestSchema = type({
   accountAddress: CaipAccountIdSchema,
@@ -139,7 +138,7 @@ export const CreateRecurringOrderRequestSchema = type({
   dest: type({
     assetId: CaipAssetIdSchema,
   }),
-  slippage: optional(number()),
+  priceTolerance: number(),
   schedule: RecurringScheduleSchema,
   priceRange: optional(RecurringOrderPriceRangeSchema),
   delegations: array(PreparedLimitOrderDelegationSchema),
@@ -199,7 +198,7 @@ export const RecurringOrderSchema = type({
   totalAmount: AtomicStringSchema,
   schedule: RecurringScheduleSchema,
   priceRange: optional(RecurringOrderPriceRangeSchema),
-  slippage: optional(number()),
+  priceTolerance: number(),
   fillData: type({
     src: type({
       amount: AtomicStringSchema,

@@ -20,7 +20,7 @@ export interface UseIsPriceDeviatedAboveThresholdReturn {
  * Hook to check if the perps price has deviated above the threshold from the spot price
  *
  * Uses existing price subscription (no additional network overhead).
- * Compares the current perps price with the spot price (markPrice) and
+ * Compares the current perps price with the spot price (oraclePrice) and
  * determines if the deviation exceeds the configured threshold.
  *
  * **Performance:**
@@ -44,20 +44,25 @@ export const useIsPriceDeviatedAboveThreshold = (
   symbol?: string,
 ): UseIsPriceDeviatedAboveThresholdReturn => {
   const prices = usePerpsPrices(symbol ? [symbol] : [], {
-    includeMarketData: false,
+    // oraclePrice is projected from the shared market-data cache, which is only
+    // populated while some subscriber requests market data. Opt in so this
+    // guard works even when no other subscriber (e.g. usePerpsMarketStats) has
+    // warmed the cache — subscriptions are multiplexed, so this adds no extra
+    // network overhead when a market-data subscription already exists.
+    includeMarketData: true,
     throttleMs: 1000,
   });
 
   const priceUpdate = symbol ? prices[symbol] : undefined;
 
-  // Calculate price deviation if we have both perps price and spot price (markPrice)
+  // Calculate price deviation if we have both perps price and spot price (oraclePrice)
   const isDeviatedAboveThreshold = useMemo(() => {
-    if (!symbol || !priceUpdate?.price || !priceUpdate?.markPrice) {
+    if (!symbol || !priceUpdate?.price || !priceUpdate?.oraclePrice) {
       return false;
     }
 
     const perpsPrice = Number.parseFloat(priceUpdate.price);
-    const spotPrice = Number.parseFloat(priceUpdate.markPrice);
+    const spotPrice = Number.parseFloat(priceUpdate.oraclePrice);
 
     if (Number.isNaN(perpsPrice) || Number.isNaN(spotPrice)) {
       return false;
@@ -72,7 +77,7 @@ export const useIsPriceDeviatedAboveThreshold = (
     const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     return deviation > threshold;
-  }, [symbol, priceUpdate?.price, priceUpdate?.markPrice]);
+  }, [symbol, priceUpdate?.price, priceUpdate?.oraclePrice]);
 
   const isLoading = !symbol || !priceUpdate;
 

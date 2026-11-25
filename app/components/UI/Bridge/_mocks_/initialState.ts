@@ -1012,6 +1012,7 @@ export const bridgeTestState = {
     isSelectingToken: false,
     tokenSelectorNetworkFilter: undefined,
     recurring: initialRecurringState,
+    recurringPriceTolerance: undefined,
     limitOrderCostTolerance: undefined,
     limitOrderExpirationMinutes: undefined,
     limitOrderMarketComparison: undefined,
