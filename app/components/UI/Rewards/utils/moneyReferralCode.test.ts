@@ -65,22 +65,3 @@ describe('parseMoneyReferralCode', () => {
     },
   );
 });
-
-/**
- * RWDS-1732/RWDS-1733: a KOL referral code is Crockford Base32 — the backend
- * generates and validates codes over `0123456789ABCDEFGHJKMNPQRSTVWXYZ`
- * (src/api/referral/referral-code/code-generator.ts in
- * consensys-vertical-apps/va-mmcx-rewards-money), so the letters I, L, O and
- * U never appear in a code it issued. The client's
- * `isMoneyReferralCodeFormatValid` still accepts them and spends a validate
- * round trip before the server refuses the code, so this expected behaviour
- * is skipped until the client pattern rejects those letters too.
- */
-describe('KOL referral code alphabet (RWDS-1732/RWDS-1733)', () => {
-  it.skip('rejects the excluded Crockford letters I, L, O and U', () => {
-    expect(parseMoneyReferralCode('ANNI')).toBeNull();
-    expect(parseMoneyReferralCode('ANNL')).toBeNull();
-    expect(parseMoneyReferralCode('ANNO')).toBeNull();
-    expect(parseMoneyReferralCode('ANNU')).toBeNull();
-  });
-});
