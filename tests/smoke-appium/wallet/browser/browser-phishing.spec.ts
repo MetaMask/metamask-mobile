@@ -75,12 +75,11 @@ appiumTest.describe(SmokeBrowser('Browser Phishing Detection'), () => {
           // Navigate to a local page that redirects to the phishing domain.
           // The redirect triggers dapp-scanning which returns BLOCK.
           //
-          // Skip the URL editor dismissal that `navigateToURL` normally does
-          // under Detox: phishing detection writes to AsyncStorage v2
-          // immediately after navigation, and a Cancel-button tap landing on
-          // top of those writes races with Detox's AsyncStorageIdlingResource.
-          // On Appium this option is a no-op (URL bar path dismisses itself);
-          // keep it for parity with the Detox counterpart.
+          // Skip URL editor dismissal after submit: phishing detection can
+          // show the full-screen warning before Cancel is tapped. A forced
+          // dismiss then races the modal (Cancel gone) and burns ~10–15s of
+          // the 150s suite budget — enough to time out the post-Back-to-safety
+          // URL assert when login/browser entry was already slow.
           await Browser.tapUrlInputBox();
           await Browser.navigateToURL(
             `${getDappUrl(0)}/redirect-to-phishing.html`,
@@ -119,7 +118,8 @@ appiumTest.describe(SmokeBrowser('Browser Phishing Detection'), () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await navigateToBrowserView();
           await Browser.tapUrlInputBox();
-          // Skip URL editor dismissal — see comment on the redirect test above.
+          // Skip URL editor dismissal — Cancel races the phishing modal; see
+          // the redirect test comment above.
           await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`, {
             skipUrlEditorDismissal: true,
           });
