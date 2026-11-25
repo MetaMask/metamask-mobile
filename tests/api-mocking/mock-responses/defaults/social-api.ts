@@ -56,6 +56,20 @@ const EMPTY_TRADER_PROFILE: TraderProfileResponse = {
 /** PositionsResponse shape (`positions` array). */
 const EMPTY_POSITIONS = { positions: [] };
 
+/** Empty response for the wallet/asset open-position PnL endpoint. */
+const EMPTY_OPEN_POSITION_PNL = {
+  positionAmount: 0,
+  isOpen: false,
+  boughtUsd: 0,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 0,
+  currentValueUSD: null,
+  pnlValueUsd: null,
+  pnlPercent: null,
+  pnlStatus: 'in-progress',
+};
+
 /**
  * The viewer has blocked nothing. Fetched on unlock by every leaderboard and
  * social feed, which hide what the viewer blocked.
@@ -122,6 +136,13 @@ export const SOCIAL_API_MOCKS: MockEventsObject = {
       ),
       responseCode: 200,
       response: EMPTY_POSITIONS,
+    },
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v2\\/traders\\/[^/]+\\/(?!positions(?:\\/|$))[^/]+\\/open(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: EMPTY_OPEN_POSITION_PNL,
     },
     {
       urlEndpoint: new RegExp(

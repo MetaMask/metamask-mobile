@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "saat",
-        "market_cap_suffix": "Piyasa Değeri",
-        "size_at_price": "{{price}} için {{size}}",
-        "size_at_market_cap": "{{marketCap}} {{abbreviation}} piyasa değerinde {{size}}"
+        "market_cap_suffix": "Piyasa Değeri"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} K&Z (30g)",
@@ -1993,22 +1991,6 @@
         "4": "Per",
         "5": "Cum",
         "6": "Cmt"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Satın alındı",
-        "sold": "Satıldı",
-        "perps_closed": "Kapatıldı",
-        "perps_long_opened": "Long pozisyon açıldı",
-        "perps_long_added": "Long pozisyona eklendi",
-        "perps_long_reduced": "Long pozisyon azaltıldı",
-        "perps_short_opened": "Short açıldı",
-        "perps_short_added": "Short pozisyona eklendi",
-        "perps_short_reduced": "Tekrar satın alındı",
-        "spot_opened": "Satın alındı",
-        "spot_added": "Daha fazla satın alındı",
-        "spot_reduced": "Bir kısmı satıldı",
-        "spot_closed": "Tümü satıldı"
       }
     },
     "trader_position": {

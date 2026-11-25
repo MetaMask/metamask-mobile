@@ -107,9 +107,3 @@ export interface TraderRowProps {
    */
   hideRank?: boolean;
 }
-
-/**
- * Network filter selection for the leaderboard.
- * null means "All networks".
- */
-export type NetworkFilterSelection = string | null;

@@ -117,11 +117,6 @@ enum CardActions {
   MIGRATION_ATTENTION_SET_UP_CARD_BUTTON = 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
 }
 
-enum CardDeeplinkActions {
-  CARD_ONBOARDING = 'CARD_ONBOARDING',
-  CARD_HOME = 'CARD_HOME',
-}
-
 enum CardEntryPoint {
   MONEY_HOME_ACTION_ROW = 'MONEY_HOME_ACTION_ROW',
   MONEY_HOME_ONBOARDING_CARD = 'MONEY_HOME_ONBOARDING_CARD',
@@ -212,7 +207,6 @@ const withCardProvider = (
 export {
   CardScreens,
   CardActions,
-  CardDeeplinkActions,
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,

@@ -21,7 +21,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { MarginMode, OrderType } from '@metamask/perps-controller';
+import type {
+  MarginMode,
+  OrderType,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -68,6 +72,8 @@ import {
 interface PerpsTradeScreenProps {
   asset: string;
   oiCapSymbol: string;
+  /** Venue whose open-interest cap the banner reflects. */
+  oiCapProviderId?: PerpsProviderType;
   direction: 'long' | 'short';
   leverage: number;
   /** Market maximum, shown as a header tag; `null` while market data loads. */
@@ -286,6 +292,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
 const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   asset,
   oiCapSymbol,
+  oiCapProviderId,
   direction,
   leverage,
   maxLeverage,
@@ -908,7 +915,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       {!isEditing && (isAtOICap || showServiceInterruptionBanner) ? (
         <Box accessible={false} paddingHorizontal={4} paddingBottom={3} gap={2}>
           {isAtOICap ? (
-            <PerpsOICapWarning symbol={oiCapSymbol} variant="banner" />
+            <PerpsOICapWarning
+              symbol={oiCapSymbol}
+              providerId={oiCapProviderId}
+              variant="banner"
+            />
           ) : null}
           {showServiceInterruptionBanner ? (
             <PerpsServiceInterruptionBanner />
