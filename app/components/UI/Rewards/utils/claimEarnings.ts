@@ -20,6 +20,7 @@ import type {
   ClaimDto,
   ClaimRouteSlug,
   ClaimVoucherDto,
+  EarningClaimFamily,
   EarningsSummaryDto,
   InitiateClaimBody,
   InitiateClaimResult,
@@ -476,6 +477,44 @@ export function displayClaimTotals(
     pending: (
       (readBaseUnits(summary?.pending) ?? 0n) + belowMinimum
     ).toString(),
+  };
+}
+
+/** One claim family's amounts, in mUSD base units, as the family page shows them. */
+export interface FamilyDisplayTotals {
+  claimable: string;
+  pending: string;
+  held: string;
+  blocked: string;
+  voided: string;
+  claimed: string;
+}
+
+/**
+ * Display totals for one claim family. Same rule as `displayClaimTotals`: a
+ * family claimable under the claim minimum is not offered as claimable, so it
+ * counts as pending. A missing family or field reads as zero.
+ */
+export function familyDisplayTotals(
+  summary: EarningsSummaryDto | null | undefined,
+  branch: 'self_earned' | 'earned_by_others',
+  family: EarningClaimFamily,
+): FamilyDisplayTotals {
+  const totals = summary?.[branch]?.by_claim_family?.[family];
+  const minimum = readBaseUnits(summary?.minimum_musd_base_units);
+  const claimable = readBaseUnits(totals?.claimable) ?? 0n;
+  const belowMinimum =
+    claimable > 0n && minimum !== null && claimable < minimum;
+
+  return {
+    claimable: (belowMinimum ? 0n : claimable).toString(),
+    pending: (
+      (readBaseUnits(totals?.pending) ?? 0n) + (belowMinimum ? claimable : 0n)
+    ).toString(),
+    held: (readBaseUnits(totals?.held) ?? 0n).toString(),
+    blocked: (readBaseUnits(totals?.blocked) ?? 0n).toString(),
+    voided: (readBaseUnits(totals?.voided) ?? 0n).toString(),
+    claimed: (readBaseUnits(totals?.claimed) ?? 0n).toString(),
   };
 }
 

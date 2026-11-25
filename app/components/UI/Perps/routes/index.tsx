@@ -106,7 +106,7 @@ export const getPerpsConversionScreenOptions = (
     : baseOptions;
 
 export function getConfirmationsHeaderOptions(
-  params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
+  params: PerpsNavigationParamList['Confirmations'] = {},
   screenBackgroundColor?: string,
 ): NativeStackNavigationOptions {
   if (params?.useBottomSheet) {
@@ -229,7 +229,7 @@ export const getTpslOptions = (
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
-    useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+    useRoute<RouteProp<PerpsNavigationParamList, 'Confirmations'>>();
   const { approvalRequest } = useApprovalRequest();
   const showPerpsHeader =
     params?.showPerpsHeader ??
@@ -407,11 +407,11 @@ const PerpsModalStack = () => {
             component={PerpsOrderRedirect}
           />
           <ModalStack.Screen
-            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
             component={PerpsConfirmScreen}
             options={({ route }) =>
               getConfirmationsHeaderOptions(
-                route.params as PerpsNavigationParamList['RedesignedConfirmations'],
+                route.params as PerpsNavigationParamList['Confirmations'],
                 colors.background.default,
               )
             }
@@ -690,7 +690,7 @@ const PerpsScreenStack = () => {
               />
 
               <Stack.Screen
-                name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+                name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
                 component={PerpsConfirmScreen}
                 options={({ route }) =>
                   getConfirmationsHeaderOptions(
