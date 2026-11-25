@@ -105,10 +105,9 @@ describe.each([
       <Banner
         baseUnits="9150000"
         localizedText={
-          {
-            ...LOCALIZED_TEXT,
-            [bannerKey]: undefined,
-          } as unknown as ReferralLocalizedText
+          Object.fromEntries(
+            Object.entries(LOCALIZED_TEXT).filter(([key]) => key !== bannerKey),
+          ) as ReferralLocalizedText
         }
       />,
     );
