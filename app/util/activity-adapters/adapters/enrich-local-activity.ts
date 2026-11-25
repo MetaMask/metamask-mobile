@@ -1,3 +1,4 @@
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
@@ -33,6 +34,7 @@ import {
   type ActivityAdapterEnvironment,
 } from './environment';
 import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
+import { decodePaymentTokenAssetId } from '../../transactions/payment-token';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -192,10 +194,11 @@ function getEoaFacingMoneyToken(
 ): TokenAmount | undefined {
   const transaction = transactionGroup.initialTransaction;
   const paymentToken = transactionGroup.transactionPayData?.paymentToken;
+  const paymentTokenAsset = decodePaymentTokenAssetId(paymentToken);
   const tokenAddress =
-    paymentToken?.address ?? transaction.metamaskPay?.tokenAddress;
+    paymentTokenAsset?.address ?? transaction.metamaskPay?.tokenAddress;
   const tokenChainId =
-    paymentToken?.chainId ?? transaction.metamaskPay?.chainId;
+    paymentTokenAsset?.chainId ?? transaction.metamaskPay?.chainId;
   if (
     !tokenAddress ||
     !tokenChainId ||
@@ -218,8 +221,15 @@ function getEoaFacingMoneyToken(
     KnownCaipNamespace.Eip155,
     Number.parseInt(tokenChainId, 16).toString(),
   );
-  const isNative =
-    tokenAddress.toLowerCase() === environment.nativeTokenAddress.toLowerCase();
+  // Some chains use a chain-specific native token address, such as
+  // `0x…1010` for POL on Polygon.
+  const isNative = [
+    environment.nativeTokenAddress,
+    getNativeTokenAddress(tokenChainId),
+  ].some(
+    (nativeAddress) =>
+      nativeAddress.toLowerCase() === tokenAddress.toLowerCase(),
+  );
   let amount =
     transactionGroup.transactionPayData?.sourceAmounts?.[0]?.sourceAmountRaw;
   let symbol = paymentToken?.symbol;

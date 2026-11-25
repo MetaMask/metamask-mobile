@@ -43,16 +43,22 @@ describe('MoneyMfaSetupCard', () => {
     expect(onSetUp).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the call to action while the verification is starting', () => {
-    mockUseActiveMfaFlow.mockReturnValue({
-      flow: {},
-      state: { step: { name: 'idle' } },
-    } as ReturnType<typeof useActiveMfaFlow>);
-    const onSetUp = jest.fn();
-    const { getByTestId } = render(<MoneyMfaSetupCard onSetUp={onSetUp} />);
+  it.each([
+    ['disables', 'money.mfa.turnOn', 0],
+    ['keeps enabled', 'vba.activate', 1],
+  ])(
+    '%s the call to action while a %s verification is starting',
+    (_label, operation, expectedCalls) => {
+      mockUseActiveMfaFlow.mockReturnValue({
+        flow: { reason: { operation } },
+        state: { step: { name: 'idle' } },
+      } as ReturnType<typeof useActiveMfaFlow>);
+      const onSetUp = jest.fn();
+      const { getByTestId } = render(<MoneyMfaSetupCard onSetUp={onSetUp} />);
 
-    fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
-    expect(onSetUp).not.toHaveBeenCalled();
-  });
+      expect(onSetUp).toHaveBeenCalledTimes(expectedCalls);
+    },
+  );
 });

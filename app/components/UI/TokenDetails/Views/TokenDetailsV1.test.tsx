@@ -1607,7 +1607,7 @@ describe('TokenDetailsV1', () => {
           tokenName: 'PEPE',
           chain: 'eip155:1',
         },
-        copyTradeOrigin: { commentId: 'comment-1' },
+        copyTradeOrigin: { commentId: 'comment-1', authorId: 'v1-trader-frog' },
         initialTradeMode: 'buy',
         analyticsContext: {
           source: 'trader_feed',

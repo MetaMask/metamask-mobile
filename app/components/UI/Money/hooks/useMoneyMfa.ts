@@ -1,3 +1,4 @@
+import { MFA_CREDENTIAL_TYPES } from '@metamask/profile-sync-controller/sdk';
 import {
   useCallback,
   useContext,
@@ -209,11 +210,12 @@ export const useMoneyMfa = () => {
   }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
+    // Every method type, so a stale credential list can't leave one out.
+    const verifyWith = [...MFA_CREDENTIAL_TYPES];
     try {
-      // The full list, so an empty or stale credential list can't skip the check.
       await verifyOrEnroll({
-        methods: MONEY_MFA_METHODS,
-        verifyWith: MONEY_MFA_METHODS,
+        methods: verifyWith,
+        verifyWith,
         maxSessionAgeMs: 0,
         verifyOnly: true,
         reason: getTurnOffReason(),
@@ -273,14 +275,15 @@ export const useMoneyMfa = () => {
     return true;
   }, [showToast]);
 
+  const isAvailable = status !== 'unavailable';
   const refreshCredentials = useCallback(() => {
-    if (status === 'unavailable') {
+    if (!isAvailable) {
       return;
     }
     mobileMfaControllerAdapter
       .refreshEnrolledCredentials()
       .catch(() => undefined);
-  }, [status]);
+  }, [isAvailable]);
 
   return {
     status,

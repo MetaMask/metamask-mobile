@@ -66,7 +66,7 @@ import {
   MoneyMfaStatusBanner,
 } from '../../components/MoneyMfa';
 import { useMoneyMfa } from '../../hooks/useMoneyMfa';
-import { selectIsMoneyOnboardingRedirectNeeded } from '../../selectors/entry';
+import { selectIsMoneySplashRedirectNeeded } from '../../selectors/entry';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
@@ -114,6 +114,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -339,6 +340,9 @@ const MoneyHomeView = () => {
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
   );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     status: mfaStatus,
@@ -355,7 +359,7 @@ const MoneyHomeView = () => {
 
   const isMfaSignInRequired = mfaStatus === 'sign_in_required';
   const isOnboardingRedirectNeeded = useSelector(
-    selectIsMoneyOnboardingRedirectNeeded,
+    selectIsMoneySplashRedirectNeeded,
   );
   const wasOnboardingShown = useRef(isOnboardingRedirectNeeded);
   useEffect(() => {
@@ -1075,6 +1079,17 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackTooltipClicked]);
 
+  const handleEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  }, [navigation, trackSurfaceClicked]);
+
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
@@ -1323,6 +1338,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}

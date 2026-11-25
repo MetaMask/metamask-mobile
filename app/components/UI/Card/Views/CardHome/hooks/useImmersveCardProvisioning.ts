@@ -180,6 +180,13 @@ export function useImmersveCardProvisioning(
     return () => clearInterval(interval);
   }, [isProvisioning, isFocused, pendingAction, isReconciling, pollIntervalMs]);
 
+  const isProvisioningPollActive =
+    isProvisioning &&
+    isFocused &&
+    !pendingAction &&
+    !isReconciling &&
+    pollIntervalMs !== null;
+
   // Going offline drops a waiting retry. Coming back starts one, unless a
   // reconcile is already running or a retry is already waiting.
   const wasOfflineRef = useRef(pollIntervalMs === null);
@@ -553,5 +560,6 @@ export function useImmersveCardProvisioning(
     pendingAction,
     resumePendingAction,
     markCardFlowOpened,
+    isProvisioningPollActive,
   };
 }

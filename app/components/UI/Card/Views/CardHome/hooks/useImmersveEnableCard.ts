@@ -75,6 +75,7 @@ export function useImmersveEnableCard(
     resumePendingAction,
     isProvisioning,
     markCardFlowOpened,
+    isProvisioningPollActive,
   } = useImmersveCardProvisioning(data, options);
 
   const isAllowanceRevoked =
@@ -184,6 +185,7 @@ export function useImmersveEnableCard(
     hasPendingAction: Boolean(pendingAction),
     provisioningView,
     setupStep,
+    isProvisioningPollActive,
     // The link flag clears before the effect drops this funding step. Keep the
     // button disabled through that commit so a second press cannot submit
     // another allowance.

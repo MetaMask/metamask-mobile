@@ -727,6 +727,7 @@ describe('bridge slice', () => {
       destToken: mockDestToken,
       selectedDestChainId: '0x89' as Hex,
       isDestTokenManuallySet: true,
+      destAddress: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
       slippage: '3.5',
       isSlippageUserOverride: true,
     };
@@ -744,6 +745,12 @@ describe('bridge slice', () => {
 
       expect(newState.slippage).toBeUndefined();
       expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('clears the recipient since it was chosen for the cleared destination', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destAddress).toBeUndefined();
     });
 
     it('leaves the source selection and amount untouched', () => {

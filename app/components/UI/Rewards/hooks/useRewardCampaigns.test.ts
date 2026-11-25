@@ -237,7 +237,21 @@ describe('useRewardCampaigns', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(true));
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsError(false));
+    });
+
+    it('leaves a stored error alone when a fetch starts and succeeds', async () => {
+      // setCampaigns clears the error on success. Clearing it earlier would
+      // swap the error banner for the empty state while the retry is in flight.
+      setupSelectorMocks({ hasError: true });
+      mockEngineCall.mockResolvedValueOnce([]);
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      expect(mockSetCampaignsError).not.toHaveBeenCalled();
     });
 
     it('dispatches campaigns on successful fetch', async () => {

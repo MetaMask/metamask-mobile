@@ -1,5 +1,8 @@
 import React from 'react';
-import { TotalRow } from './total-row';
+import { fireEvent } from '@testing-library/react-native';
+import { BigNumber } from 'bignumber.js';
+import I18n from '../../../../../../../locales/i18n';
+import formatFiat from '../../../../../../util/formatFiat';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -18,9 +21,19 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { MoneyMusdInfoSheetTestIds } from '../../modals/money-musd-info-sheet';
+import { TotalRow } from './total-row';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: () => ({
+    apyDecimal: 0.062,
+    apyPercent: 6.2,
+    vaultApyQuery: { isLoading: false },
+  }),
+}));
 
 const TOTAL_FIAT_MOCK = '$123.46';
 const RECEIVE_FIAT_MOCK = '$99.38';
@@ -295,6 +308,88 @@ describe('TotalRow', () => {
 
       expect(getByText(RECEIVE_FIAT_MOCK)).toBeOnTheScreen();
       expect(queryByText('$27.51')).toBeNull();
+    });
+  });
+
+  describe('moneyAccountDeposit receive row', () => {
+    it('renders You’ll receive with two decimals and opens confirmation-local MoneyMusdInfoSheet on press', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '100' },
+        targetAmount: { usd: '100', fiat: '100' },
+      } as unknown as TransactionPayTotals);
+
+      const { getByTestId, getByText, queryByTestId } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(queryByTestId('total-row')).toBeNull();
+      expect(getByText('$100.00')).toBeOnTheScreen();
+      expect(queryByTestId(MoneyMusdInfoSheetTestIds.CONTAINER)).toBeNull();
+
+      fireEvent.press(getByTestId('receive-pressable'));
+
+      expect(
+        getByTestId(MoneyMusdInfoSheetTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyMusdInfoSheetTestIds.TITLE)).toHaveTextContent(
+        "You'll receive $100 of MetaMask USD",
+      );
+    });
+
+    it('falls back to requiredTokens amountUsd when targetAmount is zero on moneyAccountDeposit', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '100' },
+        targetAmount: { usd: '0', fiat: '0' },
+      } as unknown as TransactionPayTotals);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { amountUsd: '100', skipIfBalance: false },
+      ] as unknown as ReturnType<typeof useTransactionPayRequiredTokens>);
+
+      const { getByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByText('$100.00')).toBeOnTheScreen();
+    });
+
+    it('does not wrap receive value in a pressable for non-moneyAccountDeposit flows', () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { queryByTestId } = render({
+        type: TransactionType.perpsDeposit,
+      });
+
+      expect(queryByTestId('receive-pressable')).toBeNull();
+    });
+
+    it('formats receive row and sheet amounts using locale formatting via useFiatFormatter', () => {
+      const originalLocale = I18n.locale;
+      I18n.locale = 'pt-BR';
+
+      try {
+        useTransactionPayTotalsMock.mockReturnValue({
+          total: { usd: '1000' },
+          targetAmount: { usd: '1000', fiat: '1000' },
+        } as unknown as TransactionPayTotals);
+
+        const { getByTestId } = render({
+          type: TransactionType.moneyAccountDeposit,
+        });
+
+        const receiveText = getByTestId('receive');
+        expect(receiveText).toHaveTextContent(
+          formatFiat(new BigNumber(1000), 'usd', 2),
+        );
+
+        fireEvent.press(getByTestId('receive-pressable'));
+
+        expect(getByTestId(MoneyMusdInfoSheetTestIds.TITLE)).toHaveTextContent(
+          `You'll receive ${formatFiat(new BigNumber(1000), 'usd')} of MetaMask USD`,
+        );
+      } finally {
+        I18n.locale = originalLocale;
+      }
     });
   });
 });

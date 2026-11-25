@@ -29,6 +29,7 @@ import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { useSwapQuotes } from '../useSwapQuotes';
 import type { TraceContext, TraceRequest } from '@metamask/controller-utils';
+import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -41,6 +42,7 @@ const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 const mockUseInsufficientNativeReserveError = jest.mocked(
   useInsufficientNativeReserveError,
 );
+const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockTrace = trace as jest.MockedFunction<
   (request: TraceRequest) => TraceContext
 >;
@@ -172,6 +174,11 @@ export const runQuoteRequestCases = ({
 
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseInsufficientNativeReserveError.mockReturnValue(undefined);
+      mockUseMoneyAccountInfo.mockReturnValue({
+        isMoneyAccountFeatureEnabled: false,
+        hasMoneyAccount: false,
+        primaryMoneyAccount: undefined,
+      });
     });
 
     afterEach(() => {
@@ -1283,6 +1290,7 @@ export const runQuoteRequestCases = ({
           decimals: testState.bridge.sourceToken?.decimals,
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,
+          isMoneyToken: testState.bridge.sourceToken?.isMoneyToken,
         });
       });
 
@@ -1340,6 +1348,7 @@ export const runQuoteRequestCases = ({
           decimals: testState.bridge.sourceToken?.decimals,
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,
+          isMoneyToken: testState.bridge.sourceToken?.isMoneyToken,
         });
         expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
           amount: '5.5',
@@ -1353,6 +1362,178 @@ export const runQuoteRequestCases = ({
           token: testState.bridge.sourceToken,
           latestAtomicBalance: latestBalance,
           ignoreGasFees: true,
+        });
+      });
+    });
+
+    describe('money account quote params', () => {
+      const moneyAccountAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const moneyToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f' as const,
+        name: 'MetaMask Money',
+        isMoneyToken: true,
+        balance: '10000000000000000000',
+      };
+
+      beforeEach(() => {
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: true,
+          primaryMoneyAccount: { address: moneyAccountAddress },
+        } as ReturnType<typeof useMoneyAccountInfo>);
+      });
+
+      it('uses the money account as walletAddress and forces insufficientBal when source is money', async () => {
+        const { result } = renderUseBridgeQuoteRequest({
+          sourceToken: moneyToken,
+          sourceAmount: '4.5',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: defaultWalletAddress,
+            insufficientBal: true,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('uses the money account as destWalletAddress when dest is money', async () => {
+        const { result } = renderUseBridgeQuoteRequest({
+          destToken: moneyToken,
+          destAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          sourceAmount: '1.0',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: moneyAccountAddress,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('uses destAddress as destWalletAddress when dest is money but the money account has no address', async () => {
+        const destAddress = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        });
+
+        const { result } = renderUseBridgeQuoteRequest({
+          destToken: moneyToken,
+          destAddress,
+          sourceAmount: '1.0',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: destAddress,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('uses the source wallet as destWalletAddress when dest is money and destAddress is missing', async () => {
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        });
+
+        const { result } = renderUseBridgeQuoteRequest({
+          destToken: moneyToken,
+          sourceAmount: '1.0',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: defaultWalletAddress,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('keeps the source wallet when source is money but the money account has no address', async () => {
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        });
+
+        const { result } = renderUseBridgeQuoteRequest({
+          sourceToken: moneyToken,
+          sourceAmount: '4.5',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            insufficientBal: true,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('passes isMoneyToken into useLatestBalance for a money source token', () => {
+        renderUseBridgeQuoteRequest({
+          sourceToken: moneyToken,
+        });
+
+        expect(mockUseLatestBalance).toHaveBeenCalledWith({
+          address: moneyToken.address,
+          decimals: moneyToken.decimals,
+          chainId: moneyToken.chainId,
+          balance: moneyToken.balance,
+          isMoneyToken: true,
         });
       });
     });

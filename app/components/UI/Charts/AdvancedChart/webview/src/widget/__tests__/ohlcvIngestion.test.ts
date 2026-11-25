@@ -205,6 +205,30 @@ describe('handleSetOHLCVData', () => {
     expect(getTimeScale).toHaveBeenCalled();
   });
 
+  it('resets the datafeed cache before switching resolution', () => {
+    const calls: string[] = [];
+    const chart = {
+      resetData: jest.fn(),
+      setResolution: jest.fn(() => calls.push('setResolution')),
+      onDataLoaded: jest
+        .fn()
+        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+    } as unknown as TVActiveChart;
+
+    handleSetOHLCVData({ data: oneMinuteApart(2) });
+    setWidget({
+      activeChart: () => chart,
+      resetCache: jest.fn(() => calls.push('resetCache')),
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+
+    expect(calls).toEqual(['resetCache', 'setResolution']);
+  });
+
   it('calls widget.resetCache before resetData on same-resolution reload', () => {
     const resetCache = jest.fn();
     const resetData = jest.fn();
@@ -313,6 +337,39 @@ describe('applyVisibleRange', () => {
     expect(range.from).toBe(Math.floor(1_700_000_000_000 / 1000));
     expect(range.to).toBeGreaterThan(0);
     expect(options).toEqual({ percentRightMargin: 0 });
+  });
+
+  it('applies the saved range inside the setResolution callback without waiting for onDataLoaded', () => {
+    let setResCb: () => void = () => undefined;
+    const onDataLoaded = jest
+      .fn()
+      .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() });
+    const setVisibleRange = jest.fn();
+    const chart = {
+      resetData: jest.fn(),
+      setResolution: jest.fn((_res: string, cb: () => void) => {
+        setResCb = cb;
+      }),
+      onDataLoaded,
+      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+      setVisibleRange,
+      getPanes: jest.fn().mockReturnValue([]),
+    } as unknown as TVActiveChart;
+
+    handleSetOHLCVData({ data: oneMinuteApart(3) });
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+      visibleFromMs: 100_000,
+    });
+    setResCb();
+
+    expect(onDataLoaded).not.toHaveBeenCalled();
+    expect(setVisibleRange).toHaveBeenCalledTimes(1);
+    expect(setVisibleRange.mock.calls[0][0].from).toBe(100);
   });
 
   it('unsubscribes from onDataLoaded once loaded', () => {

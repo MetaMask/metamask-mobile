@@ -81,6 +81,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
   });
 
@@ -91,6 +92,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -133,6 +135,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -176,6 +179,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -211,6 +215,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -285,6 +290,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -315,6 +321,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: { type: 'pending' },
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -467,6 +474,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>
@@ -486,6 +494,7 @@ describe('useImmersveEnableCard', () => {
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
       markCardFlowOpened: jest.fn(),
+      isProvisioningPollActive: false,
     });
 
     const { result } = renderHook(() =>

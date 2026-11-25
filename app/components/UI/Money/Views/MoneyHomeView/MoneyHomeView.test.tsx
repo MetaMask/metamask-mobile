@@ -35,6 +35,7 @@ import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/M
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyMfaTestIds } from '../../components/MoneyMfa/MoneyMfa.testIds';
 import { useMoneyMfa, type MoneyMfaStatus } from '../../hooks/useMoneyMfa';
+import { createMockUseMoneyMfa } from '../../__fixtures__/useMoneyMfa';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -94,6 +95,7 @@ import {
   type CardFundingTokenWithBalance,
 } from '../../../Card/types';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -352,7 +354,7 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
 let mockIsOnboardingRedirectNeeded = false;
 jest.mock('../../selectors/entry', () => ({
   ...jest.requireActual('../../selectors/entry'),
-  selectIsMoneyOnboardingRedirectNeeded: () => mockIsOnboardingRedirectNeeded,
+  selectIsMoneySplashRedirectNeeded: () => mockIsOnboardingRedirectNeeded,
 }));
 
 const mockMfaRetry = jest.fn();
@@ -365,19 +367,17 @@ const mockMfaStatus = (
   status: MoneyMfaStatus,
   { hasUnseenEnabledConfirmation = false } = {},
 ) =>
-  jest.mocked(useMoneyMfa).mockReturnValue({
-    status,
-    turnOn: jest.fn(),
-    addPasskey: jest.fn(),
-    retry: mockMfaRetry,
-    turnOff: jest.fn(),
-    signIn: mockMfaSignIn,
-    isSettingUpBannerDismissed: false,
-    dismissSettingUpBanner: mockMfaDismissBanner,
-    refreshCredentials: mockMfaRefreshCredentials,
-    hasUnseenEnabledConfirmation,
-    showEnabledConfirmation: mockShowEnabledConfirmation,
-  });
+  jest.mocked(useMoneyMfa).mockReturnValue(
+    createMockUseMoneyMfa({
+      status,
+      retry: mockMfaRetry,
+      signIn: mockMfaSignIn,
+      dismissSettingUpBanner: mockMfaDismissBanner,
+      refreshCredentials: mockMfaRefreshCredentials,
+      hasUnseenEnabledConfirmation,
+      showEnabledConfirmation: mockShowEnabledConfirmation,
+    }),
+  );
 
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -433,6 +433,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   ...jest.createMockFromModule<typeof import('../../selectors/featureFlags')>(
     '../../selectors/featureFlags',
   ),
+  selectIsMoneyEarningsHistoryEnabledFlag: jest.fn(() => true),
   selectMoneyEarningSectionEnabledFlag: jest.fn(() => true),
 }));
 
@@ -520,6 +521,7 @@ jest.mock('../../../Card/Views/CardHome/hooks/useCardEnableCard', () => ({
     provisioningView: 'provisioning',
     setupStep: null,
     isEnableCardPending: false,
+    isProvisioningPollActive: false,
     markCardFlowOpened: jest.fn(),
   })),
 }));
@@ -643,6 +645,9 @@ const mockSelectIsMoneyAccountVisible = jest.mocked(
 );
 const mockSelectMoneyEarningSectionEnabledFlag = jest.mocked(
   selectMoneyEarningSectionEnabledFlag,
+);
+const mockSelectIsMoneyEarningsHistoryEnabledFlag = jest.mocked(
+  selectIsMoneyEarningsHistoryEnabledFlag,
 );
 const mockSelectHistoricalValuationsEnabled = jest.mocked(
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
@@ -928,6 +933,7 @@ describe('MoneyHomeView', () => {
       provisioningView: 'provisioning',
       setupStep: null,
       isEnableCardPending: false,
+      isProvisioningPollActive: false,
       markCardFlowOpened: jest.fn(),
     });
     mockUseCardHomeData.mockReturnValue({
@@ -986,6 +992,7 @@ describe('MoneyHomeView', () => {
     mockSelectIsCardHomeDataResolved.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(true);
     mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
 
     mockOpenLinkCardSheet.mockReset();
@@ -2292,6 +2299,37 @@ describe('MoneyHomeView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('navigates to Money Earnings when its section header is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.HEADER));
+
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledTimes(1);
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  });
+
+  it('does not navigate to Money Earnings when history is disabled', () => {
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(false);
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(queryByTestId(MoneyEarningsTestIds.HEADER)).not.toBeOnTheScreen();
+    expect(mockTrackSurfaceClicked).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  });
+
   it('navigates to Money Activity when its section header is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -2581,19 +2619,13 @@ describe('MoneyHomeView', () => {
     });
   });
 
+
+  // Screen flows are in the view test; this keeps analytics and the failed and off states.
   describe('2-step verification', () => {
     it('refreshes the enrolled credentials on focus', () => {
       renderWithProvider(<MoneyHomeView />);
 
       expect(mockMfaRefreshCredentials).toHaveBeenCalled();
-    });
-
-    it('renders the setup card when 2-step verification is not set up', () => {
-      mockMfaStatus('not_set_up');
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyMfaTestIds.SETUP_CARD)).toBeOnTheScreen();
     });
 
     it.each<MoneyMfaStatus>([
@@ -2634,14 +2666,6 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('shows the confirmation when it opens after 2-step verification turned on', () => {
-      mockMfaStatus('enabled', { hasUnseenEnabledConfirmation: true });
-
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockShowEnabledConfirmation).toHaveBeenCalledTimes(1);
-    });
-
     it('shows no confirmation without a new setup', () => {
       mockMfaStatus('enabled');
 
@@ -2650,27 +2674,18 @@ describe('MoneyHomeView', () => {
       expect(mockShowEnabledConfirmation).not.toHaveBeenCalled();
     });
 
-    it('opens the 2-step verification intro when the setup card is pressed', () => {
+    it('tracks the setup card press', () => {
       mockMfaStatus('not_set_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MFA_INTRO);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
         label_key: 'money.mfa.card_cta',
         component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
       });
-    });
-
-    it('renders the setting up banner while the Money account is set up', () => {
-      mockMfaStatus('setting_up');
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER)).toBeOnTheScreen();
     });
 
     it('retries the setup from the failed banner', () => {
@@ -2688,13 +2703,12 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('closes the setting-up banner', () => {
+    it('tracks closing the setting-up banner', () => {
       mockMfaStatus('setting_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
 
-      expect(mockMfaDismissBanner).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.ICON,
         button_intent: MONEY_BUTTON_INTENTS.DISMISS,
@@ -2702,18 +2716,12 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the setting up sheet instead of Transfer while the Money account is set up', () => {
+    it('tracks Transfer as redirecting to the setting up sheet while the Money account is set up', () => {
       mockMfaStatus('setting_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
-      });
       expect(mockTrackButtonClicked).toHaveBeenCalledWith(
         expect.objectContaining({
           button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
@@ -2878,23 +2886,12 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('shows the header badge when 2-step verification is enabled', () => {
-      mockMfaStatus('enabled');
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyMfaTestIds.HEADER_BADGE)).toBeOnTheScreen();
-    });
-
-    it('opens the 2-step verification sheet from the header badge', () => {
+    it('tracks the header badge press', () => {
       mockMfaStatus('enabled');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
-      });
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.ICON,
         button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,
@@ -4548,6 +4545,7 @@ describe('MoneyHomeView', () => {
         provisioningView: 'provisioning',
         setupStep: null,
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
         markCardFlowOpened,
       });
       mockSelectHasCard.mockReturnValue(true);
@@ -4766,6 +4764,7 @@ describe('MoneyHomeView', () => {
         provisioningView: 'hidden',
         setupStep: 'kyc',
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
         markCardFlowOpened: jest.fn(),
       });
 
@@ -4832,6 +4831,7 @@ describe('MoneyHomeView', () => {
         provisioningView: 'hidden',
         setupStep: 'kyc',
         isEnableCardPending: false,
+        isProvisioningPollActive: false,
         markCardFlowOpened,
       });
 

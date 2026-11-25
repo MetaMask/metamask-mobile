@@ -24,6 +24,7 @@ import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/mess
 import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { fullGameMoneylineMetadata } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictGameLive,
@@ -31,6 +32,9 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
+import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
+import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -326,6 +330,7 @@ export const makePredictNextGameEvent = (
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
   const [awayOutcome, homeOutcome] = event.markets[0].outcomes;
+  const moneyline = fullGameMoneylineMetadata(`${id}:moneyline`);
 
   return {
     ...event,
@@ -353,11 +358,13 @@ export const makePredictNextGameEvent = (
     markets: [
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-away-market` as PredictEntityId,
         outcomes: [{ ...awayOutcome, gameSelection: 'away' }, homeOutcome],
       },
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-home-market` as PredictEntityId,
         outcomes: [
           {
@@ -376,6 +383,11 @@ export const makePredictNextGameEvent = (
   };
 };
 
+/**
+ * Flat Game fixture for rendering without layout. Keep the team Markets
+ * ungrouped: makePredictNextLaidOutGameEvent uses that to distinguish
+ * full-game moneylines from totals and spreads when it assigns layouts.
+ */
 export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   const game = makePredictNextGameEvent(
     'nfl-composite',
@@ -387,7 +399,7 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   return {
     ...game,
     markets: [
-      ...game.markets,
+      ...game.markets.map(({ group, layout, ...market }) => market),
       ...makePredictNextTotalsEvent().markets,
       ...makePredictNextSpreadsEvent().markets,
     ],
@@ -691,10 +703,16 @@ export const mockPredictNextMessenger = (
     if (action === 'PredictOrderService:refreshRecovery') {
       return Promise.resolve();
     }
-    return (
+    const answer =
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[]))
-    );
+      implementation(action, ...(params as never[]));
+    if (
+      action === 'PredictFundingService:getDepositStatus' &&
+      answer === undefined
+    ) {
+      return null;
+    }
+    return answer;
   });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
@@ -963,6 +981,61 @@ export const routePredictPortfolioServicesTo = (
   };
 };
 
+export const BOTH_VENUES_PREDICT_CONFIG: PredictConfig = {
+  enabled: true,
+  venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+  venueSelection: { enabled: true },
+};
+
+export const predictVenueState = (
+  venue: PredictConfiguredVenue,
+): PredictVenueControllerState => ({
+  venueSelectionPreference: venue,
+  lastActiveVenue: venue,
+  sessionDefault: null,
+});
+
+/**
+ * Routes `Engine.controllerMessenger` event subscriptions to `rootMessenger`
+ * so view-level toast bridges observe events published by test services.
+ *
+ * @param rootMessenger - The messenger tests publish controller events on.
+ * @returns A restore function for `afterEach` cleanup.
+ */
+export const routeControllerMessengerEventsTo = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never>,
+): (() => void) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and restoring puts the original mock back.
+  controllerMessenger.subscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        subscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).subscribe(event, callback);
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        unsubscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).unsubscribe(event, callback);
+  };
+  return () => {
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
+
 const lakersContext = {
   eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
   eventTitle: 'Lakers vs Celtics',
@@ -1112,6 +1185,13 @@ export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) =>
 export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
   publishPredictNextLiveUpdate('PredictLiveDataService:quoteUpdated', update);
 
+/** Delivers a deposit status change to every surface that subscribed. */
+export const publishPredictNextDepositStatus = (deposit: unknown) =>
+  publishPredictNextLiveUpdate('PredictFundingService:depositStatusChanged', {
+    venueId: 'kalshi',
+    deposit,
+  });
+
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
@@ -1122,6 +1202,7 @@ export const configurePredictNextFeeds = ({
   activity,
   settlementsCompleteFrom,
   summary = makePredictNextSummary(),
+  depositStatus = null,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
@@ -1136,6 +1217,7 @@ export const configurePredictNextFeeds = ({
   /** The Activity pages' settlement archive horizon. */
   settlementsCompleteFrom?: string;
   summary?: unknown;
+  depositStatus?: unknown;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
@@ -1144,6 +1226,7 @@ export const configurePredictNextFeeds = ({
   ];
 
   resetPredictNextCatalog();
+  let currentDepositStatus = depositStatus;
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
       if (action === 'PredictOrderService:getRecovery') {
@@ -1151,6 +1234,21 @@ export const configurePredictNextFeeds = ({
       }
       if (action === 'PredictOrderService:refreshRecovery') {
         return Promise.resolve();
+      }
+      if (action === 'PredictFundingService:getDepositStatus') {
+        return currentDepositStatus;
+      }
+      if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+        if (
+          currentDepositStatus &&
+          typeof currentDepositStatus === 'object' &&
+          'operationId' in currentDepositStatus &&
+          (currentDepositStatus as { operationId: string }).operationId ===
+            resourceId
+        ) {
+          currentDepositStatus = null;
+        }
+        return undefined;
       }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
@@ -1193,6 +1291,7 @@ export const configurePredictNextFeeds = ({
           : Promise.resolve({
               venueId: 'kalshi',
               activity: activity ?? [],
+              nextCursor: undefined,
               ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
             });
       }

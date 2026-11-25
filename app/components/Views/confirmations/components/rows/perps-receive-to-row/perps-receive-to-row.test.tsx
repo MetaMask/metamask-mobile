@@ -176,6 +176,15 @@ describe('PerpsReceiveToRow', () => {
     expect(queryByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeNull();
   });
 
+  it('stays on screen after the deposit type switches to Lighter', () => {
+    const { getByTestId } = renderRow(
+      true,
+      TransactionType.perpsLighterDeposit,
+    );
+
+    expect(getByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeOnTheScreen();
+  });
+
   it('renders nothing when the transaction is not a perps deposit', () => {
     const { queryByTestId } = renderRow(true, TransactionType.simpleSend);
 

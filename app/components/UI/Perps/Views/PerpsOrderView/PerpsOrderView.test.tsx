@@ -12,6 +12,7 @@ import { Text } from '@metamask/design-system-react-native';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../../core/Engine';
 import ToastService from '../../../../../core/ToastService';
 import {
@@ -99,6 +100,7 @@ import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
+import { buildPaymentTokenMock } from '../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -1988,7 +1990,11 @@ describe('PerpsOrderView', () => {
 
   it('tracks a dismissed payment token selector when the inline picker is left without a selection', () => {
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { address: '0xusdc', chainId: '0xa4b1', symbol: 'USDC' },
+      payToken: buildPaymentTokenMock({
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+      }),
       setPayToken: jest.fn(),
       isNative: undefined,
     });
@@ -6788,7 +6794,11 @@ describe('PerpsOrderView', () => {
       mockNoQuotesAlert.mockReturnValue([]);
 
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: { balanceUsd: '0.01', address: '0xusdc', chainId: '0xa4b1' },
+        payToken: buildPaymentTokenMock({
+          balanceUsd: '0.01',
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        }),
         setPayToken: jest.fn(),
         isNative: false,
       });
@@ -6823,11 +6833,11 @@ describe('PerpsOrderView', () => {
       mockNoQuotesAlert.mockReturnValue([]);
 
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           balanceUsd: '999999999',
           address: '0xusdc',
           chainId: '0xa4b1',
-        },
+        }),
         setPayToken: jest.fn(),
         isNative: false,
       });
@@ -6872,11 +6882,11 @@ describe('PerpsOrderView', () => {
       mockInsufficientAlert.mockReturnValue([]);
       mockNoQuotesAlert.mockReturnValue([]);
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           balanceUsd: '999999999',
           address: '0xusdc',
           chainId: '0xa4b1',
-        },
+        }),
         setPayToken: jest.fn(),
         isNative: false,
       });
@@ -7004,11 +7014,11 @@ describe('PerpsOrderView', () => {
   });
 
   describe('pay-token available balance', () => {
-    const PAY_TOKEN = {
+    const PAY_TOKEN = buildPaymentTokenMock({
       address: '0xusdc',
       chainId: '0xa4b1',
       symbol: 'mUSD',
-    };
+    });
 
     // `payToken.balanceUsd` is captured once when the token is selected, so it
     // reads 0 whenever the token's balance was not tracked yet. Sizing must use
@@ -7990,11 +8000,12 @@ describe('PerpsOrderView', () => {
       await fill();
 
       const toast = showToast.mock.calls.at(-1)?.[0];
-      expect(toast.linkButtonOptions.label).toBe(
+      expect(toast.closeButtonOptions.variant).toBe(ButtonVariants.Link);
+      expect(toast.closeButtonOptions.label).toBe(
         'social_leaderboard.post_trade_share.post_to_feed',
       );
 
-      toast.linkButtonOptions.onPress();
+      toast.closeButtonOptions.onPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -8073,7 +8084,7 @@ describe('PerpsOrderView', () => {
 
       expect(showToast).toHaveBeenCalled();
       expect(
-        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+        showToast.mock.calls.at(-1)?.[0]?.closeButtonOptions,
       ).toBeUndefined();
     });
   });
