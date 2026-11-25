@@ -31,7 +31,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectHasMoneyDepositAssetsMeetingMinimumBalance } from '../../selectors/depositTokens';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
@@ -70,7 +70,9 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   const quickDepositStablecoin = useQuickDepositStablecoins();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
-  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const hasEligibleCryptoBalance = useSelector(
+    selectHasMoneyDepositAssetsMeetingMinimumBalance,
+  );
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
   // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
@@ -242,7 +244,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       icon: IconName.Refresh,
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
-      disabled: !hasAnyCryptoBalance,
+      disabled: !hasEligibleCryptoBalance,
     },
     ...(canDepositFiat
       ? [

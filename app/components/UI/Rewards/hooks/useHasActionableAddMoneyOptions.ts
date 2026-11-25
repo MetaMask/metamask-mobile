@@ -3,19 +3,21 @@ import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../Ramp/hooks/useRegionHasFiatProvider';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../selectors/tokenBalancesController';
+import { selectHasMoneyDepositAssetsMeetingMinimumBalance } from '../../Money/selectors/depositTokens';
 import { useMoneyAccountDepositAssetId } from '../../Money/hooks/useMoneyAccountDepositAssetId';
 
 /**
  * Whether `MoneyAddMoneySheet` would expose at least one pressable funding
  * option. Mirrors the sheet's own disable/hide gates:
- * - Convert crypto → non-zero token balance
+ * - Convert crypto → eligible Money deposit assets
  * - Deposit funds → fiat deposit enabled + region provider
- * - Stablecoin quick deposit is covered by the token-balance check
+ * - Stablecoin quick deposit is covered by the eligible-assets check
  */
 export function useHasActionableAddMoneyOptions(): boolean {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
-  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const hasEligibleCryptoBalance = useSelector(
+    selectHasMoneyDepositAssetsMeetingMinimumBalance,
+  );
   const depositAssetId = useMoneyAccountDepositAssetId();
   const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
 
@@ -24,6 +26,10 @@ export function useHasActionableAddMoneyOptions(): boolean {
       enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit) &&
       regionHasFiatProvider;
 
-    return hasAnyCryptoBalance || canDepositFiat;
-  }, [enabledTransactionTypes, regionHasFiatProvider, hasAnyCryptoBalance]);
+    return hasEligibleCryptoBalance || canDepositFiat;
+  }, [
+    enabledTransactionTypes,
+    regionHasFiatProvider,
+    hasEligibleCryptoBalance,
+  ]);
 }

@@ -13,6 +13,7 @@ import {
   selectMoneyDepositBlockedTokens,
   selectMoneyDepositAssetsMeetingMinimumBalance,
   selectMoneyDepositPayTokens,
+  selectHasMoneyDepositAssetsMeetingMinimumBalance,
 } from './depositTokens';
 import { selectMoneyDepositMinBalance } from './featureFlags';
 
@@ -282,5 +283,41 @@ describe('selectMoneyDepositAssetsMeetingMinimumBalance', () => {
     const second = selectMoneyDepositAssetsMeetingMinimumBalance(state);
 
     expect(second).toBe(first);
+  });
+});
+
+describe('selectHasMoneyDepositAssetsMeetingMinimumBalance', () => {
+  it('returns true when an eligible asset exists', () => {
+    const state = {} as RootState;
+    mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+      'eip155:1': [createAsset()],
+    });
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: { default: [], overrides: {} },
+      blockedTokens: { default: emptyBlockedTokens, overrides: {} },
+      minimumRequiredTokenBalance: 0,
+    });
+    mockSelectMoneyDepositMinBalance.mockReturnValue(0.01);
+
+    expect(selectHasMoneyDepositAssetsMeetingMinimumBalance(state)).toBe(true);
+  });
+
+  it('returns false when no eligible asset exists', () => {
+    const asset = createAsset({
+      fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
+      rawBalance: '0x0',
+    });
+    const state = {} as RootState;
+    mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+      'eip155:1': [asset],
+    });
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: { default: [], overrides: {} },
+      blockedTokens: { default: emptyBlockedTokens, overrides: {} },
+      minimumRequiredTokenBalance: 0,
+    });
+    mockSelectMoneyDepositMinBalance.mockReturnValue(0.01);
+
+    expect(selectHasMoneyDepositAssetsMeetingMinimumBalance(state)).toBe(false);
   });
 });

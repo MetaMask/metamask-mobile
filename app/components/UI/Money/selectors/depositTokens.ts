@@ -112,3 +112,9 @@ export const selectMoneyDepositAssetsMeetingMinimumBalance =
             (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
         ),
   );
+
+export const selectHasMoneyDepositAssetsMeetingMinimumBalance =
+  createDeepEqualSelector(
+    [selectMoneyDepositAssetsMeetingMinimumBalance],
+    (assets) => assets.length > 0,
+  );

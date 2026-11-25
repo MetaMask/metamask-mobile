@@ -4,7 +4,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../Ramp/hooks/useRegionHasFiatProvider';
 import { useMoneyAccountDepositAssetId } from '../../Money/hooks/useMoneyAccountDepositAssetId';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../selectors/tokenBalancesController';
+import { selectHasMoneyDepositAssetsMeetingMinimumBalance } from '../../Money/selectors/depositTokens';
 import { useHasActionableAddMoneyOptions } from './useHasActionableAddMoneyOptions';
 
 jest.mock('react-redux', () => ({
@@ -39,17 +39,17 @@ const mockUseMoneyAccountDepositAssetId =
 const DEPOSIT_ASSET_ID = 'eip155:1/erc20:0xmusd';
 
 function setDefaults({
-  hasAnyCryptoBalance = false,
+  hasEligibleCryptoBalance = false,
   enabledTransactionTypes = [] as TransactionType[],
   regionHasFiatProvider = false,
 }: {
-  hasAnyCryptoBalance?: boolean;
+  hasEligibleCryptoBalance?: boolean;
   enabledTransactionTypes?: TransactionType[];
   regionHasFiatProvider?: boolean;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectHasAnyNonZeroTokenBalance) {
-      return hasAnyCryptoBalance;
+    if (selector === selectHasMoneyDepositAssetsMeetingMinimumBalance) {
+      return hasEligibleCryptoBalance;
     }
     return undefined;
   });
@@ -66,15 +66,15 @@ describe('useHasActionableAddMoneyOptions', () => {
     setDefaults();
   });
 
-  it('returns false when no crypto or fiat deposit path is available', () => {
+  it('returns false when no eligible deposit asset or fiat path is available', () => {
     const { result } = renderHook(() => useHasActionableAddMoneyOptions());
 
     expect(result.current).toBe(false);
     expect(mockUseRegionHasFiatProvider).toHaveBeenCalledWith(DEPOSIT_ASSET_ID);
   });
 
-  it('returns true when wallet has a non-zero crypto balance', () => {
-    setDefaults({ hasAnyCryptoBalance: true });
+  it('returns true when wallet has an eligible Money deposit asset', () => {
+    setDefaults({ hasEligibleCryptoBalance: true });
 
     const { result } = renderHook(() => useHasActionableAddMoneyOptions());
 

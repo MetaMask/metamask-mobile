@@ -13,7 +13,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectHasMoneyDepositAssetsMeetingMinimumBalance } from '../../selectors/depositTokens';
 import {
   selectMoneyMovementNeobank,
   selectNeobankMarkets,
@@ -89,9 +89,9 @@ jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
   useRegionHasFiatProvider: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/tokenBalancesController', () => ({
-  ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
-  selectHasAnyNonZeroTokenBalance: jest.fn(),
+jest.mock('../../selectors/depositTokens', () => ({
+  ...jest.requireActual('../../selectors/depositTokens'),
+  selectHasMoneyDepositAssetsMeetingMinimumBalance: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/transactionController', () => ({
@@ -176,9 +176,9 @@ describe('MoneyAddMoneySheet', () => {
       enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
       maxDelayMinutesForPaymentMethods: 10,
     });
-    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
-      true,
-    );
+    (
+      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
+    ).mockReturnValue(true);
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
     (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
       chooseCurrency: false,
@@ -384,10 +384,10 @@ describe('MoneyAddMoneySheet', () => {
     );
   });
 
-  it('disables the Convert crypto option when no account has any crypto balance', () => {
-    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+  it('disables the Convert crypto option when there is no eligible deposit asset', () => {
+    (
+      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
+    ).mockReturnValue(false);
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -403,10 +403,10 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('enables the Convert crypto option when at least one account has a crypto balance', () => {
-    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
-      true,
-    );
+  it('enables the Convert crypto option when there is an eligible deposit asset', () => {
+    (
+      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
+    ).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -510,9 +510,9 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('moves a disabled option (Convert crypto) to the bottom of the order', () => {
-    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+    (
+      selectHasMoneyDepositAssetsMeetingMinimumBalance as unknown as jest.Mock
+    ).mockReturnValue(false);
 
     const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
     const order = getOptionOrder(UNSAFE_root);
