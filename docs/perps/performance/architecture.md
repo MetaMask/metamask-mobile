@@ -126,9 +126,9 @@ Code: `app/components/UI/Perps/utils/perpsLoadingSessionModel.ts` `PerpsLoadingL
 
 ## TTC and DFD
 
-- Homepage TTC is the existing `Homepage Section Time To Content`, from an explicit section demand boundary to committed resident content, or through the first presented frame after async content resolves. `content_ready_at_demand` separates those cohorts. Idle skeletons and deferred offscreen dwell are not measured.
+- Homepage TTC is the existing `Homepage Section Time To Content`, from an explicit section demand boundary to committed resident content, or through the first presented frame after async content resolves. `content_ready_at_demand` separates those cohorts.
 - Homepage DFD is the existing `Homepage Section Data Fetch`, the loading interval for that section.
-- The Perps section restarts both per loading session. Ready content is not accepted at generation start for `account_switch`, `network_switch` and `background_reconnect`.
+- For Perps, demand starts when the mounted loading session begins (`Boolean(sessionId)`), not at a viewport visibility gate, and both traces restart per loading session. Ready content is not accepted at generation start for `account_switch`, `network_switch` and `background_reconnect`.
 - A visible error ends with `content_state=error`. Percentile widgets filter `content_state != error`; the error-rate widget filters `content_state = error`.
 - Initial UI and live-visible are separate. Resolved content is never labelled "first visible".
 - Socket to subscriber to commit to frame splits stay in recipe evidence.
