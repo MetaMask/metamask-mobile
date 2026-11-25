@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
   Caip25EndowmentPermissionName,
   Caip25CaveatType,
@@ -11,6 +11,8 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import MultichainAccountConnect from './MultichainAccountConnect';
+import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
+import { USER_INTENT } from '../../../../constants/permissions';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
@@ -701,6 +703,58 @@ describe('MultichainAccountConnect', () => {
         expect.objectContaining({
           source: 'in-app browser',
           request_source: 'In-App-Browser',
+        }),
+      );
+    });
+  });
+
+  it('accepts the permission request when the account selector reports a confirm intent', async () => {
+    const mockAcceptPermissionsRequestLocal = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    Engine.context.PermissionController.acceptPermissionsRequest =
+      mockAcceptPermissionsRequestLocal;
+
+    const renderResult = renderWithProvider(
+      <MultichainAccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'https://example.com',
+              },
+              permissions: createMockCaip25Permission({
+                'eip155:1': {
+                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+                },
+              }),
+            },
+            permissionRequestId: 'test-confirm-intent',
+          },
+        }}
+      />,
+      { state: createMockState() },
+    );
+
+    fireEvent.press(renderResult.getByTestId('permission-summary-container'));
+    await renderResult.findByTestId(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
+
+    act(() => {
+      renderResult
+        .UNSAFE_getByType(MultichainAccountConnectMultiSelector)
+        .props.onUserAction(USER_INTENT.Confirm);
+    });
+
+    await waitFor(() => {
+      expect(mockAcceptPermissionsRequestLocal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            origin: 'https://example.com',
+            id: 'mockId',
+          }),
         }),
       );
     });
