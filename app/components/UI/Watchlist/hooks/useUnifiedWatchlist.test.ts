@@ -108,7 +108,7 @@ describe('useUnifiedWatchlist', () => {
     }));
   });
 
-  it('surfaces metadata coverage error while token metadata is partially hydrated', () => {
+  it('keeps membership asset IDs for deduplication without surfacing a false error when some stored tokens have no API metadata', () => {
     const hydratedAssetId = 'eip155:1/erc20:0xhydrated';
     const missingAssetId = 'eip155:1/erc20:0xmissing';
     mockedUseTokenWatchlistMembershipQuery.mockReturnValue({
@@ -139,9 +139,8 @@ describe('useUnifiedWatchlist', () => {
       hydratedAssetId,
       missingAssetId,
     ]);
-    expect(result.current.tokens.error).toBe(
-      'Some watchlist metadata is unavailable',
-    );
+    expect(result.current.tokenCount).toBe(1);
+    expect(result.current.tokens.error).toBeNull();
   });
 
   it('keeps Perps items empty while Perps initial snapshot is pending but exposes membership symbols', () => {

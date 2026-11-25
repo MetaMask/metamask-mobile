@@ -516,10 +516,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           : (tokens.error ?? perps.error)),
   );
 
-  const displayedPerpCount = displayOrderedItems.filter(
-    (item) => item.kind === 'perp',
-  ).length;
-  const watchedItemCount = tokenCount + displayedPerpCount;
+  const watchedItemCount = displayOrderedItems.length;
   const hasWatchlist = watchedItemCount > 0;
   const remainingSuggestedCount = Math.max(
     0,
