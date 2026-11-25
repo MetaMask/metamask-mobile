@@ -44,7 +44,10 @@ describe('RewardsEarningsHistoryView pagination', () => {
   it('loads the next ledger page from the list end (E3)', async () => {
     const firstPage = [EARNINGS_HISTORY_ROW, earningRow(1), earningRow(2)];
     const secondPage = [earningRow(3), earningRow(4)];
-    const pages = [ledgerPage(firstPage, 'cursor-page-2'), ledgerPage(secondPage, null)];
+    const pages = [
+      ledgerPage(firstPage, 'cursor-page-2'),
+      ledgerPage(secondPage, null),
+    ];
     let pageCalls = 0;
     const { getByTestId, getAllByTestId } = renderEarningsHistory({
       persona: 'referee',

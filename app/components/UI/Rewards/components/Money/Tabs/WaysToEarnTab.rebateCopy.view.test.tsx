@@ -37,14 +37,14 @@ function perpsEarningRow(index: number): LedgerEntryDto {
 describe('WaysToEarnTab rate copy', () => {
   it('shows only the swaps and perps rebate copy while Predict cashback is off (C24)', async () => {
     const { findByTestId, getAllByTestId, queryByText } = renderWaysToEarnTab({
-        persona: 'referee',
-        referralMe: referralMeFixture('referee', {
-          localizedText: {
-            invitedBenefitTitle: '50% on Swaps and Perps',
-          },
-        }),
-        history: [earningRow(0), perpsEarningRow(1)],
-      });
+      persona: 'referee',
+      referralMe: referralMeFixture('referee', {
+        localizedText: {
+          invitedBenefitTitle: '50% on Swaps and Perps',
+        },
+      }),
+      history: [earningRow(0), perpsEarningRow(1)],
+    });
 
     // Ways to earn names only swaps and perps. No Predict line is rendered.
     const tradingRow = await findByTestId(
@@ -149,7 +149,9 @@ describe('WaysToEarnTab history preview', () => {
     fireEvent.press(getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_HEADER));
 
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.REWARDS_EARNINGS_HISTORY_VIEW)),
+      await findByTestId(
+        getRouteProbeTestId(Routes.REWARDS_EARNINGS_HISTORY_VIEW),
+      ),
     ).toBeOnTheScreen();
   });
 });

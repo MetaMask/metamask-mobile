@@ -35,11 +35,11 @@ export function benefitFixture(index: number): SubscriptionBenefitDto {
 }
 
 /** The payload `RewardsController:getBenefits` resolves with. */
-export function benefitsPayload(
-  count: number,
-): SubscriptionBenefitsState {
+export function benefitsPayload(count: number): SubscriptionBenefitsState {
   return {
-    benefits: Array.from({ length: count }, (_, index) => benefitFixture(index)),
+    benefits: Array.from({ length: count }, (_, index) =>
+      benefitFixture(index),
+    ),
     limit: count,
     lastFetched: Date.parse('2026-11-01T00:00:00.000Z'),
   };

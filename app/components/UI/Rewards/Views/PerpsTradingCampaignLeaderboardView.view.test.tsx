@@ -22,13 +22,10 @@ function rowTestId(rank: number): string {
 
 describe('PerpsTradingCampaignLeaderboardView', () => {
   it('renders every prize position the top-30 prize covers (L1)', async () => {
-    const {
-      findByTestId,
-      getAllByTestId,
-      UNSAFE_queryAllByProps,
-    } = renderPerpsCampaignLeaderboard({
-      leaderboard: leaderboardFixture(30),
-    });
+    const { findByTestId, getAllByTestId, UNSAFE_queryAllByProps } =
+      renderPerpsCampaignLeaderboard({
+        leaderboard: leaderboardFixture(30),
+      });
 
     // The board holds all 30 prize positions.
     expect(await findByTestId(rowTestId(30))).toBeOnTheScreen();

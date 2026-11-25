@@ -16,9 +16,7 @@ import Routes from '../../../constants/navigation/Routes';
 import RewardsNavigator from './RewardsNavigator';
 import { setReferralMe } from '../../../reducers/rewardsMoney';
 import { renderScreenWithRoutes } from '../../../../tests/component-view/render';
-import {
-  installRewardsMoneyEngine,
-} from '../../../../tests/component-view/renderers/rewardsMoney';
+import { installRewardsMoneyEngine } from '../../../../tests/component-view/renderers/rewardsMoney';
 import {
   referralMeFixture,
   REWARDS_MONEY_PROFILE_ID,

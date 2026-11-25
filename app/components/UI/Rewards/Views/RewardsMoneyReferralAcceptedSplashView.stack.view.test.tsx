@@ -103,7 +103,9 @@ function renderSplashStack({
     [
       {
         name: Routes.HOME_TABS,
-        Component: withPreAcceptRewards ? HomeOpeningPreAccept : HomeOpeningSplash,
+        Component: withPreAcceptRewards
+          ? HomeOpeningPreAccept
+          : HomeOpeningSplash,
       },
       ...(withPreAcceptRewards
         ? [{ name: PRE_ACCEPT_ROUTE, Component: PreAcceptScreen }]
@@ -148,7 +150,7 @@ describe('RewardsMoneyReferralAcceptedSplashView stack', () => {
     // Back leaves Rewards: Wallet is underneath, and neither the pre-accept
     // view nor the splash comes back.
     fireEvent.press(view.getByTestId('rewards-view-back'));
-    expect(view.getByTestId("home-open-rewards")).toBeOnTheScreen();
+    expect(view.getByTestId('home-open-rewards')).toBeOnTheScreen();
     expect(view.queryByTestId(REWARDS_VIEW_PROBE)).not.toBeOnTheScreen();
     expect(view.queryByTestId(PRE_ACCEPT_PROBE)).not.toBeOnTheScreen();
     expect(view.queryByTestId(SPLASH_TEST_IDS.CONTAINER)).not.toBeOnTheScreen();
