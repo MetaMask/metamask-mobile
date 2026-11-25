@@ -612,6 +612,28 @@ describe('AbsolutePriceAlertForm', () => {
     ).toHaveTextContent('$2,406.6');
   });
 
+  it('prefills a legacy finer threshold exactly and keeps Save disabled (TAT-4186 regression)', () => {
+    const screen = renderForm({
+      currentPrice: 2406.64,
+      isPerps: true,
+      displayTicker: 'ETH',
+      marketId: 'eth-hyperliquid-mainnet',
+      // An alert saved before TAT-4186 with tick precision (2 decimals),
+      // finer than the display cap of 1.
+      editingAlert: { ...editingAlert, threshold: 2406.64 },
+    });
+
+    // The stored value is shown exactly, not rounded to the display cap…
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$2,406.64');
+    // …and Save stays disabled: opening the edit form is not a change, so a
+    // reflexive tap cannot silently rewrite the stored threshold.
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
   it('rejects a second decimal when typing an ETH target in perps mode (TAT-4186)', () => {
     const screen = renderForm({
       currentPrice: 2406.64,

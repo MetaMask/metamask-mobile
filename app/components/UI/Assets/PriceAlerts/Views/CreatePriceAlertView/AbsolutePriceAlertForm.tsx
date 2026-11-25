@@ -73,7 +73,12 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
     : getKeypadDecimalPlaces(currentPrice);
   const [targetAmount, setTargetAmount] = useState(() =>
     editingAlert
-      ? toKeypadString(editingAlert.threshold, keypadDecimals)
+      ? // Prefill the stored threshold exactly. Rounding it to the display
+        // cap made `isUnchanged` false on open, enabling a no-op save that
+        // silently rewrote the stored target (bugbot on TAT-4186). The
+        // keypad cap still applies once the user edits the amount, and
+        // alerts saved after TAT-4186 never exceed it.
+        toKeypadString(editingAlert.threshold)
       : toKeypadString(currentPrice, keypadDecimals),
   );
   const [isRecurring, setIsRecurring] = useState(
