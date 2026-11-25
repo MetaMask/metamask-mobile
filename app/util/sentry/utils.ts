@@ -460,9 +460,6 @@ export function rewriteReport(report: SentryEvent): SentryEvent {
 
 /**
  * Drops expected product outcomes that are not app errors.
- *
- * @param event - to be logged
- * @returns event or null
  */
 export function excludeExpectedErrors(
   event: SentryEvent | null,

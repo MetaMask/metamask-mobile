@@ -32,8 +32,9 @@ export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
   isMoneyDepositTransaction(transactionMeta);
 
 /**
- * True when a Money deposit is funded by a fiat on-ramp (e.g. a card). The pay
- * strategy survives quote cleanup, unlike the per-order fiat metadata.
+ * True when a Money deposit is funded by a fiat on-ramp (e.g. a card). Fiat
+ * order metadata appears only once an order exists, so the pay strategy is
+ * also checked.
  */
 export const isFiatMoneyDeposit = (
   transactionMeta: TransactionMeta,

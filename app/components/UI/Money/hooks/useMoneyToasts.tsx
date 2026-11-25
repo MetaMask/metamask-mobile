@@ -73,7 +73,7 @@ export interface DepositFailedParams extends ToastPressParams {
   intent?: DepositIntent;
 }
 
-export interface DepositDeclinedParams extends ToastPressParams {}
+export type DepositDeclinedParams = ToastPressParams;
 
 export interface WithdrawSuccessParams {
   amountFiat?: string;
