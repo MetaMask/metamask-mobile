@@ -26,6 +26,7 @@ const fiat = (status: FiatAddressStatus): AccountCreateRegistrationResult => ({
   status,
 });
 const unknown = { kind: 'unknown' } as const;
+const unavailable = { kind: 'unavailable' } as const;
 
 describe('accountCreateError', () => {
   it.each<
@@ -44,6 +45,7 @@ describe('accountCreateError', () => {
     ['missing customer', http(404), 'generic'],
     ['server failure', http(500), 'generic'],
     ['unknown failure', unknown, 'generic'],
+    ['token unavailable', unavailable, 'unavailable'],
     ['existing account', http(409), null],
     ['pending account', fiat('RegistrationPending'), null],
     ['registered account', fiat('Registered'), null],
@@ -60,6 +62,31 @@ describe('accountCreateError', () => {
       });
 
       expect(result).toEqual(fiat('RegistrationFailed'));
+    });
+
+    it.each([
+      '"This token is not available in the jurisdiction"',
+      '{"statusCode":400,"code":"token_unavailable_in_jurisdiction"}',
+    ])('reads a jurisdiction rejection from the 400 body %s', (body) => {
+      const error = Object.assign(
+        new Error(
+          `Fetching 'https://proxy.example/neobank/autoramps' failed with status '400' - ${body}`,
+        ),
+        { httpStatus: 400 },
+      );
+
+      expect(getAccountCreateResultFromError(error)).toEqual(unavailable);
+    });
+
+    it('keeps any other 400 body as an HTTP failure', () => {
+      const error = Object.assign(
+        new Error(
+          `Fetching 'https://proxy.example/neobank/autoramps' failed with status '400' - "Invalid wallet address"`,
+        ),
+        { httpStatus: 400 },
+      );
+
+      expect(getAccountCreateResultFromError(error)).toEqual(http(400));
     });
 
     it('reads a fiat failure from a typed 200 error', () => {
@@ -159,6 +186,13 @@ describe('accountCreateError', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
+    it('routes token unavailable without logging an error', () => {
+      expect(logAccountCreateFailure(unavailable)).toBe(
+        ACCOUNT_CREATE_ERROR_DESTINATION.unavailable,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('logs fiat failures', () => {
       expect(logAccountCreateFailure(fiat('AuthorizationFailed'))).toBe(
         ACCOUNT_CREATE_ERROR_DESTINATION.details,
@@ -173,6 +207,7 @@ describe('accountCreateError', () => {
   describe('safe support fields', () => {
     it.each([
       [unknown, undefined],
+      [unavailable, undefined],
       [http(500), { httpStatus: 500 }],
       [http(500, 'trace-1'), { httpStatus: 500, traceId: 'trace-1' }],
       [
@@ -215,6 +250,7 @@ describe('accountCreateError', () => {
   it.each([
     [ACCOUNT_CREATE_ERROR_DESTINATION.details, 'details'],
     [ACCOUNT_CREATE_ERROR_DESTINATION.generic, 'generic'],
+    ['accountCreateUnavailable', 'unavailable'],
   ] as const)('maps destination %s to %s', (destination, variant) => {
     expect(isAccountCreateErrorDestination(destination)).toBe(true);
     expect(accountCreateErrorVariantForDestination(destination)).toBe(variant);

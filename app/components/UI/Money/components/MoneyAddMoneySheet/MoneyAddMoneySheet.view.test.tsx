@@ -17,12 +17,14 @@ import {
   type VbaMarketsOption,
 } from '../../../../../../tests/component-view/presets/vba';
 import {
+  openVbaBankAccountFromMoney,
   renderVbaCardHomeEntry,
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
   VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { CreateVirtualBankAccountSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.testIds';
+import { KycIdentityVerifiedSelectorsIDs } from '../../../KYC/Views/Status/IdentityVerified';
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import { VbaAccountCreateErrorSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaAccountCreateError';
 import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
@@ -50,6 +52,8 @@ const mockGetPaymentMethodsForContext = jest.mocked(
 
 const rampsController = Engine.context.RampsController as unknown as {
   state?: unknown;
+  createAutoramp?: jest.Mock;
+  refreshCustomerAbilities?: jest.Mock;
 };
 const engineContext = Engine.context as unknown as {
   NeoBankService?: { getDepositInstructions: jest.Mock };
@@ -227,10 +231,50 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
 
   afterEach(() => {
     rampsController.state = previousRampsState;
+    delete rampsController.createAutoramp;
+    delete rampsController.refreshCustomerAbilities;
     delete engineContext.NeoBankService;
     restoreVbaReduxServiceStore();
     resetMusdAutorampSetupGuard();
     netInfoMock.__resetMockNetInfo();
+  });
+
+  it('opens the unavailable screen for a verified customer who is not offered mUSD', async () => {
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted',
+      kycStatus: 'approved',
+      autorampStatus: 'needs_source_currency',
+    });
+    rampsController.createAutoramp = jest.fn();
+    rampsController.refreshCustomerAbilities = jest.fn().mockResolvedValue({
+      fiat_deposit: { brl: { pix: 'Active', pix_thirdparty: 'Active' } },
+      fiat_payout: {},
+      currencies: [
+        { currency: { type: 'Fiat', code: 'BRL' }, flows: ['Onramp'] },
+      ],
+      blocking_abilities: {},
+    });
+    const { findByTestId, getByText, queryByTestId } = renderVbaMoneyEntry();
+
+    await openVbaBankAccountFromMoney(findByTestId);
+
+    expect(
+      await findByTestId(
+        `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-unavailable`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.unavailable.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(KycIdentityVerifiedSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+    expect(rampsController.createAutoramp).not.toHaveBeenCalled();
   });
 
   it('opens loading before routing an eligible user to vendor terms', async () => {

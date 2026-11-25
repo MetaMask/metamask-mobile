@@ -1,6 +1,11 @@
+import { isTokenUnavailableInJurisdictionError } from '@metamask/ramps-controller';
 import Logger from '../../../../../util/Logger';
 
-export const ACCOUNT_CREATE_ERROR_VARIANTS = ['details', 'generic'] as const;
+export const ACCOUNT_CREATE_ERROR_VARIANTS = [
+  'details',
+  'generic',
+  'unavailable',
+] as const;
 
 export type AccountCreateErrorVariant =
   (typeof ACCOUNT_CREATE_ERROR_VARIANTS)[number];
@@ -8,7 +13,8 @@ export type AccountCreateErrorVariant =
 export const ACCOUNT_CREATE_ERROR_DESTINATION = {
   details: 'accountCreateDetails',
   generic: 'accountCreateGeneric',
-} as const;
+  unavailable: 'accountCreateUnavailable',
+} as const satisfies Record<AccountCreateErrorVariant, string>;
 
 export type AccountCreateErrorDestinationId =
   (typeof ACCOUNT_CREATE_ERROR_DESTINATION)[keyof typeof ACCOUNT_CREATE_ERROR_DESTINATION];
@@ -56,6 +62,10 @@ export type AccountCreateRegistrationResult =
   | {
       kind: 'fiat';
       status: FiatAddressStatus;
+    }
+  | {
+      /** The provider does not offer mUSD to this customer. */
+      kind: 'unavailable';
     }
   | {
       kind: 'unknown';
@@ -121,6 +131,9 @@ export const getAccountCreateResultFromError = (
   if (error instanceof AccountCreateRegistrationError) {
     return error.result;
   }
+  if (isTokenUnavailableInJurisdictionError(error)) {
+    return { kind: 'unavailable' };
+  }
 
   const context =
     error && typeof error === 'object'
@@ -150,21 +163,26 @@ export const getAccountCreateResultFromError = (
 export const isAccountCreateErrorDestination = (
   destinationId: string,
 ): destinationId is AccountCreateErrorDestinationId =>
-  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details ||
-  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.generic;
+  (Object.values(ACCOUNT_CREATE_ERROR_DESTINATION) as string[]).includes(
+    destinationId,
+  );
 
 export const accountCreateErrorVariantForDestination = (
   destinationId: AccountCreateErrorDestinationId,
 ): AccountCreateErrorVariant =>
-  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details
-    ? 'details'
-    : 'generic';
+  ACCOUNT_CREATE_ERROR_VARIANTS.find(
+    (variant) => ACCOUNT_CREATE_ERROR_DESTINATION[variant] === destinationId,
+  ) ?? 'generic';
 
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateErrorVariant | null => {
   if (result.kind === 'unknown') {
     return 'generic';
+  }
+
+  if (result.kind === 'unavailable') {
+    return 'unavailable';
   }
 
   if (result.kind === 'fiat') {
@@ -183,7 +201,10 @@ export interface AccountCreateFailureFields {
   traceId?: string;
 }
 
-export type AccountCreateErrorPrimaryAction = 'contactSupport' | 'retry';
+export type AccountCreateErrorPrimaryAction =
+  | 'contactSupport'
+  | 'retry'
+  | 'done';
 
 export const getAccountCreateErrorPrimaryAction = (
   fields?: AccountCreateFailureFields,
@@ -198,7 +219,7 @@ const SUPPORT_PARAM_TRACE_ID = 'trace_id';
 export const getAccountCreateFailureLogFields = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateFailureFields | undefined => {
-  if (result.kind === 'unknown') {
+  if (result.kind === 'unknown' || result.kind === 'unavailable') {
     return undefined;
   }
 
@@ -220,10 +241,13 @@ export const logAccountCreateFailure = (
     return null;
   }
 
-  Logger.error(
-    new Error('VBA account creation failed'),
-    getAccountCreateFailureLogFields(result),
-  );
+  // Expected for some regions, so it is tracked in analytics, not as an error.
+  if (result.kind !== 'unavailable') {
+    Logger.error(
+      new Error('VBA account creation failed'),
+      getAccountCreateFailureLogFields(result),
+    );
+  }
   return ACCOUNT_CREATE_ERROR_DESTINATION[variant];
 };
 

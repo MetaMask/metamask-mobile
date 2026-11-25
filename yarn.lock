@@ -11606,6 +11606,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@30.1.0-preview-19151e4de":
+  version: 30.1.0-preview-19151e4de
+  resolution: "@metamask-previews/ramps-controller@npm:30.1.0-preview-19151e4de"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/base-data-service": "npm:^2.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.2"
+    bignumber.js: "npm:^9.1.2"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/3464b1d9f386fbf5ebd7f1e6c39656b4d8fc0e71fc300e7304f8bb4ef049a72f4326a3fadbd56078c6f5103ff059235e99ba63ae207d54c9aa2fbc5c278f3964
+  languageName: node
+  linkType: hard
+
 "@metamask/ramps-controller@npm:^29.0.0":
   version: 29.0.0
   resolution: "@metamask/ramps-controller@npm:29.0.0"
@@ -11619,24 +11637,6 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
   checksum: 10/493cb582dce69d57b7928fbecf2dd53f10a18d75bce87c06ba7657552efe69c7715bdf6154924d2a59eab707f784b8eff7988e10ff7e058c32cf8cbe24867574
-  languageName: node
-  linkType: hard
-
-"@metamask/ramps-controller@npm:^30.1.0":
-  version: 30.1.0
-  resolution: "@metamask/ramps-controller@npm:30.1.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.1.2"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.2"
-    bignumber.js: "npm:^9.1.2"
-    fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/4d8f36941b85374ee3322581535991da49a14a43a526cb7b5959bb2841182cd00cfd943e66b6a0c85d4b7b476e34d85efed241547cad0af5cfebb95d7afc15f6
   languageName: node
   linkType: hard
 

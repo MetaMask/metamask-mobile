@@ -24,11 +24,20 @@ const AUTORAMP_DESTINATION = {
   token_chain_id: 'eip155:143',
 } as const;
 
-const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
+/** Analytics reasons for a create that failed or was not sent. */
+const CREATE_FAILURE_REASON = {
+  CREATE_FAILED: 'vba_create_failed',
+  TOKEN_UNAVAILABLE: 'vba_token_unavailable',
+} as const;
+
+const trackAutorampCreateFailed = (
+  sourceCurrency: VbaSourceCurrency,
+  failureReason: (typeof CREATE_FAILURE_REASON)[keyof typeof CREATE_FAILURE_REASON] = CREATE_FAILURE_REASON.CREATE_FAILED,
+) => {
   trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, () => ({
     ...buildVbaBaseProperties({
       currencySource: sourceCurrency,
-      failureReason: 'vba_create_failed',
+      failureReason,
     }),
     status: 'failed',
   }));
@@ -171,10 +180,14 @@ const createAutoramp = async (
     if (error instanceof AccountCreateRegistrationError) {
       throw error;
     }
-    trackAutorampCreateFailed(sourceCurrency);
-    throw new AccountCreateRegistrationError(
-      getAccountCreateResultFromError(error),
+    const result = getAccountCreateResultFromError(error);
+    trackAutorampCreateFailed(
+      sourceCurrency,
+      result.kind === 'unavailable'
+        ? CREATE_FAILURE_REASON.TOKEN_UNAVAILABLE
+        : CREATE_FAILURE_REASON.CREATE_FAILED,
     );
+    throw new AccountCreateRegistrationError(result);
   }
 };
 
@@ -197,7 +210,8 @@ const getRailReadiness = async (
 
 /**
  * Creates the autoramp only once its deposit rail is Active, so MoonPay never
- * answers the create with a 422. A pending rail keeps the user waiting.
+ * answers the create with a 422. A pending rail keeps the user waiting. A
+ * customer who is not offered mUSD fails without sending the create.
  */
 const createAutorampWhenRailActive = async (
   walletAddress: string,
@@ -207,6 +221,13 @@ const createAutorampWhenRailActive = async (
   if (readiness === 'pending') {
     return 'awaiting_provider';
   }
+  if (readiness === 'unavailable') {
+    trackAutorampCreateFailed(
+      sourceCurrency,
+      CREATE_FAILURE_REASON.TOKEN_UNAVAILABLE,
+    );
+    throw new AccountCreateRegistrationError({ kind: 'unavailable' });
+  }
   if (readiness === 'blocked') {
     // Reported and thrown like MoonPay's 422, without sending the create.
     trackAutorampCreateFailed(sourceCurrency);
@@ -214,6 +235,31 @@ const createAutorampWhenRailActive = async (
   }
   await createAutoramp(walletAddress, sourceCurrency);
   return 'ready';
+};
+
+/**
+ * Whether account setup would stop because mUSD is not offered to this
+ * customer. Reports it like a create that was not sent, since the caller then
+ * skips setup. A wallet that already has an autoramp is left to account
+ * details, which handles Rejected, Cancelled and failed ones.
+ */
+export const isMusdSetupUnavailable = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<boolean> => {
+  if (
+    readAutoramps().some((autoramp) => isForWallet(autoramp, walletAddress))
+  ) {
+    return false;
+  }
+  if ((await getRailReadiness(sourceCurrency)) !== 'unavailable') {
+    return false;
+  }
+  trackAutorampCreateFailed(
+    sourceCurrency,
+    CREATE_FAILURE_REASON.TOKEN_UNAVAILABLE,
+  );
+  return true;
 };
 
 const runSetup = async (

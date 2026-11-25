@@ -191,6 +191,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/ramps-controller@^30.1.0": "npm:@metamask-previews/ramps-controller@30.1.0-preview-19151e4de",
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",

@@ -1011,8 +1011,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
               navigateToAdditionalVerificationCallback({
                 quote,
-                kycUrl: metadata.kycUrl,
-                workFlowRunId: metadata.workFlowRunId,
+                kycUrl: metadata.kycUrl ?? '',
+                workFlowRunId: metadata.workFlowRunId ?? '',
                 amount,
               });
               return;

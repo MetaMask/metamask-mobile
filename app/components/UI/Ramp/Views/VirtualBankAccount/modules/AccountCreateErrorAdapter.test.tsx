@@ -4,6 +4,7 @@ import { render } from '@testing-library/react-native';
 import VbaAccountCreateError from '../VbaAccountCreateError';
 import type { VbaOnboardingParamList } from '../routes';
 import VbaAccountCreateErrorAdapter from './AccountCreateErrorAdapter';
+import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useScreenPerformance } from '../../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -149,6 +150,52 @@ describe('VbaAccountCreateErrorAdapter', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://support.example/path',
     );
+  });
+
+  describe('when mUSD is not offered to the customer', () => {
+    beforeEach(() => {
+      mockRouteParams = { variant: 'unavailable', sourceCurrency: 'BRL' };
+    });
+
+    it('shows the unavailable screen with Done as the main action', () => {
+      const props = renderAdapter();
+
+      expect(props.variant).toBe('unavailable');
+      expect(props.primaryActionType).toBe('done');
+      expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+        config: VBA_SCREEN_PERFORMANCE_CONFIG,
+        screenId: 'account_create_unavailable_error',
+        contentReady: true,
+        contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+      });
+    });
+
+    it.each(['onPrimary', 'onBack'] as const)(
+      'leaves to Money home from %s',
+      async (action) => {
+        const props = renderAdapter();
+
+        await props[action]?.();
+
+        expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledTimes(1);
+        expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledWith(
+          mockNavigation,
+        );
+        expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+      },
+    );
+
+    it('opens support from the secondary action', async () => {
+      const props = renderAdapter();
+
+      await props.onSecondary();
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+      expect(mockExitVbaOnboardingToMoneyHome).not.toHaveBeenCalled();
+    });
   });
 
   it.each([

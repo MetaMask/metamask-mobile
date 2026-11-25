@@ -62,6 +62,51 @@ describe('VbaAccountCreateError', () => {
     },
   );
 
+  it('shows the unsupported region copy with Done ahead of support', () => {
+    const { getByTestId, getByText } = renderError({
+      variant: 'unavailable',
+      primaryActionType: 'done',
+    });
+
+    expect(getByText('Your region isn’t supported yet')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'Bank transfers to your Money account aren’t available yet for residents of your region.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    ).toHaveTextContent('Done');
+    expect(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON),
+    ).toHaveTextContent('Contact support');
+  });
+
+  it('hides the failure illustration when unavailable', () => {
+    const { queryByTestId } = renderError({
+      variant: 'unavailable',
+      primaryActionType: 'done',
+    });
+
+    expect(
+      queryByTestId(VbaAccountCreateErrorSelectorsIDs.ILLUSTRATION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['details', 'contactSupport'],
+    ['generic', 'retry'],
+  ] as const)(
+    'shows the failure illustration for %s',
+    (variant, primaryActionType) => {
+      const { getByTestId } = renderError({ variant, primaryActionType });
+
+      expect(
+        getByTestId(VbaAccountCreateErrorSelectorsIDs.ILLUSTRATION),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('calls the primary and secondary actions', async () => {
     const { getByTestId } = renderError({ onBack: mockOnBack });
 

@@ -32,6 +32,7 @@ import {
   type VbaOnboardingParamList,
 } from '../routes';
 import {
+  ACCOUNT_CREATE_ERROR_DESTINATION,
   accountCreateErrorVariantForDestination,
   isAccountCreateErrorDestination,
   type AccountCreateFailureFields,
@@ -40,7 +41,11 @@ import {
   applyVbaDevOverrides,
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
-import { findUsableAutoramp } from '../ensureMusdAutoramp';
+import {
+  findUsableAutoramp,
+  isMusdSetupUnavailable,
+} from '../ensureMusdAutoramp';
+import { selectVbaMarket } from '../vbaMarket';
 import { startVbaKycSession } from '../vbaKycSession';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
@@ -471,11 +476,49 @@ export type ResolvedVbaOnboarding =
     }
   | { status: 'error' };
 
+/** Statuses where the MoonPay customer is Active and setup would run next. */
+const SETUP_NEXT_AUTORAMP_STATUSES: ReadonlySet<
+  VbaOnboardingSnapshot['autorampStatus']
+> = new Set(['needs_wallet_registration', 'needs_source_currency']);
+
+/**
+ * Whether account setup is the next step and would end on the unavailable
+ * screen. A failed check returns false, because account details checks again.
+ */
+const isAccountSetupUnavailable = async (
+  walletAddress: string,
+  snapshot: VbaOnboardingSnapshot,
+  source: string,
+): Promise<boolean> => {
+  if (
+    !SETUP_NEXT_AUTORAMP_STATUSES.has(snapshot.autorampStatus) ||
+    getVbaKycStatusOverride() !== null
+  ) {
+    return false;
+  }
+  try {
+    const market = selectVbaMarket(ReduxService.store.getState());
+    return market
+      ? await isMusdSetupUnavailable(walletAddress, market.currency)
+      : false;
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'useOpenVbaOnboarding',
+        data: { source, step: 'isAccountSetupUnavailable' },
+      },
+    });
+    return false;
+  }
+};
+
 /**
  * Resumes a persisted KYC session, hydrates VBA onboarding facts, and picks
  * the next destination. Does not navigate, sign, or create an autoramp. A
  * missing wallet, a failed session resume, or a thrown hydrate returns
- * `{ status: 'error' }`.
+ * `{ status: 'error' }`. A verified customer who is not offered mUSD goes
+ * straight to the unavailable screen instead of Identity verified.
  *
  * @param source - Caller/entry point for error telemetry.
  */
@@ -543,6 +586,16 @@ export const resolveVbaOnboarding = async (
           walletAddress,
         ),
       );
+    if (
+      funnelDestination === 'identityVerified' &&
+      (await isAccountSetupUnavailable(walletAddress, snapshot, source))
+    ) {
+      return {
+        status: 'ready',
+        destinationId: ACCOUNT_CREATE_ERROR_DESTINATION.unavailable,
+        snapshot,
+      };
+    }
     return {
       status: 'ready',
       destinationId: hasExistingAccount ? 'complete' : funnelDestination,
