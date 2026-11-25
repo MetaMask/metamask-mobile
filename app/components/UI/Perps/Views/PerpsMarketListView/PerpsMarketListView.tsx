@@ -71,6 +71,7 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { orderPerpsProviderLogoIds } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
@@ -159,9 +160,11 @@ const PerpsMarketListView = ({
   // of the count mirror the venue filter selection — one venue selected
   // shows its mark, all venues show both overlapped — and the count row is
   // tappable only while the exchange filter is available (more than one
-  // venue). Flag off leaves the plain count, exactly as before.
+  // venue). Flag off leaves the plain count, exactly as before. The marks
+  // are re-ordered to the canonical stack (Hyperliquid first, Lighter on
+  // top) so a saved selection does not flip the overlap versus first load.
   const marketCountLogoIds = exchangeFilterState?.isVisible
-    ? exchangeFilterState.selectedProviderIds
+    ? orderPerpsProviderLogoIds(exchangeFilterState.selectedProviderIds)
     : undefined;
 
   const { searchQuery, setSearchQuery } = searchState;

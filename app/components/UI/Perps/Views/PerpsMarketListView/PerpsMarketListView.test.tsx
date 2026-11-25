@@ -54,12 +54,17 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-// TAT-4511: the market-count exchange logos come from this hook. The unit
-// suite covers the flag-off path (empty list); the component-view suite
-// covers the flag-on paths with real selector state.
-jest.mock('../../hooks/usePerpsProviderLogoIds', () => ({
-  usePerpsProviderLogoIds: jest.fn(() => []),
-}));
+// TAT-4511: the market-count exchange logos come from this module. The unit
+// suite covers the flag-off path (empty list) with the hook mocked; the
+// pure ordering helper stays real so the wiring tests exercise it. The
+// component-view suite covers the flag-on paths with real selector state.
+jest.mock('../../hooks/usePerpsProviderLogoIds', () => {
+  const actual = jest.requireActual('../../hooks/usePerpsProviderLogoIds');
+  return {
+    ...actual,
+    usePerpsProviderLogoIds: jest.fn(() => []),
+  };
+});
 
 jest.mock('../../hooks/usePerpsOrderFees', () => ({
   usePerpsOrderFees: jest.fn(() => ({
@@ -3187,6 +3192,29 @@ describe('PerpsMarketListView', () => {
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary-provider-logos`,
         ),
       ).toHaveTextContent('lighter');
+    });
+
+    it('orders the count logos in the canonical stack order regardless of the saved order (TAT-4511)', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        ...buildHookReturn(),
+        exchangeFilterState: {
+          isVisible: true,
+          // A saved both-venue selection keeps the sheet's display order
+          // (Lighter first); the marks must still stack Hyperliquid first
+          // with Lighter on top, matching Perps Home.
+          selectedProviderIds: ['lighter', 'hyperliquid'],
+          onSave: jest.fn(),
+          availableProviderIds: ['hyperliquid', 'lighter'],
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-provider-logos`,
+        ),
+      ).toHaveTextContent('hyperliquid,lighter');
     });
   });
 
