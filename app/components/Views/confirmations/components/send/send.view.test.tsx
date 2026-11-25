@@ -48,8 +48,8 @@ import {
   getNftRowTestId,
   getRecipientAvatarTestId,
   getRecipientRowTestId,
-  RedesignedSendViewSelectorsIDs,
-} from './RedesignedSendView.testIds';
+  SendViewSelectorsIDs,
+} from './SendView.testIds';
 import { Send } from './send';
 import { SendAlertModalSelectorIDs } from './send-alert-modal/send-alert-modal.testIds';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
@@ -306,9 +306,7 @@ describeForPlatforms('Send', () => {
           { screen: Routes.SEND.AMOUNT, params: { asset: erc721Asset } },
         );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByText('1'));
 
@@ -319,9 +317,7 @@ describeForPlatforms('Send', () => {
       fireEvent.press(continueButton);
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
+        await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).toBeOnTheScreen();
     });
 
@@ -378,9 +374,7 @@ describeForPlatforms('Send', () => {
       fireEvent.press(nftRow);
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
+        await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).toBeOnTheScreen();
     });
   });
@@ -423,24 +417,23 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const addressInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(addressInput, VALID_EVM_RECIPIENT);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -466,18 +459,17 @@ describeForPlatforms('Send', () => {
           { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
         );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
         await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
           {},
           { timeout: 5000 },
         ),
@@ -487,13 +479,13 @@ describeForPlatforms('Send', () => {
 
       expect(
         await findByTestId(
-          RedesignedSendViewSelectorsIDs.SEND_AMOUNT,
+          SendViewSelectorsIDs.SEND_AMOUNT,
           {},
           { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
+        queryByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(SEND_NAVBAR_BACK_BUTTON_TEST_ID));
@@ -506,10 +498,10 @@ describeForPlatforms('Send', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+        queryByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
+        queryByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).not.toBeOnTheScreen();
     });
 
@@ -548,22 +540,20 @@ describeForPlatforms('Send', () => {
           },
         );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByText('5'));
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const recipientInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(recipientInput, VALID_EVM_RECIPIENT);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -613,24 +603,20 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: EVM_USDC_ASSET } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_50),
-      );
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_50));
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       const recipientInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(recipientInput, VALID_EVM_RECIPIENT);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -668,16 +654,17 @@ describeForPlatforms('Send', () => {
         },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       fireEvent.press(getByRole('button', { name: 'Max' }));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+      );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
         await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
           {},
           { timeout: 5000 },
         ),
@@ -702,14 +689,14 @@ describeForPlatforms('Send', () => {
       );
 
       const addressInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(addressInput, 'notanaddress');
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -770,14 +757,14 @@ describeForPlatforms('Send', () => {
       );
 
       const addressInput = await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
         {},
         { timeout: 5000 },
       );
       fireEvent.changeText(addressInput, TOKEN_CONTRACT_ADDRESS);
 
       const reviewButton = await findByTestId(
-        RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        SendViewSelectorsIDs.REVIEW_BUTTON,
         {},
         { timeout: 5000 },
       );
@@ -830,9 +817,7 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: tinyBalanceAsset } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       // Press digit '1' — enters 1 ETH, far exceeding 1 wei balance
       fireEvent.press(getByText('1'));
@@ -877,9 +862,7 @@ describeForPlatforms('Send', () => {
         { screen: Routes.SEND.AMOUNT, params: { asset: erc1155Asset } },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
       // NFT name is shown in the amount header
       expect(getByText('Magic Sword')).toBeOnTheScreen();
@@ -953,19 +936,16 @@ describeForPlatforms('Send', () => {
         },
       );
 
-      expect(
-        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-      ).toBeOnTheScreen();
+      expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+      await waitFor(() =>
+        expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
       );
       fireEvent.press(getByRole('button', { name: 'Continue' }));
 
       expect(
-        await findByTestId(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        ),
+        await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
       ).toBeOnTheScreen();
 
       const avatarElements: ReturnType<typeof getByTestId>[] = [];
@@ -1134,30 +1114,30 @@ describeForPlatforms('Send', () => {
           activeStore = store;
 
           expect(
-            getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+            getByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
           ).toHaveTextContent('0');
 
           fireEvent.press(
-            getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+            getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
           );
 
           await waitFor(() => {
             expect(
-              getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+              getByTestId(SendViewSelectorsIDs.SEND_AMOUNT),
             ).toHaveTextContent('1');
           });
 
           fireEvent.press(getByRole('button', { name: 'Continue' }));
 
           const recipientInput = await findByTestId(
-            RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+            SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
             {},
             { timeout: 5000 },
           );
           fireEvent.changeText(recipientInput, MAX_NATIVE_SEND_RECIPIENT);
 
           const reviewButton = await findByTestId(
-            RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+            SendViewSelectorsIDs.REVIEW_BUTTON,
             {},
             { timeout: 5000 },
           );
@@ -1297,9 +1277,9 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
 
       await waitFor(() => {
-        expect(
-          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
-        ).toHaveTextContent('$20.00');
+        expect(getByTestId(SendViewSelectorsIDs.FIAT_TOGGLE)).toHaveTextContent(
+          '$20.00',
+        );
       });
     });
 
@@ -1315,9 +1295,9 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
 
       await waitFor(() => {
-        expect(
-          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
-        ).toHaveTextContent('$20.00');
+        expect(getByTestId(SendViewSelectorsIDs.FIAT_TOGGLE)).toHaveTextContent(
+          '$20.00',
+        );
       });
     });
 
@@ -1332,9 +1312,9 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
 
       await waitFor(() => {
-        expect(
-          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
-        ).toHaveTextContent('$4,000.00');
+        expect(getByTestId(SendViewSelectorsIDs.FIAT_TOGGLE)).toHaveTextContent(
+          '$4,000.00',
+        );
       });
     });
   });

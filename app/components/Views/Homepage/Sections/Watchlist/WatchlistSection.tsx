@@ -152,6 +152,8 @@ const WatchlistSection = forwardRef<
     sectionId: HomeSectionNames.WATCHLIST,
     contentReady: !isLoading,
     isEmpty,
+    demandStarted: isWatchlistEnabled,
+    cacheState: isLoading ? 'cold' : 'warm',
     isLoading,
     enabled: isWatchlistEnabled,
   });

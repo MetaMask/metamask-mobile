@@ -71,6 +71,7 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { orderPerpsProviderLogoIds } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
@@ -155,13 +156,16 @@ const PerpsMarketListView = ({
     showZeroVolume: __DEV__,
   });
 
-  const count = exchangeFilterState?.selectedProviderIds.length ?? 1;
-  const exchangeFilterLabel = strings(
-    count > 1
-      ? 'perps.exchange_filter.trigger_plural'
-      : 'perps.exchange_filter.trigger',
-    { count },
-  );
+  // TAT-4511: the market count is the exchange selector. The mark(s) left
+  // of the count mirror the venue filter selection — one venue selected
+  // shows its mark, all venues show both overlapped — and the count row is
+  // tappable only while the exchange filter is available (more than one
+  // venue). Flag off leaves the plain count, exactly as before. The marks
+  // are re-ordered to the canonical stack (Hyperliquid first, Lighter on
+  // top) so a saved selection does not flip the overlap versus first load.
+  const marketCountLogoIds = exchangeFilterState?.isVisible
+    ? orderPerpsProviderLogoIds(exchangeFilterState.selectedProviderIds)
+    : undefined;
 
   const { searchQuery, setSearchQuery } = searchState;
 
@@ -861,6 +865,7 @@ const PerpsMarketListView = ({
             marketTypeFilter={marketTypeFilter}
             onCategorySelect={handleCategorySelect}
             marketCount={visibleWatchlistMarkets.length}
+            providerIds={marketCountLogoIds}
             isWatchlistSelected={showFavoritesOnly}
             showCategoryRow={false}
             onExchangeFilterPress={
@@ -868,7 +873,6 @@ const PerpsMarketListView = ({
                 ? () => setIsExchangeFilterSheetVisible(true)
                 : undefined
             }
-            exchangeFilterLabel={exchangeFilterLabel}
             testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
           />
           <PerpsWatchlistMarkets
@@ -961,6 +965,7 @@ const PerpsMarketListView = ({
         marketTypeFilter={marketTypeFilter}
         onCategorySelect={handleCategorySelect}
         marketCount={filteredMarkets.length}
+        providerIds={marketCountLogoIds}
         isWatchlistSelected={showFavoritesOnly}
         showCategoryRow={false}
         onExchangeFilterPress={
@@ -968,7 +973,6 @@ const PerpsMarketListView = ({
             ? () => setIsExchangeFilterSheetVisible(true)
             : undefined
         }
-        exchangeFilterLabel={exchangeFilterLabel}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
       />
     );
@@ -1049,6 +1053,7 @@ const PerpsMarketListView = ({
               ? visibleWatchlistMarkets.length
               : filteredMarkets.length
           }
+          providerIds={marketCountLogoIds}
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
