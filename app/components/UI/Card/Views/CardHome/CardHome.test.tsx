@@ -64,6 +64,7 @@ jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: jest.fn(() => ({
     removeQueries: mockRemoveQueries,
+    invalidateQueries: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -403,6 +404,25 @@ jest.mock('./hooks/useCardEnableCard', () => ({
 
 jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => false,
+}));
+
+const mockUseCardRecentTransactions = jest.fn(
+  (_options?: { enabled?: boolean }) => ({
+    transactions: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
+);
+
+jest.mock('../../hooks/useCardRecentTransactions', () => ({
+  useCardRecentTransactions: (options?: { enabled?: boolean }) =>
+    mockUseCardRecentTransactions(options),
+}));
+
+let mockTransactionHistoryDestination: 'card' | 'money' | null = 'card';
+jest.mock('../../hooks/useCardTransactionHistoryDestination', () => ({
+  useCardTransactionHistoryDestination: () => mockTransactionHistoryDestination,
 }));
 
 jest.mock('../../hooks/useCreditBalance', () => ({
@@ -829,6 +849,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Authentication required to resume spending on your card.',
       'card.password_bottomsheet.description_unfreeze':
         'Enter your wallet password to unfreeze your card.',
+      'card.card_home.segments.activity': 'Activity',
+      'card.card_home.segments.manage': 'Manage',
+      'card.card_home.recent_activity.see_all': 'See all',
+      'card.card_home.activity_empty_title': 'No transactions yet',
+      'card.card_home.activity_empty_description':
+        'Your card purchases will show here.',
       'card.card_home.manage_card_options.view_pin': 'View PIN',
       'card.card_home.manage_card_options.view_pin_description':
         'View your card PIN securely',
@@ -1321,8 +1347,8 @@ const CardHomeWithToast = () => (
 );
 
 // Helper: Render component with proper wrapper
-function render() {
-  return renderScreen(
+function render(options?: { segment?: 'activity' | 'manage' }) {
+  const view = renderScreen(
     withCardSDK(CardHomeWithToast),
     {
       name: Routes.CARD.HOME,
@@ -1335,6 +1361,27 @@ function render() {
       },
     },
   );
+  if (options?.segment) {
+    const segmentTestId =
+      options.segment === 'manage'
+        ? CardHomeSelectors.MANAGE_SEGMENT
+        : CardHomeSelectors.ACTIVITY_SEGMENT;
+    const expectedTestId =
+      options.segment === 'manage'
+        ? CardHomeSelectors.CHANGE_ASSET_BUTTON
+        : CardHomeSelectors.RECENT_ACTIVITY;
+    const segmentButton = screen.queryByTestId(segmentTestId);
+    if (segmentButton) {
+      fireEvent.press(segmentButton);
+      if (screen.queryByTestId(expectedTestId) == null) {
+        const control = screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS);
+        if (control) {
+          fireEvent(control, 'onChange', options.segment);
+        }
+      }
+    }
+  }
+  return view;
 }
 
 const authTransitionListeners = new Set<() => void>();
@@ -1389,6 +1436,13 @@ describe('CardHome Component', () => {
     mockIsProvisioningPollActive = false;
     mockNetworkTier = null;
     mockEnableCard.mockClear();
+    mockUseCardRecentTransactions.mockReturnValue({
+      transactions: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockTransactionHistoryDestination = 'card';
     mockRecheckProvisioning.mockClear();
     jest.clearAllMocks();
 
@@ -2770,6 +2824,41 @@ describe('CardHome Component', () => {
     expect(
       screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('when card history lives in Money activity', () => {
+    beforeEach(() => {
+      mockTransactionHistoryDestination = 'money';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+    });
+
+    it('hides the Activity and Manage tabs', () => {
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not fetch provider transactions', () => {
+      render();
+
+      expect(mockUseCardRecentTransactions).not.toHaveBeenCalledWith({
+        enabled: true,
+      });
+    });
+
+    it('keeps the transaction history row in the management list', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('shows the Immersve privacy policy and contact support before a card exists', () => {

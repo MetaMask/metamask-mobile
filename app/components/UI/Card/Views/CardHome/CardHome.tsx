@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -20,6 +21,8 @@ import {
   IconColor,
   IconSize,
   Spinner,
+  SegmentedControl,
+  FilterButton,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
@@ -65,6 +68,7 @@ import {
   CardProviderIds,
   type CardAction,
   type CardAlert,
+  type CardTransaction,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
@@ -121,6 +125,9 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
+import CardHomeRecentActivity from './components/CardHomeRecentActivity';
+import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
+import { cardQueries } from '../../queries';
 import CardHomeActionButtonRow, {
   getCardHomeActionVisibility,
 } from './components/CardHomeActionButtonRow';
@@ -159,6 +166,12 @@ interface CardHomeRouteParams {
   fromKycPending?: boolean;
 }
 
+/** Local tabs under the action button row (active and frozen states only). */
+enum CardHomeSegment {
+  Activity = 'activity',
+  Manage = 'manage',
+}
+
 const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
@@ -186,6 +199,18 @@ const CardHome = () => {
   const theme = useTheme();
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
+  const [activeHomeSegment, setActiveHomeSegment] = useState<CardHomeSegment>(
+    CardHomeSegment.Manage,
+  );
+  const handleRecentTransactionPress = useCallback(
+    (transaction: CardTransaction) => {
+      navigation.navigate(Routes.CARD.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
+        transaction,
+      });
+    },
+    [navigation],
+  );
 
   const isSwapEnabled = useIsSwapEnabledForPriorityToken(
     data?.primaryFundingAsset?.walletAddress,
@@ -429,6 +454,7 @@ const CardHome = () => {
   }, []);
 
   // --- Pull-to-refresh ---
+  const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -450,7 +476,14 @@ const CardHome = () => {
           return;
         }
       }
-      await refetch();
+      // Activity rows live in their own query. Invalidating only refetches
+      // the list while that segment is on screen.
+      await Promise.all([
+        refetch(),
+        queryClient.invalidateQueries({
+          queryKey: cardQueries.transactions.keys.all(),
+        }),
+      ]);
     } finally {
       setIsRefreshing(false);
     }
@@ -461,6 +494,7 @@ const CardHome = () => {
     recheckProvisioning,
     waitingState,
     isAuthenticated,
+    queryClient,
   ]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
@@ -806,6 +840,33 @@ const CardHome = () => {
       actions.isSensitiveDetailsLoading ||
       Boolean(actions.cardSensitiveDetails) ||
       Boolean(actions.cardDetailsImageUrl),
+  });
+
+  // Activity / Manage segments only in the active and frozen states of a
+  // fully set-up card whose history is the provider feed. Money-history users
+  // keep the management list with its history row, since the Activity panel
+  // previews provider transactions only.
+  const showHomeSegments =
+    transactionHistoryDestination === 'card' &&
+    !isLoading &&
+    isAuthenticated &&
+    (data?.card?.status === CardStatus.ACTIVE ||
+      data?.card?.status === CardStatus.FROZEN) &&
+    !hasSetupActions &&
+    !hasSetupAlerts &&
+    !hasAlertOnlyState &&
+    !isUkMigrationForced;
+  const showRecentActivity =
+    showHomeSegments && activeHomeSegment === CardHomeSegment.Activity;
+  const showManageOptions =
+    !showHomeSegments || activeHomeSegment === CardHomeSegment.Manage;
+  const {
+    transactions: recentTransactions,
+    isLoading: isRecentActivityLoading,
+    error: recentActivityError,
+    refetch: refetchRecentTransactions,
+  } = useCardRecentTransactions({
+    enabled: showRecentActivity && isFocused,
   });
 
   // Callers that open Card Home directly still leave when logged out.
@@ -1162,6 +1223,53 @@ const CardHome = () => {
               />
             )}
 
+            {showHomeSegments && (
+              <Box twClassName="px-4 mt-4 mb-4">
+                <SegmentedControl
+                  value={activeHomeSegment}
+                  onChange={(value) =>
+                    setActiveHomeSegment(value as CardHomeSegment)
+                  }
+                  isFullWidth
+                  testID={CardHomeSelectors.HOME_SEGMENTS}
+                >
+                  <FilterButton
+                    value={CardHomeSegment.Manage}
+                    testID={CardHomeSelectors.MANAGE_SEGMENT}
+                  >
+                    {strings('card.card_home.segments.manage')}
+                  </FilterButton>
+                  <FilterButton
+                    value={CardHomeSegment.Activity}
+                    testID={CardHomeSelectors.ACTIVITY_SEGMENT}
+                  >
+                    {strings('card.card_home.segments.activity')}
+                  </FilterButton>
+                </SegmentedControl>
+              </Box>
+            )}
+
+            {showRecentActivity && (
+              <CardHomeRecentActivity
+                transactions={recentTransactions}
+                isLoading={isRecentActivityLoading}
+                hasError={Boolean(recentActivityError)}
+                onRetry={() => {
+                  void refetchRecentTransactions();
+                }}
+                onSeeAll={
+                  transactionHistoryDestination
+                    ? () =>
+                        actions.transactionHistoryAction(
+                          transactionHistoryDestination,
+                        )
+                    : undefined
+                }
+                onTransactionPress={handleRecentTransactionPress}
+                privacyMode={privacyMode}
+              />
+            )}
+
             {isAuthenticated &&
               credit.hasCredit &&
               !hasSetupActions &&
@@ -1210,71 +1318,69 @@ const CardHome = () => {
               </>
             )}
 
-            {isAuthenticated && !isBlocked && !isUkMigrationForced && (
-              <ManageCardOptions
-                card={data?.card}
-                account={data?.account}
-                capabilities={capabilities}
-                isSpendingLimitActive={isSpendingLimitActive}
-                isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-                isAuthenticated={isAuthenticated}
-                isLoading={isLoading}
-                hasSetupActions={hasSetupActions}
-                hasAlertOnlyState={hasAlertOnlyState}
-                hasSetupAlerts={hasSetupAlerts}
-                userLocation={userLocation}
-                isFrozen={isFrozen}
-                isFreezeLoading={
-                  actions.freeze.isPending || actions.unfreeze.isPending
-                }
-                isPinLoading={actions.isPinLoading}
-                cardDetailsVisible={
-                  (!!actions.cardDetailsImageUrl ||
-                    !!actions.cardSensitiveDetails) &&
-                  isAuthenticated
-                }
-                onViewCardDetails={actions.viewCardDetailsAction}
-                onViewPin={actions.viewPinAction}
-                onSetPin={actions.setPinAction}
-                onToggleFreeze={actions.handleToggleFreeze}
-                onManageSpendingLimit={actions.manageSpendingLimitAction}
-                onContactDetails={actions.contactDetailsAction}
-                showDigitalWalletInstructions={walletEntry === 'instructions'}
-                onDigitalWalletInstructions={
-                  actions.digitalWalletInstructionsAction
-                }
-                showHowToUseApplePay={isCardInWallet && !canAddToWallet}
-                onHowToUseApplePay={actions.howToUseApplePayAction}
-                showUnlinkMoneyAccount={canUnlinkMoneyAccount}
-                onUnlinkMoneyAccount={() =>
-                  actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
-                }
-                showRevokeAllowance={canRevokeAllowance}
-                onRevokeAllowance={actions.revokeAllowanceAction}
-                fundingAccountName={fundingAccountName}
-                onOrderMetalCard={actions.orderMetalCardAction}
-                onChangeAsset={actions.changeAssetAction}
-                hasPriorityTokenBalance={hasPriorityTokenBalance}
-                hideQuickActionRows={
-                  actionVisibility.details ||
-                  actionVisibility.pin ||
-                  actionVisibility.freeze
-                }
-                onCashback={actions.cashbackAction}
-                onTravel={actions.navigateToTravelPage}
-                onTransactionHistory={
-                  transactionHistoryDestination
-                    ? () =>
-                        actions.transactionHistoryAction(
-                          transactionHistoryDestination,
-                        )
-                    : undefined
-                }
-                showTransactionHistoryDuringSetup={
-                  isImmersve && hasSetupActions
-                }
-              />
-            )}
+            {isAuthenticated &&
+              !isBlocked &&
+              !isUkMigrationForced &&
+              showManageOptions && (
+                <ManageCardOptions
+                  card={data?.card}
+                  account={data?.account}
+                  capabilities={capabilities}
+                  isSpendingLimitActive={isSpendingLimitActive}
+                  isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+                  isAuthenticated={isAuthenticated}
+                  isLoading={isLoading}
+                  hasSetupActions={hasSetupActions}
+                  hasAlertOnlyState={hasAlertOnlyState}
+                  hasSetupAlerts={hasSetupAlerts}
+                  userLocation={userLocation}
+                  isFrozen={isFrozen}
+                  isFreezeLoading={isFreezeLoading}
+                  isPinLoading={actions.isPinLoading}
+                  cardDetailsVisible={isCardDetailsVisible}
+                  onViewCardDetails={actions.viewCardDetailsAction}
+                  onViewPin={actions.viewPinAction}
+                  onSetPin={actions.setPinAction}
+                  onToggleFreeze={actions.handleToggleFreeze}
+                  onManageSpendingLimit={actions.manageSpendingLimitAction}
+                  onContactDetails={actions.contactDetailsAction}
+                  showDigitalWalletInstructions={walletEntry === 'instructions'}
+                  onDigitalWalletInstructions={
+                    actions.digitalWalletInstructionsAction
+                  }
+                  showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+                  onHowToUseApplePay={actions.howToUseApplePayAction}
+                  showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+                  onUnlinkMoneyAccount={() =>
+                    actions.unlinkMoneyAccountAction(
+                      fallbackFundingSourceSymbol,
+                    )
+                  }
+                  showRevokeAllowance={canRevokeAllowance}
+                  onRevokeAllowance={actions.revokeAllowanceAction}
+                  fundingAccountName={fundingAccountName}
+                  onOrderMetalCard={actions.orderMetalCardAction}
+                  onChangeAsset={actions.changeAssetAction}
+                  hasPriorityTokenBalance={hasPriorityTokenBalance}
+                  hiddenQuickActionRows={actionVisibility}
+                  onCashback={actions.cashbackAction}
+                  onTravel={actions.navigateToTravelPage}
+                  onTransactionHistory={
+                    transactionHistoryDestination
+                      ? () =>
+                          actions.transactionHistoryAction(
+                            transactionHistoryDestination,
+                          )
+                      : undefined
+                  }
+                  showTransactionHistoryDuringSetup={
+                    isImmersve && hasSetupActions
+                  }
+                  showTransactionHistoryRow={
+                    transactionHistoryDestination === 'money'
+                  }
+                />
+              )}
 
             {isAuthenticated && (
               <CardHomeFooter
