@@ -1206,6 +1206,9 @@ jobs:
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
+          # Jest ran from the pinned /opt/metamask-mobile mount. Point coverage paths back at the
+          # checkout so the merge, Sonar and lcov/HTML steps find the files on disk.
+          sed -i "s#/opt/metamask-mobile/#${GITHUB_WORKSPACE}/#g" ./tests/coverage/coverage-final.json
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
@@ -1523,6 +1526,9 @@ jobs:
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
+          # Jest ran from the pinned /opt/metamask-mobile mount. Point coverage paths back at the
+          # checkout so the merge, Sonar and lcov/HTML steps find the files on disk.
+          sed -i "s#/opt/metamask-mobile/#${GITHUB_WORKSPACE}/#g" ./tests/coverage/coverage-final.json
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
@@ -1707,6 +1713,9 @@ jobs:
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
+          # Jest ran from the pinned /opt/metamask-mobile mount. Point coverage paths back at the
+          # checkout so the merge, Sonar and lcov/HTML steps find the files on disk.
+          sed -i "s#/opt/metamask-mobile/#${GITHUB_WORKSPACE}/#g" ./tests/coverage/coverage-final.json
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-integration-${{ matrix.shard }}.json
           cp tests/results/integration-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
