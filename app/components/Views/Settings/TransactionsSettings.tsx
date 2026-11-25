@@ -1,9 +1,10 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Engine from '../../../core/Engine';
+import { setShowHexData } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import {
   selectSmartTransactionsOptInStatus,
@@ -40,6 +41,7 @@ import BatchAccountBalanceSettings from './BatchAccountBalanceSettings';
 function TransactionsSettings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -83,8 +85,7 @@ function TransactionsSettings() {
   }
 
   function toggleShowHexData(value: boolean) {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setFeatureFlag('showHexData', value);
+    dispatch(setShowHexData(value));
   }
 
   function openLinkAboutStx() {

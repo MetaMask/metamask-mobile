@@ -587,11 +587,6 @@ const SettingsFlow = () => {
         name="SecuritySettings"
         component={SecuritySettings}
       />
-      <NativeStack.Screen name="PrivacySettings" component={PrivacySettings} />
-      <NativeStack.Screen
-        name="TransactionsSettings"
-        component={TransactionsSettings}
-      />
       <NativeStack.Screen name={Routes.MFA.SETTINGS} component={MfaSettings} />
       <NativeStack.Screen name={Routes.MFA.PASSKEYS} component={MfaPasskeys} />
       <NativeStack.Screen

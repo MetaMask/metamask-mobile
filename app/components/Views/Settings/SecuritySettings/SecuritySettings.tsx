@@ -25,10 +25,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
-import { RootState } from '../../../../reducers';
-import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
@@ -46,22 +42,8 @@ const Settings: React.FC = () => {
   const isBasicFunctionalityConsolidationEnabled = useSelector(
     selectIsBasicFunctionalityConsolidationEnabled,
   );
-  const {
-    disableNotifications,
-    loading: disableNotificationsLoading,
-    error: disableNotificationsError,
-  } = useDisableNotifications();
-
-  const isNotificationEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
-
   const seedphraseBackedUp = useSelector(
     (state: RootState) => state.user.seedphraseBackedUp,
-  );
-
-  const isBasicFunctionalityEnabled = useSelector(
-    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
 
   /**
@@ -87,19 +69,6 @@ const Settings: React.FC = () => {
   useEffect(() => {
     handleHintText();
   }, [handleHintText]);
-
-  useEffect(() => {
-    const triggerCascadeBasicFunctionalityDisable = async () => {
-      if (!isBasicFunctionalityEnabled) {
-        isNotificationEnabled && (await disableNotifications());
-      }
-    };
-    triggerCascadeBasicFunctionalityDisable();
-  }, [
-    disableNotifications,
-    isBasicFunctionalityEnabled,
-    isNotificationEnabled,
-  ]);
 
   const toggleHint = () => {
     setShowHint(!showHint);
@@ -131,9 +100,6 @@ const Settings: React.FC = () => {
       onChangeText={handleChangeText}
     />
   );
-
-  const modalLoading = disableNotificationsLoading;
-  const modalError = disableNotificationsError;
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
@@ -169,11 +135,6 @@ const Settings: React.FC = () => {
           {renderHint()}
         </View>
       </ScrollView>
-      <SwitchLoadingModal
-        loading={modalLoading}
-        loadingText=""
-        error={modalError}
-      />
     </SafeAreaView>
   );
 };

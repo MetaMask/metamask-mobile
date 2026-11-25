@@ -35,6 +35,9 @@ import Routes from '../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import TopTradersSection from './SecuritySettings/Sections/TopTradersSection';
 import { RootState } from '../../../reducers';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import SwitchLoadingModal from '../../UI/Notification/SwitchLoadingModal';
+import { useDisableNotifications } from '../../../util/notifications/hooks/useNotifications';
 import NetworkDetailsCheckSettings from './NetworkDetailsCheckSettings';
 import DisplayNFTMediaSettings from './DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from './AutoDetectNFTSettings';
@@ -73,6 +76,14 @@ function PrivacySettings() {
   const isSocialLoginBasicFunctionalityLocked = useSelector(
     selectIsSocialLoginBasicFunctionalityLocked,
   );
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const scrollViewRef = useRef<ScrollView>(null);
   const metaMetricsSectionRef = useRef<View>(null);
   const dataCollectionSectionRef = useRef<View>(null);
@@ -92,6 +103,19 @@ function PrivacySettings() {
   useEffect(() => {
     setAnalyticsEnabled(isEnabled());
   }, [setAnalyticsEnabled, isEnabled]);
+
+  useEffect(() => {
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+  ]);
 
   const scrollToSection = useCallback(() => {
     const scrollHost = scrollViewRef.current?.getNativeScrollRef();
@@ -265,6 +289,11 @@ function PrivacySettings() {
           {renderHistoryModal()}
         </Box>
       </ScrollView>
+      <SwitchLoadingModal
+        loading={disableNotificationsLoading}
+        loadingText=""
+        error={disableNotificationsError}
+      />
     </SafeAreaView>
   );
 }
