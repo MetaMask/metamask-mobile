@@ -8971,19 +8971,7 @@
     "contact_support": "サポートへのお問い合わせ"
   },
   "whats_new": {
-    "title": "新機能",
-    "remove_gns_new_ui_update": {
-      "title": "UIの最新アップデート",
-      "introduction": "アプリのエクスペリエンス向上のため、アップデートを行いました。",
-      "descriptions": {
-        "description_1": "ネットワークのドロップダウンをアセットに移動",
-        "description_2": "スワップとブリッジが1つのシンプルなフローで完結",
-        "description_3": "送金エクスペリエンスを効率化",
-        "description_4": "アカウントの表示を刷新"
-      },
-      "more_information": "これで、ネットワークを気にすることなく、トークンや取引に集中できるようになりました。",
-      "got_it": "了解"
-    }
+    "title": "新機能"
   },
   "invalid_network": {
     "title": "カスタムネットワーク\n{{network}}\n のチェーンIDの再入力が必要です。",

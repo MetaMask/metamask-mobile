@@ -8971,19 +8971,7 @@
     "contact_support": "Destek ile iletişime geçin"
   },
   "whats_new": {
-    "title": "Yenilikler",
-    "remove_gns_new_ui_update": {
-      "title": "Yeni kullanıcı arayüzü güncellemesi",
-      "introduction": "Uygulama deneyimini iyileştirmek için güncellemeler yaptık.",
-      "descriptions": {
-        "description_1": "Ağ açılır menüsü varlıklar sekmenize taşındı",
-        "description_2": "Takas ve Köprü tek bir basit adımda",
-        "description_3": "Gönder deneyimi kolaylaştırıldı",
-        "description_4": "Yepyeni bir hesap görünümü"
-      },
-      "more_information": "Artık arkasındaki ağlara değil, token'larınıza ve faaliyetlerinize odaklanabilirsiniz.",
-      "got_it": "Anladım"
-    }
+    "title": "Yenilikler"
   },
   "invalid_network": {
     "title": "Özel ağı için zincir kimliği \n {{network}} \n yeniden girilmelidir.",

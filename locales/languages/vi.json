@@ -8971,19 +8971,7 @@
     "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
   "whats_new": {
-    "title": "Xem tính năng mới",
-    "remove_gns_new_ui_update": {
-      "title": "Cập nhật giao diện người dùng mới",
-      "introduction": "Chúng tôi đã cập nhật để cải thiện trải nghiệm ứng dụng.",
-      "descriptions": {
-        "description_1": "Trình đơn chọn mạng đã chuyển vào phần tài sản",
-        "description_2": "Hoán đổi và Cầu nối trong một quy trình đơn giản",
-        "description_3": "Trải nghiệm gửi được tối ưu hóa",
-        "description_4": "Giao diện tài khoản mới mẻ"
-      },
-      "more_information": "Giờ đây bạn có thể tập trung vào token và hoạt động của mình, thay vì các mạng đằng sau.",
-      "got_it": "Đã hiểu"
-    }
+    "title": "Xem tính năng mới"
   },
   "invalid_network": {
     "title": "ID chuỗi của mạng tùy chỉnh \n {{network}} \n cần được nhập lại.",

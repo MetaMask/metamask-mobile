@@ -14547,11 +14547,6 @@
       "count": 2
     }
   },
-  "app/components/UI/WhatsNewModal/WhatsNewModal.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/shared/BaseControlBar/BaseControlBar.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

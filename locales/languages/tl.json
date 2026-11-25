@@ -8971,19 +8971,7 @@
     "contact_support": "Kontakin ang suporta"
   },
   "whats_new": {
-    "title": "Ano'ng bago",
-    "remove_gns_new_ui_update": {
-      "title": "Bagong update ng UI",
-      "introduction": "Gumawa kami ng mga update upang pagbutihin ang karanasan sa app.",
-      "descriptions": {
-        "description_1": "Inilipat ang dropdown ng network sa mga asset mo",
-        "description_2": "I-swap at i-bridge sa isang simpleng paraan",
-        "description_3": "Mas maayos na karanasan sa pagpapadala",
-        "description_4": "Isang bagong anyo ng account"
-      },
-      "more_information": "Ngayon, maaari ka nang magpokus sa iyong mga token at aktibidad, hindi sa mga network sa likod nito.",
-      "got_it": "Nakuha ko"
-    }
+    "title": "Ano'ng bago"
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit\nang chain ID para sa custom network \n {{network}}.",
