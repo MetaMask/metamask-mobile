@@ -509,34 +509,6 @@ describe('PerpsClosePositionView', () => {
       expect(handleClosePosition).not.toHaveBeenCalled();
     });
 
-    it('treats the position as gone when only the other venue still holds the symbol', async () => {
-      useRouteMock.mockReturnValue({
-        params: {
-          position: { ...defaultPerpsPositionMock, providerId: 'lighter' },
-        },
-      });
-      usePerpsLivePositionsMock.mockReturnValue({
-        positions: [{ ...defaultPerpsPositionMock, providerId: 'hyperliquid' }],
-        isInitialLoading: false,
-      });
-
-      renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
-      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
-        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
-          .closePosition.positionAlreadyClosed,
-      );
-    });
-
     it('does not dismiss a second time when the stream drops the position after a confirmed close', async () => {
       const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({

@@ -14,7 +14,7 @@ describe('handleShowNotification', () => {
     jest.clearAllMocks();
   });
 
-  it('call watchSubmittedTransaction for redesigned transaction types', () => {
+  it('call watchSubmittedTransaction for confirmation transaction types', () => {
     const transactionMeta = {
       type: TransactionType.stakingDeposit,
       id: '123',
@@ -33,7 +33,7 @@ describe('handleShowNotification', () => {
     );
   });
 
-  it('not call watchSubmittedTransaction for non-redesigned transaction types', () => {
+  it('not call watchSubmittedTransaction for unsupported transaction types', () => {
     const transactionMeta = {
       type: TransactionType.cancel,
       id: '123',
@@ -63,7 +63,7 @@ describe('handleShowNotification', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('does not call watchSubmittedTransaction for perpsWithdraw (not in REDESIGNED_TRANSACTION_TYPES)', () => {
+  it('does not call watchSubmittedTransaction for perpsWithdraw (not in CONFIRMATION_TRANSACTION_TYPES)', () => {
     const transactionMeta = {
       type: TransactionType.perpsWithdraw,
       id: '123',
