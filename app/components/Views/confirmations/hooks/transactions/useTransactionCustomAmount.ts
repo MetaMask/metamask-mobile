@@ -8,6 +8,7 @@ import { RootState } from '../../../../../reducers';
 import { isSubsidizedRoute } from '../../utils/relayFixedSpread';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
+import Logger from '../../../../../util/Logger';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import {
   TransactionMeta,
@@ -563,10 +564,14 @@ export function useTransactionCustomAmount({
           tokenFiatRate,
           skipFiatRateConversion,
         );
-        void updateTransactionPayAmount(clampedAmountHuman).catch(() => {
-          // Fire-and-forget: the clamped amount is already set locally.
-          // Silently continue if the background update fails.
-        });
+        void updateTransactionPayAmount(clampedAmountHuman).catch(
+          (error: unknown) => {
+            Logger.error(
+              error as Error,
+              'Failed to update transaction pay amount with clamped value',
+            );
+          },
+        );
       }
       pendingClampRef.current = false;
     }
