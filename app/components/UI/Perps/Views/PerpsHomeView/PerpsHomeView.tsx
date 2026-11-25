@@ -169,6 +169,7 @@ import PerpsRecentlyAddedSection, {
   RECENTLY_ADDED_SOURCE_SECTION,
 } from '../../components/PerpsRecentlyAddedSection';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import Logger from '../../../../../util/Logger';
 import {
   isPerpsTopMoversSectionVisible,
   usePerpsTopMovers,
@@ -432,6 +433,14 @@ const PerpsHomeView = () => {
     () => setIsBalanceSheetVisible(false),
     [],
   );
+  useEffect(() => {
+    if (!isCrossMarginEnabled || isBalanceEmpty) {
+      return;
+    }
+    Logger.log(
+      '[TAT-4682] BUG_MARKER: interactive balance rendered without chevron affordance',
+    );
+  }, [isCrossMarginEnabled, isBalanceEmpty]);
   const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
 
   let availableBalance: React.ReactNode;
