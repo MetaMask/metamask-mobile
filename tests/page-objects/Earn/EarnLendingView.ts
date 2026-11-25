@@ -12,7 +12,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from '../../../app/components/UI/Earn
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositReceiveSection/DepositReceiveSection.testIds';
 import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ProgressStepper/ProgressStepper.testIds';
 import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
-import { TokenDetailsIds } from '../../../app/components/UI/TokenDetails/testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { type AppiumElement } from '../../framework';
 
 class EarnLendingView {
@@ -22,8 +22,8 @@ class EarnLendingView {
     );
   }
 
-  get tokenDetailsScrollView(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TokenDetailsIds.scrollView);
+  get transactionsScrollView(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
   get confirmationFooter(): Promise<AppiumElement> {
@@ -100,7 +100,7 @@ class EarnLendingView {
     // inside that footer, so swipe through the middle of the list instead.
     await Gestures.scrollIntoView(this.withdrawButton, {
       direction: 'up',
-      scrollableElement: await this.tokenDetailsScrollView,
+      scrollableElement: await this.transactionsScrollView,
       percent: 0.5,
       maxScrolls: 10,
     });
