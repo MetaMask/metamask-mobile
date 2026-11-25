@@ -2,7 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../framework/logger';
 import type { MetricsOutput } from '../../PerformanceTracker';
-import type { ProfilingSummary } from '../../types';
+import type { ApiCallsSummary, ProfilingSummary } from '../../types';
 
 const logger = createLogger({ name: 'PerformanceSentryPublisher' });
 
@@ -269,6 +269,175 @@ function getGithubJobUrl(): string | null {
   return `${serverUrl}/${repository}/actions/runs/${runId}`;
 }
 
+/**
+ * Resolves where to send a performance transaction, or `null` when upload is
+ * disabled, unconfigured, misconfigured or dropped by sampling.
+ */
+function resolveSentryTarget(): ParsedSentryDsn | null {
+  if (getEnvValue(ENV_SENTRY_ENABLED) === 'false') {
+    return null;
+  }
+
+  const dsn = getEnvValue(ENV_SENTRY_DSN);
+  if (!dsn) {
+    return null;
+  }
+
+  const parsedDsn = parseSentryDsn(dsn);
+  if (!parsedDsn) {
+    logger.warn('Invalid E2E_PERFORMANCE_SENTRY_DSN. Skipping upload.');
+    return null;
+  }
+
+  const sampleRate = parseSampleRate(getEnvValue(ENV_SENTRY_SAMPLE_RATE));
+  if (sampleRate === null) {
+    logger.warn(
+      'Invalid E2E_PERFORMANCE_SENTRY_SAMPLE_RATE. Expected value between 0 and 1.',
+    );
+    return null;
+  }
+
+  if (sampleRate < 1 && Math.random() > sampleRate) {
+    return null;
+  }
+
+  return parsedDsn;
+}
+
+function buildScenarioTags(
+  mirroredScenarioAttributes: MirroredScenarioAttributes,
+): Record<string, string> {
+  return {
+    source: 'playwright-e2e-performance',
+    project_name: mirroredScenarioAttributes.project_name,
+    provider: mirroredScenarioAttributes.provider,
+    team_id: mirroredScenarioAttributes.team_id,
+    team_name: mirroredScenarioAttributes.team_name,
+    test_team: mirroredScenarioAttributes.test_team,
+    test_status: mirroredScenarioAttributes.test_status,
+    retry: String(mirroredScenarioAttributes.retry),
+    worker_index: String(mirroredScenarioAttributes.worker_index),
+    build_variant: mirroredScenarioAttributes.build_variant,
+    ci_build_variant: mirroredScenarioAttributes.ci_build_variant,
+    tracking_mode: mirroredScenarioAttributes.tracking_mode,
+    ...(mirroredScenarioAttributes.release_version
+      ? { release_version: mirroredScenarioAttributes.release_version }
+      : {}),
+    ...(mirroredScenarioAttributes.github_ref
+      ? { github_ref: mirroredScenarioAttributes.github_ref }
+      : {}),
+    ...(mirroredScenarioAttributes.github_run_id
+      ? { github_run_id: mirroredScenarioAttributes.github_run_id }
+      : {}),
+  };
+}
+
+interface ScenarioIdentityOptions {
+  metrics: Pick<MetricsOutput, 'device' | 'team'>;
+  projectName: string;
+  testFilePath?: string;
+  status?: string;
+  retry?: number;
+  workerIndex?: number;
+  videoRecordingUrl?: string | null;
+}
+
+function buildMirroredScenarioAttributes(
+  options: ScenarioIdentityOptions,
+): MirroredScenarioAttributes {
+  const provider = options.metrics.device.provider || 'unknown';
+  const teamId = options.metrics.team?.teamId || 'unknown';
+  const teamName = options.metrics.team?.teamName || 'unknown';
+  const testStatus = options.status || 'unknown';
+  const retry = options.retry ?? 0;
+  const workerIndex = options.workerIndex ?? 0;
+  const buildVariant = normalizeBuildVariant(
+    getEnvValue(ENV_SENTRY_BUILD_VARIANT),
+  );
+  const ciBuildVariant = normalizeCiBuildVariant(
+    getEnvValue(ENV_SENTRY_CI_BUILD_VARIANT),
+  );
+  const releaseVersion = resolveReleaseVersion();
+  const githubRef = resolveGithubRefName();
+  const githubRunId = getEnvValue(ENV_GITHUB_RUN_ID) ?? null;
+  const testFilePath = options.testFilePath || '';
+
+  return {
+    project_name: options.projectName,
+    test_team: teamId,
+    provider,
+    team_id: teamId,
+    team_name: teamName,
+    test_status: testStatus,
+    retry,
+    worker_index: workerIndex,
+    build_variant: buildVariant,
+    ci_build_variant: ciBuildVariant,
+    release_version: releaseVersion,
+    github_ref: githubRef,
+    github_run_id: githubRunId,
+    tracking_mode: 'observe',
+    device_name: options.metrics.device.name,
+    device_os_version: options.metrics.device.osVersion,
+    test_file_path: testFilePath,
+    recording_url: options.videoRecordingUrl ?? null,
+    github_job_url: getGithubJobUrl(),
+    github_job_name: getEnvValue(ENV_GITHUB_JOB) ?? null,
+  };
+}
+
+interface SendTransactionOptions {
+  parsedDsn: ParsedSentryDsn;
+  eventId: string;
+  payload: Record<string, unknown>;
+  label: string;
+  successDetail: string;
+}
+
+async function sendTransaction({
+  parsedDsn,
+  eventId,
+  payload,
+  label,
+  successDetail,
+}: SendTransactionOptions): Promise<boolean> {
+  const envelopeHeaders = {
+    event_id: eventId,
+    dsn: parsedDsn.dsn,
+    sent_at: new Date().toISOString(),
+  };
+  const itemHeaders = {
+    type: 'transaction',
+  };
+
+  const envelope = `${JSON.stringify(envelopeHeaders)}\n${JSON.stringify(itemHeaders)}\n${JSON.stringify(payload)}`;
+
+  try {
+    const response = await fetch(parsedDsn.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-sentry-envelope',
+        'User-Agent': 'metamask-mobile-playwright-performance',
+      },
+      body: envelope,
+    });
+
+    if (!response.ok) {
+      logger.warn(
+        `Failed to upload ${label} to Sentry. Status: ${response.status}`,
+      );
+      return false;
+    }
+
+    logger.info(`Uploaded ${label} with ${successDetail} to Sentry.`);
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.warn(`Error uploading ${label} to Sentry: ${message}`);
+    return false;
+  }
+}
+
 export async function publishPerformanceScenarioToSentry(
   options: PublishPerformanceScenarioOptions,
 ): Promise<boolean> {
@@ -279,30 +448,8 @@ export async function publishPerformanceScenarioToSentry(
     return false;
   }
 
-  if (getEnvValue(ENV_SENTRY_ENABLED) === 'false') {
-    return false;
-  }
-
-  const dsn = getEnvValue(ENV_SENTRY_DSN);
-  if (!dsn) {
-    return false;
-  }
-
-  const parsedDsn = parseSentryDsn(dsn);
+  const parsedDsn = resolveSentryTarget();
   if (!parsedDsn) {
-    logger.warn('Invalid E2E_PERFORMANCE_SENTRY_DSN. Skipping upload.');
-    return false;
-  }
-
-  const sampleRate = parseSampleRate(getEnvValue(ENV_SENTRY_SAMPLE_RATE));
-  if (sampleRate === null) {
-    logger.warn(
-      'Invalid E2E_PERFORMANCE_SENTRY_SAMPLE_RATE. Expected value between 0 and 1.',
-    );
-    return false;
-  }
-
-  if (sampleRate < 1 && Math.random() > sampleRate) {
     return false;
   }
 
@@ -399,45 +546,7 @@ export async function publishPerformanceScenarioToSentry(
     };
   }
 
-  const provider = options.metrics.device.provider || 'unknown';
-  const teamId = options.metrics.team?.teamId || 'unknown';
-  const teamName = options.metrics.team?.teamName || 'unknown';
-  const testStatus = options.status || 'unknown';
-  const retry = options.retry ?? 0;
-  const workerIndex = options.workerIndex ?? 0;
-  const buildVariant = normalizeBuildVariant(
-    getEnvValue(ENV_SENTRY_BUILD_VARIANT),
-  );
-  const ciBuildVariant = normalizeCiBuildVariant(
-    getEnvValue(ENV_SENTRY_CI_BUILD_VARIANT),
-  );
-  const releaseVersion = resolveReleaseVersion();
-  const githubRef = resolveGithubRefName();
-  const githubRunId = getEnvValue(ENV_GITHUB_RUN_ID) ?? null;
-  const testFilePath = options.testFilePath || '';
-
-  const mirroredScenarioAttributes: MirroredScenarioAttributes = {
-    project_name: options.projectName,
-    test_team: teamId,
-    provider,
-    team_id: teamId,
-    team_name: teamName,
-    test_status: testStatus,
-    retry,
-    worker_index: workerIndex,
-    build_variant: buildVariant,
-    ci_build_variant: ciBuildVariant,
-    release_version: releaseVersion,
-    github_ref: githubRef,
-    github_run_id: githubRunId,
-    tracking_mode: 'observe',
-    device_name: options.metrics.device.name,
-    device_os_version: options.metrics.device.osVersion,
-    test_file_path: testFilePath,
-    recording_url: options.videoRecordingUrl ?? null,
-    github_job_url: getGithubJobUrl(),
-    github_job_name: getEnvValue(ENV_GITHUB_JOB) ?? null,
-  };
+  const mirroredScenarioAttributes = buildMirroredScenarioAttributes(options);
 
   let cursor = startTimestamp;
   const spans = timerMeasurements.map((timerMeasurement) => {
@@ -493,29 +602,7 @@ export async function publishPerformanceScenarioToSentry(
         os_version: options.metrics.device.osVersion,
       },
     },
-    tags: {
-      source: 'playwright-e2e-performance',
-      project_name: mirroredScenarioAttributes.project_name,
-      provider: mirroredScenarioAttributes.provider,
-      team_id: mirroredScenarioAttributes.team_id,
-      team_name: mirroredScenarioAttributes.team_name,
-      test_team: mirroredScenarioAttributes.test_team,
-      test_status: mirroredScenarioAttributes.test_status,
-      retry: String(mirroredScenarioAttributes.retry),
-      worker_index: String(mirroredScenarioAttributes.worker_index),
-      build_variant: mirroredScenarioAttributes.build_variant,
-      ci_build_variant: mirroredScenarioAttributes.ci_build_variant,
-      tracking_mode: mirroredScenarioAttributes.tracking_mode,
-      ...(mirroredScenarioAttributes.release_version
-        ? { release_version: mirroredScenarioAttributes.release_version }
-        : {}),
-      ...(mirroredScenarioAttributes.github_ref
-        ? { github_ref: mirroredScenarioAttributes.github_ref }
-        : {}),
-      ...(mirroredScenarioAttributes.github_run_id
-        ? { github_run_id: mirroredScenarioAttributes.github_run_id }
-        : {}),
-    },
+    tags: buildScenarioTags(mirroredScenarioAttributes),
     measurements,
     spans,
     extra: {
@@ -536,43 +623,190 @@ export async function publishPerformanceScenarioToSentry(
     },
   };
 
-  const envelopeHeaders = {
-    event_id: eventId,
-    dsn: parsedDsn.dsn,
-    sent_at: new Date().toISOString(),
-  };
-  const itemHeaders = {
-    type: 'transaction',
-  };
+  return sendTransaction({
+    parsedDsn,
+    eventId,
+    payload,
+    label: `scenario "${options.testTitle}"`,
+    successDetail: `${timerMeasurements.length} timer measurements`,
+  });
+}
 
-  const envelope = `${JSON.stringify(envelopeHeaders)}\n${JSON.stringify(itemHeaders)}\n${JSON.stringify(payload)}`;
+const NETWORK_SUMMARY_TRANSACTION_OP = 'e2e.performance.network_summary';
+const NETWORK_SPAN_OP = 'e2e.performance.network';
+const NETWORK_HOST_SPAN_OP = 'e2e.performance.network.host';
+const NETWORK_ENDPOINT_SPAN_OP = 'e2e.performance.network.endpoint';
+const MAX_HOST_SPANS = 20;
+const MAX_CAPTURE_ERROR_LENGTH = 200;
 
-  try {
-    const response = await fetch(parsedDsn.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-sentry-envelope',
-        'User-Agent': 'metamask-mobile-playwright-performance',
-      },
-      body: envelope,
-    });
+interface PublishApiCallsSummaryOptions extends ScenarioIdentityOptions {
+  summary: ApiCallsSummary;
+  /** Scenario duration is reused so the transaction lines up with the timing one. */
+  metrics: Pick<MetricsOutput, 'device' | 'team' | 'total'>;
+  testTitle: string;
+  tags: string[];
+  /** Unix epoch seconds. Anchors the transaction to the actual test end time. */
+  testEndTimestamp?: number;
+}
 
-    if (!response.ok) {
-      logger.warn(
-        `Failed to upload scenario "${options.testTitle}" to Sentry. Status: ${response.status}`,
-      );
-      return false;
-    }
-
-    logger.info(
-      `Uploaded scenario "${options.testTitle}" with ${timerMeasurements.length} timer measurements to Sentry.`,
-    );
-    return true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logger.warn(
-      `Error uploading scenario "${options.testTitle}" to Sentry: ${message}`,
-    );
+/**
+ * Publishes the per-scenario request-count summary as its own lightweight
+ * transaction (op `e2e.performance.network_summary`, same transaction name as
+ * the timing transaction) so existing timing queries, which filter on
+ * `e2e.performance.scenario`, are unaffected.
+ *
+ * Counts live on child spans as numeric attributes (chartable in Explore and
+ * dashboards, no per-transaction cap), and the four scenario totals are also
+ * sent as transaction measurements, well under Sentry's custom measurement cap.
+ * Span ops: `e2e.performance.network` (one per scenario: totals, or capture
+ * error), `e2e.performance.network.host` (one per top host) and
+ * `e2e.performance.network.endpoint` (one per top endpoint).
+ *
+ * A failed capture sends `api.capture.status = "error"` with no counts, so a
+ * missing capture is never charted as 0 requests.
+ */
+export async function publishApiCallsSummaryToSentry(
+  options: PublishApiCallsSummaryOptions,
+): Promise<boolean> {
+  const parsedDsn = resolveSentryTarget();
+  if (!parsedDsn) {
     return false;
   }
+
+  const { summary } = options;
+  const eventId = createHexId(32);
+  const traceId = createHexId(32);
+  const transactionSpanId = createHexId(16);
+
+  const totalDurationMs = Math.round(options.metrics.total * 1000);
+  const endTimestamp = options.testEndTimestamp ?? Date.now() / 1000;
+  const startTimestamp = endTimestamp - totalDurationMs / 1000;
+
+  const mirroredScenarioAttributes = buildMirroredScenarioAttributes(options);
+
+  const createSpan = (
+    op: string,
+    description: string,
+    data: Record<string, string | number | null>,
+  ) => ({
+    trace_id: traceId,
+    span_id: createHexId(16),
+    parent_span_id: transactionSpanId,
+    op,
+    description,
+    start_timestamp: startTimestamp,
+    timestamp: endTimestamp,
+    status: 'ok',
+    data: { ...data, ...mirroredScenarioAttributes },
+  });
+
+  const measurements: Record<string, SentryMeasurement> = {};
+  const spans = [];
+
+  if (summary.status === 'captured') {
+    const hosts = Object.entries(summary.byHost);
+
+    measurements.api_requests_total = { value: summary.total, unit: 'none' };
+    measurements.api_requests_unique = { value: summary.unique, unit: 'none' };
+    measurements.api_requests_duplicates = {
+      value: summary.duplicates,
+      unit: 'none',
+    };
+    measurements.api_requests_failed = { value: summary.failed, unit: 'none' };
+
+    spans.push(
+      createSpan(NETWORK_SPAN_OP, 'API requests', {
+        'api.capture.status': 'captured',
+        'api.requests.total': summary.total,
+        'api.requests.unique': summary.unique,
+        'api.requests.duplicates': summary.duplicates,
+        'api.requests.failed': summary.failed,
+        'api.hosts.count': hosts.length,
+      }),
+    );
+
+    for (const [host, count] of hosts.slice(0, MAX_HOST_SPANS)) {
+      spans.push(
+        createSpan(NETWORK_HOST_SPAN_OP, host, {
+          'api.host': host,
+          'api.host.requests': count,
+        }),
+      );
+    }
+
+    for (const endpoint of summary.topEndpoints) {
+      const endpointKey = `${endpoint.method} ${endpoint.url}`;
+      spans.push(
+        createSpan(NETWORK_ENDPOINT_SPAN_OP, endpointKey, {
+          'api.method': endpoint.method,
+          'api.endpoint': endpoint.url,
+          'api.endpoint.requests': endpoint.count,
+          'api.endpoint.failed': endpoint.failed,
+        }),
+      );
+    }
+  } else {
+    spans.push(
+      createSpan(NETWORK_SPAN_OP, 'API requests', {
+        'api.capture.status': 'error',
+        'api.capture.error': summary.error.slice(0, MAX_CAPTURE_ERROR_LENGTH),
+      }),
+    );
+  }
+
+  const environment =
+    getEnvValue(ENV_SENTRY_ENVIRONMENT) || DEFAULT_ENVIRONMENT;
+  const release = getEnvValue(ENV_SENTRY_RELEASE);
+
+  const payload = {
+    event_id: eventId,
+    type: 'transaction',
+    platform: 'javascript',
+    transaction: options.testTitle,
+    transaction_info: {
+      source: 'custom',
+    },
+    start_timestamp: startTimestamp,
+    timestamp: endTimestamp,
+    environment,
+    ...(release ? { release } : {}),
+    contexts: {
+      trace: {
+        trace_id: traceId,
+        span_id: transactionSpanId,
+        op: NETWORK_SUMMARY_TRANSACTION_OP,
+        status: normalizeSpanStatus(options.status),
+      },
+      device: {
+        name: options.metrics.device.name,
+        os_version: options.metrics.device.osVersion,
+      },
+    },
+    tags: {
+      ...buildScenarioTags(mirroredScenarioAttributes),
+      api_capture_status: summary.status,
+    },
+    measurements,
+    spans,
+    extra: {
+      test_file_path: mirroredScenarioAttributes.test_file_path,
+      recording_url: mirroredScenarioAttributes.recording_url,
+      github_job_url: mirroredScenarioAttributes.github_job_url,
+      github_job_name: mirroredScenarioAttributes.github_job_name,
+      test_tags: options.tags,
+      api_calls_summary: summary,
+      sentry_project_id: parsedDsn.projectId,
+    },
+  };
+
+  return sendTransaction({
+    parsedDsn,
+    eventId,
+    payload,
+    label: `API calls summary for scenario "${options.testTitle}"`,
+    successDetail:
+      summary.status === 'captured'
+        ? `${summary.total} requests`
+        : 'a capture error',
+  });
 }

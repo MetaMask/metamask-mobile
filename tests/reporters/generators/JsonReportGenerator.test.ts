@@ -348,6 +348,83 @@ describe('JsonReportGenerator', () => {
       expect(artifact.profilingData).toBeNull();
     });
 
+    describe('apiCallsSummary', () => {
+      const writeArtifact = (metric: Partial<MetricsEntry>) => {
+        generator.generate(
+          makeReportData({
+            metrics: [
+              makeMetricsEntry({ testName: 'Summary Scenario', ...metric }),
+            ],
+          }),
+          '/reports',
+        );
+        const write = mockWriteFileSync.mock.calls.find((c: unknown[]) =>
+          (c[0] as string).includes(`${path.sep}app-profiling${path.sep}`),
+        );
+        return JSON.parse(write[1] as string);
+      };
+
+      it('summarizes captured api calls', () => {
+        const artifact = writeArtifact({
+          apiCalls: [
+            {
+              method: 'GET',
+              url: 'https://api.example.com/v1/a?x=1',
+              status: 200,
+            },
+            {
+              method: 'GET',
+              url: 'https://api.example.com/v1/a?x=2',
+              status: 200,
+            },
+            { method: 'GET', url: 'https://other.example.com/b', status: 500 },
+          ],
+        });
+
+        expect(artifact.apiCallsSummary).toEqual({
+          status: 'captured',
+          total: 3,
+          unique: 2,
+          duplicates: 1,
+          failed: 1,
+          byHost: { 'api.example.com': 2, 'other.example.com': 1 },
+          topEndpoints: [
+            { method: 'GET', url: 'api.example.com/v1/a', count: 2, failed: 0 },
+            { method: 'GET', url: 'other.example.com/b', count: 1, failed: 1 },
+          ],
+        });
+        expect(artifact.apiCalls).toHaveLength(3);
+      });
+
+      it('writes zero requests as a captured summary', () => {
+        const artifact = writeArtifact({ apiCalls: [] });
+
+        expect(artifact.apiCallsSummary).toMatchObject({
+          status: 'captured',
+          total: 0,
+        });
+      });
+
+      it('distinguishes a capture error from zero requests', () => {
+        const artifact = writeArtifact({
+          apiCalls: null,
+          apiCallsError: 'HAR download failed',
+        });
+
+        expect(artifact.apiCallsSummary).toEqual({
+          status: 'error',
+          error: 'HAR download failed',
+        });
+      });
+
+      it('writes a null summary when no capture was attempted', () => {
+        const artifact = writeArtifact({ profilingSummary: { issues: 0 } });
+
+        expect(artifact.apiCalls).toBeNull();
+        expect(artifact.apiCallsSummary).toBeNull();
+      });
+    });
+
     it('disambiguates colliding filenames', () => {
       const data = makeReportData({
         metrics: [

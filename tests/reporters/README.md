@@ -18,7 +18,9 @@ tests/reporters/
 │   ├── CsvReportGenerator.ts           # CSV report generation
 │   └── JsonReportGenerator.ts          # JSON device reports + per-scenario app profiling + failed-tests-by-team
 └── utils/
-    └── DeviceInfoExtractor.ts          # Device info extraction helper
+    ├── DeviceInfoExtractor.ts          # Device info extraction helper
+    ├── sanitizeApiCallUrl.ts           # Secret-free, low-cardinality request URL key
+    └── summarizeApiCalls.ts            # Per-scenario request counts from the network log
 ```
 
 ## Module Responsibilities
@@ -46,6 +48,10 @@ Each generator takes a `ReportData` object and produces output in a specific for
 - **HtmlReportGenerator** — Full HTML report with test tables, quality gates, profiling cards
 - **CsvReportGenerator** — CSV with per-test step rows and profiling summaries
 - **JsonReportGenerator** — Device-specific JSON files + one `reports/app-profiling/app-profiling-*.json` file per scenario (profiling + API calls) + `failed-tests-by-team.json`
+
+### utils/summarizeApiCalls.ts
+
+Turns a scenario's captured network log into `ApiCallsSummary`: `total`, `unique` (method + sanitized URL), `duplicates`, `failed` (status >= 400, missing or 0), `byHost` and `topEndpoints`. A failed capture (`apiCallsError`) yields `{ status: 'error' }` and no capture yields `null`, so neither is mistaken for 0 requests. The summary is written to `apiCallsSummary` in each `app-profiling-*.json` and sent to Sentry by `publishApiCallsSummaryToSentry` as its own transaction (op `e2e.performance.network_summary`, same transaction name as the scenario). Query it in Sentry Explore (spans) with `span.op:e2e.performance.network` and the numeric attributes `api.requests.total`, `api.requests.unique`, `api.requests.duplicates` and `api.requests.failed`; per-host (`e2e.performance.network.host`) and per-endpoint (`e2e.performance.network.endpoint`) spans carry `api.host` / `api.endpoint` breakdowns.
 
 ### utils/DeviceInfoExtractor.ts
 

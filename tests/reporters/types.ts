@@ -168,6 +168,34 @@ export interface NetworkLogEntry {
   time?: number;
 }
 
+export interface ApiEndpointSummary {
+  method: string;
+  /** Sanitized `host/path` (no protocol, query or key-like segments). */
+  url: string;
+  count: number;
+  failed: number;
+}
+
+/**
+ * Request-count summary for one scenario, derived from the captured network
+ * log. `captured` carries the counts; `error` means capture was attempted but
+ * failed, so no count is available (distinct from a captured count of 0).
+ */
+export type ApiCallsSummary =
+  | {
+      status: 'captured';
+      total: number;
+      /** Distinct method + sanitized URL pairs. */
+      unique: number;
+      /** `total - unique`: repeated calls to an already-seen endpoint. */
+      duplicates: number;
+      /** Requests with status >= 400, or a missing / zero status. */
+      failed: number;
+      byHost: Record<string, number>;
+      topEndpoints: ApiEndpointSummary[];
+    }
+  | { status: 'error'; error: string };
+
 /**
  * Per-scenario artifact written under `reports/app-profiling/`.
  * One file per performance scenario: profiling data + API calls.
@@ -184,6 +212,8 @@ export interface AppProfilingArtifact {
   profilingData: ProfilingData | null;
   apiCalls: NetworkLogEntry[] | null;
   apiCallsError: string | null;
+  /** `null` when no network capture was attempted for the scenario. */
+  apiCallsSummary: ApiCallsSummary | null;
 }
 
 export interface FailedTestEntry {

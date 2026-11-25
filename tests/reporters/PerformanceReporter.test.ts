@@ -80,6 +80,11 @@ jest.mock('./generators/JsonReportGenerator', () => ({
   })),
 }));
 
+jest.mock('./providers/sentry/PerformanceSentryPublisher', () => ({
+  publishPerformanceScenarioToSentry: jest.fn().mockResolvedValue(true),
+  publishApiCallsSummaryToSentry: jest.fn().mockResolvedValue(true),
+}));
+
 import fs from 'fs';
 import PerformanceReporter from './PerformanceReporter';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
@@ -88,6 +93,10 @@ import { JsonReportGenerator } from './generators/JsonReportGenerator';
 import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { clearQualityGateFailures } from '../framework/quality-gates';
+import {
+  publishApiCallsSummaryToSentry,
+  publishPerformanceScenarioToSentry,
+} from './providers/sentry/PerformanceSentryPublisher';
 
 function makeTest(overrides: Record<string, unknown> = {}) {
   return {
@@ -652,6 +661,106 @@ describe('PerformanceReporter', () => {
       await reporter.onEnd();
 
       expect(TestMuAIEnricher).not.toHaveBeenCalled();
+    });
+
+    describe('API calls summary publishing', () => {
+      const recordTest = (
+        sessionOverrides: Record<string, unknown>,
+        resultOverrides: Record<string, unknown> = {},
+      ) => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({
+            attachments: [
+              makeSessionAttachment(sessionOverrides),
+              makeMetricsAttachment({ timestamp: '2026-07-22T12:00:00.000Z' }),
+            ],
+            ...resultOverrides,
+          }) as never,
+        );
+      };
+
+      it('publishes the summary even when there is no profiling summary', async () => {
+        recordTest({
+          networkLogsEntries: [
+            { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+            { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+          ],
+        });
+
+        await reporter.onEnd();
+
+        expect(publishPerformanceScenarioToSentry).not.toHaveBeenCalled();
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledTimes(1);
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({
+            testTitle: 'Login Test',
+            projectName: 'browserstack-android',
+            status: 'passed',
+            testEndTimestamp:
+              new Date('2026-07-22T12:00:00.000Z').getTime() / 1000,
+            summary: expect.objectContaining({
+              status: 'captured',
+              total: 2,
+              unique: 1,
+              duplicates: 1,
+            }),
+          }),
+        );
+      });
+
+      it('publishes a captured empty log as zero requests', async () => {
+        recordTest({ networkLogsEntries: [] });
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({
+            summary: expect.objectContaining({ status: 'captured', total: 0 }),
+          }),
+        );
+      });
+
+      it('publishes a capture error instead of a count', async () => {
+        recordTest({ networkLogsError: 'HAR download failed' });
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({
+            summary: { status: 'error', error: 'HAR download failed' },
+          }),
+        );
+      });
+
+      it('publishes nothing when no network capture was attempted', async () => {
+        recordTest({});
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).not.toHaveBeenCalled();
+      });
+
+      it('reports the failed status for failed scenarios', async () => {
+        recordTest({ networkLogsEntries: [] }, { status: 'failed' });
+
+        await reporter.onEnd();
+
+        expect(publishApiCallsSummaryToSentry).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'failed' }),
+        );
+      });
+
+      it('keeps generating reports when publishing throws', async () => {
+        (publishApiCallsSummaryToSentry as jest.Mock).mockRejectedValueOnce(
+          new Error('sentry down'),
+        );
+        recordTest({ networkLogsEntries: [] });
+
+        await expect(reporter.onEnd()).resolves.toBeUndefined();
+
+        expect(JsonReportGenerator).toHaveBeenCalled();
+      });
     });
   });
 });

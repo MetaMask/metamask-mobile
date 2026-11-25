@@ -14,7 +14,11 @@ import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
-import { publishPerformanceScenarioToSentry } from './providers/sentry/PerformanceSentryPublisher';
+import {
+  publishApiCallsSummaryToSentry,
+  publishPerformanceScenarioToSentry,
+} from './providers/sentry/PerformanceSentryPublisher';
+import { summarizeApiCalls } from './utils/summarizeApiCalls';
 import type {
   MetricsEntry,
   SessionData,
@@ -85,6 +89,23 @@ const hasSessionId = (result: PlaywrightTestResult): boolean => {
   )?.description;
   return Boolean(sessionId) && sessionId !== 'no-session';
 };
+
+/**
+ * Status matching what the fixture sends: timedOut is a distinct Sentry
+ * status and must not be collapsed to 'failed'.
+ */
+const getSentryTestStatus = (
+  metric: MetricsEntry,
+): 'passed' | 'timedOut' | 'failed' => {
+  if (!metric.testFailed) {
+    return 'passed';
+  }
+  return metric.failureReason === 'timedOut' ? 'timedOut' : 'failed';
+};
+
+/** Anchors a Sentry transaction to the actual test end time, not report time. */
+const getSentryTestEndTimestamp = (metric: MetricsEntry): number | undefined =>
+  metric.timestamp ? new Date(metric.timestamp).getTime() / 1000 : undefined;
 
 /**
  * Main Playwright reporter for performance test runs.
@@ -586,6 +607,9 @@ class PerformanceReporter {
       // Publish profiling data (FPS, CPU, memory) to Sentry for enriched metrics
       await this.publishProfilingDataToSentry(metricsWithSession);
 
+      // Publish per-scenario request counts (only available after enrichment)
+      await this.publishApiCallsSummaryToSentry(metricsWithSession);
+
       const reportData: ReportData = {
         metrics: metricsWithSession,
         sessions: this.sessions,
@@ -643,18 +667,8 @@ class PerformanceReporter {
       // (an enricher sets profilingSummary to { error: '...' } on failure)
       if (!metric.profilingSummary || metric.profilingSummary.error) continue;
 
-      // Derive status that matches what the fixture sends: timedOut is a
-      // distinct Sentry status and must not be collapsed to 'failed'.
-      const testStatus = !metric.testFailed
-        ? 'passed'
-        : metric.failureReason === 'timedOut'
-          ? 'timedOut'
-          : 'failed';
-
-      // Anchor Sentry transaction to the actual test end time, not report time.
-      const testEndTimestamp = metric.timestamp
-        ? new Date(metric.timestamp).getTime() / 1000
-        : undefined;
+      const testStatus = getSentryTestStatus(metric);
+      const testEndTimestamp = getSentryTestEndTimestamp(metric);
 
       try {
         const sent = await publishPerformanceScenarioToSentry({
@@ -689,6 +703,43 @@ class PerformanceReporter {
       } catch (error) {
         logger.error(
           `Failed to publish profiling data to Sentry for "${metric.testName}": ${error}`,
+        );
+      }
+    }
+  }
+
+  private async publishApiCallsSummaryToSentry(
+    metrics: MetricsEntry[],
+  ): Promise<void> {
+    for (const metric of metrics) {
+      const summary = summarizeApiCalls(metric.apiCalls, metric.apiCallsError);
+      if (!summary) continue;
+
+      try {
+        const sent = await publishApiCallsSummaryToSentry({
+          summary,
+          metrics: {
+            device: metric.device,
+            team: metric.team ?? null,
+            total: metric.total || 0,
+          },
+          testTitle: metric.testName,
+          projectName: metric.projectName || 'unknown',
+          testFilePath: metric.testFilePath,
+          tags: metric.tags || [],
+          status: getSentryTestStatus(metric),
+          videoRecordingUrl: metric.videoURL ?? null,
+          testEndTimestamp: getSentryTestEndTimestamp(metric),
+        });
+
+        if (sent) {
+          logger.info(
+            `API calls summary for "${metric.testName}" sent to Sentry`,
+          );
+        }
+      } catch (error) {
+        logger.error(
+          `Failed to publish API calls summary to Sentry for "${metric.testName}": ${error}`,
         );
       }
     }
