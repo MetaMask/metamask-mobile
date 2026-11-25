@@ -1,5 +1,4 @@
 import { AppState, type AppStateStatus } from 'react-native';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
@@ -511,32 +510,19 @@ export function endOpenRampsBuyCufChildrenByName(
 }
 
 /**
- * Completion data for `Ramp Buy Native To Order Created` once the callback
- * order resolves on Order Details (TRAM-4173).
+ * Whether a provider id is the native (in-app) Transak provider, including its
+ * staging variant. Accepts the `/providers/<code>` form and the bare code.
  *
- * Successful Transak callbacks can reach Order Details without passing through
- * Order Processing or Bank Details, which are the only other places that end
- * this child. Order Details ends the parent journey as successful, and that
- * end abandons any child still open, so the native child must close first.
+ * Order Details uses this to close `Ramp Buy Native To Order Created` only for
+ * native orders: the span is only open on the native path, and a leftover one
+ * from an abandoned native attempt must not be marked successful by a widget or
+ * aggregator order (TRAM-4173).
  */
-export function buildRampsBuyNativeOrderCreatedCufCompletion(
-  status: RampsOrderStatus,
-  orderId: string,
-): Record<string, TraceValue> {
-  if (
-    status === RampsOrderStatus.Failed ||
-    status === RampsOrderStatus.IdExpired
-  ) {
-    return {
-      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-      orderId,
-    };
-  }
-  return {
-    [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
-    orderId,
-  };
+export function isRampsNativeProviderId(providerId?: string | null): boolean {
+  return (
+    providerId?.replace(/^\/providers\//, '').startsWith('transak-native') ??
+    false
+  );
 }
 
 function abandonOpenChildTraces(reason: string): void {

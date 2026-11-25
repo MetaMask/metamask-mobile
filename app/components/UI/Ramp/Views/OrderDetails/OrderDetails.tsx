@@ -44,7 +44,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import {
-  buildRampsBuyNativeOrderCreatedCufCompletion,
+  isRampsNativeProviderId,
   endOpenRampsBuyCufChildrenByName,
   endRampsBuyCufTrace,
 } from '../../utils/rampsBuyCufTrace';
@@ -274,15 +274,17 @@ const OrderDetails = () => {
       return;
     }
     hasEndedBuyCuf.current = true;
-    // Close the native child before the parent: ending the parent abandons any
-    // child still open (TRAM-4173). No-op when no native child is open.
-    endOpenRampsBuyCufChildrenByName(
-      TraceName.RampBuyNativeToOrderCreated,
-      buildRampsBuyNativeOrderCreatedCufCompletion(
-        order.status,
-        order.providerOrderId,
-      ),
-    );
+    // Ending the parent abandons any child still open (TRAM-4173), so close the
+    // native child first. Only for native orders: a leftover native span from an
+    // abandoned attempt must not be marked successful by a widget or aggregator
+    // order. The order exists on this screen, so creation succeeded whatever its
+    // current status is, matching Bank Details and Order Processing.
+    if (isRampsNativeProviderId(order.provider?.id)) {
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: order.providerOrderId,
+      });
+    }
     endRampsBuyCufTrace({
       data: {
         [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
