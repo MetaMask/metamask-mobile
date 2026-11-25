@@ -266,6 +266,13 @@ export interface PerpsTradeBottomSheetProps<Screen extends string> {
   title?: string;
   /** Optional banner rendered directly below `title` on the root screen. */
   banner?: React.ReactNode;
+  /**
+   * When this value changes while a nested screen is active, the sheet pops
+   * back to the root. Bind it to the state a nested screen explains (such as
+   * the account support context) so a context switch retires stale content
+   * instead of leaving it up until the next read settles.
+   */
+  popToRootOnChange?: string;
 }
 
 const PerpsTradeBottomSheet = <Screen extends string>({
@@ -279,6 +286,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   rootScreen,
   screenDepth,
   contentSizedScreens,
+  popToRootOnChange,
 }: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -313,6 +321,19 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     () => navigateTo(rootScreen),
     [navigateTo, rootScreen],
   );
+
+  // A context switch retires whatever a nested screen explained: pop back to
+  // the root instead of leaving stale content up while the next read is
+  // pending. The previous-value ref skips the mount, where there is nothing
+  // to retire.
+  const previousPopToRootKeyRef = useRef(popToRootOnChange);
+  useEffect(() => {
+    const previous = previousPopToRootKeyRef.current;
+    previousPopToRootKeyRef.current = popToRootOnChange;
+    if (popToRootOnChange !== previous && activeScreen !== rootScreen) {
+      goBack();
+    }
+  }, [popToRootOnChange, activeScreen, goBack, rootScreen]);
 
   useEffect(() => {
     if (activeScreen === rootScreen) {

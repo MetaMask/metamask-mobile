@@ -40,6 +40,10 @@ export interface CheckPerpsAccountSupportOptions {
 
 export interface UsePerpsAccountSupportReturn {
   isAccountUnsupportedModalVisible: boolean;
+  /** Live account/provider/network key the next support read is bound to. */
+  supportContextKey: string;
+  /** Context an unsupported result was shown for, or null when dismissed. */
+  unsupportedContextKey: string | null;
   checkAccountSupport: (
     providerId?: PerpsProviderType,
     options?: CheckPerpsAccountSupportOptions,
@@ -184,6 +188,8 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
 
   return {
     isAccountUnsupportedModalVisible,
+    supportContextKey: contextKey,
+    unsupportedContextKey,
     checkAccountSupport,
     closeAccountUnsupportedModal,
   };

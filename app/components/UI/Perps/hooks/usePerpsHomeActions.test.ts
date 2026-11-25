@@ -16,9 +16,18 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { selectPerpsProvider } from '../selectors/perpsController';
 
 const mockCheckAccountSupport = jest.fn();
+const mockResolveWithdrawalRoute = jest.fn();
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      resolveWithdrawalRoute: (...args: unknown[]) =>
+        mockResolveWithdrawalRoute(...args),
+    },
+  },
+}));
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => {
@@ -140,13 +149,16 @@ describe('usePerpsHomeActions', () => {
     mockDepositWithConfirmation.mockResolvedValue(undefined);
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
     mockCheckAccountSupport.mockResolvedValue('supported');
+    mockResolveWithdrawalRoute.mockResolvedValue({
+      status: 'resolved',
+      providerId: 'hyperliquid',
+    });
     mockNavigation.isFocused.mockReturnValue(true);
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue(true);
-    (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(undefined);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     });
@@ -603,36 +615,11 @@ describe('usePerpsHomeActions', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
     });
 
-    it('checks Hyperliquid when the active provider is aggregated', async () => {
-      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(
-        'aggregated',
-      );
-      const { result } = renderHook(() => usePerpsHomeActions());
-
-      await act(async () => {
-        await result.current.handleWithdraw();
+    it('checks the venue Core resolves for the withdrawal', async () => {
+      mockResolveWithdrawalRoute.mockResolvedValue({
+        status: 'resolved',
+        providerId: 'lighter',
       });
-
-      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid', {
-        watchActiveProvider: expect.any(Function),
-      });
-    });
-
-    it('checks Hyperliquid when no active provider is selected', async () => {
-      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(undefined);
-      const { result } = renderHook(() => usePerpsHomeActions());
-
-      await act(async () => {
-        await result.current.handleWithdraw();
-      });
-
-      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid', {
-        watchActiveProvider: expect.any(Function),
-      });
-    });
-
-    it('checks the active venue when it is a direct provider', async () => {
-      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue('lighter');
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
@@ -644,8 +631,27 @@ describe('usePerpsHomeActions', () => {
       });
     });
 
-    it('watches the venue a withdrawal signs on', async () => {
-      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue('lighter');
+    it('does not start a withdrawal when Core cannot route it', async () => {
+      mockResolveWithdrawalRoute.mockResolvedValue({
+        status: 'route_required',
+        error: 'PROVIDER_ROUTE_REQUIRED',
+      });
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).not.toHaveBeenCalled();
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('watches the live provider mode during the support read', async () => {
+      mockResolveWithdrawalRoute.mockResolvedValue({
+        status: 'resolved',
+        providerId: 'lighter',
+      });
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
@@ -657,8 +663,8 @@ describe('usePerpsHomeActions', () => {
 
       expect(watchActiveProvider('lighter')).toBe('lighter');
       expect(watchActiveProvider('hyperliquid')).toBe('hyperliquid');
-      expect(watchActiveProvider('aggregated')).toBe('hyperliquid');
-      expect(watchActiveProvider(undefined)).toBe('hyperliquid');
+      expect(watchActiveProvider('aggregated')).toBe('aggregated');
+      expect(watchActiveProvider(undefined)).toBe('');
     });
 
     it('does not start a withdrawal when the signing venue check is stale', async () => {
@@ -694,7 +700,6 @@ describe('usePerpsHomeActions', () => {
       await act(async () => {
         await result.current.handleWithdraw();
       });
-
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });

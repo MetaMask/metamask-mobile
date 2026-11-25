@@ -2,16 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
-import { useSelector, useStore } from 'react-redux';
+import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  selectPerpsEligibility,
-  selectPerpsProvider,
-} from '../selectors/perpsController';
-import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
 import type {
   ConfirmationLaunchSource,
@@ -22,8 +19,6 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
-  type PerpsActiveProviderMode,
-  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -46,26 +41,13 @@ import {
 } from './usePerpsAccountSupport';
 
 /**
- * Withdrawals omit providerId, so Core signs with the active provider, or
- * with Hyperliquid when that provider is the aggregated router. Name that
- * venue on the support check. Anything else stays on the Hyperliquid default
- * instead of sending a route a direct provider would reject.
- *
- * The same mapping is the support check's live-provider watch. An explicit
- * id alone ignores a provider switch, so a Lighter result could otherwise
- * let a withdrawal sign on Hyperliquid.
+ * The withdrawal support check is bound to the venue the withdrawal signs on.
+ * Core owns that venue: `resolveWithdrawalRoute` resolves it with the same
+ * provider routing and the same refusal as `withdraw` itself, so Mobile does
+ * not duplicate provider-routing policy. The support check watches the live
+ * active provider mode during the read, so a pending supported result from
+ * one venue cannot sign on another after a provider switch.
  */
-const resolveWithdrawalProviderId = (
-  activeProvider: PerpsActiveProviderMode | undefined,
-): PerpsProviderType => {
-  if (
-    activeProvider === PROVIDER_CONFIG.DefaultProvider ||
-    activeProvider === PROVIDER_CONFIG.LighterProvider
-  ) {
-    return activeProvider;
-  }
-  return PROVIDER_CONFIG.DefaultProvider;
-};
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -137,7 +119,6 @@ export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
   const navigation = useNavigation<AppNavigationProp>();
-  const store = useStore<RootState>();
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();
@@ -358,10 +339,16 @@ export const usePerpsHomeActions = (
     });
 
     try {
-      const support = await checkAccountSupport(
-        resolveWithdrawalProviderId(selectPerpsProvider(store.getState())),
-        { watchActiveProvider: resolveWithdrawalProviderId },
-      );
+      const route =
+        await Engine.context.PerpsController.resolveWithdrawalRoute();
+      if (route.status !== 'resolved') {
+        // Core refuses a withdrawal it cannot route; there is no venue to
+        // bind the support check to, so the withdrawal cannot start.
+        return;
+      }
+      const support = await checkAccountSupport(route.providerId, {
+        watchActiveProvider: (activeProvider) => activeProvider ?? '',
+      });
       if (support !== 'supported' || !navigation.isFocused()) {
         return;
       }
@@ -416,7 +403,6 @@ export const usePerpsHomeActions = (
     track,
     buttonLocation,
     checkAccountSupport,
-    store,
   ]);
 
   const closeEligibilityModal = useCallback(() => {

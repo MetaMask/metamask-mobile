@@ -49,6 +49,7 @@ import {
   getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,

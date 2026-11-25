@@ -2344,6 +2344,27 @@ export const usePerpsProOrderForm = ({
     maxLeverage: marketData?.maxLeverage,
   });
   const { validateNow } = orderValidation;
+
+  // Live pre-trade blockers, snapshotted for the re-read after the account
+  // support await: executionStateRef tracks draft/context fields only, so a
+  // balance/position or order-book update during that await can disable the
+  // visible CTA without changing the draft. A changed snapshot retires the
+  // submission instead of dispatching the previously validated order.
+  const liveBlockersRef = useRef('');
+  useLayoutEffect(() => {
+    liveBlockersRef.current = JSON.stringify({
+      liquidityError,
+      orderValidation: {
+        isValid: orderValidation.isValid,
+        isValidating: orderValidation.isValidating,
+        errors: orderValidation.errors,
+      },
+      reduceOnlyValidation: {
+        isValid: reduceOnlyValidation.isValid,
+        errorCode: reduceOnlyValidation.errorCode,
+      },
+    });
+  }, [liquidityError, orderValidation, reduceOnlyValidation]);
   const scaleValidationInputKey = JSON.stringify({
     orderForm: effectiveOrderForm,
     positionSize: submissionPositionSize,
@@ -3351,11 +3372,14 @@ export const usePerpsProOrderForm = ({
         });
 
         const expectedExecutionState = executionStateRef.current;
+        const expectedBlockers = liveBlockersRef.current;
         const accountSupport = await checkAccountSupport(expectedProviderId);
         if (
           accountSupport !== 'supported' ||
           executionStateRef.current !== expectedExecutionState ||
-          !isCurrentSubmission() ||
+          liveBlockersRef.current !== expectedBlockers ||
+          liveBlockersRef.current !== expectedBlockers ||
+        !isCurrentSubmission() ||
           selectedAddressRef.current !== expectedSelectedAddress ||
           networkRef.current !== expectedNetwork
         ) {
@@ -3665,6 +3689,7 @@ export const usePerpsProOrderForm = ({
       }
 
       const expectedExecutionState = executionStateRef.current;
+      const expectedBlockers = liveBlockersRef.current;
       const accountSupport = await checkAccountSupport(orderParams.providerId);
       if (
         accountSupport !== 'supported' ||

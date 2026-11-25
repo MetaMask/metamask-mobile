@@ -25,6 +25,7 @@ import {
   type OrderBookData,
   type OrderBookLevel,
   type OrderResult,
+  type PerpsAccountSupport,
   type Position,
   type PerpsControllerState,
 } from '@metamask/perps-controller';
@@ -481,6 +482,77 @@ describe('PerpsOrderView', () => {
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
     );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeOnTheScreen();
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('pops the Trade sheet unsupported explanation when the support context changes while the next read is pending', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    getAccountSupport.mockResolvedValue({
+      isSupported: false,
+      reason: 'multi_sig_account',
+    });
+    const { stream, store } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        useBottomSheet: true,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const placeOrderButton = await waitForEnabledPlaceOrderButton(
+      PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(
+      await screen.findByText(
+        strings('perps.tooltips.account_not_supported.title'),
+      ),
+    ).toBeOnTheScreen();
+
+    // Switch the support context while the next support request stays
+    // pending: the sheet must drop the stale explanation at once instead of
+    // telling the new supported account it cannot trade.
+    getAccountSupport.mockImplementation(
+      () => new Promise<PerpsAccountSupport>(() => undefined),
+    );
+    const currentPerpsState =
+      store.getState().engine.backgroundState.PerpsController;
+    act(() => {
+      setMockPerpsControllerState({
+        ...currentPerpsState,
+        isTestnet: true,
+      });
+      store.dispatch(updateBgState({ key: 'PerpsController' }));
+    });
+    setMockPerpsControllerState(currentPerpsState);
 
     await waitFor(() => {
       expect(

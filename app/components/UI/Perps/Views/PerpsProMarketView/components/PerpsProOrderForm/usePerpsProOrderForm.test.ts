@@ -3514,6 +3514,37 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('abandons an order when a pre-trade blocker appears during account support', async () => {
+      // The support await re-reads liquidity/validation state: an order-book
+      // update that lands during the check can disable the visible CTA, so
+      // the previously validated order must not dispatch.
+      let resolveSupport: ((support: 'supported') => void) | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid'),
+      );
+      mockSlippageReady = true;
+      mockCanFillWithinSlippage = false;
+      form.rerender({});
+      await act(async () => {
+        resolveSupport?.('supported');
+        await submission;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
     it('keeps a market order when unrelated Scale support finishes during account support', async () => {
       let resolveSupport: ((support: 'supported') => void) | undefined;
       mockCheckAccountSupport.mockReturnValueOnce(

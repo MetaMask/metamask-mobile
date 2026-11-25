@@ -578,6 +578,9 @@ jest.mock('../../app/core/Engine', () => {
       PerpsController: {
         state: { isTestnet: false },
         getAccountSupport: jest.fn().mockResolvedValue({ isSupported: true }),
+        resolveWithdrawalRoute: jest
+          .fn()
+          .mockResolvedValue({ status: 'resolved', providerId: 'hyperliquid' }),
         getRecoveredDispatches: jest.fn().mockResolvedValue([]),
         getPendingManualRecoveries: jest.fn().mockResolvedValue([]),
         getScaleOrderGroups: jest.fn().mockResolvedValue([]),
