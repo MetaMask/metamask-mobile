@@ -3,6 +3,9 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { SwapsLimitOrderConfirmButton } from './index';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 const TEST_ID = BridgeViewSelectorsIDs.CONFIRM_BUTTON;
 const DEFAULT_LABEL = 'Create Order';
@@ -38,6 +41,7 @@ describe('SwapsLimitOrderConfirmButton', () => {
     fireEvent.press(getByTestId(TEST_ID));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('renders the provided label and stays enabled by default', () => {
@@ -53,6 +57,7 @@ describe('SwapsLimitOrderConfirmButton', () => {
     fireEvent.press(getByTestId(TEST_ID));
 
     expect(onPress).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('disables the button when disabled by the caller', () => {
@@ -67,6 +72,7 @@ describe('SwapsLimitOrderConfirmButton', () => {
     fireEvent.press(getByTestId(TEST_ID));
 
     expect(onPress).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('shows a loading state without disabling press handling via the loading prop', () => {
