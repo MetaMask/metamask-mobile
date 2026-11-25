@@ -98,8 +98,8 @@ function reportLocalIteration({
     }
   }
   console.error(
-    '   Re-run this exact repetition (same seed and file order) with:\n' +
-      `     yarn jest -c jest.config.view.js --no-watchman --runTestsByPath --randomize --seed ${seed} ` +
+    '   Re-run this exact repetition (same platform, seed and file order) with:\n' +
+      `     TEST_OS=${process.env.TEST_OS || 'ios'} yarn jest -c jest.config.view.js --no-watchman --runTestsByPath --randomize --seed ${seed} ` +
       files.map((file) => displayPath(file)).join(' '),
   );
 }

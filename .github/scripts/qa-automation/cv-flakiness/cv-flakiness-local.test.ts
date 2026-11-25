@@ -222,6 +222,12 @@ describe('cv-flakiness-local', () => {
     );
     expect(stderr).toContain('Flaky.view.test.tsx › Stub failing test name');
     expect(stderr).toContain(`--randomize --seed ${calls[0].seed}`);
+    // The platform is part of the re-run command: TEST_OS decides which
+    // platform variants itForPlatforms runs, so without it the seed would
+    // exercise a different set of tests in a different order.
+    expect(stderr).toContain(
+      `TEST_OS=ios yarn jest -c jest.config.view.js --no-watchman --runTestsByPath --randomize --seed ${calls[0].seed}`,
+    );
     expect(stderr).toContain(
       'Component view flakiness detected: 1 failure(s) in repetition 1 (seed ' + calls[0].seed + ').',
     );
