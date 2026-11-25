@@ -29,9 +29,10 @@ import { REWARDS_SETTINGS_SAFE_AREA_TEST_ID } from './Views/RewardsSettingsView'
 function SettingsGateJourneyHost() {
   const navigation = useNavigation();
   React.useEffect(() => {
-    navigation.navigate(Routes.REWARDS_FLOW as never, {
-      screen: Routes.REWARDS_SETTINGS_VIEW,
-    });
+    navigation.navigate({
+      name: Routes.REWARDS_FLOW,
+      params: { screen: Routes.REWARDS_SETTINGS_VIEW },
+    } as never);
   }, [navigation]);
   return <Text testID="settings-gate-host">Host</Text>;
 }

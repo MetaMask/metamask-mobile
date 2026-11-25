@@ -47,7 +47,7 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
   it('crows the API winner count and leaves later ranks uncrowned (Social Perps Comp)', async () => {
     const {
       findByTestId,
-      queryByTestId,
+      getByTestId,
       getAllByTestId,
       UNSAFE_queryAllByProps,
     } = renderPerpsCampaignLeaderboard({
@@ -56,7 +56,7 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
 
     // The full board renders: 45 winners plus the 5 rows below the prizes.
     expect(await findByTestId(rowTestId(45))).toBeOnTheScreen();
-    expect(queryByTestId(rowTestId(50))).toBeOnTheScreen();
+    expect(getByTestId(rowTestId(50))).toBeOnTheScreen();
     expect(
       getAllByTestId(
         new RegExp(`^${CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.ENTRY_ROW}-`),
@@ -70,13 +70,13 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
     // Rows render their content: the winner boundary and the first
     // non-winner both show their referral code.
     expect(
-      within(queryByTestId(rowTestId(1))).getByText('TRADER001'),
+      within(getByTestId(rowTestId(1))).getByText('TRADER001'),
     ).toBeOnTheScreen();
     expect(
-      within(queryByTestId(rowTestId(45))).getByText('TRADER045'),
+      within(getByTestId(rowTestId(45))).getByText('TRADER045'),
     ).toBeOnTheScreen();
     expect(
-      within(queryByTestId(rowTestId(46))).getByText('TRADER046'),
+      within(getByTestId(rowTestId(46))).getByText('TRADER046'),
     ).toBeOnTheScreen();
   });
 });
