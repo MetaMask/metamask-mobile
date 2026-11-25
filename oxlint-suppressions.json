@@ -721,11 +721,6 @@
       "count": 1
     }
   },
-  "app/components/UI/AccountOverview/index.test.tsx": {
-    "typescript/await-thenable": {
-      "count": 1
-    }
-  },
   "app/components/UI/AccountRightButton/index.tsx": {
     "typescript/unbound-method": {
       "count": 2
