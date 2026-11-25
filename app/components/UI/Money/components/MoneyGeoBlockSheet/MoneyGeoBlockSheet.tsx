@@ -74,7 +74,16 @@ const MoneyGeoBlockSheet = () => {
 
   useMountEffect(trackBottomSheetViewed);
 
+  // Several paths can close the sheet (Got it, header close, swipe, and the
+  // auto-close when a lookup resolves an eligible location). Only the first
+  // one may run, otherwise `goBack()` would pop an extra screen.
+  const isClosingRef = useRef(false);
+
   const handleClose = useCallback(() => {
+    if (isClosingRef.current) {
+      return;
+    }
+    isClosingRef.current = true;
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       const parentNavigation = navigation.getParent();
       if (!parentNavigation) {

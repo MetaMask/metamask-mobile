@@ -375,6 +375,24 @@ describe('MoneyGeoBlockSheet', () => {
       expect(mockRefreshGeolocation).not.toHaveBeenCalled();
     });
 
+    it('dismisses only once when the user closes the sheet and a lookup then resolves an eligible location', async () => {
+      const { getByTestId, store } = renderWithProvider(
+        <MoneyGeoBlockSheet />,
+        { state: lookupErrorState },
+      );
+
+      fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON));
+      act(() => {
+        mockEngineGeolocationState = { location: 'ES', status: 'complete' };
+        store.dispatch(updateBgState({ key: 'GeolocationController' }));
+      });
+
+      await waitFor(() => {
+        expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
     it('does not auto-close when the sheet opened with an already eligible location', () => {
       renderWithProvider(<MoneyGeoBlockSheet />, {
         state: {
