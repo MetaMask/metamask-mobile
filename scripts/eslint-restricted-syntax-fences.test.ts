@@ -566,6 +566,24 @@ const c = { padding: 2 };
 `,
     messages: [],
   },
+  {
+    name: 'fails a block disable that names spacing-grid on a later line without a reason',
+    file: SPACING_FILE,
+    code: `/* eslint-disable
+   design-system/spacing-grid */
+const a = { padding: 15 };
+`,
+    messages: [MISSING_REASON],
+  },
+  {
+    name: 'allows a block disable whose reason continues on a later line',
+    file: SPACING_FILE,
+    code: `/* eslint-disable design-system/spacing-grid --
+   legacy optical offsets kept until the redesign */
+const a = { padding: 15 };
+`,
+    messages: [],
+  },
 ];
 
 const classifySpacingMessage = (item: string): string =>
