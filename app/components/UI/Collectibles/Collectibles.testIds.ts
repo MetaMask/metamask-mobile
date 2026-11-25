@@ -1,4 +1,5 @@
 export const collectiblesTestIds = {
+  homeBackButton: 'collectibles-home-back',
   homeSection: 'collectibles-home-section',
   carousel: 'collectibles-home-section-carousel',
   skeleton: 'collectibles-home-section-skeleton',

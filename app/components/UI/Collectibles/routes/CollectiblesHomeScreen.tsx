@@ -4,10 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
+import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
 import { CollectiblesNavButtons } from '../components/CollectiblesNavButtons';
 import { LandingSection } from '../components/LandingSection';
-import { collectiblesTestIds } from '../Collectibles.testIds';
 
 // Main page shell. Each section is filled by its own story.
 export function CollectiblesHomeScreen() {
@@ -18,6 +18,7 @@ export function CollectiblesHomeScreen() {
     <View className="flex-1 bg-default" testID={collectiblesTestIds.landing}>
       <HeaderStandard
         title={strings('collectibles.title')}
+        backButtonProps={{ testID: collectiblesTestIds.homeBackButton }}
         onBack={() => navigation.goBack()}
         includesTopInset
       />

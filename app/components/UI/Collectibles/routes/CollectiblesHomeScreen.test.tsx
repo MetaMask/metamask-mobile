@@ -55,8 +55,7 @@ describe('CollectiblesHomeScreen', () => {
   it('goes back when the back button is pressed', () => {
     renderWithProvider(<CollectiblesHomeScreen />);
 
-    // The design-system back button's default testID.
-    fireEvent.press(screen.getByTestId('button-icon'));
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
