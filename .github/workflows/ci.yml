@@ -1086,54 +1086,6 @@ jobs:
       id-token: write
     uses: ./.github/workflows/deploy-platform-api-docs.yml
 
-  # Warms the Namespace cache volume before test shards run. On non-Namespace
-  # runners uploads a ci-js-deps artifact so consumers can skip their own install.
-  prepare-ci-js-deps:
-    name: Prepare CI JS dependencies
-    permissions:
-      contents: read
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
-    needs:
-      - get_requirements
-    steps:
-      # Last job in the Linux cohort still cloning from github.com on Namespace;
-      # everything else uses the in-region git mirror. Namespace scales network
-      # bandwidth with machine shape, so an internet clone costs roughly twice
-      # the wall-clock on the 4x8 profile as it did on 8x16.
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-      - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      - uses: ./.github/actions/setup-ci-js-deps
-        with:
-          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
-      # TEMP: artifact fallback for non-Namespace runners.
-      # Remove these two steps once Namespace passes the trial and becomes the default.
-      - name: Pack CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
-      - name: Upload CI JS deps artifact
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: ci-js-deps
-          path: ci-js-deps.tar.gz
-          retention-days: 1
-          compression-level: 0
-          if-no-files-found: error
-
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     permissions:
@@ -1153,7 +1105,6 @@ jobs:
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
-      - prepare-ci-js-deps
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -1163,19 +1114,6 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      # TEMP: artifact fallback for non-Namespace runners.
-      # Remove these two steps once Namespace passes the trial and becomes the default.
-      - name: Download CI JS deps artifact
-        id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-js-deps
-          path: .
-      - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
-        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -1233,31 +1171,17 @@ jobs:
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
     needs:
-      - prepare-ci-js-deps
       - unit-tests
       - component-view-tests
       - integration-tests
     # Wait for integration shards so coverage can merge into Sonar, but still run
     # when integration fails — missing integration artifacts are tolerated below.
-    if: ${{ always() && github.event_name != 'merge_group' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
+    if: ${{ always() && github.event_name != 'merge_group' && !cancelled() && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      # TEMP: artifact fallback for non-Namespace runners.
-      # Remove these two steps once Namespace passes the trial and becomes the default.
-      - name: Download CI JS deps artifact
-        id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-js-deps
-          path: .
-      - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
-        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -1315,31 +1239,6 @@ jobs:
           echo "{\"integration_test_number\": $integration_total}" > integration-test-stats.json
           echo "Integration test count: $integration_total"
 
-          mkdir -p tests/coverage-cv-merged
-          for file in ./tests/coverage/coverage-cv-*/coverage-cv-*.json; do
-            [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
-          done
-
-          mkdir -p tests/coverage-integration-merged
-          for file in ./tests/coverage/coverage-integration-*/coverage-integration-*.json; do
-            [ -f "$file" ] && cp "$file" ./tests/coverage-integration-merged/
-          done
-
-          integration_json_count=$(
-            find ./tests/coverage-integration-merged -maxdepth 1 -name '*.json' 2>/dev/null | wc -l | tr -d ' '
-          )
-          if [[ "$integration_json_count" -gt 0 ]]; then
-            echo "has_integration_coverage=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_integration_coverage=false" >> "$GITHUB_OUTPUT"
-            echo "No integration coverage artifacts; downstream integration nyc/upload steps will be skipped."
-          fi
-
-          mkdir -p tests/coverage-unit-merged
-          for file in ./tests/coverage/coverage-unit-*/coverage-unit-*.json; do
-            [ -f "$file" ] && cp "$file" ./tests/coverage-unit-merged/
-          done
-
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
@@ -1375,6 +1274,91 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  # HTML and summary reports are informational and feed qa-stats, so they run in
+  # parallel with the merge job instead of delaying lcov.info into SonarCloud.
+  coverage-reports:
+    name: Coverage reports
+    permissions:
+      contents: read
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    needs:
+      - unit-tests
+      - component-view-tests
+      - integration-tests
+    if: ${{ always() && github.event_name != 'merge_group' && !cancelled() && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Download coverage shards (Namespace)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          pattern: coverage-*
+          path: tests/coverage/
+      - name: Download coverage shards (current)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-*
+          path: tests/coverage/
+      - name: Stage per-suite coverage for nyc
+        id: stage-coverage
+        shell: bash
+        env:
+          INTEGRATION_TESTS_RESULT: ${{ needs.integration-tests.result }}
+        run: |
+          echo "Upstream integration-tests result: ${INTEGRATION_TESTS_RESULT}"
+
+          mkdir -p tests/coverage-cv-merged
+          for file in ./tests/coverage/coverage-cv-*/coverage-cv-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
+          done
+
+          mkdir -p tests/coverage-integration-merged
+          for file in ./tests/coverage/coverage-integration-*/coverage-integration-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-integration-merged/
+          done
+
+          integration_json_count=$(
+            find ./tests/coverage-integration-merged -maxdepth 1 -name '*.json' 2>/dev/null | wc -l | tr -d ' '
+          )
+          if [[ "$integration_json_count" -gt 0 ]]; then
+            echo "has_integration_coverage=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_integration_coverage=false" >> "$GITHUB_OUTPUT"
+            echo "No integration coverage artifacts; downstream integration nyc/upload steps will be skipped."
+          fi
+
+          mkdir -p tests/coverage-unit-merged
+          for file in ./tests/coverage/coverage-unit-*/coverage-unit-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-unit-merged/
+          done
       - name: Generate CV test coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - name: Upload cv-test-coverage-html (artifact stores)
@@ -1394,10 +1378,10 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate integration test coverage report
-        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ steps.stage-coverage.outputs.has_integration_coverage == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-integration-merged --report-dir ./tests/coverage-integration-lcov --reporter html --reporter json-summary
       - name: Upload integration-test-coverage-html (artifact stores)
-        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ steps.stage-coverage.outputs.has_integration_coverage == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: integration-test-coverage-html
@@ -1406,7 +1390,7 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Upload integration-test-coverage-summary (artifact stores)
-        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        if: ${{ steps.stage-coverage.outputs.has_integration_coverage == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: integration-test-coverage-summary
@@ -1453,7 +1437,6 @@ jobs:
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
-      - prepare-ci-js-deps
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -1465,19 +1448,6 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      # TEMP: artifact fallback for non-Namespace runners.
-      # Remove these two steps once Namespace passes the trial and becomes the default.
-      - name: Download CI JS deps artifact
-        id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-js-deps
-          path: .
-      - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
-        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -1535,14 +1505,12 @@ jobs:
         !cancelled() &&
         needs.get_requirements.result == 'success' &&
         needs.get_requirements.outputs.skip_everything != 'true' &&
-        needs.prepare-ci-js-deps.result == 'success' &&
         github.event_name == 'pull_request' &&
         github.event.pull_request.base.ref == 'main' &&
         needs.get_requirements.outputs.changed_cv_test_files != ''
       }}
     needs:
       - get_requirements
-      - prepare-ci-js-deps
     # Budget default is 60 minutes; the job ceiling adds checkout/setup slack.
     timeout-minutes: 75
     steps:
@@ -1550,19 +1518,6 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      # TEMP: artifact fallback for non-Namespace runners.
-      # Remove these two steps once Namespace passes the trial and becomes the default.
-      - name: Download CI JS deps artifact
-        id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-js-deps
-          path: .
-      - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
-        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -1614,7 +1569,6 @@ jobs:
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
-      - prepare-ci-js-deps
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -1635,19 +1589,6 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      # TEMP: artifact fallback for non-Namespace runners.
-      # Remove these two steps once Namespace passes the trial and becomes the default.
-      - name: Download CI JS deps artifact
-        id: download-ci-js-deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
-        continue-on-error: true
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-js-deps
-          path: .
-      - name: Extract CI JS deps
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
-        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -1917,7 +1858,13 @@ jobs:
       actions: write
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    needs:
+      [
+        build-android-apks,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+        get_requirements,
+      ]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1958,7 +1905,13 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
+    needs:
+      [
+        get_requirements,
+        build-ios-apps,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+      ]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -2158,45 +2111,6 @@ jobs:
           echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
           exit 1
 
-  # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
-  # does not sit in GitHub artifact storage for the full retention-days: 1
-  # window. Every push re-creates this artifact from scratch, so there is never
-  # a reason to keep it after the run's consumers are done.
-  # Remove this job together with the upload/download steps once Namespace
-  # becomes the default runner.
-  cleanup-ci-js-deps:
-    name: Delete CI JS deps artifact
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs:
-      - unit-tests
-      - component-view-tests
-      - integration-tests
-      - merge-unit-and-component-view-tests
-    permissions:
-      actions: write
-    steps:
-      - name: Delete CI JS deps artifact
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId,
-            });
-            const target = artifacts.data.artifacts.find(a => a.name === 'ci-js-deps');
-            if (target) {
-              await github.rest.actions.deleteArtifact({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                artifact_id: target.id,
-              });
-              core.info(`Deleted artifact ci-js-deps (id=${target.id})`);
-            } else {
-              core.info('Artifact ci-js-deps not found (already deleted or never created)');
-            }
-
   check-all-jobs-pass:
     name: Check all jobs pass
     permissions:
@@ -2227,8 +2141,8 @@ jobs:
       - component-view-tests
       - component-view-flakiness-detection
       - merge-unit-and-component-view-tests
+      - coverage-reports
       - check-workflows
-      - prepare-ci-js-deps
       - js-bundle-size-check
       - sonar-cloud-quality-gate-status
       - build-android-apks
