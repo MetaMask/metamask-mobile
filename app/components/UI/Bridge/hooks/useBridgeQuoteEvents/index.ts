@@ -147,6 +147,7 @@ export const useBridgeQuoteEvents = ({
     recommendedQuote,
     slippage,
     unifiedSwapBridgeContext.custom_slippage,
+    unifiedSwapBridgeContext.operation,
     unifiedSwapBridgeContext.token_symbol_destination,
     unifiedSwapBridgeContext.token_symbol_source,
     unifiedSwapBridgeContext.usd_amount_source,
