@@ -7161,7 +7161,6 @@
     "gas_education_3": "MetaMask는 가스요금으로 수익을 얻지 않습니다.",
     "gas_education_4": "가스비는 네트워크의 트래픽과 트랜잭션의 복잡성에 따라 달라질 수 있습니다.",
     "gas_education_learn_more": "가스요금에 대해 더 자세히 알아보기",
-    "confusable_title": "받는 사람 주소를 확인하세요",
     "confusable_msg": "ENS 이름에 혼란을 줄 수 있는 글자가 들어 있는 것을 확인했습니다. 사기를 방지하기 위해 ENS 이름을 확인하세요.",
     "similar_to": "(은)는 다음과 유사합니다.",
     "contains_zero_width": "에 너비가 0인 문자가 있습니다.",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "헥스 데이터를 클립보드에 복사했습니다",
     "invalid_recipient": "잘못된 수신자",
     "invalid_recipient_description": "주소가 올바른지 확인하세요",
-    "swap_tokens": "토큰 스왑",
-    "fromWithColon": "발신:"
+    "swap_tokens": "토큰 스왑"
   },
   "custom_gas": {
     "total": "총합",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "거래 해시가 클립보드에 복사되었습니다",
     "address_copied_to_clipboard": "주소가 클립보드에 복사되었습니다",
     "transaction_error": "거래 오류",
-    "address_to_placeholder": "검색, 공개 주소(0x), 혹은 ENS",
-    "address_from_balance": "잔고:",
     "status": "상태",
     "date": "날짜",
     "nonce": "논스",
@@ -7540,11 +7536,8 @@
     "delete_contact": "연락처 삭제",
     "delete": "삭제",
     "cancel": "취소",
-    "add_to_address_book": "주소록에 추가",
-    "enter_an_alias": "별칭 입력",
     "add_this_address": "이 주소를 주소록에 추가",
     "next": "다음",
-    "enter_an_alias_placeholder": "예: Vitalik B.",
     "add_contact_title": "연락처 추가",
     "add_contact": "연락처 추가",
     "edit_contact_title": "연락처 편집",

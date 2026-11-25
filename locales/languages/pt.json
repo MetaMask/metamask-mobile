@@ -7161,7 +7161,6 @@
     "gas_education_3": "A MetaMask não lucra com as taxas de gás.",
     "gas_education_4": "As taxas de gás variam com base no tráfego da rede e na complexidade da transação.",
     "gas_education_learn_more": "Saiba mais sobre as taxas de gás",
-    "confusable_title": "Verifique o endereço do destinatário",
     "confusable_msg": "Detectamos um caractere ambíguo no nome ENS. Verifique o nome ENS para evitar um possível golpe.",
     "similar_to": "é similar a",
     "contains_zero_width": "contém caractere de largura zero",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Dados hexa copiados para a área de transferência",
     "invalid_recipient": "Destinatário inválido",
     "invalid_recipient_description": "Verifique o endereço e certifique-se de que ele é válido",
-    "swap_tokens": "Trocar tokens",
-    "fromWithColon": "De:"
+    "swap_tokens": "Trocar tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Hash da transação copiado para a área de transferência",
     "address_copied_to_clipboard": "Endereço copiado para a área de transferência",
     "transaction_error": "Erro na transação",
-    "address_to_placeholder": "Pesquisa, endereço público (0x) ou ENS",
-    "address_from_balance": "Saldo:",
     "status": "Status",
     "date": "Data",
     "nonce": "Nonce",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Excluir contato",
     "delete": "Excluir",
     "cancel": "Cancelar",
-    "add_to_address_book": "Adicionar ao catálogo de endereços",
-    "enter_an_alias": "Insira um apelido",
     "add_this_address": "Adicione este endereço ao seu catálogo de endereços",
     "next": "Avançar",
-    "enter_an_alias_placeholder": "por exemplo, Vitalik B.",
     "add_contact_title": "Adicionar contato",
     "add_contact": "Adicionar contato",
     "edit_contact_title": "Editar contato",

@@ -7161,7 +7161,6 @@
     "gas_education_3": "Το MetaMask δεν κερδίζει κάτι από τα τέλη συναλλαγών.",
     "gas_education_4": "Τα τέλη συναλλαγών αυξομειώνονται ανάλογα με την κίνηση του δικτύου και την πολυπλοκότητα των συναλλαγών.",
     "gas_education_learn_more": "Μάθετε περισσότερα για τα τέλη συναλλαγών",
-    "confusable_title": "Ελέγξτε τη διεύθυνση παραλήπτη",
     "confusable_msg": "Εντοπίσαμε έναν άγνωστο χαρακτήρα στο όνομα ENS. Ελέγξτε το όνομα ENS για να αποφύγετε πιθανή απάτη.",
     "similar_to": "είναι παρόμοιο με",
     "contains_zero_width": "περιλαμβάνει χαρακτήρα μηδενικού πλάτους",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Τα δεκαεξαδικά δεδομένα αντιγράφηκαν στο πρόχειρο",
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
     "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη",
-    "swap_tokens": "Ανταλλαγή tokens",
-    "fromWithColon": "Από:"
+    "swap_tokens": "Ανταλλαγή tokens"
   },
   "custom_gas": {
     "total": "Σύνολο",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Ο κατακερματισμός συναλλαγής αντιγράφηκε στο πρόχειρο",
     "address_copied_to_clipboard": "Η διεύθυνση αντιγράφηκε στο πρόχειρο",
     "transaction_error": "Σφάλμα συναλλαγής",
-    "address_to_placeholder": "Αναζήτηση, δημόσια διεύθυνση (0x) ή ENS",
-    "address_from_balance": "Υπόλοιπο:",
     "status": "Κατάσταση",
     "date": "Ημερομηνία",
     "nonce": "Αριθμός συναλλαγής (nonce)",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Διαγραφή επαφής",
     "delete": "Διαγραφή",
     "cancel": "Άκυρο",
-    "add_to_address_book": "Προσθήκη στο βιβλίο διευθύνσεων",
-    "enter_an_alias": "Εισαγάγετε ψευδώνυμο",
     "add_this_address": "Προσθέστε αυτή τη διεύθυνση στο βιβλίο διευθύνσεών σας",
     "next": "Επόμενο",
-    "enter_an_alias_placeholder": "π.χ. Vitalik B.",
     "add_contact_title": "Προσθήκη επαφής",
     "add_contact": "Προσθήκη επαφής",
     "edit_contact_title": "Επεξεργασία επαφής",

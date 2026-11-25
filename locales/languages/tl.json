@@ -7161,7 +7161,6 @@
     "gas_education_3": "Ang MetaMask ay hindi kumikita mula sa mga bayad sa gas.",
     "gas_education_4": "Nagbabago-bago ang mga gas fee batay sa trapiko sa network at pagkakumplikado ng transaksyon.",
     "gas_education_learn_more": "Matuto pa tungkol sa mga bayad sa gas",
-    "confusable_title": "Tingnan ang address ng tatanggap",
     "confusable_msg": "May na-detect kaming nakakalitong character sa ENS name. Tingnan ang ENS name para maiwasan ang potensyal na panloloko.",
     "similar_to": "ay katulad ng",
     "contains_zero_width": "naglalaman ng zero na lapad ng karakter",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Nakopya ang hex na data sa clipboard",
     "invalid_recipient": "Di-wastong tagatanggap",
     "invalid_recipient_description": "Tingnan ang address at tiyaking wasto ito",
-    "swap_tokens": "Ipagpalit ang mga token",
-    "fromWithColon": "Mula kay/sa:"
+    "swap_tokens": "Ipagpalit ang mga token"
   },
   "custom_gas": {
     "total": "Kabuuan",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Nakopya ang hash ng transaksyon sa clipboard",
     "address_copied_to_clipboard": "Nakopya ang address sa clipboard",
     "transaction_error": "Error sa transaksyon",
-    "address_to_placeholder": "Maghanap, pampublikong address (0x), o ENS",
-    "address_from_balance": "Balanse:",
     "status": "Katayuan",
     "date": "Petsa",
     "nonce": "Nonce",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Tanggalin ang kontak",
     "delete": "Tanggalin",
     "cancel": "Kanselahin",
-    "add_to_address_book": "Idagdag sa address book",
-    "enter_an_alias": "Maglagay ng alias",
     "add_this_address": "Idagdag ang address na ito sa iyong address book",
     "next": "Susunod",
-    "enter_an_alias_placeholder": "hal. Vitalik B.",
     "add_contact_title": "Magdagdag ng kontak",
     "add_contact": "Magdagdag ng contact",
     "edit_contact_title": "I-edit ang kontak",

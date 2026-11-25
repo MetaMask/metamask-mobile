@@ -7161,7 +7161,6 @@
     "gas_education_3": "MetaMask не получает прибыли от платы за газ.",
     "gas_education_4": "Плата за газ колеблется в зависимости от сетевого трафика и сложности транзакции.",
     "gas_education_learn_more": "Подробнее о плате за газ",
-    "confusable_title": "Проверьте адрес получателя",
     "confusable_msg": "Мы обнаружили непонятный символ в имени ENS. Проверьте имя ENS, чтобы избежать возможного мошенничества.",
     "similar_to": "похоже на",
     "contains_zero_width": "содержит знак с нулевой шириной",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Шестнадцатеричные данные скопированы в буфер обмена",
     "invalid_recipient": "Недействительный получатель",
     "invalid_recipient_description": "Проверьте адрес и убедитесь, что он действителен",
-    "swap_tokens": "Обменять токены",
-    "fromWithColon": "От:"
+    "swap_tokens": "Обменять токены"
   },
   "custom_gas": {
     "total": "Итого",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Хэш транзакции скопирован в буфер обмена",
     "address_copied_to_clipboard": "Адрес скопирован в буфер обмена",
     "transaction_error": "Ошибка транзакции",
-    "address_to_placeholder": "Поиск, публичный адрес (0x) или ENS",
-    "address_from_balance": "Баланс:",
     "status": "Статус",
     "date": "Дата",
     "nonce": "Одноразовый код",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Удалить контакт",
     "delete": "Удалить",
     "cancel": "Отмена",
-    "add_to_address_book": "Добавить в адресную книгу",
-    "enter_an_alias": "Ввести псевдоним",
     "add_this_address": "Добавьте этот адрес в свою адресную книгу",
     "next": "Далее",
-    "enter_an_alias_placeholder": "например, Виталик Б.",
     "add_contact_title": "Добавить контакт",
     "add_contact": "Добавить контакт",
     "edit_contact_title": "Изменить контакт",

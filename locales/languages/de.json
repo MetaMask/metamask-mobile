@@ -7161,7 +7161,6 @@
     "gas_education_3": "MetaMask profitiert nicht von Gas-Gebühren.",
     "gas_education_4": "Die Gas-Gebühren schwanken je nach Netzverkehr und Komplexität der Transaktion.",
     "gas_education_learn_more": "Erfahren Sie mehr über Gas-Gebühren.",
-    "confusable_title": "Überprüfen Sie die Empfängeradresse",
     "confusable_msg": "Wir haben ein verwirrendes Zeichen im ENS-Namen festgestellt. Überprüfen Sie den ENS-Namen, um möglichen Betrug zu vermeiden.",
     "similar_to": "ist ähnlich wie",
     "contains_zero_width": "enthält breitenloses Zeichen",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Hex-Daten in die Zwischenablage kopiert",
     "invalid_recipient": "Ungültiger Empfänger",
     "invalid_recipient_description": "Überprüfen Sie die Adresse und vergewissern Sie sich, dass sie stimmt.",
-    "swap_tokens": "Tokens tauschen",
-    "fromWithColon": "Von:"
+    "swap_tokens": "Tokens tauschen"
   },
   "custom_gas": {
     "total": "Gesamt",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Transaktions-Hash in die Zwischenablage kopiert",
     "address_copied_to_clipboard": "Adresse in die Zwischenablage kopiert",
     "transaction_error": "Transaktionsfehler",
-    "address_to_placeholder": "Öffentliche Adresse (0x) oder ENS suchen",
-    "address_from_balance": "Guthaben:",
     "status": "Status",
     "date": "Datum",
     "nonce": "Nonce",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Kontakt löschen",
     "delete": "Löschen",
     "cancel": "Stornieren",
-    "add_to_address_book": "Zum Adressbuch hinzufügen",
-    "enter_an_alias": "Alias eingeben",
     "add_this_address": "Fügen Sie diese Adresse zu Ihrem Adressbuch hinzu",
     "next": "Weiter",
-    "enter_an_alias_placeholder": "z. B. Vitalik B.",
     "add_contact_title": "Kontakt hinzufügen",
     "add_contact": "Kontakt hinzufügen",
     "edit_contact_title": "Kontakt bearbeiten",
