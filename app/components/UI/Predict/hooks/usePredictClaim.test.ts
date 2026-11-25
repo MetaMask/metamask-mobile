@@ -578,6 +578,44 @@ describe('usePredictClaim', () => {
       );
     });
 
+    it('omits error_message when claim throws a non-Error value', async () => {
+      // Arrange
+      mockClaimWinnings.mockRejectedValue({ code: 'UNEXPECTED' });
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim();
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
+        status: 'failed',
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+        failureReason: 'unknown',
+      });
+    });
+
+    it('omits error_message when claim throws an Error with an empty message', async () => {
+      // Arrange
+      mockClaimWinnings.mockRejectedValue(new Error(''));
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim();
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
+        status: 'failed',
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+        failureReason: 'unknown',
+      });
+    });
+
     it('captures exception to Sentry when claim fails', async () => {
       // Arrange
       const mockError = new Error('Network error');

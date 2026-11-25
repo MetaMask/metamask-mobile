@@ -6945,6 +6945,42 @@ describe('PredictController', () => {
       });
     });
 
+    it('sanitizes the mm_predict_deposit failure_reason when addTransactionBatch fails', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              data: '0x095ea7b3000000000000000000000000',
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error(
+          `Submission failed for tx 0x${'ab'.repeat(32)} via https://polygon-rpc.example.com/v1/secret`,
+        ),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(controller.depositWithConfirmation({})).rejects.toThrow(
+          'Submission failed',
+        );
+
+        const depositEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(depositEvent.properties.failure_reason).toBe(
+          'Submission failed for tx [redacted] via [redacted]',
+        );
+      });
+    });
+
     it('use correct network client ID from chain ID', async () => {
       // Given a deposit on a specific chain
       const mockChainId = '0x1'; // Mainnet
@@ -9708,6 +9744,36 @@ describe('PredictController', () => {
           );
         expect(event).toBeDefined();
         expect(event.properties.failure_reason).toBe('Withdraw reverted');
+      });
+    });
+
+    it('sanitizes the mm_predict_withdraw failure_reason from the transaction error', () => {
+      withController(({ messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictWithdraw,
+            status: TransactionStatus.failed,
+          }),
+          error: {
+            message: `Withdraw reverted for 0x${'0'.repeat(24)}${'1'.repeat(40)} at https://rpc.example.com/key`,
+          },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event.properties.failure_reason).toBe(
+          'Withdraw reverted for [redacted] at [redacted]',
+        );
       });
     });
 

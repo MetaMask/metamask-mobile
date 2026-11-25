@@ -86,11 +86,19 @@ export const usePredictClaim = () => {
         // Synchronous/submission failures occur before any on-chain
         // transaction is created, so the controller's terminal-status handler
         // never runs. Track the failure here so pre-tx failures are measured.
+        const rawErrorMessage =
+          err instanceof Error
+            ? err.message
+            : typeof err === 'string'
+              ? err
+              : '';
         Engine.context.PredictController.trackPredictOrderEvent({
           status: PredictTradeStatus.FAILED,
           analyticsProperties,
           failureReason: mapClaimFailureReason(err),
-          errorMessage: sanitizePredictFailureReason(err),
+          ...(rawErrorMessage.length > 0 && {
+            errorMessage: sanitizePredictFailureReason(rawErrorMessage),
+          }),
         });
 
         Logger.error(ensureError(err), {
@@ -141,7 +149,7 @@ export const usePredictClaim = () => {
           linkButtonOptions: {
             label: strings('predict.claim.toasts.error.try_again'),
             onPress: () => {
-              claim(analyticsContext).catch(() => undefined);
+              void claim(analyticsContext);
             },
           },
         });

@@ -586,6 +586,10 @@ describe('parseAnalyticsProperties', () => {
         'insufficient funds for gas * price + value: balance 0, tx cost 21000',
         'insufficient_gas',
       ],
+      ['insufficient funds for intrinsic transaction cost', 'insufficient_gas'],
+      ['insufficient funds for transfer', 'insufficient_gas'],
+      ['InsufficientFunds', 'insufficient_gas'],
+      ['INSUFFICIENT FUNDS', 'insufficient_gas'],
       ['Insufficient gas for transaction', 'insufficient_gas'],
       ['out of gas', 'insufficient_gas'],
       ['gas required exceeds allowance (30000000)', 'insufficient_gas'],
@@ -693,6 +697,35 @@ describe('parseAnalyticsProperties', () => {
       expect(result).toBe(
         'Request [redacted] failed for [redacted] token=[redacted]',
       );
+    });
+
+    it('redacts transaction hashes', () => {
+      const txHash = `0x${'ab'.repeat(32)}`;
+
+      const result = sanitizePredictFailureReason(
+        `Transaction ${txHash} reverted`,
+      );
+
+      expect(result).toBe('Transaction [redacted] reverted');
+    });
+
+    it('redacts calldata-padded addresses and long hex blobs case-insensitively', () => {
+      const paddedAddress = `0x${'0'.repeat(24)}${'A1b2C3d4E5'.repeat(4)}`;
+      const calldata = `0X${'DEADBEEF'.repeat(17)}`;
+
+      const result = sanitizePredictFailureReason(
+        `call failed for ${paddedAddress} with data ${calldata}`,
+      );
+
+      expect(result).toBe('call failed for [redacted] with data [redacted]');
+    });
+
+    it('keeps short hex values such as error selectors', () => {
+      const result = sanitizePredictFailureReason(
+        'execution reverted: 0x08c379a0',
+      );
+
+      expect(result).toBe('execution reverted: 0x08c379a0');
     });
   });
 });

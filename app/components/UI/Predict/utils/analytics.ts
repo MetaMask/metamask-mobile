@@ -70,8 +70,9 @@ export function parseAnalyticsProperties(
  *
  * `gas_fee_token_unavailable` covers the transaction controller's
  * "Gas fee token not found and insufficient native balance" error and is
- * checked before `insufficient_gas`, which only matches gas-specific phrases
- * (a bare "insufficient" no longer maps to `insufficient_gas`).
+ * checked before `insufficient_gas`. Claims send zero value, so any
+ * "insufficient funds" error is a gas shortage; other "insufficient" errors
+ * (e.g. allowance) map to `unknown`.
  */
 export function mapClaimFailureReason(error?: unknown): string {
   const { CLAIM_FAILURE_REASON } = PredictEventValues;
@@ -116,7 +117,8 @@ export function mapClaimFailureReason(error?: unknown): string {
   }
 
   if (
-    normalized.includes('insufficient funds for gas') ||
+    normalized.includes('insufficient funds') ||
+    normalized.includes('insufficientfunds') ||
     normalized.includes('insufficient gas') ||
     normalized.includes('out of gas') ||
     normalized.includes('gas required') ||
@@ -180,7 +182,7 @@ export function sanitizePredictFailureReason(error?: unknown): string {
   return getPredictErrorMessage(error)
     .replace(/<[^>]*>/g, ' ')
     .replace(/https?:\/\/\S+/gi, REDACTED_VALUE)
-    .replace(/0x[a-fA-F0-9]{40}\b/g, REDACTED_VALUE)
+    .replace(/0x[a-f0-9]{40,}\b/gi, REDACTED_VALUE)
     .replace(/\bBearer\s+\S+/gi, `Bearer ${REDACTED_VALUE}`)
     .replace(
       /\b(api[_-]?key|token|authorization|password)\s*[:=]\s*[^\s,;]+/gi,

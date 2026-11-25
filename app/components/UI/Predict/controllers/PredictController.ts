@@ -1740,7 +1740,7 @@ export class PredictController extends BaseController<
       status: isUserCancelled
         ? PredictTradeStatus.CANCELLED
         : PredictTradeStatus.FAILED,
-      failureReason: ensureError(error).message,
+      failureReason: sanitizePredictFailureReason(ensureError(error)),
     });
 
     return isUserCancelled;
@@ -3069,7 +3069,7 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
   }): string {
     if (transactionMeta.error?.message) {
-      return transactionMeta.error.message;
+      return sanitizePredictFailureReason(transactionMeta.error.message);
     }
 
     switch (type) {
