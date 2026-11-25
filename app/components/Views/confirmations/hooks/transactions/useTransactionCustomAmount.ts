@@ -8,7 +8,6 @@ import { RootState } from '../../../../../reducers';
 import { isSubsidizedRoute } from '../../utils/relayFixedSpread';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
-import Logger from '../../../../../util/Logger';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import {
   TransactionMeta,
@@ -49,15 +48,10 @@ import {
 } from './useDepositPrefillAmount';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
-import {
-  isLighterAccountCreationDeposit,
-  LIGHTER_FIRST_DEPOSIT_CAP_PERCENTAGE,
-} from '../../temp-lighter/lighter-usdc-deposit';
+import { useFirstDepositAmountClamp } from './useFirstDepositAmountClamp';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
-const MAX_CLAMP_COMMIT_RETRIES = 3;
-const CLAMP_RETRY_BACKOFF_MS = 500;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;
@@ -65,42 +59,6 @@ interface DepositPrefetchQuoteRequest {
   isAmountPrepared: boolean;
   quoteBaseline: number | undefined;
   sawQuoteLoading: boolean;
-}
-
-/**
- * Clamps an amount to the first-deposit cap when this is a Lighter account
- * creation deposit. The cap leaves a gas buffer so approve-plus-deposit does
- * not consume the entire balance.
- *
- * @param amountFiat - Fiat amount to clamp.
- * @param balanceUsd - Current balance in USD (number, string, or undefined).
- * @param transactionMeta - Transaction metadata.
- * @returns Clamped amount, or the original amount if no cap applies.
- */
-function clampToFirstDepositCap(
-  amountFiat: string,
-  balanceUsd: number | string | undefined,
-  transactionMeta: TransactionMeta | undefined,
-): string {
-  if (
-    !balanceUsd ||
-    !transactionMeta ||
-    !isLighterAccountCreationDeposit(transactionMeta)
-  ) {
-    return amountFiat;
-  }
-
-  const amount = new BigNumber(amountFiat);
-  const balance = new BigNumber(balanceUsd);
-  const cap = balance
-    .multipliedBy(LIGHTER_FIRST_DEPOSIT_CAP_PERCENTAGE)
-    .dividedBy(100);
-
-  if (amount.isGreaterThan(cap)) {
-    return cap.decimalPlaces(2, BigNumber.ROUND_DOWN).toString(10);
-  }
-
-  return amountFiat;
 }
 
 export function useTransactionCustomAmount({
@@ -194,21 +152,7 @@ export function useTransactionCustomAmount({
   // prefilled, must survive that, so once the transaction is replaced the
   // prefill below no longer overwrites or clears it. Declared before the
   // token-change effect so the ref exists when that effect reads it.
-  const previousTransactionIdRef = useRef(transactionId);
   const keepAmountAfterReplacementRef = useRef(false);
-  const pendingClampRef = useRef(false);
-  const clampCommitInFlightRef = useRef(false);
-  const targetClampedAmountRef = useRef<string | null>(null);
-  const clampRetryAttemptsRef = useRef(0);
-  const clampRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  // Bumped on each confirmation replacement so an in-flight commit from the
-  // previous transaction cannot clear the new attempt.
-  const clampCommitGenerationRef = useRef(0);
-  const [clampRetryCounter, setClampRetryCounter] = useState(0);
-  const [isClampCommitPending, setIsClampCommitPending] = useState(false);
-  const [isClampCommitFailed, setIsClampCommitFailed] = useState(false);
   const ignoreNextAutomaticTokenChangeRef = useRef(false);
 
   const previousPayTokenKeyRef = useRef(payTokenKey);
@@ -534,167 +478,26 @@ export function useTransactionCustomAmount({
     ],
   );
 
-  useEffect(() => {
-    if (previousTransactionIdRef.current === transactionId) {
-      return;
-    }
+  const amountHumanFromFiat = useCallback(
+    (value: string): string =>
+      getAmountHumanFromFiat(value, tokenFiatRate, skipFiatRateConversion),
+    [skipFiatRateConversion, tokenFiatRate],
+  );
 
-    previousTransactionIdRef.current = transactionId;
-
-    // Drop the previous transaction's clamp before arming the new one. A
-    // later effect must not clear pendingClampRef, or the replacement never
-    // commits the 90% cap.
-    if (clampRetryTimeoutRef.current) {
-      clearTimeout(clampRetryTimeoutRef.current);
-      clampRetryTimeoutRef.current = null;
-    }
-    clampCommitGenerationRef.current += 1;
-    clampCommitInFlightRef.current = false;
-    targetClampedAmountRef.current = null;
-    clampRetryAttemptsRef.current = 0;
-    setIsClampCommitPending(false);
-    setIsClampCommitFailed(false);
-
-    if (amountFiat !== '0') {
-      keepAmountAfterReplacementRef.current = true;
-      pendingClampRef.current = true;
-      ignoreNextAutomaticTokenChangeRef.current = true;
-    } else {
-      pendingClampRef.current = false;
-    }
-  }, [amountFiat, transactionId]);
-
-  // Clamp the kept amount once per replacement, deferring until balanceUsd,
-  // tokenFiatRate, and the new transactionMeta are all available. Once clamped
-  // and committed, clear the pending flag so successive replacements can clamp
-  // again. keepAmountAfterReplacementRef stays true until a genuine pay-token
-  // change or manual edit clears it.
-  useEffect(() => {
-    if (
-      !pendingClampRef.current ||
-      amountFiat === '0' ||
-      !balanceUsd ||
-      !transactionMeta
-    ) {
-      return;
-    }
-
-    // Wait for tokenFiatRate (or skipFiatRateConversion) before proceeding, so
-    // we don't commit a zero amount. The effect will retry when the rate loads.
-    if (!tokenFiatRate && !skipFiatRateConversion) {
-      return;
-    }
-
-    // Return early if a commit is already in flight to avoid clearing the
-    // pending flag while the async update is still running.
-    if (clampCommitInFlightRef.current) {
-      return;
-    }
-
-    const clampedAmount = clampToFirstDepositCap(
+  const { isClampCommitFailed, isClampCommitPending } =
+    useFirstDepositAmountClamp({
       amountFiat,
+      amountHumanFromFiat,
       balanceUsd,
+      ignoreNextAutomaticTokenChangeRef,
+      keepAmountAfterReplacementRef,
+      setAmountFiat,
+      skipFiatRateConversion,
+      tokenFiatRate,
+      transactionId,
       transactionMeta,
-    );
-
-    // Check if we need to clamp or retry a failed commit. The retry path
-    // re-commits even when amountFiat already equals the target.
-    const needsClamp = clampedAmount !== amountFiat;
-    const needsRetry =
-      targetClampedAmountRef.current !== null &&
-      amountFiat === targetClampedAmountRef.current;
-
-    if (needsClamp || needsRetry) {
-      const targetAmount = needsRetry
-        ? (targetClampedAmountRef.current ?? clampedAmount)
-        : clampedAmount;
-
-      if (needsClamp) {
-        setAmountFiat(clampedAmount);
-        targetClampedAmountRef.current = clampedAmount;
-      }
-
-      // Commit the clamped amount to the transaction so the deposit carries
-      // the reduced value, not the original 100%.
-      const clampedAmountHuman = getAmountHumanFromFiat(
-        targetAmount,
-        tokenFiatRate,
-        skipFiatRateConversion,
-      );
-
-      clampCommitInFlightRef.current = true;
-      setIsClampCommitPending(true);
-      const commitGeneration = clampCommitGenerationRef.current;
-
-      const commitClampedAmount = async () => {
-        try {
-          await updateTransactionPayAmount(clampedAmountHuman);
-          if (clampCommitGenerationRef.current !== commitGeneration) {
-            return;
-          }
-          // Clear both flags and reset state only after success
-          pendingClampRef.current = false;
-          clampCommitInFlightRef.current = false;
-          setIsClampCommitPending(false);
-          targetClampedAmountRef.current = null;
-          clampRetryAttemptsRef.current = 0;
-          setIsClampCommitFailed(false);
-        } catch (error: unknown) {
-          if (clampCommitGenerationRef.current !== commitGeneration) {
-            return;
-          }
-          Logger.error(
-            error as Error,
-            'Failed to update transaction pay amount with clamped value',
-          );
-          clampCommitInFlightRef.current = false;
-          // Hold the ref false during backoff so this effect does not start
-          // another commit before the timeout. The timeout sets it true again.
-          pendingClampRef.current = false;
-          setIsClampCommitPending(false);
-
-          // Check if we've hit the retry limit
-          if (clampRetryAttemptsRef.current >= MAX_CLAMP_COMMIT_RETRIES) {
-            // Stop retrying and surface the failure
-            setIsClampCommitFailed(true);
-            Logger.error(
-              new Error('Clamp commit retry limit reached'),
-              'Failed to commit clamped amount after retries',
-            );
-          } else {
-            // Retry with backoff
-            clampRetryAttemptsRef.current += 1;
-            if (clampRetryTimeoutRef.current) {
-              clearTimeout(clampRetryTimeoutRef.current);
-            }
-            clampRetryTimeoutRef.current = setTimeout(() => {
-              pendingClampRef.current = true;
-              setClampRetryCounter((prev) => prev + 1);
-            }, CLAMP_RETRY_BACKOFF_MS);
-          }
-        }
-      };
-
-      commitClampedAmount().catch((error: unknown) => {
-        Logger.error(
-          error as Error,
-          'Unexpected error in clamp commit handler',
-        );
-      });
-    } else if (!clampCommitInFlightRef.current) {
-      // No clamp needed and no commit in flight; clear the pending flag
-      pendingClampRef.current = false;
-      targetClampedAmountRef.current = null;
-    }
-  }, [
-    amountFiat,
-    balanceUsd,
-    skipFiatRateConversion,
-    tokenFiatRate,
-    transactionMeta,
-    updateTransactionPayAmount,
-    clampRetryCounter,
-  ]);
+      updateTransactionPayAmount,
+    });
 
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;

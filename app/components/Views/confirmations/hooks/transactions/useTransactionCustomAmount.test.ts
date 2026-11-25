@@ -3342,6 +3342,111 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('900');
     });
 
+    it('commits the cap onto a later replacement when the keypad is already at 90%', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      const switchToLighterDeposit = async (
+        transactionId: string,
+      ): Promise<void> => {
+        jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+          const current = actualHook();
+          return {
+            ...current,
+            id: transactionId,
+            type: TransactionType.perpsLighterDeposit,
+            nestedTransactions: [
+              { data: '0x095ea7b3' },
+              { data: '0x8a857083' },
+            ],
+          } as TransactionMeta;
+        });
+        mockPayToken(undefined);
+
+        await act(async () => {
+          rerender({});
+          jest.runAllTimers();
+        });
+      };
+
+      await switchToLighterDeposit('replacement-lighter-deposit');
+
+      let resolveFirstCommit: (value: boolean) => void = () => undefined;
+      updateTransactionPayAmountMock.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveFirstCommit = resolve;
+        }),
+      );
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('900');
+      expect(result.current.isClampCommitPending).toBe(true);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('450');
+
+      let resolveSecondCommit: (value: boolean) => void = () => undefined;
+      updateTransactionPayAmountMock.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveSecondCommit = resolve;
+        }),
+      );
+
+      await switchToLighterDeposit('second-lighter-deposit');
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('900');
+      expect(result.current.isClampCommitPending).toBe(true);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
+
+      await act(async () => {
+        resolveFirstCommit(true);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitPending).toBe(true);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        resolveSecondCommit(true);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isClampCommitPending).toBe(false);
+      expect(result.current.isClampCommitFailed).toBe(false);
+      expect(result.current.amountFiat).toBe('900');
+    });
+
     afterEach(() => {
       jest.useRealTimers();
     });
@@ -3635,7 +3740,10 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.isClampCommitFailed).toBe(false);
       expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
 
-      // Now replace the transaction (simulate provider switch)
+      // The keypad is already at 90%. The new confirmation is still built from
+      // the uncapped amount, so the replacement writes the cap again and drops
+      // the previous attempt's retry.
+      updateTransactionPayAmountMock.mockResolvedValue(true);
       jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
         const current = actualHook();
         return {
@@ -3649,19 +3757,22 @@ describe('useTransactionCustomAmount', () => {
       await act(async () => {
         rerender({});
         jest.runAllTimers();
+        await Promise.resolve();
       });
 
-      // State should reset - no retry scheduled, failed flag cleared
       expect(result.current.isClampCommitFailed).toBe(false);
       expect(result.current.isClampCommitPending).toBe(false);
+      expect(result.current.amountFiat).toBe('900');
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
+      expect(updateTransactionPayAmountMock).toHaveBeenLastCalledWith('450');
 
-      // Advance timers - no additional calls should happen
       await act(async () => {
         jest.advanceTimersByTime(2000);
         rerender({});
+        await Promise.resolve();
       });
 
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(2);
     });
 
     it('keeps the replaced amount when depositPrefill status toggles', async () => {
