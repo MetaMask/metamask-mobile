@@ -10,12 +10,15 @@
  *   yarn test:view:repeat [File.view.test.tsx ...]
  *
  * Files come from the arguments, or by default from the files changed vs
- * origin/main (committed diff plus uncommitted changes). The run stops at the
- * first failing repetition, prints its seed and failing tests, and exits
- * non-zero; the seed and file order reproduce the failing run exactly.
+ * origin/main: the committed diff plus uncommitted and untracked changes, so
+ * work-in-progress view tests are repeated before they are committed. The run
+ * stops at the first failing repetition, prints its seed and failing tests,
+ * and exits non-zero; the seed and file order reproduce the failing run
+ * exactly.
  *
  * Env: REPEAT_COUNT repetitions (default 2); MAX_FILES cap (default 10);
- * TIME_BUDGET_MINUTES budget, 0 disables (default 60); BASE_REF git base
+ * TIME_BUDGET_MINUTES budget, 0 disables (default 60); HANG_TIMEOUT_MINUTES
+ * per-repetition hang limit, 0 disables (default 20); BASE_REF git base
  * (default origin/main); TEST_OS platform passed to Jest (default ios).
  */
 
@@ -35,8 +38,9 @@ const DEFAULT_BASE_REF = 'origin/main';
 
 /**
  * Raw changed-path list for the default (no-argument) mode: the committed diff
- * against the base ref plus the uncommitted changes, so work-in-progress view
- * tests can be repeated before they are committed.
+ * against the base ref, the uncommitted changes, and the untracked files
+ * (`--exclude-standard` keeps ignored paths like tests/results out), so
+ * work-in-progress view tests are repeated before they are committed.
  */
 export function listChangedFiles({
   baseRef = process.env.BASE_REF || DEFAULT_BASE_REF,
@@ -47,7 +51,10 @@ export function listChangedFiles({
     encoding: 'utf8',
   });
   const uncommitted = execFile('git', ['diff', '--name-only', 'HEAD'], { encoding: 'utf8' });
-  return `${committed}\n${uncommitted}`;
+  const untracked = execFile('git', ['ls-files', '--others', '--exclude-standard'], {
+    encoding: 'utf8',
+  });
+  return `${committed}\n${uncommitted}\n${untracked}`;
 }
 
 function listChangedFilesOrThrow() {

@@ -53,7 +53,8 @@ setTimeout(() => {
 /**
  * Git stub on the PATH of the spawned script, so the default changed-file
  * listing is deterministic: `merge-base` succeeds (or fails with
- * GIT_STUB_FAIL), and both `--name-only` diffs echo GIT_STUB_DIFF_OUTPUT.
+ * GIT_STUB_FAIL), the `--name-only` diffs echo GIT_STUB_DIFF_OUTPUT, and
+ * `ls-files --others` echoes GIT_STUB_UNTRACKED_OUTPUT.
  */
 function writeGitStub(stubDir: string): void {
   const gitStubPath = path.join(stubDir, 'git');
@@ -66,6 +67,8 @@ if [ "$1" = "merge-base" ]; then
     exit 1
   fi
   echo stubbed-merge-base
+elif [ "$1" = "ls-files" ]; then
+  printf '%s' "$GIT_STUB_UNTRACKED_OUTPUT"
 else
   printf '%s' "$GIT_STUB_DIFF_OUTPUT"
 fi
@@ -83,6 +86,7 @@ interface LocalRunOptions {
   sleepMs?: number;
   jestNodePath?: string;
   gitDiffOutput?: string;
+  gitUntrackedOutput?: string;
   gitFails?: boolean;
 }
 
@@ -120,9 +124,10 @@ function runLocalScript(options: LocalRunOptions): LocalRunResult {
   if (options.jestNodePath !== undefined) {
     env.JEST_NODE_PATH = options.jestNodePath;
   }
-  if (options.gitDiffOutput !== undefined || options.gitFails) {
+  if (options.gitDiffOutput !== undefined || options.gitUntrackedOutput !== undefined || options.gitFails) {
     writeGitStub(stubDir);
     env.GIT_STUB_DIFF_OUTPUT = options.gitDiffOutput ?? '';
+    env.GIT_STUB_UNTRACKED_OUTPUT = options.gitUntrackedOutput ?? '';
     env.GIT_STUB_FAIL = options.gitFails ? '1' : '';
     env.PATH = `${stubDir}${path.delimiter}${process.env.PATH || ''}`;
   }
@@ -272,16 +277,20 @@ describe('cv-flakiness-local', () => {
     const first = makeCvFile(tempDir, 'GitA.view.test.tsx');
     const second = makeCvFile(tempDir, 'GitB.view.test.tsx');
     const nonViewTest = makeCvFile(tempDir, 'GitC.spec.ts');
+    // An untracked work-in-progress file must be repeated too (Bugbot:
+    // untracked view tests are skipped).
+    const untracked = makeCvFile(tempDir, 'GitD.view.test.tsx');
     const { status, calls, stdout } = runLocalScript({
       gitDiffOutput: `${first}\n${second}\n${nonViewTest}\n`,
+      gitUntrackedOutput: `${untracked}\n`,
       repeatCount: '1',
     });
 
     expect(status).toBe(0);
     expect(calls).toHaveLength(1);
     // Repetitions shuffle the file order, so compare as a set.
-    expect([...calls[0].files].sort()).toEqual([first, second].sort());
-    expect(stdout).toContain('Repeating 2 component view test file(s) 1× (cap 10)');
+    expect([...calls[0].files].sort()).toEqual([first, second, untracked].sort());
+    expect(stdout).toContain('Repeating 3 component view test file(s) 1× (cap 10)');
   });
 
   it('fails with guidance when git cannot list the changed files', () => {
@@ -302,22 +311,26 @@ describe('cv-flakiness-local', () => {
 });
 
 describe('listChangedFiles', () => {
-  it('combines the committed diff against the merge base with the uncommitted changes', () => {
+  it('combines the committed diff, uncommitted changes and untracked files', () => {
     const calls: string[][] = [];
     const fakeExecFile = (_command: string, args: string[]) => {
       calls.push(args);
       if (args[0] === 'merge-base') return 'stubbed-merge-base\n';
       if (args[2] === 'stubbed-merge-base') return 'app/Committed.view.test.tsx\n';
+      if (args[1] === '--others') return 'app/Untracked.view.test.tsx\n';
       return 'app/Uncommitted.view.test.tsx\n';
     };
 
     const raw = listChangedFiles({ execFile: fakeExecFile });
 
-    expect(raw).toBe('app/Committed.view.test.tsx\n\napp/Uncommitted.view.test.tsx\n');
+    expect(raw).toBe(
+      'app/Committed.view.test.tsx\n\napp/Uncommitted.view.test.tsx\n\napp/Untracked.view.test.tsx\n',
+    );
     expect(calls).toEqual([
       ['merge-base', 'origin/main', 'HEAD'],
       ['diff', '--name-only', 'stubbed-merge-base', 'HEAD'],
       ['diff', '--name-only', 'HEAD'],
+      ['ls-files', '--others', '--exclude-standard'],
     ]);
   });
 
