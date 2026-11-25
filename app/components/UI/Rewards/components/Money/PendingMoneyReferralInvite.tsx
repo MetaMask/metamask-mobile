@@ -117,7 +117,7 @@ const PendingMoneyReferralInvitePresenter = ({
         MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS,
       );
       Promise.all([
-        fetchReferralMe({ forceFresh: true }),
+        fetchReferralMe({ forceFresh: true }).catch(() => undefined),
         appInstallationPromise,
       ])
         .then(([result, appInstalled]) => {
@@ -133,7 +133,7 @@ const PendingMoneyReferralInvitePresenter = ({
           }
           const state = store.getState();
           const referralMeEntry =
-            result.status === 'settled'
+            result?.status === 'settled'
               ? selectReferralMeEntry(state, result.profileId)
               : undefined;
           const referralMe =
@@ -153,10 +153,7 @@ const PendingMoneyReferralInvitePresenter = ({
           // for the newer one.
           openInvite(appInstalled);
         })
-        .catch(async () => {
-          const appInstalled = await appInstallationPromise;
-          openInvite(appInstalled);
-        });
+        .catch((): void => openInvite(wasAppInstalled));
     });
 
     return () => {
