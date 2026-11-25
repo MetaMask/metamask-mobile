@@ -168,7 +168,7 @@ describe('buildQuickDepositStablecoinOption', () => {
     );
   });
 
-  it('prefers USDC, then USDT, then mUSD when totals tie', () => {
+  it('prefers USDC when USDC, USDT, and mUSD tie', () => {
     expect(
       build([
         asset({
@@ -191,7 +191,9 @@ describe('buildQuickDepositStablecoinOption', () => {
         }),
       ])?.symbol,
     ).toBe('USDC');
+  });
 
+  it('prefers USDT when USDT and mUSD tie', () => {
     expect(
       build([
         asset({
@@ -245,8 +247,11 @@ describe('buildQuickDepositStablecoinOption', () => {
     ).toBe('3');
   });
 
-  it('hides empty, zero, and unsupported balances', () => {
+  it('hides when there are no assets', () => {
     expect(build([])).toBeUndefined();
+  });
+
+  it('hides a zero balance', () => {
     expect(
       build([
         asset({
@@ -257,6 +262,9 @@ describe('buildQuickDepositStablecoinOption', () => {
         }),
       ]),
     ).toBeUndefined();
+  });
+
+  it('hides an unsupported chain', () => {
     expect(
       build([
         asset({
@@ -267,6 +275,9 @@ describe('buildQuickDepositStablecoinOption', () => {
         }),
       ]),
     ).toBeUndefined();
+  });
+
+  it('hides when the supported list is empty', () => {
     expect(
       build(
         [
@@ -280,6 +291,9 @@ describe('buildQuickDepositStablecoinOption', () => {
         [],
       ),
     ).toBeUndefined();
+  });
+
+  it('hides a testnet token', () => {
     expect(
       build([
         asset({

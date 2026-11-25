@@ -538,11 +538,13 @@ describe('MoneyAddMoneySheet', () => {
       },
     });
 
-    it.each([
+    const symbols = [
       ['USDC', 'addUsdc'],
       ['USDT', 'addUsdt'],
       ['mUSD', 'addMusd'],
-    ] as const)('shows %s and deposits with %s', (symbol, intent) => {
+    ] as const;
+
+    it.each(symbols)('shows %s on the row', (symbol, intent) => {
       (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
         option(symbol, intent),
       );
@@ -556,18 +558,42 @@ describe('MoneyAddMoneySheet', () => {
       ).toBeOnTheScreen();
       expect(getByText('$65.00')).toBeOnTheScreen();
       expect(getByText(symbol)).toBeOnTheScreen();
+    });
+
+    it.each(symbols)(
+      'deposits with %s when the row is pressed',
+      (symbol, intent) => {
+        (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
+          option(symbol, intent),
+        );
+
+        const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+        fireEvent.press(
+          getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
+        );
+
+        expect(mockInitiateDeposit).toHaveBeenCalledWith({
+          intent,
+          preferredPaymentToken: {
+            address: tokenAddress,
+            chainId: CHAIN_IDS.BASE,
+          },
+        });
+      },
+    );
+
+    it.each(symbols)('tracks %s when the row is pressed', (symbol, intent) => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue(
+        option(symbol, intent),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
       fireEvent.press(
         getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
       );
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith({
-        intent,
-        preferredPaymentToken: {
-          address: tokenAddress,
-          chainId: CHAIN_IDS.BASE,
-        },
-      });
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
