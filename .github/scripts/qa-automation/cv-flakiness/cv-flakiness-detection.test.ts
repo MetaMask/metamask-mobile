@@ -1,77 +1,16 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 import { collectIterationFailures } from './cv-flakiness-detection.mjs';
+import { cleanupTempDirs, makeCvFile, newTempDir, readStubCalls, writeJestStub } from './test-helpers';
 
 const REPOSITORY_ROOT = process.cwd();
 const SCRIPT_PATH = path.join(
   REPOSITORY_ROOT,
   '.github/scripts/qa-automation/cv-flakiness/cv-flakiness-detection.mjs',
 );
-
-/** Jest stub: writes a minimal Jest JSON report and logs every invocation. */
-function writeJestStub(
-  stubDir: string,
-  options: { failSubstring?: string; sleepMs?: number; hangAfterReport?: boolean },
-): string {
-  const stubPath = path.join(stubDir, 'jest-stub.cjs');
-  writeFileSync(
-    stubPath,
-    `
-const fs = require('node:fs');
-const args = process.argv.slice(2);
-const option = (name) => { const i = args.indexOf(name); return i !== -1 ? args[i + 1] : ''; };
-const outputFile = option('--outputFile');
-const files = args.filter((arg, i) => /\.view\.test\.tsx?$/.test(arg) && !['--outputFile', '--seed'].includes(args[i - 1]));
-fs.appendFileSync(process.env.STUB_CALLS_PATH, JSON.stringify({ seed: option('--seed'), files }) + '\\n');
-const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
-const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
-const hangAfterReport = ${JSON.stringify(options.hangAfterReport ?? false)};
-const forcedExit = Number(process.env.STUB_EXIT_CODE || '');
-const stubReport = process.env.STUB_REPORT || '';
-const writeReport = () => {
-  if (stubReport === 'invalid') {
-    if (outputFile) fs.writeFileSync(outputFile, '{"testResults": [');
-    return true;
-  }
-  const runtime = stubReport === 'runtime';
-  const testResults = files.map((file) => {
-    const failed = Boolean(failSubstring) && file.includes(failSubstring);
-    const entry = {
-      name: file,
-      status: failed ? 'failed' : 'passed',
-      assertionResults: [{
-        fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
-        status: failed ? 'failed' : 'passed',
-        failureMessages: failed ? ['Stub failure message'] : [],
-      }],
-    };
-    if (runtime) {
-      entry.status = 'failed';
-      entry.testExecError = 'Cannot find module ../../../missingModule';
-    }
-    return entry;
-  });
-  if (outputFile) {
-    fs.writeFileSync(outputFile, JSON.stringify({ testResults, numRuntimeErrorTestSuites: runtime ? 1 : 0 }));
-  }
-  return testResults.some((result) => result.status === 'failed');
-};
-const exitWith = (anyFailed) => process.exit(Number.isFinite(forcedExit) ? forcedExit : anyFailed ? 1 : 0);
-if (hangAfterReport) {
-  // Write the report up front, then keep running past the budget deadline so
-  // spawnSync kills the run after its report exists.
-  const anyFailed = writeReport();
-  setTimeout(() => exitWith(anyFailed), sleepMs);
-} else {
-  setTimeout(() => exitWith(writeReport()), sleepMs);
-}
-`,
-  );
-  return stubPath;
-}
 
 /** Fetch stub injected with NODE_OPTIONS=--require for the PR label check. */
 function writeFetchStub(stubDir: string, options: { ok: boolean; labelNames: string[] }): string {
@@ -121,11 +60,8 @@ interface RunResult {
   summary: string;
 }
 
-const createdDirs: string[] = [];
-
 function runScript(options: RunOptions): RunResult {
-  const stubDir = mkdtempSync(path.join(tmpdir(), 'cv-flakiness-stub-'));
-  createdDirs.push(stubDir);
+  const stubDir = newTempDir('cv-flakiness-stub-');
   const callsPath = path.join(stubDir, 'calls.jsonl');
   const outputPath = path.join(stubDir, 'github-output');
   const summaryPath = path.join(stubDir, 'step-summary');
@@ -178,35 +114,21 @@ function runScript(options: RunOptions): RunResult {
     status: result.status,
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
-    calls: existsSync(callsPath)
-      ? readFileSync(callsPath, 'utf8')
-          .trim()
-          .split('\n')
-          .filter(Boolean)
-          .map((line) => JSON.parse(line))
-      : [],
+    calls: readStubCalls(callsPath),
     output: existsSync(outputPath) ? readFileSync(outputPath, 'utf8') : '',
     summary: existsSync(summaryPath) ? readFileSync(summaryPath, 'utf8') : '',
   };
-}
-function makeCvFile(dir: string, name: string): string {
-  const filePath = path.join(dir, name);
-  writeFileSync(filePath, '');
-  return filePath;
 }
 
 describe('cv-flakiness-detection', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'cv-flakiness-files-'));
-    createdDirs.push(tempDir);
+    tempDir = newTempDir('cv-flakiness-files-');
   });
 
   afterEach(() => {
-    for (const dir of createdDirs.splice(0)) {
-      rmSync(dir, { recursive: true, force: true });
-    }
+    cleanupTempDirs();
   });
 
   it('skips without running jest when no component view test files changed', () => {

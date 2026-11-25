@@ -1,54 +1,16 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, chmodSync } from 'node:fs';
+import { writeFileSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 import { listChangedFiles } from './cv-flakiness-local.mjs';
+import { cleanupTempDirs, makeCvFile, newTempDir, readStubCalls, writeJestStub } from './test-helpers';
 
 const REPOSITORY_ROOT = process.cwd();
 const SCRIPT_PATH = path.join(
   REPOSITORY_ROOT,
   '.github/scripts/qa-automation/cv-flakiness/cv-flakiness-local.mjs',
 );
-
-/** Jest stub: writes a minimal Jest JSON report and logs every invocation. */
-function writeJestStub(stubDir: string, options: { failSubstring?: string; sleepMs?: number }): string {
-  const stubPath = path.join(stubDir, 'jest-stub.cjs');
-  writeFileSync(
-    stubPath,
-    `
-const fs = require('node:fs');
-const args = process.argv.slice(2);
-const option = (name) => { const i = args.indexOf(name); return i !== -1 ? args[i + 1] : ''; };
-const outputFile = option('--outputFile');
-const files = args.filter((arg, i) => /\.view\.test\.tsx?$/.test(arg) && !['--outputFile', '--seed'].includes(args[i - 1]));
-fs.appendFileSync(process.env.STUB_CALLS_PATH, JSON.stringify({ seed: option('--seed'), files }) + '\\n');
-const failSubstring = ${JSON.stringify(options.failSubstring ?? '')};
-const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
-const forcedExit = Number(process.env.STUB_EXIT_CODE || '');
-setTimeout(() => {
-  const testResults = files.map((file) => {
-    const failed = Boolean(failSubstring) && file.includes(failSubstring);
-    return {
-      name: file,
-      status: failed ? 'failed' : 'passed',
-      assertionResults: [{
-        fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
-        status: failed ? 'failed' : 'passed',
-        failureMessages: failed ? ['Stub failure message'] : [],
-      }],
-    };
-  });
-  if (outputFile) {
-    fs.writeFileSync(outputFile, JSON.stringify({ testResults, numRuntimeErrorTestSuites: 0 }));
-  }
-  const anyFailed = testResults.some((result) => result.status === 'failed');
-  process.exit(Number.isFinite(forcedExit) ? forcedExit : anyFailed ? 1 : 0);
-}, sleepMs);
-`,
-  );
-  return stubPath;
-}
 
 /**
  * Git stub on the PATH of the spawned script, so the default changed-file
@@ -97,11 +59,8 @@ interface LocalRunResult {
   calls: { seed: string; files: string[] }[];
 }
 
-const createdDirs: string[] = [];
-
 function runLocalScript(options: LocalRunOptions): LocalRunResult {
-  const stubDir = mkdtempSync(path.join(tmpdir(), 'cv-flakiness-local-'));
-  createdDirs.push(stubDir);
+  const stubDir = newTempDir('cv-flakiness-local-');
   const callsPath = path.join(stubDir, 'calls.jsonl');
   const jestStubPath = writeJestStub(stubDir, {
     failSubstring: options.failSubstring,
@@ -145,34 +104,19 @@ function runLocalScript(options: LocalRunOptions): LocalRunResult {
     status: result.status,
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
-    calls: existsSync(callsPath)
-      ? readFileSync(callsPath, 'utf8')
-          .trim()
-          .split('\n')
-          .filter(Boolean)
-          .map((line) => JSON.parse(line))
-      : [],
+    calls: readStubCalls(callsPath),
   };
-}
-
-function makeCvFile(dir: string, name: string): string {
-  const filePath = path.join(dir, name);
-  writeFileSync(filePath, '');
-  return filePath;
 }
 
 describe('cv-flakiness-local', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'cv-flakiness-local-files-'));
-    createdDirs.push(tempDir);
+    tempDir = newTempDir('cv-flakiness-local-files-');
   });
 
   afterEach(() => {
-    for (const dir of createdDirs.splice(0)) {
-      rmSync(dir, { recursive: true, force: true });
-    }
+    cleanupTempDirs();
   });
 
   it('defaults to a low repeat count of 2 when REPEAT_COUNT is unset', () => {
@@ -221,13 +165,10 @@ describe('cv-flakiness-local', () => {
       `❌ Iteration 1 (seed ${calls[0].seed}) failed with 1 failure(s); stopping at the first failing repetition.`,
     );
     expect(stderr).toContain('Flaky.view.test.tsx › Stub failing test name');
-    expect(stderr).toContain(`--randomize --seed ${calls[0].seed}`);
-    // The platform is part of the re-run command: TEST_OS decides which
+    // The platform must be part of the re-run command: TEST_OS decides which
     // platform variants itForPlatforms runs, so without it the seed would
     // exercise a different set of tests in a different order.
-    expect(stderr).toContain(
-      `TEST_OS=ios yarn jest -c jest.config.view.js --no-watchman --runTestsByPath --randomize --seed ${calls[0].seed}`,
-    );
+    expect(stderr).toContain(`TEST_OS=ios yarn jest -c jest.config.view.js --no-watchman --runTestsByPath --randomize --seed ${calls[0].seed}`);
     expect(stderr).toContain(
       'Component view flakiness detected: 1 failure(s) in repetition 1 (seed ' + calls[0].seed + ').',
     );
