@@ -40,6 +40,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
@@ -204,7 +205,10 @@ const PerpsPositionTransactionView: React.FC = () => {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        testID={PerpsTransactionSelectorsIDs.POSITION_TRANSACTION_VIEW}
+      >
         <View style={styles.content}>
           <PerpsTransactionDetailAssetHero
             transaction={transaction}
@@ -288,6 +292,7 @@ const PerpsPositionTransactionView: React.FC = () => {
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleViewOnBlockExplorer}
+              testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
               style={styles.blockExplorerButton}
             >
               {strings('perps.transactions.view_on_explorer')}

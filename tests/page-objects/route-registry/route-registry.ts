@@ -40,7 +40,10 @@ import type OnboardingSheet from '../Onboarding/OnboardingSheet';
 import type OrderDetailsView from '../Ramps/OrderDetailsView';
 import type PerpsMarketDetailsView from '../Perps/PerpsMarketDetailsView';
 import type PerpsMarketListView from '../Perps/PerpsMarketListView';
+import type PerpsFundingTransactionView from '../Perps/PerpsFundingTransactionView';
+import type PerpsOrderTransactionView from '../Perps/PerpsOrderTransactionView';
 import type PerpsOrderDetailsView from '../Perps/PerpsOrderDetailsView';
+import type PerpsPositionTransactionView from '../Perps/PerpsPositionTransactionView';
 import type PredictAddFunds from '../Predict/PredictAddFunds';
 import type PredictFeedView from '../Predict/PredictFeedView';
 import type PredictMarketList from '../Predict/PredictMarketList';
@@ -99,7 +102,10 @@ interface PageObjectModules {
   OrderDetailsView: typeof OrderDetailsView;
   PerpsMarketDetailsView: typeof PerpsMarketDetailsView;
   PerpsMarketListView: typeof PerpsMarketListView;
+  PerpsFundingTransactionView: typeof PerpsFundingTransactionView;
+  PerpsOrderTransactionView: typeof PerpsOrderTransactionView;
   PerpsOrderDetailsView: typeof PerpsOrderDetailsView;
+  PerpsPositionTransactionView: typeof PerpsPositionTransactionView;
   PredictAddFunds: typeof PredictAddFunds;
   PredictFeedView: typeof PredictFeedView;
   PredictMarketList: typeof PredictMarketList;
@@ -167,9 +173,12 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   OnboardingInterestQuestionnaire: 'OnboardingInterestQuestionnaireView',
   OnboardingSheet: 'OnboardingSheet',
   PerpsActivity: 'ActivitiesView',
+  PerpsFundingTransaction: 'PerpsFundingTransactionView',
   PerpsMarketDetails: 'PerpsMarketDetailsView',
   PerpsMarketListView: 'PerpsMarketListView',
+  PerpsOrderTransaction: 'PerpsOrderTransactionView',
   PerpsOrderDetailsView: 'PerpsOrderDetailsView',
+  PerpsPositionTransaction: 'PerpsPositionTransactionView',
   PredictAddFundsSheet: 'PredictAddFunds',
   PredictFeed: 'PredictFeedView',
   PredictMarketList: 'PredictMarketList',
@@ -231,8 +240,8 @@ const NO_PAGE_OBJECT_ROUTES =
   NotificationsDetails NotificationSettingsSection NotificationsSettings NotificationsView Onboarding OnboardingOAuthRehydrate OnboardingSuccess OpenLimitOrderDetailsModal
   OptinMetrics OptionsSheet OrderCompleted OrderProcessing OriginSpamModal OTAUpdatesModal OtpCode PermittedNetworksInfoSheet
   OrderDetails PerpsAdjustMargin PerpsBalanceOrder PerpsCancelAllOrders PerpsCloseAllPositions PerpsClosePosition PerpsClosePositionModals PerpsCreatePriceAlert
-  PerpsCrossMarginWarning PerpsFundingTransaction PerpsGTMModal PerpsHIP3Debug PerpsModeSelection PerpsOrderBook PerpsOrderRedirect PerpsOrderTransaction
-  PerpsOutreachDetails PerpsPnlHeroCard PerpsPositions PerpsPositionTransaction PerpsPriceAlerts PerpsQuoteExpiredModal PerpsSelectAdjustMarginAction PerpsSelectModifyAction
+  PerpsCrossMarginWarning PerpsGTMModal PerpsHIP3Debug PerpsModeSelection PerpsOrderBook PerpsOrderRedirect
+  PerpsOutreachDetails PerpsPnlHeroCard PerpsPositions PerpsPriceAlerts PerpsQuoteExpiredModal PerpsSelectAdjustMarginAction PerpsSelectModifyAction
   PerpsSelectOrderType PerpsSelectProvider PerpsSharePosition PerpsTooltip PerpsTPSL PerpsTradingView PerpsTrendingView PerpsTutorial
   PerpsWithdraw Pna25BottomSheet PostTradeModal PredictActivityDetail PredictBuyPreview PredictMarketDetails PredictMarketUnavailable PredictSellPreview
   PriceImpactModal ProfilesToFollowView ProHub ProHubCancelMembership ProHubEarned ProHubMembership ProSubscription QRScanner
