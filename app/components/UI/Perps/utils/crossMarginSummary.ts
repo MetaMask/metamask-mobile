@@ -153,6 +153,16 @@ export const liquidationPriceForOrderSide = ({
 };
 
 /**
+ * A controller estimate, or the client-side failure of the request itself.
+ * `estimateCrossLiquidation` never rejects, so `request_failed` means the call
+ * could not run (for example the Engine context was unavailable). It is kept
+ * apart from the controller's `account_unknown`.
+ */
+export type CrossLiquidationEstimateResult =
+  | CrossLiquidationEstimate
+  | { status: 'unavailable'; reason: 'request_failed' };
+
+/**
  * Turns a `PerpsController.estimateCrossLiquidation` result into the
  * order-row value. Callers that are not placing a cross order should keep
  * their isolated price instead.
@@ -167,7 +177,7 @@ export const presentCrossLiquidationEstimate = ({
   estimate,
   hasValidAmount,
 }: {
-  estimate: CrossLiquidationEstimate | undefined;
+  estimate: CrossLiquidationEstimateResult | undefined;
   hasValidAmount: boolean;
 }): PresentedCrossLiquidation => {
   if (hasValidAmount && estimate?.status === 'price') {
@@ -226,7 +236,7 @@ export const selectOrderLiquidationRow = ({
   isolatedPrice,
 }: {
   isCrossOrder: boolean;
-  crossEstimate: CrossLiquidationEstimate | undefined;
+  crossEstimate: CrossLiquidationEstimateResult | undefined;
   hasValidAmount: boolean;
   isolatedPrice: string | undefined;
 }): OrderLiquidationRow => {

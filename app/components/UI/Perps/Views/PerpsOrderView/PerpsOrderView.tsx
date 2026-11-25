@@ -170,7 +170,6 @@ import { usePerpsMarginModeLock } from '../../hooks/usePerpsMarginModeLock';
 import {
   MAX_PERPS_INPUT_DIGITS,
   PERPS_MIN_BALANCE_THRESHOLD,
-  PROVIDER_CONFIG,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { translatePerpsError } from '../../utils/translatePerpsError';
@@ -727,13 +726,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // The venue the order will go to, so the margin lock and the cross
   // estimate follow the position it will change. Another venue's position for
-  // this symbol must not set the cross estimate.
-  const liquidationProviderId =
-    orderVenueId ??
-    marketData?.providerId ??
-    (activePerpsProvider === PROVIDER_CONFIG.LighterProvider
-      ? PROVIDER_CONFIG.LighterProvider
-      : PROVIDER_CONFIG.DefaultProvider);
+  // this symbol must not set the cross estimate. When neither the order venue
+  // nor the market reports a provider, it stays `undefined`: the margin lock is
+  // not read and the cross estimate is unavailable, rather than guessing a
+  // venue in the client.
+  const liquidationProviderId = orderVenueId ?? marketData?.providerId;
   const {
     existingPosition: currentMarketPosition,
     isLoading: isCurrentPositionLoading,
@@ -747,7 +744,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { lock: marginModeLock } = usePerpsMarginModeLock({
     symbol: orderForm.asset || '',
     providerId: liquidationProviderId,
-    enabled: isCrossMarginEnabled && Boolean(orderForm.asset),
+    enabled:
+      isCrossMarginEnabled &&
+      Boolean(orderForm.asset) &&
+      liquidationProviderId !== undefined,
     refreshKey: currentMarketPosition?.leverage?.type,
   });
   const isCrossOrder =

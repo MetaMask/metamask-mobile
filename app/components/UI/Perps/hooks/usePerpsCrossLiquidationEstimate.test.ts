@@ -6,6 +6,14 @@ import {
 } from './usePerpsCrossLiquidationEstimate';
 
 const mockEstimateCrossLiquidation = jest.fn();
+const mockLoggerError = jest.fn();
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: (...args: unknown[]) => mockLoggerError(...args),
+  },
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -37,6 +45,7 @@ const baseParams: UsePerpsCrossLiquidationEstimateParams = {
 
 describe('usePerpsCrossLiquidationEstimate', () => {
   beforeEach(() => {
+    mockLoggerError.mockReset();
     mockEstimateCrossLiquidation.mockReset();
     mockEstimateCrossLiquidation.mockResolvedValue({
       status: 'price',
@@ -123,8 +132,36 @@ describe('usePerpsCrossLiquidationEstimate', () => {
     );
   });
 
-  it('reports an unavailable estimate when the controller rejects', async () => {
-    mockEstimateCrossLiquidation.mockRejectedValue(new Error('boom'));
+  it('reports a distinct request failure and logs it when the controller rejects', async () => {
+    const failure = new Error('boom');
+    mockEstimateCrossLiquidation.mockRejectedValue(failure);
+
+    const { result } = renderHook(() =>
+      usePerpsCrossLiquidationEstimate(baseParams),
+    );
+
+    await waitFor(() =>
+      expect(result.current.estimate).toEqual({
+        status: 'unavailable',
+        reason: 'request_failed',
+      }),
+    );
+    expect(result.current.isCalculating).toBe(false);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      failure,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          component: 'usePerpsCrossLiquidationEstimate',
+        }),
+      }),
+    );
+  });
+
+  it('keeps the controller account_unknown reason distinct from a request failure', async () => {
+    mockEstimateCrossLiquidation.mockResolvedValue({
+      status: 'unavailable',
+      reason: 'account_unknown',
+    });
 
     const { result } = renderHook(() =>
       usePerpsCrossLiquidationEstimate(baseParams),
@@ -136,5 +173,6 @@ describe('usePerpsCrossLiquidationEstimate', () => {
         reason: 'account_unknown',
       }),
     );
+    expect(mockLoggerError).not.toHaveBeenCalled();
   });
 });

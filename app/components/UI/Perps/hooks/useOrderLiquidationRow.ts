@@ -14,6 +14,10 @@ interface UseOrderLiquidationRowParams {
   /** Unsigned order size in base units. */
   positionSize: string;
   leverage: number;
+  /**
+   * Venue the order goes to. Without it the cross estimate is unavailable
+   * instead of being priced against a guessed venue.
+   */
   providerId?: PerpsProviderType;
   /** Changes when the account or position behind the cross estimate does. */
   refreshKey?: string;
@@ -42,7 +46,7 @@ export const useOrderLiquidationRow = ({
 } => {
   const { estimate: crossEstimate, isCalculating } =
     usePerpsCrossLiquidationEstimate({
-      enabled: isCrossOrder && hasValidAmount,
+      enabled: isCrossOrder && hasValidAmount && providerId !== undefined,
       symbol,
       direction,
       size: positionSize,

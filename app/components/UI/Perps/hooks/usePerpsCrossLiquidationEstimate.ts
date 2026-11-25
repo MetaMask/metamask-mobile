@@ -1,12 +1,15 @@
 import { debounce } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type {
-  CrossLiquidationEstimate,
-  EstimateCrossLiquidationParams,
-  PerpsProviderType,
+import {
+  PERPS_CONSTANTS,
+  type EstimateCrossLiquidationParams,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
+import type { CrossLiquidationEstimateResult } from '../utils/crossMarginSummary';
 
 export interface UsePerpsCrossLiquidationEstimateParams {
   /** When false, skips the controller call and returns no estimate. */
@@ -38,6 +41,11 @@ export interface UsePerpsCrossLiquidationEstimateParams {
  * overwrite a newer estimate. The last estimate is kept until the next one
  * arrives, and is cleared when the market or venue changes.
  *
+ * The controller method never rejects. If the call still throws, the failure
+ * is reported through Perps error logging and surfaces as an
+ * `unavailable` / `request_failed` estimate, distinct from the controller's own
+ * reasons.
+ *
  * @returns `estimate` is `undefined` while disabled or before the first
  * result for the market.
  */
@@ -52,10 +60,10 @@ export const usePerpsCrossLiquidationEstimate = ({
   refreshKey,
   debounceMs = 0,
 }: UsePerpsCrossLiquidationEstimateParams): {
-  estimate: CrossLiquidationEstimate | undefined;
+  estimate: CrossLiquidationEstimateResult | undefined;
   isCalculating: boolean;
 } => {
-  const [estimate, setEstimate] = useState<CrossLiquidationEstimate>();
+  const [estimate, setEstimate] = useState<CrossLiquidationEstimateResult>();
   const [isCalculating, setIsCalculating] = useState(false);
   const requestGeneration = useRef(0);
 
@@ -81,7 +89,7 @@ export const usePerpsCrossLiquidationEstimate = ({
           nextParams: EstimateCrossLiquidationParams,
           generation: number,
         ) => {
-          let result: CrossLiquidationEstimate;
+          let result: CrossLiquidationEstimateResult;
           try {
             result =
               await Engine.context.PerpsController.estimateCrossLiquidation(
@@ -89,7 +97,24 @@ export const usePerpsCrossLiquidationEstimate = ({
               );
           } catch (error) {
             DevLogger.log('Error estimating cross liquidation:', error);
-            result = { status: 'unavailable', reason: 'account_unknown' };
+            Logger.error(
+              ensureError(error, 'usePerpsCrossLiquidationEstimate.estimate'),
+              {
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'usePerpsCrossLiquidationEstimate',
+                  action: 'estimate_cross_liquidation',
+                },
+                context: {
+                  name: 'usePerpsCrossLiquidationEstimate',
+                  data: {
+                    symbol: nextParams.symbol,
+                    providerId: nextParams.providerId,
+                  },
+                },
+              },
+            );
+            result = { status: 'unavailable', reason: 'request_failed' };
           }
           if (generation !== requestGeneration.current) {
             return;

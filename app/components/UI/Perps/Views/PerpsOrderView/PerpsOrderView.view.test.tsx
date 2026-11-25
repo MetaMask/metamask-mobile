@@ -2284,6 +2284,33 @@ describe('PerpsOrderView', () => {
       ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
     });
 
+    it('estimates the cross liquidation against the live venue, not the saved default', async () => {
+      const estimateCrossLiquidation = mockCrossLiquidationEstimate();
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: 'lighter',
+          defaultProvider: 'hyperliquid',
+          lighter: { value: 10, type: 'cross' },
+          hyperliquid: { value: 10, type: 'isolated' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
+        );
+      });
+      expect(estimateCrossLiquidation).not.toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: 'hyperliquid' }),
+      );
+    });
+
     it('labels an aggregated order from the saved default before the live venue resolves', async () => {
       const { stream } = renderPerpsOrderView({
         ...bothVenues({
