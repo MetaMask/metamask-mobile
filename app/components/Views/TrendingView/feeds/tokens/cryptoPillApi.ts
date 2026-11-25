@@ -50,7 +50,9 @@ export const buildCryptoPillTokensUrl = (
       ? `&excludeLabels=${excludeLabels.join(',')}`
       : '';
 
-  const queryParamsString= queryParams.toString() ? `&${queryParams.toString()}` : '';
+  const queryParamsString = queryParams.toString()
+    ? `&${queryParams.toString()}`
+    : '';
   return `${TOKEN_API_BASE_URL}${path}?chainIds=${encodedChainIds}${queryParamsString}${excludeLabelsParam}`;
 };
 
