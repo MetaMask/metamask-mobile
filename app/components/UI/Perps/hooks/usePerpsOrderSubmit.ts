@@ -61,7 +61,9 @@ import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 /** Submit entry point shared by the Place Order button and the Trade sheet. */
 export type PlaceOrderHandler = (
   origin: SubmitOrigin,
-) => Promise<'accountUnsupported' | 'abort' | undefined>;
+) => Promise<
+  'accountUnsupported' | 'abort' | 'alreadySubmitting' | undefined
+>;
 
 export interface UsePerpsOrderSubmitOptions {
   navigation: AppNavigationProp;
@@ -643,10 +645,13 @@ export const usePerpsOrderSubmit = (
         return false;
       }
 
+      // Route to the same venue that just received the fill, matching the
+      // `providerId` the order itself was placed with.
       const tpslResult = await updatePositionTPSL({
         symbol: orderForm.asset,
         takeProfitPrice: orderForm.takeProfitPrice,
         stopLossPrice: orderForm.stopLossPrice,
+        providerId: orderProviderId,
       });
 
       if (!tpslResult.success) {
@@ -665,6 +670,7 @@ export const usePerpsOrderSubmit = (
       orderForm.type,
       orderForm.asset,
       currentMarketPosition,
+      orderProviderId,
       executeOrder,
       updatePositionTPSL,
       showToast,
@@ -793,7 +799,10 @@ export const usePerpsOrderSubmit = (
     handlePlaceOrderRef
       .current?.({ origin: 'postDeposit' })
       .then((result) => {
-        if (result) notPlaced();
+        // `alreadySubmitting` means another attempt owns the order and will
+        // report its own outcome; toasting here would announce a failure for
+        // an order that still goes through.
+        if (result && result !== 'alreadySubmitting') notPlaced();
       })
       .catch((error: unknown) => {
         // Keeps the view's Sentry name so existing issue groups continue.
@@ -878,7 +887,10 @@ export const usePerpsOrderSubmit = (
         isSubmittingRef.current ||
         (!postDeposit && isConfirmingDepositRef.current)
       ) {
-        return 'abort';
+        // Distinguished from a plain `abort` so a deposit callback that
+        // re-enters while another submission is in flight does not report
+        // the in-flight order as failed — it reports its own outcome.
+        return 'alreadySubmitting';
       }
       if (isDraggingSlider) {
         commitAmount(liveDragAmount);
