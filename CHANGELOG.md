@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's Private Key
+- Fixed Activity showing spoofed token Transfer logs as user sends: a transfer now only renders as Sent when the selected account signed the transaction, otherwise it renders as a smart contract interaction (#40391)
 
 ## [8.20.0]
 

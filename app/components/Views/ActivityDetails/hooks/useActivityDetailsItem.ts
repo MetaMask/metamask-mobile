@@ -197,7 +197,7 @@ export function useActivityDetailsItem(
 
     // v5 maps as-is, like the extension's details page.
     if ('tx' in apiTransaction) {
-      const activity = mapV5ActivityItem(apiTransaction);
+      const activity = mapV5ActivityItem(apiTransaction, evmAddress);
       return chainId && activity.chainId !== chainId ? undefined : activity;
     }
 
