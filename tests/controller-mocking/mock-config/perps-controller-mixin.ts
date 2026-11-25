@@ -24,6 +24,7 @@ import {
   type MarketInfo,
   type OrderBookData,
   type OrderBookLevel,
+  TRADING_DEFAULTS,
   WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
@@ -211,6 +212,9 @@ export class E2EControllerOverrides {
       szDecimals: E2E_MARKET_SZ_DECIMALS[m.symbol] ?? 4,
       maxLeverage: parseMockMaxLeverageFormatted(m.maxLeverage),
       marginTableId: 1,
+      // The order form prefills the venue minimum; without it the amount stays
+      // empty and Place order stays disabled.
+      minimumOrderSize: TRADING_DEFAULTS.amount.mainnet,
     }));
 
     const symbols = params?.symbols;
