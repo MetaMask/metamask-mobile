@@ -500,6 +500,30 @@ describe('useCryptoPillFeed', () => {
     expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(7);
   });
 
+  it('refetches every token pill on a refresh while the watchlist pill is active', async () => {
+    const { rerender } = renderFeed({
+      activePillKey: 'trending',
+      refresh: { trigger: 0, silentRefresh: true },
+    });
+
+    await waitFor(() => {
+      expect(resolveActiveFetch).toBeDefined();
+    });
+    resolveActiveFetch?.([]);
+    await waitFor(() => {
+      expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(6);
+    });
+
+    rerender({
+      activePillKey: 'watchlist',
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await waitFor(() => {
+      expect(mockedFetchCryptoPillTokens.mock.calls.length).toBeGreaterThan(6);
+    });
+  });
+
   it('skips the watchlist refetch when the watchlist flag is off', async () => {
     const refetchWatchlist = jest.fn().mockResolvedValue(undefined);
     mockedUseTokenWatchlistQuery.mockReturnValue({
