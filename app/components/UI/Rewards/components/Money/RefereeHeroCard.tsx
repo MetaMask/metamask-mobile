@@ -114,8 +114,6 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
               title={localizedText.invitedBenefitTitle}
               offerEndsIn={offerEndsIn}
               offerEndsTestID={REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
-              termsTitle={localizedText.termsTitle}
-              termsTestID={REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
               titleRowClassName={referralCode ? 'px-4 pb-4' : 'px-4'}
             />
           )}

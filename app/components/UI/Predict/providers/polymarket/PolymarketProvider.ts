@@ -27,6 +27,7 @@ import {
   type PredictTradeStatusValue,
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { reportPredictError } from '../../utils/predictErrorHandler';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
@@ -1335,10 +1336,7 @@ export class PolymarketProvider implements PredictProvider {
           errorContext,
         );
       } else {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          errorContext,
-        );
+        reportPredictError(error, errorContext);
       }
 
       throw error;
@@ -1878,8 +1876,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting prices via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      reportPredictError(
+        error,
         this.getErrorContext('getPrices', {
           queriesCount: queries.length,
         }),

@@ -8,6 +8,7 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
+import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
@@ -59,11 +60,11 @@ describe('PayTokenAmount', () => {
     ]);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         chainId: CHAIN_ID_2_MOCK,
         address: ADDRESS_2_MOCK,
         symbol: PAY_TOKEN_SYMBOL_MOCK,
-      },
+      }),
     } as unknown as ReturnType<typeof useTransactionPayToken>);
   });
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
+import { collectiblesTestIds } from '../Collectibles.testIds';
 import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
 
 const mockGoBack = jest.fn();
@@ -25,8 +26,7 @@ describe('CollectiblesHomeScreen', () => {
   it('goes back when the back button is pressed', () => {
     renderWithProvider(<CollectiblesHomeScreen />);
 
-    // The design-system back button's default testID.
-    fireEvent.press(screen.getByTestId('button-icon'));
+    fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
