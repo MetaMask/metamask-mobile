@@ -19615,7 +19615,7 @@
   },
   "app/components/Views/confirmations/hooks/pay/usePayTokenAccountBalance.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
+      "count": 3
     }
   },
   "app/components/Views/confirmations/hooks/pay/usePayWithNoFeeToken.test.ts": {
@@ -21861,7 +21861,7 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
+      "count": 5
     },
     "typescript/promise-function-async": {
       "count": 4
