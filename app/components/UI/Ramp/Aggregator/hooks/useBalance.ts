@@ -27,6 +27,7 @@ import { EthScope, isEvmAccountType } from '@metamask/keyring-api';
 import { getEvmHexChainId } from '../utils';
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectAsset } from '../../../../../selectors/assets/assets-list';
 
 const defaultReturn = {
   balance: null,
@@ -95,6 +96,16 @@ export default function useBalance(asset?: Asset) {
   );
   const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
   const allTokenBalances = useSelector(selectAllTokenBalances);
+  // Non-EVM balances have no per-chain rate state in this hook, so reuse the
+  // wallet's own formatted fiat value for the same asset.
+  const nonEvmBalanceFiat = useSelector((state: RootState) =>
+    asset?.assetId && asset.chainId && !assetEvmChainId
+      ? selectAsset(state, {
+          address: `${asset.chainId}/${asset.assetId}`,
+          chainId: asset.chainId,
+        })?.balanceFiat
+      : undefined,
+  );
 
   if (!asset || (!asset.address && !asset.assetId) || !selectedAddress) {
     return defaultReturn;
@@ -144,7 +155,7 @@ export default function useBalance(asset?: Asset) {
         // Decimals are chain-specific (SOL 9, TRX 6, XLM 7). Guessing a fallback
         // could produce a dangerously incorrect available balance.
         if (asset.decimals == null) {
-          return { balance, balanceFiat, balanceBN: null };
+          return { balance, balanceFiat: nonEvmBalanceFiat, balanceBN: null };
         }
 
         try {
@@ -152,7 +163,11 @@ export default function useBalance(asset?: Asset) {
         } catch {
           balanceBN = null;
         }
-        return { balance, balanceFiat, balanceBN };
+        return {
+          balance,
+          balanceFiat: nonEvmBalanceFiat,
+          balanceBN,
+        };
       }
     }
   }
