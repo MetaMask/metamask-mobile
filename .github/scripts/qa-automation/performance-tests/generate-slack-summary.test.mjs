@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { buildSlackMessage } from './generate-slack-summary.mjs';
+import { buildSlackMessage, performanceJobFailed } from './generate-slack-summary.mjs';
 import { fileURLToPath } from 'node:url';
 
 const scriptPath = path.join(
@@ -194,6 +194,44 @@ test('does not call a crashed run a pass', () => {
 
   assert.match(text, /a test job failed before its results were recorded/);
   assert.doesNotMatch(text, /all .* tests passed/);
+});
+
+async function jobsReportFailed(jobs) {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ jobs }) });
+  try {
+    return await performanceJobFailed({
+      GITHUB_TOKEN: 'token',
+      GITHUB_REPOSITORY: 'MetaMask/metamask-mobile',
+      GITHUB_RUN_ID: '1',
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+for (const conclusion of [
+  'failure',
+  'timed_out',
+  'cancelled',
+  'startup_failure',
+]) {
+  test(`treats a performance job that ${conclusion} as incomplete`, async () => {
+    assert.equal(
+      await jobsReportFailed([{ name: 'Performance Test (iOS)', conclusion }]),
+      true,
+    );
+  });
+}
+
+test('ignores successful performance jobs and unrelated failed jobs', async () => {
+  assert.equal(
+    await jobsReportFailed([
+      { name: 'Performance Test (iOS)', conclusion: 'success' },
+      { name: 'Run lint', conclusion: 'timed_out' },
+    ]),
+    false,
+  );
 });
 
 test('fails when summary.json is not valid JSON', () => {
