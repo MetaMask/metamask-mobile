@@ -19,6 +19,7 @@ import {
   stubHomepageSectionMeasurement,
 } from '../../../../../../tests/component-view/renderers/socialLeaderboard';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { resetFollowToggleSharedStateForTests } from '../../../../hooks/useFollowToggle';
 import { TopTradersSectionSelectorsIDs } from './TopTradersSection.testIds';
 import { getTopTraderCardTestId } from './components/TopTraderCard.testIds';
 import {
@@ -98,6 +99,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   let measurementSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    resetFollowToggleSharedStateForTests();
     measurementSpy = stubHomepageSectionMeasurement();
     setupLeaderboardApiMock();
   });
@@ -106,6 +108,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     restoreHomeTopTradersSectionStore();
     clearLeaderboardApiMock();
     measurementSpy.mockRestore();
+    resetFollowToggleSharedStateForTests();
   });
 
   // -------------------------------------------------------------------------
