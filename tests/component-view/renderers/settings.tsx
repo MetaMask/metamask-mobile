@@ -7,6 +7,7 @@ import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import GeneralSettings from '../../../app/components/Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../../app/components/Views/Settings/AdvancedSettings';
+import TransactionsSettings from '../../../app/components/Views/Settings/TransactionsSettings';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStateSettings } from '../presets/settings';
 
@@ -86,5 +87,23 @@ export const renderAdvancedSettingsWithBackRoute = (
   renderSettingsWithBackRoute(
     AdvancedSettings as unknown as React.ComponentType,
     Routes.SETTINGS.ADVANCED_SETTINGS,
+    options,
+  );
+
+export const renderTransactionsSettings = (
+  options: SettingsRendererOptions = {},
+) =>
+  renderComponentViewScreen(
+    TransactionsSettings,
+    { name: Routes.SETTINGS.TRANSACTIONS_SETTINGS },
+    { state: buildSettingsState(options) },
+  );
+
+export const renderTransactionsSettingsWithBackRoute = (
+  options: SettingsRendererOptions = {},
+) =>
+  renderSettingsWithBackRoute(
+    TransactionsSettings,
+    Routes.SETTINGS.TRANSACTIONS_SETTINGS,
     options,
   );

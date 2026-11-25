@@ -209,6 +209,7 @@ const Settings = () => {
           onPress={onPressPrivacy}
           title={strings('app_settings.privacy_title')}
           startAccessory={renderIcon(IconName.Eye)}
+          testID={SettingsViewSelectorsIDs.PRIVACY}
         />
         <SettingsDrawer
           onPress={onPressBackupAndSync}
@@ -230,6 +231,7 @@ const Settings = () => {
           title={strings('app_settings.transactions_title')}
           onPress={onPressTransactions}
           startAccessory={renderIcon(IconName.SwapHorizontal)}
+          testID={SettingsViewSelectorsIDs.TRANSACTIONS}
         />
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}

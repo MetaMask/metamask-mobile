@@ -16,6 +16,8 @@ export const SettingsViewSelectorsIDs = {
   GROUP_MORE: 'settings-group-more',
   GENERAL: 'general-settings',
   SECURITY: 'security-settings',
+  PRIVACY: 'privacy-settings',
+  TRANSACTIONS: 'transactions-settings',
   ADVANCED: 'advanced-settings',
   CONTACTS: 'contacts-settings',
   ON_RAMP: 'on-ramp-settings',

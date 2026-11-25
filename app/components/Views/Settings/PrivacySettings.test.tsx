@@ -1,7 +1,24 @@
 import React from 'react';
+import {
+  InteractionManager,
+  ScrollView,
+  View,
+  type HostInstance,
+} from 'react-native';
+import { waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import PrivacySettings from './PrivacySettings';
+import { META_METRICS_SECTION } from './SecuritySettings/SecuritySettings.constants';
+
+let mockUseParamsValues: {
+  scrollToSection?: 'metametrics' | 'data-collection';
+} = {};
+
+jest.mock('../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../util/navigation/navUtils'),
+  useParams: jest.fn(() => mockUseParamsValues),
+}));
 
 const mockDisableNotifications = jest.fn();
 let mockIsNotificationEnabled = true;
@@ -23,7 +40,6 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
   useRoute: () => ({ params: {} }),
-  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('@react-native-cookies/cookies', () => ({
@@ -43,6 +59,24 @@ describe('PrivacySettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsNotificationEnabled = true;
+    mockUseParamsValues = {};
+
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue({} as HostInstance);
+
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        setTimeout(() => {
+          if (typeof callback === 'function') callback();
+        }, 0);
+        return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('disables notifications when basic functionality is off', () => {
@@ -63,5 +97,64 @@ describe('PrivacySettings', () => {
     renderWithProvider(<PrivacySettings />, { state: buildState(false) });
 
     expect(mockDisableNotifications).not.toHaveBeenCalled();
+  });
+
+  it('renders the metametrics section', () => {
+    const { getByTestId } = renderWithProvider(<PrivacySettings />, {
+      state: buildState(true),
+    });
+
+    expect(getByTestId(META_METRICS_SECTION)).toBeOnTheScreen();
+  });
+
+  it.each(['metametrics', 'data-collection'] as const)(
+    'scrolls to the %s section when scrollToSection param is set',
+    async (scrollToSection) => {
+      const measuredSectionTop = 42;
+      jest
+        .spyOn(View.prototype, 'measureLayout')
+        .mockImplementationOnce((_node, onSuccess) =>
+          onSuccess(0, measuredSectionTop, 0, 0),
+        );
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+      mockUseParamsValues = { scrollToSection };
+      renderWithProvider(<PrivacySettings />, { state: buildState(true) });
+
+      await waitFor(() =>
+        expect(scrollToSpy).toHaveBeenCalledWith({
+          y: measuredSectionTop,
+          animated: true,
+        }),
+      );
+    },
+  );
+
+  it('does not measure when the native scroll ref is unavailable', async () => {
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue(null);
+    const measureLayoutSpy = jest.spyOn(View.prototype, 'measureLayout');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<PrivacySettings />, { state: buildState(true) });
+
+    await waitFor(() =>
+      expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
+    );
+    expect(measureLayoutSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not scroll when the section layout cannot be measured', async () => {
+    const measureLayoutSpy = jest
+      .spyOn(View.prototype, 'measureLayout')
+      .mockImplementationOnce((_node, _onSuccess, onFail) => onFail?.());
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<PrivacySettings />, { state: buildState(true) });
+
+    await waitFor(() => expect(measureLayoutSpy).toHaveBeenCalled());
+    expect(scrollToSpy).not.toHaveBeenCalled();
   });
 });

@@ -23,6 +23,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import AppConstants from '../../../../app/core/AppConstants';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SettingsToggleRow } from './components/SettingsToggleRow';
+import { TransactionsViewSelectorsIDs } from './TransactionsView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
@@ -143,6 +144,7 @@ function TransactionsSettings() {
         testID="header"
         title={strings('app_settings.transactions_title')}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: TransactionsViewSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <KeyboardAwareScrollView
@@ -172,6 +174,7 @@ function TransactionsSettings() {
                 </Text>
               </>
             }
+            testID={TransactionsViewSelectorsIDs.STX_OPT_IN_SWITCH}
             value={smartTransactionsOptInStatus}
             onValueChange={toggleSmartTransactionsOptInStatus}
           />
@@ -179,6 +182,7 @@ function TransactionsSettings() {
           <SettingsToggleRow
             title={strings('app_settings.show_hex_data')}
             description={strings('app_settings.hex_desc')}
+            testID={TransactionsViewSelectorsIDs.SHOW_HEX_DATA_SWITCH}
             value={showHexData}
             onValueChange={toggleShowHexData}
           />
@@ -214,6 +218,9 @@ function TransactionsSettings() {
                       {strings('app_settings.simulation_details_learn_more')}
                     </Text>
                   </>
+                }
+                testID={
+                  TransactionsViewSelectorsIDs.TRANSACTION_SIMULATIONS_SWITCH
                 }
                 value={useTransactionSimulations}
                 onValueChange={toggleUseTransactionSimulations}
