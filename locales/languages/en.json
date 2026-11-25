@@ -5500,6 +5500,19 @@
     },
     "marketplace": {
       "coming_soon": "Coming soon"
+    },
+    "packs": {
+      "all": "All",
+      "categories": "Pack categories",
+      "all_prices": "All prices",
+      "lowest_price": "Lowest price",
+      "filter_sort": "{{filter}} · {{sort}}",
+      "filter": "Filter packs",
+      "sort": "Sort packs",
+      "open_price": "Open · {{price}}",
+      "open_pack_price": "Open {{name}}, {{price}}",
+      "tile_label": "{{name}}, {{opens}}",
+      "empty": "No packs available right now"
     }
   },
   "collectible": {
