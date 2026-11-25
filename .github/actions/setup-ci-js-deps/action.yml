@@ -42,11 +42,14 @@ runs:
         if [ "${RUNNER_PROVIDER}" = "namespace" ]; then
           # The Namespace volume is shared across runs, so node_modules is only
           # reusable when the install recorded in this state dir matches the
-          # current lockfile. The state dir is written by the same job that
-          # produced node_modules, so the two stay in sync.
-          if [ -d node_modules ] \
+          # current lockfile. Jobs that do not write the state dir can still
+          # reinstall node_modules, so the state also records a hash of yarn's own
+          # install state and must match what is on disk now.
+          if [ -f node_modules/.yarn-state.yml ] \
             && [ -f "$install_state_dir/key" ] \
             && [ "$(cat "$install_state_dir/key")" = "$INSTALL_STATE_KEY" ] \
+            && [ -f "$install_state_dir/node-modules-state" ] \
+            && [ "$(cat "$install_state_dir/node-modules-state")" = "$(sha256sum node_modules/.yarn-state.yml | cut -d' ' -f1)" ] \
             && [ -f "$install_state_dir/termsOfUseContent.ts" ] \
             && [ -f "$install_state_dir/termsOfUse.html" ]; then
             cp "$install_state_dir/termsOfUseContent.ts" app/util/termsOfUse/termsOfUseContent.ts
@@ -98,4 +101,5 @@ runs:
         mkdir -p "$install_state_dir"
         cp app/util/termsOfUse/termsOfUseContent.ts "$install_state_dir/termsOfUseContent.ts"
         cp docs/assets/termsOfUse.html "$install_state_dir/termsOfUse.html"
+        sha256sum node_modules/.yarn-state.yml | cut -d' ' -f1 > "$install_state_dir/node-modules-state"
         printf '%s' "$INSTALL_STATE_KEY" > "$install_state_dir/key"
