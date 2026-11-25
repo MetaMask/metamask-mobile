@@ -3,10 +3,17 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SwapsRecurringBuyConfirmButton } from './index';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 const TEST_ID = BridgeViewSelectorsIDs.CONFIRM_BUTTON;
 
 describe('SwapsRecurringBuyConfirmButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('calls onPress when pressed', () => {
     const onPress = jest.fn();
 
@@ -21,6 +28,7 @@ describe('SwapsRecurringBuyConfirmButton', () => {
     fireEvent.press(getByTestId(TEST_ID));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('renders the provided label', () => {
@@ -50,6 +58,7 @@ describe('SwapsRecurringBuyConfirmButton', () => {
     fireEvent.press(getByTestId(TEST_ID));
 
     expect(onPress).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('does not call onPress when loading', () => {
@@ -67,6 +76,7 @@ describe('SwapsRecurringBuyConfirmButton', () => {
     fireEvent.press(getByTestId(TEST_ID));
 
     expect(onPress).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('uses the disabled style while loading even when disabled is false', () => {

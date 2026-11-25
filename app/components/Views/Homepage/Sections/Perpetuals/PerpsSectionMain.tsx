@@ -56,7 +56,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import {
+  type HomepageSectionCacheState,
+  useSectionPerformance,
+} from '../../hooks/useSectionPerformance';
 import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
@@ -79,6 +82,11 @@ import {
   finishPerpsLoadingSession,
   resolvePerpsMarketSource,
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
+import {
+  PERPS_LOADING_CACHE_SOURCES,
+  type PerpsSessionAccountSource,
+  type PerpsSessionMarketSource,
+} from '../../../../UI/Perps/utils/perpsLoadingSessionModel';
 import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
 import { useHomepagePerpsSurfaceMetrics } from './hooks/useHomepagePerpsSurfaceMetrics';
 
@@ -103,6 +111,22 @@ const resolveContentVariant = (
 const resolveContentState = (hasError: boolean, hasItems: boolean) => {
   if (hasError) return 'error';
   return hasItems ? 'filled' : 'empty';
+};
+
+const resolveHomepagePerpsCacheState = (
+  sectionDataSource: PerpsSessionMarketSource | PerpsSessionAccountSource,
+  requiresFreshData: boolean,
+): HomepageSectionCacheState => {
+  if (sectionDataSource === 'unknown') {
+    if (requiresFreshData) return 'cold';
+    return 'unknown';
+  }
+  if (
+    (PERPS_LOADING_CACHE_SOURCES as ReadonlySet<string>).has(sectionDataSource)
+  ) {
+    return 'warm';
+  }
+  return 'cold';
 };
 
 /**
@@ -422,6 +446,18 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           : hasItems;
     const marketSource = resolvePerpsMarketSource(sessionContext?.marketSource);
     const accountSource = sessionContext?.accountSource ?? 'unknown';
+    const sectionDataSource = isAccountBackedContent
+      ? accountSource
+      : marketSource;
+    const requiresFreshData =
+      lifecycle === 'cold_no_cache' ||
+      lifecycle === 'background_reconnect' ||
+      lifecycle === 'account_switch' ||
+      lifecycle === 'network_switch';
+    const sectionCacheState = resolveHomepagePerpsCacheState(
+      sectionDataSource,
+      requiresFreshData,
+    );
     const cohortTags = useMemo(
       () => ({
         content_variant: surfaceContentVariant,
@@ -446,7 +482,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       contentReady,
       hasError: Boolean(connectionError),
       marketSource,
-      resolvedSource: isAccountBackedContent ? accountSource : marketSource,
+      resolvedSource: sectionDataSource,
     });
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
@@ -457,6 +493,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         lifecycle !== 'network_switch' &&
         lifecycle !== 'background_reconnect',
       contentReady,
+      demandStarted: Boolean(sessionId),
+      cacheState: sectionCacheState,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,

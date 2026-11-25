@@ -425,6 +425,14 @@ const TokenDetails: React.FC<{
   const { inset: headerInset, onLayout: handleHeaderLayout } =
     useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
+  // The trader-position footer floats over the list, so the list reserves its
+  // measured height. The in-flow footer reports 0 and keeps the list default.
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback((height: number) => {
+    setFooterHeight((current) => (current === height ? current : height));
+  }, []);
+  const listBottomInset = footerHeight > 0 ? footerHeight : undefined;
+
   const handleListScrollOffset = useCallback(
     (y: number) => {
       headerScrollY.set(y);
@@ -593,7 +601,7 @@ const TokenDetails: React.FC<{
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
-    onBuy().catch(() => undefined);
+    void onBuy();
   }, [onBuy, onCtaClicked]);
 
   const handleSend = useCallback(async () => {
@@ -773,6 +781,7 @@ const TokenDetails: React.FC<{
             location={TransactionDetailLocation.AssetDetails}
             onScroll={handleMultichainScroll}
             refreshControlOffset={headerInset}
+            contentBottomInset={listBottomInset}
           />
         ) : (
           <>
@@ -797,6 +806,7 @@ const TokenDetails: React.FC<{
               hideEmptyState
               location={TransactionDetailLocation.AssetDetails}
               refreshControlOffset={headerInset}
+              contentBottomInset={listBottomInset}
             />
           </>
         )}
@@ -820,6 +830,7 @@ const TokenDetails: React.FC<{
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
           tokenKey={traderPositionTokenKey}
+          onFooterLayout={handleFooterLayout}
         />
       ) : (
         <TokenDetailsStickyFooter
@@ -838,6 +849,7 @@ const TokenDetails: React.FC<{
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
+          onFooterLayout={handleFooterLayout}
         />
       )}
 

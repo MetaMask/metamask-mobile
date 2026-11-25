@@ -207,7 +207,8 @@ export type RewardsStackParamList = {
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
-  RewardsTradingCommissionsView: undefined;
+  RewardsMoneyReferralsView: undefined;
+  RewardsCopyTradingView: undefined;
   RewardsTradingRebatesView: undefined;
   RewardsEarningsHistoryView: undefined;
   RewardsCampaignTourStep: RewardsCampaignTourStepParams;
@@ -258,7 +259,6 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
   RewardsMoneyInviteSheet: RewardsMoneyInviteSheetParams | undefined;
-  RewardsMoneyTermsSheet: undefined;
   RewardsTaxQuestionSheet: TaxFormQuestionSheetParams;
   RewardsTaxOpenFormSheet: TaxFormOpenFormSheetParams;
   RewardsTaxContactSheet: TaxFormContactUsSheetParams;

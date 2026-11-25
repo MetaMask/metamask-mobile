@@ -20,6 +20,10 @@ jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/configRegistry', () => ({
+  getRegistryNetworkImagesByChainId: () => ({}),
+}));
+
 jest.mock('../../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: jest.fn(),
 }));

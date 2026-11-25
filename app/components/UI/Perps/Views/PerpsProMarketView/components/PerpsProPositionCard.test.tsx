@@ -76,6 +76,7 @@ describe('PerpsProPositionCard', () => {
         ).toBeOnTheScreen();
       }
       expect(screen.getByText('Margin')).toBeOnTheScreen();
+      expect(screen.getByText('$1,450')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN,
@@ -83,6 +84,22 @@ describe('PerpsProPositionCard', () => {
       ).not.toBeOnTheScreen();
     },
   );
+
+  it('shows the scaled cross margin Hyperliquid displays', () => {
+    render(
+      <PerpsProPositionCard
+        position={{
+          ...position,
+          marginUsed: '15',
+          displayMarginUsed: '7.18',
+          leverage: { type: 'cross', value: 20 },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('$7.18')).toBeOnTheScreen();
+    expect(screen.queryByText('$15')).toBeNull();
+  });
 
   it('keeps the venue margin tag but drops the Cross liquidation info when the Cross margin flag is off', () => {
     // Arrange - every selector false, including the Cross margin flag

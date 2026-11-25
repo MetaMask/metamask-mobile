@@ -67,8 +67,10 @@ export function getRecurringOrderDelegationParams({
     srcAssetId,
     srcAmount: calcTokenValue(sourceAmount, sourceToken.decimals).toFixed(0),
     destAssetId,
-    every,
-    unit: recurring.everyUnit,
-    repeatCount,
+    schedule: {
+      every,
+      unit: recurring.everyUnit,
+      repeatCount,
+    },
   };
 }
