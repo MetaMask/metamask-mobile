@@ -8964,19 +8964,7 @@
     "contact_support": "Contacter l’assistance"
   },
   "whats_new": {
-    "title": "Nouveautés",
-    "remove_gns_new_ui_update": {
-      "title": "Nouvelle mise à jour de l’interface utilisateur",
-      "introduction": "Nous avons apporté des modifications à l’application pour améliorer l’expérience utilisateur.",
-      "descriptions": {
-        "description_1": "Le menu déroulant des réseaux a été déplacé vers vos actifs",
-        "description_2": "Échangez et établissez une passerelle en une seule étape simple",
-        "description_3": "Expérience d’envoi simplifiée",
-        "description_4": "Une nouvelle mise en page des comptes"
-      },
-      "more_information": "Vous pouvez désormais vous concentrer sur vos jetons et votre activité, et non sur les réseaux qui les sous-tendent.",
-      "got_it": "J’ai compris"
-    }
+    "title": "Nouveautés"
   },
   "invalid_network": {
     "title": "L'ID de chaîne du réseau personnalisé \n {{network}} \n doit être saisi à nouveau.",

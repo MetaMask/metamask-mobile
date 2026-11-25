@@ -8964,19 +8964,7 @@
     "contact_support": "Support kontaktieren"
   },
   "whats_new": {
-    "title": "Was neu ist",
-    "remove_gns_new_ui_update": {
-      "title": "Neues Update der Benutzeroberfläche",
-      "introduction": "Wir haben Updates zur Verbesserung der App-Erfahrung durchgeführt.",
-      "descriptions": {
-        "description_1": "Netzwerk-Dropdown zu Ihren Assets verschoben",
-        "description_2": "Swap und Bridge in einem einfachen Ablauf",
-        "description_3": "Sendeerlebnis optimiert",
-        "description_4": "Eine neue Kontoansicht"
-      },
-      "more_information": "Jetzt können Sie sich auf Ihre Tokens und Aktivitäten konzentrieren, und nicht auf die Netzwerke dahinter.",
-      "got_it": "Verstanden"
-    }
+    "title": "Was neu ist"
   },
   "invalid_network": {
     "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n{{network}} \n muss erneut eingegeben werden.",

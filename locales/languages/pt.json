@@ -8964,19 +8964,7 @@
     "contact_support": "Falar com o suporte"
   },
   "whats_new": {
-    "title": "Novidades",
-    "remove_gns_new_ui_update": {
-      "title": "Nova atualização da IU",
-      "introduction": "Fizemos atualizações para melhorar a experiência com o aplicativo.",
-      "descriptions": {
-        "description_1": "Menu suspenso de rede movido para seus ativos",
-        "description_2": "Faça trocas e pontes em um único fluxo simples",
-        "description_3": "Experiência de envio simplificada",
-        "description_4": "Uma nova visão da conta"
-      },
-      "more_information": "Agora você pode se concentrar em seus tokens e atividades, não nas redes por trás deles.",
-      "got_it": "Entendi"
-    }
+    "title": "Novidades"
   },
   "invalid_network": {
     "title": "A ID da blockchain para a rede personalizada \n {{network}} \nprecisa ser reinserida.",

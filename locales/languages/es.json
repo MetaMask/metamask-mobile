@@ -8964,19 +8964,7 @@
     "contact_support": "Contactar a soporte"
   },
   "whats_new": {
-    "title": "Novedades",
-    "remove_gns_new_ui_update": {
-      "title": "Nueva actualización de la interfaz de usuario",
-      "introduction": "Realizamos actualizaciones para mejorar la experiencia con la aplicación.",
-      "descriptions": {
-        "description_1": "El menú desplegable de red se ha trasladado a tus activos",
-        "description_2": "Canjea y puentea en un flujo simple",
-        "description_3": "Experiencia de envío optimizada",
-        "description_4": "Una nueva vista de la cuenta"
-      },
-      "more_information": "Ahora puedes concentrarte en tus tokens y actividad, no en las redes que hay detrás de ellos.",
-      "got_it": "Entendido"
-    }
+    "title": "Novedades"
   },
   "invalid_network": {
     "title": "Es necesario volver a ingresar el \nID de cadena para la red personalizada \n{{network}}.",

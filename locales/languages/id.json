@@ -8964,19 +8964,7 @@
     "contact_support": "Hubungi dukungan"
   },
   "whats_new": {
-    "title": "Yang baru",
-    "remove_gns_new_ui_update": {
-      "title": "Pembaruan UI baru",
-      "introduction": "Kami telah membuat pembaruan untuk meningkatkan pengalaman menggunakan aplikasi.",
-      "descriptions": {
-        "description_1": "Menu tarik-turun jaringan dipindahkan ke aset Anda",
-        "description_2": "Swap dan Bridge dalam satu alur sederhana",
-        "description_3": "Pengalaman pengiriman yang lebih efisien",
-        "description_4": "Tampilan akun baru"
-      },
-      "more_information": "Kini Anda dapat fokus pada token dan aktivitas, bukan jaringan di belakangnya.",
-      "got_it": "Mengerti"
-    }
+    "title": "Yang baru"
   },
   "invalid_network": {
     "title": "ID chain untuk jaringan khusus\n {{network}}\n harus dimasukkan kembali.",

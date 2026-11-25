@@ -8964,19 +8964,7 @@
     "contact_support": "지원팀에 문의"
   },
   "whats_new": {
-    "title": "새로운 소식",
-    "remove_gns_new_ui_update": {
-      "title": "새 UI 업데이트",
-      "introduction": "앱 사용 경험 향상을 위한 업데이트가 이루어졌습니다.",
-      "descriptions": {
-        "description_1": "네트워크 선택 메뉴가 자산 섹션으로 이동했습니다",
-        "description_2": "스왑과 브릿지를 한 번에 간편하게 처리할 수 있습니다",
-        "description_3": "전송 절차 간소화",
-        "description_4": "새로워진 계정 화면"
-      },
-      "more_information": "이제 관련된 네트워크에 신경 쓸 필요 없이 토큰과 활동 자체에 집중할 수 있습니다.",
-      "got_it": "컨펌"
-    }
+    "title": "새로운 소식"
   },
   "invalid_network": {
     "title": "맞춤 네트워크 \n {{network}}의 체인 ID를 \n 다시 입력해야 합니다.",

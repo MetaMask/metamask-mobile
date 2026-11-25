@@ -9107,19 +9107,7 @@
     "contact_support": "Contact support"
   },
   "whats_new": {
-    "title": "What's new",
-    "remove_gns_new_ui_update": {
-      "title": "New UI update",
-      "introduction": "We've made updates to improve the app experience.",
-      "descriptions": {
-        "description_1": "Network dropdown moved to your assets",
-        "description_2": "Swap and Bridge in one simple flow",
-        "description_3": "Streamlined send experience",
-        "description_4": "A fresh account view"
-      },
-      "more_information": "Now you can focus on your tokens and activity, not the networks behind them.",
-      "got_it": "Got it"
-    }
+    "title": "What's new"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n {{network}} \n has to be re-entered.",

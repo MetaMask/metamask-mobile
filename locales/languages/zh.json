@@ -8964,19 +8964,7 @@
     "contact_support": "联系支持团队"
   },
   "whats_new": {
-    "title": "最新动态",
-    "remove_gns_new_ui_update": {
-      "title": "全新 UI 更新",
-      "introduction": "我们进行了更新以优化应用体验。",
-      "descriptions": {
-        "description_1": "网络下拉菜单已移至您的资产",
-        "description_2": "一站式完成兑换与桥接",
-        "description_3": "更简化的发送体验",
-        "description_4": "全新账户视图"
-      },
-      "more_information": "现在您可以专注于您的代币和活动，而无需担心其背后的网络。",
-      "got_it": "知道了"
-    }
+    "title": "最新动态"
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n {{network}} \n的链 ID。",
