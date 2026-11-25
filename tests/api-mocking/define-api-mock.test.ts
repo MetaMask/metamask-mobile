@@ -5,6 +5,7 @@ import {
   SPEC_MOCK_PRIORITY,
 } from './define-api-mock.ts';
 import { setupMockRequest } from './helpers/mockHelpers.ts';
+import { installCryptoRandomUUID } from './helpers/cryptoRandomUUID.ts';
 import {
   API_MOCKS,
   accountsSupportedNetworksV2,
@@ -12,6 +13,8 @@ import {
   priceSpotPricesV3,
   spotPrice,
 } from './api-mocks.ts';
+
+beforeAll(installCryptoRandomUUID);
 
 interface Item {
   name: string;

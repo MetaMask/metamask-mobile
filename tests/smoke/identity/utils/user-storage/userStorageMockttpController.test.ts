@@ -2,6 +2,9 @@ import { CompletedBody, getLocal, Mockttp } from 'mockttp';
 import { UserStorageMockttpController } from './userStorageMockttpController';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from '../mocks';
+import { installCryptoRandomUUID } from '../../../../api-mocking/helpers/cryptoRandomUUID';
+
+beforeAll(installCryptoRandomUUID);
 
 describe('UserStorageMockttpController', () => {
   let mockServer: Mockttp;

@@ -204,7 +204,6 @@
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",
-    "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
     "d3-color": "3.1.0",
     "napi-postinstall": "npm:npm-empty-package@1.0.0",
@@ -343,8 +342,7 @@
     "http-proxy@npm:^1.18.1/follow-redirects": "1.16.3",
     "@open-rpc/server-js@npm:1.9.3/body-parser": "1.20.9",
     "@react-native-community/cli-server-api@npm:20.1.0/body-parser": "1.20.9",
-    "express@npm:4.22.2/body-parser": "1.20.9",
-    "mockttp@npm:3.15.2/body-parser": "1.20.9"
+    "express@npm:4.22.2/body-parser": "1.20.9"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -603,7 +601,7 @@
     "lodash": "4.18.1",
     "lottie-react-native": "~7.3.8",
     "luxon": "^3.5.0",
-    "mockttp": "^3.15.2",
+    "mockttp": "^4.6.5",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "pako": "^2.1.0",
@@ -975,7 +973,8 @@
       "@metamask/transaction-pay-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false,
       "eas-cli>@expo/logger>bunyan>dtrace-provider": false,
       "appium-uiautomator2-driver>appium-android-driver>appium-chromedriver>@appium/base-driver>@appium/support>sharp": false,
-      "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false
+      "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false,
+      "mockttp>tls-impersonate": false
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
