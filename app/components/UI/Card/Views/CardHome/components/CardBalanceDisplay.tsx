@@ -149,7 +149,9 @@ const CardBalanceDisplay = ({
             size={ButtonIconSize.Sm}
             iconProps={{ color: IconColor.IconAlternative }}
             onPress={onInfoPress}
-            accessibilityLabel={strings('card.card_home.available_balance')}
+            accessibilityLabel={strings(
+              'card.card_home.available_balance_info',
+            )}
             testID={infoBadgeTestID}
           />
         ) : null}

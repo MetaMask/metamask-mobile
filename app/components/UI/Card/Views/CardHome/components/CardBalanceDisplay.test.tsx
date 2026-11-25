@@ -6,7 +6,7 @@ import CardBalanceDisplay, {
 } from './CardBalanceDisplay';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../../../Money/components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
-import I18n from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
 
 const baseProps = {
   isLoading: false,
@@ -126,6 +126,21 @@ describe('CardBalanceDisplay', () => {
     expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
       '0.000000 USDC',
     );
+  });
+
+  it('labels the info button with what it opens, not the visible text', () => {
+    const { getByLabelText } = render(
+      <CardBalanceDisplay
+        {...baseProps}
+        balanceAmount="$10.00"
+        showInfoBadge
+        onInfoPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByLabelText(strings('card.card_home.available_balance_info')),
+    ).toBeOnTheScreen();
   });
 
   it('keeps the balance skeleton while loading', () => {

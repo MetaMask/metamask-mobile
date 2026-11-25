@@ -1503,15 +1503,9 @@ const CardHome = () => {
                   hasSetupAlerts={hasSetupAlerts}
                   userLocation={userLocation}
                   isFrozen={isFrozen}
-                  isFreezeLoading={
-                    actions.freeze.isPending || actions.unfreeze.isPending
-                  }
+                  isFreezeLoading={isFreezeLoading}
                   isPinLoading={actions.isPinLoading}
-                  cardDetailsVisible={
-                    (!!actions.cardDetailsImageUrl ||
-                      !!actions.cardSensitiveDetails) &&
-                    isAuthenticated
-                  }
+                  cardDetailsVisible={isCardDetailsVisible}
                   onViewCardDetails={actions.viewCardDetailsAction}
                   onViewPin={actions.viewPinAction}
                   onSetPin={actions.setPinAction}
@@ -1536,11 +1530,7 @@ const CardHome = () => {
                   onOrderMetalCard={actions.orderMetalCardAction}
                   onChangeAsset={actions.changeAssetAction}
                   hasPriorityTokenBalance={hasPriorityTokenBalance}
-                  hideQuickActionRows={
-                    actionVisibility.details ||
-                    actionVisibility.pin ||
-                    actionVisibility.freeze
-                  }
+                  hiddenQuickActionRows={actionVisibility}
                   onCashback={actions.cashbackAction}
                   onTravel={actions.navigateToTravelPage}
                   onTransactionHistory={
