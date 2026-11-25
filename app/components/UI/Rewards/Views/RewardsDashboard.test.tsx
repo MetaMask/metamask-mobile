@@ -1038,6 +1038,43 @@ describe('RewardsDashboard', () => {
         expect.anything(),
       );
     });
+    it('does not reopen the sheet when the dashboard refocuses for the same account group', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+
+      // Act: closing the sheet refocuses the dashboard, which re-runs the effect
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        mockNavigate.mock.calls.filter(
+          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('opens the sheet again when the selected account group changes to another unsupported group', () => {
+      // Arrange
+      mockUnsupportedAccountGroup();
+      const { rerender } = render(<RewardsDashboard />);
+      const otherGroup = { ...mockSelectedAccountGroup, id: 'other-group-id' };
+      const defaultImplementation = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return otherGroup;
+        return defaultImplementation?.(selector);
+      });
+
+      // Act
+      rerender(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        mockNavigate.mock.calls.filter(
+          ([route]) => route === Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        ),
+      ).toHaveLength(2);
+    });
   });
 
   describe('metrics tracking', () => {

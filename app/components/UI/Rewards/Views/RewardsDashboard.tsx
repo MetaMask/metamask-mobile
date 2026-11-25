@@ -184,31 +184,43 @@ const RewardsDashboard: React.FC = () => {
   );
 
   // Tell the user when the selected account group is entirely not supported
-  // (e.g. a hardware wallet account group).
+  // (e.g. a hardware wallet account group). Shown once per account group for
+  // this mount: dismissing it must stick, since closing the sheet refocuses
+  // the dashboard and would otherwise reopen it.
+  const notSupportedSheetGroupId = useRef<string | null>(null);
   useFocusEffect(
     useCallback(() => {
-      if (
+      const groupId = selectedAccountGroup?.id;
+      const isNotSupported =
         currentAccountGroupPartiallySupported === false &&
         !hideCurrentAccountNotOptedInBanner &&
-        selectedAccountGroup?.id
-      ) {
-        const hasHardwareAccounts = getAccountsByGroupId(
-          selectedAccountGroup.id,
-        ).some((account) => isHardwareAccount(account.address));
+        Boolean(groupId);
 
-        navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
-          title: strings(
-            'rewards.dashboard_modal_info.account_not_supported.title',
-          ),
-          description: hasHardwareAccounts
-            ? strings(
-                'rewards.dashboard_modal_info.account_not_supported.description_hardware',
-              )
-            : strings(
-                'rewards.dashboard_modal_info.account_not_supported.description_general',
-              ),
-        });
+      if (!isNotSupported || !groupId) {
+        notSupportedSheetGroupId.current = null;
+        return;
       }
+      if (notSupportedSheetGroupId.current === groupId) {
+        return;
+      }
+      notSupportedSheetGroupId.current = groupId;
+
+      const hasHardwareAccounts = getAccountsByGroupId(groupId).some(
+        (account) => isHardwareAccount(account.address),
+      );
+
+      navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+        title: strings(
+          'rewards.dashboard_modal_info.account_not_supported.title',
+        ),
+        description: hasHardwareAccounts
+          ? strings(
+              'rewards.dashboard_modal_info.account_not_supported.description_hardware',
+            )
+          : strings(
+              'rewards.dashboard_modal_info.account_not_supported.description_general',
+            ),
+      });
     }, [
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
