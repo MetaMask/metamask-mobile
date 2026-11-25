@@ -27,7 +27,7 @@ import type {
 } from '@metamask/ramps-controller';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import {
-  TRANSAK_SUPPORT_URL,
+  TRANSAK_MICA_SUPPORT_URL,
   TRANSAK_TERMS_URL_WORLD,
 } from '../../constants/transak';
 import MicaKycFormLayout from './MicaKycFormLayout';
@@ -292,7 +292,7 @@ const MicaConsent = (): React.JSX.Element => {
             style={styles.linkText}
             onPress={() =>
               openExternalUrl(
-                TRANSAK_SUPPORT_URL,
+                TRANSAK_MICA_SUPPORT_URL,
                 'Failed to open Transak support URL',
               )
             }

@@ -519,7 +519,7 @@ describe('MicaConsent', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens Transak support from the support notice', async () => {
+    it('opens the Transak MiCA support page from the support notice', async () => {
       const utils = renderScreen();
       await waitFor(() => {
         expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
@@ -529,7 +529,9 @@ describe('MicaConsent', () => {
         utils.getByText('deposit.mica_consent.support_link_text'),
       );
 
-      expect(openURL).toHaveBeenCalledWith('https://support.transak.com');
+      expect(openURL).toHaveBeenCalledWith(
+        'https://support.transak.com/en/mica',
+      );
     });
 
     it('opens the Transak terms of service from the consent label', async () => {
