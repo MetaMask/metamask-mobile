@@ -12933,10 +12933,7 @@
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
       "referrer_cannot_be_referred": "You cannot be referred by someone else.",
       "active_trader_cannot_be_referred": "This referral code is only valid for new traders.",
-      "rate_limited": "Too many tries. Wait a moment.",
-      "invalid_bonus_code": "Invalid bonus code",
-      "already_redeemed": "You have already redeemed this bonus code",
-      "reached_maximum": "This bonus code has reached its maximum number of uses"
+      "rate_limited": "Too many tries. Wait a moment."
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -13102,10 +13099,6 @@
       "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
       "off_device_accounts_sheet_let_us_know": "Let us know"
     },
-    "bonus_code": {
-      "input_placeholder": "Enter bonus code",
-      "apply_success": "Bonus code applied!"
-    },
     "optout": {
       "title": "Opt out of Rewards campaigns",
       "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
@@ -13141,8 +13134,7 @@
       "account_not_supported": {
         "title": "Account not supported",
         "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
-        "confirm": "Go back"
+        "description_general": "Currently only non-hardware Ethereum, Solana, Bitcoin, and Tron accounts are eligible. Switch to a different account to proceed."
       }
     },
     "ways_to_earn": {
