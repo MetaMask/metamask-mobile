@@ -1,28 +1,13 @@
 import React from 'react';
-<<<<<<< HEAD
 import {
-  FontWeight,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
 import type { HomePack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
-import { CapsuleGlass } from '../../primitives/CapsuleGlass';
-=======
-import { TextColor, TextVariant } from '@metamask/design-system-react-native';
-import type { HomePack } from '../types/packs';
-import { collectiblesTestIds } from '../Collectibles.testIds';
-import { View } from '../../primitives/View';
-import { Text } from '../../primitives/Text';
 import { PackArt } from './PackArt';
->>>>>>> origin/main
 
 export const packTileWidth = 192;
 
