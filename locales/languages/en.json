@@ -5604,19 +5604,6 @@
     "accounts": "accounts",
     "show_accounts": "Show",
     "hide_accounts": "Hide",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "bitcoin_signet_account_name": "Bitcoin Signet Account",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account",
-      "stellar_account_name": "Stellar Account"
-    },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
     },
@@ -10419,7 +10406,7 @@
       "faq_a1": "An account that earns up to {{percentage}}% variable APY. You add funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_a1_no_apy": "An account that earns variable APY. You add funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money account safe?",
-"faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Who controls my MetaMask Money account?",
       "faq_a3": "You do. MetaMask is self-custodial, so MetaMask can't access, freeze, or move your funds. That's what sets us apart from banks and custodial crypto platforms. No third party holds your funds. Your Money account is tied to your Secret Recovery Phrase, so back it up and keep it somewhere safe. Importing an account with a Private Key won't restore your Money account. If you lose your Secret Recovery Phrase, you lose access to your Money account funds.",
       "faq_q4": "What are MetaMask Money account fees?",

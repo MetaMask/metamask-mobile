@@ -5462,19 +5462,6 @@
     "accounts": "akun",
     "show_accounts": "Tampilkan",
     "hide_accounts": "Sembunyikan",
-    "labels": {
-      "bitcoin_testnet_account_name": "Akun Testnet Bitcoin",
-      "bitcoin_account_name": "Akun Bitcoin",
-      "bitcoin_signet_account_name": "Akun Signet Bitcoin",
-      "bitcoin_regtest_account_name": "Akun Regtest Bitcoin",
-      "solana_devnet_account_name": "Akun Devnet Solana",
-      "solana_testnet_account_name": "Akun Testnet Solana",
-      "solana_account_name": "Akun Solana",
-      "tron_account_name": "Akun Tron",
-      "tron_nile_account_name": "Akun Tron Nile",
-      "tron_shasta_account_name": "Akun Tron Shasta",
-      "stellar_account_name": "Akun Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Gagal membuat akun {{clientType}}"
     },
