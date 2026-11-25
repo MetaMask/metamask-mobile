@@ -932,15 +932,11 @@ describe('CustomAmountInfo', () => {
         isClampCommitFailed: false,
       }),
     );
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertMessage: 'Updating transaction amount',
+    });
     useAlertsMock.mockReturnValue({
-      alerts: [
-        {
-          key: AlertKeys.ClampCommitFailed,
-          message: 'Updating transaction amount',
-          severity: Severity.Danger,
-          isBlocking: true,
-        },
-      ],
+      alerts: [],
       hasBlockingAlerts: true,
     } as unknown as AlertsContextParams);
 
@@ -959,15 +955,11 @@ describe('CustomAmountInfo', () => {
         isClampCommitFailed: true,
       }),
     );
+    useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertMessage: 'Failed to update transaction amount',
+    });
     useAlertsMock.mockReturnValue({
-      alerts: [
-        {
-          key: AlertKeys.ClampCommitFailed,
-          message: 'Failed to update transaction amount',
-          severity: Severity.Danger,
-          isBlocking: true,
-        },
-      ],
+      alerts: [],
       hasBlockingAlerts: true,
     } as unknown as AlertsContextParams);
 

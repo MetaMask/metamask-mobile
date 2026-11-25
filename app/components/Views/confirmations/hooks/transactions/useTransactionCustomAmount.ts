@@ -202,13 +202,13 @@ export function useTransactionCustomAmount({
   const previousTransactionIdRef = useRef(transactionId);
   const keepAmountAfterReplacementRef = useRef(false);
   const pendingClampRef = useRef(false);
-  const clampCommitInFlightRef = useRef(false);
   const targetClampedAmountRef = useRef<string | null>(null);
   const clampRetryAttemptsRef = useRef(0);
   const clampRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const [clampRetryCounter, setClampRetryCounter] = useState(0);
+  const [isClampCommitPending, setIsClampCommitPending] = useState(false);
   const [isClampCommitFailed, setIsClampCommitFailed] = useState(false);
   const ignoreNextAutomaticTokenChangeRef = useRef(false);
 
@@ -607,14 +607,14 @@ export function useTransactionCustomAmount({
         skipFiatRateConversion,
       );
 
-      clampCommitInFlightRef.current = true;
+      setIsClampCommitPending(true);
 
       const commitClampedAmount = async () => {
         try {
           await updateTransactionPayAmount(clampedAmountHuman);
           // Clear both flags and reset state only after success
           pendingClampRef.current = false;
-          clampCommitInFlightRef.current = false;
+          setIsClampCommitPending(false);
           targetClampedAmountRef.current = null;
           clampRetryAttemptsRef.current = 0;
           setIsClampCommitFailed(false);
@@ -623,7 +623,7 @@ export function useTransactionCustomAmount({
             error as Error,
             'Failed to update transaction pay amount with clamped value',
           );
-          clampCommitInFlightRef.current = false;
+          setIsClampCommitPending(false);
 
           // Check if we've hit the retry limit
           if (clampRetryAttemptsRef.current >= MAX_CLAMP_COMMIT_RETRIES) {
@@ -637,6 +637,9 @@ export function useTransactionCustomAmount({
           } else {
             // Retry with backoff
             clampRetryAttemptsRef.current += 1;
+            if (clampRetryTimeoutRef.current) {
+              clearTimeout(clampRetryTimeoutRef.current);
+            }
             clampRetryTimeoutRef.current = setTimeout(() => {
               pendingClampRef.current = true;
               setClampRetryCounter((prev) => prev + 1);
@@ -651,7 +654,7 @@ export function useTransactionCustomAmount({
           'Unexpected error in clamp commit handler',
         );
       });
-    } else if (!clampCommitInFlightRef.current) {
+    } else if (!isClampCommitPending) {
       // No clamp needed and no commit in flight; clear the pending flag
       pendingClampRef.current = false;
       targetClampedAmountRef.current = null;
@@ -755,16 +758,18 @@ export function useTransactionCustomAmount({
     updatePendingAmountPercentage,
   ]);
 
-  // Clean up retry timeout on unmount or transactionId change
-  useEffect(
-    () => () => {
-      if (clampRetryTimeoutRef.current) {
-        clearTimeout(clampRetryTimeoutRef.current);
-        clampRetryTimeoutRef.current = null;
-      }
-    },
-    [transactionId],
-  );
+  // Reset all clamp state on transaction replacement/provider switch
+  useEffect(() => {
+    setIsClampCommitPending(false);
+    pendingClampRef.current = false;
+    targetClampedAmountRef.current = null;
+    clampRetryAttemptsRef.current = 0;
+    setIsClampCommitFailed(false);
+    if (clampRetryTimeoutRef.current) {
+      clearTimeout(clampRetryTimeoutRef.current);
+      clampRetryTimeoutRef.current = null;
+    }
+  }, [transactionId]);
 
   const updateTokenAmount = useCallback(async () => {
     await updateTransactionPayAmount(amountHuman);
@@ -814,8 +819,7 @@ export function useTransactionCustomAmount({
     updatePendingAmount,
     updatePendingAmountPercentage,
     updateTokenAmount,
-    isClampCommitPending:
-      clampCommitInFlightRef.current || pendingClampRef.current,
+    isClampCommitPending,
     isClampCommitFailed,
   };
 }

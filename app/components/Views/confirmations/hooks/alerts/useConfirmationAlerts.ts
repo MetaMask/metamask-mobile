@@ -27,7 +27,6 @@ import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
 import { useLighterAccountLookupAlert } from './useLighterAccountLookupAlert';
-import { useClampCommitAlert } from './useClampCommitAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -62,7 +61,6 @@ function useTransactionAlerts(): Alert[] {
   const mmPayHardwareAccountAlert = useMMPayHardwareAccountAlert();
   const suggestedGasFeeHighAlert = useSuggestedGasFeeHighAlert();
   const lighterAccountLookupAlert = useLighterAccountLookupAlert();
-  const clampCommitAlert = useClampCommitAlert();
 
   return useMemo(
     () => [
@@ -88,7 +86,6 @@ function useTransactionAlerts(): Alert[] {
       ...accountNoFundsAlert,
       ...mmPayHardwareAccountAlert,
       ...lighterAccountLookupAlert,
-      ...clampCommitAlert,
     ],
     [
       gasEstimateFailedAlert,
@@ -113,7 +110,6 @@ function useTransactionAlerts(): Alert[] {
       accountNoFundsAlert,
       mmPayHardwareAccountAlert,
       lighterAccountLookupAlert,
-      clampCommitAlert,
     ],
   );
 }

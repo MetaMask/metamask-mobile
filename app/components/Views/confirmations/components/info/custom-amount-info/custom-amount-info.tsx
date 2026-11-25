@@ -288,6 +288,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
         pendingFiatAmount,
+        isClampCommitPending,
+        isClampCommitFailed,
       });
 
     const hasAutoSubmittedPrefill = useRef(false);
