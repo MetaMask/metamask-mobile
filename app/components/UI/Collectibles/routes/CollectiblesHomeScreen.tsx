@@ -14,7 +14,7 @@ import {
 } from '../routeNames';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 
-export function HomeScreen() {
+export function CollectiblesHomeScreen() {
   const navigation = useNavigation();
   const { params } =
     useRoute<

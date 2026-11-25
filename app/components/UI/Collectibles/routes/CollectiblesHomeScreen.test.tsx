@@ -3,7 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
-import { HomeScreen } from './HomeScreen';
+import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
 
 const mockGoBack = jest.fn();
 let mockParams: { tab?: string } | undefined;
@@ -14,14 +14,14 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockParams }),
 }));
 
-describe('HomeScreen', () => {
+describe('CollectiblesHomeScreen', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
     mockParams = undefined;
   });
 
   it('shows the Collectibles header, the tabs and the Popular tab', () => {
-    renderWithProvider(<HomeScreen />);
+    renderWithProvider(<CollectiblesHomeScreen />);
 
     expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     expect(
@@ -33,7 +33,7 @@ describe('HomeScreen', () => {
   it('opens the tab from the route param', () => {
     mockParams = { tab: 'marketplace' };
 
-    renderWithProvider(<HomeScreen />);
+    renderWithProvider(<CollectiblesHomeScreen />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.marketplaceView),
@@ -41,7 +41,7 @@ describe('HomeScreen', () => {
   });
 
   it('goes back when the back button is pressed', () => {
-    renderWithProvider(<HomeScreen />);
+    renderWithProvider(<CollectiblesHomeScreen />);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.homeBackButton));
 
