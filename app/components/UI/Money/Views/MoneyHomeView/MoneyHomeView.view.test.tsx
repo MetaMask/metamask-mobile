@@ -164,7 +164,7 @@ describeForPlatforms('MoneyHomeView 2-step verification', () => {
     // The lifecycle controller isn't in the view-test Engine; keep the migration pending.
     Object.assign(Engine.context, {
       MoneyAccountLifecycleController: {
-        startMigration: () => new Promise(() => undefined),
+        startMigration: async () => new Promise(() => undefined),
       },
     });
     act(() => {

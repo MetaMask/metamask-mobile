@@ -70,7 +70,7 @@ describe('moneyAccountRestore', () => {
   it('begin returns false while a restore runs and true once it finishes', async () => {
     let finish: () => void = () => undefined;
     mockRestore.mockImplementation(
-      () =>
+      async () =>
         new Promise<void>((resolve) => {
           finish = resolve;
         }),
@@ -107,7 +107,7 @@ describe('moneyAccountRestore', () => {
   it('keeps the restoring status while the restore runs', async () => {
     let finish: () => void = () => undefined;
     mockRestore.mockImplementation(
-      () =>
+      async () =>
         new Promise<void>((resolve) => {
           finish = resolve;
         }),

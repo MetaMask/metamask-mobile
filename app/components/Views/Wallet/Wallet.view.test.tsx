@@ -865,13 +865,17 @@ describeForPlatforms('Wallet Money 2-step verification prompt', () => {
       ],
     });
 
+  const originalMpcKeyringEnabled = process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+
   beforeEach(() => {
+    process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
     moneyMfaStore.reset();
     moneyMfaHomePromptSession.reset();
     refreshEnrolledCredentials.mockResolvedValue([]);
   });
 
   afterEach(() => {
+    process.env.MM_MONEY_MPC_KEYRING_ENABLED = originalMpcKeyringEnabled;
     moneyMfaStore.reset();
     moneyMfaHomePromptSession.reset();
     refreshEnrolledCredentials.mockResolvedValue([]);

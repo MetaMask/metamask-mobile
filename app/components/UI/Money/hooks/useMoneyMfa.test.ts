@@ -746,7 +746,7 @@ describe('useMoneyMfa', () => {
       });
       let finish: () => void = () => undefined;
       mockRestore.mockImplementation(
-        () =>
+        async () =>
           new Promise<void>((resolve) => {
             finish = resolve;
           }),
@@ -767,7 +767,7 @@ describe('useMoneyMfa', () => {
     it('returns signing_in and restores once while a restore is running', async () => {
       let finish: () => void = () => undefined;
       mockRestore.mockImplementation(
-        () =>
+        async () =>
           new Promise<void>((resolve) => {
             finish = resolve;
           }),

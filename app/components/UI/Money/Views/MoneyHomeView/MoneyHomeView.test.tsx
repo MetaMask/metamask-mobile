@@ -817,7 +817,7 @@ const collectTestIdsInTreeOrder = (
 
   node.children.forEach((child) => {
     if (typeof child === 'object' && child !== null && 'props' in child) {
-      collectTestIdsInTreeOrder(child as ReactTestInstance, testIds);
+      collectTestIdsInTreeOrder(child, testIds);
     }
   });
 
@@ -1175,7 +1175,7 @@ describe('MoneyHomeView', () => {
       });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
-      } as VbaHomeCard);
+      });
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
 
       const rendered = renderWithProvider(<MoneyHomeView />);
@@ -1202,7 +1202,7 @@ describe('MoneyHomeView', () => {
       });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'identity_verified',
-      } as VbaHomeCard);
+      });
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
@@ -1213,7 +1213,7 @@ describe('MoneyHomeView', () => {
     it('renders the kyc_pending card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_pending',
-      } as VbaHomeCard);
+      });
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
@@ -1224,7 +1224,7 @@ describe('MoneyHomeView', () => {
     it('renders the finish_verification card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'finish_verification',
-      } as VbaHomeCard);
+      });
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
@@ -1235,7 +1235,7 @@ describe('MoneyHomeView', () => {
     it('renders the kyc_decision card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
-      } as VbaHomeCard);
+      });
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
@@ -1246,7 +1246,7 @@ describe('MoneyHomeView', () => {
     it('renders the kyc_retry card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_retry',
-      } as VbaHomeCard);
+      });
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
@@ -1261,7 +1261,7 @@ describe('MoneyHomeView', () => {
       setMoneyHomeCardDevOverride(
         getMoneyHomeCardDevOverrideById('get_started'),
       );
-      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -1306,7 +1306,7 @@ describe('MoneyHomeView', () => {
       });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
-      } as VbaHomeCard);
+      });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -1323,7 +1323,7 @@ describe('MoneyHomeView', () => {
     it('wires the one-shot KYC session refresh on mount', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'none',
-      } as VbaHomeCard);
+      });
 
       renderWithProvider(<MoneyHomeView />);
 
@@ -1333,7 +1333,7 @@ describe('MoneyHomeView', () => {
     it('wires the VBA autoramp transaction refresh on mount', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'none',
-      } as VbaHomeCard);
+      });
 
       renderWithProvider(<MoneyHomeView />);
 
@@ -1349,7 +1349,7 @@ describe('MoneyHomeView', () => {
       });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
-      } as VbaHomeCard);
+      });
       const { getByTestId, queryByTestId, rerender } = renderWithProvider(
         <MoneyHomeView />,
       );
@@ -1368,7 +1368,7 @@ describe('MoneyHomeView', () => {
 
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
-      } as VbaHomeCard);
+      });
       rerender(<MoneyHomeView />);
 
       expect(
@@ -1380,7 +1380,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders no VBA card for the none variant', () => {
-      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1393,7 +1393,7 @@ describe('MoneyHomeView', () => {
   describe('VBA bank details action button', () => {
     it('renders the Details button for every eligible user, card or not', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
-      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1406,7 +1406,7 @@ describe('MoneyHomeView', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
       mockUseVbaHomeCard.mockReturnValue({
         type: 'account_is_ready',
-      } as VbaHomeCard);
+      });
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1420,7 +1420,7 @@ describe('MoneyHomeView', () => {
       mockSelectUsableVbaAutoramp.mockReturnValue({ id: 'ar-1' });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'account_is_ready',
-      } as VbaHomeCard);
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1641,7 +1641,7 @@ describe('MoneyHomeView', () => {
       mockUseMoneyVaultState.mockReturnValue({
         ...defaultMoneyVaultState,
         isLoading: true,
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
@@ -1680,7 +1680,7 @@ describe('MoneyHomeView', () => {
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
         isBalanceLoading: true,
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      });
       mockUseMoneyVaultState.mockReturnValue({
         status: 'base',
         currentVault: 'base',
@@ -1766,7 +1766,7 @@ describe('MoneyHomeView', () => {
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      });
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
         deposits: [],
@@ -2574,7 +2574,7 @@ describe('MoneyHomeView', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
-      } as VbaHomeCard);
+      });
       const { getByTestId, rerender } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
@@ -2618,7 +2618,6 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
   });
-
 
   // Screen flows are in the view test; this keeps analytics and the failed and off states.
   describe('2-step verification', () => {
@@ -2941,7 +2940,7 @@ describe('MoneyHomeView', () => {
         isBalanceLoading: true,
         isBalanceFetchError: false,
         isBalanceUnavailable: false,
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       const transferButton = getByTestId(
@@ -2958,7 +2957,7 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       const transferButton = getByTestId(
@@ -2975,7 +2974,7 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: '0',
         isBalanceLoading: false,
         isBalanceFetchError: false,
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -3237,7 +3236,7 @@ describe('MoneyHomeView', () => {
       mockUseMoneyVaultState.mockReturnValue({
         ...defaultMoneyVaultState,
         status: 'base',
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -3256,7 +3255,7 @@ describe('MoneyHomeView', () => {
         currentVault: 'premium',
         apyDecimal: 0.08,
         apyPercent: 8,
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -3275,7 +3274,7 @@ describe('MoneyHomeView', () => {
         ...defaultMoneyVaultState,
         status: 'upgrading',
         currentVault: 'base',
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -3297,7 +3296,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: undefined,
         apyPercent: undefined,
         isLoading: true,
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -3318,7 +3317,7 @@ describe('MoneyHomeView', () => {
         currentVault: 'premium',
         apyDecimal: 0.08,
         apyPercent: 8,
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -3337,7 +3336,7 @@ describe('MoneyHomeView', () => {
         ...defaultMoneyVaultState,
         status: 'upgrading',
         currentVault: 'base',
-      } as ReturnType<typeof useMoneyVaultState>);
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

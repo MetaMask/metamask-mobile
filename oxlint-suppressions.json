@@ -5225,11 +5225,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 29
-    }
-  },
   "app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView.tsx": {
     "typescript/no-misused-promises": {
       "count": 3
