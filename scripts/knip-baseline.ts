@@ -327,7 +327,8 @@ function check(repoRoot: string): void {
     );
     printFindings(added, linesByEntry);
     console.error(
-      '\nFix the finding(s) (preferred), or — if they are expected to stay — run `yarn knip:update` and commit the baseline change.',
+      '\nFix the finding(s) (preferred), or suppress intentional cases in knip.config.ts (with a reason comment).\n' +
+        'Only if growing the baseline is genuinely intended, run `yarn knip:update --allow-grow` and commit the change.',
     );
   }
 

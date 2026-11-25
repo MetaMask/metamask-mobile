@@ -13,7 +13,7 @@ import type { KnipConfig } from 'knip';
  *
  * Findings never fail CI directly. `yarn knip:check` compares the knip report
  * against the committed baseline in `knip-baseline.json`
- * (scripts/knip-baseline.mjs). The baseline is the work queue: new findings
+ * (scripts/knip-baseline.ts). The baseline is the work queue: new findings
  * fail, already-known findings are listed there and get cleaned up by the
  * owning teams over time.
  */
