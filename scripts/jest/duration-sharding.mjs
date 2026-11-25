@@ -11,11 +11,12 @@
 export const SNAPSHOT_RELATIVE_PATH = 'scripts/jest/suite-durations.json';
 
 /**
- * Suites faster than this are not stored in the snapshot. Lower values balance
- * shards more tightly but grow the committed file. At 100ms the unit spread
- * stays near 2% in simulation and the file stays under 0.5 MB.
+ * Suites faster than this are not stored in the snapshot. The file has one line
+ * per recorded suite, so the threshold keeps it to a few hundred lines. The
+ * recorded suites carry about 60% of the total duration. The rest are weighted
+ * by size, and the unit spread across 10 shards stays near 5% in simulation.
  */
-export const MIN_RECORDED_SUITE_MS = 100;
+export const MIN_RECORDED_SUITE_MS = 3000;
 
 /**
  * Longest-processing-time greedy bin packing. The heaviest entry goes to the
@@ -83,10 +84,21 @@ export function estimateSuiteWeight(suite, snapshot) {
 export function buildSuiteDurationSnapshot(measurements) {
   let totalMs = 0;
   let totalKiB = 0;
+  let unrecordedMs = 0;
+  let unrecordedKiB = 0;
   for (const { durationMs, sizeBytes } of measurements) {
     totalMs += durationMs;
     totalKiB += sizeBytes / 1024;
+    if (durationMs < MIN_RECORDED_SUITE_MS) {
+      unrecordedMs += durationMs;
+      unrecordedKiB += sizeBytes / 1024;
+    }
   }
+
+  // The size fallback weights suites that are not recorded, so calibrate it on
+  // those suites. Fall back to every suite when all of them are recorded.
+  const calibrationMs = unrecordedKiB > 0 ? unrecordedMs : totalMs;
+  const calibrationKiB = unrecordedKiB > 0 ? unrecordedKiB : totalKiB;
 
   const suiteMs = {};
   for (const { key, durationMs } of measurements) {
@@ -102,7 +114,10 @@ export function buildSuiteDurationSnapshot(measurements) {
   }
 
   return {
-    fallbackMsPerKiB: totalKiB > 0 ? Number((totalMs / totalKiB).toFixed(3)) : 0,
+    fallbackMsPerKiB:
+      calibrationKiB > 0
+        ? Number((calibrationMs / calibrationKiB).toFixed(3))
+        : 0,
     suiteMs: sortedSuiteMs,
   };
 }

@@ -149,26 +149,56 @@ describe('buildSuiteDurationSnapshot', () => {
     });
   });
 
-  it('calibrates the size fallback from total duration per KiB', () => {
+  it('calibrates the size fallback on the suites that are not recorded', () => {
     const snapshot = buildSuiteDurationSnapshot([
-      { key: 'app/a.test.ts', durationMs: 3000, sizeBytes: 1024 },
-      { key: 'app/b.test.ts', durationMs: 1000, sizeBytes: 3 * 1024 },
+      {
+        key: 'app/slow.test.ts',
+        durationMs: MIN_RECORDED_SUITE_MS * 10,
+        sizeBytes: 1024,
+      },
+      { key: 'app/a.test.ts', durationMs: 1000, sizeBytes: 1024 },
+      { key: 'app/b.test.ts', durationMs: 3000, sizeBytes: 3 * 1024 },
     ]);
 
     expect(snapshot.fallbackMsPerKiB).toBe(1000);
   });
 
+  it('calibrates the size fallback on every suite when all are recorded', () => {
+    const snapshot = buildSuiteDurationSnapshot([
+      {
+        key: 'app/a.test.ts',
+        durationMs: MIN_RECORDED_SUITE_MS * 3,
+        sizeBytes: 1024,
+      },
+      {
+        key: 'app/b.test.ts',
+        durationMs: MIN_RECORDED_SUITE_MS,
+        sizeBytes: 3 * 1024,
+      },
+    ]);
+
+    expect(snapshot.fallbackMsPerKiB).toBe(MIN_RECORDED_SUITE_MS);
+  });
+
   it('writes recorded keys in sorted order with rounded durations', () => {
     const snapshot = buildSuiteDurationSnapshot([
-      { key: 'app/z.test.ts', durationMs: 1234.6, sizeBytes: 1024 },
-      { key: 'app/a.test.ts', durationMs: 999.4, sizeBytes: 1024 },
+      {
+        key: 'app/z.test.ts',
+        durationMs: MIN_RECORDED_SUITE_MS + 0.6,
+        sizeBytes: 1024,
+      },
+      {
+        key: 'app/a.test.ts',
+        durationMs: MIN_RECORDED_SUITE_MS + 0.4,
+        sizeBytes: 1024,
+      },
     ]);
 
     expect(Object.keys(snapshot.suiteMs)).toEqual([
       'app/a.test.ts',
       'app/z.test.ts',
     ]);
-    expect(snapshot.suiteMs['app/z.test.ts']).toBe(1235);
+    expect(snapshot.suiteMs['app/z.test.ts']).toBe(MIN_RECORDED_SUITE_MS + 1);
   });
 
   it('reports a zero fallback when there is nothing to calibrate from', () => {
