@@ -152,7 +152,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isAddMusdIntent =
+    const isFullBalanceMoneyDeposit =
       isMoneyAccountDeposit &&
       isFullBalanceDepositIntent(
         getMoneyAccountDepositIntent(transactionMeta?.batchId),
@@ -216,7 +216,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       disablePay,
       hasAccountNoFunds,
       hasPrefetchedQuote,
-      isAddMusdIntent,
+      isFullBalanceMoneyDeposit,
       isDepositPrefillEnabled,
       isDepositPrefillLoading,
       skipDepositPrefill,
@@ -578,31 +578,32 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               // does not cover From or Pay with.
               <MembershipInfo amountFiat={amountFiat} />
             )}
-          {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
-            <>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && (
-                  <PayAccountSelector style={styles.separator} />
-                )}
-              <PerpsAccountPickerRow />
-              <PredictAccountPickerRow />
-              <PerpsWithdrawFromRow
-                source={perpsWithdrawSource}
-                onSourceChange={setPerpsWithdrawSource}
-              />
-              {disablePay !== true &&
-                (isPayAccountLoading ? (
-                  <PayWithRowSkeleton />
-                ) : (
-                  (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
-                ))}
-              <PerpsReceiveToRow
-                destination={perpsReceiveDestination}
-                onDestinationChange={setPerpsReceiveDestination}
-              />
-            </>
-          )}
+          {stage === CustomAmountStage.AmountInput &&
+            !isFullBalanceMoneyDeposit && (
+              <>
+                {supportAccountSelection &&
+                  !selectedFiatPaymentMethodId &&
+                  !shouldHideAccountSelector && (
+                    <PayAccountSelector style={styles.separator} />
+                  )}
+                <PerpsAccountPickerRow />
+                <PredictAccountPickerRow />
+                <PerpsWithdrawFromRow
+                  source={perpsWithdrawSource}
+                  onSourceChange={setPerpsWithdrawSource}
+                />
+                {disablePay !== true &&
+                  (isPayAccountLoading ? (
+                    <PayWithRowSkeleton />
+                  ) : (
+                    (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />
+                  ))}
+                <PerpsReceiveToRow
+                  destination={perpsReceiveDestination}
+                  onDestinationChange={setPerpsReceiveDestination}
+                />
+              </>
+            )}
           {stage !== CustomAmountStage.AmountInput && (
             <View
               pointerEvents={shouldBlockReviewRows ? 'none' : 'auto'}
