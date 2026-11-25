@@ -2,21 +2,52 @@ import '../mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
 import {
+  createNavigationContainerRef,
+  NavigationContainer,
   useNavigation,
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
-import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  act,
+  fireEvent,
+  type RenderResult,
+} from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import {
+  getDefaultKycControllerState,
+  type KycControllerState,
+  type KycSessionStatus,
+} from '@metamask/kyc-controller';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../app/util/test/renderWithProvider';
+import Engine from '../../../app/core/Engine';
+import { updateBgState } from '../../../app/core/redux/slices/engine';
+import { VBA_KYC_VENDOR } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/constants';
+import NavigationService from '../../../app/core/NavigationService';
 import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
+import { MoneyAddMoneySheetTestIds } from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet.testIds';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
+import VbaOnboardingLoading from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
-import { renderScreenWithRoutes } from '../render';
+import { useVbaHomeCard } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import { useVbaEligibility } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import MoneyVbaHomeCard from '../../../app/components/UI/Money/components/MoneyVbaHomeCard';
+import { getMoneyHomeCard } from '../../../app/components/UI/Money/hooks/getMoneyHomeCard';
+import { selectUsableVbaAutoramp } from '../../../app/selectors/rampsController';
+import DeleteIdentityData from '../../../app/components/Views/Settings/SecuritySettings/Sections/DeleteIdentityData';
+import { MfaFlowSelectorsIDs } from '../../../app/components/Views/Mfa/Mfa.testIds';
+import MfaFlowHost from '../../../app/components/Views/Mfa/MfaFlowHost/MfaFlowHost';
+import MfaFlowLauncher from '../../../app/components/Views/Mfa/MfaFlowHost/MfaFlowLauncher';
+import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
 export const VbaRendererTestIds = {
@@ -29,14 +60,85 @@ export const VbaRendererTestIds = {
 } as const;
 
 let restoreVbaReduxStore: (() => void) | undefined;
+let restorePublishedKycSession: (() => void) | undefined;
 
 /**
  * Puts back the `ReduxService.store` that was current before the last VBA
- * renderer call. Call from `afterEach` so later suites on the same Jest worker
- * do not read this test's store.
+ * renderer call, and any KYC session published for that render. Call from
+ * `afterEach` so later suites on the same Jest worker do not read this test's
+ * store.
  */
 export function restoreVbaReduxServiceStore(): void {
+  // Each publish links its restore to the previous one. A second publish in
+  // the same test only runs the latest unless the chain is drained.
+  let restore = restorePublishedKycSession;
+  while (restore) {
+    restorePublishedKycSession = undefined;
+    restore();
+    restore = restorePublishedKycSession;
+  }
   restoreVbaReduxStore?.();
+}
+
+/**
+ * Publishes a KYC session the way a background controller update does, so a
+ * mounted onboarding screen can react. Restored by
+ * {@link restoreVbaReduxServiceStore}.
+ */
+export function publishKycSession(
+  store: {
+    dispatch: (action: ReturnType<typeof updateBgState>) => void;
+  },
+  sessionStatus: KycSessionStatus,
+): void {
+  const previousKycState = Engine.context.KycController.state;
+  const previousEngineState = Object.getOwnPropertyDescriptor(Engine, 'state');
+  const kycState: KycControllerState = {
+    ...getDefaultKycControllerState(),
+    email: 'ada@example.com',
+    vendor: VBA_KYC_VENDOR,
+    geoCountry: 'BRA',
+    providerFlowStatus: 'submitted',
+    sessionStatus,
+  };
+  const currentEngineState = (
+    Engine as unknown as { state?: Record<string, unknown> }
+  ).state;
+  Object.defineProperty(Engine, 'state', {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value: { ...currentEngineState, KycController: kycState },
+  });
+  Engine.context.KycController.state = kycState;
+  store.dispatch(updateBgState({ key: 'KycController' }));
+  const previousRestore = restorePublishedKycSession;
+  restorePublishedKycSession = () => {
+    Engine.context.KycController.state = previousKycState;
+    if (previousEngineState) {
+      Object.defineProperty(Engine, 'state', previousEngineState);
+    } else {
+      Reflect.deleteProperty(Engine, 'state');
+    }
+    restorePublishedKycSession = previousRestore;
+  };
+}
+
+/**
+ * Opens Add money and presses the Bank account row. The press mounts the
+ * onboarding fox loader, whose Reduce Motion lookup resolves on a later
+ * microtask, so the press is awaited inside `act`.
+ */
+export async function openVbaBankAccountFromMoney(
+  findByTestId: RenderResult['findByTestId'],
+): Promise<void> {
+  fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+  const bankAccountRow = await findByTestId(
+    MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+  );
+  await act(async () => {
+    fireEvent.press(bankAccountRow);
+  });
 }
 
 const bindVbaReduxServiceStore = (store: ReduxStore) => {
@@ -56,11 +158,9 @@ const bindVbaReduxServiceStore = (store: ReduxStore) => {
   };
 };
 
-interface RenderVbaOptions {
-  location?: string;
-  flagEnabled?: boolean;
+type RenderVbaOptions = NonNullable<Parameters<typeof initialStateVba>[0]> & {
   overrides?: DeepPartial<RootState>;
-}
+};
 
 const VbaTermsCaller = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -136,12 +236,8 @@ const VbaCardHomeCaller = (): React.ReactElement => {
   );
 };
 
-const buildVbaState = ({
-  location,
-  flagEnabled,
-  overrides,
-}: RenderVbaOptions) => {
-  const builder = initialStateVba({ location, flagEnabled });
+const buildVbaState = ({ overrides, ...presetOptions }: RenderVbaOptions) => {
+  const builder = initialStateVba(presetOptions);
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -176,6 +272,17 @@ export const renderVbaVendorTermsWithCaller = (
     { state: buildVbaState(options) },
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+export const renderVbaDetails = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaDetails,
+    { name: Routes.RAMP.VBA_DETAILS },
+    [],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store);
   return result;
 };
 
@@ -238,4 +345,167 @@ export const renderVbaCardHomeEntry = (
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
+};
+
+const VBA_PROBED_ONBOARDING_ROUTES = Object.values(VbaOnboardingRoutes).filter(
+  (name) => name !== VbaOnboardingRoutes.LOADING,
+);
+
+const probedOnboardingScreens = VBA_PROBED_ONBOARDING_ROUTES.map((name) => ({
+  name,
+  Component: createRouteParamsProbe(name),
+}));
+
+const ProbedOnboardingStack = createNativeStackNavigator();
+
+const VbaProbedOnboardingNavigator = () => (
+  <ProbedOnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProbedOnboardingStack.Screen
+      name={VbaOnboardingRoutes.LOADING}
+      component={VbaOnboardingLoading as unknown as React.ComponentType}
+    />
+    {probedOnboardingScreens.map(({ name, Component }) => (
+      <ProbedOnboardingStack.Screen
+        key={name}
+        name={name}
+        component={Component}
+      />
+    ))}
+  </ProbedOnboardingStack.Navigator>
+);
+
+/**
+ * Synthetic host. Money home chooses the card inside a larger section, and
+ * these tests only need the VBA card. The flags below are pinned so the host
+ * always asks for a VBA card: card unlinked, KYC decision not dismissed, no
+ * crypto, unfunded, residency open. A change to `getMoneyHomeCard`'s inputs
+ * will not be caught here.
+ */
+const VbaHomeCardHost = () => {
+  const vbaCard = useVbaHomeCard();
+  const { isEligible, isLoading } = useVbaEligibility();
+  const hasUsableAutoramp = Boolean(useSelector(selectUsableVbaAutoramp));
+  const homeCard = getMoneyHomeCard({
+    isEligibilityLoading: isLoading,
+    isMoneyBalanceLoading: false,
+    isCryptoBalanceLoading: false,
+    isCardStateResolved: true,
+    vbaCard,
+    isVbaEligible: isEligible,
+    hasCrypto: false,
+    hasUsableAutoramp,
+    isMoneyAccountFunded: false,
+    isCardLinked: false,
+    isResidencyBlocked: false,
+    isCardStepSkipped: false,
+    isKycDecisionDismissed: false,
+  });
+
+  return homeCard.type === 'vba' ? (
+    <MoneyVbaHomeCard variant={homeCard.variant} />
+  ) : null;
+};
+
+/**
+ * Money home VBA card. Its CTA lands on an onboarding params probe or the
+ * account details probe.
+ */
+export const renderVbaHomeCard = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaHomeCardHost,
+    { name: Routes.MONEY.HOME },
+    [
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component: VbaProbedOnboardingNavigator,
+      },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+/**
+ * Like {@link renderVbaMoneyEntry}, but the loading screen is real and every
+ * other onboarding route is a params probe.
+ */
+export const renderVbaMoneyEntryWithDestinationProbes = (
+  options: RenderVbaOptions = {},
+) => {
+  const result = renderScreenWithRoutes(
+    VbaMoneyCaller,
+    { name: 'VbaMoneyCaller' },
+    [
+      {
+        name: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        Component: MoneyAddMoneySheet as unknown as React.ComponentType,
+      },
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component: VbaProbedOnboardingNavigator,
+      },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+const DeleteIdentityStack = createNativeStackNavigator();
+
+/** MFA controls the identity-deletion email check renders. */
+export const VbaDeleteIdentityTestIds = {
+  OTP_SCREEN: MfaFlowSelectorsIDs.OTP_CONTAINER,
+  CODE_INPUT: MfaFlowSelectorsIDs.CODE_INPUT,
+  BACK_BUTTON: MfaFlowSelectorsIDs.BACK_BUTTON,
+} as const;
+
+/**
+ * Security settings hosts the delete section. The MFA launcher opens the
+ * email check through `NavigationService`, so this renderer owns the
+ * container ref instead of the flat route helper.
+ */
+const VbaDeleteIdentityHost = (): React.ReactElement => (
+  <>
+    <DeleteIdentityData />
+    <MfaFlowLauncher />
+  </>
+);
+
+/**
+ * Renders the identity-deletion section for a customer with an active virtual
+ * bank account and a KYC session. Callers can turn either off.
+ */
+export const renderVbaDeleteIdentityData = (options: RenderVbaOptions = {}) => {
+  const navigation = createNavigationContainerRef<ParamListBase>();
+  NavigationService.navigation = navigation;
+  const result = renderWithProvider(
+    <NavigationContainer ref={navigation}>
+      <DeleteIdentityStack.Navigator
+        screenOptions={{ headerShown: false, animation: 'none' }}
+      >
+        <DeleteIdentityStack.Screen
+          name={Routes.SETTINGS.SECURITY_SETTINGS}
+          component={VbaDeleteIdentityHost}
+        />
+        <DeleteIdentityStack.Screen
+          name={Routes.MFA.FLOW}
+          component={MfaFlowHost}
+        />
+      </DeleteIdentityStack.Navigator>
+    </NavigationContainer>,
+    {
+      state: buildVbaState({
+        hasActiveAccount: true,
+        hasKycSession: true,
+        ...options,
+      }),
+    },
+    false,
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return { ...result, navigation };
 };

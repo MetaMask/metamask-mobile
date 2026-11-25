@@ -32,6 +32,8 @@ export function getTransactionPayControllerMessenger(
     actions: [
       'AccountTreeController:getState',
       'AccountsController:getState',
+      'AccountTreeController:getAccountContext',
+      'AccountTreeController:getAccountGroupObject',
       'AssetsController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',

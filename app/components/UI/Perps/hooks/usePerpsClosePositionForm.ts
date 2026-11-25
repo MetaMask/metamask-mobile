@@ -14,6 +14,7 @@ import {
   calculateSignedRoEForPrice,
   estimateCloseReceive,
   type InputMethod,
+  type MarginMode,
   type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
@@ -46,7 +47,10 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
-import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPerpsClosePositionLimitOrderEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
+} from '../selectors/featureFlags';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import {
   convertAssetAmountToUsd,
@@ -61,7 +65,13 @@ import {
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
-import { resolveProviderId } from '../utils/perpsPostTradeShare';
+import {
+  buildPerpsClosePostTradePreview,
+  isPerpsPostTradeShareEligible,
+  resolveProviderId,
+} from '../utils/perpsPostTradeShare';
+import { useIsPerpsProModeActive } from '../utils/perpsModeSwitch';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { parsePositionRoePercentage } from '../utils/positionDisplay';
 
 /**
@@ -201,8 +211,13 @@ export interface UsePerpsClosePositionFormResult {
 
   feeResults: ReturnType<typeof usePerpsOrderFees>;
   rewardsState: ReturnType<typeof usePerpsRewards>;
-  /** Margin returned including its PnL; undefined while an input is missing. */
+  /**
+   * Margin returned; isolated margin includes its PnL, cross margin does not.
+   * Undefined while an input is missing.
+   */
   summaryMargin: number | undefined;
+  /** Margin mode of the position being closed, when the venue reports it. */
+  summaryMarginMode: MarginMode | undefined;
   /** PnL realized at the close price; undefined while an input is missing. */
   summaryPnl: number | undefined;
   /**
@@ -275,6 +290,7 @@ export function usePerpsClosePositionForm(
   const isClosePositionLimitOrderEnabled = useSelector(
     selectPerpsClosePositionLimitOrderEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const [orderType, setOrderType] = useState<OrdinaryOrderType>(() =>
     isClosePositionLimitOrderEnabled ? lastCloseOrderType : 'market',
@@ -330,7 +346,7 @@ export function usePerpsClosePositionForm(
     : Number.parseFloat(position.entryPrice);
 
   const referencePrice = resolveOracleReferencePrice(
-    priceData[position.symbol]?.markPrice,
+    priceData[position.symbol]?.oraclePrice,
     currentPrice,
   );
 
@@ -658,6 +674,8 @@ export function usePerpsClosePositionForm(
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isPerpsProModeActive = useIsPerpsProModeActive();
   const unrealizedPnlPercent = useMemo(() => {
     const initialMargin = marginUsed - pnl; // Back-calculate initial margin
     return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
@@ -776,10 +794,39 @@ export function usePerpsClosePositionForm(
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
 
+    // A full Hyperliquid market close fills with one order id, so it can be
+    // shared like an open. Partial closes leave the position open.
+    const closeProviderId =
+      livePosition.providerId ?? resolveProviderId(activeProvider);
+    const canPromptPostTrade =
+      isFullClose &&
+      effectiveOrderType === 'market' &&
+      !isPerpsProModeActive &&
+      closeProviderId === 'hyperliquid' &&
+      isPerpsPostTradeShareEligible({ amountUsd: closingValueString });
+    const postTradePrompt = canPromptPostTrade
+      ? resolvePostTradePrompt('perps')
+      : undefined;
+    const postTradeShare =
+      postTradePrompt && postTradePrompt.kind !== 'none'
+        ? {
+            prompt: postTradePrompt,
+            providerId: closeProviderId,
+            preview: buildPerpsClosePostTradePreview({
+              asset: livePosition.symbol,
+              direction: isLong ? 'long' : 'short',
+              leverage: livePosition.leverage?.value,
+              amountUsd: closingValueString,
+              entryPrice: livePosition.entryPrice,
+            }),
+          }
+        : undefined;
+
     // Go back immediately to close the position screen
     dismissRef.current();
 
     await handleClosePosition({
+      postTradeShare,
       position: livePosition,
       size: sizeToClose || '',
       orderType: effectiveOrderType,
@@ -849,6 +896,10 @@ export function usePerpsClosePositionForm(
     isDraggingSlider,
     commitClosePercentage,
     liveDragClosePercentage,
+    isPerpsProModeActive,
+    activeProvider,
+    resolvePostTradePrompt,
+    isLong,
   ]);
 
   const handleAmountPress = useCallback(() => {
@@ -1006,10 +1057,22 @@ export function usePerpsClosePositionForm(
   }, [validationResult.errors]);
 
   const summaryPnl = closeEstimate.realizedPnl;
-  const summaryMargin =
-    closeEstimate.marginReturned === undefined || summaryPnl === undefined
-      ? undefined
-      : closeEstimate.marginReturned + summaryPnl;
+  // While the flag is off, a cross position keeps the isolated presentation,
+  // including P&L inside the reported margin.
+  const summaryMarginMode = isCrossMarginEnabled
+    ? livePosition.leverage?.type
+    : undefined;
+  // Cross margin is shared collateral and never holds the position's PnL, so
+  // only isolated margin is shown with the realized PnL folded in.
+  let summaryMargin: number | undefined;
+  if (summaryMarginMode === 'cross') {
+    summaryMargin = closeEstimate.marginReturned;
+  } else if (
+    closeEstimate.marginReturned !== undefined &&
+    summaryPnl !== undefined
+  ) {
+    summaryMargin = closeEstimate.marginReturned + summaryPnl;
+  }
   // %RoE beside the summary $PnL. Market closes show the position's actual
   // %RoE (`returnOnEquity × 100`) — the same value the position card renders.
   // Limit closes recompute the RoE at the effective (limit) price via
@@ -1114,6 +1177,7 @@ export function usePerpsClosePositionForm(
     feeResults,
     rewardsState,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
     summaryFees,

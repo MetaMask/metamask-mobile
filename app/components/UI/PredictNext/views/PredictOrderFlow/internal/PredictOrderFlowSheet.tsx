@@ -6,14 +6,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  Modal,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Linking } from 'react-native';
+import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
   Box,
@@ -32,7 +26,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
-import ModalSafeAreaProvider from '../../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import {
+  PredictAmountDisplay,
+  PredictKeypad,
+} from '../../../components/PredictAmountEntry';
+import { PredictFlowSheetHost } from '../../../components/PredictFlowSheetHost';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import { useTheme } from '../../../../../../util/theme';
@@ -50,6 +48,7 @@ import type {
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
+  PredictOrderReview,
   PredictOutcomeSide,
   PredictVenueId,
 } from '../../../types';
@@ -61,10 +60,8 @@ import {
   type PredictOrderService,
 } from '../../../services/PredictOrderService';
 
-import { OrderAmountInput } from './OrderAmountInput';
 import { OrderApproval } from './OrderApproval';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
-import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
@@ -116,15 +113,14 @@ interface PredictOrderFlowSheetProps {
   intent: PredictOrderFlowIntent;
   service: PredictOrderService;
   onClose: () => void;
+  /** Leaves for the deposit. Offered under an `insufficient_balance` quote
+   * only when given, which is when deposits are ready for the Venue. */
+  onAddFunds?: () => void;
 }
 
 /** The explicit Order Flow phases: enter the amount, approve the exact
  * quoted values, commit, and read the receipt-driven outcome. */
 type SubmitPhase = 'input' | 'approval' | 'submitting' | 'receipt';
-
-const styles = StyleSheet.create({
-  modalHost: { ...StyleSheet.absoluteFill },
-});
 
 /** An amount as keypad input: whole cents, no trailing '.00'. */
 const toAmountInput = (value: BigNumber): string =>
@@ -134,6 +130,7 @@ export const PredictOrderFlowSheet = ({
   intent,
   service,
   onClose,
+  onAddFunds,
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -152,11 +149,7 @@ export const PredictOrderFlowSheet = ({
   const [phase, setPhase] = useState<SubmitPhase>('input');
   const [receipt, setReceipt] = useState<PredictOrderReceipt | null>(null);
   const [isRechecking, setIsRechecking] = useState(false);
-  // A Commit failure that returned no Receipt: the operation may or may not
-  // exist, so the approval step stays and keeps this Preview for observation
-  // even after local expiry. Re-approval re-POSTs the same idempotent
-  // Preview reference. A fresh quote is the sole next step only when the
-  // venue confirms `preview_expired` before creating an operation.
+  // Unknown submissions retain their preview and expose observe-only refresh.
   const [commitError, setCommitError] = useState<PredictError | null>(null);
   // A Commit rejected as `preview_expired` marks the quote expired even when
   // the client clock disagrees: the venue is authoritative.
@@ -321,6 +314,7 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      const idempotencyKey = uuidv4();
       // A buy amount is the maximum spend, fees included: the backend sizes
       // the quote so its total debit never exceeds it.
       const params: PredictOrderPreviewParams =
@@ -330,12 +324,14 @@ export const PredictOrderFlowSheet = ({
               side: intent.side,
               action: 'buy',
               amount: amount as PredictAmount,
+              idempotencyKey,
             }
           : {
               marketId: intent.marketId,
               side: intent.side,
               action: 'sell',
               contracts: contracts as PredictAmount,
+              idempotencyKey,
             };
       service
         .requestQuote(intent.venueId, params, { signal: quoteAbort.signal })
@@ -394,10 +390,9 @@ export const PredictOrderFlowSheet = ({
 
   const isExpired =
     venueExpired || (preview !== null && isPreviewExpired(preview, now));
-  // After an attempted Commit, keep the original Preview for observation
-  // even if the quote has expired locally. Only a venue `preview_expired`
-  // (commitError stays unset) makes a fresh quote the sole next step.
-  const approvalExpired = commitError === null && isExpired;
+  const isObserving =
+    commitError?.code === PredictErrorCode.ORDER_OUTCOME_UNKNOWN;
+  const approvalExpired = !isObserving && isExpired;
   const canReview =
     phase === 'input' &&
     preview !== null &&
@@ -432,6 +427,36 @@ export const PredictOrderFlowSheet = ({
     setQuoteNonce((nonce) => nonce + 1);
   }, [isStale, releasePresentation]);
 
+  /** The worst case the phone would sign, from the profile's invariant: the
+   * figures the approval shows. Undefined while it is computed or when the
+   * profile refuses the order, which keeps Confirm disabled. */
+  const [signedDisplay, setSignedDisplay] = useState<PredictOrderReview>();
+  useEffect(() => {
+    setSignedDisplay(undefined);
+    if (!preview) {
+      return undefined;
+    }
+    let current = true;
+    service
+      .reviewPreview(intent.venueId, preview.previewId)
+      .then((display) => {
+        if (current) {
+          setSignedDisplay(display);
+        }
+      })
+      .catch((error: unknown) => {
+        Logger.log('PredictNext: the signing profile refused the quote', error);
+        if (current) {
+          // Say why Approve stays disabled: this quote cannot be signed, and
+          // a fresh quote is the way forward.
+          setCommitError(PredictError.from(PredictErrorCode.QUOTE_UNAVAILABLE));
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [intent.venueId, preview, service]);
+
   const handleReview = useCallback(() => {
     if (!canReview) {
       return;
@@ -449,6 +474,13 @@ export const PredictOrderFlowSheet = ({
     if (phase !== 'approval' || !preview || isStale) {
       return;
     }
+    if (!signedDisplay) {
+      // Nothing the phone checked can be signed: Confirm stays disabled,
+      // and this is the same refusal if it is reached anyway.
+      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
+      setPhase('approval');
+      return;
+    }
     setCommitError(null);
     setPhase('submitting');
     if (!releasePresentationRef.current) {
@@ -464,18 +496,18 @@ export const PredictOrderFlowSheet = ({
       const committed = await service.commitPreview(
         intent.venueId,
         preview.previewId,
+        { kind: 'user-approved' },
       );
       setReceipt(committed);
       setPhase('receipt');
     } catch (error) {
-      // The Commit failed before a Receipt existed, so the operation may or
-      // may not exist. The approval step stays and keeps this Preview for
-      // observation even after local expiry: re-approving re-POSTs the same
-      // idempotent Preview reference. Never a second Order.
+      // The service distinguishes an unsent first attempt from an unknown
+      // outcome. Unknown attempts retain this preview for observation only.
       setPhase('approval');
       if (
         error instanceof PredictError &&
-        error.code === PredictErrorCode.PREVIEW_EXPIRED
+        (error.code === PredictErrorCode.PREVIEW_EXPIRED ||
+          error.code === PredictErrorCode.ORDER_PREVIEW_MISMATCH)
       ) {
         // The venue revalidated the Preview as expired: degrade to the same
         // re-quote affordance as a locally expired quote — never a failure.
@@ -488,16 +520,25 @@ export const PredictOrderFlowSheet = ({
         );
       }
     }
-  }, [handleResolution, intent.venueId, isStale, phase, preview, service]);
+  }, [
+    handleResolution,
+    intent.venueId,
+    isStale,
+    phase,
+    preview,
+    service,
+    signedDisplay,
+  ]);
 
-  /** Observes an unresolved receipt by committing the same Preview again —
-   * idempotent by Preview reference, so it never places a second Order. */
+  /** Observes an unresolved receipt by reading it again; observing never
+   * submits and never signs a Commit. */
   const handleKeepChecking = useCallback(async () => {
     if (!receipt || isStale) {
       return;
     }
     setIsRechecking(true);
     try {
+      // The operation is already committed: this reads its receipt.
       setReceipt(
         await service.commitPreview(intent.venueId, receipt.previewId),
       );
@@ -684,7 +725,7 @@ export const PredictOrderFlowSheet = ({
       return null;
     }
     if (quoteError) {
-      return (
+      const message = (
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.ErrorDefault}
@@ -693,6 +734,22 @@ export const PredictOrderFlowSheet = ({
         >
           {quoteError.message}
         </Text>
+      );
+      return onAddFunds &&
+        quoteError.code === PredictErrorCode.INSUFFICIENT_BALANCE ? (
+        <Box twClassName="items-center">
+          {message}
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Sm}
+            onPress={onAddFunds}
+            testID={PredictOrderFlowTestIds.ADD_FUNDS}
+          >
+            {strings('predict_next.portfolio.add_funds')}
+          </Button>
+        </Box>
+      ) : (
+        message
       );
     }
     if (preview && isExpired) {
@@ -719,6 +776,7 @@ export const PredictOrderFlowSheet = ({
     isQuoting,
     isStale,
     maxContracts,
+    onAddFunds,
     preview,
     quoteError,
   ]);
@@ -767,282 +825,269 @@ export const PredictOrderFlowSheet = ({
   };
 
   return (
-    <View pointerEvents="box-none" style={styles.modalHost}>
-      <Modal
-        visible
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={onClose}
+    <PredictFlowSheetHost onClose={onClose}>
+      <BottomSheet
+        ref={sheetRef}
+        onClose={onClose}
+        testID={PredictOrderFlowTestIds.SHEET}
       >
-        <ModalSafeAreaProvider>
-          <BottomSheet
-            ref={sheetRef}
-            onClose={onClose}
-            testID={PredictOrderFlowTestIds.SHEET}
-          >
-            <Box twClassName="flex-row items-center gap-3 px-4 pb-3 pt-1">
-              {intent.action === 'buy' ? (
-                // The buy sheet shows the event mark unboxed, as the
-                // Kalshi x Predict design does with team logos.
-                intent.eventImageUrl ? (
-                  <Image
-                    source={{ uri: intent.eventImageUrl }}
-                    style={tw.style('h-10 w-10')}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Box twClassName="h-10 w-10 rounded-full bg-muted" />
-                )
-              ) : intent.eventImageUrl ? (
-                <Image
-                  source={{ uri: intent.eventImageUrl }}
-                  style={tw.style('h-12 w-12 rounded-lg')}
-                />
-              ) : (
-                <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
-              )}
-              <Box twClassName="min-w-0 flex-1">
+        <Box twClassName="flex-row items-center gap-3 px-4 pb-3 pt-1">
+          {intent.action === 'buy' ? (
+            // The buy sheet shows the event mark unboxed, as the
+            // Kalshi x Predict design does with team logos.
+            intent.eventImageUrl ? (
+              <Image
+                source={{ uri: intent.eventImageUrl }}
+                style={tw.style('h-10 w-10')}
+                resizeMode="contain"
+              />
+            ) : (
+              <Box twClassName="h-10 w-10 rounded-full bg-muted" />
+            )
+          ) : intent.eventImageUrl ? (
+            <Image
+              source={{ uri: intent.eventImageUrl }}
+              style={tw.style('h-12 w-12 rounded-lg')}
+            />
+          ) : (
+            <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
+          )}
+          <Box twClassName="min-w-0 flex-1">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {intent.eventTitle}
+            </Text>
+            {intent.action === 'buy' ? (
+              <Box
+                twClassName="min-w-0 flex-row items-center gap-1"
+                testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+              >
                 <Text
                   variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  twClassName="shrink"
+                >
+                  {intent.outcomeLabel}
+                </Text>
+                {/* Decorative until product decides what switching the
+                 * outcome does; not a control. */}
+                <Icon
+                  name={IconName.SwapHorizontal}
+                  size={IconSize.Sm}
+                  color={IconColor.SuccessDefault}
+                  testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
+                />
+              </Box>
+            ) : (
+              <Box
+                twClassName="min-w-0 flex-row items-center"
+                testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+              >
+                <Text
+                  variant={TextVariant.BodyLg}
+                  fontWeight={FontWeight.Bold}
+                  color={TextColor.TextDefault}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {intent.eventTitle}
+                  {intent.outcomeLabel}
                 </Text>
-                {intent.action === 'buy' ? (
-                  <Box
-                    twClassName="min-w-0 flex-row items-center gap-1"
-                    testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+                {displayedPrice ? (
+                  <Text
+                    variant={TextVariant.BodyLg}
+                    fontWeight={FontWeight.Bold}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
                   >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.SuccessDefault}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                      twClassName="shrink"
-                    >
-                      {intent.outcomeLabel}
-                    </Text>
-                    {/* Decorative until product decides what switching the
-                     * outcome does; not a control. */}
-                    <Icon
-                      name={IconName.SwapHorizontal}
-                      size={IconSize.Sm}
-                      color={IconColor.SuccessDefault}
-                      testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
-                    />
-                  </Box>
+                    {` · ${formatCents(displayedPrice)}`}
+                  </Text>
+                ) : null}
+              </Box>
+            )}
+          </Box>
+          <ButtonIcon
+            iconName={IconName.Close}
+            onPress={onClose}
+            accessibilityLabel={strings('predict_next.order_preview.close')}
+          />
+        </Box>
+        <Box twClassName="px-4">
+          {phase === 'receipt' && receipt ? (
+            <>
+              {isStale ? statusMessage : null}
+              <OrderReceiptOutcome
+                receipt={receipt}
+                outcomeLabel={intent.outcomeLabel}
+                quotedPrice={preview ? formatCents(preview.averagePrice) : ''}
+                isRechecking={isRechecking}
+                areActionsDisabled={isStale}
+                onKeepChecking={handleKeepChecking}
+                onRequote={handleRequote}
+                onDone={onClose}
+              />
+            </>
+          ) : phase === 'approval' && preview ? (
+            <Box twClassName="gap-2 py-3">
+              {commitError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  twClassName="text-center"
+                  testID={PredictOrderFlowTestIds.ERROR}
+                >
+                  {commitError.message}
+                </Text>
+              ) : null}
+              {isStale ? statusMessage : null}
+              <OrderApproval
+                preview={preview}
+                display={signedDisplay}
+                isExpired={approvalExpired}
+                isObserving={isObserving}
+                isDisabled={isStale}
+                onApprove={handleCommit}
+                onBack={handleBack}
+                onRefresh={handleRequote}
+              />
+            </Box>
+          ) : (
+            <>
+              <Box twClassName="items-center justify-center gap-2 py-6">
+                <PredictAmountDisplay
+                  amount={intent.action === 'sell' ? contracts : amount}
+                  isActive={isKeypadOpen}
+                  isDisabled={!isAmountEditable}
+                  onAmountPress={handleKeypadOpen}
+                  prefix={intent.action === 'sell' ? '' : '$'}
+                  accessibilityLabel={
+                    intent.action === 'sell'
+                      ? strings('predict_next.order_preview.contracts')
+                      : strings('predict_next.order_preview.amount')
+                  }
+                />
+                {isQuoting ? (
+                  <Skeleton width={140} height={24} />
+                ) : intent.action === 'sell' ? (
+                  <Text
+                    variant={TextVariant.BodyLg}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.SuccessDefault}
+                    testID={PredictOrderFlowTestIds.NET_PROCEEDS_LINE}
+                  >
+                    {strings('predict_next.order_preview.net_proceeds_line', {
+                      amount: netProceedsLabel,
+                    })}
+                  </Text>
                 ) : (
-                  <Box
-                    twClassName="min-w-0 flex-row items-center"
-                    testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
-                  >
+                  // The only entry point to the details sheet: live
+                  // once a quote exists, inert while quoting or without
+                  // one.
+                  // The same dotted underline as Money's APY, so it renders
+                  // on Android.
+                  <DottedUnderline color={colors.success.default}>
                     <Text
                       variant={TextVariant.BodyLg}
-                      fontWeight={FontWeight.Bold}
-                      color={TextColor.TextDefault}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.SuccessDefault}
+                      onPress={
+                        canShowDetails ? handleBreakdownPress : undefined
+                      }
+                      suppressHighlighting
+                      accessibilityRole={canShowDetails ? 'button' : 'text'}
+                      accessibilityState={{ disabled: !canShowDetails }}
+                      testID={PredictOrderFlowTestIds.TO_WIN}
                     >
-                      {intent.outcomeLabel}
+                      {strings('predict_next.order_preview.to_win', {
+                        amount: toWinLabel,
+                      })}
                     </Text>
-                    {displayedPrice ? (
-                      <Text
-                        variant={TextVariant.BodyLg}
-                        fontWeight={FontWeight.Bold}
-                        color={TextColor.TextDefault}
-                        numberOfLines={1}
-                      >
-                        {` · ${formatCents(displayedPrice)}`}
-                      </Text>
-                    ) : null}
-                  </Box>
+                  </DottedUnderline>
+                )}
+                {intent.action === 'sell' ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    twClassName="text-center"
+                    testID={PredictOrderFlowTestIds.HELD_CONTRACTS}
+                  >
+                    {strings('predict_next.order_preview.held_contracts', {
+                      contracts: maxContracts,
+                    })}
+                  </Text>
+                ) : null}
+              </Box>
+              {intent.action === 'sell' ? (
+                <OrderQuickContracts
+                  maxContracts={maxContracts}
+                  onSetContracts={handleSetContracts}
+                  isDisabled={!isAmountEditable}
+                />
+              ) : (
+                <OrderQuickAmounts
+                  balance={availableBalance}
+                  minimumAmount={MINIMUM_AMOUNT}
+                  onSetAmount={handleSetAmount}
+                  onMax={handleMaxAmount}
+                  isDisabled={!isAmountEditable}
+                />
+              )}
+              <Box twClassName="py-3">
+                {intent.action === 'sell' ? null : (
+                  <OrderSummaryRows balance={balanceLabel} />
                 )}
               </Box>
-              <ButtonIcon
-                iconName={IconName.Close}
-                onPress={onClose}
-                accessibilityLabel={strings('predict_next.order_preview.close')}
-              />
-            </Box>
-            <Box twClassName="px-4">
-              {phase === 'receipt' && receipt ? (
-                <>
-                  {isStale ? statusMessage : null}
-                  <OrderReceiptOutcome
-                    receipt={receipt}
-                    outcomeLabel={intent.outcomeLabel}
-                    quotedPrice={
-                      preview ? formatCents(preview.averagePrice) : ''
-                    }
-                    isRechecking={isRechecking}
-                    areActionsDisabled={isStale}
-                    onKeepChecking={handleKeepChecking}
-                    onRequote={handleRequote}
-                    onDone={onClose}
-                  />
-                </>
-              ) : phase === 'approval' && preview ? (
-                <Box twClassName="gap-2 py-3">
-                  {commitError ? (
+              <Box twClassName="gap-2">
+                {statusMessage}
+                {renderCta()}
+                <Box twClassName="flex-row flex-wrap justify-center gap-1">
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.TextAlternative}
+                  >
+                    {intent.action === 'buy' && venueDisplayName
+                      ? strings('predict_next.order_preview.venue_terms', {
+                          venue: venueDisplayName,
+                        })
+                      : strings('predict_next.order_preview.terms')}
+                  </Text>
+                  {termsUrl ? (
                     <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.ErrorDefault}
-                      twClassName="text-center"
-                      testID={PredictOrderFlowTestIds.ERROR}
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.InfoDefault}
+                      onPress={handleTermsPress}
+                      suppressHighlighting
                     >
-                      {commitError.message}
+                      {strings('predict_next.order_preview.learn_more')}
                     </Text>
                   ) : null}
-                  {isStale ? statusMessage : null}
-                  <OrderApproval
-                    preview={preview}
-                    isExpired={approvalExpired}
-                    isDisabled={isStale}
-                    onApprove={handleCommit}
-                    onBack={handleBack}
-                    onRefresh={handleRequote}
-                  />
                 </Box>
-              ) : (
-                <>
-                  <Box twClassName="items-center justify-center gap-2 py-6">
-                    <OrderAmountInput
-                      amount={intent.action === 'sell' ? contracts : amount}
-                      isActive={isKeypadOpen}
-                      isDisabled={!isAmountEditable}
-                      onAmountPress={handleKeypadOpen}
-                      prefix={intent.action === 'sell' ? '' : '$'}
-                      accessibilityLabel={
-                        intent.action === 'sell'
-                          ? strings('predict_next.order_preview.contracts')
-                          : undefined
-                      }
-                    />
-                    {isQuoting ? (
-                      <Skeleton width={140} height={24} />
-                    ) : intent.action === 'sell' ? (
-                      <Text
-                        variant={TextVariant.BodyLg}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.SuccessDefault}
-                        testID={PredictOrderFlowTestIds.NET_PROCEEDS_LINE}
-                      >
-                        {strings(
-                          'predict_next.order_preview.net_proceeds_line',
-                          {
-                            amount: netProceedsLabel,
-                          },
-                        )}
-                      </Text>
-                    ) : (
-                      // The only entry point to the details sheet: live
-                      // once a quote exists, inert while quoting or without
-                      // one.
-                      // The same dotted underline as Money's APY, so it renders
-                      // on Android.
-                      <DottedUnderline color={colors.success.default}>
-                        <Text
-                          variant={TextVariant.BodyLg}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.SuccessDefault}
-                          onPress={
-                            canShowDetails ? handleBreakdownPress : undefined
-                          }
-                          suppressHighlighting
-                          accessibilityRole={canShowDetails ? 'button' : 'text'}
-                          accessibilityState={{ disabled: !canShowDetails }}
-                          testID={PredictOrderFlowTestIds.TO_WIN}
-                        >
-                          {strings('predict_next.order_preview.to_win', {
-                            amount: toWinLabel,
-                          })}
-                        </Text>
-                      </DottedUnderline>
-                    )}
-                    {intent.action === 'sell' ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                        twClassName="text-center"
-                        testID={PredictOrderFlowTestIds.HELD_CONTRACTS}
-                      >
-                        {strings('predict_next.order_preview.held_contracts', {
-                          contracts: maxContracts,
-                        })}
-                      </Text>
-                    ) : null}
-                  </Box>
-                  {intent.action === 'sell' ? (
-                    <OrderQuickContracts
-                      maxContracts={maxContracts}
-                      onSetContracts={handleSetContracts}
-                      isDisabled={!isAmountEditable}
-                    />
-                  ) : (
-                    <OrderQuickAmounts
-                      balance={availableBalance}
-                      minimumAmount={MINIMUM_AMOUNT}
-                      onSetAmount={handleSetAmount}
-                      onMax={handleMaxAmount}
-                      isDisabled={!isAmountEditable}
-                    />
-                  )}
-                  <Box twClassName="py-3">
-                    {intent.action === 'sell' ? null : (
-                      <OrderSummaryRows balance={balanceLabel} />
-                    )}
-                  </Box>
-                  <Box twClassName="gap-2">
-                    {statusMessage}
-                    {renderCta()}
-                    <Box twClassName="flex-row flex-wrap justify-center gap-1">
-                      <Text
-                        variant={TextVariant.BodyXs}
-                        color={TextColor.TextAlternative}
-                      >
-                        {intent.action === 'buy' && venueDisplayName
-                          ? strings('predict_next.order_preview.venue_terms', {
-                              venue: venueDisplayName,
-                            })
-                          : strings('predict_next.order_preview.terms')}
-                      </Text>
-                      {termsUrl ? (
-                        <Text
-                          variant={TextVariant.BodyXs}
-                          color={TextColor.InfoDefault}
-                          onPress={handleTermsPress}
-                          suppressHighlighting
-                        >
-                          {strings('predict_next.order_preview.learn_more')}
-                        </Text>
-                      ) : null}
-                    </Box>
-                  </Box>
-                </>
-              )}
-            </Box>
-            {isKeypadOpen && phase === 'input' && (
-              <OrderKeypad
-                onKeyPress={handleKeyPress}
-                onDelete={handleDelete}
-                showsDecimalKey={intent.action !== 'sell'}
-                hasFilledActionKeys={intent.action === 'buy'}
-              />
-            )}
-          </BottomSheet>
-          {isBreakdownVisible && buyPreview && (
-            <OrderBreakdownSheet
-              ref={breakdownSheetRef}
-              preview={buyPreview}
-              onClose={handleBreakdownClose}
-            />
+              </Box>
+            </>
           )}
-        </ModalSafeAreaProvider>
-      </Modal>
-    </View>
+        </Box>
+        {isKeypadOpen && phase === 'input' && (
+          <PredictKeypad
+            onKeyPress={handleKeyPress}
+            onDelete={handleDelete}
+            showsDecimalKey={intent.action !== 'sell'}
+            hasFilledActionKeys={intent.action === 'buy'}
+          />
+        )}
+      </BottomSheet>
+      {isBreakdownVisible && buyPreview && (
+        <OrderBreakdownSheet
+          ref={breakdownSheetRef}
+          preview={buyPreview}
+          onClose={handleBreakdownClose}
+        />
+      )}
+    </PredictFlowSheetHost>
   );
 };

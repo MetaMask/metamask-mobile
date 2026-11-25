@@ -59,19 +59,22 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="mt-3"
+        twClassName="mt-3 gap-0.5"
       >
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="flex-1"
+          twClassName="shrink"
+          numberOfLines={1}
         >
           {label}
         </Text>
         {onInfoPress ? (
+          // Xs is a 20px hit box around a 16px glyph, so the 2px gap reads as 4px.
           <ButtonIcon
             iconName={IconName.Info}
-            size={ButtonIconSize.Sm}
+            size={ButtonIconSize.Xs}
+            hitSlop={14}
             iconProps={{ color: IconColor.IconAlternative }}
             onPress={onInfoPress}
             accessibilityLabel={label}

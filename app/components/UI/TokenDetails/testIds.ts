@@ -31,13 +31,11 @@ export const TokenDetailsIds = {
     sectionRule: 'token-details-overview-section-rule',
     performance: 'token-details-overview-tab-performance',
   },
-  /** Whole feed card, pressable while Social terms are not accepted. */
-  feedPostOnboardingPress: (postId: string) =>
-    `token-details-feed-post-onboarding-press-${postId}`,
   holderRow: {
     CONTAINER: 'token-holder-row',
     PRESS: 'token-holder-row-press',
     NAME: 'token-holder-row-name',
+    VERIFIED_BADGE: 'token-holder-row-verified',
     FOLLOWERS: 'token-holder-row-followers',
     POSITION_VALUE: 'token-holder-row-position-value',
     PNL_PERCENT: 'token-holder-row-pnl-percent',

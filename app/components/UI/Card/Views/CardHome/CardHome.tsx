@@ -42,6 +42,7 @@ import Engine from '../../../../../core/Engine';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
+  selectHasCard,
   selectCardLastUnauthenticatedReason,
   selectCardUserLocation,
   selectCardHomeDataStatus,
@@ -72,6 +73,7 @@ import {
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
+import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
@@ -101,6 +103,16 @@ import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import useSignedOutKycPending from './hooks/useSignedOutKycPending';
+import {
+  SETUP_ALERT_TYPES,
+  resolveCardHomeWaitingState,
+  type CardHomeWaitingState,
+} from './hooks/CardHomeWaitingState';
+import useCardSetupPendingRefresh, {
+  deriveCardHomeSetupPollIntervalMs,
+} from './hooks/useCardSetupPendingRefresh';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -116,6 +128,7 @@ import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
 import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import { deriveMoneyCardSetupPollIntervalMs } from '../../../Money/utils/moneyMetaMaskCardMode';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
@@ -140,18 +153,14 @@ interface CardHomeRouteParams {
   fromKycPending?: boolean;
 }
 
-const SETUP_ALERT_TYPES = new Set([
-  'kyc_pending',
-  'card_provisioning',
-  'allowance_revoked',
-]);
-
 const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const transactionHistoryDestination = useCardTransactionHistoryDestination();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const hasCard = useSelector(selectHasCard);
+  const postAuthRedirect = useCardPostAuthRedirect();
   const lastUnauthenticatedReason = useSelector(
     selectCardLastUnauthenticatedReason,
   );
@@ -271,8 +280,26 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data, { recheckOnFocus: true });
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const {
+    canEnableCard,
+    enableCard,
+    provisioningView,
+    isEnableCardPending,
+    isProvisioningPollActive,
+    recheck: recheckProvisioning,
+  } = useCardEnableCard(data, {
+    recheckOnFocus: true,
+    // The waiting view re-checks a manual review on its own. The provisioning
+    // poll follows the same network cadence as Money home: off when offline,
+    // 15s on slow cellular, and 5s otherwise.
+    kycReviewSelfCheck: true,
+    pollIntervalMs: deriveMoneyCardSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+    ),
+  });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -305,6 +332,49 @@ const CardHome = () => {
   const hasSetupActions = effectiveActions.some(
     (a) => a.type === 'enable_card',
   );
+
+  // One derived waiting state for everything the card home is still waiting
+  // on (A07 / A08 / A09 and the Immersve review and reconcile checks). It
+  // drives the re-check cadence below and keeps the re-check logic in one
+  // place; the screen keeps main's existing layout and copy for each state.
+  const waitingState = useMemo<CardHomeWaitingState>(
+    () =>
+      resolveCardHomeWaitingState({
+        isLoading,
+        isUkMigrationForced,
+        isAuthenticated,
+        isSignedOutKycPending,
+        hasDashboardActions: effectiveActions.length > 0,
+        alerts,
+        provisioningView,
+      }),
+    [
+      isLoading,
+      isUkMigrationForced,
+      isAuthenticated,
+      isSignedOutKycPending,
+      effectiveActions,
+      alerts,
+      provisioningView,
+    ],
+  );
+
+  // Re-checks while a pending state is up, so it moves on by itself.
+  // Offline: no fetch. Slow cellular: the rare 15s cadence. A fast or
+  // unknown network keeps 3s while the card is being created and 15s in
+  // review. Immersve's own 5s poll already covers the creating state, so
+  // this interval stays off while that one is running.
+  const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
+    isPending: waitingState.kind === 'waiting',
+    isAuthenticated,
+    isFocused,
+    pollIntervalMs: deriveCardHomeSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+      waitingState.kind === 'waiting' && waitingState.step === 'creating-card',
+    ),
+    suspendSignedInPoll: isProvisioningPollActive,
+  });
 
   // --- Money Account linkage ---
   const {
@@ -358,42 +428,80 @@ const CardHome = () => {
     setIsRefreshing(true);
     refreshUkMigrationState();
     try {
+      if (waitingState.kind === 'waiting') {
+        // Re-check the thing being waited on: the Immersve reconcile for an
+        // under-review status or a card still being created, and the
+        // onboarding registration status when signed out. Everything else
+        // waits on card home data itself.
+        if (
+          waitingState.step === 'immersve-review' ||
+          waitingState.step === 'creating-card'
+        ) {
+          recheckProvisioning();
+        }
+        if (!isAuthenticated) {
+          await refreshRegistrationStatus();
+          return;
+        }
+      }
       await refetch();
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch, refreshUkMigrationState]);
+  }, [
+    refetch,
+    refreshUkMigrationState,
+    refreshRegistrationStatus,
+    recheckProvisioning,
+    waitingState,
+    isAuthenticated,
+  ]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(
     useCallback(() => {
+      if (!isAuthenticated) {
+        return;
+      }
       Engine.context.CardController.fetchCardHomeData();
-    }, []),
+    }, [isAuthenticated]),
   );
 
-  // --- Auth state transition: navigate to auth screen on logout ---
-  // Defer the redirect until Card Home is focused. A provider switch during
-  // UK migration marks the user signed out while SignUp is on top; replacing
-  // the focused route from this background screen unmounts that flow.
-  const wasAuthenticated = useRef(isAuthenticated);
-  const pendingAuthRedirect = useRef(false);
+  // Logged-out visitors never see the dashboard. Defer until this screen is
+  // focused: a provider switch during UK migration marks the user signed out
+  // while SignUp is on top, and replacing from this background screen would
+  // unmount that flow. The onboarding-token revocation path shows its own toast.
   useEffect(() => {
     if (
-      wasAuthenticated.current &&
-      !isAuthenticated &&
-      lastUnauthenticatedReason !== 'onboarding_token_revoked'
+      !isFocused ||
+      isAuthenticated ||
+      isSignedOutKycPending ||
+      lastUnauthenticatedReason === 'onboarding_token_revoked'
     ) {
-      pendingAuthRedirect.current = true;
+      return;
     }
-    if (isAuthenticated) {
-      pendingAuthRedirect.current = false;
+
+    if (hasCard) {
+      navigation.dispatch(
+        postAuthRedirect
+          ? StackActions.replace(Routes.CARD.AUTHENTICATION, {
+              postAuthRedirect,
+            })
+          : StackActions.replace(Routes.CARD.AUTHENTICATION),
+      );
+      return;
     }
-    wasAuthenticated.current = isAuthenticated;
-    if (pendingAuthRedirect.current && isFocused) {
-      pendingAuthRedirect.current = false;
-      navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
-    }
-  }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
+
+    navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+  }, [
+    hasCard,
+    isAuthenticated,
+    isFocused,
+    isSignedOutKycPending,
+    lastUnauthenticatedReason,
+    navigation,
+    postAuthRedirect,
+  ]);
 
   const hasHandledOnboardingTokenRevocation = useRef(false);
   useEffect(() => {
@@ -667,6 +775,12 @@ const CardHome = () => {
       Boolean(actions.cardDetailsImageUrl),
   });
 
+  // Callers that open Card Home directly still leave when logged out.
+  // Signed-out KYC review is the only layout this screen renders without a session.
+  if (!isAuthenticated && !isSignedOutKycPending) {
+    return null;
+  }
+
   // --- Error state ---
   if (isError) {
     return (
@@ -757,7 +871,7 @@ const CardHome = () => {
           />
         </Box>
 
-        {showUkMigrationSoftBanner && (
+        {isAuthenticated && showUkMigrationSoftBanner && (
           <Box
             twClassName="mx-4 mt-2"
             testID={CardHomeSelectors.UK_MIGRATION_SOFT_BANNER}
@@ -775,7 +889,7 @@ const CardHome = () => {
           </Box>
         )}
 
-        {isUkMigrationForced && (
+        {isAuthenticated && isUkMigrationForced && (
           <Box
             twClassName="mx-4 mt-2"
             testID={CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER}
@@ -787,13 +901,14 @@ const CardHome = () => {
           </Box>
         )}
 
-        {isBlocked && (
+        {isAuthenticated && isBlocked && (
           <Box twClassName="mx-4 mt-2">
             <CardMessageBox messageType={CardMessageBoxType.Blocked} />
           </Box>
         )}
 
-        {!isLoading &&
+        {isAuthenticated &&
+          !isLoading &&
           pendingDevicesLabel.length > 0 &&
           !isUkMigrationForced && (
             <Box
@@ -846,7 +961,7 @@ const CardHome = () => {
             </Box>
           </Animated.View>
 
-          {!hasSetupActions && !hasAlertOnlyState && (
+          {isAuthenticated && !hasSetupActions && !hasAlertOnlyState && (
             <CardBalanceDisplay
               isLoading={isLoading}
               balanceAmount={balanceAmount}
@@ -884,7 +999,8 @@ const CardHome = () => {
               />
             )}
 
-          {!isUkMigrationForced &&
+          {isAuthenticated &&
+            !isUkMigrationForced &&
             (effectiveActions.length > 0 || isLoading) && (
               <Box twClassName="w-full mt-4">
                 <CardActionsButtons
@@ -902,7 +1018,8 @@ const CardHome = () => {
             )}
         </Box>
 
-        {credit.hasCredit &&
+        {isAuthenticated &&
+          credit.hasCredit &&
           !hasSetupActions &&
           !hasAlertOnlyState &&
           !isUkMigrationForced && (
@@ -922,37 +1039,40 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
-          <Box twClassName="w-full px-4 pt-4 items-center justify-center">
-            {isProvisioning ? (
-              <Box twClassName="py-3">
-                <Spinner
-                  testID="push-provisioning-spinner"
-                  spinnerIconProps={{ size: IconSize.Xl }}
+        {isAuthenticated &&
+          !isLoading &&
+          walletEntry === 'push' &&
+          !isUkMigrationForced && (
+            <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+              {isProvisioning ? (
+                <Box twClassName="py-3">
+                  <Spinner
+                    testID="push-provisioning-spinner"
+                    spinnerIconProps={{ size: IconSize.Xl }}
+                  />
+                </Box>
+              ) : (
+                <AddToWalletButton
+                  onPress={isProvisioning ? undefined : initiateProvisioning}
+                  buttonStyle="blackOutline"
+                  buttonType="basic"
+                  borderRadius={4}
                 />
-              </Box>
-            ) : (
-              <AddToWalletButton
-                onPress={isProvisioning ? undefined : initiateProvisioning}
-                buttonStyle="blackOutline"
-                buttonType="basic"
-                borderRadius={4}
-              />
-            )}
-            {Platform.OS === 'ios' && !isCardInWallet && (
-              <TextButton
-                variant={TextVariant.BodySm}
-                twClassName="mt-2"
-                onPress={handleLearnMoreAboutApplePay}
-                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
-              >
-                {strings('card.apple_pay_usage.learn_more')}
-              </TextButton>
-            )}
-          </Box>
-        )}
+              )}
+              {Platform.OS === 'ios' && !isCardInWallet && (
+                <TextButton
+                  variant={TextVariant.BodySm}
+                  twClassName="mt-2"
+                  onPress={handleLearnMoreAboutApplePay}
+                  testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+                >
+                  {strings('card.apple_pay_usage.learn_more')}
+                </TextButton>
+              )}
+            </Box>
+          )}
 
-        {showLinkMoneyAccountCta && (
+        {isAuthenticated && showLinkMoneyAccountCta && (
           <>
             <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard
@@ -979,7 +1099,7 @@ const CardHome = () => {
           </>
         )}
 
-        {!isBlocked && !isUkMigrationForced && (
+        {isAuthenticated && !isBlocked && !isUkMigrationForced && (
           <ManageCardOptions
             card={data?.card}
             account={data?.account}
@@ -1038,30 +1158,32 @@ const CardHome = () => {
           />
         )}
 
-        <CardHomeFooter
-          isLoading={isLoading}
-          hasAlerts={hasAlertOnlyState}
-          hasSetupActions={hasSetupActions}
-          supportEmail={supportEmail}
-          onContactSupport={handleContactIntercomSupport}
-          legalDocuments={
-            isImmersve && immersveLegalDocuments.length > 0
-              ? immersveLegalDocuments
-              : undefined
-          }
-          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
-          showLegalDocumentsError={immersveLegalDocsUnavailable}
-          onRetryLegalDocuments={
-            immersveLegalDocsUnavailable
-              ? () => {
-                  refetchImmersveLegalDocs().catch(() => {
-                    // Error surfaces via hook state / footer retry UI.
-                  });
-                }
-              : undefined
-          }
-          onNavigateToCardTos={actions.navigateToCardTosPage}
-        />
+        {isAuthenticated && (
+          <CardHomeFooter
+            isLoading={isLoading}
+            hasAlerts={hasAlertOnlyState}
+            hasSetupActions={hasSetupActions}
+            supportEmail={supportEmail}
+            onContactSupport={handleContactIntercomSupport}
+            legalDocuments={
+              isImmersve && immersveLegalDocuments.length > 0
+                ? immersveLegalDocuments
+                : undefined
+            }
+            hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+            showLegalDocumentsError={immersveLegalDocsUnavailable}
+            onRetryLegalDocuments={
+              immersveLegalDocsUnavailable
+                ? () => {
+                    refetchImmersveLegalDocs().catch(() => {
+                      // Error surfaces via hook state / footer retry UI.
+                    });
+                  }
+                : undefined
+            }
+            onNavigateToCardTos={actions.navigateToCardTosPage}
+          />
+        )}
 
         <CardScreenshotDeterrent
           enabled={

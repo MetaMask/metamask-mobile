@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
+import { CollectiblesSection } from './Sections/Collectibles/CollectiblesSection';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
@@ -26,9 +27,11 @@ import {
   PredictHomeSection,
   selectPredictAvailability,
 } from '../../UI/PredictNext';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectHasSocialV1Access } from '../../../selectors/featureFlagController/socialV1';
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
@@ -54,10 +57,6 @@ import {
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-} from '../../../constants/socialV1';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -74,6 +73,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
+    const collectiblesSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
@@ -129,6 +129,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictAvailability);
+    const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
@@ -140,28 +141,18 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       PERPS_SECTION_PRIORITY_VARIANTS,
       PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
     );
-    const { variant: socialV1Variant } = useABTest(
-      SOCIAL_V1_AB_KEY,
-      SOCIAL_V1_VARIANTS,
-      { trackExposure: false },
-    );
+    const hasSocialV1Access = useSelector(selectHasSocialV1Access);
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
-    // Decide the Perps position from the initial Homepage layout. Deferred
-    // sections must not move above Tokens after the primary surface renders.
-    const [perpsAboveTokensPlacement] = useState(() =>
-      shouldPlacePerpsAboveTokens({
-        optionalSectionsCanMount:
-          effectiveSectionMountMode === 'immediate' && networkTierResolved,
-        isPerpsEnabled,
-        perpsAboveTokensEligible:
-          perpsSectionPriorityVariant.perpsAboveTokensEligible,
-        isActivePerpsTrader,
-      }),
-    );
+    const perpsAboveTokensPlacement = shouldPlacePerpsAboveTokens({
+      optionalSectionsCanMount: shouldMountOptionalSections,
+      isPerpsEnabled,
+      perpsAboveTokensEligible:
+        perpsSectionPriorityVariant.perpsAboveTokensEligible,
+      isActivePerpsTrader,
+    });
     const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
-    const isSocialV1PriorityEnabled =
-      isTopTradersEnabled && socialV1Variant.useSocialV1;
+    const isSocialV1PriorityEnabled = isTopTradersEnabled && hasSocialV1Access;
     const shouldHydrateSocialProfile =
       isSocialV1PriorityEnabled &&
       networkTierResolved &&
@@ -237,6 +228,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             enabled: isPredictEnabled && shouldMountOptionalSections,
           },
           {
+            name: HomeSectionNames.COLLECTIBLES,
+            enabled: isCollectiblesEnabled && shouldMountOptionalSections,
+          },
+          {
             name: HomeSectionNames.WATCHLIST,
             enabled: isWatchlistEnabled && shouldMountOptionalSections,
           },
@@ -259,6 +254,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         showPerpsAboveTokens,
         showTopTradersAboveAllocation,
         isPredictEnabled,
+        isCollectiblesEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
         isWatchlistEnabled,
@@ -280,6 +276,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         tokensSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
+        collectiblesSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
         defiSectionRef.current?.refresh(),
@@ -306,6 +303,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       <HomepagePerpsHomeSlot
         key="perps"
         ref={perpsSectionRef}
+        deviceCapability={homepageDeviceCapability}
         sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
@@ -352,6 +350,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 <PredictHomeSection
                   ref={predictionsSectionRef}
                   sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              {shouldMountOptionalSections && isCollectiblesEnabled && (
+                <CollectiblesSection
+                  ref={collectiblesSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.COLLECTIBLES)}
                   totalSectionsLoaded={totalSectionsLoaded}
                 />
               )}

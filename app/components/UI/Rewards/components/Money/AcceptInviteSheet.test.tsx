@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import configureStore from '../../../../../util/test/configureStore';
 import Engine from '../../../../../core/Engine';
@@ -10,7 +11,8 @@ import {
   setReferralMe,
 } from '../../../../../reducers/rewardsMoney';
 import type { MoneyReferralEntryType } from '../../types/navigation';
-import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
+import Routes from '../../../../../constants/navigation/Routes';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -30,7 +32,10 @@ const PROFILE_ID = 'profile-1';
 const KEYRING_ID = 'entropy-source-1';
 const TEST_IDS = ACCEPT_INVITE_SHEET_TEST_IDS;
 
-const sessionBackgroundState = (profileId: string) => ({
+const sessionBackgroundState = (
+  profileId: string,
+  geoLocation: string | null,
+) => ({
   AuthenticationController: {
     isSignedIn: true,
     srpSessionData: {
@@ -47,9 +52,30 @@ const sessionBackgroundState = (profileId: string) => ({
       },
     ],
   },
+  ...(geoLocation
+    ? {
+        GeolocationController: {
+          location: geoLocation,
+          status: 'complete' as const,
+        },
+      }
+    : {}),
 });
 
+const dispatchDeviceGeo = (
+  store: { dispatch: (action: unknown) => void },
+  location: string,
+) => {
+  const engine = Engine as unknown as { state?: Record<string, unknown> };
+  engine.state = {
+    ...(engine.state ?? {}),
+    GeolocationController: { location, status: 'complete' },
+  };
+  store.dispatch(updateBgState({ key: 'GeolocationController' }));
+};
+
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 const mockAcceptReferralCode = jest.fn();
 const mockUseAcceptMoneyReferralCode = jest.fn();
@@ -59,6 +85,7 @@ const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -112,11 +139,6 @@ jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
   useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
 }));
 
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(() => ({
-    fetchGeoRewardsMetadata: jest.fn(),
-  })),
-}));
 const LOCALIZED_TEXT = {
   inviteTitle: 'Claim your invite',
   inviteMessageBody: 'Your friend sent you a code that earns you cashback.',
@@ -124,6 +146,8 @@ const LOCALIZED_TEXT = {
   inviteDecline: 'Continue without referral',
   inviteAccept: 'Accept invite',
   inviteIllustrationLabel: 'Two friends trading',
+  inviteTermsLearnMore: 'Learn more',
+  inviteTermsUrl: 'https://link.metamask.io/rewards/terms',
 } as unknown as ReferralLocalizedText;
 
 const buildReferralMe = (
@@ -136,14 +160,7 @@ const buildReferralMe = (
   referral_code: null,
   referral_code_status: null,
   referred_by: null,
-  earn_rates: {
-    cashback_rate_bps: null,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
-    revshare_rate_bps: null,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
-  },
+  earn_rates: earnRatesFixture(),
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
   excluded_regions: [],
@@ -186,9 +203,10 @@ const renderSheetSync = (
       ? undefined
       : sessionOrOptions.entryType;
   const store = configureStore({
-    engine: { backgroundState: sessionBackgroundState(sessionProfileId) },
+    engine: {
+      backgroundState: sessionBackgroundState(sessionProfileId, geoLocation),
+    },
     rewardsMoney: { referralMe: referralMeEntries },
-    rewards: { geoLocation },
   });
   const view = render(
     <Provider store={store}>
@@ -215,6 +233,11 @@ const renderSheet = async (
 };
 
 describe('AcceptInviteSheet', () => {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  let engineStateBeforeTest: Record<string, unknown> | undefined;
+
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -223,7 +246,16 @@ describe('AcceptInviteSheet', () => {
     jest.useRealTimers();
   });
 
+  afterEach(() => {
+    if (engineStateBeforeTest === undefined) {
+      delete engineWithState.state;
+      return;
+    }
+    engineWithState.state = engineStateBeforeTest;
+  });
+
   beforeEach(() => {
+    engineStateBeforeTest = engineWithState.state;
     jest.clearAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -403,9 +435,66 @@ describe('AcceptInviteSheet', () => {
     const { getByTestId, queryByTestId } = await renderSheet('KOL1');
 
     expect(getByTestId(TEST_IDS.BODY)).toHaveTextContent(
-      'Your friend sent you a code that earns you cashback.',
+      'Your friend sent you a code that earns you cashback. Learn more',
     );
     expect(queryByTestId('accept-invite-sheet-hero')).toBeNull();
+  });
+
+  it('opens the terms link after the invite body in the in-app browser', async () => {
+    const { getByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.TERMS_LINK)).toHaveTextContent('Learn more');
+
+    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://link.metamask.io/rewards/terms',
+        timestamp: expect.any(Number),
+      },
+    });
+  });
+
+  it('does not open the terms link after Accept has started', async () => {
+    let settleAccept: (result: { accepted: boolean }) => void = () => undefined;
+    mockAcceptReferralCode.mockReturnValue(
+      new Promise((resolve) => {
+        settleAccept = resolve;
+      }),
+    );
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      settleAccept({ accepted: true });
+      await Promise.resolve();
+    });
+  });
+
+  it('hides the terms link when the terms URL is blank', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            inviteTermsUrl: '',
+          } as ReferralLocalizedText,
+        }),
+      },
+    };
+
+    const { getByTestId, queryByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.BODY)).toBeOnTheScreen();
+    expect(queryByTestId(TEST_IDS.TERMS_LINK)).toBeNull();
   });
 
   it('reads no copy from another profile entry', async () => {
@@ -780,12 +869,7 @@ describe('AcceptInviteSheet', () => {
     });
 
     await act(async () => {
-      store.dispatch(
-        setGeoRewardsMetadata({
-          geoLocation: 'GB',
-          optinAllowedForGeo: true,
-        }),
-      );
+      dispatchDeviceGeo(store, 'GB');
     });
 
     expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
@@ -824,12 +908,7 @@ describe('AcceptInviteSheet', () => {
     });
 
     await act(async () => {
-      store.dispatch(
-        setGeoRewardsMetadata({
-          geoLocation: 'GB',
-          optinAllowedForGeo: true,
-        }),
-      );
+      dispatchDeviceGeo(store, 'GB');
     });
 
     // acceptStartedRef keeps the sheet up; acceptAllowedForGeo must still
@@ -852,6 +931,7 @@ describe('AcceptInviteSheet', () => {
     ['accept', ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT],
     ['decline', ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE],
     ['close', ACCEPT_INVITE_SHEET_TEST_IDS.CLOSE],
+    ['terms link', ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK],
   ])(
     'ignores %s while a registration is already in flight',
     async (_name, testId) => {
@@ -869,6 +949,13 @@ describe('AcceptInviteSheet', () => {
       expect(getByTestId(TEST_IDS.CONTAINER).props.isInteractable).toBe(false);
       expect(mockAcceptReferralCode).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      if (testId === ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK) {
+        expect(getByTestId(testId).props.onPress).toBeUndefined();
+        expect(getByTestId(testId).props.accessibilityState).toEqual({
+          disabled: true,
+        });
+      }
     },
   );
   describe('analytics', () => {
@@ -1054,12 +1141,7 @@ describe('AcceptInviteSheet', () => {
       expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
 
       await act(async () => {
-        store.dispatch(
-          setGeoRewardsMetadata({
-            geoLocation: 'GB',
-            optinAllowedForGeo: true,
-          }),
-        );
+        dispatchDeviceGeo(store, 'GB');
       });
 
       expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
@@ -1090,12 +1172,7 @@ describe('AcceptInviteSheet', () => {
       fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
       await act(async () => {
-        store.dispatch(
-          setGeoRewardsMetadata({
-            geoLocation: 'GB',
-            optinAllowedForGeo: true,
-          }),
-        );
+        dispatchDeviceGeo(store, 'GB');
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();

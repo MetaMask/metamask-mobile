@@ -1,0 +1,33 @@
+diff --git a/ios/PasskeyExceptions.swift b/ios/PasskeyExceptions.swift
+index 013893167d2ceca912004e9b2c810ffb214a11fb..36f73c2c861ac7e8796698768c5246a234206d8c 100644
+--- a/ios/PasskeyExceptions.swift
++++ b/ios/PasskeyExceptions.swift
+@@ -6,6 +6,12 @@ internal class NotConfiguredException: Exception {
+   }
+ }
+ 
++internal class MatchedExcludedCredentialException: Exception {
++  override var reason: String {
++    "A passkey for this account already exists in this credential manager"
++  }
++}
++
+ internal class PendingPasskeyRequestException: Exception {
+   override var reason: String {
+     "There is already a pending passkey request"
+diff --git a/ios/ReactNativePasskeysModule.swift b/ios/ReactNativePasskeysModule.swift
+index 06e9aa9bd12fa929f5683e8353e0922b2b6ecd54..18910b30dcef7e87694cf42324b3a2a3f968e9f2 100644
+--- a/ios/ReactNativePasskeysModule.swift
++++ b/ios/ReactNativePasskeysModule.swift
+@@ -441,6 +441,11 @@ func handleASAuthorizationError(errorCode: Int, localizedDescription: String = "
+     case 4004:
+         return NotConfiguredException(
+             name: "NotConfiguredException", description: localizedDescription)
++    // ASAuthorizationError.matchedExcludedCredential (iOS 18+): the request's
++    // excludeCredentials matched a passkey already in the credential manager.
++    case 1006:
++        return MatchedExcludedCredentialException(
++            name: "MatchedExcludedCredentialException", description: localizedDescription)
+     default:
+         return UnknownException(name: "UnknownException", description: localizedDescription)
+     }

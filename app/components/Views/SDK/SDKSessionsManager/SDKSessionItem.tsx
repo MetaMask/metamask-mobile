@@ -58,10 +58,7 @@ const createStyles = (
     ...getSharedStyles(colors, typography, _safeAreaInsets),
   });
 
-export const SDKSessionItem = ({
-  connection,
-  trigger,
-}: SDKSessionViewProps) => {
+const SDKSessionItem = ({ connection, trigger }: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);

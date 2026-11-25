@@ -198,7 +198,6 @@ const Routes = {
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
     REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
-    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     REWARDS_TAX_QUESTION_SHEET: 'RewardsTaxQuestionSheet',
     REWARDS_TAX_OPEN_FORM_SHEET: 'RewardsTaxOpenFormSheet',
     REWARDS_TAX_CONTACT_SHEET: 'RewardsTaxContactSheet',
@@ -392,6 +391,10 @@ const Routes = {
         'SwapsLimitOrderDefaultCostToleranceModal',
       SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
         'SwapsLimitOrderCustomCostToleranceModal',
+      RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL:
+        'RecurringDefaultPriceToleranceModal',
+      RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL:
+        'RecurringCustomPriceToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
@@ -474,6 +477,7 @@ const Routes = {
     POST_COMPOSER: 'SocialPostComposerView',
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
+    TRADER_PREVIEW_SHEET: 'SocialTraderPreviewSheet',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -536,10 +540,10 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
+    EARNINGS: 'MoneyEarnings',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
-    ONBOARDING: 'MoneyOnboarding',
     SPLASH: 'MoneySplash',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -552,6 +556,7 @@ const Routes = {
       MORE_SHEET: 'MoneyMoreSheet',
       TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
+      ESTIMATED_BALANCE_SHEET: 'MoneyEstimatedBalanceSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',

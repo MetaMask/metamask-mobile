@@ -3,10 +3,13 @@ export const PredictPortfolioScreenTestIds = {
   HEADER: 'predict-next-portfolio-header',
   BACK: 'predict-next-portfolio-back',
   SUMMARY_CARD: 'predict-next-portfolio-summary-card',
+  ADD_FUNDS: 'predict-next-portfolio-add-funds',
+  WITHDRAW: 'predict-next-portfolio-withdraw',
   SUMMARY_LOADING: 'predict-next-portfolio-summary-loading',
   SUMMARY_ERROR: 'predict-next-portfolio-summary-error',
   SUMMARY_RETRY: 'predict-next-portfolio-summary-retry',
   SUMMARY_INCOMPLETE: 'predict-next-portfolio-summary-incomplete',
+  DEPOSIT_STATUS: 'predict-next-portfolio-deposit-status',
   TOTAL_VALUE: 'predict-next-portfolio-total-value',
   BALANCE_VALUE: 'predict-next-portfolio-balance-value',
   POSITIONS_VALUE: 'predict-next-portfolio-positions-value',
@@ -34,6 +37,10 @@ export const PredictPortfolioScreenTestIds = {
   ACTIVITY_ROW_AMOUNT: 'predict-next-portfolio-activity-row-amount',
   ACTIVITY_SETTLEMENTS_HORIZON:
     'predict-next-portfolio-activity-settlements-horizon',
+  ACTIVITY_SETTLEMENTS_DEGRADED:
+    'predict-next-portfolio-activity-settlements-degraded',
+  ACTIVITY_LOAD_MORE: 'predict-next-portfolio-activity-load-more',
+  ACTIVITY_CONTINUATION: 'predict-next-portfolio-activity-continuation',
   POSITION_ROW_FALLBACK_ICON:
     'predict-next-portfolio-position-row-fallback-icon',
   ACTIVITY_ROW_FALLBACK_ICON:

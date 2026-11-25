@@ -87,8 +87,10 @@ describe('AccountSelector', () => {
       state: defaultState,
     });
 
-    // Text should be empty but element should exist
-    expect(screen.getByText('')).toBeTruthy(); // TODO: change to null when account group name is implemented
+    // SelectButton (design-system 0.57.0) renders no label when the resolved
+    // value is an empty string; the picker itself must still render.
+    expect(screen.queryByText('')).toBeNull();
+    expect(screen.getByTestId('ramps-account-picker')).toBeOnTheScreen();
   });
 
   it('renders loading state when no address', () => {

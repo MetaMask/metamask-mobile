@@ -9,12 +9,15 @@ import {
   FORMATTED_VALUE_PRICE_TEST_ID,
 } from './constants';
 import {
-  getFormattedAmountChange,
   getFormattedPercentageChange,
   getPercentageTextColor,
 } from '../../../../../component-library/components-temp/Price/AggregatedPercentage/utils';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import {
+  getLocaleLanguageCode,
+  useFormatters,
+} from '../../../../hooks/useFormatters';
 
 interface AccountGroupBalanceChangeProps {
   amountChangeInUserCurrency: number;
@@ -28,15 +31,23 @@ const AccountGroupBalanceChange = ({
   userCurrency,
 }: AccountGroupBalanceChangeProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const amountText = useMemo(
-    () => getFormattedAmountChange(amountChangeInUserCurrency, userCurrency),
-    [amountChangeInUserCurrency, userCurrency],
-  );
+  const { formatCurrency } = useFormatters();
+  const amountText = useMemo(() => {
+    const formattedAmount = formatCurrency(
+      amountChangeInUserCurrency,
+      userCurrency,
+    );
+    const signedAmount =
+      amountChangeInUserCurrency >= 0 ? `+${formattedAmount}` : formattedAmount;
+    // Trailing space separates the fiat amount from the percentage sibling.
+    return `${signedAmount} `;
+  }, [amountChangeInUserCurrency, userCurrency, formatCurrency]);
 
   const privacyMode = useSelector(selectPrivacyMode);
+  const locale = getLocaleLanguageCode();
   const percentText = useMemo(
-    () => getFormattedPercentageChange(percentChange, 'en-US'),
-    [percentChange],
+    () => getFormattedPercentageChange(percentChange, locale),
+    [percentChange, locale],
   );
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),

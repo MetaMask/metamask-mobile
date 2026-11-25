@@ -1,10 +1,6 @@
 import { createSelector, createSelectorCreator, lruMemoize } from 'reselect';
 import { deepEqual } from 'fast-equals';
-import {
-  parseCaipAccountId,
-  isCaipAccountId,
-  type CaipChainId,
-} from '@metamask/utils';
+import { type CaipChainId } from '@metamask/utils';
 import { RootState } from '../reducers';
 import {
   DEFAULT_CARD_PROVIDER_ID,
@@ -44,7 +40,6 @@ import {
   type VedaTokenConfig,
 } from '../components/UI/Card/util/vedaToken';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
-import { isEthAccount } from '../core/Multichain/utils';
 import {
   isMoneyAccountDelegatedForCard,
   isAnyMoneyAccountDelegatedForCard,
@@ -58,11 +53,7 @@ import {
   selectCardLinkApiEnabled,
   type CardRemoteFeatureFlags,
 } from './featureFlagController/card';
-import {
-  pickRoutableCardLink,
-  resolveCardEntryRouting,
-  type CardEntryRouting,
-} from '../core/Engine/controllers/card-controller/utils/cardLinks';
+import { pickRoutableCardLink } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -78,7 +69,6 @@ const createStableListSelector = createSelectorCreator(lruMemoize, {
   resultEqualityCheck: deepEqual,
 });
 
-const EMPTY_CARDHOLDER_ACCOUNTS: string[] = [];
 const EMPTY_EXTERNAL_WALLET_PRIORITY: CardWalletExternalPriorityResponse[] = [];
 const EMPTY_CARD_FUNDING_TOKENS: CardFundingToken[] = [];
 
@@ -196,38 +186,10 @@ export const selectCardRedeemWithdrawal = createSelector(
     (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
 );
 
-export const selectCardholderAccounts = createSelector(
-  selectCardControllerState,
-  (cardState: CardControllerState | undefined) =>
-    cardState?.cardholderAccounts ?? EMPTY_CARDHOLDER_ACCOUNTS,
-);
-
-export const selectHasCardholderAccounts = createSelector(
-  selectCardholderAccounts,
-  (accounts) => accounts.length > 0,
-);
-
 const selectSelectedEvmAccount = (state: RootState) =>
   selectSelectedInternalAccountByScope(state)('eip155:0');
 
-export const selectIsCardholder = createSelector(
-  selectCardholderAccounts,
-  selectSelectedEvmAccount,
-  (cardholderAccounts, selectedAccount) => {
-    if (!selectedAccount || !isEthAccount(selectedAccount)) return false;
-    const address = selectedAccount.address?.toLowerCase();
-    return cardholderAccounts.some((caipId) => {
-      if (!isCaipAccountId(caipId)) return false;
-      try {
-        return parseCaipAccountId(caipId).address?.toLowerCase() === address;
-      } catch {
-        return false;
-      }
-    });
-  },
-);
-
-/** `null` while card links are off (flag, or a 403 from Card API), so routing stays legacy. */
+/** `null` while card links are off (flag, or a 403 from Card API). */
 export const selectCardLinks = createSelector(
   selectCardControllerState,
   selectCardLinkApiEnabled,
@@ -246,34 +208,15 @@ const selectRoutableCardLink = createSelector(
   (links): CardLink | null => pickRoutableCardLink(links),
 );
 
-export const selectHasLinkedCard = createSelector(
-  selectRoutableCardLink,
-  (link) => link !== null,
-);
-
 export const selectLinkedCardProvider = createSelector(
   selectRoutableCardLink,
   (link): CardProviderId | null => link?.provider ?? null,
 );
 
-export const selectCardEntryRouting = createSelector(
-  selectCardLinkApiEnabled,
-  selectCardLinks,
-  selectHasCardholderAccounts,
-  (cardLinkApiEnabled, cardLinks, hasLegacyCardholder): CardEntryRouting =>
-    resolveCardEntryRouting({
-      cardLinkApiEnabled,
-      cardLinks,
-      hasLegacyCardholder,
-    }),
-);
-
-/** Stored links decide once Card API returned any; until then the selected account's `card_user` label. */
+/** A routable stored link. Off, blocked, or not yet fetched means no card. */
 export const selectHasCard = createSelector(
-  selectCardEntryRouting,
-  selectIsCardholder,
-  (routing, isCardholder) =>
-    routing.source === 'card_links' ? routing.hasCard : isCardholder,
+  selectRoutableCardLink,
+  (link) => link !== null,
 );
 
 export const selectCardUserLocation = createSelector(
@@ -322,28 +265,26 @@ export const selectCardHomeDataFetchedThisSession = createSelector(
 );
 
 /**
- * Card home data has settled, or this user never fetches it. Verification
+ * Card home data has settled, or this user never fetches it. Logged-out users
+ * do not fetch: the dashboard requires a provider session. Verification
  * status is a separate wait: some providers do not report one.
  */
 export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (status, cardHomeData, isAuthenticated, isCardholder) =>
-    status === 'success' ||
-    cardHomeData !== null ||
-    (!isAuthenticated && !isCardholder),
+  (status, cardHomeData, isAuthenticated) =>
+    status === 'success' || cardHomeData !== null || !isAuthenticated,
 );
 
 export const selectIsCardStateResolved = createSelector(
   selectIsCardHomeDataResolved,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (homeDataResolved, verificationStatus, isAuthenticated, isCardholder) =>
+  selectHasCard,
+  (homeDataResolved, verificationStatus, isAuthenticated, hasCard) =>
     (homeDataResolved && (!isAuthenticated || verificationStatus !== null)) ||
-    (!isAuthenticated && !isCardholder),
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(

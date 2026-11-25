@@ -1,4 +1,5 @@
 import type {
+  AddressTotalsDto,
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
@@ -37,21 +38,31 @@ export { MONAD_MAINNET_CHAIN_ID };
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
-  earningsTab: 'Earnings',
+  nextSteps: 'Next steps',
+  overviewTab: 'Overview',
+  earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  referFriends: 'Refer friends',
+  tradeAndEarn: 'Trade and earn',
+  postTrades: 'Post trades',
   yourReferralCode: 'Your referral code',
   share: 'Share',
   referrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
   recordedEarnings: 'Recorded earnings',
   availableToClaim: 'Available to claim',
+  availableToClaimSubtext: 'mUSD paid into your Money account',
   claim: 'Claim',
   claimed: 'Claimed',
   held: 'Held',
+  heldSubtext:
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   blocked: 'Blocked',
   voided: 'Voided',
   pending: 'Pending',
+  pendingSubtext:
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   claimSuccessToast: 'Claim sent',
   claimPartialSuccessToast: 'Part of your claim was sent',
   claimFailureToast: 'Claim failed',
@@ -64,10 +75,13 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
+  earnedOnOtherAccounts:
+    'Some earnings belong to accounts not on this device. Import the wallet to claim.',
   historyClaimPending: 'Claim pending',
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
+  yourEarnings: 'Your earnings',
   breakdownTrading: 'Trading',
   breakdownTradingDescription: 'Trading description',
   breakdownReferralsDescription: 'Referrals description',
@@ -99,13 +113,14 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
   copyTradingEmptyAction: 'Start sharing',
   copyTradingInfoDescription:
-    'Earn 15% from fees when someone copies your trade.',
+    'Earn 15% from fees when someone copies your trade',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebatePerps: 'Perps',
   rebateSwapsVolume: 'Swaps volume',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
@@ -115,6 +130,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteReferralCode: 'Referral code',
   inviteDecline: 'Decline',
   inviteAccept: 'Accept',
+  inviteTermsLearnMore: 'Learn more',
+  inviteTermsUrl: 'https://example.com/terms',
   inviteAcceptedEyebrow: 'You are in',
   inviteAcceptedTitle: 'Invite accepted',
   inviteAcceptedBody: 'Invite accepted body',
@@ -128,6 +145,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   offerDurationHour: 'hour',
   offerDurationHours: 'hours',
   invitedReferredBy: 'Referred by',
+  invitedOptInTitle: 'Opt in title',
   invitedOptInDescription: 'Opt in description',
   invitedOptInAction: 'Opt in',
   invitedOptInSuccessToast: 'Opted in',
@@ -137,6 +155,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   termsLearnMore: 'Learn more',
   termsUrl: 'https://example.com/terms',
   balance: 'Balance',
+  balanceSubtext: 'mUSD in total earnings',
   mUSD: 'mUSD',
   paused: 'Paused',
   claimsPausedTitle: 'Claims paused',
@@ -218,6 +237,24 @@ function totals(
     pending: '0',
     claimed: '0',
     ...overrides,
+  };
+}
+
+/**
+ * One `by_address` row of a claim family. `address` is the full
+ * `namespace:address` form the backend returns, such as `eip155:0x…`.
+ */
+export function byAddressRowFixture(
+  address: string,
+  claimable = '1000000',
+): AddressTotalsDto {
+  return {
+    address,
+    lifetime: claimable,
+    claimable,
+    pending: '0',
+    claimed: '0',
+    voided: '0',
   };
 }
 
@@ -431,20 +468,71 @@ export const PENDING_CLAIM_FIXTURE: ClaimDto = {
   updated_at: '2026-09-01T00:00:00.000Z',
 };
 
-const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
+const EMPTY_REVSHARE_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['revshare_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_CASHBACK_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['cashback_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_COPY_TRADING_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['copy_trading_by_product']
+> = { perps: null, swaps: null };
+
+/**
+ * Earn rates with every field null, including the per-product maps.
+ * The next DTO field belongs here so unit tests do not each rewrite the shape.
+ */
+export const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
   cashback_rate_bps: null,
   cashback_earning_start: null,
   cashback_earning_end: null,
   revshare_rate_bps: null,
   revshare_earning_start: null,
   revshare_earning_end: null,
+  revshare_by_product: EMPTY_REVSHARE_BY_PRODUCT,
+  cashback_by_product: EMPTY_CASHBACK_BY_PRODUCT,
+  copy_trading_by_product: EMPTY_COPY_TRADING_BY_PRODUCT,
+};
+
+/**
+ * A fresh earn-rates object. Pass only the rates a test asserts; a product
+ * map replaces that map wholesale.
+ *
+ * @param overrides - Fields that replace the empty rates.
+ * @returns Earn rates, with the empty product maps copied.
+ */
+export function earnRatesFixture(
+  overrides: Partial<ReferralMeDto['earn_rates']> = {},
+): ReferralMeDto['earn_rates'] {
+  return {
+    ...EMPTY_EARN_RATES,
+    revshare_by_product: { ...EMPTY_REVSHARE_BY_PRODUCT },
+    cashback_by_product: { ...EMPTY_CASHBACK_BY_PRODUCT },
+    copy_trading_by_product: { ...EMPTY_COPY_TRADING_BY_PRODUCT },
+    ...overrides,
+  };
+}
+
+/**
+ * What a test changes on a persona's referral-me. Fields replace the persona's
+ * value. `localizedText` merges key by key into `localized_text`, and a key set to `undefined`
+ * stands for a payload cached before the server added it.
+ */
+export type ReferralMeOverrides = Partial<
+  Omit<ReferralMeDto, 'localized_text'>
+> & {
+  localizedText?: { [Key in keyof ReferralLocalizedText]?: string };
 };
 
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
+  overrides: ReferralMeOverrides = {},
 ): ReferralMeDto {
   const referrer = persona === 'referrer';
   const referee = persona === 'referee';
+  const { localizedText, ...fields } = overrides;
 
   return {
     roles: referrer ? ['REFERRER'] : referee ? ['REFEREE'] : [],
@@ -461,10 +549,11 @@ export function referralMeFixture(
       : null,
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
-    earn_rates: EMPTY_EARN_RATES,
-    localized_text: REFERRAL_LOCALIZED_TEXT,
+    earn_rates: earnRatesFixture(),
+    localized_text: { ...REFERRAL_LOCALIZED_TEXT, ...localizedText },
     invite_hero: null,
     excluded_regions: [],
+    ...fields,
   };
 }
 
@@ -473,14 +562,9 @@ export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
 export function referralMeWithInvitedBenefit(
   invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
 ): ReferralMeDto {
-  const referralMe = referralMeFixture('referee');
-  return {
-    ...referralMe,
-    localized_text: {
-      ...referralMe.localized_text,
-      invitedBenefitTitle,
-    },
-  };
+  return referralMeFixture('referee', {
+    localizedText: { invitedBenefitTitle },
+  });
 }
 
 /**
@@ -508,8 +592,15 @@ export interface RewardsMoneyViewStateOptions {
   seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;
+  /** The subscription lookup has not settled, so `subscriptionId` reads as null. */
+  subscriptionLookupPending?: boolean;
   /** Device country. Null fails open for a Money referral. */
   geoLocation?: string | null;
+  /**
+   * GeolocationController status. Defaults to `complete` when a location is
+   * set. Set this without a location to seed an unresolved lookup.
+   */
+  geoStatus?: 'idle' | 'loading' | 'complete' | 'error';
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
   /** Session-only deeplink state for the invite-sheet lifecycle. */
@@ -539,6 +630,11 @@ export interface RewardsMoneyViewStateOptions {
    * follow `claimReady`.
    */
   claimGates?: ClaimSubmissionGates;
+  /**
+   * Epoch ms until Claim is enabled again. Set when a refusal's Retry-After
+   * is still running.
+   */
+  claimWaitUntil?: number;
 }
 
 /**
@@ -550,10 +646,13 @@ export function rewardsMoneyViewState({
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
   claimGates,
+  claimWaitUntil,
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
+  subscriptionLookupPending = false,
   geoLocation = null,
+  geoStatus,
   moneyControllerEnabled = false,
   pendingReferralCode = null,
   answeredReferralCode = null,
@@ -609,8 +708,9 @@ export function rewardsMoneyViewState({
     .withOverrides({
       rewards: {
         ...pointsRewardsInitialState,
-        candidateSubscriptionId: subscriptionId,
-        geoLocation,
+        candidateSubscriptionId: subscriptionLookupPending
+          ? 'pending'
+          : subscriptionId,
       },
       ...(supportPreferenceSaved
         ? {
@@ -637,6 +737,13 @@ export function rewardsMoneyViewState({
         pendingReferralCode,
         answeredReferralCode,
         isReferralLinkPending,
+        ...(claimWaitUntil === undefined
+          ? {}
+          : {
+              claimWaitingUntil: {
+                [profileId]: claimWaitUntil,
+              },
+            }),
       },
       engine: {
         backgroundState: {
@@ -649,6 +756,14 @@ export function rewardsMoneyViewState({
               },
             },
           },
+          ...(geoLocation != null || geoStatus
+            ? {
+                GeolocationController: {
+                  ...(geoLocation != null ? { location: geoLocation } : {}),
+                  status: geoStatus ?? 'complete',
+                },
+              }
+            : {}),
           ...(subscriptionId
             ? {
                 RewardsController: {

@@ -520,4 +520,78 @@ describe('useAssetVisibility', () => {
       ).not.toHaveBeenCalled();
     });
   });
+
+  describe('memo inputs', () => {
+    const stableScope = jest.fn((scope: string) => {
+      if (scope === SOL_CHAIN_CAIP) {
+        return { id: SOL_ACCOUNT_ID };
+      }
+      return { id: ACCOUNT_ID };
+    });
+
+    function setupStableScope(): void {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccountId) return ACCOUNT_ID;
+        if (selector === selectSelectedInternalAccountByScope)
+          return stableScope;
+        if (selector === getCustomAssets) return {};
+        if (selector === getAssetsBalance) return {};
+        if (selector === getAssetPreferences) return {};
+        if (selector === selectMultichainAssetsAllIgnoredAssets) return {};
+        return undefined;
+      });
+    }
+
+    beforeEach(() => {
+      stableScope.mockClear();
+    });
+
+    it('does not re-resolve the account when only the asset object identity changes', () => {
+      setupStableScope();
+      const { result, rerender } = renderHook(
+        ({ token }: { token: TokenI }) => useAssetVisibility(token),
+        { initialProps: { token: evmToken() } },
+      );
+
+      expect(result.current.assetId).toBe(EVM_ASSET_ID);
+      const scopeCalls = stableScope.mock.calls.length;
+
+      rerender({ token: evmToken() });
+
+      expect(stableScope).toHaveBeenCalledTimes(scopeCalls);
+      expect(result.current.assetId).toBe(EVM_ASSET_ID);
+    });
+
+    it('re-resolves the account when the asset chainId changes', () => {
+      setupStableScope();
+      const { rerender } = renderHook(
+        ({ token }: { token: TokenI }) => useAssetVisibility(token),
+        { initialProps: { token: evmToken() } },
+      );
+      const scopeCalls = stableScope.mock.calls.length;
+
+      rerender({ token: evmToken('0x89') });
+
+      expect(stableScope.mock.calls.length).toBeGreaterThan(scopeCalls);
+    });
+
+    it('updates the asset id when the address changes and keeps the account lookup', () => {
+      setupStableScope();
+      const { result, rerender } = renderHook(
+        ({ token }: { token: TokenI }) => useAssetVisibility(token),
+        { initialProps: { token: evmToken() } },
+      );
+      const scopeCalls = stableScope.mock.calls.length;
+      const nextAddress = '0x0000000000000000000000000000000000000001';
+
+      rerender({
+        token: { ...evmToken(), address: nextAddress },
+      });
+
+      expect(stableScope).toHaveBeenCalledTimes(scopeCalls);
+      expect(result.current.assetId).toBe(
+        `${EVM_CHAIN_CAIP}/erc20:${nextAddress}`,
+      );
+    });
+  });
 });

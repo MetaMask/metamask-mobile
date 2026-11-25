@@ -1,8 +1,8 @@
 import type { CreateProfileParams } from '@metamask/profile-controller';
 import type { CaipAccountId } from '@metamask/utils';
 import {
-  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-  DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
   toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
@@ -44,6 +44,11 @@ export interface ProfileOnboardingDraft {
   avatarBackgroundId: string;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
+  /**
+   * A chosen account left the eligible set. Reconciliation must leave the
+   * selection empty until the user picks another account.
+   */
+  linkedAccountSelectionCleared: boolean;
   shareTradingActivity: boolean;
 }
 
@@ -79,13 +84,42 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
   return 'available';
 };
 
-export const displayNameFromUsername = (value: string): string =>
-  normalizeUsername(value)
+export const displayNameFromUsername = (value: string): string => {
+  const username = normalizeUsername(value);
+  // A CamelCase word boundary needs a two-letter word before it so that a lone
+  // leading letter ("i" in "iPhone") does not split off. A second pass handles
+  // an all-caps run before a capitalised word ("ETHMaxi" → "ETH Maxi").
+  const camelSplit = username
+    .replace(/([A-Za-z][a-z])(?=[A-Z][a-z])/g, '$1 ')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
+  // The numbered suffix splits off when the handle has at least one camelCase
+  // boundary, so generated names work ("BonkTurboQueen343" → "… 343",
+  // "CryptoKing99" → "… 99") but tickers stay put ("BTC202" → "BTC202").
+  const hasCamelBoundary =
+    /[A-Za-z][a-z][A-Z][a-z]/.test(username) || /[A-Z]{2}[a-z]/.test(username);
+  const withNumber = hasCamelBoundary
+    ? camelSplit.replace(/([a-zA-Z])(\d+)$/, '$1 $2')
+    : camelSplit;
+  return withNumber
     .toLowerCase()
-    .split('_')
+    .split(/[\s_]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+};
+
+const pickRandom = <Item>(items: readonly Item[]): Item =>
+  items[Math.floor(Math.random() * items.length)];
+
+/** Middle of the color strip. The entrance glide looks uneven on the ends. */
+const STARTING_COLOR_COUNT = 3;
+const startingColorIndex = Math.floor(
+  (PROFILE_AVATAR_BACKGROUNDS.length - STARTING_COLOR_COUNT) / 2,
+);
+const STARTING_AVATAR_BACKGROUNDS = PROFILE_AVATAR_BACKGROUNDS.slice(
+  startingColorIndex,
+  startingColorIndex + STARTING_COLOR_COUNT,
+);
 
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = generateUsername();
@@ -99,10 +133,11 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     xUsername: null,
     xDisplayName: null,
     xAvatarUrl: null,
-    avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
-    avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+    avatarPresetId: pickRandom(PROFILE_AVATAR_PRESETS).id,
+    avatarBackgroundId: pickRandom(STARTING_AVATAR_BACKGROUNDS).id,
     linkedAccountId: null,
     linkedAccountAddress: null,
+    linkedAccountSelectionCleared: false,
     shareTradingActivity: true,
   };
 };
@@ -123,6 +158,7 @@ export const startManualOnboarding = (
     ...initial,
     linkedAccountId: draft.linkedAccountId,
     linkedAccountAddress: draft.linkedAccountAddress,
+    linkedAccountSelectionCleared: draft.linkedAccountSelectionCleared,
   };
 };
 
@@ -241,6 +277,46 @@ export const onboardingProfileFingerprint = (
     avatar_url: params.avatar_url ?? null,
     trading_privacy: params.trading_privacy,
   });
+};
+
+/**
+ * Reconciles the draft's linked account with the accounts the profile can use.
+ *
+ * The current selection stays when that account is still eligible, and its
+ * address is refreshed if it changed. A selection that is no longer eligible
+ * is cleared and stays cleared, even when another account is available — the
+ * user picks the next one. A draft that has never had a selection gets the
+ * first eligible account. Returns the same draft when nothing changes.
+ */
+export const withEligibleLinkedAccount = (
+  draft: ProfileOnboardingDraft,
+  accounts: readonly { id: string; address: string }[],
+): ProfileOnboardingDraft => {
+  const selected = draft.linkedAccountId
+    ? accounts.find((account) => account.id === draft.linkedAccountId)
+    : undefined;
+  if (selected) {
+    return selected.address === draft.linkedAccountAddress
+      ? draft
+      : { ...draft, linkedAccountAddress: selected.address };
+  }
+  if (draft.linkedAccountId || draft.linkedAccountAddress) {
+    return {
+      ...draft,
+      linkedAccountId: null,
+      linkedAccountAddress: null,
+      linkedAccountSelectionCleared: true,
+    };
+  }
+  const firstAccount = accounts[0];
+  if (!firstAccount || draft.linkedAccountSelectionCleared) {
+    return draft;
+  }
+  return {
+    ...draft,
+    linkedAccountId: firstAccount.id,
+    linkedAccountAddress: firstAccount.address,
+  };
 };
 
 export const canContinueUsernameStep = (

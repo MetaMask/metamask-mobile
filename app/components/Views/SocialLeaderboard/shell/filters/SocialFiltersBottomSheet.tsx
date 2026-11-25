@@ -5,7 +5,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonsAlignment,
   ButtonSize,
@@ -49,6 +48,9 @@ import type {
   SocialTraderCohort,
 } from './types';
 import type { SocialShellTab } from '../types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
@@ -108,12 +110,14 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   onReset,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
 
   const showType = tab !== 'leaderboard';
-  const showPositions = tab === 'trending';
+  const showPositions = tab !== 'leaderboard';
   const showTimeframe = tab === 'leaderboard';
-  const showMarketCap = tab !== 'leaderboard';
+  // Market cap is no longer offered on these sheets.
+  const showMarketCap = false;
   // TODO: show 24h volume once the feed / live payload (or API) carries token
   // 24h volume so the slider can filter rather than sit as chrome.
   const showVolume24h = false;
@@ -122,9 +126,9 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const showVerification = false;
   const typeOptions = TYPE_OPTIONS;
   const cohortOptions = cohortOptionsForTab(tab);
-  // A lone All chip does not filter anything. Following is in that state
-  // once shrimp, dolphin, and whale are gone.
-  const showTraderCohort = cohortOptions.length > 1;
+  // Traders stays on Leaderboard. Following has only All, and Live no longer
+  // offers the section.
+  const showTraderCohort = tab === 'leaderboard';
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),
@@ -250,14 +254,15 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
               onClose={onClose}
               testID={SocialFiltersBottomSheetSelectorsIDs.SHEET}
             >
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={onClose}
                 closeButtonProps={{
                   testID: SocialFiltersBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}
               >
                 {strings('social_leaderboard.shell.filters.title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
 
               <ScrollView>
                 <Box twClassName="px-4 pb-4 mb-4">

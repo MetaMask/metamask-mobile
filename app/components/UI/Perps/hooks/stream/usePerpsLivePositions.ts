@@ -14,6 +14,8 @@ import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccou
 const EMPTY_POSITIONS: Position[] = [];
 
 export interface UsePerpsLivePositionsOptions {
+  /** Whether to subscribe to position updates (default: true) */
+  enabled?: boolean;
   /** Throttle delay in milliseconds (default: 0 - no throttling for instant updates) */
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
@@ -51,9 +53,12 @@ export function enrichPositionsWithLivePnL(
       return position;
     }
 
-    // Use mark price if available, fallback to mid price
+    // Both venues compute unrealized PnL from the mark price (HyperLiquid
+    // markPx, Lighter mark_price). Fall back to the mid only until the first
+    // mark arrives: HyperLiquid mid-only updates and Lighter's REST fallback
+    // carry none.
     const currentPrice = Number.parseFloat(
-      priceUpdate.price ?? priceUpdate.markPrice,
+      priceUpdate.markPrice ?? priceUpdate.price,
     );
 
     if (!currentPrice || Number.isNaN(currentPrice) || currentPrice <= 0) {
@@ -104,7 +109,7 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
+  const { enabled = true, throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelPositions = stream.positions.getSnapshot();
@@ -148,6 +153,9 @@ export function usePerpsLivePositions(
 
   // Subscribe to position updates
   useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         acceptedDeliveryRef.current = false;
@@ -185,7 +193,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [selectedAddress, stream, throttleMs]);
+  }, [enabled, selectedAddress, stream, throttleMs]);
 
   // Derive the unique set of symbols from the current positions so we only
   // subscribe to the prices we actually need (instead of the full price channel).

@@ -57,7 +57,6 @@ const mockedSupportedToken: SupportedToken = {
 
 const mockedSupportedChain: SupportedChain = {
   enabled: true,
-  balanceScannerAddress: '0xabc',
   foxConnectAddresses: {
     global: '0xdef',
     us: '0xghi',

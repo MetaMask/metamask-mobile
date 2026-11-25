@@ -25,6 +25,27 @@ describe('resolvePostComposerAnalyticsSource', () => {
     ).toBe('social_following');
   });
 
+  it('uses the source a blank composer was opened with', () => {
+    expect(
+      resolvePostComposerAnalyticsSource({
+        composerEntry: 'social_feed',
+        analyticsSource: 'nav_tab',
+      }),
+    ).toBe('nav_tab');
+    expect(
+      resolvePostComposerAnalyticsSource({
+        composerEntry: 'my_profile',
+        analyticsSource: 'my_profile',
+      }),
+    ).toBe('my_profile');
+  });
+
+  it('omits source for a blank composer opened without one', () => {
+    expect(
+      resolvePostComposerAnalyticsSource({ composerEntry: 'social_feed' }),
+    ).toBeUndefined();
+  });
+
   it('omits source for a trade share that has no entry point', () => {
     expect(
       resolvePostComposerAnalyticsSource({
@@ -119,6 +140,23 @@ describe('resolvePostComposerEntry', () => {
       }),
     ).toBe('token_details');
   });
+
+  it.each(['post_trade_swap', 'post_trade_spot'] as const)(
+    'keeps %s for an in-flight spot trade',
+    (spotComposerEntry) => {
+      expect(
+        resolvePostComposerEntry({
+          tradeInFlight: {
+            transactionHash: '0x1',
+            chain: 'eip155:1',
+            tokenAddress: '0xeth',
+          },
+          preview,
+          spotComposerEntry,
+        }),
+      ).toBe(spotComposerEntry);
+    },
+  );
 
   it('keeps a blank post entry and omits an unknown open', () => {
     expect(resolvePostComposerEntry({ composerEntry: 'my_profile' })).toBe(

@@ -1,5 +1,5 @@
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { RootState } from 'app/components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { RootState } from '../../../../../reducers';
 import { useSelector } from 'react-redux';
 
 export const useQRHardwareAwareness = () => {

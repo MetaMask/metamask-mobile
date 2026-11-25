@@ -1,3 +1,4 @@
+import { fullGameMoneylineMetadata } from '../../../contracts/v1/fixtures/fullGameMoneyline';
 import type {
   PredictEvent,
   PredictGame,
@@ -23,6 +24,7 @@ const market = (
     id,
     question: `Will ${label} win?`,
     status,
+    ...(gameSelection ? fullGameMoneylineMetadata() : {}),
     outcomes: [
       { id: `${id}-yes`, side: 'yes', label, askPrice: yesAsk, gameSelection },
       { id: `${id}-no`, side: 'no', label: `Not ${label}`, askPrice: '0.5' },
@@ -65,6 +67,38 @@ describe('getTopOutcome', () => {
     );
 
     expect(getTopOutcome(game)).toEqual({
+      percent: 66,
+      label: 'Chiefs',
+      team: { name: 'Chiefs' },
+    });
+  });
+
+  it('prices the Yes side when the Game Selection tag is on the No Outcome', () => {
+    const awayMarket = {
+      id: 'away',
+      question: 'Will Bills win?',
+      status: 'active',
+      ...fullGameMoneylineMetadata(),
+      outcomes: [
+        { id: 'away-yes', side: 'yes', label: 'Bills', askPrice: '0.34' },
+        {
+          id: 'away-no',
+          side: 'no',
+          label: 'Bills lose',
+          askPrice: '0.80',
+          gameSelection: 'away',
+        },
+      ],
+    } as unknown as PredictMarket;
+
+    expect(
+      getTopOutcome(
+        event(
+          [awayMarket, market('home', '0.66', { gameSelection: 'home' })],
+          {},
+        ),
+      ),
+    ).toEqual({
       percent: 66,
       label: 'Chiefs',
       team: { name: 'Chiefs' },

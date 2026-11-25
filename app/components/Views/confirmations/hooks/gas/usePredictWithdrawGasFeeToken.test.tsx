@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   TransactionMeta,
@@ -113,6 +113,7 @@ describe('usePredictWithdrawGasFeeToken', () => {
     expect(result.current).toStrictEqual({
       isPending: true,
       isUnavailable: false,
+      recheck: expect.any(Function),
     });
 
     await waitFor(() => expect(result.current.isPending).toBe(false));
@@ -150,6 +151,7 @@ describe('usePredictWithdrawGasFeeToken', () => {
     expect(result.current).toStrictEqual({
       isPending: true,
       isUnavailable: false,
+      recheck: expect.any(Function),
     });
 
     resolveRecheck(true);
@@ -158,7 +160,7 @@ describe('usePredictWithdrawGasFeeToken', () => {
     expect(result.current.isUnavailable).toBe(false);
   });
 
-  it('allows the withdraw when the check fails', async () => {
+  it('returns unavailable when the check fails', async () => {
     isWithdrawGasFeeTokenAvailableMock.mockRejectedValue(
       new Error('RPC unavailable'),
     );
@@ -171,8 +173,108 @@ describe('usePredictWithdrawGasFeeToken', () => {
 
     expect(result.current).toStrictEqual({
       isPending: false,
-      isUnavailable: false,
+      isUnavailable: true,
+      recheck: expect.any(Function),
     });
+  });
+
+  it('returns pending instead of a failed check while checking it again', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    isWithdrawGasFeeTokenAvailableMock
+      .mockRejectedValueOnce(new Error('RPC unavailable'))
+      .mockRejectedValueOnce(new Error('RPC unavailable'));
+    const first = renderUsePredictWithdrawGasFeeToken(queryClient);
+    await waitFor(() => expect(first.result.current.isUnavailable).toBe(true), {
+      timeout: 3000,
+    });
+    first.unmount();
+
+    let resolveRecheck: (isAvailable: boolean) => void = () => undefined;
+    isWithdrawGasFeeTokenAvailableMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRecheck = resolve;
+      }),
+    );
+    const { result } = renderUsePredictWithdrawGasFeeToken(queryClient);
+
+    await waitFor(() =>
+      expect(isWithdrawGasFeeTokenAvailableMock).toHaveBeenCalledTimes(3),
+    );
+    expect(result.current).toStrictEqual({
+      isPending: true,
+      isUnavailable: false,
+      recheck: expect.any(Function),
+    });
+
+    resolveRecheck(true);
+
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    expect(result.current.isUnavailable).toBe(false);
+  });
+
+  it('checks again before confirming instead of reusing a cached available result', async () => {
+    isWithdrawGasFeeTokenAvailableMock
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+
+    const { result } = renderUsePredictWithdrawGasFeeToken();
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    let canConfirm: boolean | undefined;
+    await act(async () => {
+      canConfirm = await result.current.recheck();
+    });
+
+    expect(canConfirm).toBe(false);
+    expect(isWithdrawGasFeeTokenAvailableMock).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(result.current.isUnavailable).toBe(true));
+  });
+
+  it('returns available from the check before confirming when pUSD can still pay', async () => {
+    isWithdrawGasFeeTokenAvailableMock.mockResolvedValue(true);
+
+    const { result } = renderUsePredictWithdrawGasFeeToken();
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    let canConfirm: boolean | undefined;
+    await act(async () => {
+      canConfirm = await result.current.recheck();
+    });
+
+    expect(canConfirm).toBe(true);
+    expect(isWithdrawGasFeeTokenAvailableMock).toHaveBeenCalledTimes(2);
+    expect(result.current.isUnavailable).toBe(false);
+  });
+
+  it('blocks confirming when the check before confirming fails', async () => {
+    isWithdrawGasFeeTokenAvailableMock
+      .mockResolvedValueOnce(true)
+      .mockRejectedValue(new Error('RPC unavailable'));
+
+    const { result } = renderUsePredictWithdrawGasFeeToken();
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    let canConfirm: boolean | undefined;
+    await act(async () => {
+      canConfirm = await result.current.recheck();
+    });
+
+    expect(canConfirm).toBe(false);
+    await waitFor(() => expect(result.current.isUnavailable).toBe(true));
+  });
+
+  it('allows confirming without checking when the check does not apply', async () => {
+    useHasInsufficientBalanceMock.mockReturnValue({
+      hasInsufficientBalance: false,
+      nativeCurrency: 'POL',
+    });
+
+    const { result } = renderUsePredictWithdrawGasFeeToken();
+
+    await expect(result.current.recheck()).resolves.toBe(true);
+    expect(isWithdrawGasFeeTokenAvailableMock).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -228,6 +330,7 @@ describe('usePredictWithdrawGasFeeToken', () => {
     expect(result.current).toStrictEqual({
       isPending: false,
       isUnavailable: false,
+      recheck: expect.any(Function),
     });
     expect(isWithdrawGasFeeTokenAvailableMock).not.toHaveBeenCalled();
   });

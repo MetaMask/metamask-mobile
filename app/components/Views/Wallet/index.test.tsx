@@ -2,6 +2,7 @@ import React from 'react';
 import type { Json } from '@metamask/utils';
 
 let mockSearchPasteTreatment = false;
+let mockShowPrivacyToast = false;
 
 jest.mock('../TrendingView/search/useHomepageSearchPaste', () => ({
   useHomepageSearchPaste: jest.fn(() => ({
@@ -22,6 +23,25 @@ jest.mock('react-native-device-info', () => ({
   getSystemVersion: jest.fn(() => '17.0'),
   getTotalMemorySync: jest.fn(() => 4000000000),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
+jest.mock('../../../selectors/legalNotices', () => {
+  const actual = jest.requireActual('../../../selectors/legalNotices');
+  return {
+    ...actual,
+    shouldShowNewPrivacyToastSelector: (
+      state: Parameters<typeof actual.shouldShowNewPrivacyToastSelector>[0],
+    ) =>
+      mockShowPrivacyToast || actual.shouldShowNewPrivacyToastSelector(state),
+  };
+});
 
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () => ({
@@ -142,6 +162,7 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
   NetworkConnectionBannerContent: () => null,
 }));
 let mockNetworkConnectionBannerVisible = false;
+let mockSlowNetworkBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
     status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
@@ -155,6 +176,10 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
           switchableInfuraNetworkClientId: null,
         }
       : null,
+    isVisible:
+      mockNetworkConnectionBannerVisible || mockSlowNetworkBannerVisible,
+    isSlowNetwork: mockSlowNetworkBannerVisible,
+    dismissSlowNetwork: jest.fn(),
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -302,9 +327,13 @@ jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
 let mockCarouselBannersEnabled = false;
 const mockBrazeBannerHomeEnabled = false;
 let mockIsAccountGroupFunded = false;
+let mockAssetsHaveLoaded = true;
 jest.mock('../../../selectors/assets/balances', () => ({
   ...jest.requireActual('../../../selectors/assets/balances'),
   selectIsAccountGroupFunded: () => mockIsAccountGroupFunded,
+}));
+jest.mock('../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: () => mockAssetsHaveLoaded,
 }));
 jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
   selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
@@ -317,6 +346,9 @@ jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
 let mockSocialV1Enabled = false;
 jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
+  selectHasSocialV1Access: jest.fn(
+    () => mockSocialV1VariantName === 'treatment',
+  ),
 }));
 
 const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
@@ -407,6 +439,10 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   };
 });
 
+jest.mock('../../../hooks/usePrefetchMoneyAccountPlusSubscriptions', () => ({
+  usePrefetchMoneyAccountPlusSubscriptions: jest.fn(),
+}));
+
 import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
@@ -417,7 +453,15 @@ import {
   renderHook,
   waitFor,
 } from '@testing-library/react-native';
-import { Animated, InteractionManager, StyleSheet } from 'react-native';
+import {
+  Animated,
+  InteractionManager,
+  Linking,
+  StyleSheet,
+} from 'react-native';
+import { toast } from '@metamask/design-system-react-native';
+import { strings } from '../../../../locales/i18n';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import type { ReactTestInstance } from 'react-test-renderer';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -426,6 +470,8 @@ import {
   createMockInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
+import { PullToRefreshTestIds } from './components/PullToRefresh/PullToRefresh';
+import { __fireRiveViewError } from '../../../__mocks__/rive-app-react-native';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -447,6 +493,8 @@ import { selectInterimHeaderNavBarEnabled } from '../../../selectors/featureFlag
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../component-library/components-temp/HeaderGlass';
+
+const toastMock = toast as unknown as jest.Mock & { dismiss: jest.Mock };
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -902,6 +950,7 @@ const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockShowPrivacyToast = false;
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
@@ -913,8 +962,10 @@ beforeEach(() => {
   mockHeaderNavBarVariantName = 'control';
   mockSocialV1VariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
+  mockSlowNetworkBannerVisible = false;
   mockCarouselBannersEnabled = false;
   mockIsAccountGroupFunded = false;
+  mockAssetsHaveLoaded = true;
 });
 
 describe('Wallet', () => {
@@ -940,6 +991,33 @@ describe('Wallet', () => {
   it('should render correctly', () => {
     render(Wallet);
     expect(capturedContext).toBeDefined();
+  });
+
+  it('opens the privacy policy from the privacy toast action', () => {
+    mockShowPrivacyToast = true;
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as never);
+
+    try {
+      render(Wallet);
+      const privacyToast = toastMock.mock.calls.find(
+        ([options]) =>
+          options?.title === strings('privacy_policy.toast_message'),
+      );
+      const openPrivacyPolicy = privacyToast?.[0]?.actionButtonOnPress;
+      if (typeof openPrivacyPolicy !== 'function') {
+        throw new Error('privacy toast action was not registered');
+      }
+
+      openPrivacyPolicy();
+
+      expect(toastMock.dismiss).toHaveBeenCalledTimes(1);
+      expect(openURL).toHaveBeenCalledWith(CONSENSYS_PRIVACY_POLICY);
+    } finally {
+      openURL.mockRestore();
+      mockShowPrivacyToast = false;
+    }
   });
 
   it('should render homepage scroll context', () => {
@@ -2298,6 +2376,21 @@ describe('Header and Nav Bar refresh AB test', () => {
     ).toBe('automatic');
   });
 
+  it('keeps the native fallback refresh control below the native header', () => {
+    mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+    const { getByTestId } = render(Wallet);
+
+    act(() => {
+      __fireRiveViewError({ message: 'Rive unavailable', type: 4 });
+    });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+        .refreshControl.props.progressViewOffset,
+    ).toBe(0);
+  });
+
   describe('floating JS header', () => {
     const HEADER_MIN_HEIGHT = 56;
 
@@ -2335,7 +2428,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     });
 
     it('clears the header from the first frame using its min height', () => {
-      const { getByTestId } = render(Wallet);
+      const { getByTestId, queryByTestId } = render(Wallet);
 
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
@@ -2343,14 +2436,23 @@ describe('Header and Nav Bar refresh AB test', () => {
       ).toEqual(
         expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT + 16 }),
       );
-      expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
-        HEADER_MIN_HEIGHT,
-      );
+      const indicator = queryByTestId(PullToRefreshTestIds.INDICATOR);
+      if (indicator) {
+        expect(StyleSheet.flatten(indicator.props.style)).toEqual(
+          expect.objectContaining({
+            top: HEADER_MIN_HEIGHT,
+          }),
+        );
+      } else {
+        expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
+          HEADER_MIN_HEIGHT,
+        );
+      }
       expect(capturedContext.containerScreenY).toBe(HEADER_MIN_HEIGHT);
     });
 
     it('tracks the measured header height for content and section visibility', () => {
-      const { getByTestId } = render(Wallet);
+      const { getByTestId, queryByTestId } = render(Wallet);
 
       act(() => {
         fireEvent(
@@ -2364,7 +2466,18 @@ describe('Header and Nav Bar refresh AB test', () => {
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
       ).toEqual(expect.objectContaining({ paddingTop: 72 + 16 }));
-      expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
+      const indicator = queryByTestId(PullToRefreshTestIds.INDICATOR);
+      if (indicator) {
+        expect(StyleSheet.flatten(indicator.props.style)).toEqual(
+          expect.objectContaining({
+            top: 72,
+          }),
+        );
+      } else {
+        expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
+          72,
+        );
+      }
       expect(capturedContext.containerScreenY).toBe(72);
     });
 
@@ -2714,6 +2827,16 @@ describe('Homepage balance breakdown A/B test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER),
     ).toHaveStyle({ paddingBottom: 16 });
+  });
+
+  it('renders the banner area when the slow network banner is visible', () => {
+    mockSlowNetworkBannerVisible = true;
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
+    ).toBeOnTheScreen();
   });
 
   it('hides breakdown rows during wallet-home post-onboarding', () => {

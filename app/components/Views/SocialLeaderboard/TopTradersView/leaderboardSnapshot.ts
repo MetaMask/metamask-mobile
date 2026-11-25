@@ -148,6 +148,7 @@ export const writeSnapshot = (
       pnlPerChain: trader.pnlPerChain,
       followerCount: trader.followerCount,
       xHandle: trader.xHandle ?? null,
+      verified: trader.verified === true,
     })),
   };
 

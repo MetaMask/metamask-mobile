@@ -55,7 +55,6 @@ export interface UserState {
   multichainAccountsIntroModalSeen: boolean;
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
-  moneyOnboardingSeen: boolean;
   moneySplashSeen: boolean;
   moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;
@@ -69,4 +68,6 @@ export interface UserState {
   pendingAppInstall: PendingAppInstall | null;
   /** Whether the Swaps Limit tab has been opened, hiding its discovery dot. */
   bridgeLimitTabSeen: boolean;
+  /** Whether the Swaps Recurring tab has been opened, hiding its discovery dot. */
+  bridgeRecurringTabSeen: boolean;
 }

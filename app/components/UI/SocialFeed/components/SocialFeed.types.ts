@@ -1,5 +1,8 @@
 import type React from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
@@ -11,12 +14,6 @@ import type {
 } from '../../../../util/social/socialPerformance';
 import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
-
-/**
- * Who scrolls the feed. `content` renders inside the host's scroll view;
- * `virtualized` owns a list, which realtime needs to stay smooth.
- */
-export type SocialFeedScrollMode = 'content' | 'virtualized';
 
 /** What the feed knows about a tapped post's position. */
 export interface SocialFeedPositionPressContext {
@@ -81,6 +78,8 @@ export interface SocialFeedContentProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Lets a host refresh the feed from its own pull-to-refresh control. */
   refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+  /** Lets the host react to skeleton, empty, and retry, for example padding. */
+  onListStateChange?: (state: SocialFeedListState) => void;
 }
 
 export interface SocialFeedRefreshHandle {
@@ -111,8 +110,13 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
    * posts they follow the empty state. Memoize the array.
    */
   inlineRows?: readonly SocialFeedInlineRow[];
+  /**
+   * Runs before the feed refetches a pull-to-refresh, so the host can drop a
+   * stale service cache before the new pages are requested.
+   */
+  prepareRefresh?: () => void | Promise<void>;
   /** Called when the user pulls to refresh, for host analytics. */
-  onRefresh?: () => void;
+  onRefresh?: () => void | Promise<void>;
   /** Lets the host hide chrome that only belongs above posts. */
   onListStateChange?: (state: SocialFeedListState) => void;
   /** Social V1 tab traces: the initial fetch and the first content. */
@@ -128,6 +132,10 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   enabled?: boolean;
   /** Where the pull-to-refresh spinner starts, for hosts with a fixed header. */
   refreshProgressViewOffset?: number;
+  /** Top padding for the list content, for hosts with a floating header. */
+  contentTopInset?: number;
+  /** Top offset for the floating new-posts pill, below a fixed header. */
+  pendingPostsTopOffset?: number | SharedValue<number>;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialFeedPageHandle>;
