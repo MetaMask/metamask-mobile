@@ -17,11 +17,20 @@ import {
 } from '../selectors/perpsController';
 import { usePerpsNetwork } from './index';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+import {
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from './stream/usePerpsLiveAvailableToTrade';
 
 /**
  * When the user has no perps balance and the pay-with-any-token allowlist is enabled,
  * returns the allowlist token with the highest balance to use as the default payment method.
  * Otherwise returns null (caller should default to "Perps balance").
+ *
+ * With a `symbol`, the Perps balance is the venue's available to trade for that
+ * market (the larger side, since no order direction is chosen yet), and no
+ * token is returned until it reports. Without a symbol, or after a stream
+ * error, it falls back to the account `spendableBalance`.
  */
 export function useDefaultPayWithTokenWhenNoPerpsBalance(
   symbol?: string,
@@ -36,16 +45,27 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(
   const activeProvider = useSelector(selectPerpsProvider);
   const currentNetwork = usePerpsNetwork();
   const paymentTokens = usePerpsPaymentTokens(symbol);
+  const { availableToTrade, isInitialLoading: isAvailableToTradeLoading } =
+    usePerpsLiveAvailableToTrade({
+      symbol: symbol ?? '',
+      enabled: featureEnabled && Boolean(symbol),
+    });
+  const availableLong = readAvailableToTradeUsd(availableToTrade, 'long');
+  const availableShort = readAvailableToTradeUsd(availableToTrade, 'short');
 
   return useMemo(() => {
-    if (!featureEnabled) {
+    if (!featureEnabled || isAvailableToTradeLoading) {
       return null;
     }
-    const spendableBalance = Number.parseFloat(
-      perpsAccount?.spendableBalance?.toString() ?? '0',
-    );
+    const venueAvailableToTrade =
+      availableLong === undefined && availableShort === undefined
+        ? undefined
+        : Math.max(availableLong ?? 0, availableShort ?? 0);
+    const perpsBalance =
+      venueAvailableToTrade ??
+      Number.parseFloat(perpsAccount?.spendableBalance?.toString() ?? '0');
 
-    if (spendableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
+    if (perpsBalance > PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
     if (!allowlistAssets?.length) {
@@ -92,6 +112,9 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(
     };
   }, [
     featureEnabled,
+    isAvailableToTradeLoading,
+    availableLong,
+    availableShort,
     perpsAccount?.spendableBalance,
     allowlistAssets,
     activeProvider,
