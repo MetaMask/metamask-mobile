@@ -419,7 +419,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
       <FlashList
         ref={listRef}
         data={listData}
-        extraData={`${effectiveActiveKey}|${visiblePills.length}`}
+        extraData={`${effectiveActiveKey}|${visiblePills.length}|${tokenCount}|${sort?.option}|${sort?.direction}`}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         getItemType={getItemType}

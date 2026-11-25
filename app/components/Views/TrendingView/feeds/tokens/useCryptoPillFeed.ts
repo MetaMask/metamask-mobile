@@ -12,6 +12,7 @@ import Logger from '../../../../../util/Logger';
 import { useStableArray } from '../../../../UI/Perps/hooks/useStableArray';
 import { useTrendingChainIds } from '../../../../UI/Trending/hooks/useTrendingChainIds/useTrendingChainIds';
 import { filterLowQualityTokens } from '../../../../UI/Trending/utils/filterTrendingTokens';
+import { filterRiskyTokens } from './useTokensFeed';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
@@ -104,7 +105,7 @@ export const getEffectiveActiveCryptoPillKey = (
   activePillKey !== undefined &&
   visiblePills.some((pill) => pill.key === activePillKey)
     ? activePillKey
-    : (defaultPills[0]?.key ?? fallbackKey);
+    : (defaultPills[0]?.key ?? visiblePills[0]?.key ?? fallbackKey);
 
 interface CryptoPillQueryDescriptor {
   key: CryptoPillKey;
@@ -112,6 +113,9 @@ interface CryptoPillQueryDescriptor {
   request: CryptoPillRequestParams;
   fallback?: CryptoPillRequestParams;
 }
+
+const filterQuality = (tokens: TrendingAsset[]) =>
+  filterRiskyTokens(filterLowQualityTokens(tokens));
 
 const CRYPTO_PILL_STALE_TIME_MS = 300_000;
 
@@ -161,7 +165,7 @@ export const useCryptoPillFeed = ({
       signal?: AbortSignal;
     }): Promise<TrendingAsset[]> => {
       try {
-        const primary = filterLowQualityTokens(
+        const primary = filterQuality(
           await fetchCryptoPillTokens({
             ...descriptor.request,
             chainIds: descriptor.chainIds,
@@ -172,7 +176,7 @@ export const useCryptoPillFeed = ({
         if (primary.length > 0 || !descriptor.fallback) {
           return primary;
         }
-        return filterLowQualityTokens(
+        return filterQuality(
           await fetchCryptoPillTokens({
             ...descriptor.fallback,
             chainIds: descriptor.chainIds,

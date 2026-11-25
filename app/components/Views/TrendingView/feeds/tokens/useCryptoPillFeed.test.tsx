@@ -221,10 +221,21 @@ describe('getEffectiveActiveCryptoPillKey default pills', () => {
     ).toBe('watchlist');
   });
 
-  it('falls back to the fallback key when no default pill is visible', () => {
+  it('falls back to the first visible pill when no default pill is selectable', () => {
     expect(
-      getEffectiveActiveCryptoPillKey(undefined, visiblePills, 'trending', []),
-    ).toBe('trending');
+      getEffectiveActiveCryptoPillKey(
+        undefined,
+        [CRYPTO_WATCHLIST_PILL],
+        'trending',
+        [],
+      ),
+    ).toBe('watchlist');
+  });
+
+  it('falls back to the fallback key when no default pill is visible', () => {
+    expect(getEffectiveActiveCryptoPillKey(undefined, [], 'trending', [])).toBe(
+      'trending',
+    );
   });
 });
 
@@ -361,6 +372,24 @@ describe('useCryptoPillFeed', () => {
       }
       return [];
     });
+
+    const { result } = renderFeed({ activePillKey: 'trending' });
+
+    await waitFor(() => {
+      expect(result.current.results.trending.data).toEqual([clean]);
+    });
+  });
+
+  it('filters out risky tokens from pill data', async () => {
+    const clean = makeToken('AAA');
+    const malicious = makeToken('BAD', {
+      securityData: {
+        resultType: 'Malicious',
+      } as TrendingAsset['securityData'],
+    });
+    mockedFetchCryptoPillTokens.mockImplementation(async (request) =>
+      isGlobalTrendingRequest(request) ? [clean, malicious] : [],
+    );
 
     const { result } = renderFeed({ activePillKey: 'trending' });
 
