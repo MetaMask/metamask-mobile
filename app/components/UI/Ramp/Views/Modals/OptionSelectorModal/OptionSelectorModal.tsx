@@ -1,24 +1,19 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { ListRenderItem, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import React, { useCallback, useRef } from 'react';
+import { ListRenderItem } from 'react-native';
 import {
-  BottomSheet,
   BottomSheetRef,
   ListItemSelect,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { strings } from '../../../../../../../locales/i18n';
+import SearchableSelectorBottomSheet from '../../../components/SearchableSelectorBottomSheet';
 
 export interface SelectorOption {
   name: string;
@@ -39,20 +34,26 @@ export const createOptionSelectorModalNavigationDetails =
   );
 
 /**
- * Bottom sheet that lists a short set of options and reports the chosen value.
- * Used by the option select fields (e.g. source of funds, employment status,
- * nationality).
+ * Searchable bottom sheet that lists a set of options and reports the chosen
+ * value. Used by the option select fields (e.g. source of funds, employment
+ * status, nationality).
  */
 function OptionSelectorModal() {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<AppNavigationProp>();
   const { title, options, selectedValue, onSelect } =
     useParams<OptionSelectorModalParams>();
-  const { height: screenHeight } = useWindowDimensions();
-  const listStyle = useMemo(
-    () => ({ maxHeight: screenHeight * 0.5 }),
-    [screenHeight],
+
+  const getResults = useCallback(
+    (searchString: string) => {
+      const query = searchString.trim().toLowerCase();
+      if (!query) {
+        return options;
+      }
+      return options.filter((option) =>
+        option.name.toLowerCase().includes(query),
+      );
+    },
+    [options],
   );
 
   const handleSelect = useCallback(
@@ -81,22 +82,19 @@ function OptionSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderStandardGlass
-        isFloating={false}
-        isGlass={isGlassHeader}
-        title={title}
-        onClose={() => sheetRef.current?.onCloseBottomSheet()}
-        closeButtonProps={{ testID: 'option-selector-close-button' }}
-      />
-      <FlatList
-        style={listStyle}
-        data={options}
-        renderItem={renderItem}
-        extraData={selectedValue}
-        keyExtractor={(item) => item.value}
-      />
-    </BottomSheet>
+    <SearchableSelectorBottomSheet<SelectorOption>
+      sheetRef={sheetRef}
+      title={title}
+      searchPlaceholder={strings('deposit.option_selector_modal.search')}
+      noResultsText={(searchString) =>
+        strings('deposit.option_selector_modal.no_results', { searchString })
+      }
+      getResults={getResults}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.value}
+      extraData={selectedValue}
+      closeButtonProps={{ testID: 'option-selector-close-button' }}
+    />
   );
 }
 

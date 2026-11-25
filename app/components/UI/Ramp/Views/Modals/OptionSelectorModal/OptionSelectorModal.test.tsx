@@ -106,4 +106,60 @@ describe('OptionSelectorModal', () => {
     expect(mockOnSelect).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });
+
+  it('renders a search field', () => {
+    const { getByPlaceholderText } = renderModal();
+
+    expect(getByPlaceholderText('Search')).toBeOnTheScreen();
+  });
+
+  it('filters the options by name, ignoring case', () => {
+    const { getByPlaceholderText, getByText, queryByText } = renderModal();
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'SAV');
+
+    expect(getByText('Savings')).toBeOnTheScreen();
+    expect(queryByText('Salary payments')).not.toBeOnTheScreen();
+    expect(queryByText('Pension')).not.toBeOnTheScreen();
+  });
+
+  it('reports the chosen value from the filtered list', () => {
+    const { getByPlaceholderText, getByTestId } = renderModal();
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'pen');
+    fireEvent.press(getByTestId('option-selector-item-pension'));
+
+    expect(mockOnSelect).toHaveBeenCalledWith('pension');
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('shows a no results message when nothing matches', () => {
+    const { getByPlaceholderText, getByText, queryByText } = renderModal();
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'Lottery');
+
+    expect(getByText('No options match "Lottery"')).toBeOnTheScreen();
+    expect(queryByText('Savings')).not.toBeOnTheScreen();
+  });
+
+  it('shows every option again once the search is cleared', () => {
+    const { getByPlaceholderText, getByTestId, getByText } = renderModal();
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'Lottery');
+    fireEvent.press(getByTestId('searchable-selector-clear-button'));
+
+    expect(getByText('Salary payments')).toBeOnTheScreen();
+    expect(getByText('Savings')).toBeOnTheScreen();
+    expect(getByText('Pension')).toBeOnTheScreen();
+  });
+
+  it('shows every option when the search is only whitespace', () => {
+    const { getByPlaceholderText, getByText } = renderModal();
+
+    fireEvent.changeText(getByPlaceholderText('Search'), '   ');
+
+    expect(getByText('Salary payments')).toBeOnTheScreen();
+    expect(getByText('Savings')).toBeOnTheScreen();
+    expect(getByText('Pension')).toBeOnTheScreen();
+  });
 });
