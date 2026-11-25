@@ -336,7 +336,8 @@ const OrderDetails = () => {
     }
     hasAttemptedInitialPendingRefreshRef.current = true;
     if (isPending && !hasCallbackParams) {
-      handleOnRefresh();
+      // handleOnRefresh reports its own errors; the catch only marks it handled.
+      handleOnRefresh().catch(() => undefined);
     }
   }, [isPending, hasCallbackParams, handleOnRefresh]);
 
@@ -352,12 +353,13 @@ const OrderDetails = () => {
     }
     hasFetchedFromCallback.current = true;
 
+    // executeCallbackFetch reports its own errors; the catch only marks it handled.
     executeCallbackFetch(
       params.providerCode,
       params.callbackUrl,
       params.walletAddress,
       '',
-    );
+    ).catch(() => undefined);
   }, [
     hasCallbackParams,
     params.callbackUrl,
