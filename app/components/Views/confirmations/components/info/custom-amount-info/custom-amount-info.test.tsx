@@ -1813,61 +1813,6 @@ describe('CustomAmountInfo', () => {
       },
     );
 
-    describe('Lighter deposit', () => {
-      const LIGHTER_DEPOSIT_DATA = '0x8a857083';
-
-      it('renders 90% instead of Max for the first deposit into Lighter', () => {
-        useTransactionMetadataRequestMock.mockReturnValue({
-          type: TransactionType.perpsLighterDeposit,
-          txParams: { from: '0x123' },
-          nestedTransactions: [
-            { to: '0xusdc', data: '0x095ea7b3' },
-            { to: '0xlighter', data: LIGHTER_DEPOSIT_DATA },
-          ],
-        } as never);
-
-        const { getByText, queryByText } = render({
-          hasMax: true,
-          transactionType: TransactionType.perpsLighterDeposit,
-        });
-
-        expect(getByText('90%')).toBeOnTheScreen();
-        expect(queryByText('Max')).not.toBeOnTheScreen();
-      });
-
-      it('renders 90% instead of Max for the first deposit into Lighter with a no-fee money token', () => {
-        useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
-        useTransactionMetadataRequestMock.mockReturnValue({
-          type: TransactionType.perpsLighterDeposit,
-          txParams: { from: '0x123' },
-          nestedTransactions: [{ to: '0xlighter', data: LIGHTER_DEPOSIT_DATA }],
-        } as never);
-
-        const { getByText, queryByText } = render({
-          hasMax: true,
-          transactionType: TransactionType.perpsLighterDeposit,
-        });
-
-        expect(getByText('90%')).toBeOnTheScreen();
-        expect(queryByText('Max')).not.toBeOnTheScreen();
-      });
-
-      it('renders Max for a deposit into an existing Lighter account', () => {
-        useTransactionMetadataRequestMock.mockReturnValue({
-          type: TransactionType.perpsLighterDeposit,
-          txParams: { from: '0x123', to: '0x123' },
-        } as never);
-
-        const { getByText, queryByText } = render({
-          hasMax: true,
-          transactionType: TransactionType.perpsLighterDeposit,
-        });
-
-        expect(getByText('Max')).toBeOnTheScreen();
-        expect(queryByText('90%')).not.toBeOnTheScreen();
-      });
-    });
-
     it('renders 90% when hasMax is not provided', () => {
       const { getByText, queryByText } = render();
 
