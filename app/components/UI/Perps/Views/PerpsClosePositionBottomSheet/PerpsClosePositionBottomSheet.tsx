@@ -81,7 +81,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
-    summaryMargin,
     summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
@@ -259,7 +258,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           pnl={summaryPnl}
           roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
-          margin={summaryMargin}
           marginMode={summaryMarginMode}
         />
       )}
