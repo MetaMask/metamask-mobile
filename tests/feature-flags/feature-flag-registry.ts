@@ -9605,17 +9605,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyEarningHistoryEnabled: {
-    name: 'earnMoneyEarningHistoryEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homeTMCU1939AbtestFundStepReceiveButton: {
     name: 'homeTMCU1939AbtestFundStepReceiveButton',
     type: FeatureFlagType.Remote,
