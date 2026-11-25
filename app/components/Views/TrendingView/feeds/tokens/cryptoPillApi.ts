@@ -49,7 +49,9 @@ export const buildCryptoPillTokensUrl = (
     excludeLabels !== undefined && excludeLabels.length > 0
       ? `&excludeLabels=${excludeLabels.join(',')}`
       : '';
-  return `${TOKEN_API_BASE_URL}${path}?chainIds=${encodedChainIds}${queryParams.toString() ? `&${queryParams.toString()}` : ''}${excludeLabelsParam}`;
+
+  const queryParamsString= queryParams.toString() ? `&${queryParams.toString()}` : '';
+  return `${TOKEN_API_BASE_URL}${path}?chainIds=${encodedChainIds}${queryParamsString}${excludeLabelsParam}`;
 };
 
 export const fetchCryptoPillTokens = async (
@@ -61,7 +63,7 @@ export const fetchCryptoPillTokens = async (
     signal ? { signal } : undefined,
   );
   if (!Array.isArray(response)) {
-    throw new Error('Crypto pill tokens response was not an array');
+    throw new TypeError('Crypto pill tokens response was not an array');
   }
   return response as TrendingAsset[];
 };
