@@ -26,7 +26,7 @@ Anyone with write access can start the workflow, but nothing is signed or publis
    - The **Update group** line in the summary of that OTA's "Runway OTA Production" run.
    - Or, with the Expo CLI: `eas update:list --branch production`.
 2. **Start the workflow.** Go to **Actions → OTA Rollback → Run workflow** and fill in:
-   - **Use workflow from:** `release/x.y.z`, the release branch of the affected store version. The runtime version comes from that branch's `package.json`, so a run from another branch would target the wrong version. Production and RC runs fail fast if this isn't a `release/*` branch.
+   - **Use workflow from:** `release/x.y.z`, the release branch of the affected store version. The runtime version comes from that branch's `package.json`, so a run from another branch would target the wrong version. Production and RC runs fail fast unless the branch is `release/X.Y.Z` or `release/X.Y.Z-ota`.
    - **channel:** `production`.
    - **mode:** `republish` or `embedded`.
    - **group_id:** the group from step 1. Leave it empty for `embedded`.
@@ -43,7 +43,7 @@ If a bad OTA went out to more than one store version, run the workflow once per 
 ### What the workflow checks before signing
 
 - The inputs are consistent: `republish` needs a group ID, `embedded` must not have one, and a reason is required.
-- Production and RC runs come from a `release/*` branch.
+- Production and RC runs come from a `release/X.Y.Z` or `release/X.Y.Z-ota` branch, the same pattern the OTA push enforces.
 - The environment's channel matches the requested channel.
 - The project resolves the expected runtime version.
 - For `republish`: the group is on a branch the channel serves, targets the same runtime version, and has the requested platform.
@@ -95,7 +95,7 @@ Run these from `main`, which nightly builds are made from. If `main`'s `package.
 
 ### Checks that should fail
 
-- Run `production` from a non-`release/*` branch without drill. The "Validate rollback request" job should fail.
+- Run `production` from `main` without drill. The "Validate rollback request" job should fail.
 - Run `republish` with a group from another store version. The "Check update group" step should fail before the key is fetched.
 - Approve your own production run. GitHub should refuse.
 

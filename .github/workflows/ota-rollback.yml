@@ -80,6 +80,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Validate inputs
         id: plan
@@ -120,6 +121,11 @@ jobs:
             echo "::error::reason is required."
             exit 1
           fi
+          # The reason is shown to approvers in the run summary, so keep it to one line.
+          if [[ "$REASON" == *$'\n'* || "$REASON" == *$'\r'* ]]; then
+            echo "::error::reason must be a single line."
+            exit 1
+          fi
 
           if [[ "$MODE" == "republish" ]]; then
             if [[ ! "$GROUP_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
@@ -136,9 +142,11 @@ jobs:
           else
             RUNTIME_VERSION=$(jq -r .version package.json)
             # The runtime version comes from package.json, so a real rollback has to run from
-            # the release branch of the store version it targets.
-            if [[ "$CHANNEL" != "exp" && "$GITHUB_REF" != refs/heads/release/* ]]; then
-              echo "::error::Run from the release/x.y.z branch of the affected store version (\"Use workflow from\"), not ${GITHUB_REF}."
+            # the release branch of the store version it targets. Same pattern as the OTA push
+            # in push-eas-update.yml.
+            RELEASE_REF_PATTERN='^refs/heads/release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$'
+            if [[ "$CHANNEL" != "exp" && ! "$GITHUB_REF" =~ $RELEASE_REF_PATTERN ]]; then
+              echo "::error::Run from the release/X.Y.Z or release/X.Y.Z-ota branch of the affected store version (\"Use workflow from\"), not ${GITHUB_REF}."
               exit 1
             fi
           fi
@@ -207,6 +215,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
