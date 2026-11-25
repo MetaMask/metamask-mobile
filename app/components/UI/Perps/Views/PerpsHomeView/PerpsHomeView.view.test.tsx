@@ -1312,7 +1312,7 @@ describe('PerpsHomeView', () => {
           },
         ],
       });
-      // shouldShowSocialLeaderboardOnboarding reads ReduxService.store directly.
+      // navigateToSocialLeaderboard (via isSocialV1Treatment) reads ReduxService.store directly.
       const unwire = wirePerpsControllerForStore(store);
       try {
         await openTopTraders();

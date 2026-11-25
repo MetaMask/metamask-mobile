@@ -1645,26 +1645,6 @@
         }
       }
     },
-    "onboarding": {
-      "slide_trade": {
-        "title": "Berdagang layaknya seorang pro",
-        "description": "Lacak secara real-time saat mereka menukar atau memperdagangkan perp, token, dan aset dunia nyata."
-      },
-      "slide_follow": {
-        "title": "Ikuti yang terbaik",
-        "description": "Ketuk untuk mengikuti sepuluh trader terbaik yang untung besar minggu ini."
-      },
-      "slide_notify": {
-        "title": "Jangan pernah melewatkan apa pun",
-        "description_followed": "Saat trader yang Anda ikuti membuat pergerakan, Anda akan mendapatkan pemberitahuan. Satu ketukan untuk melakukan hal yang sama.",
-        "description_default": "Jika Anda sudah siap, ikuti trader untuk mendapatkan pemberitahuan saat mereka membuat pergerakan."
-      },
-      "next": "Berikutnya",
-      "follow_top_ten": "Ikuti sepuluh terbaik",
-      "maybe_later": "Nanti saja",
-      "got_it": "Mengerti",
-      "allow_notifications": "Izinkan notifikasi"
-    },
     "notification_preferences": {
       "title": "Trader top",
       "allow_push_notifications": "Izinkan notifikasi push",
@@ -6114,9 +6094,6 @@
       },
       "social_leaderboard": {
         "title": "Papan Peringkat Sosial",
-        "description": "Reset orientasi Papan Peringkat Sosial sehingga dapat menampilkan lagi waktu berikutnya fitur dibuka.",
-        "onboarding_seen": "Orientasi dilihat: {{seen}}",
-        "reset_onboarding": "Reset orientasi",
         "terms_accepted": "Ketentuan Penggunaan Sosial telah disetujui: {{accepted}}",
         "reset_terms": "Reset Ketentuan Penggunaan Sosial"
       },

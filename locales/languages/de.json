@@ -1645,26 +1645,6 @@
         }
       }
     },
-    "onboarding": {
-      "slide_trade": {
-        "title": "Handeln wie ein Profi",
-        "description": "Verfolgen Sie in Echtzeit, wann Perps, Token und reale Assets getauscht oder gehandelt werden."
-      },
-      "slide_follow": {
-        "title": "Folgen Sie den Besten",
-        "description": "Tippen Sie hier, um den zehn erfolgreichsten Tradern mit hohen Gewinnen in dieser Woche zu folgen."
-      },
-      "slide_notify": {
-        "title": "Verpassen Sie keine Bewegung",
-        "description_followed": "Wenn ein von Ihnen gefolgter Trader eine Transaktion durchführt, erhalten Sie eine Benachrichtigung. Per Fingertipp können Sie dasselbe tun.",
-        "description_default": "Wenn Sie bereit sind, folgen Sie einem Trader und werden Sie benachrichtigt, sobald dieser einen Schritt unternimmt."
-      },
-      "next": "Weiter",
-      "follow_top_ten": "Folgen Sie den Zehn Besten",
-      "maybe_later": "Vielleicht später",
-      "got_it": "Verstanden",
-      "allow_notifications": "Benachrichtigungen erlauben"
-    },
     "notification_preferences": {
       "title": "Top-Trader",
       "allow_push_notifications": "Push-Benachrichtigungen erlauben",
@@ -6114,9 +6094,6 @@
       },
       "social_leaderboard": {
         "title": "Soziale Rangliste",
-        "description": "Setzen Sie das Onboarding für soziale Ranglisten zurück, sodass es beim nächsten Aufrufen der Funktion erneut angezeigt wird.",
-        "onboarding_seen": "Onboarding gesehen: {{seen}}",
-        "reset_onboarding": "Onboarding zurücksetzen",
         "terms_accepted": "Nutzungsbedingungen für soziale Medien akzeptiert: {{accepted}}",
         "reset_terms": "Nutzungsbedingungen für soz. Medien zurücksetzen"
       },

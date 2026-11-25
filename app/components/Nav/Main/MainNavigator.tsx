@@ -226,7 +226,6 @@ import {
   TraderProfileView,
   TraderPositionView,
   PositionDetailsSheet,
-  SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
   TraderPreviewSheet,
@@ -1620,10 +1619,6 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.SOCIAL.POSITION}
               component={TraderPositionView}
-            />
-            <NativeStack.Screen
-              name={Routes.SOCIAL.ONBOARDING}
-              component={SocialLeaderboardOnboarding}
             />
           </NativeStack.Group>
           <NativeStack.Screen

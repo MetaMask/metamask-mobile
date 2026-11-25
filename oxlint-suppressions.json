@@ -154,11 +154,6 @@
       "count": 1
     }
   },
-  "app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.styles.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/component-library/components-temp/MultichainAccounts/test-utils.ts": {
     "typescript/prefer-reduce-type-parameter": {
       "count": 3
@@ -17597,19 +17592,6 @@
       "count": 2
     }
   },
-  "app/components/Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 2
-    },
-    "typescript/promise-function-async": {
-      "count": 2
-    }
-  },
-  "app/components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -18072,7 +18054,7 @@
   },
   "app/components/Views/SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection.tsx": {
     "typescript/no-misused-promises": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.tsx": {

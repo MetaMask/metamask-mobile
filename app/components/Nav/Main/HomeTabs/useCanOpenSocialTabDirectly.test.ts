@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import { selectProfileControllerProfile } from '../../../../selectors/profileController';
-import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { canOpenSocialTabDirectly } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { useCanOpenSocialTabDirectly } from './useCanOpenSocialTabDirectly';
 
@@ -81,25 +80,6 @@ describe('useCanOpenSocialTabDirectly', () => {
     expect(canOpenSocialTabDirectly).not.toHaveBeenCalled();
 
     rerender({ isSocialV1Enabled: true });
-
-    expect(result.current).toBe(false);
-  });
-
-  it('re-reads the gate when the onboarding flag changes', () => {
-    jest.mocked(canOpenSocialTabDirectly).mockReturnValue(true);
-    const { result, rerender } = renderHook(() =>
-      useCanOpenSocialTabDirectly(true),
-    );
-    jest.mocked(canOpenSocialTabDirectly).mockReturnValue(false);
-    jest
-      .mocked(useSelector)
-      .mockImplementation((selector) =>
-        selector === selectAiSocialLeaderboardOnboardingEnabled
-          ? true
-          : undefined,
-      );
-
-    rerender({});
 
     expect(result.current).toBe(false);
   });

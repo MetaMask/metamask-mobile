@@ -1,9 +1,6 @@
 import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../../core/redux';
 import type { RootState } from '../../../../reducers';
-import StorageWrapper from '../../../../store/storage-wrapper';
-import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
-import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { resolveABTestAssignment } from '../../../../util/abTest';
 import {
   ensureSocialTermsAccepted,
@@ -14,13 +11,10 @@ import {
   finishProfileOnboardingToSocialTab,
   popToSocialTab,
   getFollowTradingHomeRoute,
-  hasSeenSocialLeaderboardOnboarding,
   isSocialV1Treatment,
   navigateToSocialLeaderboard,
   navigateToSocialTab,
   pushSocialLeaderboard,
-  resetSocialLeaderboardOnboardingSeen,
-  shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
 
 jest.mock('../terms/socialTermsAcceptance', () => ({
@@ -33,15 +27,9 @@ jest.mock('../../../../core/redux', () => ({
   default: { store: { getState: jest.fn() } },
 }));
 
-jest.mock('../../../../store/storage-wrapper', () => ({
-  __esModule: true,
-  default: { getItemSync: jest.fn(), removeItem: jest.fn() },
-}));
-
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
-    selectAiSocialLeaderboardOnboardingEnabled: jest.fn(),
     selectSocialLeaderboardEnabled: jest.fn(),
   }),
 );
@@ -60,11 +48,6 @@ jest.mock('../../../../util/abTest', () => ({
 
 const mockResolveABTestAssignment = jest.mocked(resolveABTestAssignment);
 const mockGetState = jest.mocked(ReduxService.store.getState);
-const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
-const mockRemoveItem = jest.mocked(StorageWrapper.removeItem);
-const mockOnboardingEnabled = jest.mocked(
-  selectAiSocialLeaderboardOnboardingEnabled,
-);
 
 const mockCreatedSocialProfile = (profileId = 'profile-1') => {
   mockGetState.mockReturnValue({
@@ -87,48 +70,14 @@ describe('socialLeaderboardOnboardingNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({} as unknown as RootState);
-    mockOnboardingEnabled.mockReturnValue(true);
-    mockGetItemSync.mockReturnValue(null);
     mockResolveABTestAssignment.mockReturnValue({
       variantName: 'control',
       isActive: false,
     });
   });
 
-  describe('shouldShowSocialLeaderboardOnboarding', () => {
-    it('returns true when enabled and not previously seen', () => {
-      mockGetItemSync.mockReturnValue(null);
-      expect(shouldShowSocialLeaderboardOnboarding()).toBe(true);
-      expect(mockGetItemSync).toHaveBeenCalledWith(
-        SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
-      );
-    });
-
-    it('returns false when the onboarding has already been seen', () => {
-      mockGetItemSync.mockReturnValue('true');
-      expect(shouldShowSocialLeaderboardOnboarding()).toBe(false);
-    });
-
-    it('returns false when the onboarding flag is off (without reading storage)', () => {
-      mockOnboardingEnabled.mockReturnValue(false);
-      expect(shouldShowSocialLeaderboardOnboarding()).toBe(false);
-      expect(mockGetItemSync).not.toHaveBeenCalled();
-    });
-  });
-
   describe('navigateToSocialLeaderboard', () => {
-    it('navigates to the onboarding for a first-time user', () => {
-      mockGetItemSync.mockReturnValue(null);
-      const navigate = jest.fn();
-
-      navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
-
-      expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
-    });
-
-    it('navigates to the leaderboard with the source when onboarding is not due', () => {
-      mockGetItemSync.mockReturnValue('true');
+    it('navigates to the leaderboard with the source', () => {
       const navigate = jest.fn();
 
       navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
@@ -140,7 +89,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     });
 
     it('navigates to the leaderboard without params when none are provided', () => {
-      mockGetItemSync.mockReturnValue('true');
       const navigate = jest.fn();
 
       navigateToSocialLeaderboard(navigate);
@@ -149,7 +97,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     });
 
     it('selects the Social tab for the TSA-1122 treatment instead of pushing Social V1', () => {
-      mockGetItemSync.mockReturnValue('true');
       enableSocialV1();
       mockCreatedSocialProfile();
       const navigate = jest.fn();
@@ -169,7 +116,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     });
 
     it('forwards the initial tab to the Social tab for the TSA-1122 treatment', () => {
-      mockGetItemSync.mockReturnValue('true');
       enableSocialV1();
       mockCreatedSocialProfile();
       const navigate = jest.fn();
@@ -188,37 +134,10 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         { pop: true },
       );
     });
-
-    it('returns a first-time TSA-1122 treatment user to the Social tab after onboarding', () => {
-      mockGetItemSync.mockReturnValue(null);
-      enableSocialV1();
-      mockCreatedSocialProfile();
-      const navigate = jest.fn();
-
-      navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
-
-      expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING, {
-        returnToTab: true,
-      });
-    });
   });
 
   describe('pushSocialLeaderboard', () => {
-    it('navigates to the onboarding without returning to the tab for a first-time TSA-1122 treatment user', () => {
-      mockGetItemSync.mockReturnValue(null);
-      enableSocialV1();
-      mockCreatedSocialProfile();
-      const navigate = jest.fn();
-
-      pushSocialLeaderboard(navigate, { source: 'perps_home' });
-
-      expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
-    });
-
     it('pushes the Social V1 route with the initial tab for the TSA-1122 treatment', () => {
-      mockGetItemSync.mockReturnValue('true');
       enableSocialV1();
       mockCreatedSocialProfile();
       const navigate = jest.fn();
@@ -237,7 +156,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     });
 
     it('pushes the legacy leaderboard with the params for control', () => {
-      mockGetItemSync.mockReturnValue('true');
       const navigate = jest.fn();
 
       pushSocialLeaderboard(navigate, {
@@ -253,34 +171,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
   });
 
   describe('navigateToSocialTab', () => {
-    it('navigates to the onboarding for a first-time user', () => {
-      mockGetItemSync.mockReturnValue(null);
-      const navigate = jest.fn();
-
-      navigateToSocialTab(navigate, { source: 'nav_tab' });
-
-      expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL.ONBOARDING,
-        undefined,
-      );
-    });
-
-    it('returns to the Social tab after V1 treatment onboarding', () => {
-      mockGetItemSync.mockReturnValue(null);
-      enableSocialV1();
-      mockCreatedSocialProfile();
-      const navigate = jest.fn();
-
-      navigateToSocialTab(navigate, { source: 'nav_tab' });
-
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING, {
-        returnToTab: true,
-      });
-    });
-
-    it('selects the Social tab with the source when onboarding is not due', () => {
-      mockGetItemSync.mockReturnValue('true');
+    it('selects the Social tab with the source', () => {
       const navigate = jest.fn();
 
       navigateToSocialTab(navigate, { source: 'nav_tab' });
@@ -292,7 +183,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     });
 
     it('does not push the stack V0 or V1 home routes', () => {
-      mockGetItemSync.mockReturnValue('true');
       enableSocialV1();
       mockCreatedSocialProfile();
       const navigate = jest.fn();
@@ -325,7 +215,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
 
     beforeEach(() => {
       enableSocialV1();
-      mockGetItemSync.mockReturnValue('true');
     });
 
     it('opens profile onboarding from Top traders when terms are accepted and no profile exists', () => {
@@ -361,19 +250,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       expectProfileOnboarding(navigate);
       expect(navigate).not.toHaveBeenCalledWith(
         Routes.SOCIAL.V1,
-        expect.anything(),
-      );
-    });
-
-    it('opens profile onboarding before the old leaderboard introduction', () => {
-      mockGetItemSync.mockReturnValue(null);
-      const navigate = jest.fn();
-
-      navigateToSocialTab(navigate, { source: 'nav_tab' });
-
-      expectProfileOnboarding(navigate);
-      expect(navigate).not.toHaveBeenCalledWith(
-        Routes.SOCIAL.ONBOARDING,
         expect.anything(),
       );
     });
@@ -416,7 +292,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     beforeEach(() => {
       enableSocialV1();
       mockCreatedSocialProfile();
-      mockGetItemSync.mockReturnValue('true');
       jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
     });
 
@@ -460,10 +335,9 @@ describe('socialLeaderboardOnboardingNavigation', () => {
   });
 
   describe('canOpenSocialTabDirectly', () => {
-    it('is true for Social V1 once terms, profile and onboarding are done', () => {
+    it('is true for Social V1 once the terms and profile are done', () => {
       enableSocialV1();
       mockCreatedSocialProfile();
-      mockGetItemSync.mockReturnValue('true');
 
       expect(canOpenSocialTabDirectly()).toBe(true);
     });
@@ -471,7 +345,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     it('is false for Social V1 when the terms are not accepted', () => {
       enableSocialV1();
       mockCreatedSocialProfile();
-      mockGetItemSync.mockReturnValue('true');
       jest.mocked(hasAcceptedSocialTerms).mockReturnValueOnce(false);
 
       expect(canOpenSocialTabDirectly()).toBe(false);
@@ -479,22 +352,11 @@ describe('socialLeaderboardOnboardingNavigation', () => {
 
     it('is false for Social V1 when no profile exists', () => {
       enableSocialV1();
-      mockGetItemSync.mockReturnValue('true');
-
-      expect(canOpenSocialTabDirectly()).toBe(false);
-    });
-
-    it('is false while the leaderboard onboarding is still due', () => {
-      enableSocialV1();
-      mockCreatedSocialProfile();
-      mockGetItemSync.mockReturnValue(null);
 
       expect(canOpenSocialTabDirectly()).toBe(false);
     });
 
     it('ignores the V1 terms and profile gates for control', () => {
-      mockGetItemSync.mockReturnValue('true');
-
       expect(canOpenSocialTabDirectly()).toBe(true);
     });
   });
@@ -512,33 +374,6 @@ describe('socialLeaderboardOnboardingNavigation', () => {
 
       expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V1);
       expect(isSocialV1Treatment()).toBe(true);
-    });
-  });
-
-  describe('hasSeenSocialLeaderboardOnboarding', () => {
-    it('returns true when the seen flag is persisted', () => {
-      mockGetItemSync.mockReturnValue('true');
-      expect(hasSeenSocialLeaderboardOnboarding()).toBe(true);
-      expect(mockGetItemSync).toHaveBeenCalledWith(
-        SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
-      );
-    });
-
-    it('returns false when the seen flag is absent', () => {
-      mockGetItemSync.mockReturnValue(null);
-      expect(hasSeenSocialLeaderboardOnboarding()).toBe(false);
-    });
-  });
-
-  describe('resetSocialLeaderboardOnboardingSeen', () => {
-    it('removes the persisted seen flag', async () => {
-      mockRemoveItem.mockResolvedValue(undefined);
-
-      await resetSocialLeaderboardOnboardingSeen();
-
-      expect(mockRemoveItem).toHaveBeenCalledWith(
-        SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
-      );
     });
   });
 });

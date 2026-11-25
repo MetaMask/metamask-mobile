@@ -5,7 +5,6 @@ import {
 } from '@metamask/social-controllers';
 import {
   SOCIAL_LAST_TRADE_AT,
-  SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
   SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX,
   SOCIAL_POST_TRADE_PROMPTS,
   SOCIAL_TAB_VISITED,
@@ -111,7 +110,6 @@ describe('clearSocialIdentityState', () => {
   });
 
   it('removes per-identity social storage, including leaderboard snapshots', async () => {
-    mockStorage.set(SOCIAL_LEADERBOARD_ONBOARDING_SHOWN, 'true');
     mockStorage.set(SOCIAL_TAB_VISITED, 'true');
     mockStorage.set(SOCIAL_LAST_TRADE_AT, '1700000000000');
     mockStorage.set(SOCIAL_POST_TRADE_PROMPTS, '{}');
@@ -127,7 +125,6 @@ describe('clearSocialIdentityState', () => {
       SocialController: socialController as unknown as SocialController,
     });
 
-    expect(mockStorage.has(SOCIAL_LEADERBOARD_ONBOARDING_SHOWN)).toBe(false);
     expect(mockStorage.has(SOCIAL_TAB_VISITED)).toBe(false);
     expect(mockStorage.has(SOCIAL_LAST_TRADE_AT)).toBe(false);
     expect(mockStorage.has(SOCIAL_POST_TRADE_PROMPTS)).toBe(false);
@@ -160,7 +157,7 @@ describe('clearSocialIdentityState', () => {
     clearState.mockImplementation(() => {
       throw new Error('profile clear failed');
     });
-    mockStorage.set(SOCIAL_LEADERBOARD_ONBOARDING_SHOWN, 'true');
+    mockStorage.set(SOCIAL_TAB_VISITED, 'true');
 
     await expect(
       clearSocialIdentityState({
@@ -169,7 +166,7 @@ describe('clearSocialIdentityState', () => {
       }),
     ).resolves.toBeUndefined();
 
-    expect(mockStorage.has(SOCIAL_LEADERBOARD_ONBOARDING_SHOWN)).toBe(false);
+    expect(mockStorage.has(SOCIAL_TAB_VISITED)).toBe(false);
     expect(Logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'profile clear failed' }),
       'Failed to clear ProfileController during wallet reset',

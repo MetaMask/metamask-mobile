@@ -3,13 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import { selectProfileControllerProfile } from '../../../../selectors/profileController';
-import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { canOpenSocialTabDirectly } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 
 /**
- * Whether a Social tab tap would pass every entry gate. The terms and
- * onboarding flags live in MMKV, so this re-reads them whenever the tabs
- * regain focus, which is where the gate screens return to.
+ * Whether a Social tab tap would pass every entry gate. The terms acceptance
+ * lives in MMKV, so this re-reads it whenever the tabs regain focus, which is
+ * where the gate screens return to.
  *
  * @param isSocialV1Enabled - Only Social V1 has gates; re-reads when it turns on.
  */
@@ -18,9 +17,6 @@ export const useCanOpenSocialTabDirectly = (
 ): boolean => {
   const navigation = useNavigation();
   const profileId = useSelector(selectProfileControllerProfile)?.profileId;
-  const isOnboardingEnabled = useSelector(
-    selectAiSocialLeaderboardOnboardingEnabled,
-  );
   // Starts closed so a late Social V1 assignment can only cost a bounce.
   const [canOpen, setCanOpen] = useState(
     () => isSocialV1Enabled && canOpenSocialTabDirectly(),
@@ -33,7 +29,7 @@ export const useCanOpenSocialTabDirectly = (
     const refresh = () => setCanOpen(canOpenSocialTabDirectly());
     refresh();
     return navigation.addListener('focus', refresh);
-  }, [navigation, profileId, isOnboardingEnabled, isSocialV1Enabled]);
+  }, [navigation, profileId, isSocialV1Enabled]);
 
   return !isSocialV1Enabled || canOpen;
 };

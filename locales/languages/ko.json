@@ -1645,26 +1645,6 @@
         }
       }
     },
-    "onboarding": {
-      "slide_trade": {
-        "title": "프로처럼 거래하세요",
-        "description": "팔로우한 사람이 무기한 선물, 토큰 및 실물 자산을 스왑하거나 거래하는 것을 실시간으로 추적하세요."
-      },
-      "slide_follow": {
-        "title": "최고를 팔로우하세요",
-        "description": "이번 주에 큰 수익을 올린 상위 10명의 트레이더를 탭하여 팔로우하세요."
-      },
-      "slide_notify": {
-        "title": "매매 기회를 놓치지 마세요",
-        "description_followed": "팔로우하는 트레이더가 거래를 하면 알림을 받습니다. 탭 한 번으로 똑같이 거래해 보세요.",
-        "description_default": "준비가 되면 트레이더를 팔로우하여 그들이 거래를 하는 즉시 알림을 받아보세요."
-      },
-      "next": "다음",
-      "follow_top_ten": "상위 10명 팔로우",
-      "maybe_later": "나중에",
-      "got_it": "컨펌",
-      "allow_notifications": "알림 허용"
-    },
     "notification_preferences": {
       "title": "상위 트레이더",
       "allow_push_notifications": "푸시 알림 허용",
@@ -6114,9 +6094,6 @@
       },
       "social_leaderboard": {
         "title": "소셜 리더보드",
-        "description": "다음에 기능을 열 때 다시 표시되도록 소셜 리더보드 온보딩을 초기화합니다.",
-        "onboarding_seen": "온보딩 확인됨: {{seen}}",
-        "reset_onboarding": "온보딩 초기화",
         "terms_accepted": "소셜 이용약관 동의 여부: {{accepted}}",
         "reset_terms": "소셜 이용약관 동의 초기화"
       },
