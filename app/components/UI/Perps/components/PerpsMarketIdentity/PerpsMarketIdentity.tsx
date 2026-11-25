@@ -13,7 +13,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
@@ -48,6 +51,11 @@ export interface PerpsMarketIdentityProps {
    * subtitle row entirely (e.g. Pro's scroll-linked live price crossfade).
    */
   subtitleContent?: React.ReactNode;
+  /**
+   * Venue whose mark overlays the token logo (TAT-4418). Callers gate this
+   * on the multi-provider flag.
+   */
+  providerId?: PerpsProviderType;
 }
 
 /**
@@ -66,6 +74,7 @@ const PerpsMarketIdentity = ({
   onPress,
   testIDs,
   subtitleContent,
+  providerId,
 }: PerpsMarketIdentityProps) => {
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const displayTitle = getPerpsDisplaySymbol(name || symbol);
@@ -81,7 +90,12 @@ const PerpsMarketIdentity = ({
       gap={gap}
       twClassName={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
     >
-      <PerpsTokenLogo symbol={symbol} size={size} testID={testIDs?.assetIcon} />
+      <PerpsTokenLogo
+        symbol={symbol}
+        size={size}
+        testID={testIDs?.assetIcon}
+        providerId={providerId}
+      />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}

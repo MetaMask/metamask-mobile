@@ -8,6 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   getPerpsDisplaySymbol,
   type OrderType,
@@ -47,6 +48,9 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
+  // TAT-4418: the venue mark on the token shows only under the multi-provider
+  // flag, so flag-off headers render exactly as before.
+  const { isMultiProviderEnabled } = usePerpsProvider();
 
   // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
   // TAT-3334) — the same source PerpsOrderView already uses for its own
@@ -182,7 +186,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       backButtonProps={{
         testID: PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
       }}
-      avatar={<PerpsTokenLogo symbol={asset} size={40} />}
+      avatar={
+        <PerpsTokenLogo
+          symbol={asset}
+          size={40}
+          providerId={isMultiProviderEnabled ? providerId : undefined}
+        />
+      }
       title={displayTitle}
       titleProps={{ testID: PerpsOrderHeaderSelectorsIDs.ASSET_TITLE }}
       description={description}

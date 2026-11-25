@@ -1,17 +1,14 @@
 import React from 'react';
+import { Image } from 'expo-image';
+import { StyleSheet } from 'react-native';
 import {
-  AvatarNetwork,
-  AvatarNetworkSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
-import {
-  PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
-  PERPS_PROVIDER_LOGO_AVATAR_MAX_PX,
-} from '../../constants/perpsUIConfig';
+import { PERPS_AVAILABLE_BALANCE_LOGO_SIZE } from '../../constants/perpsUIConfig';
 import type { PerpsProviderLogoId } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
@@ -21,7 +18,7 @@ import lighterLogo from './assets/lighter.png';
 
 const PROVIDER_LOGOS: Record<PerpsProviderLogoId, number> = {
   // Bundled requires are numbers at runtime. The png declaration is the wider
-  // ImageSourcePropType, which AvatarNetwork does not accept.
+  // ImageSourcePropType, which plain Image accepts.
   [PROVIDER_CONFIG.DefaultProvider]: hyperliquidLogo as number,
   [PROVIDER_CONFIG.LighterProvider]: lighterLogo as number,
 };
@@ -38,55 +35,38 @@ function isDrawableLogoId(
 }
 
 /**
- * Overlap for a stacked pair. 6px at 16px matches the home design and
- * AvatarGroup's xs spacing. AvatarGroup itself always sets hasBorder, which
- * grows a 16px avatar to 18px, so these marks are composed from AvatarNetwork.
+ * Corner radius of a venue mark. The designs draw squared marks: 2px on a
+ * 12px badge, 8px on a 40px badge — a fifth of the mark's size.
  */
-const STACKED_LOGO_MARGIN_CLASS: Record<AvatarNetworkSize, string> = {
-  [AvatarNetworkSize.Xs]: '-mr-1.5',
-  [AvatarNetworkSize.Sm]: '-mr-2.5',
-  [AvatarNetworkSize.Md]: '-mr-3.5',
-  [AvatarNetworkSize.Lg]: '-mr-4',
-  [AvatarNetworkSize.Xl]: '-mr-5',
-};
+const VENUE_MARK_RADIUS_RATIO = 0.2;
+
+/**
+ * Overlap of a stacked pair as a share of the mark size. 6px at 16px matches
+ * the home design (TAT-4510); scaled, it keeps the pair proportional at
+ * every size.
+ */
+const VENUE_MARK_OVERLAP_RATIO = 0.4;
+
+const markRadiusPx = (size: number): number =>
+  Math.max(2, Math.round(size * VENUE_MARK_RADIUS_RATIO));
+
+const stackedOverlapPx = (size: number): number =>
+  Math.round(size * VENUE_MARK_OVERLAP_RATIO);
+
+const markStyle = StyleSheet.create({
+  fill: { width: '100%', height: '100%' },
+  // Clips the mark image to the squared corner radius.
+  clip: { overflow: 'hidden' as const },
+});
 
 /** Later marks paint above earlier ones. Two logos is the maximum. */
 const STACKED_LOGO_Z_CLASS = ['z-10', 'z-20'] as const;
 
-export function mapPerpsLogoPixelsToAvatarSize(
-  pixels: number,
-): AvatarNetworkSize {
-  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Xs) {
-    return AvatarNetworkSize.Xs;
-  }
-  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Sm) {
-    return AvatarNetworkSize.Sm;
-  }
-  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Md) {
-    return AvatarNetworkSize.Md;
-  }
-  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Lg) {
-    return AvatarNetworkSize.Lg;
-  }
-  return AvatarNetworkSize.Xl;
-}
-
-function logoClassName(
-  index: number,
-  avatarSize: AvatarNetworkSize,
-  isCoveredByNextLogo: boolean,
-): string {
-  const zClass =
-    STACKED_LOGO_Z_CLASS[Math.min(index, STACKED_LOGO_Z_CLASS.length - 1)];
-  if (!isCoveredByNextLogo) {
-    return zClass;
-  }
-  return `${STACKED_LOGO_MARGIN_CLASS[avatarSize]} ${zClass}`;
-}
-
 /**
  * One exchange mark, or the Hyperliquid and Lighter marks overlapped.
- * The accessible name is the exchange names from PROVIDER_DISPLAY_INFO.
+ * Marks are squared with a hairline border, per the designs (2px radius on
+ * a 12px badge, 8px on 40px). The accessible name is the exchange names
+ * from PROVIDER_DISPLAY_INFO.
  */
 const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
   providerIds,
@@ -100,7 +80,6 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
     return null;
   }
 
-  const avatarSize = mapPerpsLogoPixelsToAvatarSize(size);
   const accessibilityLabel = drawableIds
     .map((providerId) => PROVIDER_DISPLAY_INFO[providerId].name)
     .join(', ');
@@ -117,21 +96,44 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
       testID={testID}
       twClassName={twClassName}
     >
-      {drawableIds.map((providerId, index) => (
-        <AvatarNetwork
-          key={providerId}
-          name={PROVIDER_DISPLAY_INFO[providerId].name}
-          src={PROVIDER_LOGOS[providerId]}
-          size={avatarSize}
-          accessible={false}
-          testID={PROVIDER_LOGO_TEST_IDS[providerId]}
-          twClassName={logoClassName(
-            index,
-            avatarSize,
-            index < drawableIds.length - 1,
-          )}
-        />
-      ))}
+      {drawableIds.map((providerId, index) => {
+        const isCoveredByNextLogo = index < drawableIds.length - 1;
+        const zClass =
+          STACKED_LOGO_Z_CLASS[
+            Math.min(index, STACKED_LOGO_Z_CLASS.length - 1)
+          ];
+        return (
+          <Box
+            key={providerId}
+            accessible={false}
+            testID={PROVIDER_LOGO_TEST_IDS[providerId]}
+            twClassName={zClass}
+            style={[
+              markStyle.clip,
+              {
+                width: size,
+                height: size,
+                borderRadius: markRadiusPx(size),
+                borderWidth: StyleSheet.hairlineWidth,
+                ...(isCoveredByNextLogo
+                  ? { marginRight: -stackedOverlapPx(size) }
+                  : {}),
+              },
+            ]}
+          >
+            <Image
+              source={PROVIDER_LOGOS[providerId]}
+              style={markStyle.fill}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              allowDownscaling={false}
+              transition={0}
+              placeholder={null}
+              autoplay={false}
+            />
+          </Box>
+        );
+      })}
     </Box>
   );
 };

@@ -5,8 +5,16 @@ import {
   AvatarBase,
   AvatarBaseShape,
   AvatarBaseSize,
+  BadgeNetwork,
+  Box,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
+import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
+import hyperliquidLogo from '../PerpsProviderLogos/assets/hyperliquid.png';
+import lighterLogo from '../PerpsProviderLogos/assets/lighter.png';
 import { useTheme } from '../../../../../util/theme';
 import { getAssetIconUrls } from '../../utils/marketUtils';
 import {
@@ -33,11 +41,22 @@ function mapToAvatarBaseSize(pixels: number): AvatarBaseSize {
   return AvatarBaseSize.Xl;
 }
 
+/**
+ * Venue marks for the token badge (TAT-4418). The design's header token
+ * (32px AvatarToken) carries a BadgeNetwork venue mark with its own
+ * background ring, overlapping the bottom-right corner.
+ */
+const VENUE_BADGE_LOGOS: Record<PerpsProviderType, number> = {
+  hyperliquid: hyperliquidLogo as number,
+  lighter: lighterLogo as number,
+};
+
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
   size = 32,
   testID,
   recyclingKey,
+  providerId,
 }) => {
   const { colors, themeAppearance } = useTheme();
   // Pass this revision into the selector. React Compiler memoizes on the
@@ -96,7 +115,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
 
   const imageKey = `${recyclingKey || symbol}-${imageUri}`;
 
-  return (
+  const avatar = (
     <AvatarBase
       size={mapToAvatarBaseSize(size)}
       shape={AvatarBaseShape.Circle}
@@ -126,6 +145,31 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
         />
       ) : null}
     </AvatarBase>
+  );
+
+  if (!providerId) {
+    return avatar;
+  }
+  const venueBadge = VENUE_BADGE_LOGOS[providerId];
+  if (!venueBadge) {
+    return avatar;
+  }
+
+  // Venue mark on the token (TAT-4418): the design's BadgeNetwork with its
+  // background ring, overlapping the bottom-right corner. It names the
+  // exchange the trade goes to.
+  return (
+    <Box twClassName="relative" testID={testID ? `${testID}-venue` : undefined}>
+      {avatar}
+      <Box twClassName="absolute -bottom-1 -right-1">
+        <BadgeNetwork
+          src={venueBadge}
+          name={PROVIDER_DISPLAY_INFO[providerId].name}
+          accessible={false}
+          testID={testID ? `${testID}-venue-badge` : undefined}
+        />
+      </Box>
+    </Box>
   );
 };
 

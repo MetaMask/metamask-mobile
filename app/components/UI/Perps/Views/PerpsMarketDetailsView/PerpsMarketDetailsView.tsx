@@ -2408,6 +2408,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onIdentityPress={handleMarketListPress}
           onFavoritePress={handleFavoritePress}
           isFavorite={isWatchlist}
+          providerId={orderProviderId}
           mode={isPerpsProModeEnabled ? perpsMode : undefined}
           onModeChange={
             isPerpsProModeEnabled ? handlePerpsModeChange : undefined
