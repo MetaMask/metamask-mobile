@@ -400,11 +400,15 @@ jest.mock('../../Transactions', () => ({
   },
 }));
 
+const mockMultichainTransactionsView = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
   () => ({
     __esModule: true,
-    default: () => null,
+    default: (props: Record<string, unknown>) =>
+      mockMultichainTransactionsView(props),
   }),
 );
 
@@ -670,6 +674,64 @@ describe('TokenDetails', () => {
       // position line waits for the position to resolve.
       expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
+
+    // The dialog's KeyboardAvoidingView forwards onLayout after an await.
+    const layoutFooter = (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+      height: number,
+    ) =>
+      act(async () => {
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          persist: jest.fn(),
+          nativeEvent: { layout: { x: 0, y: 0, width: 390, height } },
+        });
+      });
+
+    it('reserves the floating footer height at the end of the activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$7.92',
+          pnl: { amount: '+$0.10', percentage: '+1.28%', isProfit: true },
+        },
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(mockTransactions).toHaveBeenLastCalledWith(
+          expect.objectContaining({ contentBottomInset: 137 }),
+        ),
+      );
+    });
+
+    it('reserves the floating footer height at the end of the non-EVM activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(mockMultichainTransactionsView).toHaveBeenLastCalledWith(
+          expect.objectContaining({ contentBottomInset: 137 }),
+        ),
+      );
+    });
+
+    it('keeps the default list padding when the footer sits in the page flow', () => {
+      applySelectorsWithMemeFlag(false);
+
+      render(<TokenDetails />);
+
+      expect(mockTransactions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contentBottomInset: undefined }),
+      );
     });
   });
 
