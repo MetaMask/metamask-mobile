@@ -29,6 +29,7 @@ const CARD: CardDetails = {
 const CAPABILITIES = {
   supportsFundingLimits: true,
   supportsPinView: true,
+  supportsFreeze: true,
 } as CardProviderCapabilities;
 
 const buildInput = (
@@ -84,6 +85,16 @@ describe('getCardHomeActionVisibility', () => {
       getCardHomeActionVisibility(
         buildInput({ card: { ...CARD, hasPin: false } }),
       ).pin,
+    ).toBe(false);
+  });
+
+  it('hides freeze when the provider cannot freeze cards', () => {
+    expect(
+      getCardHomeActionVisibility(
+        buildInput({
+          capabilities: { ...CAPABILITIES, supportsFreeze: false },
+        }),
+      ).freeze,
     ).toBe(false);
   });
 
