@@ -6,7 +6,6 @@ import {
   ActionPosition,
 } from '../../../util/analytics/actionButtonTracking';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
-import Logger from '../../../util/Logger';
 import { useWalletHomeOnboardingChecklistReceivePress } from './useWalletHomeOnboardingChecklistReceivePress';
 
 const mockNavigation = { navigate: jest.fn() };
@@ -34,29 +33,20 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockNavigateWithDetails = jest.fn();
-jest.mock('../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../util/navigation/navUtils'),
-  navigateWithDetails: (...args: unknown[]) => mockNavigateWithDetails(...args),
-}));
-
-const mockCreateAddressListNavigationDetails = jest.fn((params: unknown) => ({
-  details: params,
-}));
-jest.mock('../../Views/MultichainAccounts/AddressList', () => ({
-  createAddressListNavigationDetails: (params: unknown) =>
-    mockCreateAddressListNavigationDetails(params),
-}));
-
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn() },
-}));
+const mockNavigateToReceiveAddressList = jest.fn();
+jest.mock(
+  '../../Views/MultichainAccounts/AddressList/navigateToReceiveAddressList',
+  () => ({
+    navigateToReceiveAddressList: (...args: unknown[]) =>
+      mockNavigateToReceiveAddressList(...args),
+  }),
+);
 
 describe('useWalletHomeOnboardingChecklistReceivePress', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectedAccountGroupId = 'entropy:wallet/0';
+    mockNavigateToReceiveAddressList.mockReturnValue(true);
   });
 
   it('tracks Action Button Clicked with the onboarding checklist location', () => {
@@ -85,28 +75,22 @@ describe('useWalletHomeOnboardingChecklistReceivePress', () => {
 
     result.current();
 
-    expect(mockCreateAddressListNavigationDetails).toHaveBeenCalledWith(
-      expect.objectContaining({
-        groupId: 'entropy:wallet/0',
-        source: AddressListViewedSource.ONBOARDING_CHECKLIST,
-      }),
-    );
-    expect(mockNavigateWithDetails).toHaveBeenCalledWith(
-      mockNavigation,
-      expect.anything(),
-    );
+    expect(mockNavigateToReceiveAddressList).toHaveBeenCalledWith({
+      navigation: mockNavigation,
+      groupId: 'entropy:wallet/0',
+      source: AddressListViewedSource.ONBOARDING_CHECKLIST,
+      caller: 'WalletHomeOnboardingSteps::onReceive',
+    });
   });
 
-  it('logs and skips navigation when no account group is selected', () => {
-    mockSelectedAccountGroupId = undefined;
+  it('does not track when navigation was skipped', () => {
+    mockNavigateToReceiveAddressList.mockReturnValue(false);
     const { result } = renderHook(() =>
       useWalletHomeOnboardingChecklistReceivePress(),
     );
 
     result.current();
 
-    expect(Logger.error).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).not.toHaveBeenCalled();
-    expect(mockNavigateWithDetails).not.toHaveBeenCalled();
   });
 });

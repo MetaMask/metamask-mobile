@@ -13,10 +13,8 @@ import {
 import type { IMetaMetricsEvent } from '../../../util/analytics/analytics.types';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
-import Logger from '../../../util/Logger';
-import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { navigateToReceiveAddressList } from '../../Views/MultichainAccounts/AddressList/navigateToReceiveAddressList';
 
 /**
  * Opens the receiving address list from the wallet home onboarding fund step
@@ -33,12 +31,13 @@ export function useWalletHomeOnboardingChecklistReceivePress(): () => void {
   const analytics = useAnalytics();
 
   return useCallback(() => {
-    if (!selectedAccountGroupId) {
-      Logger.error(
-        new Error(
-          'WalletHomeOnboardingSteps::onReceive - Missing selectedAccountGroupId',
-        ),
-      );
+    const didNavigate = navigateToReceiveAddressList({
+      navigation,
+      groupId: selectedAccountGroupId,
+      source: AddressListViewedSource.ONBOARDING_CHECKLIST,
+      caller: 'WalletHomeOnboardingSteps::onReceive',
+    });
+    if (!didNavigate) {
       return;
     }
 
@@ -53,15 +52,6 @@ export function useWalletHomeOnboardingChecklistReceivePress(): () => void {
         button_label: strings('asset_overview.receive_button'),
         location: ActionLocation.ONBOARDING_CHECKLIST,
       },
-    );
-
-    navigateWithDetails(
-      navigation,
-      createAddressListNavigationDetails({
-        groupId: selectedAccountGroupId,
-        title: strings('multichain_accounts.address_list.receiving_address'),
-        source: AddressListViewedSource.ONBOARDING_CHECKLIST,
-      }),
     );
   }, [analytics, navigation, selectedAccountGroupId]);
 }

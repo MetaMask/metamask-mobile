@@ -1,4 +1,3 @@
-import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -202,10 +201,9 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { navigateToReceiveAddressList } from '../../Views/MultichainAccounts/AddressList/navigateToReceiveAddressList';
 import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
-import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
@@ -492,22 +490,12 @@ const Wallet = ({
 
   /** Navigation-only receive for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
   const onReceiveWithoutTracking = useCallback(() => {
-    if (selectedAccountGroupId) {
-      navigateWithDetails(
-        appNavigation,
-        createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-          source: AddressListViewedSource.RECEIVE_BUTTON,
-        }),
-      );
-    } else {
-      Logger.error(
-        new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
-      );
-    }
+    navigateToReceiveAddressList({
+      navigation: appNavigation,
+      groupId: selectedAccountGroupId,
+      source: AddressListViewedSource.RECEIVE_BUTTON,
+      caller: 'Wallet::onReceive',
+    });
   }, [appNavigation, selectedAccountGroupId]);
 
   const onReceive = useCallback(() => {

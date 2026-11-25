@@ -1079,45 +1079,43 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(queryByTestId(receiveTestId)).toBeNull();
     });
 
-    it('tracks exposure when the fund step is visible with the balance resolved', () => {
-      renderFundStep();
+    it.each([
+      {
+        scenario: 'the fund step is visible with the balance resolved',
+        isFocused: true,
+        renderOptions: {},
+        expectedTrackExposure: true,
+      },
+      {
+        scenario: 'the balance is loading',
+        isFocused: true,
+        renderOptions: { isAwaitingBalance: true },
+        expectedTrackExposure: false,
+      },
+      {
+        scenario: 'a later checklist step is shown',
+        isFocused: true,
+        renderOptions: { stepIndex: 1 },
+        expectedTrackExposure: false,
+      },
+      {
+        scenario: 'the screen is not focused',
+        isFocused: false,
+        renderOptions: {},
+        expectedTrackExposure: false,
+      },
+    ])(
+      'sets trackExposure to $expectedTrackExposure when $scenario',
+      ({ isFocused, renderOptions, expectedTrackExposure }) => {
+        mockUseIsFocused.mockReturnValue(isFocused);
+        renderFundStep(renderOptions);
 
-      expect(mockUseABTest).toHaveBeenLastCalledWith(
-        FUND_STEP_RECEIVE_AB_KEY,
-        FUND_STEP_RECEIVE_VARIANTS,
-        expect.objectContaining({ trackExposure: true }),
-      );
-    });
-
-    it('does not track exposure while the balance is loading', () => {
-      renderFundStep({ isAwaitingBalance: true });
-
-      expect(mockUseABTest).toHaveBeenLastCalledWith(
-        FUND_STEP_RECEIVE_AB_KEY,
-        FUND_STEP_RECEIVE_VARIANTS,
-        expect.objectContaining({ trackExposure: false }),
-      );
-    });
-
-    it('does not track exposure on a later checklist step', () => {
-      renderFundStep({ stepIndex: 1 });
-
-      expect(mockUseABTest).toHaveBeenLastCalledWith(
-        FUND_STEP_RECEIVE_AB_KEY,
-        FUND_STEP_RECEIVE_VARIANTS,
-        expect.objectContaining({ trackExposure: false }),
-      );
-    });
-
-    it('does not track exposure when the screen is not focused', () => {
-      mockUseIsFocused.mockReturnValue(false);
-      renderFundStep();
-
-      expect(mockUseABTest).toHaveBeenLastCalledWith(
-        FUND_STEP_RECEIVE_AB_KEY,
-        FUND_STEP_RECEIVE_VARIANTS,
-        expect.objectContaining({ trackExposure: false }),
-      );
-    });
+        expect(mockUseABTest).toHaveBeenLastCalledWith(
+          FUND_STEP_RECEIVE_AB_KEY,
+          FUND_STEP_RECEIVE_VARIANTS,
+          expect.objectContaining({ trackExposure: expectedTrackExposure }),
+        );
+      },
+    );
   });
 });

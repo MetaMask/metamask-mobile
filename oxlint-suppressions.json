@@ -18558,7 +18558,7 @@
       "count": 4
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 2
+      "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 3
