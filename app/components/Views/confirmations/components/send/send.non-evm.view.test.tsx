@@ -18,8 +18,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   getRecipientRowTestId,
   getSelectedRecipientTestId,
-  RedesignedSendViewSelectorsIDs,
-} from './RedesignedSendView.testIds';
+  SendViewSelectorsIDs,
+} from './SendView.testIds';
 import { Send } from './send';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import {
@@ -156,19 +156,13 @@ describeForPlatforms('Send (Non-EVM)', () => {
       { screen: Routes.SEND.AMOUNT, params: { asset: tronAsset } },
     );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
-    fireEvent.press(
-      getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
-    );
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
     fireEvent.press(getByRole('button', { name: 'Continue' }));
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const recipientItem = await findByTestId(
@@ -215,9 +209,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
     );
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const evmContactRow = queryByTestId(
@@ -249,9 +241,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
     );
 
     expect(
-      await findByTestId(
-        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      ),
+      await findByTestId(SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
     ).toBeOnTheScreen();
 
     const evmContactRow = queryByTestId(
@@ -274,9 +264,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
       { screen: Routes.SEND.AMOUNT, params: { asset: SOLANA_NATIVE_ASSET } },
     );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
     // Title and/or other copy may repeat "Send" — mirror E2E "text displayed" checks
     expect(screen.getAllByText('Send').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('SOL').length).toBeGreaterThanOrEqual(1);
@@ -301,9 +289,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -314,14 +300,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, VALID_SOLANA_RECIPIENT);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
@@ -360,9 +346,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance.
     // Non-EVM validation is deferred until the first Continue press.
@@ -402,9 +386,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -415,14 +397,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, VALID_BTC_RECIPIENT);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
@@ -459,9 +441,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -472,14 +452,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );
@@ -572,12 +552,10 @@ describeForPlatforms('Send (Non-EVM)', () => {
     await waitFor(() => expect(continueButton).toBeEnabled());
     fireEvent.press(continueButton);
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-    );
+    const reviewButton = await findByTestId(SendViewSelectorsIDs.REVIEW_BUTTON);
     await waitFor(() => expect(reviewButton).toBeEnabled());
     fireEvent.press(reviewButton);
 
@@ -610,9 +588,7 @@ describeForPlatforms('Send (Non-EVM)', () => {
         },
       );
 
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByText('5'));
 
@@ -623,14 +599,14 @@ describeForPlatforms('Send (Non-EVM)', () => {
     fireEvent.press(continueButton);
 
     const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      SendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
       {},
       { timeout: 5000 },
     );
     fireEvent.changeText(recipientInput, recipientAddresses[0]);
 
     const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+      SendViewSelectorsIDs.REVIEW_BUTTON,
       {},
       { timeout: 5000 },
     );

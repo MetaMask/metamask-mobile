@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../providers/venueKeys';
 import { useMemo } from 'react';
 import {
   type PerpsMarketData,
@@ -53,7 +54,10 @@ export const usePerpsTopMovers = ({
   // All symbols share a single allMids WebSocket subscription; no extra
   // subscriptions are created here.
   const symbols = useMemo(
-    () => (enabled ? markets.map((m) => m.symbol) : []),
+    () =>
+      enabled
+        ? markets.map((m) => buildVenueSymbolKey(m.symbol, m.providerId))
+        : [],
     [enabled, markets],
   );
   const livePrices = usePerpsLivePrices({
@@ -70,7 +74,8 @@ export const usePerpsTopMovers = ({
     // Produces a shallow copy only when live data is available, otherwise
     // returns the original object to preserve referential stability.
     const merged = markets.map((market) => {
-      const livePrice = livePrices[market.symbol];
+      const livePrice =
+        livePrices[buildVenueSymbolKey(market.symbol, market.providerId)];
       if (!livePrice?.percentChange24h) {
         return market;
       }
@@ -80,9 +85,14 @@ export const usePerpsTopMovers = ({
         return market;
       }
 
+      // sortMarkets ranks on numericValues, so the live change must land there too.
       return {
         ...market,
         change24hPercent: formatPercentage(changePercent),
+        numericValues: {
+          ...market.numericValues,
+          change24hPercent: changePercent,
+        },
       };
     });
 

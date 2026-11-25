@@ -41,10 +41,16 @@ export const assetChainScope = (
 /**
  * Whether the open-position route serves this chain. The API answers 400 for
  * every other chain, so the caller skips the request instead of sending it.
- * Mirrors the server's six-chain registry via `FEED_CAIP2_CHAINS`.
+ *
+ * @param scope - CAIP-2 chain of the asset on screen.
+ * @param servedChains - The chains the server reports as supported. Defaults to
+ * the built-in six-chain list (`FEED_CAIP2_CHAINS`), the fallback used while
+ * the fetched list is loading or unavailable.
  */
-export const isOpenPositionChain = (scope: CaipChainId | undefined): boolean =>
-  scope !== undefined && FEED_CAIP2_CHAINS.includes(scope);
+export const isOpenPositionChain = (
+  scope: CaipChainId | undefined,
+  servedChains: readonly CaipChainId[] = FEED_CAIP2_CHAINS,
+): boolean => scope !== undefined && servedChains.includes(scope);
 
 /**
  * Wallet address to ask the open-position route about, for one asset.

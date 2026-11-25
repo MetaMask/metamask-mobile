@@ -2,10 +2,9 @@ import { ApprovalType } from '@metamask/controller-utils';
 import enContent from '../../../../locales/languages/en.json';
 
 export const ConfirmationTopSheetSelectorsIDs = {
-  SECURITY_ALERT_BANNER: 'security-alert-banner',
   SECURITY_ALERT_RESPONSE_FAILED_BANNER:
     'security-alert-response-failed-banner',
-  SECURITY_ALERT_BANNER_REDESIGNED: 'security-alert-banner-0',
+  SECURITY_ALERT_BANNER: 'security-alert-banner-0',
 } as const;
 
 export const ConfirmationTopSheetSelectorsText = {
