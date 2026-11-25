@@ -240,6 +240,7 @@ describe('usePerpsProOrderEdit', () => {
       expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(
         order.orderId,
         field === 'price' ? { limitPrice: '170' } : { size: '2' },
+        order.providerId,
       );
       expect(mockEditOrder).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -281,11 +282,13 @@ describe('usePerpsProOrderEdit', () => {
         1,
         order.orderId,
         field === 'price' ? { limitPrice: '170' } : { size: '2' },
+        order.providerId,
       );
       expect(mockUpdateOrderOptimistic).toHaveBeenNthCalledWith(
         2,
         order.orderId,
         field === 'price' ? { limitPrice: order.price } : { size: '1' },
+        order.providerId,
       );
       expect(mockEditFailedToast).toHaveBeenCalled();
       expect(mockEditConfirmedToast).not.toHaveBeenCalled();
@@ -330,11 +333,13 @@ describe('usePerpsProOrderEdit', () => {
         1,
         order.orderId,
         field === 'price' ? { limitPrice: '170' } : { size: '2' },
+        order.providerId,
       );
       expect(mockUpdateOrderOptimistic).toHaveBeenNthCalledWith(
         2,
         order.orderId,
         field === 'price' ? { limitPrice: order.price } : { size: '1' },
+        order.providerId,
       );
       expect(mockEditFailedToast).toHaveBeenCalled();
       expect(mockEditConfirmedToast).not.toHaveBeenCalled();

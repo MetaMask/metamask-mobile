@@ -64,6 +64,7 @@ jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: jest.fn(() => ({
     removeQueries: mockRemoveQueries,
+    invalidateQueries: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -75,11 +76,15 @@ import {
   within,
 } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking, Platform, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import {
+  CARD_SETUP_CREATING_POLL_MS,
+  CARD_SETUP_PENDING_POLL_MS,
+} from './hooks/useCardSetupPendingRefresh';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -353,18 +358,47 @@ let mockProvisioningView:
   | 'hidden'
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
+let mockIsProvisioningPollActive = false;
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = null;
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
 let mockIsSignedOutKycPending = false;
 jest.mock('./hooks/useSignedOutKycPending', () => ({
   __esModule: true,
   default: () => mockIsSignedOutKycPending,
 }));
 
+const mockRefreshRegistrationStatus = jest.fn().mockResolvedValue(undefined);
+const mockUseCardSetupPendingRefresh = jest.fn((_options: unknown) => ({
+  refreshRegistrationStatus: mockRefreshRegistrationStatus,
+}));
+jest.mock('./hooks/useCardSetupPendingRefresh', () => {
+  const actual = jest.requireActual('./hooks/useCardSetupPendingRefresh');
+  const mockedHook = (options: unknown) =>
+    mockUseCardSetupPendingRefresh(options);
+  return {
+    ...actual,
+    __esModule: true,
+    default: mockedHook,
+    useCardSetupPendingRefresh: mockedHook,
+  };
+});
+
+const mockRecheckProvisioning = jest.fn();
 jest.mock('./hooks/useCardEnableCard', () => ({
   useCardEnableCard: jest.fn(() => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
     isEnableCardPending: mockIsEnableCardPending,
+    isProvisioningPollActive: mockIsProvisioningPollActive,
+    recheck: mockRecheckProvisioning,
   })),
 }));
 
@@ -372,7 +406,6 @@ jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => false,
 }));
 
-const mockRecheckProvisioning = jest.fn();
 const mockUseCardRecentTransactions = jest.fn(
   (_options?: { enabled?: boolean }) => ({
     transactions: [],
@@ -598,7 +631,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.0.0'),
-  // Read by useLiquidGlass inside the action row's MainActionButtonGlass.
   getTotalMemorySync: jest.fn(() => 8 * 1024 * 1024 * 1024),
 }));
 
@@ -650,13 +682,6 @@ jest.mock('../../util/getHighestFiatToken', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
   isSolanaChainId: jest.fn(),
-}));
-
-// Mock authentication error utility
-const mockIsAuthenticationError = jest.fn();
-jest.mock('../../util/isAuthenticationError', () => ({
-  isAuthenticationError: (...args: unknown[]) =>
-    mockIsAuthenticationError(...args),
 }));
 
 // Mock card token vault
@@ -1460,6 +1485,8 @@ describe('CardHome Component', () => {
     mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
+    mockIsProvisioningPollActive = false;
+    mockNetworkTier = null;
     mockEnableCard.mockClear();
     mockUseCardRecentTransactions.mockReturnValue({
       transactions: [],
@@ -1468,6 +1495,7 @@ describe('CardHome Component', () => {
       refetch: jest.fn(),
     });
     mockTransactionHistoryDestination = 'card';
+    mockRecheckProvisioning.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -1486,9 +1514,6 @@ describe('CardHome Component', () => {
     mockLogoutFromProvider.mockClear();
     mockSetIsAuthenticated.mockClear();
 
-    // Clear authentication error handling mocks
-    mockIsAuthenticationError.mockClear();
-    mockIsAuthenticationError.mockReturnValue(false); // Default to no auth error
     mockRemoveCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockResolvedValue(undefined);
     mockClearAllCache.mockClear();
@@ -1639,7 +1664,11 @@ describe('CardHome Component', () => {
 
     expect(jest.mocked(useCardEnableCard)).toHaveBeenCalledWith(
       expect.anything(),
-      { recheckOnFocus: true },
+      {
+        recheckOnFocus: true,
+        kycReviewSelfCheck: true,
+        pollIntervalMs: 5_000,
+      },
     );
   });
 
@@ -4860,6 +4889,250 @@ describe('CardHome Component', () => {
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
         );
+      });
+    });
+
+    describe('Setup pending re-check cadence', () => {
+      // Server shape for A07/A08: alert, no card, no actions.
+      const setupPendingAlert = (
+        alertType: 'kyc_pending' | 'card_provisioning',
+      ) => {
+        setupMockSelectors({ isAuthenticated: true });
+        if (alertType === 'kyc_pending') {
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            warning: CardStateWarning.NoCard,
+            kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+            isLoading: false,
+          });
+          return;
+        }
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+      };
+
+      it('polls faster while the card is being created (A08)', () => {
+        mockProvisioningView = 'provisioning';
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            isAuthenticated: true,
+            pollIntervalMs: CARD_SETUP_CREATING_POLL_MS,
+            suspendSignedInPoll: false,
+          }),
+        );
+      });
+
+      it('does not poll while the network tier is offline', () => {
+        mockNetworkTier = 'NONE';
+        setupPendingAlert('kyc_pending');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            pollIntervalMs: null,
+          }),
+        );
+      });
+
+      it('uses the rare cadence on a slow cellular link while creating', () => {
+        mockNetworkTier = 'SLOW_CELLULAR';
+        mockProvisioningView = 'provisioning';
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            pollIntervalMs: CARD_SETUP_PENDING_POLL_MS,
+          }),
+        );
+      });
+
+      it('does not stack a second poll on Immersve’s provisioning interval', () => {
+        mockIsProvisioningPollActive = true;
+        mockProvisioningView = 'provisioning';
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            suspendSignedInPoll: true,
+          }),
+        );
+      });
+
+      it('polls the slow cadence while identity is in review (A07)', () => {
+        setupPendingAlert('kyc_pending');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            isAuthenticated: true,
+            pollIntervalMs: CARD_SETUP_PENDING_POLL_MS,
+          }),
+        );
+      });
+
+      it('polls the slow cadence while the Immersve review is up', () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'kyc_under_review';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupPendingAlert('card_provisioning');
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            isPending: true,
+            isAuthenticated: true,
+            pollIntervalMs: CARD_SETUP_PENDING_POLL_MS,
+          }),
+        );
+      });
+
+      it('leaves the refresh off for a ready card', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({ isAuthenticated: true });
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isPending: false }),
+        );
+      });
+
+      it('keeps the refresh off while an actionable step owns the screen (A06)', () => {
+        mockCanEnableCard = true;
+        mockProvisioningView = 'hidden';
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+
+        expect(mockUseCardSetupPendingRefresh).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isPending: false }),
+        );
+      });
+    });
+
+    describe('Waiting re-checks on pull to refresh', () => {
+      const pullToRefresh = async () => {
+        const refreshControl = screen.UNSAFE_getByType(RefreshControl);
+        await act(async () => {
+          await refreshControl.props.onRefresh();
+        });
+      };
+
+      it('re-checks a card that is still being created', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'provisioning';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        await pullToRefresh();
+
+        expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
+      it('re-checks the Immersve review and the data when signed in', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'kyc_under_review';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        await pullToRefresh();
+
+        // Both things the review waits on: the provisioning reconcile and
+        // fresh card home data.
+        expect(mockRecheckProvisioning).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
+      it('does not re-check the reconcile while it is reconciling', async () => {
+        mockCanEnableCard = false;
+        mockProvisioningView = 'reconciling';
+        setupMockSelectors({
+          isAuthenticated: true,
+          activeProviderId: 'immersve',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          warning: CardStateWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          hasExternalWallets: true,
+        });
+
+        render();
+        await pullToRefresh();
+
+        // The check is already in flight; only the data refresh runs.
+        expect(mockRecheckProvisioning).not.toHaveBeenCalled();
+        expect(mockRefetchAllData).toHaveBeenCalled();
+      });
+
+      it('re-checks registration status instead of card data when signed out and pending', async () => {
+        mockIsSignedOutKycPending = true;
+        setupMockSelectors({ isAuthenticated: false });
+
+        render();
+        await pullToRefresh();
+
+        expect(mockRefreshRegistrationStatus).toHaveBeenCalledTimes(1);
+        expect(mockRefetchAllData).not.toHaveBeenCalled();
+      });
+
+      it('keeps refreshing card data for a ready card', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({ isAuthenticated: true });
+
+        render();
+        await pullToRefresh();
+
+        expect(mockRefetchAllData).toHaveBeenCalled();
+        expect(mockRecheckProvisioning).not.toHaveBeenCalled();
+        expect(mockRefreshRegistrationStatus).not.toHaveBeenCalled();
       });
     });
 

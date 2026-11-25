@@ -259,7 +259,7 @@ describe('SocialLivePricesProvider', () => {
     );
     const { callback } = mockSubscribeToSymbols.mock.calls[0][0];
     act(() => {
-      callback({ BTC: { price: '100000', markPrice: '100010' } });
+      callback({ BTC: { price: '100000', oraclePrice: '100010' } });
     });
 
     expect(context?.store.get('perp:BTC')?.price).toBe(100010);
@@ -272,7 +272,7 @@ describe('SocialLivePricesProvider', () => {
 
     act(() => {
       callback({
-        SOL: { price: '86.58', markPrice: '25.999', isTradable: false },
+        SOL: { price: '86.58', oraclePrice: '25.999', isTradable: false },
       });
     });
 

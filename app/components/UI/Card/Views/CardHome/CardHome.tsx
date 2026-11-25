@@ -105,6 +105,16 @@ import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import useSignedOutKycPending from './hooks/useSignedOutKycPending';
+import {
+  SETUP_ALERT_TYPES,
+  resolveCardHomeWaitingState,
+  type CardHomeWaitingState,
+} from './hooks/CardHomeWaitingState';
+import useCardSetupPendingRefresh, {
+  deriveCardHomeSetupPollIntervalMs,
+} from './hooks/useCardSetupPendingRefresh';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -129,6 +139,7 @@ import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
 import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import { deriveMoneyCardSetupPollIntervalMs } from '../../../Money/utils/moneyMetaMaskCardMode';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
@@ -152,12 +163,6 @@ interface CardHomeRouteParams {
   /** Opened from the KYC timeout or pending notification while still in review. */
   fromKycPending?: boolean;
 }
-
-const SETUP_ALERT_TYPES = new Set([
-  'kyc_pending',
-  'card_provisioning',
-  'allowance_revoked',
-]);
 
 /** MMDS Button Lg height (h-12) and the CardHome px-4 gutter. */
 const ADD_TO_WALLET_HEIGHT = 48;
@@ -305,8 +310,26 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data, { recheckOnFocus: true });
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const {
+    canEnableCard,
+    enableCard,
+    provisioningView,
+    isEnableCardPending,
+    isProvisioningPollActive,
+    recheck: recheckProvisioning,
+  } = useCardEnableCard(data, {
+    recheckOnFocus: true,
+    // The waiting view re-checks a manual review on its own. The provisioning
+    // poll follows the same network cadence as Money home: off when offline,
+    // 15s on slow cellular, and 5s otherwise.
+    kycReviewSelfCheck: true,
+    pollIntervalMs: deriveMoneyCardSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+    ),
+  });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -339,6 +362,49 @@ const CardHome = () => {
   const hasSetupActions = effectiveActions.some(
     (a) => a.type === 'enable_card',
   );
+
+  // One derived waiting state for everything the card home is still waiting
+  // on (A07 / A08 / A09 and the Immersve review and reconcile checks). It
+  // drives the re-check cadence below and keeps the re-check logic in one
+  // place; the screen keeps main's existing layout and copy for each state.
+  const waitingState = useMemo<CardHomeWaitingState>(
+    () =>
+      resolveCardHomeWaitingState({
+        isLoading,
+        isUkMigrationForced,
+        isAuthenticated,
+        isSignedOutKycPending,
+        hasDashboardActions: effectiveActions.length > 0,
+        alerts,
+        provisioningView,
+      }),
+    [
+      isLoading,
+      isUkMigrationForced,
+      isAuthenticated,
+      isSignedOutKycPending,
+      effectiveActions,
+      alerts,
+      provisioningView,
+    ],
+  );
+
+  // Re-checks while a pending state is up, so it moves on by itself.
+  // Offline: no fetch. Slow cellular: the rare 15s cadence. A fast or
+  // unknown network keeps 3s while the card is being created and 15s in
+  // review. Immersve's own 5s poll already covers the creating state, so
+  // this interval stays off while that one is running.
+  const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
+    isPending: waitingState.kind === 'waiting',
+    isAuthenticated,
+    isFocused,
+    pollIntervalMs: deriveCardHomeSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+      waitingState.kind === 'waiting' && waitingState.step === 'creating-card',
+    ),
+    suspendSignedInPoll: isProvisioningPollActive,
+  });
 
   // --- Money Account linkage ---
   const {
@@ -393,6 +459,22 @@ const CardHome = () => {
     setIsRefreshing(true);
     refreshUkMigrationState();
     try {
+      if (waitingState.kind === 'waiting') {
+        // Re-check the thing being waited on: the Immersve reconcile for an
+        // under-review status or a card still being created, and the
+        // onboarding registration status when signed out. Everything else
+        // waits on card home data itself.
+        if (
+          waitingState.step === 'immersve-review' ||
+          waitingState.step === 'creating-card'
+        ) {
+          recheckProvisioning();
+        }
+        if (!isAuthenticated) {
+          await refreshRegistrationStatus();
+          return;
+        }
+      }
       // Activity rows live in their own query. Invalidating only refetches
       // the list while that segment is on screen.
       await Promise.all([
@@ -404,7 +486,15 @@ const CardHome = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch, refreshUkMigrationState, queryClient]);
+  }, [
+    refetch,
+    refreshUkMigrationState,
+    refreshRegistrationStatus,
+    recheckProvisioning,
+    waitingState,
+    isAuthenticated,
+    queryClient,
+  ]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(

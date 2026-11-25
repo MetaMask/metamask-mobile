@@ -41,6 +41,7 @@ describe('traderProfileResponseToMySocialProfile', () => {
       imageUrl: 'https://example.com/a.png',
       rankingTag: 'dolphin',
       xHandle: 'alpha',
+      verified: false,
       followerCount: 12,
       followingCount: 3,
       winRatePercent: 50,
@@ -111,6 +112,14 @@ describe('traderProfileResponseToMySocialProfile', () => {
       expect(result.shareTradingActivity).toBe(expected);
     },
   );
+
+  it('carries the verified flag social-api sends on the profile', () => {
+    const profile = { ...live.profile, verified: true };
+
+    const result = traderProfileResponseToMySocialProfile({ ...live, profile });
+
+    expect(result.verified).toBe(true);
+  });
 
   it('leaves the bio empty when social-api sends an empty one', () => {
     const profile = { ...live.profile, bio: '' };

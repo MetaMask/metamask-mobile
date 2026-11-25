@@ -9,6 +9,7 @@ import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLe
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type { SocialV1FeedAuthor } from '../../../../components/UI/SocialFeed/types';
 import { toWholePercent } from '../../../../components/UI/SocialFeed/utils/feedCardStats';
+import { isProfileVerified } from '../../../../components/UI/SocialFeed/utils/profileVerified';
 import { buildTraderProfileQueryKey } from '../../../../util/social/traderProfileQueries';
 import { resolvePositionAuthorProfileId } from '../../../../util/social/positionOwnership';
 
@@ -49,6 +50,7 @@ const toSocialPositionAuthor = (
     pnl30d: stats.pnl30d,
     tradeCount30d: stats.tradeCount30d,
     followerCount,
+    verified: isProfileVerified(profile),
   };
 };
 

@@ -6,3 +6,7 @@ export const getPopularTraderCardFollowTestId = (traderId: string): string =>
 
 export const getPopularTraderCardAvatarTestId = (traderId: string): string =>
   `popular-trader-card-avatar-${traderId}`;
+
+export const getPopularTraderCardVerifiedBadgeTestId = (
+  traderId: string,
+): string => `popular-trader-card-verified-${traderId}`;

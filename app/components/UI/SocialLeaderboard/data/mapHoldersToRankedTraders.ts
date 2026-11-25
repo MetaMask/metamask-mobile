@@ -6,6 +6,7 @@ import {
   formatPercent,
   formatSignedAbbreviatedUsd,
 } from '../../SocialFeed/utils/formatters';
+import { isProfileVerified } from '../../SocialFeed/utils/profileVerified';
 import type { RankedTrader } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
@@ -92,6 +93,7 @@ export const mapHoldersToRankedTraders = (
       pnlPerChain: {},
       followerCount: actor.followerCount ?? 0,
       isFollowing: isFollowing(actor.profileId),
+      verified: isProfileVerified(actor),
       displayMetric: {
         label: formatAbbreviatedUsd(holder.positionValueUSD),
         isPositive: true,

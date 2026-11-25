@@ -105,7 +105,7 @@ export const getPerpsConversionScreenOptions = (
       }
     : baseOptions;
 
-export function getRedesignedConfirmationsHeaderOptions(
+export function getConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
   screenBackgroundColor?: string,
 ): NativeStackNavigationOptions {
@@ -410,7 +410,7 @@ const PerpsModalStack = () => {
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
             component={PerpsConfirmScreen}
             options={({ route }) =>
-              getRedesignedConfirmationsHeaderOptions(
+              getConfirmationsHeaderOptions(
                 route.params as PerpsNavigationParamList['RedesignedConfirmations'],
                 colors.background.default,
               )
@@ -693,7 +693,7 @@ const PerpsScreenStack = () => {
                 name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
                 component={PerpsConfirmScreen}
                 options={({ route }) =>
-                  getRedesignedConfirmationsHeaderOptions(
+                  getConfirmationsHeaderOptions(
                     route.params,
                     colors.background.default,
                   )
