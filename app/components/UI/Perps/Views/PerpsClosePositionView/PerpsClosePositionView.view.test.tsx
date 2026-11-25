@@ -779,10 +779,11 @@ describe('PerpsClosePositionView', () => {
   it('keeps Close disabled when the fee quote rejects, instead of closing without a fee', async () => {
     // A rejected quote leaves the fee unknown. Core close tracking takes a
     // numeric fee, so the close waits for a quote (a fresh input re-fetches)
-    // rather than submitting with a fabricated 0.
-    (Engine.context.PerpsController.calculateFees as jest.Mock)
-      .mockRejectedValueOnce(new Error('quote failed'))
-      .mockRejectedValue(new Error('quote failed'));
+    // rather than submitting with a fabricated 0. The previous test is the
+    // control: the same setup with a quote enables Close.
+    const calculateFees = Engine.context.PerpsController
+      .calculateFees as jest.Mock;
+    calculateFees.mockRejectedValue(new Error('quote failed'));
     const closePosition = Engine.context.PerpsController
       .closePosition as jest.Mock;
     const position = createLongPositionForViews();
@@ -797,15 +798,20 @@ describe('PerpsClosePositionView', () => {
     });
     emitEthPrice(stream, '2500');
 
-    const confirmButton = await screen.findByTestId(
-      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
-    );
-
+    // Wait for the quote to be requested, then let its rejection settle, so
+    // the assertion sees the post-rejection state rather than the loading one.
     await waitFor(() => {
-      expect(confirmButton).toBeDisabled();
+      expect(calculateFees).toHaveBeenCalled();
     });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Re-query: the held node from before the rejection may have detached.
+    const confirmButton = screen.getByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+    expect(confirmButton).toBeDisabled();
 
     await act(async () => {
       fireEvent.press(confirmButton);

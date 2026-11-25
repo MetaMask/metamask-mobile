@@ -327,4 +327,48 @@ describe('usePerpsLiquidationPrice', () => {
       jest.useRealTimers();
     }
   });
+
+  it('drops a late response for inputs that have since changed', async () => {
+    let resolveStale: (price: string) => void = () => undefined;
+    mockCalculateLiquidationPrice
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            resolveStale = resolve;
+          }),
+      )
+      .mockResolvedValueOnce('46000.00');
+
+    const { result, rerender } = renderHook(
+      (props) => usePerpsLiquidationPrice(props),
+      {
+        initialProps: {
+          entryPrice: 50000,
+          leverage: 10,
+          direction: 'long' as const,
+          asset: 'BTC',
+        },
+      },
+    );
+    await waitFor(() => {
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(1);
+    });
+
+    rerender({
+      entryPrice: 51000,
+      leverage: 10,
+      direction: 'long' as const,
+      asset: 'BTC',
+    });
+    await waitFor(() => {
+      expect(result.current.liquidationPrice).toBe('46000.00');
+    });
+
+    // The first request settles after the newer one; it must not overwrite it.
+    await act(async () => {
+      resolveStale('45000.00');
+    });
+
+    expect(result.current.liquidationPrice).toBe('46000.00');
+  });
 });

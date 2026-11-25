@@ -56,6 +56,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   const {
     position,
     livePosition,
+    positionProviderId,
     isLong,
     currentPrice,
     szDecimals,
@@ -117,6 +118,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     limitPrice,
     setLimitPrice,
     isClosingPosition: true,
+    providerId: positionProviderId,
     testIDs: LIMIT_PRESET_TEST_IDS,
   });
 

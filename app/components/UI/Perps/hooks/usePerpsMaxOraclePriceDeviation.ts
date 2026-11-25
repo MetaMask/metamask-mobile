@@ -1,5 +1,6 @@
 import { usePerpsProvider } from './usePerpsProvider';
 import type { PerpsProviderType } from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * The venue's limit-price deviation band for one market: the furthest a limit
@@ -12,17 +13,28 @@ import type { PerpsProviderType } from '@metamask/perps-controller';
  *
  * @param symbol - Market to read the limit for; `undefined` while no market is
  * selected, which also yields `undefined`.
+ * @param providerId - Venue the order or position belongs to. Without it the
+ * active provider is used; in aggregated mode that is unknown, so no band is
+ * returned rather than the default venue's.
  * @returns The band fraction, or `undefined` when the venue omits it, the
- * capabilities are still loading, or the market is unavailable.
+ * capabilities are still loading, the market is unavailable, or the venue is
+ * unknown.
  */
 export function usePerpsMaxOraclePriceDeviation(
   symbol: string | undefined,
   providerId?: PerpsProviderType,
 ): number | undefined {
-  const { orderCapabilities } = usePerpsProvider(
+  const { activeProvider, orderCapabilities } = usePerpsProvider(
     symbol ? { symbol, providerId } : undefined,
   );
-  return orderCapabilities?.status === 'ready'
+  const expectedProviderId =
+    providerId ??
+    (activeProvider === PROVIDER_CONFIG.AggregatedProvider
+      ? undefined
+      : activeProvider);
+  return orderCapabilities?.status === 'ready' &&
+    expectedProviderId !== undefined &&
+    orderCapabilities.providerId === expectedProviderId
     ? orderCapabilities.orderLimits?.maxOraclePriceDeviation
     : undefined;
 }

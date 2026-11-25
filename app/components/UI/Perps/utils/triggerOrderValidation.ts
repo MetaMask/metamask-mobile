@@ -26,7 +26,13 @@ export type TriggerPriceValidationIssue =
 export type LimitPriceValidationIssue =
   | { code: 'required' }
   | { code: 'positive' }
-  | { code: 'too_far'; min: string; max: string };
+  | {
+      code: 'too_far';
+      min: string;
+      max: string;
+      /** The venue's band as a fraction (0.95 = 95%). */
+      maxOraclePriceDeviation: number;
+    };
 
 export type OrderFormFieldIssue =
   | {
@@ -187,6 +193,18 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
+ * The band rule with the venue's own percentage (0.95 -> "95%").
+ *
+ * @param maxOraclePriceDeviation - The venue's band for this market.
+ * @returns User-facing constraint sentence.
+ */
+const getLimitPriceTooFarConstraint = (maxOraclePriceDeviation: number) =>
+  strings('perps.order.limit_price_modal.limit_price_too_far', {
+    // toFixed trims float noise such as 0.07 * 100 = 7.000000000000001.
+    percent: Number((maxOraclePriceDeviation * 100).toFixed(2)),
+  });
+
+/**
  * Localized band error, including the live acceptable range when the reference
  * price is usable.
  *
@@ -198,13 +216,8 @@ export const getLimitPriceTooFarMessage = (
   referencePrice: number,
   maxOraclePriceDeviation: number,
 ): string => {
-  const constraint = strings(
-    'perps.order.limit_price_modal.limit_price_too_far',
-  );
-  const band = getPriceDeviationBand(
-    referencePrice,
-    maxOraclePriceDeviation,
-  );
+  const constraint = getLimitPriceTooFarConstraint(maxOraclePriceDeviation);
+  const band = getPriceDeviationBand(referencePrice, maxOraclePriceDeviation);
   if (!band) {
     return constraint;
   }
@@ -262,15 +275,13 @@ export const getLimitPriceValidationIssue = ({
       maxOraclePriceDeviation,
     )
   ) {
-    const band = getPriceDeviationBand(
-      referencePrice,
-      maxOraclePriceDeviation,
-    );
+    const band = getPriceDeviationBand(referencePrice, maxOraclePriceDeviation);
     if (band) {
       return {
         code: 'too_far',
         min: formatPerpsFiat(band.min, { ranges: PRICE_RANGES_UNIVERSAL }),
         max: formatPerpsFiat(band.max, { ranges: PRICE_RANGES_UNIVERSAL }),
+        maxOraclePriceDeviation,
       };
     }
   }
@@ -381,8 +392,8 @@ export const getLimitPriceValidationMessage = (
   if (issue.code === 'positive') {
     return strings('perps.errors.orderValidation.pricePositive');
   }
-  const constraint = strings(
-    'perps.order.limit_price_modal.limit_price_too_far',
+  const constraint = getLimitPriceTooFarConstraint(
+    issue.maxOraclePriceDeviation,
   );
   const range = strings(
     'perps.order.limit_price_modal.limit_price_too_far_range',

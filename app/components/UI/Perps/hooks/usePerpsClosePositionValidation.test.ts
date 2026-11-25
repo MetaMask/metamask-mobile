@@ -277,7 +277,29 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(50000, 0.95));
+    expect(result.current.errors).toContain(
+      getLimitPriceTooFarMessage(50000, 0.95),
+    );
+  });
+
+  it("reads the band from the position's venue", async () => {
+    mockValidateClosePosition.mockResolvedValue({ isValid: true });
+
+    const { result } = renderHook(() =>
+      usePerpsClosePositionValidation({
+        ...defaultParams,
+        providerId: 'lighter',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+    });
+
+    expect(usePerpsMaxOraclePriceDeviation).toHaveBeenCalledWith(
+      'BTC',
+      'lighter',
+    );
   });
 
   it('skips the band when the venue reports no deviation limit', async () => {
@@ -322,7 +344,9 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(50000, 0.95));
+    expect(result.current.errors).toContain(
+      getLimitPriceTooFarMessage(50000, 0.95),
+    );
   });
 
   it('uses the reference (mark) price, not the mid currentPrice, for the band', async () => {
@@ -348,7 +372,9 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(50000, 0.95));
+    expect(result.current.errors).toContain(
+      getLimitPriceTooFarMessage(50000, 0.95),
+    );
   });
 
   it('re-evaluates the price band when the market moves after the limit price is set', async () => {
@@ -382,7 +408,9 @@ describe('usePerpsClosePositionValidation', () => {
     rerender({ ...baseParams, currentPrice: 2000, referencePrice: 2000 });
 
     await waitFor(() => {
-      expect(result.current.errors).toContain(getLimitPriceTooFarMessage(2000, 0.95));
+      expect(result.current.errors).toContain(
+        getLimitPriceTooFarMessage(2000, 0.95),
+      );
     });
     expect(result.current.isValid).toBe(false);
   });
@@ -410,7 +438,9 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(1000, 0.95));
+    expect(result.current.errors).toContain(
+      getLimitPriceTooFarMessage(1000, 0.95),
+    );
   });
 
   it('should return error for market order with 0% close', async () => {

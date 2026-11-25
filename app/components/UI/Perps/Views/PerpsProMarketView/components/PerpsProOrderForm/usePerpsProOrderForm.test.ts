@@ -8085,7 +8085,12 @@ describe('usePerpsProOrderForm', () => {
       mockValidation.fieldIssues = [
         {
           field: 'limitPrice',
-          issue: { code: 'too_far', min: '$150.00', max: '$5,850.00' },
+          issue: {
+            code: 'too_far',
+            min: '$150.00',
+            max: '$5,850.00',
+            maxOraclePriceDeviation: 0.95,
+          },
         },
       ];
 
@@ -8094,7 +8099,9 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.priceCardMessage).toEqual({
         severity: 'error',
         message:
-          strings('perps.order.limit_price_modal.limit_price_too_far') +
+          strings('perps.order.limit_price_modal.limit_price_too_far', {
+            percent: 95,
+          }) +
           ' ' +
           strings('perps.order.limit_price_modal.limit_price_too_far_range', {
             min: '$150.00',

@@ -6,6 +6,7 @@ import {
   VALIDATION_THRESHOLDS,
   type ClosePositionParams,
   type OrdinaryOrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -13,6 +14,7 @@ import { usePerpsMaxOraclePriceDeviation } from './usePerpsMaxOraclePriceDeviati
 
 interface UsePerpsClosePositionValidationParams {
   symbol: string;
+  providerId?: PerpsProviderType; // Venue the position is on; its price band is the one checked
   closePercentage: number;
   closeAmount: string;
   orderType: OrdinaryOrderType;
@@ -105,6 +107,7 @@ export function usePerpsClosePositionValidation(
 ): ValidationResult {
   const {
     symbol,
+    providerId,
     closePercentage,
     closeAmount,
     orderType,
@@ -120,7 +123,10 @@ export function usePerpsClosePositionValidation(
   } = params;
   // Per venue and per market; undefined means the venue reports no band and
   // the check is skipped.
-  const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(symbol);
+  const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(
+    symbol,
+    providerId,
+  );
 
   const { validateClosePosition } = usePerpsTrading();
 
@@ -204,10 +210,10 @@ export function usePerpsClosePositionValidation(
 
       // Limit order specific validation
       if (orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0) {
-        // Reference (oracle/mark) price the venue's price band is evaluated
-        // against. Prefer the mark price; fall back to the mid/mark currentPrice
-        // when the reference is unavailable or not a finite positive number
-        // (?? would keep a NaN reference and silently skip the band check).
+        // The band is centred on the oracle price, then the mark price
+        // (`referencePrice`). Fall back to currentPrice when that is missing or
+        // not a finite positive number (?? would keep a NaN reference and
+        // silently skip the band check).
         const bandReferencePrice =
           referencePrice !== undefined &&
           Number.isFinite(referencePrice) &&

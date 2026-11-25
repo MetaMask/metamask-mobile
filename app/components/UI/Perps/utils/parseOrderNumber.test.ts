@@ -38,7 +38,7 @@ describe('parseOrderPrice', () => {
     expect(parseOrderPrice('2oops')).toBeUndefined();
   });
 
-  it('returns undefined for scientific notation prices above zero', () => {
+  it('parses scientific notation prices above zero', () => {
     expect(parseOrderPrice('1e3')).toBe(1000);
   });
 

@@ -77,6 +77,7 @@ const PerpsClosePositionView: React.FC = () => {
     receiveAmount,
     filteredErrors,
     isClosing,
+    positionProviderId,
   } = usePerpsClosePositionForm({
     confirmButtonTestID:
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -309,6 +310,7 @@ const PerpsClosePositionView: React.FC = () => {
         currentPrice={currentPrice}
         direction={isLong ? 'short' : 'long'} // Opposite direction for closing
         isClosingPosition
+        providerId={positionProviderId}
       />
 
       {/* Order Type Bottom Sheet - gated behind feature flag */}

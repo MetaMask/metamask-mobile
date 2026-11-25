@@ -16,6 +16,7 @@ import {
   type InputMethod,
   type MarginMode,
   type OrdinaryOrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import { ButtonSize } from '@metamask/design-system-react-native';
@@ -173,6 +174,8 @@ export function resetLastCloseOrderType(): void {
 export interface UsePerpsClosePositionFormResult {
   position: Position;
   livePosition: Position;
+  /** Venue the position is on, which the close is sent to. */
+  positionProviderId: PerpsProviderType;
   isLong: boolean;
   absSize: number;
   currentPrice: number;
@@ -624,12 +627,13 @@ export function usePerpsClosePositionForm(
   // Margin returned, PnL realized at the close price, fee and the cash the
   // close returns, from Core so every client shows the same amounts. Each is
   // undefined while an input it needs is missing.
+  const positionProviderId =
+    livePosition.providerId ?? resolveProviderId(activeProvider);
   const closeEstimate = useMemo(
     () =>
       estimateCloseReceive({
         position: livePosition,
-        providerId:
-          livePosition.providerId ?? resolveProviderId(activeProvider),
+        providerId: positionProviderId,
         // The size the order sends, rounded to the market's size decimals.
         closeSize: closeAmount,
         price: closePrice,
@@ -637,7 +641,7 @@ export function usePerpsClosePositionForm(
       }),
     [
       livePosition,
-      activeProvider,
+      positionProviderId,
       closeAmount,
       closePrice,
       feeResults.totalFeeRate,
@@ -657,6 +661,7 @@ export function usePerpsClosePositionForm(
   // Use the validation hook
   const validationResult = usePerpsClosePositionValidation({
     symbol: position.symbol,
+    providerId: positionProviderId,
     closePercentage,
     closeAmount: closeAmount.toString(),
     orderType: effectiveOrderType,
@@ -1142,6 +1147,7 @@ export function usePerpsClosePositionForm(
   return {
     position,
     livePosition,
+    positionProviderId,
     isLong,
     absSize,
     currentPrice,

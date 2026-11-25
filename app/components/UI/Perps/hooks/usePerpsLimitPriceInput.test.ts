@@ -228,6 +228,15 @@ describe('usePerpsLimitPriceInput', () => {
       expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000, 0.95));
     });
 
+    it("reads the band from the order's venue", () => {
+      renderLimitPriceInput({ providerId: 'lighter' });
+
+      expect(mockUsePerpsMaxOraclePriceDeviation).toHaveBeenCalledWith(
+        'BTC',
+        'lighter',
+      );
+    });
+
     it('skips the band when the venue reports no deviation limit', () => {
       mockUsePerpsMaxOraclePriceDeviation.mockReturnValue(undefined);
 
@@ -270,7 +279,9 @@ describe('usePerpsLimitPriceInput', () => {
       const { result } = renderLimitPriceInput({ limitPrice: '500' });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(20000, 0.95));
+      expect(result.current.error).toBe(
+        getLimitPriceTooFarMessage(20000, 0.95),
+      );
     });
 
     it('blocks an opening price outside the venue deviation band', () => {

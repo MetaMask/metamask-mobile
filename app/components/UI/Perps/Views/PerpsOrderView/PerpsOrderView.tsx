@@ -397,6 +397,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const copyTradeOrigin = route.params?.copyTradeOrigin;
   const activePerpsProvider = useSelector(selectPerpsProvider);
   const orderProvider = useSelector(selectPerpsOrderProvider);
+  // A route provider wins. Otherwise use the venue this order will go to, so
+  // the sheets, the order logic and the price band follow the position it
+  // will change.
+  const orderProviderId =
+    route.params?.providerId ?? orderProvider ?? undefined;
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -721,9 +726,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isLoading: isCurrentPositionLoading,
   } = useHasExistingPosition({
     asset: orderForm.asset || '',
-    // A route provider wins. Otherwise use the venue this order will go to,
-    // so the sheet and the order logic follow the position it will change.
-    providerId: route.params?.providerId ?? orderProvider ?? undefined,
+    providerId: orderProviderId,
     loadOnMount: true,
   });
 
@@ -1608,6 +1611,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
     maxLeverage: maxLeverage ?? undefined,
+    providerId: orderProviderId,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -3666,6 +3670,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           limitPrice={orderForm.limitPrice}
           currentPrice={marketPrice}
           direction={orderForm.direction}
+          providerId={orderProviderId}
         />
       )}
       {/* Order Type Bottom Sheet */}

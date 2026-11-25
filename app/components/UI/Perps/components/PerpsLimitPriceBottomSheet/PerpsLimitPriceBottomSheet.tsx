@@ -22,6 +22,7 @@ import {
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
@@ -49,6 +50,8 @@ interface PerpsLimitPriceBottomSheetProps {
   currentPrice?: number;
   direction?: 'long' | 'short';
   isClosingPosition?: boolean;
+  /** Venue the order or position belongs to; its price band is the one checked. */
+  providerId?: PerpsProviderType;
   /** When set (open-order price edit), enable incremental margin validation. */
   restingOrderSize?: string;
   /** Effective asset leverage for open-order margin validation. */
@@ -78,6 +81,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   currentPrice: passedCurrentPrice,
   direction = 'long',
   isClosingPosition = false,
+  providerId,
   restingOrderSize,
   leverage = PERPS_CONSTANTS.DefaultMaxLeverage,
   reduceOnly = false,
@@ -104,6 +108,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     limitPrice,
     setLimitPrice,
     isClosingPosition,
+    providerId,
     enabled: isVisible,
     testIDs: LIMIT_PRESET_TEST_IDS,
   });

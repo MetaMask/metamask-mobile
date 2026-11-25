@@ -13,9 +13,10 @@ import {
   getTriggerPriceValidationMessage,
 } from './triggerOrderValidation';
 import enTranslations from '../../../../../locales/languages/en.json';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: jest.fn((key: string) => key),
 }));
 
 const triggerDirectionCases = [
@@ -607,6 +608,7 @@ describe('typed order price validation', () => {
         code: 'too_far',
         min: expect.any(String),
         max: expect.any(String),
+        maxOraclePriceDeviation: 0.95,
       }),
     );
   });
@@ -646,6 +648,29 @@ describe('typed order price validation', () => {
     );
   });
 
+  it("states the venue's own band percentage", () => {
+    getLimitPriceTooFarMessage(2500, 0.8);
+
+    expect(strings).toHaveBeenCalledWith(
+      'perps.order.limit_price_modal.limit_price_too_far',
+      { percent: 80 },
+    );
+  });
+
+  it("states the venue's band percentage for a Pro field issue", () => {
+    getLimitPriceValidationMessage({
+      code: 'too_far',
+      min: '$500',
+      max: '$4,500',
+      maxOraclePriceDeviation: 0.8,
+    });
+
+    expect(strings).toHaveBeenCalledWith(
+      'perps.order.limit_price_modal.limit_price_too_far',
+      { percent: 80 },
+    );
+  });
+
   it('returns only the constraint when the reference cannot form a band', () => {
     expect(getLimitPriceTooFarMessage(0, 0.95)).toBe(
       'perps.order.limit_price_modal.limit_price_too_far',
@@ -670,6 +695,27 @@ describe('typed order price validation', () => {
       },
     ]);
   });
+
+  it.each([
+    // Oracle 5000 at 95% accepts 250-9750; mid 2500 would accept 125-4875.
+    ['blocks', '200', [expect.objectContaining({ field: 'limitPrice' })]],
+    ['accepts', '9000', []],
+  ])(
+    'centres the band on the oracle, not the mid: %s %s',
+    (_outcome, limitPrice, expected) => {
+      const result = getOrderFormFieldIssues({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice,
+        midPrice: 2500,
+        oracleReferencePrice: 5000,
+        maxOraclePriceDeviation: 0.95,
+        szDecimals: 3,
+      });
+
+      expect(result).toEqual(expected);
+    },
+  );
 
   it('assigns a trigger issue to its owning field', () => {
     const result = getOrderFormFieldIssues({

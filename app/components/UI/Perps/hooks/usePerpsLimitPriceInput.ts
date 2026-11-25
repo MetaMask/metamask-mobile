@@ -5,6 +5,7 @@ import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -52,10 +53,12 @@ export interface UsePerpsLimitPriceInputParams {
   setLimitPrice: (price: string) => void;
   testIDs: PerpsLimitPricePresetTestIDs;
   /**
-   * Used for direction-warning copy. The 95% venue band applies to every limit
+   * Used for direction-warning copy. The venue's band applies to every limit
    * price, opening or closing.
    */
   isClosingPosition?: boolean;
+  /** Venue the order or position belongs to; its band is the one checked. */
+  providerId?: PerpsProviderType;
   /** Unsubscribes from live price and book data while a modal is hidden. */
   enabled?: boolean;
 }
@@ -91,6 +94,7 @@ export function usePerpsLimitPriceInput({
   setLimitPrice,
   testIDs,
   isClosingPosition = false,
+  providerId,
   enabled = true,
 }: UsePerpsLimitPriceInputParams): UsePerpsLimitPriceInputResult {
   const { track } = usePerpsEventTracking();
@@ -115,6 +119,7 @@ export function usePerpsLimitPriceInput({
   // the check is skipped.
   const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(
     enabled ? asset : undefined,
+    providerId,
   );
 
   const topOfBook = usePerpsTopOfBook({ symbol: enabled ? asset : '' });
