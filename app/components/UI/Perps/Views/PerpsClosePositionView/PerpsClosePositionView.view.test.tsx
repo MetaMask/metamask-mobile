@@ -775,4 +775,42 @@ describe('PerpsClosePositionView', () => {
       ),
     ).not.toBeOnTheScreen();
   });
+
+  it('keeps Close disabled when the fee quote rejects, instead of closing without a fee', async () => {
+    // A rejected quote leaves the fee unknown. Core close tracking takes a
+    // numeric fee, so the close waits for a quote (a fresh input re-fetches)
+    // rather than submitting with a fabricated 0.
+    (Engine.context.PerpsController.calculateFees as jest.Mock)
+      .mockRejectedValueOnce(new Error('quote failed'))
+      .mockRejectedValue(new Error('quote failed'));
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+    const position = createLongPositionForViews();
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+    emitEthPrice(stream, '2500');
+
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+
+    await waitFor(() => {
+      expect(confirmButton).toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.press(confirmButton);
+    });
+
+    expect(closePosition).not.toHaveBeenCalled();
+  });
 });

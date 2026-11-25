@@ -7,9 +7,9 @@ import {
   type ClosePositionParams,
   type OrdinaryOrderType,
 } from '@metamask/perps-controller';
-import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsMaxOraclePriceDeviation } from './usePerpsMaxOraclePriceDeviation';
 
 interface UsePerpsClosePositionValidationParams {
   symbol: string;
@@ -118,6 +118,9 @@ export function usePerpsClosePositionValidation(
     positionValue,
     skipValidation,
   } = params;
+  // Per venue and per market; undefined means the venue reports no band and
+  // the check is skipped.
+  const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(symbol);
 
   const { validateClosePosition } = usePerpsTrading();
 
@@ -201,7 +204,7 @@ export function usePerpsClosePositionValidation(
 
       // Limit order specific validation
       if (orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0) {
-        // Reference (oracle/mark) price the protocol's price band is evaluated
+        // Reference (oracle/mark) price the venue's price band is evaluated
         // against. Prefer the mark price; fall back to the mid/mark currentPrice
         // when the reference is unavailable or not a finite positive number
         // (?? would keep a NaN reference and silently skip the band check).
@@ -212,19 +215,26 @@ export function usePerpsClosePositionValidation(
             ? referencePrice
             : currentPrice;
 
-        // Block the close when the limit price is outside HyperLiquid's allowed
-        // band from the reference price. HyperLiquid rejects such orders
+        // Block the close when the limit price is outside the venue's allowed
+        // band from the reference price. The venue rejects such orders
         // ("oracleRejected"). This lives in the Close button validation (rather
         // than only in the limit-price sheet) so it re-evaluates as the market
         // moves after the price was set — not just while it is being entered.
+        // Skipped when the venue does not report a band for this market.
         if (
+          maxOraclePriceDeviation !== undefined &&
           isPriceOutsideDeviationBand(
             limitPriceNum,
             bandReferencePrice,
-            LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+            maxOraclePriceDeviation,
           )
         ) {
-          errors.push(getLimitPriceTooFarMessage(bandReferencePrice));
+          errors.push(
+            getLimitPriceTooFarMessage(
+              bandReferencePrice,
+              maxOraclePriceDeviation,
+            ),
+          );
         }
 
         // Add warning if the limit price is far from the live mark price
@@ -278,6 +288,7 @@ export function usePerpsClosePositionValidation(
     receiveAmount,
     isPartialClose,
     positionValue,
+    maxOraclePriceDeviation,
     validateClosePosition,
   ]);
 

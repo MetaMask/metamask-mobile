@@ -597,7 +597,8 @@ describe('typed order price validation', () => {
     const result = getLimitPriceValidationIssue({
       orderType: 'limit',
       limitPrice: '100',
-      midPrice: 2500,
+      referencePrice: 2500,
+      maxOraclePriceDeviation: 0.95,
       szDecimals: 3,
     });
 
@@ -614,7 +615,20 @@ describe('typed order price validation', () => {
     const result = getLimitPriceValidationIssue({
       orderType: 'limit',
       limitPrice: '2400',
-      midPrice: 2500,
+      referencePrice: 2500,
+      maxOraclePriceDeviation: 0.95,
+      szDecimals: 3,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('skips the band when the venue reports no deviation limit', () => {
+    const result = getLimitPriceValidationIssue({
+      orderType: 'limit',
+      limitPrice: '100',
+      referencePrice: 2500,
+      maxOraclePriceDeviation: undefined,
       szDecimals: 3,
     });
 
@@ -622,7 +636,7 @@ describe('typed order price validation', () => {
   });
 
   it('explains the 95% constraint and the live acceptable range', () => {
-    const message = getLimitPriceTooFarMessage(2500);
+    const message = getLimitPriceTooFarMessage(2500, 0.95);
 
     expect(message).toContain(
       'perps.order.limit_price_modal.limit_price_too_far',
@@ -633,7 +647,7 @@ describe('typed order price validation', () => {
   });
 
   it('returns only the constraint when the reference cannot form a band', () => {
-    expect(getLimitPriceTooFarMessage(0)).toBe(
+    expect(getLimitPriceTooFarMessage(0, 0.95)).toBe(
       'perps.order.limit_price_modal.limit_price_too_far',
     );
   });
@@ -644,6 +658,8 @@ describe('typed order price validation', () => {
       direction: 'long',
       limitPrice: '100',
       midPrice: 2500,
+      oracleReferencePrice: 2500,
+      maxOraclePriceDeviation: 0.95,
       szDecimals: 3,
     });
 

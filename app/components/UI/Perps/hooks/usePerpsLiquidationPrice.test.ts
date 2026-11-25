@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -256,5 +256,75 @@ describe('usePerpsLiquidationPrice', () => {
     });
     expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe('Failed to calculate liquidation price');
+  });
+
+  it('clears the value when the entry price becomes undefined', async () => {
+    mockCalculateLiquidationPrice.mockResolvedValue('45000.00');
+
+    const { result, rerender } = renderHook(
+      (props) => usePerpsLiquidationPrice(props),
+      {
+        initialProps: {
+          entryPrice: 50000 as number | undefined,
+          leverage: 10,
+          direction: 'long' as const,
+          asset: 'BTC',
+        },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.liquidationPrice).toBe('45000.00');
+    });
+
+    rerender({
+      entryPrice: undefined,
+      leverage: 10,
+      direction: 'long' as const,
+      asset: 'BTC',
+    });
+
+    await waitFor(() => {
+      expect(result.current.liquidationPrice).toBeUndefined();
+    });
+    expect(result.current.isCalculating).toBe(false);
+  });
+
+  it('drops a pending calculation when the inputs change before the timer fires', async () => {
+    jest.useFakeTimers();
+    try {
+      mockCalculateLiquidationPrice.mockResolvedValue('45000.00');
+
+      const { rerender } = renderHook(
+        (props) => usePerpsLiquidationPrice(props, { debounceMs: 1000 }),
+        {
+          initialProps: {
+            entryPrice: 50000,
+            leverage: 10,
+            direction: 'long' as const,
+            asset: 'BTC',
+          },
+        },
+      );
+
+      // A new input restarts the timer; the first (stale) timer must be
+      // cancelled, so only the latest parameters ever reach Core.
+      rerender({
+        entryPrice: 51000,
+        leverage: 10,
+        direction: 'long' as const,
+        asset: 'BTC',
+      });
+
+      jest.advanceTimersByTime(1000);
+      await act(async () => {});
+
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(1);
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledWith(
+        expect.objectContaining({ entryPrice: 51000 }),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

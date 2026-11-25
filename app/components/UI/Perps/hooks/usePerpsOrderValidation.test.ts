@@ -18,6 +18,9 @@ const fastWaitFor = (callback: () => void, options = {}) =>
   waitFor(callback, { timeout: 1000, ...options });
 
 jest.mock('./usePerpsTrading');
+jest.mock('./usePerpsMaxOraclePriceDeviation', () => ({
+  usePerpsMaxOraclePriceDeviation: jest.fn(),
+}));
 jest.mock('./usePerpsNetwork', () => ({
   usePerpsNetwork: jest.fn(),
 }));

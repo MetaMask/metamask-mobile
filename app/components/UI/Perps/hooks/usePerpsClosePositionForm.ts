@@ -57,6 +57,7 @@ import {
   limitAssetAmountDecimals,
   resolveTypedCloseAssetAmount,
 } from '../utils/assetAmountInput';
+import { parseOrderPrice } from '../utils/parseOrderNumber';
 import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
@@ -345,9 +346,12 @@ export function usePerpsClosePositionForm(
     ? Number.parseFloat(priceData[position.symbol].price)
     : Number.parseFloat(position.entryPrice);
 
+  // Core defines the band around the oracle price, falling back to the mark
+  // price when the oracle is unknown; currentPrice (then the entry price) is
+  // the last resort when neither is published.
   const referencePrice = resolveOracleReferencePrice(
     priceData[position.symbol]?.oraclePrice,
-    currentPrice,
+    parseOrderPrice(priceData[position.symbol]?.markPrice) ?? currentPrice,
   );
 
   // Get top of book data for maker/taker fee determination

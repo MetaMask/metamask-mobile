@@ -901,6 +901,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const marketPrice = parseOrderPrice(currentPrice?.price);
   const markPrice = parseOrderPrice(currentPrice?.markPrice);
+  // Core defines the limit-price band around the oracle price, falling back to
+  // the mark price when the oracle is unknown, then the mid.
+  const oracleReferencePrice =
+    parseOrderPrice(currentPrice?.oraclePrice) ?? markPrice ?? marketPrice;
 
   // Fee row shows a $ amount, or Taker/Maker rates when treatment is assigned.
   const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
@@ -1597,6 +1601,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm,
     positionSize,
     assetPrice: marketPrice,
+    oracleReferencePrice,
     spendableBalance,
     marginRequired,
     existingPositionLeverage: existingPositionLeverageForValidation,
@@ -1896,12 +1901,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
     const currentAmount = Number.parseFloat(orderForm.amount);
 
+    // A missing market price makes the max unreliable (it computes to 0), so
+    // clamping here would zero a typed amount during a price gap; leave the
+    // input alone and clamp when a price returns.
+    if (marketPrice === undefined) {
+      return;
+    }
+
     // If user-entered amount exceeds the max purchasable with current balance/leverage,
     // snap it down to the maximum once input is closed.
     if (currentAmount > maxPossibleAmount) {
       commitAmount(String(maxPossibleAmount));
     }
-  }, [isInputFocused, orderForm.amount, maxPossibleAmount, commitAmount]);
+  }, [
+    isInputFocused,
+    orderForm.amount,
+    maxPossibleAmount,
+    marketPrice,
+    commitAmount,
+  ]);
 
   const { handleDepositConfirm } = usePerpsOrderDepositTracking();
 
@@ -2187,6 +2205,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
       const submitOrder = async () => {
+        // The price is required to build the order params. Guard before any
+        // post-trade side effect arms — an unreachable-today return placed
+        // after `hasPlacedOrderRef` would still send the trader to the market
+        // screen with no order placed and no toast. Validation and margin both
+        // need a price, so this should never fire.
+        if (effectivePrice === undefined) return;
+
         // While cross margin is off, an existing cross position cannot be traded.
         if (
           !isCrossMarginEnabled &&
@@ -2289,7 +2314,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // 1. Validate price hasn't moved beyond maxSlippageBps
         // 2. Recalculate size with fresh price from usdAmount
         // 3. Use the recalculated size for order execution
-        if (effectivePrice === undefined) return;
         const orderParams: OrderParams = buildPerpsOrderParams({
           asset: orderForm.asset,
           isBuy: orderForm.direction === 'long',

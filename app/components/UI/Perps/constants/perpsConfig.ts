@@ -11,7 +11,6 @@
 import type { Hex } from '@metamask/utils';
 import {
   CHASE_ORDER_STATUS,
-  HYPERLIQUID_CONFIG,
   HYPERLIQUID_TWAP_LIMITS,
   type ChaseOrder,
 } from '@metamask/perps-controller';
@@ -292,7 +291,10 @@ export const LIMIT_PRICE_CONFIG = {
   LongPresets: [-1, -2], // Buy below market for long orders
   ShortPresets: [1, 2], // Sell above market for short orders
 
-  MaxDeviationFromMarket: HYPERLIQUID_CONFIG.OraclePriceDeviationLimit,
+  // The limit-price deviation band is per venue and per market: read
+  // `PerpsOrderLimits.maxOraclePriceDeviation` from the market's order
+  // capabilities (`usePerpsMaxOraclePriceDeviation`) and skip the check when
+  // the venue omits it.
 
   // Warn when a limit/scale price is more than 5% from the near-touch
   // (best bid long, best ask short). Equal to 5% does not warn.

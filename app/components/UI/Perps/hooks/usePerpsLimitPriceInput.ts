@@ -19,6 +19,7 @@ import {
   formatWithSignificantDigits,
 } from '../utils/formatUtils';
 import { getLimitPriceDirectionWarning } from '../utils/limitPriceFarFromMarket';
+import { usePerpsMaxOraclePriceDeviation } from './usePerpsMaxOraclePriceDeviation';
 import {
   calculateLimitPriceForPercentage,
   resolveOracleReferencePrice,
@@ -103,9 +104,17 @@ export function usePerpsLimitPriceInput({
   const currentPrice =
     parseOrderPrice(currentPriceData?.price) ?? passedCurrentPrice;
 
+  // Core defines the band around the oracle price, falling back to the mark
+  // price when the oracle is unknown.
   const referencePrice = resolveOracleReferencePrice(
     currentPriceData?.oraclePrice,
-    currentPrice,
+    parseOrderPrice(currentPriceData?.markPrice) ?? currentPrice,
+  );
+
+  // Per venue and per market; undefined means the venue reports no band and
+  // the check is skipped.
+  const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(
+    enabled ? asset : undefined,
   );
 
   const topOfBook = usePerpsTopOfBook({ symbol: enabled ? asset : '' });
@@ -222,13 +231,14 @@ export function usePerpsLimitPriceInput({
 
   const exceedsMaxDeviation = useMemo(
     () =>
+      maxOraclePriceDeviation !== undefined &&
       referencePrice !== undefined &&
       isPriceOutsideDeviationBand(
         Number.parseFloat(limitPrice.replace(/[$,]/g, '')),
         referencePrice,
-        LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+        maxOraclePriceDeviation,
       ),
-    [limitPrice, referencePrice],
+    [limitPrice, referencePrice, maxOraclePriceDeviation],
   );
 
   const directionWarning = useMemo(
@@ -243,8 +253,10 @@ export function usePerpsLimitPriceInput({
   );
 
   const error =
-    exceedsMaxDeviation && referencePrice !== undefined
-      ? getLimitPriceTooFarMessage(referencePrice)
+    exceedsMaxDeviation &&
+    referencePrice !== undefined &&
+    maxOraclePriceDeviation !== undefined
+      ? getLimitPriceTooFarMessage(referencePrice, maxOraclePriceDeviation)
       : directionWarning;
 
   const trackInputMethod = useCallback(() => {

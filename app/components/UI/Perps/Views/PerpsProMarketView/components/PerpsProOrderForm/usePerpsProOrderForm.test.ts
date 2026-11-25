@@ -303,6 +303,10 @@ let mockMarketDataByProvider: Record<
 > | null = null;
 let mockIsPlacing = false;
 
+jest.mock('../../../../hooks/usePerpsMaxOraclePriceDeviation', () => ({
+  usePerpsMaxOraclePriceDeviation: jest.fn(() => 0.95),
+}));
+
 jest.mock('../../../../hooks', () => ({
   getPerpsToastLabels: (primary: string, secondary?: string) =>
     mockGetPerpsToastLabels(primary, secondary),

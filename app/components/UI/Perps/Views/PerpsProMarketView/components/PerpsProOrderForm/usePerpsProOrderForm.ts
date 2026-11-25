@@ -90,6 +90,7 @@ import {
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
 import { usePerpsCrossLiquidationPrice } from '../../../../hooks/usePerpsCrossLiquidationPrice';
+import { usePerpsMaxOraclePriceDeviation } from '../../../../hooks/usePerpsMaxOraclePriceDeviation';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -1229,10 +1230,16 @@ export const usePerpsProOrderForm = ({
 
   const marketPrice = parseOrderPrice(currentPrice?.price);
   const markPrice = parseOrderPrice(currentPrice?.markPrice);
+  // Core defines the limit-price band around the oracle price, falling back to
+  // the mark price when the oracle is unknown, then the mid.
+  const oracleReferencePrice =
+    parseOrderPrice(currentPrice?.oraclePrice) ?? markPrice ?? marketPrice;
   const latestMidPriceRef = useRef(marketPrice);
+  const latestOracleReferencePriceRef = useRef(oracleReferencePrice);
   useLayoutEffect(() => {
     latestMidPriceRef.current = marketPrice;
-  }, [marketPrice]);
+    latestOracleReferencePriceRef.current = oracleReferencePrice;
+  }, [marketPrice, oracleReferencePrice]);
 
   const marketDataBlockingReason = getMarketDataBlockingReason({
     isLoading: isLoadingMarketData,
@@ -1396,6 +1403,12 @@ export const usePerpsProOrderForm = ({
         : isTriggerOrderType(orderForm.type)
           ? resolvedTriggerProviderId
           : market.providerId;
+  // The venue's limit-price band for this market on the order's provider
+  // route; undefined when the venue omits it, which skips the band check.
+  const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(
+    symbol,
+    orderProviderId,
+  );
   const isTwapEnabledRef = useRef(isTwapEnabled);
   const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
   const checkTwapOrderSupportRef = useRef(checkTwapOrderSupport);
@@ -2260,6 +2273,7 @@ export const usePerpsProOrderForm = ({
         : orderProviderId,
     triggerPrice: normalizedTriggerPrice,
     midPrice: marketPrice,
+    oracleReferencePrice,
     szDecimals,
     twapDuration: isTwapOrder ? twapDuration : undefined,
     twapRandomize: isTwapOrder ? twapRandomize : undefined,
@@ -2872,6 +2886,8 @@ export const usePerpsProOrderForm = ({
           triggerPrice: normalizedTriggerPrice,
           limitPrice: normalizedLimitPrice,
           midPrice: marketPrice,
+          oracleReferencePrice,
+          maxOraclePriceDeviation,
           szDecimals,
         });
     const currentBlockingIssue = currentFieldIssues.find(
@@ -3093,6 +3109,8 @@ export const usePerpsProOrderForm = ({
         triggerPrice: normalizedTriggerPrice,
         limitPrice: normalizedLimitPrice,
         midPrice: latestMidPriceRef.current,
+        oracleReferencePrice: latestOracleReferencePriceRef.current,
+        maxOraclePriceDeviation,
         szDecimals,
       });
       const latestBlockingIssue = latestFieldIssues.find(
@@ -3456,6 +3474,12 @@ export const usePerpsProOrderForm = ({
         return;
       }
 
+      // Guard before any placement side effect: a missing price means no
+      // order can be built, and the chase confirmation size must not be
+      // recorded for an order that will not place.
+      const placementEffectivePrice =
+        submissionChaseSnapshot?.effectivePrice ?? effectivePrice;
+      if (placementEffectivePrice === undefined) return;
       const placementOrderForm =
         submissionChaseSnapshot?.orderForm ?? orderForm;
       const placementPositionSize =
@@ -3464,9 +3488,6 @@ export const usePerpsProOrderForm = ({
       if (placementOrderForm.type === 'chase') {
         chaseConfirmationPositionSizeRef.current = placementPositionSize;
       }
-      const placementEffectivePrice =
-        submissionChaseSnapshot?.effectivePrice ?? effectivePrice;
-      if (placementEffectivePrice === undefined) return;
       const placementUsdAmount =
         submissionChaseSnapshot?.effectiveUsdAmount ?? effectiveUsdAmount;
       const placementReduceOnly =

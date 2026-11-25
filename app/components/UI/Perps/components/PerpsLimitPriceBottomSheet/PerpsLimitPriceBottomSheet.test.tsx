@@ -30,6 +30,10 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsMaxOraclePriceDeviation', () => ({
+  usePerpsMaxOraclePriceDeviation: jest.fn(() => 0.95),
+}));
+
 // Simplified keypad so tests can drive value changes via stable testIDs
 jest.mock('../../../../Base/Keypad', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -870,6 +874,29 @@ describe('PerpsLimitPriceBottomSheet', () => {
           PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
         ),
       ).toBeDisabled();
+    });
+
+    it('keeps a closing price on the inclusive upper bound enabled', () => {
+      // 3000 reference, 95% limit: 5850 is exactly on the band edge.
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          isClosingPosition
+          limitPrice="5850"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.queryByText(
+          /perps\.order\.limit_price_modal\.limit_price_too_far/,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeEnabled();
     });
 
     it('blocks an opening price outside the venue deviation band', () => {

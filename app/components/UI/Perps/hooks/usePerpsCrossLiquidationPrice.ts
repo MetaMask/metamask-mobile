@@ -4,6 +4,7 @@ import {
   type EstimateCrossLiquidationParams,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 type CrossEstimateInput = Omit<EstimateCrossLiquidationParams, 'entryPrice'> & {
   entryPrice: number | undefined;
@@ -61,7 +62,13 @@ export function usePerpsCrossLiquidationPrice({
             draftKey,
             price: estimate.status === 'price' ? estimate.price : undefined,
           });
-      } catch {
+      } catch (error) {
+        // The estimate stays unavailable (`--`); log so a failing estimate is
+        // visible in development instead of reading as "no position yet".
+        DevLogger.log(
+          'usePerpsCrossLiquidationPrice: estimateCrossLiquidation failed',
+          error,
+        );
         if (active) setResult(undefined);
       }
     };

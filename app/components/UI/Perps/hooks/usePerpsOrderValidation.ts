@@ -28,6 +28,7 @@ import {
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
+import { usePerpsMaxOraclePriceDeviation } from './usePerpsMaxOraclePriceDeviation';
 
 interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
@@ -50,6 +51,8 @@ interface UsePerpsOrderValidationParams {
   triggerPrice?: string;
   /** Live mid price used for trigger placement-side validation. */
   midPrice?: number;
+  /** Live band reference for the limit price: the oracle price, or mark fallback. */
+  oracleReferencePrice?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
   /** TWAP running time in whole minutes. */
@@ -444,6 +447,7 @@ export function usePerpsOrderValidation(
     isFullClose,
     triggerPrice,
     midPrice = assetPrice,
+    oracleReferencePrice,
     szDecimals,
     twapDuration,
     twapRandomize,
@@ -454,6 +458,12 @@ export function usePerpsOrderValidation(
 
   const { validateOrder } = usePerpsTrading();
   const network = usePerpsNetwork();
+  // The venue's limit-price band for this market, read for the order's
+  // provider route; undefined when the venue omits it (no band check).
+  const maxOraclePriceDeviation = usePerpsMaxOraclePriceDeviation(
+    orderForm.asset,
+    providerId,
+  );
   const orderFormValidationData = useMemo<OrderFormValidationData>(
     () => ({
       asset: orderForm.asset,
@@ -494,10 +504,14 @@ export function usePerpsOrderValidation(
         triggerPrice,
         limitPrice: orderForm.limitPrice,
         midPrice,
+        oracleReferencePrice,
+        maxOraclePriceDeviation,
         szDecimals,
       }),
     [
       midPrice,
+      oracleReferencePrice,
+      maxOraclePriceDeviation,
       orderForm.direction,
       orderForm.limitPrice,
       orderForm.type,

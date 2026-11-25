@@ -12,7 +12,6 @@ import {
   type TriggerOrderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
-import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from './formatUtils';
 
 export type TriggerPriceValidationIssue =
@@ -188,19 +187,23 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
- * Localized 95% band error, including the live acceptable range when the
- * reference price is usable.
+ * Localized band error, including the live acceptable range when the reference
+ * price is usable.
  *
  * @param referencePrice - Live oracle/mark used for the band.
+ * @param maxOraclePriceDeviation - The venue's band for this market.
  * @returns User-facing helper text.
  */
-export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
+export const getLimitPriceTooFarMessage = (
+  referencePrice: number,
+  maxOraclePriceDeviation: number,
+): string => {
   const constraint = strings(
     'perps.order.limit_price_modal.limit_price_too_far',
   );
   const band = getPriceDeviationBand(
     referencePrice,
-    LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    maxOraclePriceDeviation,
   );
   if (!band) {
     return constraint;
@@ -217,20 +220,27 @@ export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
 
 /**
  * Validates the structural price input for limit and trigger-limit placements,
- * including HyperLiquid's live 95% reference-price band.
+ * including the venue's live reference-price band. The band is the market's
+ * `PerpsOrderLimits.maxOraclePriceDeviation` around the oracle price (mark
+ * fallback); it is skipped when the venue does not report a limit.
  *
- * @param input - Order type, candidate limit price, and live mid.
+ * @param input - Order type, candidate limit price, live band reference, and
+ * the venue's deviation limit.
  * @returns A typed limit-price issue, or `undefined`.
  */
 export const getLimitPriceValidationIssue = ({
   orderType,
   limitPrice,
-  midPrice,
+  referencePrice,
+  maxOraclePriceDeviation,
   szDecimals,
 }: {
   orderType: OrderType;
   limitPrice: string | undefined;
-  midPrice?: number;
+  /** Live band reference: the oracle price, or mark when the oracle is unknown. */
+  referencePrice?: number;
+  /** The venue's band for this market; the check is skipped when omitted. */
+  maxOraclePriceDeviation?: number;
   szDecimals?: number;
 }): LimitPriceValidationIssue | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
@@ -244,16 +254,17 @@ export const getLimitPriceValidationIssue = ({
   }
 
   if (
-    midPrice !== undefined &&
+    maxOraclePriceDeviation !== undefined &&
+    referencePrice !== undefined &&
     isPriceOutsideDeviationBand(
       parsedLimit,
-      midPrice,
-      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+      referencePrice,
+      maxOraclePriceDeviation,
     )
   ) {
     const band = getPriceDeviationBand(
-      midPrice,
-      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+      referencePrice,
+      maxOraclePriceDeviation,
     );
     if (band) {
       return {
@@ -295,13 +306,20 @@ export const getOrderFormFieldIssues = ({
   triggerPrice,
   limitPrice,
   midPrice,
+  oracleReferencePrice,
+  maxOraclePriceDeviation,
   szDecimals,
 }: {
   orderType: OrderType;
   direction: 'long' | 'short';
   triggerPrice?: string;
   limitPrice?: string;
+  /** Live mid, used for the trigger placement-side check. */
   midPrice?: number;
+  /** Live band reference for the limit price: oracle, or mark fallback. */
+  oracleReferencePrice?: number;
+  /** The venue's band for this market; the band check is skipped when omitted. */
+  maxOraclePriceDeviation?: number;
   szDecimals?: number;
 }): OrderFormFieldIssue[] => {
   const issues: OrderFormFieldIssue[] = [];
@@ -319,7 +337,8 @@ export const getOrderFormFieldIssues = ({
   const limitIssue = getLimitPriceValidationIssue({
     orderType,
     limitPrice,
-    midPrice,
+    referencePrice: oracleReferencePrice,
+    maxOraclePriceDeviation,
     szDecimals,
   });
   if (limitIssue) {
