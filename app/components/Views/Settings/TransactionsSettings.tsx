@@ -39,7 +39,7 @@ import { TextVariant as LibraryTextVariant } from '../../../component-library/co
 import BatchAccountBalanceSettings from './BatchAccountBalanceSettings';
 
 function TransactionsSettings() {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -89,7 +89,7 @@ function TransactionsSettings() {
   }
 
   function openLinkAboutStx() {
-    Linking.openURL(AppConstants.URLS.SMART_TXS);
+    void Linking.openURL(AppConstants.URLS.SMART_TXS);
   }
 
   function toggleUseTransactionSimulations(value: boolean) {
@@ -121,7 +121,7 @@ function TransactionsSettings() {
             size={OldButtonSize.Auto}
             labelTextVariant={LibraryTextVariant.BodySMMedium}
             onPress={() => {
-              Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+              void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               trackExternalLinkClicked(trackEvent, createEventBuilder, {
                 location: 'app_settings',
                 text: strings('app_settings.simulation_details_learn_more'),
@@ -197,7 +197,7 @@ function TransactionsSettings() {
                       color={TextColor.PrimaryDefault}
                       accessibilityRole="link"
                       onPress={() => {
-                        Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+                        void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
                         trackExternalLinkClicked(
                           trackEvent,
                           createEventBuilder,

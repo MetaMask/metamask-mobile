@@ -58,7 +58,7 @@ interface Params {
 }
 
 function PrivacySettings() {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const { isEnabled } = useAnalytics();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -110,7 +110,7 @@ function PrivacySettings() {
         isNotificationEnabled && (await disableNotifications());
       }
     };
-    triggerCascadeBasicFunctionalityDisable();
+    void triggerCascadeBasicFunctionalityDisable();
   }, [
     disableNotifications,
     isBasicFunctionalityEnabled,
