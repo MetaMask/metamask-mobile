@@ -2,16 +2,16 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
-import { PackCategoryChips } from './PackCategoryChips';
+import { PackCategoryFilter } from '#app/components/UI/Collectibles/components/PackCategoryFilter';
 
 const categories = [
   { id: 'pokemon', name: 'Pokémon' },
   { id: 'sports', name: 'Sports' },
 ];
 
-describe('PackCategoryChips', () => {
+describe('PackCategoryFilter', () => {
   it('shows "All" first, then the categories', () => {
-    render(<PackCategoryChips categories={categories} onSelect={jest.fn()} />);
+    render(<PackCategoryFilter categories={categories} onSelect={jest.fn()} />);
 
     const chipIds = screen
       .getAllByTestId(/^collectibles-packs-chip-/)
@@ -23,7 +23,7 @@ describe('PackCategoryChips', () => {
   });
 
   it('marks "All" as selected when no category is selected', () => {
-    render(<PackCategoryChips categories={categories} onSelect={jest.fn()} />);
+    render(<PackCategoryFilter categories={categories} onSelect={jest.fn()} />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
@@ -36,7 +36,7 @@ describe('PackCategoryChips', () => {
   it('reports the pressed chip', () => {
     const onSelect = jest.fn();
     render(
-      <PackCategoryChips
+      <PackCategoryFilter
         categories={categories}
         selectedId="pokemon"
         onSelect={onSelect}

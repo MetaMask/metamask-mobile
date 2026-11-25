@@ -18,7 +18,7 @@ import { collectiblesTestIds } from '../Collectibles.testIds';
 import type { ListedPack } from '../types/packs';
 import { usePacksCatalog } from '../hooks/usePacksCatalog';
 import { useAnnounce } from '../hooks/useAnnounce';
-import { PackCategoryChips } from '../components/PackCategoryChips';
+import { PackCategoryFilter } from '../components/PackCategoryFilter';
 import { PacksGridTile } from '../components/PacksGridTile';
 import { PacksScreenSkeleton } from '../components/PacksScreenSkeleton';
 
@@ -78,7 +78,7 @@ export function PacksView() {
 
   return (
     <View className="flex-1 pt-2" testID={collectiblesTestIds.packsView}>
-      <PackCategoryChips
+      <PackCategoryFilter
         categories={categories}
         selectedId={activeCategoryId}
         onSelect={setSelectedCategoryId}

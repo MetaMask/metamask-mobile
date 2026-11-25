@@ -18,7 +18,11 @@ interface Props {
   onSelect: (id?: string) => void;
 }
 
-export function PackCategoryChips({ categories, selectedId, onSelect }: Props) {
+export function PackCategoryFilter({
+  categories,
+  selectedId,
+  onSelect,
+}: Props) {
   const tw = useTailwind();
   const activeId = selectedId ?? allChipId;
 
