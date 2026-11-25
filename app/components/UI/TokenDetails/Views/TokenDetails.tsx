@@ -971,6 +971,7 @@ const TokenDetails: React.FC<{
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
+          onFooterLayout={handleFooterLayout}
         />
       )}
 

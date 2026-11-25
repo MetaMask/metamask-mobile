@@ -10,6 +10,9 @@ jest.mock('@metamask/keyring-utils', () => ({}));
 jest.mock('@metamask/keyring-api', () => ({}));
 jest.mock('@metamask/rpc-errors', () => ({}));
 jest.mock('@metamask/network-controller', () => ({}));
+jest.mock('../../../selectors/configRegistry', () => ({
+  getRegistryNetworkImagesByChainId: () => ({}),
+}));
 jest.mock('@metamask/controller-utils', () => ({
   hasProperty: jest.fn(),
   toHex: jest.fn(),

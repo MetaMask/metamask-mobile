@@ -5,7 +5,7 @@ import { evmSendStateMock, SOLANA_ASSET } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
 import { usePercentageAmount } from './usePercentageAmount';
 import { useBalance } from './useBalance';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import { useNonEvmMaxAmount } from './useNonEvmMaxAmount';
 
 const NATIVE_ASSET = {
   chainId: '0x1',
@@ -26,8 +26,12 @@ jest.mock('./useBalance', () => ({
   useBalance: jest.fn(),
 }));
 
+jest.mock('./useNonEvmMaxAmount', () => ({
+  useNonEvmMaxAmount: jest.fn(),
+}));
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
+  useParams: jest.fn(() => undefined),
 }));
 
 const mockState = {
@@ -36,7 +40,8 @@ const mockState = {
 
 const mockUseSendContext = jest.mocked(useSendContext);
 const mockUseBalance = jest.mocked(useBalance);
-const mockUseParams = jest.mocked(useParams);
+const mockUseNonEvmMaxAmount = jest.mocked(useNonEvmMaxAmount);
+const mockGetNonEvmMaxAmount = jest.fn();
 
 const setBalance = (rawBalance: string, decimals = 2) => {
   mockUseBalance.mockReturnValue({
@@ -46,10 +51,17 @@ const setBalance = (rawBalance: string, decimals = 2) => {
   });
 };
 
+const setNonEvmMax = (isSupported: boolean) => {
+  mockUseNonEvmMaxAmount.mockReturnValue({
+    getNonEvmMaxAmount: mockGetNonEvmMaxAmount,
+    isNonEvmMaxSupported: isSupported,
+  });
+};
+
 describe('usePercentageAmount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseParams.mockReturnValue(undefined);
+    setNonEvmMax(false);
   });
 
   it('returns the percentage of the balance for a token', () => {
@@ -113,7 +125,7 @@ describe('usePercentageAmount', () => {
     expect(result.current.getPercentageAmount(100)).toBe('0');
   });
 
-  it('does not support Max for a non-EVM native asset', () => {
+  it('does not support Max for a non-EVM native asset without a quote', () => {
     mockUseSendContext.mockReturnValue({
       asset: SOLANA_ASSET,
     } as unknown as ReturnType<typeof useSendContext>);
@@ -127,5 +139,38 @@ describe('usePercentageAmount', () => {
     expect(result.current.isMaxAmountSupported).toBe(false);
     expect(result.current.getPercentageAmount(75)).toBe('0.000000000000000007');
     expect(result.current.getPercentageAmount(100)).toBeUndefined();
+  });
+
+  it('uses the non-EVM Max quote when the network supports it', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: SOLANA_ASSET,
+    } as unknown as ReturnType<typeof useSendContext>);
+    setBalance('10', 0);
+    mockGetNonEvmMaxAmount.mockResolvedValue('9.5');
+    setNonEvmMax(true);
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+
+    expect(result.current.isMaxAmountSupported).toBe(true);
+    await expect(result.current.getMaxAmount()).resolves.toBe('9.5');
+  });
+
+  it('falls back to the full balance when the non-EVM network cannot quote', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: SOLANA_ASSET,
+    } as unknown as ReturnType<typeof useSendContext>);
+    setBalance('1000000000000000000', 18);
+    mockGetNonEvmMaxAmount.mockResolvedValue(undefined);
+    setNonEvmMax(true);
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+
+    await expect(result.current.getMaxAmount()).resolves.toBe('1');
   });
 });

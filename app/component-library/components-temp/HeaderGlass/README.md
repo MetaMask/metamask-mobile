@@ -55,9 +55,35 @@ const { inset, onLayout } = useHeaderGlassInset(isBrandRefresh, insets.top);
 </Box>;
 ```
 
+### Content that doesn't scroll under the header
+
+Pass `isFloating={false}` instead. The header stays in the layout with no backdrop, so it can't cover the first row. Without blur, the backdrop fades out up to 40px below a floating header, and `useHeaderGlassInset` doesn't pad for that tail.
+
 ## Native header (iOS 26)
 
-`useNativeHeader` gives the screen UIKit's Liquid Glass bar. Add the same backdrop under it:
+`HeaderStandardGlass` can hand an in-flow screen header (`isFloating={false}` with `includesTopInset`) to the native bar itself. Pass `isNativeHeaderEnabled`. It's behind `glassHeaders`, and the screen must not set `headerShown` on its own, or UIKit hides the bar. Icon buttons other than back and close need an `accessibilityLabel`, which VoiceOver reads. Without one, the JS header shows instead.
+
+By default a spacer holds the bar's place, so nothing scrolls under it. To let content scroll under the glass, pass `onNativeHeaderInset` and pad the scroll content by the inset it reports. The inset is 0 whenever the JS header shows. The scroll view must come right after the header, with no view before either of them, or UIKit can't find it for the scroll edge effect.
+
+```tsx
+const [headerInset, setHeaderInset] = useState(0);
+
+<SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
+  <HeaderStandardGlass
+    isFloating={false}
+    isNativeHeaderEnabled
+    onNativeHeaderInset={setHeaderInset}
+    includesTopInset
+    title="Settings"
+    onBack={goBack}
+  />
+  <ScrollView contentContainerStyle={{ paddingTop: headerInset }}>
+    ...
+  </ScrollView>
+</SafeAreaView>;
+```
+
+For a custom bar, `useNativeHeader` gives the screen UIKit's Liquid Glass bar. Add the same backdrop under it:
 
 1. Pass `hidesScrollEdgeEffect: true`, so UIKit's own scroll edge effect doesn't stack on top of the backdrop.
 2. Measure the scroll with `useNativeHeaderScroll`. Under the native bar the content rests at a negative offset, and this hook accounts for that. It also returns the raw `scrollY`, which you can pass to `HeaderStandardAnimated`.

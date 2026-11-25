@@ -1,4 +1,8 @@
 import { ActionTypes, type QuoteResponseV1 } from '@metamask/bridge-controller';
+import type {
+  BridgeGetTokensResponse,
+  TokensAssetsV3Response,
+} from '../../api-mocking/api-response-types';
 
 interface QuoteStreamCompleteMock {
   quoteCount?: number;
@@ -827,7 +831,7 @@ export const GET_TOKENS_MAINNET_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
     metadata: { storage: {} },
   },
-];
+] satisfies BridgeGetTokensResponse;
 
 // Popular tokens response format for POST /getTokens/popular endpoint
 // This matches the PopularToken interface used by usePopularTokens hook
@@ -907,7 +911,7 @@ export const GET_TOKENS_SOLANA_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/So11111111111111111111111111111111111111112.png',
     metadata: {},
   },
-];
+] satisfies BridgeGetTokensResponse;
 
 export const GET_TOKENS_BASE_RESPONSE = [
   {
@@ -964,7 +968,7 @@ export const GET_TOKENS_BASE_RESPONSE = [
       createdAt: '2023-10-31T21:47:47.414Z',
     },
   },
-];
+] satisfies BridgeGetTokensResponse;
 
 export const GET_QUOTE_ETH_SOLANA_RESPONSE: QuoteResponseV1[] = [
   {
@@ -1690,7 +1694,7 @@ export const GET_TOKENS_API_USDC_RESPONSE = [
     name: 'USDC',
     symbol: 'USDC',
   },
-];
+] satisfies TokensAssetsV3Response;
 
 export const GET_TOKENS_API_USDT_RESPONSE = [
   {
@@ -1699,7 +1703,7 @@ export const GET_TOKENS_API_USDT_RESPONSE = [
     name: 'Tether USD',
     symbol: 'USDT',
   },
-];
+] satisfies TokensAssetsV3Response;
 
 export const GET_TOKENS_API_MUSD_RESPONSE = [
   {
@@ -1708,7 +1712,7 @@ export const GET_TOKENS_API_MUSD_RESPONSE = [
     name: 'MetaMask USD',
     symbol: 'MUSD',
   },
-];
+] satisfies TokensAssetsV3Response;
 
 export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
   {

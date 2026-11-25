@@ -248,7 +248,7 @@ describe('useMoneyAccountDeposit', () => {
     mockIsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     } as never);
     mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
     mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
@@ -980,7 +980,7 @@ describe('useMoneyAccountWithdrawal', () => {
     mockIsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     } as never);
     mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
     mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);

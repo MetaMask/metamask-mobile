@@ -150,6 +150,7 @@ playwright-report/*
 appwright/test-reports/
 test-results/
 test-reports/
+tests/results/
 appwright/reporters/reports/*
 tests/reporters/reports/
 *.apk

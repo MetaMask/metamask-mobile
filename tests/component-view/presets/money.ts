@@ -3,6 +3,7 @@ import type { MoneyAccountUpgradeStatus } from '@metamask/money-account-upgrade-
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { createStateFixture } from '../stateFixture';
+import { MONAD_VAULT } from './moneyAccount';
 
 export const MONEY_ACCOUNT_ADDRESS =
   '0x1234567890abcdef1234567890abcdef12345678';
@@ -45,7 +46,10 @@ export const initialStateMoney = ({
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalAnalyticsController()
-    .withRemoteFeatureFlags(remoteFeatureFlags)
+    .withRemoteFeatureFlags({
+      moneyAccountVaultConfig: MONAD_VAULT,
+      ...remoteFeatureFlags,
+    })
     .withOverrides({
       engine: {
         backgroundState: {

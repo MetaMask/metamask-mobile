@@ -3,6 +3,7 @@ export const TraderPreviewSheetSelectorsIDs = {
   CLOSE_BUTTON: 'social-trader-preview-sheet-close-button',
   AVATAR: 'social-trader-preview-sheet-avatar',
   HANDLE: 'social-trader-preview-sheet-handle',
+  VERIFIED_BADGE: 'social-trader-preview-sheet-verified-badge',
   HEADER_SKELETON: 'social-trader-preview-sheet-header-skeleton',
   STATS_CARD: 'social-trader-preview-sheet-stats-card',
   STATS_SKELETON: 'social-trader-preview-sheet-stats-skeleton',

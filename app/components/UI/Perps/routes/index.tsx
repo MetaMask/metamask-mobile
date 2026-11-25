@@ -105,8 +105,8 @@ export const getPerpsConversionScreenOptions = (
       }
     : baseOptions;
 
-export function getRedesignedConfirmationsHeaderOptions(
-  params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
+export function getConfirmationsHeaderOptions(
+  params: PerpsNavigationParamList['Confirmations'] = {},
   screenBackgroundColor?: string,
 ): NativeStackNavigationOptions {
   if (params?.useBottomSheet) {
@@ -229,7 +229,7 @@ export const getTpslOptions = (
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
-    useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+    useRoute<RouteProp<PerpsNavigationParamList, 'Confirmations'>>();
   const { approvalRequest } = useApprovalRequest();
   const showPerpsHeader =
     params?.showPerpsHeader ??
@@ -407,11 +407,11 @@ const PerpsModalStack = () => {
             component={PerpsOrderRedirect}
           />
           <ModalStack.Screen
-            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
             component={PerpsConfirmScreen}
             options={({ route }) =>
-              getRedesignedConfirmationsHeaderOptions(
-                route.params as PerpsNavigationParamList['RedesignedConfirmations'],
+              getConfirmationsHeaderOptions(
+                route.params as PerpsNavigationParamList['Confirmations'],
                 colors.background.default,
               )
             }
@@ -690,10 +690,10 @@ const PerpsScreenStack = () => {
               />
 
               <Stack.Screen
-                name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+                name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
                 component={PerpsConfirmScreen}
                 options={({ route }) =>
-                  getRedesignedConfirmationsHeaderOptions(
+                  getConfirmationsHeaderOptions(
                     route.params,
                     colors.background.default,
                   )

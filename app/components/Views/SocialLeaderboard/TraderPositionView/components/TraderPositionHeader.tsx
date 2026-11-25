@@ -18,6 +18,7 @@ export interface TraderPositionHeaderProps {
   traderImageUrl?: string;
   traderAddress?: string;
   traderProfileId?: string;
+  isTraderVerified?: boolean;
   onBack: () => void;
   onTraderPress: () => void;
   onShare?: () => void;
@@ -33,6 +34,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
   traderImageUrl,
   traderAddress,
   traderProfileId,
+  isTraderVerified,
   onBack,
   onTraderPress,
   onShare,
@@ -60,6 +62,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
       traderImageUrl={traderImageUrl}
       traderAddress={traderAddress}
       traderProfileId={traderProfileId}
+      isVerified={isTraderVerified}
       variant="nav"
       onPress={onTraderPress}
       testID={traderNameTestID}

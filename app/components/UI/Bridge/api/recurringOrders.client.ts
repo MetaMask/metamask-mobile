@@ -131,10 +131,11 @@ async function prepareRecurringDelegation(
     srcAssetId: query.srcAssetId,
     srcAmount: query.srcAmount,
     destAssetId: query.destAssetId,
-    every: String(query.every),
-    unit: query.unit,
-    repeatCount: String(query.repeatCount),
+    schedule: JSON.stringify(query.schedule),
   });
+  if (query.priceRange) {
+    searchParams.set('priceRange', JSON.stringify(query.priceRange));
+  }
 
   return recurringRequest({
     method: 'GET',

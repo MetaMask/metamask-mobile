@@ -94,6 +94,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsController;
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
+  delete fullState.engine.backgroundState.CollectiblesController;
 
   const { backgroundState } = fullState.engine;
   const rawCardControllerState = backgroundState.CardController;

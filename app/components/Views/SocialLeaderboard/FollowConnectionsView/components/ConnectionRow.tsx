@@ -16,10 +16,12 @@ import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import {
   getConnectionFollowButtonTestId,
   getConnectionRowTestId,
+  getConnectionVerifiedBadgeTestId,
 } from '../FollowConnectionsView.testIds';
 
 const AVATAR_SIZE = 40;
@@ -34,6 +36,8 @@ export interface ConnectionRowProps {
   subtitle?: string;
   address: string;
   avatarUri?: string;
+  /** Profile API verified this trader. */
+  isVerified?: boolean;
   isFollowing: boolean;
   /**
    * Follow control style. Omitted keeps a primary Follow button and a
@@ -50,6 +54,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
   subtitle,
   address,
   avatarUri,
+  isVerified = false,
   isFollowing,
   followVariant,
   onFollowPress,
@@ -86,13 +91,25 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
             recyclingKey={id}
           />
           <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              numberOfLines={1}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {username}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {username}
+              </Text>
+              {isVerified ? (
+                <ProfileVerifiedBadge
+                  testID={getConnectionVerifiedBadgeTestId(id)}
+                />
+              ) : null}
+            </Box>
             {subtitle ? (
               <Text
                 variant={TextVariant.BodySm}

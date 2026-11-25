@@ -338,6 +338,7 @@ export function usePerpsClosePositionForm(
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
+    providerId: position.providerId,
     symbols: [position.symbol],
     throttleMs: 1000,
   });
@@ -346,13 +347,14 @@ export function usePerpsClosePositionForm(
     : Number.parseFloat(position.entryPrice);
 
   const referencePrice = resolveOracleReferencePrice(
-    priceData[position.symbol]?.markPrice,
+    priceData[position.symbol]?.oraclePrice,
     currentPrice,
   );
 
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: position.symbol,
+    providerId: position.providerId,
   });
 
   // Subscribe to live position updates for this coin
@@ -362,8 +364,15 @@ export function usePerpsClosePositionForm(
       throttleMs: 1000,
     });
   const matchingLivePosition = useMemo(
-    () => livePositions.find((p) => p.symbol === position.symbol),
-    [livePositions, position.symbol],
+    () =>
+      livePositions.find(
+        (p) =>
+          p.symbol === position.symbol &&
+          (!p.providerId ||
+            !position.providerId ||
+            p.providerId === position.providerId),
+      ),
+    [livePositions, position.symbol, position.providerId],
   );
   // Keep the route snapshot only for layout until we dismiss a gone position.
   const livePosition = matchingLivePosition ?? position;
