@@ -151,6 +151,21 @@ describe('MembershipBanner', () => {
     );
   });
 
+  it('disables Add funds and shows it as busy while checking the balance', () => {
+    const model = getMembershipBannerModel(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.pastDue }),
+    );
+    const { getByTestId } = render(
+      <MembershipBanner model={model} onAction={jest.fn()} isActionBusy />,
+    );
+
+    expect(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
+      ).props.accessibilityState,
+    ).toEqual(expect.objectContaining({ disabled: true, busy: true }));
+  });
+
   it('renders Overdue with the payment-failed alert', () => {
     const onAction = jest.fn();
     const { getByTestId } = renderBanner(

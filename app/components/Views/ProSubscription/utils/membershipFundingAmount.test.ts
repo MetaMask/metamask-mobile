@@ -2,7 +2,16 @@ import {
   MEMBERSHIP_FUNDING_PAD_FIXED_UNITS,
   MEMBERSHIP_FUNDING_PAD_PPM,
   getMembershipFundingAmount,
-} from './membershipFundingAmount';
+  getMembershipTopUpAmountUsd,
+} from '../../shared/membershipFundingAmount';
+
+describe('getMembershipTopUpAmountUsd', () => {
+  it('rounds the sub-cent renewal shortfall up to one cent', () => {
+    const amount = getMembershipTopUpAmountUsd('4989989', '4990000');
+
+    expect(amount).toBe('0.01');
+  });
+});
 
 const UNITS_PER_CENT = BigInt(10_000);
 

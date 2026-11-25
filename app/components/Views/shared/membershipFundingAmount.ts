@@ -1,3 +1,6 @@
+import BigNumber from 'bignumber.js';
+import { MUSD_DECIMALS } from '../../UI/Earn/constants/musd';
+
 /**
  * Proportional pad applied to the membership top-up, in parts per million
  * (10 ppm = 0.001%).
@@ -43,4 +46,23 @@ export function getMembershipFundingAmount(shortfall: bigint): bigint {
     PPM_DENOMINATOR;
 
   return shortfall + proportionalPad + MEMBERSHIP_FUNDING_PAD_FIXED_UNITS;
+}
+
+/**
+ * Pads the shortfall for vault rounding, then rounds up to cents so the
+ * deposit sheet does not truncate away the pad or display a $0.00 top-up.
+ *
+ * @param balance - Current mUSD balance in base units.
+ * @param requiredBalance - Required mUSD balance in base units.
+ * @returns The padded shortfall in USD, rounded up to cents.
+ */
+export function getMembershipTopUpAmountUsd(
+  balance: string,
+  requiredBalance: string,
+): string {
+  const shortfall = BigInt(requiredBalance) - BigInt(balance);
+  return new BigNumber(getMembershipFundingAmount(shortfall).toString())
+    .shiftedBy(-MUSD_DECIMALS)
+    .decimalPlaces(2, BigNumber.ROUND_CEIL)
+    .toFixed(2);
 }

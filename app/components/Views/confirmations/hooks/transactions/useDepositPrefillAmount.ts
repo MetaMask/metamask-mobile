@@ -137,13 +137,12 @@ export function useDepositPrefillAmount({
       return prefilledAmountConfig.enabled;
     }
 
-    // Explicit amounts use the same quote preparation flow without opting into
-    // balance-based prefill or changing card/add-mUSD funding behavior.
+    // Explicit amounts use quote preparation without opting into balance-based
+    // prefill. Card deposits keep their amount input flow.
     if (amount !== undefined) {
       const explicitAmount = new BigNumber(amount);
       return (
         depositIntent !== 'card' &&
-        depositIntent !== 'addMusd' &&
         explicitAmount.isFinite() &&
         explicitAmount.gt(0)
       );

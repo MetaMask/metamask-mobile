@@ -414,9 +414,12 @@ describe('MoneyAddMoneySheet', () => {
       { autoSelectFiatPayment: true, intent: 'card' },
     ],
   ])(
-    'forwards the launch source of the caller that opened the sheet when %s is pressed',
+    'forwards the initial amount and launch source when %s is pressed',
     (_label, testID, expectedOptions) => {
-      mockRouteParams = { launchedFrom: ConfirmationLaunchSource.Rewards };
+      mockRouteParams = {
+        amount: '0.01',
+        launchedFrom: ConfirmationLaunchSource.Rewards,
+      };
 
       const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -424,6 +427,7 @@ describe('MoneyAddMoneySheet', () => {
 
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         ...expectedOptions,
+        amount: '0.01',
         launchedFrom: ConfirmationLaunchSource.Rewards,
       });
     },

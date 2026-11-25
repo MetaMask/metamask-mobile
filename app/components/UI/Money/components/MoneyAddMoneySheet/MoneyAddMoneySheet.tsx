@@ -68,7 +68,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
+  const { amount, launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
   const {
@@ -130,11 +130,14 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   // letting it race the unmount.
   const startDeposit = useCallback(
     (options?: InitiateDepositOptions) => {
-      // Applied here rather than per row so every funding method inherits the
-      // caller's launch source.
-      const depositOptions = launchedFrom
-        ? { ...options, launchedFrom }
-        : options;
+      const depositOptions =
+        amount !== undefined || launchedFrom
+          ? {
+              ...options,
+              ...(amount !== undefined ? { amount } : {}),
+              ...(launchedFrom ? { launchedFrom } : {}),
+            }
+          : options;
       if (hasPendingTransaction) {
         log('Rejecting pending transaction before starting deposit');
         rejectPendingTransactions();
@@ -143,7 +146,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       }
       closeAndStartDeposit(depositOptions);
     },
-    [hasPendingTransaction, closeAndStartDeposit, launchedFrom],
+    [hasPendingTransaction, closeAndStartDeposit, amount, launchedFrom],
   );
 
   useEffect(() => {
