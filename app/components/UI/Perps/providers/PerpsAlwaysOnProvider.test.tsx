@@ -106,6 +106,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   ChaseOrderSuspensionError: class MockChaseOrderSuspensionError extends Error {
     suspendedOrders: unknown[];
     failures: unknown[];
@@ -142,8 +143,6 @@ jest.mock('@metamask/perps-controller', () => ({
     ReconnectionDelayAndroidMs: 500,
     ConnectRetryDelayMs: 1000,
   },
-  HYPERLIQUID_CONFIG: jest.requireActual('@metamask/perps-controller/constants')
-    .HYPERLIQUID_CONFIG,
   HYPERLIQUID_TWAP_LIMITS: {
     MinDurationMinutes: 5,
     MaxDurationMinutes: 1440,
@@ -157,8 +156,6 @@ jest.mock('@metamask/perps-controller', () => ({
       CHASE_BACKGROUNDED: 'chase_backgrounded',
     },
   },
-  getPerpsDisplaySymbol: jest.requireActual('@metamask/perps-controller')
-    .getPerpsDisplaySymbol,
 }));
 
 jest.mock('../../../../util/Logger', () => ({

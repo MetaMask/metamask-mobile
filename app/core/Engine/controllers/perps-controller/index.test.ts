@@ -32,37 +32,10 @@ jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
   applyE2EControllerMocks: jest.fn(),
 }));
 
-jest.mock('@metamask/perps-controller', () => {
-  const actualPerpsController = jest.requireActual(
-    '@metamask/perps-controller/PerpsController',
-  );
-  const actualUtils = jest.requireActual('@metamask/perps-controller/utils');
-  const actualConstants = jest.requireActual(
-    '@metamask/perps-controller/constants',
-  );
-
-  return {
-    controllerName: actualPerpsController.controllerName,
-    getDefaultPerpsControllerState:
-      actualPerpsController.getDefaultPerpsControllerState,
-    InitializationState: actualPerpsController.InitializationState,
-    PerpsController: jest.fn(),
-    parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
-    MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
-    PerpsMode: actualConstants.PerpsMode,
-    DEFAULT_PRO_LAYOUT_PREFERENCES:
-      actualConstants.DEFAULT_PRO_LAYOUT_PREFERENCES,
-    DEFAULT_ORDER_BOOK_PREFERENCES:
-      actualConstants.DEFAULT_ORDER_BOOK_PREFERENCES,
-    DEFAULT_SELECTED_ORDER_TYPE: actualConstants.DEFAULT_SELECTED_ORDER_TYPE,
-    VISIBLE_CANDLE_COUNT_CONFIG: actualConstants.VISIBLE_CANDLE_COUNT_CONFIG,
-    PERPS_TRANSACTIONS_HISTORY_CONSTANTS:
-      actualConstants.PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
-    HYPERLIQUID_CONFIG: actualConstants.HYPERLIQUID_CONFIG,
-    HYPERLIQUID_TWAP_LIMITS: actualConstants.HYPERLIQUID_TWAP_LIMITS,
-    CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
-  };
-});
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
+  PerpsController: jest.fn(),
+}));
 
 describe('perps controller init', () => {
   const perpsControllerClassMock = jest.mocked(PerpsController);

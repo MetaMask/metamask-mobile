@@ -82,27 +82,21 @@ jest.mock('../constants/perpsConfig', () => ({
   MARGIN_REMOVAL_PRICE_MOVE_BUFFER: 0.01,
 }));
 
-jest.mock('@metamask/perps-controller', () => {
-  const actual = jest.requireActual('@metamask/perps-controller');
-  return {
-    MARGIN_ADJUSTMENT_CONFIG: { MarginRemovalSafetyBuffer: 0.1 },
-    PERPS_CONSTANTS: { FeatureName: 'perps' },
-    PERPS_EVENT_PROPERTY: {
-      ACTION: 'action',
-      ASSET: 'asset',
-      ERROR_MESSAGE: 'error_message',
-      STATUS: 'status',
-    },
-    PERPS_EVENT_VALUE: {
-      STATUS: { FAILED: 'failed', SUCCESS: 'success' },
-    },
-    PERPS_ERROR_CODES: actual.PERPS_ERROR_CODES,
-    PERPS_ERROR_COPY: actual.PERPS_ERROR_COPY,
-    PROVIDER_CONFIG: actual.PROVIDER_CONFIG,
-    isPerpsErrorCode: actual.isPerpsErrorCode,
-    getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
-  };
-});
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
+  MARGIN_ADJUSTMENT_CONFIG: { MarginRemovalSafetyBuffer: 0.1 },
+  PERPS_CONSTANTS: { FeatureName: 'perps' },
+  PERPS_EVENT_PROPERTY: {
+    ACTION: 'action',
+    ASSET: 'asset',
+    ERROR_MESSAGE: 'error_message',
+    STATUS: 'status',
+  },
+  PERPS_EVENT_VALUE: {
+    STATUS: { FAILED: 'failed', SUCCESS: 'success' },
+  },
+  getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
+}));
 
 describe('usePerpsMarginAdjustment', () => {
   beforeEach(() => {

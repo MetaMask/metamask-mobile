@@ -99,38 +99,23 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => {
-  const actualConstants = jest.requireActual(
-    '@metamask/perps-controller/constants',
-  );
-
-  const { calculateNetClosedPnl, formatPerpsFiat } = jest.requireActual(
-    '@metamask/perps-controller',
-  );
-
-  return {
-    getPerpsDisplaySymbol: (symbol: string) => symbol,
-    // History nets closed PnL with Core's formula and formats fees with Core's
-    // fiat formatter.
-    calculateNetClosedPnl,
-    formatPerpsFiat,
-    PERPS_CONSTANTS: {
-      RecentActivityLimit: 3,
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
+  getPerpsDisplaySymbol: (symbol: string) => symbol,
+  PERPS_CONSTANTS: {
+    RecentActivityLimit: 3,
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_NAME: {
+      PERPS_MARKET_DETAILS: 'perps_market_details',
     },
-    PERPS_EVENT_VALUE: {
-      SCREEN_NAME: {
-        PERPS_MARKET_DETAILS: 'perps_market_details',
-      },
-    },
-    HYPERLIQUID_CONFIG: actualConstants.HYPERLIQUID_CONFIG,
-    HYPERLIQUID_TWAP_LIMITS: {
-      MinDurationMinutes: 5,
-      MaxDurationMinutes: 1440,
-      MinNotionalUsd: 100,
-    },
-    CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
-  };
-});
+  },
+  HYPERLIQUID_TWAP_LIMITS: {
+    MinDurationMinutes: 5,
+    MaxDurationMinutes: 1440,
+    MinNotionalUsd: 100,
+  },
+}));
 
 describe('PerpsMarketTradesList', () => {
   const mockNavigate = jest.fn();
