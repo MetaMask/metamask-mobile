@@ -2515,7 +2515,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice ??
           ''),
@@ -3225,9 +3225,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3535,7 +3533,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4277,7 +4275,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

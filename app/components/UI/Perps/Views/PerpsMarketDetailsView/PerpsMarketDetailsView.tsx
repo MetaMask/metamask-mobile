@@ -677,7 +677,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   });
 
   // Get current price for the symbol
-  // Use the venue mark price, which triggers stop losses
+  // Use the venue mark price for stop loss calculations: HyperLiquid triggers
+  // TP/SL on mark, and it resists manipulation better than the mid
   // Falls back to mid price if mark price unavailable
   const currentPrice = useMemo(() => {
     if (!market?.symbol) return 0;

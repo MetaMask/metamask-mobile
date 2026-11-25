@@ -9,7 +9,10 @@
  * Reference: tests/integration/AGENTS.md · MetaMask/skills integration-test
  */
 
-// Install the harness mocks before importing the controller entrypoint.
+// The harness import must come first: it registers the jest.mock factories for
+// the controller's internal service modules. `@metamask/perps-controller` now
+// imports `TradingReadinessCache` eagerly, so loading the controller before the
+// harness would capture the real cache and leave the harness mocks unset.
 import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
 import { PERPS_ERROR_CODES, type Position } from '@metamask/perps-controller';
 
@@ -195,11 +198,12 @@ describe('Perps order lifecycle — integration', () => {
         twapRandomize: false,
       });
 
-      // Assert
+      // Assert — the normalized Core error contract replaces unclassified
+      // venue text with UNKNOWN_ERROR; the raw text stays in the cause chain
+      // for telemetry and is never surfaced to users.
       expect(result.success).toBe(false);
-      expect(result).toMatchObject({
-        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-      });
+      expect(result.errorCode).toBe(PERPS_ERROR_CODES.UNKNOWN_ERROR);
+      expect(result.error).toBe(PERPS_ERROR_CODES.UNKNOWN_ERROR);
       expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledTimes(1);
       expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
     });

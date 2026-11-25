@@ -44,12 +44,9 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          provider: 'hyperliquid',
-        },
+        error: 'UNKNOWN_ERROR',
+        errorCode: 'UNKNOWN_ERROR',
+        errorDetails: { code: 'UNKNOWN_ERROR', provider: 'hyperliquid' },
       });
     });
 
@@ -61,12 +58,9 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          provider: 'hyperliquid',
-        },
+        error: 'UNKNOWN_ERROR',
+        errorCode: 'UNKNOWN_ERROR',
+        errorDetails: { code: 'UNKNOWN_ERROR', provider: 'hyperliquid' },
         data: null,
       });
     });
@@ -79,12 +73,9 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          provider: 'hyperliquid',
-        },
+        error: 'UNKNOWN_ERROR',
+        errorCode: 'UNKNOWN_ERROR',
+        errorDetails: { code: 'UNKNOWN_ERROR', provider: 'hyperliquid' },
         txHash: '0x123',
         amount: '100',
       });

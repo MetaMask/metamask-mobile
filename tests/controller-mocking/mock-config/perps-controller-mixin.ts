@@ -679,7 +679,71 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     );
   }
 
+  keepMockAccountStateOnController(controller, mockService);
+
   console.log('✅ E2E PerpsController mocks applied with initial state');
+}
+
+/**
+ * `@metamask/perps-controller` >= 25 clears `state.accountState` (and
+ * `perpsBalances`) whenever the selected trading account changes, which
+ * happens right after login once the account tree resolves the selected
+ * account. The E2E stream mocks never write account data back to the
+ * controller (the real `subscribeToAccount` does), so the seeded mock account
+ * is lost. Redux consumers such as
+ * `useDefaultPayWithTokenWhenNoPerpsBalance` then see a zero spendable
+ * balance and default the order sheet to a pay-with token (ETH). That puts
+ * Transaction Pay in the critical path of order entry and withdrawals, where
+ * no quotes are mocked, so the fees row never resolves and the CTA /
+ * Continue button stays disabled.
+ *
+ * Re-seed the mock account whenever the controller clears it.
+ */
+function keepMockAccountStateOnController(
+  controller: unknown,
+  mockService: PerpsE2EMockService,
+): void {
+  const messenger = (
+    controller as {
+      messenger?: {
+        subscribe: (event: string, handler: () => void) => void;
+      };
+    }
+  ).messenger;
+
+  if (typeof messenger?.subscribe !== 'function') {
+    console.warn(
+      'E2E Mock: controller messenger unavailable — cannot protect mock accountState from being cleared',
+    );
+    return;
+  }
+
+  const reseedWhenCleared = (): void => {
+    // Read the live state rather than the event payload: `BaseController`
+    // publishes both events for one update, each carrying that update's
+    // (cleared) payload, so the payload would trigger a redundant re-seed.
+    const currentState = (controller as { state?: PerpsControllerState }).state;
+    if (currentState?.accountState) {
+      return;
+    }
+    try {
+      (controller as ControllerWithUpdate).update(
+        (draft: PerpsControllerState) => {
+          draft.accountState = mockService.getMockAccountState();
+          draft.lastUpdateTimestamp = Date.now();
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: failed to re-seed mock accountState:', e);
+    }
+  };
+
+  // `BaseController` publishes `stateChange` (legacy name, still used by the
+  // Engine allowlist) and `stateChanged` (its replacement) on every update.
+  // Listen to both so this keeps working whichever one a future
+  // `@metamask/base-controller` stops publishing; the handler is idempotent.
+  messenger.subscribe('PerpsController:stateChange', reseedWhenCleared);
+  messenger.subscribe('PerpsController:stateChanged', reseedWhenCleared);
 }
 
 /**

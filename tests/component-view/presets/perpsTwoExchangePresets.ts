@@ -1,4 +1,5 @@
 import type {
+  AccountState,
   PerpsMarketData,
   PerpsProviderType,
   Position,
@@ -12,6 +13,11 @@ import {
   createFundedAccountForViews,
   createLongPositionForViews,
 } from '../fixtures/perpsViewFixtures';
+
+// These are synthetic two-exchange fixtures, not snapshots of what the
+// installed controller emits. Each scenario still carries per-exchange account
+// states (Lighter down = Lighter 'unavailable').
+export type PerpsAccountProviderStates = AccountState['providerStates'];
 
 interface ExchangeAccount {
   total: string;

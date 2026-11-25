@@ -243,6 +243,7 @@ let mockLiveAccount: Pick<
   'crossMarginSummary' | 'spotCollateral'
 > | null = null;
 let mockLiveMarkPrice = '90000';
+let mockLiveOraclePrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
 // Perps account-group EVM address; follows the internal account unless set.
@@ -441,6 +442,7 @@ jest.mock('../../../../hooks/stream', () => ({
     BTC: {
       price: mockLivePrice,
       markPrice: mockLiveMarkPrice,
+      oraclePrice: mockLiveOraclePrice,
       percentChange24h: '1',
     },
   }),
@@ -830,6 +832,7 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveAccount = null;
     mockLiveMarkPrice = '90000';
+    mockLiveOraclePrice = '90000';
     mockTotalFee = 5;
     mockTotalFeeRate = 0.03;
     mockTakerFeeRate = undefined;
@@ -5197,22 +5200,48 @@ describe('usePerpsProOrderForm', () => {
       expect(params.providerId).toBe('hyperliquid');
     });
 
-    it('shows an error toast when the separate TP/SL update fails', async () => {
-      // Arrange
+    it('shows retryable copy when a separate TP/SL update returns unclassified text', async () => {
+      const diagnostic = 'nope';
       mockOrderForm.takeProfitPrice = '95000';
       mockUpdatePositionTPSL.mockResolvedValue({
         success: false,
-        error: 'nope',
+        error: diagnostic,
       });
       const { result } = renderProForm();
 
-      // Act
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
 
-      // Assert
-      expect(updateTPSLError).toHaveBeenCalledWith('nope');
+      expect(updateTPSLError).toHaveBeenCalledWith(
+        strings('perps.errors.unknownError'),
+      );
+      expect(updateTPSLError).not.toHaveBeenCalledWith(diagnostic);
+    });
+
+    it('translates a separate TP/SL failure from its provider error code', async () => {
+      const diagnostic =
+        'Hyperliquid signer 0xabc returned an internal stack trace';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: diagnostic,
+        errorCode: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+          provider: 'hyperliquid',
+        },
+      });
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(updateTPSLError).toHaveBeenCalledWith(
+        strings('perps.errors.clientReinitializing'),
+      );
+      expect(updateTPSLError).not.toHaveBeenCalledWith(diagnostic);
     });
   });
 
@@ -6274,6 +6303,20 @@ describe('usePerpsProOrderForm', () => {
           }),
         ]),
       );
+    });
+
+    it('sizes market-order margin on the venue mark price, not the oracle price', () => {
+      mockOrderForm.amount = '900';
+      mockLivePrice = '90000';
+      mockLiveMarkPrice = '100000';
+      mockLiveOraclePrice = '80000';
+
+      renderProForm();
+
+      // 900 / 90000 mid = 0.01 BTC; 0.01 × 100000 mark / 5x = 200
+      // (the 80000 oracle would give 160).
+      expect(Number(mockOrderValidationParams?.positionSize)).toBe(0.01);
+      expect(Number(mockOrderValidationParams?.marginRequired)).toBe(200);
     });
 
     it('validates margin from the whole rounded Scale ladder notional', async () => {

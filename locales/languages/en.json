@@ -1477,9 +1477,7 @@
       },
       "sub_header": {
         "at_connector": "at",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} at {{price}}",
-        "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30d)",
@@ -1994,22 +1992,6 @@
         "4": "Thu",
         "5": "Fri",
         "6": "Sat"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Bought",
-        "sold": "Sold",
-        "perps_closed": "Closed",
-        "perps_long_opened": "Opened long",
-        "perps_long_added": "Added to long",
-        "perps_long_reduced": "Reduced long",
-        "perps_short_opened": "Opened short",
-        "perps_short_added": "Added to short",
-        "perps_short_reduced": "Bought back",
-        "spot_opened": "Bought",
-        "spot_added": "Bought more",
-        "spot_reduced": "Sold some",
-        "spot_closed": "Sold all"
       }
     },
     "trader_position": {
@@ -2994,9 +2976,10 @@
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
       "unsupportedCollateral": "This market's collateral is not supported",
-      "unknownError": "Unknown error occurred",
+      "unknownError": "Something went wrong. Please try again.",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
+      "marketNotFound": "Market not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
       "exchangeAccountNotFound": "Add funds to your account before placing an order",
@@ -3061,6 +3044,8 @@
         "scaleCountInvalid": "Scale order count is invalid",
         "scaleSizeTooSmall": "Each scale order is below the minimum size",
         "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
+        "scaleSizeConservationFailed": "We couldn't place your scale order. Try again.",
+        "scaleExposureExceedsIntent": "We couldn't place your scale order. Try again.",
         "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
         "chaseIntervalInvalid": "Chase interval is invalid",
         "chaseDurationInvalid": "Chase duration is invalid",
@@ -3076,18 +3061,13 @@
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
-      "ordersFailed": "Unable to load orders. Try again.",
-      "liquidationPriceUnavailable": "Liquidation price is unavailable.",
-      "batchIncomplete": "Some orders or positions could not be updated.",
-      "orderNoLongerOpen": "This order is no longer open.",
       "tpslProtectionLost": "We couldn't confirm that your previous take profit or stop loss was restored. Check your open orders.",
       "positionsFailed": "Failed to get positions",
       "accountStateFailed": "Failed to get account state",
       "marketsFailed": "Failed to get markets",
-      "marketNotFound": "Market not found",
       "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
       "providerNotAvailable": "Provider {{providerId}} not available",
-      "providerRouteRequired": "Choose a provider for this order and try again.",
+      "providerRouteRequired": "No exchange selected. Select one and try again.",
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
@@ -3104,6 +3084,10 @@
       "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
       "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
       "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
+      "batchIncomplete": "Some orders or positions couldn't be updated. Try again.",
+      "ordersFailed": "We couldn't load your orders. Try again.",
+      "orderNoLongerOpen": "This order is no longer open. It may have already been filled or cancelled.",
+      "liquidationPriceUnavailable": "Liquidation price is unavailable. Try again.",
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
@@ -4448,6 +4432,10 @@
       "claim": "Claim"
     },
     "crypto_up_down": {
+      "market_break": {
+        "reopens_at": "Market is on a break. Live chart resumes at {{time}}.",
+        "closed": "Market is closed. Live chart resumes when trading reopens."
+      },
       "twap_info": {
         "title": "How this market settles",
         "accessibility_label": "Learn how this market settles",
@@ -5469,6 +5457,18 @@
     "title": "Collectibles",
     "trade_menu": {
       "description": "Explore packs and cards"
+    },
+    "home": {
+      "empty": "No packs available",
+      "empty_description": "Check back soon or browse other packs.",
+      "opens": {
+        "one": "{{formattedCount}} open",
+        "other": "{{formattedCount}} opens"
+      },
+      "opens_trending": {
+        "one": "{{formattedCount}} open, trending",
+        "other": "{{formattedCount}} opens, trending"
+      }
     }
   },
   "collectible": {
@@ -10099,6 +10099,26 @@
     },
     "earnings": {
       "title": "Earnings",
+      "tab_earnings": "Earnings",
+      "tab_apy": "APY",
+      "tab_allocation": "Allocation",
+      "range_1w": "1W",
+      "range_1m": "1M",
+      "range_3m": "3M",
+      "range_6m": "6M",
+      "range_1y": "All",
+      "total_earned": "Total earned",
+      "last_30_days": "Last 30 days",
+      "lifetime": "Lifetime",
+      "projected_in_1_year": "Projected in 1 year",
+      "projection_disclaimer": "Based on current balance and APY",
+      "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
+      "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
+      "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
+      "earn_more": "Earn more",
+      "error": "We couldn't load earnings. Try again.",
+      "retry": "Retry",
+      "empty": "No earnings history yet.",
       "estimated_monthly": "Monthly",
       "estimated_lifetime": "Lifetime",
       "monthly_info_label": "Monthly earnings info",
@@ -10775,6 +10795,7 @@
       "now": "Now",
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
+      "convert": "Convert",
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
@@ -10949,6 +10970,34 @@
       "buy_perps": "Add funds to your wallet to use Perps.",
       "projected_balance": "Est. {{projectedYears}}-year balance:",
       "earn_up_to_apy": "Earn {{percentage}}% APY"
+    },
+    "money_deposit": {
+      "to_metamask_money": "MetaMask Money",
+      "to_separator": " • ",
+      "apy_label": "{{percentage}}% APY",
+      "less_than_one_min": "Less than 1 min",
+      "apy_info_sheet": {
+        "subtitle": "Annual Percentage Yield",
+        "lead": "This is the rate your MetaMask Money balance is earning right now.",
+        "how_it_works_title": "How it works",
+        "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+        "why_it_changes_title": "Why it changes",
+        "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+        "where_it_comes_from_title": "Where it comes from",
+        "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk."
+      },
+      "musd_info_sheet": {
+        "title": "You'll receive {{amount}} of MetaMask USD",
+        "lead": "MetaMask USD (mUSD) is a dollar stablecoin.",
+        "bullet_worth_title": "Always worth $1",
+        "bullet_worth_body": "It's backed 1:1 by short-term US Treasury bills and cash.",
+        "bullet_backed_title": "Backed by names you know",
+        "bullet_backed_body": "BlackRock manages the reserves and JPMorgan Chase holds them. mUSD is issued by Bridge, a Stripe company.",
+        "bullet_earns_title_prefix": "Earns up to ",
+        "bullet_earns_body": "It starts earning automatically in your MetaMask Money account.",
+        "bullet_no_lockups_title": "No lockups",
+        "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds."
+      }
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -11135,7 +11184,7 @@
       "est_receiving_per_order": "Est. receiving (per order)",
       "est_receiving_all_orders": "Est. receiving (all orders)",
       "expires_after": "Expires after",
-      "slippage_all_orders": "Slippage (all orders)",
+      "default_price_tolerance_description": "Your recurring order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
       "est_network_fee_per_order": "Est. network fee (per order)",
       "account_upgrade_fee": "Account upgrade fee",
       "account_upgrade_fee_info_title": "Account upgrade fee",
@@ -13094,6 +13143,8 @@
     "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
+      "live_until_date": "Live until {{date}}",
+      "join_campaign": "Join the {{campaignName}}",
       "ended_date": "Ended {{date}}",
       "pill_up_next": "Coming soon",
       "up_next": "Up next",

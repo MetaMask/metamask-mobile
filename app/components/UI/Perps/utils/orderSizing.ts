@@ -31,7 +31,7 @@ export interface DeriveOrderSizingInput {
   triggerPrice?: string;
   /** Mid/market price used for market orders and display. */
   marketPrice: number;
-  /** Venue mark price, the standard margin basis; undefined while unknown. */
+  /** Venue mark price (`PriceUpdate.markPrice`), the standard margin basis; undefined while unknown. */
   markPrice?: number;
   leverage: number;
   /** Asset size decimals from market data; falls back when unknown. */

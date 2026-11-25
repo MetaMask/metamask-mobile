@@ -35,15 +35,22 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
       activeProvider === 'aggregated' || activeProvider === undefined
         ? Object.values(perpsBalances)
         : [perpsBalances[activeProvider]];
-    const totalUsd = rows.reduce((sum, row) => {
-      if (!row || typeof row !== 'object' || !('accountValue1dAgo' in row)) {
-        return sum;
+    // A provider without a 1d-ago observation makes the baseline unavailable:
+    // a partial sum or a zero would misstate the 24h change.
+    let totalUsd = 0;
+    for (const row of rows) {
+      if (!row || typeof row !== 'object') {
+        continue;
       }
-      const historicalBalance = row.accountValue1dAgo;
-      return historicalBalance
-        ? sum + new BigNumber(historicalBalance).toNumber()
-        : sum;
-    }, 0);
+      const value1dAgo =
+        row.accountValue1dAgo === undefined
+          ? undefined
+          : new BigNumber(row.accountValue1dAgo);
+      if (!value1dAgo?.isFinite()) {
+        return undefined;
+      }
+      totalUsd += value1dAgo.toNumber();
+    }
     return toUserCurrency(totalUsd);
   }, [activeProvider, perpsBalances, toUserCurrency]);
 

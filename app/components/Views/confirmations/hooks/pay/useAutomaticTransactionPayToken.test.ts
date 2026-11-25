@@ -40,6 +40,10 @@ import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+} from '../../__mocks__/pay-token.mock';
 
 jest.mock('./useIsMoneyAccountFlagDefault');
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -178,7 +182,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     selectRelayFixedSpreadMock.mockReturnValue({ routes: [] });
 
@@ -238,8 +242,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -290,8 +293,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -332,14 +334,16 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: PREFERRED_TOKEN_ADDRESS_MOCK,
-      chainId: PREFERRED_CHAIN_ID_MOCK,
+      assetId: evmAssetId(
+        PREFERRED_TOKEN_ADDRESS_MOCK,
+        PREFERRED_CHAIN_ID_MOCK,
+      ),
     });
   });
 
@@ -362,14 +366,13 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -381,8 +384,8 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
@@ -406,14 +409,13 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -444,7 +446,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -465,8 +467,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -497,7 +498,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -518,8 +519,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -550,7 +550,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -571,8 +571,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -598,7 +597,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -619,8 +618,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -672,7 +670,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -701,8 +699,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -732,20 +729,22 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
-      address: TOKEN_ADDRESS_2_MOCK as Hex,
-      chainId: CHAIN_ID_2_MOCK as Hex,
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
     });
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: PREFERRED_TOKEN_ADDRESS_MOCK,
-      chainId: PREFERRED_CHAIN_ID_MOCK,
+      assetId: evmAssetId(
+        PREFERRED_TOKEN_ADDRESS_MOCK,
+        PREFERRED_CHAIN_ID_MOCK,
+      ),
     });
   });
 
@@ -769,20 +768,19 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
-      address: TOKEN_ADDRESS_2_MOCK as Hex,
-      chainId: CHAIN_ID_2_MOCK as Hex,
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
     });
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -814,8 +812,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -923,7 +920,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -933,8 +930,8 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
-      address: TOKEN_ADDRESS_2_MOCK as Hex,
-      chainId: CHAIN_ID_2_MOCK as Hex,
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
     });
 
     renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
@@ -942,8 +939,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -974,7 +970,7 @@ describe('useAutomaticTransactionPayToken', () => {
         },
         overrides: {},
       },
-    } as MetaMaskPayTokensFlags);
+    });
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -994,8 +990,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -1011,10 +1006,10 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-      } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      }),
       setPayToken: setPayTokenMock,
     });
 
@@ -1058,8 +1053,7 @@ describe('useAutomaticTransactionPayToken', () => {
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
     });
   });
 
@@ -1084,7 +1078,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     setPayTokenMock.mockClear();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
 
     rerender(undefined);
 
@@ -1104,12 +1098,12 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_2_MOCK,
         chainId: CHAIN_ID_2_MOCK,
-      },
+      }),
       setPayToken: setPayTokenMock,
-    } as never);
+    });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -1127,13 +1121,12 @@ describe('useAutomaticTransactionPayToken', () => {
       payToken: undefined,
       setPayToken: setPayTokenMock,
     });
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
 
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -1159,13 +1152,12 @@ describe('useAutomaticTransactionPayToken', () => {
 
     setPayTokenMock.mockClear();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
 
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -1193,7 +1185,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     setPayTokenMock.mockClear();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [],
       hasTokens: false,
@@ -1209,8 +1201,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -1234,16 +1225,16 @@ describe('useAutomaticTransactionPayToken', () => {
       txParams: { from: '0xAddress1' },
     } as never);
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
 
     const { rerender } = runHook();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideB' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideB');
     rerender(undefined);
 
     setPayTokenMock.mockClear();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideC' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideC');
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [],
       hasTokens: false,
@@ -1252,14 +1243,13 @@ describe('useAutomaticTransactionPayToken', () => {
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideB' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideB');
     useTransactionPayAvailableTokensMock.mockReturnValue(fundedTokens);
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
+      assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
     });
   });
 
@@ -1285,7 +1275,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     setPayTokenMock.mockClear();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
     rerender(undefined);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
@@ -1326,15 +1316,15 @@ describe('useAutomaticTransactionPayToken', () => {
 
     const { rerender } = runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
     setPayTokenMock.mockClear();
 
-    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA');
 
     rerender(undefined);
 
@@ -1357,10 +1347,10 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-      } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      }),
       setPayToken: setPayTokenMock,
     });
 
@@ -1446,8 +1436,7 @@ describe('useAutomaticTransactionPayToken', () => {
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
   });
 
@@ -1494,10 +1483,10 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_2_MOCK,
         chainId: CHAIN_ID_2_MOCK,
-      } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      }),
       setPayToken: setPayTokenMock,
     });
 
@@ -1513,8 +1502,7 @@ describe('useAutomaticTransactionPayToken', () => {
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
   });
 
@@ -1538,8 +1526,7 @@ describe('useAutomaticTransactionPayToken', () => {
     // Initial selection + money-override detection both fire on first render
     expect(setPayTokenMock).toHaveBeenCalledTimes(2);
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
     setPayTokenMock.mockClear();
 
@@ -1571,8 +1558,7 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
   });
 
@@ -1599,16 +1585,15 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook({
       preferredToken: {
-        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
-        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
       },
     });
 
     // MoneyAccount override takes priority over preferredToken —
     // getBestToken returns MUSD unconditionally when isMoneyPaymentOverride is true
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
   });
 
@@ -1667,8 +1652,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_ADDRESS_1_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
+        assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
       });
     });
 
@@ -1694,8 +1678,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MONAD,
+        assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
       });
     });
 
@@ -1710,7 +1693,7 @@ describe('useAutomaticTransactionPayToken', () => {
           },
           overrides: {},
         },
-      } as MetaMaskPayTokensFlags);
+      });
 
       selectRelayFixedSpreadMock.mockReturnValue({
         routes: [
@@ -1721,7 +1704,7 @@ describe('useAutomaticTransactionPayToken', () => {
             targetToken: TOKEN_ADDRESS_2_MOCK,
           },
         ],
-      } as RelayFixedSpreadConfig);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1742,8 +1725,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_ADDRESS_1_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
+        assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
       });
     });
 
@@ -1772,8 +1754,7 @@ describe('useAutomaticTransactionPayToken', () => {
       });
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_ADDRESS_1_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
+        assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
       });
     });
 
@@ -1817,7 +1798,7 @@ describe('useAutomaticTransactionPayToken', () => {
               musdPreferredFlags.preferredTokens.overrides.moneyAccountDeposit,
           },
         },
-      } as MetaMaskPayTokensFlags);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1838,8 +1819,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MONAD,
+        assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
       });
     });
   });
@@ -1856,7 +1836,7 @@ describe('useAutomaticTransactionPayToken', () => {
           },
           overrides: {},
         },
-      } as MetaMaskPayTokensFlags);
+      });
 
       selectRelayFixedSpreadMock.mockReturnValue({
         routes: [
@@ -1867,7 +1847,7 @@ describe('useAutomaticTransactionPayToken', () => {
             targetToken: TOKEN_ADDRESS_2_MOCK,
           },
         ],
-      } as RelayFixedSpreadConfig);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1890,8 +1870,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_ADDRESS_2_MOCK,
-        chainId: CHAIN_ID_2_MOCK,
+        assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
       });
     });
 
@@ -1906,7 +1885,7 @@ describe('useAutomaticTransactionPayToken', () => {
           },
           overrides: {},
         },
-      } as MetaMaskPayTokensFlags);
+      });
 
       selectRelayFixedSpreadMock.mockReturnValue({
         routes: [
@@ -1917,7 +1896,7 @@ describe('useAutomaticTransactionPayToken', () => {
             targetToken: TOKEN_ADDRESS_2_MOCK,
           },
         ],
-      } as RelayFixedSpreadConfig);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1940,8 +1919,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_ADDRESS_1_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
+        assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
       });
     });
 
@@ -1967,7 +1945,7 @@ describe('useAutomaticTransactionPayToken', () => {
           },
           overrides: {},
         },
-      } as MetaMaskPayTokensFlags);
+      });
 
       selectRelayFixedSpreadMock.mockReturnValue({
         routes: [
@@ -1978,7 +1956,7 @@ describe('useAutomaticTransactionPayToken', () => {
             targetToken: TOKEN_ADDRESS_2_MOCK,
           },
         ],
-      } as RelayFixedSpreadConfig);
+      });
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -2001,8 +1979,7 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_ADDRESS_1_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
+        assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
       });
     });
 
@@ -2023,7 +2000,7 @@ describe('useAutomaticTransactionPayToken', () => {
             },
             overrides: {},
           },
-        } as MetaMaskPayTokensFlags);
+        });
 
         selectRelayFixedSpreadMock.mockReturnValue({
           routes: [
@@ -2034,7 +2011,7 @@ describe('useAutomaticTransactionPayToken', () => {
               targetToken: TOKEN_ADDRESS_2_MOCK,
             },
           ],
-        } as RelayFixedSpreadConfig);
+        });
 
         useTransactionMetadataRequestMock.mockReturnValue({
           id: transactionIdMock,
@@ -2060,12 +2037,10 @@ describe('useAutomaticTransactionPayToken', () => {
         // (TOKEN_ADDRESS_2); they resolve to the required destination token
         // (TOKEN_ADDRESS_1) so quotes can be fetched.
         expect(setPayTokenMock).not.toHaveBeenCalledWith({
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
+          assetId: evmAssetId(TOKEN_ADDRESS_2_MOCK, CHAIN_ID_2_MOCK),
         });
         expect(setPayTokenMock).toHaveBeenCalledWith({
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
+          assetId: evmAssetId(TOKEN_ADDRESS_1_MOCK, CHAIN_ID_1_MOCK),
         });
       },
     );
@@ -2138,8 +2113,7 @@ describe('useAutomaticTransactionPayToken', () => {
       rerender(undefined);
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MONAD,
+        assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
       });
     });
   });

@@ -1446,7 +1446,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
+      await view.findByTestId(EventMarketListTestIds.layoutTab('game_lines')),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([

@@ -434,6 +434,48 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  it('forwards every controller price field, including oraclePrice', async () => {
+    const controllerUpdate: PriceUpdate = {
+      symbol: 'BTC-PERP',
+      price: '50000',
+      percentChange24h: '5',
+      timestamp: 1,
+      bestBid: '49900',
+      bestAsk: '50100',
+      spread: '200',
+      markPrice: '50050',
+      oraclePrice: '49980',
+      funding: 0.0001,
+      openInterest: 1_000_000,
+      volume24h: 5_000_000,
+      isTradable: false,
+    };
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        params.callback([controllerUpdate]);
+        return jest.fn();
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalled();
+    });
+    const received = onUpdate.mock.calls[0][0]['BTC-PERP'];
+    expect(received).toStrictEqual({
+      ...controllerUpdate,
+      timestamp: expect.any(Number),
+    });
+    expect(received.timestamp).not.toBe(controllerUpdate.timestamp);
+  });
+
   it('throttles updates after first immediate update', async () => {
     let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
     mockSubscribeToPrices.mockImplementation(

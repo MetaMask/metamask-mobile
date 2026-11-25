@@ -49,9 +49,11 @@ describe('getRecurringOrderDelegationParams', () => {
       srcAssetId: 'eip155:1/slip44:60',
       srcAmount: '1250000000000000000',
       destAssetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      every: 2,
-      unit: 'day',
-      repeatCount: 4,
+      schedule: {
+        every: 2,
+        unit: 'day',
+        repeatCount: 4,
+      },
     });
   });
 

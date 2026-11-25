@@ -186,7 +186,10 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
       : TextColor.SuccessDefault;
   }, [liveFunding, marketStats.fundingRate]);
 
-  // `price` is the mid; the venue's mark and oracle are separate fields.
+  // Mark and oracle are two distinct values and must come from two distinct
+  // fields (TAT-4024). In PriceUpdate, `price` is the live mid, `markPrice` is
+  // the venue mark (HyperLiquid markPx) and `oraclePrice` is the exchange
+  // oracle. Neither row falls back to the mid.
   const markPriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
   const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.oraclePrice);
 

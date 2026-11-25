@@ -3,6 +3,7 @@ import {
   PERPS_ERROR_COPY,
 } from '@metamask/perps-controller';
 import enTranslations from '../../../../../locales/languages/en.json';
+import { translatePerpsError } from './translatePerpsError';
 
 /**
  * Lives apart from `translatePerpsError.test.ts` on purpose: that file mocks
@@ -127,6 +128,8 @@ describe('Perps error translations', () => {
   });
 
   it('maps the v23 and v24 provider-route and TP/SL leg codes', () => {
+    const routeKey =
+      PERPS_ERROR_COPY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED].key;
     const legReplaceCopy = resolveTranslation(
       PERPS_ERROR_COPY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED].key,
     );
@@ -136,14 +139,33 @@ describe('Perps error translations', () => {
     ).toBe('perps.errors.tpslLegReplaceUnsupported');
     expect(legReplaceCopy).toContain('together instead');
     expect(legReplaceCopy).not.toContain('Try again');
-    expect(
-      PERPS_ERROR_COPY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED].key,
-    ).toBe('perps.errors.providerRouteRequired');
+    expect(routeKey).toBe('perps.errors.providerRouteRequired');
+    expect(resolveTranslation(routeKey)).toBe(
+      'No exchange selected. Select one and try again.',
+    );
   });
 
   it('maps the v20 price-moved code to detailed price movement copy', () => {
     expect(PERPS_ERROR_COPY[PERPS_ERROR_CODES.PRICE_MOVED].key).toBe(
       'perps.errors.priceMoved',
+    );
+  });
+
+  it('maps post-only codes to the existing post-only copy', () => {
+    expect(
+      PERPS_ERROR_COPY[PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS].key,
+    ).toBe('perps.errors.postOnlyWouldCross');
+    expect(PERPS_ERROR_COPY[PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW].key).toBe(
+      'perps.errors.postOnlyWindow',
+    );
+  });
+
+  it.each([
+    PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED,
+    PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT,
+  ])('keeps the scale order copy for %s', (errorCode) => {
+    expect(translatePerpsError({ error: errorCode, errorCode })).toBe(
+      "We couldn't place your scale order. Try again.",
     );
   });
 

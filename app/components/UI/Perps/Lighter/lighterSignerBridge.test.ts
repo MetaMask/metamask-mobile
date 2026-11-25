@@ -87,7 +87,12 @@ describe('lighterSignerBridge', () => {
       if (
         action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
       )
-        return Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup();
+        // The selected account is part of its own group; the fixed EVM account
+        // is kept so non-EVM selections still resolve to a group EVM account.
+        return [
+          mockSelectedAccount(),
+          { address: `0x${'1'.repeat(40)}`, type: 'eip155:eoa' },
+        ];
       throw new Error('Unexpected account action');
     }) as typeof Engine.controllerMessenger.call;
     jest

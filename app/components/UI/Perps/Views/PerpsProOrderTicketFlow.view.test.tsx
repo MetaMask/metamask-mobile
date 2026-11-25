@@ -1030,7 +1030,12 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       jest.mocked(Engine.context.PerpsController.editOrder).mockResolvedValue({
         success: false,
         error: 'ORDER_POST_ONLY_WOULD_CROSS',
-      });
+        errorCode: 'ORDER_POST_ONLY_WOULD_CROSS',
+        errorDetails: {
+          code: 'ORDER_POST_ONLY_WOULD_CROSS',
+          provider: 'hyperliquid',
+        },
+      } as never);
       renderTicket({
         orders: [createLimitOrderForViews({ price: '2400' })],
         includeToasts: true,

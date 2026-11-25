@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -31,12 +32,13 @@ describe('usePerpsLiquidationPrice', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCalculateLiquidationPrice.mockReset();
     (usePerpsTrading as jest.Mock).mockReturnValue({
       calculateLiquidationPrice: mockCalculateLiquidationPrice,
     });
   });
 
-  it('should calculate liquidation price successfully', async () => {
+  it('calculates a liquidation price', async () => {
     mockCalculateLiquidationPrice.mockResolvedValue('45000.00');
 
     const params = {
@@ -63,7 +65,7 @@ describe('usePerpsLiquidationPrice', () => {
     });
   });
 
-  it('should handle calculation errors', async () => {
+  it('marks a rejected calculation as unavailable', async () => {
     const error = new Error('Calculation failed');
     mockCalculateLiquidationPrice.mockRejectedValue(error);
 
@@ -83,7 +85,56 @@ describe('usePerpsLiquidationPrice', () => {
     expect(result.current.error).toBe('Calculation failed');
   });
 
-  it('should handle invalid leverage errors', async () => {
+  it('clears a stale price when Core rejects an unavailable estimate', async () => {
+    mockCalculateLiquidationPrice
+      .mockResolvedValueOnce('45000.00')
+      .mockRejectedValueOnce(
+        new Error(PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE),
+      );
+    const params = {
+      entryPrice: 50000,
+      leverage: 10,
+      direction: 'long' as const,
+      asset: 'BTC',
+    };
+    const { result, rerender } = renderHook(
+      (props) => usePerpsLiquidationPrice(props),
+      { initialProps: params },
+    );
+    await waitFor(() => {
+      expect(result.current.liquidationPrice).toBe('45000.00');
+    });
+
+    rerender({ ...params, leverage: 20 });
+
+    await waitFor(() => {
+      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.liquidationPrice).toBeUndefined();
+    });
+    expect(result.current.error).toBe(
+      PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE,
+    );
+  });
+
+  it('preserves a determinate isolated zero returned by Core', async () => {
+    mockCalculateLiquidationPrice.mockResolvedValue('0.00');
+    const params = {
+      entryPrice: 50000,
+      leverage: 1,
+      direction: 'long' as const,
+      asset: 'BTC',
+    };
+
+    const { result } = renderHook(() => usePerpsLiquidationPrice(params));
+
+    await waitFor(() => {
+      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.liquidationPrice).toBe('0.00');
+    });
+    expect(result.current.error).toBeNull();
+  });
+
+  it('marks a rejected leverage estimate as unavailable', async () => {
     const error = new Error(
       'Invalid leverage: 100x exceeds maximum allowed leverage of 40x',
     );
@@ -107,7 +158,7 @@ describe('usePerpsLiquidationPrice', () => {
     );
   });
 
-  it('should skip calculation for invalid entry price', () => {
+  it('skips calculation for invalid entry price', () => {
     const params = {
       entryPrice: 0,
       leverage: 10,
@@ -124,7 +175,7 @@ describe('usePerpsLiquidationPrice', () => {
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
 
-  it('should skip calculation for invalid leverage', () => {
+  it('skips calculation for invalid leverage', () => {
     const params = {
       entryPrice: 50000,
       leverage: 0,
@@ -141,7 +192,7 @@ describe('usePerpsLiquidationPrice', () => {
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
 
-  it('should skip calculation for empty asset', () => {
+  it('skips calculation for empty asset', () => {
     const params = {
       entryPrice: 50000,
       leverage: 10,
@@ -158,7 +209,7 @@ describe('usePerpsLiquidationPrice', () => {
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
 
-  it('should recalculate when parameters change', async () => {
+  it('recalculates when parameters change', async () => {
     mockCalculateLiquidationPrice
       .mockResolvedValueOnce('45000.00')
       .mockResolvedValueOnce('47500.00');
@@ -416,7 +467,7 @@ describe('usePerpsLiquidationPrice', () => {
     });
   });
 
-  it('should handle non-Error objects in catch', async () => {
+  it('marks a non-Error rejection as unavailable', async () => {
     mockCalculateLiquidationPrice.mockRejectedValue('String error');
 
     const params = {

@@ -28,6 +28,7 @@ export const REWARDS_OPT_IN_SECTION_TEST_IDS = {
 } as const;
 
 export interface RewardsOptInCopy {
+  invitedOptInTitle?: string;
   invitedOptInDescription?: string;
   invitedOptInAction?: string;
   invitedOptInLegal?: string;
@@ -106,6 +107,9 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     clearOptinError();
   }, [optinError, showToast, RewardsToastOptions, clearOptinError]);
 
+  const title =
+    localizedText.invitedOptInTitle ??
+    strings('rewards.campaign.opt_in_section_title');
   const description =
     localizedText.invitedOptInDescription ??
     strings('rewards.campaign.opt_in_section_description');
@@ -137,7 +141,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
             twClassName="text-center"
             accessibilityRole="header"
           >
-            {strings('rewards.campaign.opt_in_section_title')}
+            {title}
           </Text>
           <Text
             variant={TextVariant.BodySm}

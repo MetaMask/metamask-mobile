@@ -3839,6 +3839,28 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockOpenAdjustMarginSheet).not.toHaveBeenCalled();
     });
 
+    it('gives the stop loss prompt the venue mark price, not the oracle price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '45000', markPrice: '45100', oraclePrice: '44900' },
+      });
+      const { useStopLossPrompt } = jest.requireMock(
+        '../../hooks/useStopLossPrompt',
+      );
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(useStopLossPrompt).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 45100 }),
+      );
+    });
+
     it('shows geo block modal when add margin from banner is pressed and user is not eligible', () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(

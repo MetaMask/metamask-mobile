@@ -30,7 +30,7 @@ import {
   selectDestToken,
   selectRecurringPriceRange,
   selectRecurringRepeatCount,
-  selectSlippage,
+  selectRecurringPriceTolerance,
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -51,7 +51,6 @@ import {
 } from '../../utils/priceRange';
 import { parsePositiveInteger } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import MembershipVipBadge from '../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
@@ -59,6 +58,7 @@ import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderShe
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -198,7 +198,7 @@ const RecurringConfirmOrderSheet = ({
   isPriceRangeConversionReady,
   isSubmitting,
   onConfirm,
-  onEditSlippagePress,
+  onEditPriceTolerancePress,
   onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
@@ -209,7 +209,10 @@ const RecurringConfirmOrderSheet = ({
   const destToken = useSelector(selectDestToken);
   const priceRange = useSelector(selectRecurringPriceRange);
   const repeatCount = useSelector(selectRecurringRepeatCount);
-  const slippage = useSelector(selectSlippage);
+  const recurringPriceTolerance = useSelector(selectRecurringPriceTolerance);
+  const defaultPriceTolerance = useSelector(
+    selectBridgeRecurringBuyDefaultPriceTolerance,
+  );
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
   const { latestSourceBalance } = useBridgeSession();
@@ -443,15 +446,17 @@ const RecurringConfirmOrderSheet = ({
         />
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
-          label={strings('bridge.recurring.slippage_all_orders')}
-          value={getSlippageDisplayValue(slippage)}
-          testID={RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE}
+          label={strings('bridge.cost_tolerance')}
+          value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
+          testID={RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE}
           trailing={
             <ButtonIcon
               iconName={IconName.Edit}
               size={ButtonIconSize.Sm}
-              onPress={onEditSlippagePress}
-              testID={RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT}
+              onPress={onEditPriceTolerancePress}
+              testID={
+                RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE_EDIT
+              }
             />
           }
         />

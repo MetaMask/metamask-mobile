@@ -23,6 +23,7 @@ import {
   type PriceUpdate,
   type OrderBookData,
   type OrderBookLevel,
+  type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
@@ -112,7 +113,7 @@ const emitEthPrice = (
   stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
   percentChange24h = '2',
   price = '2500',
-) => {
+): void => {
   act(() => {
     stream.emitPrices({
       ETH: {
@@ -127,7 +128,7 @@ const emitEthPrice = (
   });
 };
 
-const waitForDeferredOrderData = async () => {
+const waitForDeferredOrderData = async (): Promise<void> => {
   await act(async () => {
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
   });
@@ -138,7 +139,7 @@ const waitForDeferredOrderData = async () => {
 // loaded CV shard can stretch past waitFor's 1s default.
 const waitForEnabledPlaceOrderButton = async (
   testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-) => {
+): Promise<ReturnType<typeof screen.getByTestId>> => {
   await waitFor(
     () => {
       expect(screen.getByTestId(testId)).not.toBeDisabled();
@@ -174,6 +175,10 @@ describe('PerpsOrderView', () => {
         orderLimits: { sizeDecimals: 5, minOrderNotionalUsd: 10 },
       });
     jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockReset()
+      .mockResolvedValue('0.00');
+    jest
       .mocked(Engine.context.PerpsController.updatePositionTPSL)
       .mockReset()
       .mockResolvedValue({ success: true });
@@ -182,7 +187,7 @@ describe('PerpsOrderView', () => {
       .mockReset();
     jest
       .mocked(Engine.context.PerpsController.subscribeToOrderBook)
-      .mockImplementation(() => () => undefined);
+      .mockImplementation(() => (): void => undefined);
     (Engine.context.PerpsController.placeOrder as jest.Mock)
       .mockReset()
       .mockResolvedValue({
@@ -303,7 +308,11 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Fee Display Format A/B test', () => {
-    const withFeeDisplayVariant = (variant: 'control' | 'treatment') => ({
+    const withFeeDisplayVariant = (
+      variant: 'control' | 'treatment',
+    ): NonNullable<
+      Parameters<typeof renderPerpsOrderView>[0]
+    >['overrides'] => ({
       engine: {
         backgroundState: {
           ...eligibleOverrides.engine.backgroundState,
@@ -496,20 +505,58 @@ describe('PerpsOrderView', () => {
   });
 
   it.each([
-    [
-      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
-      'perps.errors.clientReinitializing',
-    ],
-    [undefined, 'perps.errors.unknownError'],
+    {
+      label: 'a lifecycle-stale code',
+      failure: {
+        success: false as const,
+        error: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      },
+      messageKey: 'perps.errors.clientReinitializing',
+      hiddenText: undefined,
+    },
+    {
+      label: 'a missing error',
+      failure: { success: false as const },
+      messageKey: 'perps.errors.unknownError',
+      hiddenText: undefined,
+    },
+    {
+      label: 'a provider-tagged code whose text is unclassified',
+      failure: {
+        success: false as const,
+        error: 'Hyperliquid signer 0xabc returned an internal stack trace',
+        errorCode: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+          provider: 'hyperliquid',
+        },
+      } satisfies OrderResult,
+      messageKey: 'perps.errors.clientReinitializing',
+      hiddenText: 'Hyperliquid signer 0xabc returned an internal stack trace',
+    },
+    {
+      label: 'unclassified venue text',
+      failure: {
+        success: false as const,
+        error: 'Hyperliquid signer 0xabc returned an internal stack trace',
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: 'hyperliquid',
+        },
+      } satisfies OrderResult,
+      messageKey: 'perps.errors.unknownError',
+      hiddenText: 'Hyperliquid signer 0xabc returned an internal stack trace',
+    },
   ])(
-    'shows the translated TP/SL failure %s after submitting a market order',
-    async (error, messageKey) => {
+    'shows translated TP/SL copy for $label after submitting a market order',
+    async ({ failure, messageKey, hiddenText }) => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       const updatePositionTPSL = Engine.context.PerpsController
         .updatePositionTPSL as jest.Mock;
       // Once is consumed by any earlier call in the same case, and the
       // following call then resolves success and never shows the error toast.
-      updatePositionTPSL.mockResolvedValue({ success: false, error });
+      updatePositionTPSL.mockResolvedValue(failure);
       const { stream } = renderPerpsOrderView({
         includeToasts: true,
         overrides: {
@@ -592,6 +639,9 @@ describe('PerpsOrderView', () => {
       expect(
         screen.getByText(strings('perps.position.tpsl.update_failed')),
       ).toBeOnTheScreen();
+      if (hiddenText) {
+        expect(screen.queryByText(hiddenText)).not.toBeOnTheScreen();
+      }
     },
   );
 
@@ -656,11 +706,47 @@ describe('PerpsOrderView', () => {
     expect(placeOrder).not.toHaveBeenCalled();
   });
 
+  it('shows an unavailable liquidation estimate instead of a zero price when Core rejects it', async () => {
+    const calculateLiquidationPrice = jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockRejectedValue(
+        new Error(PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE),
+      );
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(calculateLiquidationPrice).toHaveBeenCalled();
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
+    });
+    expect(
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+    ).not.toHaveTextContent('$0');
+  });
+
   it('explains the post-only network-upgrade window when a market order is rejected', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     placeOrder.mockResolvedValue({
       success: false,
-      error: 'ORDER_POST_ONLY_WINDOW',
+      error: PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW,
     });
     const { stream } = renderPerpsOrderView({
       includeToasts: true,
@@ -1023,9 +1109,9 @@ describe('PerpsOrderView', () => {
       },
     };
 
-    const headerPriceText = (price: number) =>
+    const headerPriceText = (price: number): string =>
       formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
-    const headerChangeText = (percent: number) =>
+    const headerChangeText = (percent: number): string =>
       formatPercentage(String(percent));
 
     const renderTradeSheet = (
@@ -1033,7 +1119,7 @@ describe('PerpsOrderView', () => {
         initialParams?: Record<string, unknown>;
         streamOverrides?: PerpsStreamOverrides;
       } = {},
-    ) =>
+    ): ReturnType<typeof renderPerpsOrderView> =>
       renderPerpsOrderView({
         overrides: {
           ...eligibleOverrides,
@@ -1050,7 +1136,9 @@ describe('PerpsOrderView', () => {
         extraRoutes: [marketDetailsRoute],
       });
 
-    const findEnabledSubmitButton = () =>
+    const findEnabledSubmitButton = (): Promise<
+      ReturnType<typeof screen.getByTestId>
+    > =>
       waitForEnabledPlaceOrderButton(
         PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
       );
@@ -1399,7 +1487,7 @@ describe('PerpsOrderView', () => {
     const SHORT_BALANCE = '13.67';
     const SHORT_PRICE = '941.95';
 
-    const readDisplayedAmount = () =>
+    const readDisplayedAmount = (): number =>
       Number(
         screen
           .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
@@ -1409,12 +1497,12 @@ describe('PerpsOrderView', () => {
           .replace(/[^0-9.]/g, ''),
       );
 
-    const waitForDisplayedAmount = (expected: number) =>
+    const waitForDisplayedAmount = (expected: number): Promise<void> =>
       waitFor(() => expect(readDisplayedAmount()).toBe(expected), {
         timeout: TIMEOUT_MS,
       });
 
-    const renderShortTradeSheet = async (amount: string) => {
+    const renderShortTradeSheet = async (amount: string): Promise<void> => {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         initialParams: {
@@ -1444,10 +1532,10 @@ describe('PerpsOrderView', () => {
       ).toBeOnTheScreen();
     };
 
-    const amountSlider = () =>
+    const amountSlider = (): ReturnType<typeof screen.getByTestId> =>
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER);
 
-    const layOutAmountSlider = () => {
+    const layOutAmountSlider = (): void => {
       fireEvent(
         screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT),
         'layout',
@@ -1459,7 +1547,7 @@ describe('PerpsOrderView', () => {
       );
     };
 
-    const openAmountKeypad = async () => {
+    const openAmountKeypad = async (): Promise<void> => {
       fireEvent.press(
         screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
       );
@@ -1473,7 +1561,7 @@ describe('PerpsOrderView', () => {
       ).toBeOnTheScreen();
     };
 
-    const pressKeypadDigit = (digit: '0' | '1' | '2') => {
+    const pressKeypadDigit = (digit: '0' | '1' | '2'): void => {
       const testId = {
         '0': KeypadTestIds.KEY_0,
         '1': KeypadTestIds.KEY_1,
@@ -1483,7 +1571,7 @@ describe('PerpsOrderView', () => {
       fireEvent.press(screen.getByTestId(testId));
     };
 
-    const clearKeypadAmount = async () => {
+    const clearKeypadAmount = async (): Promise<void> => {
       const digits = String(Math.trunc(Math.abs(readDisplayedAmount()))).length;
 
       for (let index = 0; index < digits; index += 1) {
@@ -1493,13 +1581,15 @@ describe('PerpsOrderView', () => {
       await waitForDisplayedAmount(0);
     };
 
-    const typeAmount = async (digits: readonly ('0' | '1' | '2')[]) => {
+    const typeAmount = async (
+      digits: readonly ('0' | '1' | '2')[],
+    ): Promise<void> => {
       for (const digit of digits) {
         pressKeypadDigit(digit);
       }
     };
 
-    const doneAmountKeypad = () => {
+    const doneAmountKeypad = (): void => {
       fireEvent.press(
         screen.getByTestId(
           PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
@@ -1510,7 +1600,7 @@ describe('PerpsOrderView', () => {
     // Done unmounts the keypad and mounts the slider under the finger that
     // released the button. Android delivers that touch to the new track before
     // it has a width, and a 0-width track maps the touch to 0%.
-    const deliverPreLayoutSliderTouch = () => {
+    const deliverPreLayoutSliderTouch = (): void => {
       fireEvent(amountSlider(), 'valueChange', 0);
       fireEvent(amountSlider(), 'dragEnd', 0);
     };
@@ -1575,15 +1665,15 @@ describe('PerpsOrderView', () => {
     // Reserving 0.5% of notional at 4x leaves this ceiling; unreserved is ~3980.
     const LOW_FEE_QUOTE = { protocolFeeRate: 0.0045, metamaskFeeRate: 0.0005 };
     const HIGH_FEE_QUOTE = { protocolFeeRate: 0.0095, metamaskFeeRate: 0.0005 };
-    const budgetCeiling = (feeRate: number) =>
+    const budgetCeiling = (feeRate: number): number =>
       BALANCE / (1 / LEVERAGE + feeRate);
 
-    const mockQuote = (quote: object) =>
+    const mockQuote = (quote: object): jest.Mock =>
       (
         Engine.context.PerpsController.calculateFees as jest.Mock
       ).mockResolvedValue(quote);
 
-    const renderWithAmount = async (amount: string) => {
+    const renderWithAmount = async (amount: string): Promise<void> => {
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
         initialParams: {
@@ -1604,10 +1694,10 @@ describe('PerpsOrderView', () => {
       emitEthPrice(stream);
     };
 
-    const renderAtMax = () => renderWithAmount(ABOVE_MAX_AMOUNT);
+    const renderAtMax = (): Promise<void> => renderWithAmount(ABOVE_MAX_AMOUNT);
 
     // The amount renders as one animated Text per glyph, so join their text.
-    const readDisplayedAmount = () =>
+    const readDisplayedAmount = (): number =>
       Number(
         screen
           .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
@@ -1618,7 +1708,7 @@ describe('PerpsOrderView', () => {
       );
 
     // Runs while the order form is still mounted, before the order is placed.
-    const expectNoBalanceError = () => {
+    const expectNoBalanceError = (): void => {
       const fundsMessage = strings(
         'perps.order.validation.insufficient_funds_to_cover_trade',
       );
@@ -1630,12 +1720,14 @@ describe('PerpsOrderView', () => {
       expect(screen.queryByText(fundsMessage)).toBeNull();
     };
 
-    const waitForDisplayedAmount = (matches: (amount: number) => boolean) =>
+    const waitForDisplayedAmount = (
+      matches: (amount: number) => boolean,
+    ): Promise<void> =>
       waitFor(() => expect(matches(readDisplayedAmount())).toBe(true), {
         timeout: TIMEOUT_MS,
       });
 
-    const placeOrderAndReadAmount = async () => {
+    const placeOrderAndReadAmount = async (): Promise<number> => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       const button = await waitForEnabledPlaceOrderButton();
       expectNoBalanceError();
@@ -2075,7 +2167,12 @@ describe('PerpsOrderView', () => {
       defaultProvider?: 'lighter' | 'hyperliquid';
       lighter: Position['leverage'];
       hyperliquid: Position['leverage'];
-    }) => {
+    }): Required<
+      Pick<
+        NonNullable<Parameters<typeof renderPerpsOrderView>[0]>,
+        'overrides' | 'streamOverrides'
+      >
+    > => {
       const twoExchange = perpsTwoExchangeState('sameMarketOnBoth');
       const [presetPosition] = twoExchange.streamOverrides.positions ?? [];
       const lighterPosition = createLongPositionForViews({
@@ -2303,7 +2400,7 @@ describe('PerpsOrderView', () => {
         const subscribers = new Set<(value: OrderBookData) => void>();
         let latestBook: OrderBookData | undefined =
           shallow === null ? undefined : blockedBook;
-        const deliver = (value: OrderBookData) => {
+        const deliver = (value: OrderBookData): void => {
           latestBook = value;
           subscribers.forEach((subscriber) => {
             subscriber(value);
@@ -2318,7 +2415,7 @@ describe('PerpsOrderView', () => {
             } else {
               onError?.(new Error('order book unavailable'));
             }
-            return () => {
+            return (): void => {
               subscribers.delete(callback);
             };
           });
@@ -2387,7 +2484,7 @@ describe('PerpsOrderView', () => {
         .mocked(Engine.context.PerpsController.subscribeToOrderBook)
         .mockImplementation(({ onError }) => {
           onError?.(new Error('order book unavailable'));
-          return () => undefined;
+          return (): void => undefined;
         });
       const { stream } = renderPerpsOrderView({
         overrides: eligibleOverrides,
@@ -2505,7 +2602,7 @@ describe('PerpsOrderView', () => {
     const sizeUnitEvents = (
       events: { name: string; properties: Record<string, unknown> }[],
       name: string,
-    ) => events.filter((event) => event.name === name);
+    ): typeof events => events.filter((event) => event.name === name);
 
     const orderBookCurrency = (store: {
       getState: () => {
@@ -2517,7 +2614,7 @@ describe('PerpsOrderView', () => {
           };
         };
       };
-    }) =>
+    }): string | undefined =>
       store.getState().engine.backgroundState.PerpsController
         ?.orderBookPreferences?.currency;
 

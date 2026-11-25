@@ -116,6 +116,7 @@ const FollowingSuggestions: React.FC = () => {
         subtitle={formatFollowerCountLabel(trader.followerCount)}
         address={trader.address}
         avatarUri={trader.avatarUri}
+        isVerified={trader.verified}
         isFollowing={trader.isFollowing}
         followVariant={ButtonVariant.Secondary}
         onFollowPress={() => {

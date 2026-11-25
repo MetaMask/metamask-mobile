@@ -44,7 +44,12 @@ export const useIsPriceDeviatedAboveThreshold = (
   symbol?: string,
 ): UseIsPriceDeviatedAboveThresholdReturn => {
   const prices = usePerpsPrices(symbol ? [symbol] : [], {
-    includeMarketData: false,
+    // oraclePrice is projected from the shared market-data cache, which is only
+    // populated while some subscriber requests market data. Opt in so this
+    // guard works even when no other subscriber (e.g. usePerpsMarketStats) has
+    // warmed the cache — subscriptions are multiplexed, so this adds no extra
+    // network overhead when a market-data subscription already exists.
+    includeMarketData: true,
     throttleMs: 1000,
   });
 

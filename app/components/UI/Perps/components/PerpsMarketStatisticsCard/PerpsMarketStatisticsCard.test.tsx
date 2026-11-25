@@ -225,6 +225,22 @@ describe('PerpsMarketStatisticsCard', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the live oracle price, not the venue mark price', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: { price: '47500', markPrice: '47510', oraclePrice: '47490' },
+    });
+
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    const oraclePrice = getByTestId(
+      PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE,
+    );
+    expect(oraclePrice).toHaveTextContent(/47,490/);
+    expect(oraclePrice).not.toHaveTextContent(/47,510/);
+  });
+
   it('displays a positive threshold funding rate in success color', () => {
     const { UNSAFE_getAllByType } = render(
       <PerpsMarketStatisticsCard

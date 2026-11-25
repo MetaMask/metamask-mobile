@@ -284,6 +284,7 @@ import {
   markClaimSheetSeen,
 } from '../../../../../util/social/postTradePromptStorage';
 import ToastService from '../../../../../core/ToastService';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -473,6 +474,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
+  const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
   const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
@@ -776,9 +778,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
   );
-  const payTokenIdentity = payToken
-    ? `${payToken.address}:${payToken.chainId}`
-    : '';
+  const payTokenIdentity = payToken?.assetId ?? '';
 
   // The Trade sheet's payment token picker is an inline screen, so there is
   // no focus change to observe: the screen reports when it is left and the
@@ -832,12 +832,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     properties: perpsScreenViewedProps,
   });
 
-  // Ensure the venue mark price is available for margin calculation.
+  // Ensure the venue mark price (markPrice) is available for margin calculation.
   // The PriceStreamChannel subscribes without includeMarketData, so the
-  // HyperLiquid marketDataCache is empty and markPrice is always
-  // undefined when entering from Token Details (no prior market data sub).
-  // This subscription populates the cache for the traded asset so that
-  // subsequent allMids price updates include markPrice.
+  // HyperLiquid marketDataCache has no mark or oracle price and markPrice is
+  // always undefined when entering from Token Details (no prior market data
+  // sub). This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice and oraclePrice.
   //
   // We gate on isInitialized (from usePerpsConnection) so the subscription
   // is deferred until the controller is ready. This mirrors the pattern in
@@ -851,7 +851,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       includeMarketData: true,
       callback: () => {
         // No-op callback — the side effect of populating the
-        // marketDataCache is all we need.
+        // marketDataCache with the mark and oracle prices is all we need.
       },
     });
 
@@ -1262,7 +1262,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
-        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payToken.chainId;
+        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payTokenChainId;
       }
       track(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED, consideredProps);
     }, 1000);
@@ -1279,6 +1279,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
+    payTokenChainId,
     readShownSizeUnit,
     track,
   ]);
@@ -1325,7 +1326,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       asset: orderForm.asset,
       amount: orderForm.amount,
       payToken: payToken
-        ? `${payToken.symbol ?? ''}:${payToken.chainId ?? ''}`
+        ? `${payToken.symbol ?? ''}:${payTokenChainId ?? ''}`
         : null,
       payTotals,
       errorKey: blockingNoQuoteAlert?.key,
@@ -1370,6 +1371,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.asset,
     orderForm.amount,
     payToken,
+    payTokenChainId,
     track,
   ]);
 
@@ -2358,7 +2360,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             chartLibrary,
             vipTier,
             hasCustomTokenSelected,
-            payToken,
+            payToken: payToken && {
+              symbol: payToken.symbol,
+              chainId: payTokenChainId,
+            },
             maxSlippageBps,
             maxSlippageSource,
             estimatedSlippageBps:
@@ -2412,7 +2417,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
           if (!tpslResult.success) {
-            const errorMessage = translatePerpsError(tpslResult.error);
+            const errorMessage = translatePerpsError(tpslResult);
             showToast(
               PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
                 errorMessage,
@@ -2495,6 +2500,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       activeTransactionMeta,
       hasCustomTokenSelected,
       payToken,
+      payTokenChainId,
       onDepositConfirm,
       handleDepositConfirm,
       fromTokenDetails,
@@ -2691,8 +2697,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
   const crossLiquidation = getCrossPreviewLiquidation(crossPreview);
   const orderFormLiquidationPrice = isOnCrossPosition
-    ? ''
-    : (liquidationPrice ?? '');
+    ? undefined
+    : liquidationPrice;
   const crossLiquidationPrice =
     crossLiquidation.status === 'price' ? crossLiquidation.price : undefined;
   const displayedLiquidationPrice = isOnCrossPosition
@@ -2931,6 +2937,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     );
     const hasLiquidationPrice =
       hasValidAmount &&
+      parsedLiquidationPrice !== undefined &&
       Number.isFinite(parsedLiquidationPrice) &&
       parsedLiquidationPrice > 0;
     // Keep the last valid price visible during a refetch. The liquidation hook

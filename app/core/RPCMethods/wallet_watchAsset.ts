@@ -20,7 +20,6 @@ import {
   JsonRpcRequest,
   PendingJsonRpcResponse,
 } from '@metamask/utils';
-import { MESSAGE_TYPE } from '../createTracingMiddleware';
 import { toAssetId } from '../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { safeToChecksumAddress } from '../../util/address';
 
@@ -204,12 +203,4 @@ export const wallet_watchAsset = async ({
   });
 
   res.result = true;
-};
-
-export const watchAssetHandler = {
-  methodNames: [MESSAGE_TYPE.WATCH_ASSET],
-  implementation: wallet_watchAsset,
-  hookNames: {
-    handleWatchAssetRequest: true,
-  },
 };
