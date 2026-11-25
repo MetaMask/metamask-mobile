@@ -122,6 +122,7 @@ jest.mock('@metamask/perps-controller', () => {
         PERPS_MARKET_DETAILS: 'perps_market_details',
       },
     },
+    HYPERLIQUID_CONFIG: actualConstants.HYPERLIQUID_CONFIG,
     HYPERLIQUID_TWAP_LIMITS: {
       MinDurationMinutes: 5,
       MaxDurationMinutes: 1440,

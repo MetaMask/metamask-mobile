@@ -142,6 +142,8 @@ jest.mock('@metamask/perps-controller', () => ({
     ReconnectionDelayAndroidMs: 500,
     ConnectRetryDelayMs: 1000,
   },
+  HYPERLIQUID_CONFIG: jest.requireActual('@metamask/perps-controller/constants')
+    .HYPERLIQUID_CONFIG,
   HYPERLIQUID_TWAP_LIMITS: {
     MinDurationMinutes: 5,
     MaxDurationMinutes: 1440,
