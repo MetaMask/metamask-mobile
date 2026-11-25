@@ -93,7 +93,18 @@ export function useConfirmNavigation() {
 
       if (stack && !isForceBottomSheet) {
         if (replace) {
-          replaceCallingRoute(navigation, stack, { screen: route, params });
+          // Targeting the navigator that owns the route makes the router
+          // replace the calling route (`source`) rather than the focused one.
+          // Otherwise leave it untargeted so it bubbles to a parent.
+          navigation.dispatch((state) => {
+            const action = StackActions.replace(stack, {
+              screen: route,
+              params,
+            });
+            return state.routeNames.includes(stack)
+              ? { ...action, target: state.key }
+              : action;
+          });
           return;
         }
 
@@ -104,7 +115,12 @@ export function useConfirmNavigation() {
       }
 
       if (replace) {
-        replaceCallingRoute(navigation, route, params);
+        navigation.dispatch((state) => {
+          const action = StackActions.replace(route, params);
+          return state.routeNames.includes(route)
+            ? { ...action, target: state.key }
+            : action;
+        });
         return;
       }
 
@@ -134,23 +150,6 @@ export function useConfirmNavigation() {
   ]);
 
   return { navigateToConfirmation };
-}
-
-// An untargeted REPLACE swaps whichever route is focused. Targeting the
-// calling navigator makes the router honour `source`, so the calling route is
-// replaced even if another route was pushed above it. Navigators that do not
-// own the route stay untargeted so the action still bubbles to a parent.
-function replaceCallingRoute(
-  navigation: AppNavigationProp,
-  name: string,
-  params: object,
-) {
-  navigation.dispatch((state) => {
-    const action = StackActions.replace(name, params);
-    return state.routeNames.includes(name)
-      ? { ...action, target: state.key }
-      : action;
-  });
 }
 
 function rejectTransactions(transactions: TransactionMeta[]) {

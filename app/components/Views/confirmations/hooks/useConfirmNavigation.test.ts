@@ -11,7 +11,13 @@ import {
 import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
-import { StackActions } from '@react-navigation/native';
+import {
+  StackActions,
+  StackRouter,
+  type ParamListBase,
+  type StackActionType,
+  type StackNavigationState,
+} from '@react-navigation/native';
 import { selectTransactions } from '../../../../selectors/transactionController';
 
 const mockNavigate = jest.fn();
@@ -148,6 +154,51 @@ describe('useConfirmNavigation', () => {
       target: NAVIGATOR_KEY_MOCK,
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('replaces the calling route rather than a route pushed above it', () => {
+    const stackRouter = StackRouter({});
+    const routerOptions = {
+      routeNames: ['Home', 'Caller', 'Covering', STACK_MOCK],
+      routeParamList: {},
+      routeGetIdList: {},
+    };
+    const applyAction = (
+      state: StackNavigationState<ParamListBase>,
+      action: StackActionType,
+    ) =>
+      stackRouter.getStateForAction(
+        state,
+        action,
+        routerOptions,
+      ) as StackNavigationState<ParamListBase>;
+    const callerState = applyAction(
+      stackRouter.getInitialState(routerOptions),
+      StackActions.push('Caller'),
+    );
+    const callerKey = callerState.routes[callerState.index].key;
+    const state = applyAction(callerState, StackActions.push('Covering'));
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      replace: true,
+    });
+    const thunk = mockDispatch.mock.calls[0][0] as (
+      navigatorState: StackNavigationState<ParamListBase>,
+    ) => StackActionType;
+    // React Navigation stamps actions dispatched from a screen with its key.
+    const nextState = applyAction(state, {
+      source: callerKey,
+      ...thunk(state),
+    });
+
+    expect(nextState.routes.map(({ name }) => name)).toEqual([
+      'Home',
+      STACK_MOCK,
+      'Covering',
+    ]);
   });
 
   it('navigates to alternate route if headerShown is false', () => {

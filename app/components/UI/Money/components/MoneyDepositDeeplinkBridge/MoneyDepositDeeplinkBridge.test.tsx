@@ -2,8 +2,12 @@ import React from 'react';
 import { act, render, waitFor } from '@testing-library/react-native';
 import {
   StackActions,
+  StackRouter,
   useNavigation,
   useRoute,
+  type ParamListBase,
+  type StackActionType,
+  type StackNavigationState,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
@@ -389,6 +393,47 @@ describe('MoneyDepositDeeplinkBridge', () => {
         expect(mockInitiateDeposit).not.toHaveBeenCalled();
       },
     );
+
+    it('removes only the bridge when another route was pushed above it', () => {
+      const stackRouter = StackRouter({});
+      const routerOptions = {
+        routeNames: ['Home', Routes.MONEY.DEPOSIT_DEEPLINK, 'Covering'],
+        routeParamList: {},
+        routeGetIdList: {},
+      };
+      const applyAction = (
+        state: StackNavigationState<ParamListBase>,
+        action: StackActionType,
+      ) =>
+        stackRouter.getStateForAction(
+          state,
+          action,
+          routerOptions,
+        ) as StackNavigationState<ParamListBase>;
+      const bridgeState = applyAction(
+        stackRouter.getInitialState(routerOptions),
+        StackActions.push(Routes.MONEY.DEPOSIT_DEEPLINK),
+      );
+      const state = applyAction(bridgeState, StackActions.push('Covering'));
+      mockGetState.mockReturnValue(state);
+      mockUseRoute.mockReturnValue({
+        key: bridgeState.routes[bridgeState.index].key,
+        params: undefined,
+      } as never);
+      arrangeEligibility({ hasMoneyAccount: false });
+      render(<MoneyDepositDeeplinkBridge />);
+
+      act(() => {
+        jest.advanceTimersByTime(MONEY_DEPOSIT_DEEPLINK_READINESS_TIMEOUT_MS);
+      });
+      const nextState = applyAction(state, mockDispatch.mock.calls[0][0]);
+
+      expect(nextState.routes.map(({ name }) => name)).toEqual([
+        'Home',
+        'Covering',
+      ]);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
 
     it('closes the bridge only once when readiness arrives after the timeout', () => {
       arrangeEligibility({ hasMoneyAccount: false });
