@@ -120,6 +120,22 @@ A query hook triggers one Venue-qualified query. A component needing only Balanc
 
 Imperative hooks wrap service-owned workflows but do not recreate state machines, retry rules, or reconciliation. View-local presentation state remains local to React.
 
+Account Readiness is a passive read-only observation, not setup. One adapter is
+created per canonical identity, Venue, API environment and auth profile, and
+the provider above the navigator owns its single observation session. Home
+registers focus, region and eligibility; the observation reads only while Home
+is focused, the app is active, the user is eligible, setup is closed and the
+network is usable. Reads abort and fence on background, offline, dismissal and
+unmount; returning to the foreground re-reads status instead of replaying a
+write.
+
+Account Setup is mounted only while an explicit card action holds a local
+request. Reading status never mounts it, and entering or refocusing Home never
+writes. Closing through Not now, swipe, Android back or Done cancels and
+unmounts the flow, discards typed values, then performs one passive status
+read. Flow completion publishes sanitized status and classified failure only;
+email, codes, MFA challenges and raw payloads never leave the flow.
+
 ### 4. Product UI
 
 UI uses the MetaMask design system first and may reuse existing venue-neutral presentation. It consumes canonical models and user-meaningful states, not Venue DTOs, credentials, transport errors, or protocol steps.
@@ -207,14 +223,16 @@ the order; no approval or mutation is restored.
 
 Choose state by lifetime and authority:
 
-| State                                               | Owner                                            |
-| --------------------------------------------------- | ------------------------------------------------ |
-| Server read models                                  | Shared query/data-service cache                  |
-| Cross-screen workflow projection                    | The service/controller that owns the workflow    |
-| Durable remote setup/financial operation            | MetaMask Predict backend                         |
-| Transport, retry, in-flight, subscription internals | Private service fields                           |
-| Form input and visual interaction                   | React local state                                |
-| Kalshi device P-256 key and its salt                | SecureKeychain ciphertext, memory while unlocked |
+| State                                               | Owner                                               |
+| --------------------------------------------------- | --------------------------------------------------- |
+| Server read models                                  | Shared query/data-service cache                     |
+| Cross-screen workflow projection                    | The service/controller that owns the workflow       |
+| Durable remote setup/financial operation            | MetaMask Predict backend                            |
+| Transport, retry, in-flight, subscription internals | Private service fields                              |
+| Form input and visual interaction                   | React local state                                   |
+| Kalshi device P-256 key and its salt                | SecureKeychain ciphertext, memory while unlocked    |
+| Passive Account Readiness snapshot                  | Provider-owned observation, one per canonical scope |
+| Open Account Setup request and typed flow values    | Gate request + flow local state, discarded on close |
 
 Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. The Kalshi device private key and salt are the exception stored as SecureKeychain ciphertext, and their plaintext exists only while the wallet is unlocked. Cache/query keys must contain no sensitive identity or payload data.
 

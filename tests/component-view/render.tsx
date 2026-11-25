@@ -160,28 +160,30 @@ export function renderScreenWithRoutes(
     () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
-    <QueryClientBoundary client={queryClient}>
-      <ToasterBoundary>
-        <Stack.Navigator>
+    <ToasterBoundary>
+      <Stack.Navigator>
+        <Stack.Screen
+          name={options.name}
+          component={Component}
+          initialParams={initialParams}
+        />
+        {extraRoutes.map(({ name, Component: Extra }) => (
           <Stack.Screen
-            name={options.name}
-            component={Component}
-            initialParams={initialParams}
+            key={name}
+            name={name}
+            component={Extra ?? DefaultRouteProbe(name)}
           />
-          {extraRoutes.map(({ name, Component: Extra }) => (
-            <Stack.Screen
-              key={name}
-              name={name}
-              component={Extra ?? DefaultRouteProbe(name)}
-            />
-          ))}
-        </Stack.Navigator>
-      </ToasterBoundary>
-    </QueryClientBoundary>
+        ))}
+      </Stack.Navigator>
+    </ToasterBoundary>
   );
 
   return renderWithProvider(
-    frame ? frame(stackTree) : stackTree,
+    // The frame can own hooks that need the same query client the screens use
+    // (for example PredictNext's readiness gate reading the portfolio cache).
+    <QueryClientBoundary client={queryClient}>
+      {frame ? frame(stackTree) : stackTree}
+    </QueryClientBoundary>,
     providerValues,
   );
 }

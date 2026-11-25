@@ -25,7 +25,9 @@ import { useBalance } from '../../hooks/useBalance';
 import {
   KalshiDebugPanel,
   KalshiDebugTestIds,
-} from '../../onboarding/KalshiDebugPanel';
+  useAccountReadiness,
+} from '../../onboarding';
+import { PredictError, PredictErrorCode } from '../../errors';
 import { getFeedScreen, type FeedScreenId } from '../../navigation/feedScreens';
 import {
   canPerformVenueAction,
@@ -51,6 +53,7 @@ import type {
 } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import { DepositStatusLine } from '../../components/DepositStatusLine';
+import { AccountReadinessCardHost } from './internal/AccountReadinessCardHost';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
@@ -119,6 +122,15 @@ const PredictHomeView = ({
     onScrollSettled,
   } = useVisibleSections({ keys: sectionKeys, scrollY });
   const balanceQuery = useBalance(venueId);
+  // A cached balance never hides a permanent geo block.
+  const isRegionBlocked =
+    balanceQuery.error instanceof PredictError &&
+    balanceQuery.error.code === PredictErrorCode.GEO_BLOCKED;
+  const readiness = useAccountReadiness({
+    venueId,
+    isFocused,
+    region: isRegionBlocked ? 'blocked' : 'allowed_or_unknown',
+  });
   const canBuy = canPerformVenueAction(capabilities, 'buy');
   const { failedGamesReads } = home;
   const retryFailedGamesReads = useCallback(
@@ -442,11 +454,24 @@ const PredictHomeView = ({
               />
             }
           />
+          <AccountReadinessCardHost value={readiness} />
           <PortfolioActions
             onPositionsPress={openPortfolio}
-            onAddFundsPress={canDeposit ? openDeposit : undefined}
+            onAddFundsPress={
+              !isRegionBlocked &&
+              (readiness.accountActions === 'unchanged' ||
+                readiness.readiness === 'ready') &&
+              canDeposit
+                ? openDeposit
+                : undefined
+            }
             onWithdrawPress={
-              withdrawResolution.status === 'ready' ? openWithdraw : undefined
+              !isRegionBlocked &&
+              (readiness.accountActions === 'unchanged' ||
+                readiness.readiness === 'ready') &&
+              withdrawResolution.status === 'ready'
+                ? openWithdraw
+                : undefined
             }
           />
           <HomeSectionsStatus

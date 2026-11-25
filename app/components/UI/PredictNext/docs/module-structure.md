@@ -102,6 +102,12 @@ PredictNext/
         next/                  # PredictNext routes with the Active Venue
     appRoutes.ts               # Predict's root-navigator route types for NavigationService
 
+  onboarding/
+    index.ts                   # Home-facing Account Readiness API and the mounted setup gate
+    accountReadiness.types.ts  # Adapter/port, card and Home view contracts
+    AccountReadinessProvider.tsx # One passive observation session per canonical identity
+    useAccountReadiness.ts     # Home visibility registration and read-only projection
+    internal/                  # Observation policy, Kalshi adapter, verified-card preference, setup flow
   auth/                        # Internal P-256, A2T, and bundled profile primitives
     p256DeviceKey.ts           # Profile-bound P-256 implementation
     p256DeviceKeyStorage.ts    # Versioned SecureKeychain persistence
@@ -161,6 +167,19 @@ Put implementation used only to build a module's public API under that module's 
 Use `internal/` when visibility is the important distinction. Names such as `parts/` describe contents but do not establish an import boundary. Keep private imports relative and do not create a global `internal/` directory.
 
 Tests stay beside the file or composition they cover. Tests inside a module may import its internal files when those files have meaningful standalone behavior; this does not make those files public.
+
+### Account Readiness and Account Setup have separate owners
+
+`onboarding/` owns both, with one direction of control. The gate creates one
+Account Readiness adapter per canonical identity, Venue, API environment and
+auth profile; the provider observes status passively and Home renders its one
+card slot. Home never imports Kalshi state, the setup machine, the modal, or
+the storage preference.
+
+Account Setup is mounted only while the gate holds an explicit card request.
+The flow owns typed values and idempotency keys for its lifetime, publishes
+only sanitized status and classified failures, and is cancelled before the
+passive observation resumes. Closing the sheet never opens a second flow.
 
 ### Promote reuse only after it exists
 

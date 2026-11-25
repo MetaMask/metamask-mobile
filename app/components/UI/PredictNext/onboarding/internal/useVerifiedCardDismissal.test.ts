@@ -188,6 +188,10 @@ describe('useVerifiedCardDismissal', () => {
   });
 
   it('does not read or dismiss without an identity or verified status', () => {
+    const initialProps: { profile: string | null; isVerified: boolean } = {
+      profile: null,
+      isVerified: true,
+    };
     const { result, rerender } = renderHook(
       ({
         profile,
@@ -197,7 +201,7 @@ describe('useVerifiedCardDismissal', () => {
         isVerified: boolean;
       }) =>
         useVerifiedCardDismissal({ canonicalProfileId: profile, isVerified }),
-      { initialProps: { profile: null, isVerified: true } },
+      { initialProps },
     );
 
     act(() => result.current.dismiss());
