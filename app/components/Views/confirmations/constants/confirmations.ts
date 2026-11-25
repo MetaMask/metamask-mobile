@@ -20,7 +20,7 @@ export const CONVERT_DEPOSIT_TYPES = [
   TransactionType.predictDeposit,
 ];
 
-export const REDESIGNED_TRANSACTION_TYPES = [
+export const CONFIRMATION_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,

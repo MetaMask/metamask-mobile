@@ -317,13 +317,13 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 Common feature flag configurations are available in `tests/api-mocking/mock-responses/feature-flags-mocks.ts`:
 
 ```typescript
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-// For redesigned confirmations UI
+// For confirmations UI
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    Object.assign({}, ...confirmationFeatureFlags),
   );
 };
 ```
@@ -349,7 +349,7 @@ await setupRemoteFeatureFlagsMock(mockServer, {
 
 // Combining predefined configs with overrides
 await setupRemoteFeatureFlagsMock(mockServer, {
-  ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+  ...Object.assign({}, ...confirmationFeatureFlags),
   rewards: true, // Override specific flags
 });
 ```
@@ -371,10 +371,10 @@ await setupRemoteFeatureFlagsMock(mockServer, { perpsEnabled: true }, 'flask');
 
 ```typescript
 // Correct - properly merges flag objects
-Object.assign({}, ...confirmationsRedesignedFeatureFlags)
+Object.assign({}, ...confirmationFeatureFlags)
 
 // Incorrect - spreads array items directly
-...confirmationsRedesignedFeatureFlags
+...confirmationFeatureFlags
 ```
 
 2. **Prefer predefined configurations**: Use existing configurations from `feature-flags-mocks.ts` when possible rather than defining flags inline.
