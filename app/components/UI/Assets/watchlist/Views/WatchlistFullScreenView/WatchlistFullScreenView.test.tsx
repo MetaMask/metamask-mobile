@@ -45,10 +45,13 @@ jest.mock('../../../../Perps/hooks/usePerpsNavigation', () => ({
   }),
 }));
 
-jest.mock('../../../../Perps/providers/PerpsStreamManager', () => ({
-  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock('../../../../Perps/providers/PerpsStreamManager', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+  };
+});
 
 jest.mock(
   '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem',

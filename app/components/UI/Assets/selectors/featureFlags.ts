@@ -44,6 +44,10 @@ export const selectIsUnifiedWatchlistActive = createSelector(
   selectTokenWatchlistEnabled,
   selectUnifiedWatchlistEnabled,
   selectPerpsEnabledFlag,
-  (isTokenWatchlistEnabled, isUnifiedWatchlistEnabled, isPerpsEnabled): boolean =>
+  (
+    isTokenWatchlistEnabled,
+    isUnifiedWatchlistEnabled,
+    isPerpsEnabled,
+  ): boolean =>
     isTokenWatchlistEnabled && isUnifiedWatchlistEnabled && isPerpsEnabled,
 );

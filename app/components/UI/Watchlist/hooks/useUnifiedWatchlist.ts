@@ -30,6 +30,9 @@ import { useWatchlistOrder } from './useWatchlistOrder';
 const EMPTY_SYMBOLS: string[] = [];
 const EMPTY_ASSET_IDS: string[] = [];
 
+const runRefreshTask = async (task: () => Promise<unknown>): Promise<unknown> =>
+  task();
+
 /**
  * Resolves independently-owned token and Perps memberships into rows for the
  * shared watchlist presentation.
@@ -160,16 +163,16 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     setIsRefreshing(true);
     const refreshes: Promise<unknown>[] = [];
     if (isTokenWatchlistEnabled) {
-      refreshes.push(Promise.resolve().then(() => refetchTokenMembership()));
+      refreshes.push(runRefreshTask(refetchTokenMembership));
     }
     if (!isOffline) {
-      refreshes.push(Promise.resolve().then(() => refetchTokens()));
+      refreshes.push(runRefreshTask(refetchTokens));
     }
     if (isPerpsEnabled && !isOffline) {
-      refreshes.push(Promise.resolve().then(() => refreshPerps()));
+      refreshes.push(runRefreshTask(refreshPerps));
     }
     if (isPerpsEnabled && orderError) {
-      refreshes.push(Promise.resolve().then(() => retryOrder()));
+      refreshes.push(runRefreshTask(retryOrder));
     }
     await Promise.allSettled(refreshes);
     setIsRefreshing(false);
