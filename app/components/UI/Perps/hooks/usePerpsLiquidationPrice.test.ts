@@ -263,9 +263,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Typed from the hook's own parameter type, so renderHook's TProps —
     // inferred from initialProps — allows the undefined entry price below.
-    const initialProps: Parameters<
-      typeof usePerpsLiquidationPrice
-    >[0] = {
+    const initialProps: Parameters<typeof usePerpsLiquidationPrice>[0] = {
       entryPrice: 50000,
       leverage: 10,
       direction: 'long',
