@@ -416,9 +416,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const needsEnrichment = !hasFormattedMaxLeverage;
   const needsMarketsForRelated =
     isRelatedMarketsEnabled && hasRelatedMarketsCategory(routeMarket);
+  // The Trade-on selector resolves which venues list the market from the
+  // venue-aware catalog. Only the markets list passes a route market that
+  // already carries its venue rows, so every other entry point (home,
+  // recently viewed, social, deep links) needs the catalog loaded or the
+  // selector sees a single venue and stays hidden.
+  const routeMarketHasVenueRows = Boolean(
+    (routeMarket as Partial<PerpsMarketRow> | undefined)?.venues?.length,
+  );
   const { markets } = usePerpsMarkets({
     fullCatalog: true,
-    skipInitialFetch: !needsEnrichment && !needsMarketsForRelated,
+    skipInitialFetch:
+      !needsEnrichment && !needsMarketsForRelated && routeMarketHasVenueRows,
   });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
