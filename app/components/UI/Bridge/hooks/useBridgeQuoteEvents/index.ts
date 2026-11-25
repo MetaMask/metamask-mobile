@@ -117,6 +117,7 @@ export const useBridgeQuoteEvents = ({
               unifiedSwapBridgeContext.token_symbol_source || undefined,
             token_symbol_destination:
               unifiedSwapBridgeContext.token_symbol_destination || undefined,
+            operation: unifiedSwapBridgeContext.operation,
           },
         ),
       );

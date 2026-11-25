@@ -159,6 +159,9 @@ describeForPlatforms('Send (Non-EVM)', () => {
     expect(getByTestId(SendViewSelectorsIDs.SEND_AMOUNT)).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(SendViewSelectorsIDs.PERCENTAGE_BUTTON_100));
+    await waitFor(() =>
+      expect(getByRole('button', { name: 'Continue' })).toBeOnTheScreen(),
+    );
     fireEvent.press(getByRole('button', { name: 'Continue' }));
 
     expect(
