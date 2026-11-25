@@ -283,8 +283,8 @@ describe('usePerpsOrderForm', () => {
     it('reads market data and existing leverage from the requested venue', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [
-          { symbol: 'ETH', providerId: 'hyperliquid', leverage: { value: 20 } },
-          { symbol: 'ETH', providerId: 'lighter', leverage: { value: 5 } },
+          { ...createMockPosition('ETH', 20), providerId: 'hyperliquid' },
+          { ...createMockPosition('ETH', 5), providerId: 'lighter' },
         ],
         isInitialLoading: false,
       });

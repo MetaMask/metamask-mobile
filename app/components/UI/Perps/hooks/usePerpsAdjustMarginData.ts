@@ -111,7 +111,9 @@ export function usePerpsAdjustMarginData(
   // Live data subscriptions
   const { positions, isInitialLoading } = usePerpsLivePositions();
   const { account } = usePerpsLiveAccount();
-  const { markets } = usePerpsMarkets();
+  // Full catalog: the grouped list keeps one row per symbol, tagged with the
+  // default venue, so a position on the other venue would match nothing.
+  const { markets } = usePerpsMarkets({ fullCatalog: true });
 
   // Find live position for this symbol
   const position = useMemo(
@@ -198,10 +200,19 @@ export function usePerpsAdjustMarginData(
     return Number.isFinite(rawPercentChange) ? rawPercentChange : null;
   }, [livePrices, symbol]);
 
-  const spendableBalance = useMemo(
-    () => parseFiniteNumber(account?.spendableBalance),
-    [account],
-  );
+  // Margin is added from the position's venue, so in aggregated mode only that
+  // venue's balance is spendable. A venue that has not reported (or failed)
+  // offers nothing rather than the other venue's funds.
+  const spendableBalance = useMemo(() => {
+    const venueId = position?.providerId;
+    if (venueId && account?.providerStates) {
+      const venueEntry = account.providerStates[venueId];
+      return venueEntry?.status === 'available'
+        ? parseFiniteNumber(venueEntry.state.spendableBalance)
+        : 0;
+    }
+    return parseFiniteNumber(account?.spendableBalance);
+  }, [account, position?.providerId]);
 
   const positionLeverage =
     parsedPositionLeverage > 0 ? parsedPositionLeverage : maxLeverage;

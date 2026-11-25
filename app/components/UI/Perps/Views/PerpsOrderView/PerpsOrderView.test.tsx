@@ -7177,13 +7177,28 @@ describe('PerpsOrderView', () => {
           existingPosition: { symbol: 'ETH', providerId: 'lighter' },
         },
       });
+      const streamManager = createMockStreamManager();
+      const Wrapper = ({ children }: { children: React.ReactNode }) => (
+        <PerpsStreamProvider
+          testStreamManager={streamManager as unknown as PerpsStreamManager}
+        >
+          {children}
+        </PerpsStreamProvider>
+      );
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      render(<PerpsOrderView />, { wrapper: Wrapper });
 
       await waitFor(() => {
         expect(screen.getByText('Leverage')).toBeOnTheScreen();
       });
       expect(mockProviderProviderId).toBe('lighter');
+      // The OI cap and books follow the same venue as the form.
+      expect(streamManager.oiCaps.subscribeToSymbol).toHaveBeenLastCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
+      expect(usePerpsTopOfBook).toHaveBeenLastCalledWith(
+        expect.objectContaining({ providerId: 'lighter' }),
+      );
     });
   });
 

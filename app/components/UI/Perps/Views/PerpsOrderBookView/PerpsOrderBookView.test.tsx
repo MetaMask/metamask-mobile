@@ -446,7 +446,10 @@ describe('PerpsOrderBookView', () => {
     });
 
     it('reads top of book and the book from the market venue', () => {
-      const lighterMarket = { ...mockRouteMarketData, providerId: 'lighter' };
+      const lighterMarket = {
+        ...mockRouteMarketData,
+        providerId: 'lighter' as const,
+      };
       mockUseRoute.mockReturnValue({
         params: { symbol: 'BTC', marketData: lighterMarket },
       });
