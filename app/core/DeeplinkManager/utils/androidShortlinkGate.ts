@@ -58,8 +58,11 @@ export class AndroidShortlinkGate {
   private pendingTimer: ReturnType<typeof setTimeout> | null = null;
   private lastBranchResolvedKey: string | null = null;
   private lastBranchResolvedAt = 0;
+  private readonly dispatch: (uri: string) => void;
 
-  constructor(private readonly dispatch: (uri: string) => void) {}
+  constructor(dispatch: (uri: string) => void) {
+    this.dispatch = dispatch;
+  }
 
   private clearPending(): void {
     if (this.pendingTimer !== null) {

@@ -1066,6 +1066,8 @@ describe('DeeplinkManager.start Android shortlink deferral', () => {
     );
     jest.mocked(branch.getLatestReferringParams).mockResolvedValue({
       '~referring_link': `${alias}&_branch_match_id=123`,
+      '+match_guaranteed': false,
+      '+is_first_session': false,
       '+clicked_branch_link': true,
       $deeplink_path: 'perps?sig_params=&sig=xyz',
     });
