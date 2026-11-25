@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
 });
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
+import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardType } from '../../../types';
 import {
   CardStatus,
@@ -58,12 +59,10 @@ interface ManageCardOptionsProps {
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
   /**
-   * The Card home quick-action row now carries the View card details, View
-   * PIN and Freeze/Unfreeze actions; when it is showing them, hide these
-   * rows so the same action does not appear twice. Defaults to false (rows
-   * unchanged).
+   * Quick-action tiles the Card home row is showing. Each matching row is
+   * hidden so the same action does not appear twice. Omitted: rows unchanged.
    */
-  hideQuickActionRows?: boolean;
+  hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
   onTravel: () => void;
   onTransactionHistory?: () => void;
@@ -109,7 +108,7 @@ const ManageCardOptions = ({
   isSpendingLimitActive,
   onChangeAsset,
   hasPriorityTokenBalance,
-  hideQuickActionRows = false,
+  hiddenQuickActionRows,
   onCashback,
   onTravel,
   onTransactionHistory,
@@ -222,7 +221,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {!hideQuickActionRows &&
+        {!hiddenQuickActionRows?.details &&
           isAuthenticated &&
           !isLoading &&
           card &&
@@ -255,7 +254,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
             />
           )}
-        {!hideQuickActionRows &&
+        {!hiddenQuickActionRows?.pin &&
           isAuthenticated &&
           !isLoading &&
           card &&
@@ -288,7 +287,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.SET_PIN_BUTTON}
             />
           )}
-        {!hideQuickActionRows &&
+        {!hiddenQuickActionRows?.freeze &&
           isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&

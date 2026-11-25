@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
   IconName,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import MainActionButtonGlass from '../../../../../../component-library/components-temp/MainActionButtonGlass';
 import SnowflakeIcon from '../../../components/SnowflakeIcon';
@@ -91,13 +91,6 @@ export const getCardHomeActionVisibility = ({
   };
 };
 
-const styles = StyleSheet.create({
-  buttonContainer: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-});
-
 /**
  * Card home quick actions under the card panel. Same tiles as the Money home
  * action row (`MainActionButtonGlass`). Each button is optional. Visibility
@@ -111,7 +104,9 @@ const CardHomeActionButtonRow = ({
   isGlass = false,
   isTightTop = false,
 }: CardHomeActionButtonRowProps) => {
+  const tw = useTailwind();
   if (!add && !details && !pin && !freeze) return null;
+  const buttonContainerStyle = tw.style('flex-1 overflow-hidden');
 
   return (
     <Box
@@ -127,7 +122,7 @@ const CardHomeActionButtonRow = ({
           isDisabled={add.disabled}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
           twClassName="py-3"
-          containerStyle={styles.buttonContainer}
+          containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
       ) : null}
@@ -143,7 +138,7 @@ const CardHomeActionButtonRow = ({
           isDisabled={details.disabled}
           testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           twClassName="py-3"
-          containerStyle={styles.buttonContainer}
+          containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
       ) : null}
@@ -155,7 +150,7 @@ const CardHomeActionButtonRow = ({
           isDisabled={pin.disabled}
           testID={CardHomeSelectors.VIEW_PIN_BUTTON}
           twClassName="py-3"
-          containerStyle={styles.buttonContainer}
+          containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
       ) : null}
@@ -171,7 +166,7 @@ const CardHomeActionButtonRow = ({
           isDisabled={freeze.disabled}
           testID={CardHomeSelectors.FREEZE_CARD_BUTTON}
           twClassName="py-3"
-          containerStyle={styles.buttonContainer}
+          containerStyle={buttonContainerStyle}
           isGlass={isGlass}
         />
       ) : null}
