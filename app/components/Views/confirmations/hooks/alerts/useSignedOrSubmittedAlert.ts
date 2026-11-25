@@ -34,7 +34,12 @@ export const useSignedOrSubmittedAlert = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
 
-  const { chainId, id: transactionId, txParams } = transactionMetadata || {};
+  const {
+    chainId,
+    id: transactionId,
+    requiredTransactionIds,
+    txParams,
+  } = transactionMetadata || {};
   const { from } = txParams ?? {};
 
   const existingTransaction = transactions.find((transaction) => {
@@ -45,6 +50,7 @@ export const useSignedOrSubmittedAlert = () => {
     return (
       blockStatuses.includes(transaction.status) &&
       transaction.id !== transactionId &&
+      !requiredTransactionIds?.includes(transaction.id) &&
       transaction.chainId === chainId &&
       transaction.txParams.from.toLowerCase() === from?.toLowerCase()
     );

@@ -139,6 +139,32 @@ describe('useSignedOrSubmittedAlert', () => {
     },
   );
 
+  it('returns no alerts for a transaction this one requires', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...TRANSACTION_META_MOCK,
+      id: '2',
+      status: TransactionStatus.approved,
+      requiredTransactionIds: ['1'],
+    } as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [TRANSACTION_META_MOCK],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([]);
+  });
+
   it('returns no alerts if on different chain', () => {
     const { result } = renderHookWithProvider(
       () => useSignedOrSubmittedAlert(),
