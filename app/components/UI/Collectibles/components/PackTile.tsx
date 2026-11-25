@@ -89,7 +89,6 @@ export function PackTile({ pack }: Props) {
           accessibilityHint={strings('collectibles.buy_sheet.open_hint', {
             name: pack.name,
           })}
-          // Grows the small text target to about 44pt.
           hitSlop={11}
           testID={collectiblesTestIds.buyButton(pack.code)}
         >

@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { collectiblesTestIds } from '../Collectibles.testIds';
-import { mockHomePacks } from '../mocks/homePacks';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
+import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
 import { BuySheet } from './BuySheet';
 
 const mockGoBack = jest.fn();
@@ -15,7 +15,7 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: { packCode: mockPackCode } }),
 }));
 
-jest.mock('../hooks/useHomePacks', () => ({
+jest.mock('#app/components/UI/Collectibles/hooks/useHomePacks', () => ({
   useHomePacks: () => ({ data: mockHomePacks }),
 }));
 
