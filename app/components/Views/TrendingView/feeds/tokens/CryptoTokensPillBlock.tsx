@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { Modal, RefreshControl, View } from 'react-native';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
@@ -445,12 +446,27 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
         testID={testID ?? listTestId}
       />
       {isSortSheetOpen && (
-        <CryptoTokensSortBottomSheet
-          sort={sort}
-          onApply={setSort}
-          onClose={() => setIsSortSheetOpen(false)}
-          testID={`${testIdPrefix}-sort-sheet`}
-        />
+        // Rendered in a Modal, like PerpsTab, so the sheet and backdrop cover
+        // the whole screen (above the floating tab bar) instead of being
+        // clipped to the tab. Android: wrap <Modal> in a plain <View>.
+        <View>
+          <Modal
+            visible
+            transparent
+            animationType="none"
+            statusBarTranslucent
+            onRequestClose={() => setIsSortSheetOpen(false)}
+          >
+            <ModalSafeAreaProvider>
+              <CryptoTokensSortBottomSheet
+                sort={sort}
+                onApply={setSort}
+                onClose={() => setIsSortSheetOpen(false)}
+                testID={`${testIdPrefix}-sort-sheet`}
+              />
+            </ModalSafeAreaProvider>
+          </Modal>
+        </View>
       )}
     </>
   );
