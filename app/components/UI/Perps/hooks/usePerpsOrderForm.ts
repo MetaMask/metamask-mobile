@@ -280,9 +280,12 @@ export function usePerpsOrderForm(
     availableToTrade,
     orderForm.direction,
   );
-  const accountSpendableBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() ?? '0',
-  );
+  // Stays NaN while the account has not reported, so a failed stream does not
+  // turn a missing balance into a real zero.
+  const accountSpendableBalance =
+    account?.spendableBalance == null
+      ? Number.NaN
+      : Number.parseFloat(account.spendableBalance.toString());
   const perpsAvailableToTrade =
     venueAvailableToTrade ??
     (isAvailableToTradeStreamFailed && Number.isFinite(accountSpendableBalance)

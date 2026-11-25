@@ -906,6 +906,26 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.maxPossibleAmount).toBeGreaterThan(0);
     });
 
+    it('stays loading when the stream errors before the account reports a spendable balance', () => {
+      mockHoldAvailableToTrade = true;
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+      });
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        latestAvailableToTradeSubscription().onError?.(
+          new Error('stream closed'),
+        );
+      });
+
+      expect(result.current.perpsAvailableToTrade).toBeUndefined();
+      expect(result.current.isAvailableToTradeLoading).toBe(true);
+    });
+
     it('falls back to the account spendable balance when the stream errors after a value', () => {
       mockUsePerpsLiveAccount.mockReturnValue(accountWithSpendable('400'));
       mockAvailableToTradeSides = { long: '800', short: '800' };
