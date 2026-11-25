@@ -28,6 +28,11 @@ export interface PhoneCountry {
   maxDigits: number;
   /** Whether a leading 0 is a dial-out prefix to drop from the national number. */
   hasTrunkZero?: boolean;
+  /**
+   * North American territories share calling code `1`; these are the area
+   * codes that belong to the country, and the national number includes one.
+   */
+  areaCodes?: readonly string[];
 }
 
 /** What `onSubmit` receives. */
@@ -325,8 +330,9 @@ const DETAILED_COUNTRIES: readonly PhoneCountry[] = [
 
 /**
  * The rest of the world: name and calling code, with a length check only.
- * North American territories (calling code `1` plus an area code) have 7
- * digit numbers; elsewhere the limit is E.164's 15 digits in total.
+ * North American territories (calling code `1` plus their area codes, comma
+ * separated) are checked like the US; elsewhere the limit is E.164's 15 digits
+ * in total.
  */
 const OTHER_COUNTRIES: readonly (readonly [string, string, string])[] = [
   ['AF', 'Afghanistan', '93'],
@@ -379,7 +385,7 @@ const OTHER_COUNTRIES: readonly (readonly [string, string, string])[] = [
   ['CZ', 'Czechia', '420'],
   ['DJ', 'Djibouti', '253'],
   ['DM', 'Dominica', '1767'],
-  ['DO', 'Dominican Republic', '1809'],
+  ['DO', 'Dominican Republic', '1809,1829,1849'],
   ['EC', 'Ecuador', '593'],
   ['EG', 'Egypt', '20'],
   ['SV', 'El Salvador', '503'],
@@ -415,7 +421,7 @@ const OTHER_COUNTRIES: readonly (readonly [string, string, string])[] = [
   ['ID', 'Indonesia', '62'],
   ['IQ', 'Iraq', '964'],
   ['IL', 'Israel', '972'],
-  ['JM', 'Jamaica', '1876'],
+  ['JM', 'Jamaica', '1876,1658'],
   ['JO', 'Jordan', '962'],
   ['RU', 'Russia', '7'],
   ['KZ', 'Kazakhstan', '7'],
@@ -473,7 +479,7 @@ const OTHER_COUNTRIES: readonly (readonly [string, string, string])[] = [
   ['PG', 'Papua New Guinea', '675'],
   ['PY', 'Paraguay', '595'],
   ['PE', 'Peru', '51'],
-  ['PR', 'Puerto Rico', '1787'],
+  ['PR', 'Puerto Rico', '1787,1939'],
   ['QA', 'Qatar', '974'],
   ['RO', 'Romania', '40'],
   ['RW', 'Rwanda', '250'],
@@ -526,27 +532,28 @@ const OTHER_COUNTRIES: readonly (readonly [string, string, string])[] = [
 
 const GENERIC_TEMPLATE = 'XXX XXX XXXX XXXX';
 
-const toGenericCountry = ([iso, name, callingCode]: readonly [
+const toGenericCountry = ([iso, name, code]: readonly [
   string,
   string,
   string,
 ]): PhoneCountry =>
-  callingCode.length === 4 && callingCode.startsWith('1')
+  code.length >= 4 && code.startsWith('1')
     ? {
         iso,
         name,
-        callingCode,
-        template: 'XXX XXXX',
-        minDigits: 7,
-        maxDigits: 7,
+        callingCode: '1',
+        template: NANP_TEMPLATE,
+        minDigits: 10,
+        maxDigits: 10,
+        areaCodes: code.split(',').map((areaCode) => areaCode.slice(1)),
       }
     : {
         iso,
         name,
-        callingCode,
+        callingCode: code,
         template: GENERIC_TEMPLATE,
         minDigits: 4,
-        maxDigits: 15 - callingCode.length,
+        maxDigits: 15 - code.length,
       };
 
 export const PHONE_COUNTRIES: readonly PhoneCountry[] = [
@@ -614,10 +621,29 @@ export const formatNational = (digits: string, country: PhoneCountry): string =>
 export const isValidNational = (
   digits: string,
   country: PhoneCountry,
-): boolean =>
-  isNanp(country)
-    ? NANP_NUMBER.test(digits)
-    : digits.length >= country.minDigits && digits.length <= country.maxDigits;
+): boolean => {
+  if (!isNanp(country)) {
+    return (
+      digits.length >= country.minDigits && digits.length <= country.maxDigits
+    );
+  }
+  return (
+    NANP_NUMBER.test(digits) &&
+    (country.areaCodes?.includes(digits.slice(0, 3)) ?? true)
+  );
+};
+
+/**
+ * The prefix to show beside a country: its calling code, with a North American
+ * territory's area codes.
+ *
+ * @param country - The country.
+ * @returns e.g. `+44`, or `+1 809, 829, 849`.
+ */
+export const getDialPrefix = (country: PhoneCountry): string =>
+  country.areaCodes
+    ? `+${country.callingCode} ${country.areaCodes.join(', ')}`
+    : `+${country.callingCode}`;
 
 export const toPhoneNumberValue = (
   digits: string,
@@ -647,13 +673,19 @@ export const parsePhoneInput = (
     return { country: current, digits: normalizeNational(text, current) };
   }
   const all = normalizePhoneDigits(text);
-  // Longest calling code first, preferring the current country on a tie, so
-  // +1 stays in Canada for a Canadian user.
+  // Longest calling code first. Among countries sharing one, a territory whose
+  // area code the number starts with wins, then the current country, so +1
+  // stays in Canada for a Canadian user.
+  const hasAreaCode = (country: PhoneCountry) =>
+    country.areaCodes?.includes(
+      all.slice(country.callingCode.length, country.callingCode.length + 3),
+    ) ?? false;
   const matches = PHONE_COUNTRIES.filter((country) =>
     all.startsWith(country.callingCode),
   ).sort(
     (first, second) =>
       second.callingCode.length - first.callingCode.length ||
+      Number(hasAreaCode(second)) - Number(hasAreaCode(first)) ||
       Number(second.iso === current.iso) - Number(first.iso === current.iso),
   );
   const country = matches[0];

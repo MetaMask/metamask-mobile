@@ -20,6 +20,7 @@ import {
   DEFAULT_PHONE_COUNTRY_ISO,
   PHONE_COUNTRIES,
   getCountryFlag,
+  getDialPrefix,
   type PhoneCountry,
 } from './phone';
 
@@ -48,7 +49,9 @@ const filterCountries = (searchString: string): PhoneCountry[] => {
     (country) =>
       country.name.toLowerCase().includes(query) ||
       country.iso.toLowerCase() === query ||
-      country.callingCode.startsWith(query),
+      country.callingCode.startsWith(query) ||
+      (country.areaCodes?.some((areaCode) => areaCode.startsWith(query)) ??
+        false),
   );
 };
 
@@ -99,7 +102,7 @@ const CountrySheet = ({
         }
         title={item.name}
         titleProps={{ variant: TextVariant.BodyMd }}
-        description={`+${item.callingCode}`}
+        description={getDialPrefix(item)}
         descriptionProps={{
           variant: TextVariant.BodySm,
           fontWeight: FontWeight.Regular,

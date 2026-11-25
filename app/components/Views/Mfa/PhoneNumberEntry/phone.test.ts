@@ -3,6 +3,7 @@ import {
   formatNational,
   getCountryFlag,
   getCountryName,
+  getDialPrefix,
   getInitialPhone,
   getPhoneCountry,
   isValidNational,
@@ -156,7 +157,7 @@ describe('the rest of the world', () => {
     const isos = PHONE_COUNTRIES.map((country) => country.iso);
     expect(new Set(isos).size).toBe(isos.length);
     PHONE_COUNTRIES.forEach((country) => {
-      expect(country.callingCode).toMatch(/^[1-9]\d{0,3}$/u);
+      expect(country.callingCode).toMatch(/^[1-9]\d{0,2}$/u);
     });
   });
 
@@ -177,8 +178,30 @@ describe('the rest of the world', () => {
   it('reads a North American territory by its area code', () => {
     const parsed = parsePhoneInput('+1 684 555 1234', getPhoneCountry('US'));
     expect(parsed.country.iso).toBe('AS');
-    expect(parsed.digits).toBe('5551234');
-    expect(isValidNational('5551234', parsed.country)).toBe(true);
+    expect(parsed.digits).toBe('6845551234');
+    expect(isValidNational(parsed.digits, parsed.country)).toBe(true);
+    expect(toPhoneNumberValue(parsed.digits, parsed.country).e164).toBe(
+      '+16845551234',
+    );
+  });
+
+  it('accepts every area code of a territory, and no other', () => {
+    const dominicanRepublic = getPhoneCountry('DO');
+    ['8095551234', '8295551234', '8495551234'].forEach((digits) => {
+      expect(isValidNational(digits, dominicanRepublic)).toBe(true);
+    });
+    expect(isValidNational('2125551234', dominicanRepublic)).toBe(false);
+    expect(isValidNational('9395551234', getPhoneCountry('PR'))).toBe(true);
+    expect(isValidNational('6585551234', getPhoneCountry('JM'))).toBe(true);
+    expect(toPhoneNumberValue('8295551234', dominicanRepublic).e164).toBe(
+      '+18295551234',
+    );
+  });
+
+  it('shows the area codes of a territory beside its calling code', () => {
+    expect(getDialPrefix(getPhoneCountry('GB'))).toBe('+44');
+    expect(getDialPrefix(getPhoneCountry('US'))).toBe('+1');
+    expect(getDialPrefix(getPhoneCountry('DO'))).toBe('+1 809, 829, 849');
   });
 
   it('keeps the current country when a calling code is shared', () => {
