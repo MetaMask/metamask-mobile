@@ -15,11 +15,8 @@ import {
 } from '../fixtures/perpsViewFixtures';
 
 // These are synthetic two-exchange fixtures, not snapshots of what the
-// installed controller emits, and they carry no per-exchange availability yet.
-// Once perps-controller exposes `AccountState.providerStates`, tsc fails on the
-// next line. Then give each scenario per-exchange account states (Lighter down
-// = Lighter 'unavailable') and delete the alias.
-// @ts-expect-error Remove once AccountState exposes providerStates.
+// installed controller emits. Each scenario still carries per-exchange account
+// states (Lighter down = Lighter 'unavailable').
 export type PerpsAccountProviderStates = AccountState['providerStates'];
 
 interface ExchangeAccount {
@@ -104,6 +101,9 @@ export const perpsTwoExchangeState = (
         backgroundState: {
           PerpsController: {
             activeProvider: 'aggregated',
+            // Grouped market rows display the default venue's data; without
+            // this the venue-filter selector cannot resolve the display row.
+            defaultProvider: 'hyperliquid',
             isEligible: true,
             isFirstTimeUser: { mainnet: false, testnet: false },
             perpsBalances: Object.fromEntries(

@@ -81,6 +81,7 @@ import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
 } from '../../../UI/SocialFeed/utils/perp';
+import { isProfileVerified } from '../../../UI/SocialFeed/utils/profileVerified';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -447,6 +448,7 @@ const TraderProfileView = () => {
               traderImageUrl={profile.profile.imageUrl}
               traderAddress={profile.profile.address}
               traderProfileId={profile.profile.profileId}
+              isVerified={isProfileVerified(profile.profile)}
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />

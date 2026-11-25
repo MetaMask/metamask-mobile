@@ -7,6 +7,8 @@
 import '../../../../../../tests/component-view/mocks';
 import { act, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderPerpsMarketListView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { withLighterBuildEnabled } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsMarketListViewSelectorsIDs,
@@ -535,6 +537,49 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('AAPL')),
       ).toBeOnTheScreen();
+    });
+  });
+});
+
+describe('Exchange (venue) filter — TAT-4407', () => {
+  describe('with two venues available', () => {
+    withLighterBuildEnabled();
+
+    it.each([
+      { venues: ['hyperliquid'], label: '1 exchange' },
+      { venues: ['hyperliquid', 'lighter'], label: '2 exchanges' },
+    ] as const)('renders $label', async ({ venues, label }) => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView({
+        ...twoExchange,
+        overrides: {
+          ...twoExchange.overrides,
+          settings: {
+            ...twoExchange.overrides.settings,
+            perpsMarketListPreferences: { selectedProviderIds: [...venues] },
+          },
+        },
+      });
+      expect(await screen.findAllByText(label)).not.toHaveLength(0);
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      expect(
+        await screen.findAllByTestId(
+          `${sortFiltersId}-secondary-exchange-filter`,
+        ),
+      ).not.toHaveLength(0);
+    });
+  });
+
+  describe('with a single venue available', () => {
+    it('hides the exchange filter trigger', async () => {
+      renderPerpsMarketListView();
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      await screen.findByText('Markets');
+      expect(
+        screen.queryByTestId(`${sortFiltersId}-secondary-exchange-filter`),
+      ).not.toBeOnTheScreen();
     });
   });
 });

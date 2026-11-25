@@ -1,4 +1,4 @@
-import type { Mockttp } from 'mockttp';
+import type { CompletedRequest, Mockttp } from 'mockttp';
 import { RELAY_QUOTE_MOCK, RELAY_STATUS_MOCK } from '../transaction-pay';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 
@@ -119,7 +119,16 @@ export function buildRelayQuoteMock(
 /**
  * Registers the mock server interceptors for Relay quote requests with the given quote object.
  */
-export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
+export async function mockRelayQuoteWith(
+  mockServer: Mockttp,
+  quote: unknown,
+  onRequest?: (body: RelayRequestBody) => void,
+) {
+  const respond = async (request: CompletedRequest) => {
+    onRequest?.(await readRelayRequestBody(request));
+    return { statusCode: 200, json: quote };
+  };
+
   await mockServer
     .forPost('/proxy')
     .asPriority(1001)
@@ -133,16 +142,17 @@ export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
           url?.includes('intents.uat-api.cx.metamask.io/relay/quote'),
       );
     })
-    .thenCallback(() => ({ statusCode: 200, json: quote }));
+    .thenCallback(respond);
 
   await mockServer
     .forPost(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/quote/)
     .asPriority(1001)
-    .thenCallback(() => ({ statusCode: 200, json: quote }));
+    .thenCallback(respond);
 }
 
 interface RelayRequestBody {
   metamask?: { executeVersion?: number };
+  recipient?: string;
   requestId?: string;
   user?: string;
 }

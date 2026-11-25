@@ -175,7 +175,10 @@ import {
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { translatePerpsError } from '../../utils/translatePerpsError';
 import { useOrderLiquidationRow } from '../../hooks/useOrderLiquidationRow';
-import { liquidationPriceForOrderSide } from '../../utils/crossMarginSummary';
+import {
+  getCrossLiquidationRefreshKey,
+  liquidationPriceForOrderSide,
+} from '../../utils/crossMarginSummary';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
@@ -277,6 +280,7 @@ import {
   markClaimSheetSeen,
 } from '../../../../../util/social/postTradePromptStorage';
 import ToastService from '../../../../../core/ToastService';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -396,6 +400,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const copyTradeOrigin = route.params?.copyTradeOrigin;
   const activePerpsProvider = useSelector(selectPerpsProvider);
   const orderProvider = useSelector(selectPerpsOrderProvider);
+  // Same order as the PerpsOrderProvider venue: route, then the existing
+  // position being changed, then the routing default.
+  const orderVenueId =
+    route.params?.providerId ??
+    route.params?.existingPosition?.providerId ??
+    orderProvider ??
+    undefined;
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -466,6 +477,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
+  const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
   const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
@@ -713,13 +725,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
-  // A route provider wins. Otherwise use the venue this order will go to, so
-  // the sheet, the margin lock, and the liquidation formula follow the
-  // position it will change. Another venue's position for this symbol must
-  // not set the cross estimate.
+  // The venue the order will go to, so the margin lock and the cross
+  // estimate follow the position it will change. Another venue's position for
+  // this symbol must not set the cross estimate.
   const liquidationProviderId =
-    route.params?.providerId ??
-    orderProvider ??
+    orderVenueId ??
     marketData?.providerId ??
     (activePerpsProvider === PROVIDER_CONFIG.LighterProvider
       ? PROVIDER_CONFIG.LighterProvider
@@ -729,7 +739,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isLoading: isCurrentPositionLoading,
   } = useHasExistingPosition({
     asset: orderForm.asset || '',
-    providerId: liquidationProviderId,
+    // A route provider wins. Otherwise use the venue this order will go to,
+    // so the sheet and the order logic follow the position it will change.
+    providerId: orderVenueId,
     loadOnMount: true,
   });
   const { lock: marginModeLock } = usePerpsMarginModeLock({
@@ -745,7 +757,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         marginModeLock.marginMode === 'cross'));
 
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
-  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
+  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset, orderVenueId);
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -786,9 +798,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
   );
-  const payTokenIdentity = payToken
-    ? `${payToken.address}:${payToken.chainId}`
-    : '';
+  const payTokenIdentity = payToken?.assetId ?? '';
 
   // The Trade sheet's payment token picker is an inline screen, so there is
   // no focus change to observe: the screen reports when it is left and the
@@ -842,12 +852,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     properties: perpsScreenViewedProps,
   });
 
-  // Ensure oracle price (markPrice) is available for margin calculation.
+  // Ensure the venue mark price (markPrice) is available for margin calculation.
   // The PriceStreamChannel subscribes without includeMarketData, so the
-  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
-  // undefined when entering from Token Details (no prior market data sub).
-  // This subscription populates the cache for the traded asset so that
-  // subsequent allMids price updates include markPrice.
+  // HyperLiquid marketDataCache has no mark or oracle price and markPrice is
+  // always undefined when entering from Token Details (no prior market data
+  // sub). This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice and oraclePrice.
   //
   // We gate on isInitialized (from usePerpsConnection) so the subscription
   // is deferred until the controller is ready. This mirrors the pattern in
@@ -861,7 +871,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       includeMarketData: true,
       callback: () => {
         // No-op callback — the side effect of populating the
-        // marketDataCache with oraclePrice is all we need.
+        // marketDataCache with the mark and oracle prices is all we need.
       },
     });
 
@@ -870,12 +880,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Fast focused price via activeAssetCtx projection (~0.5 s)
   const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    providerId: orderVenueId,
     symbol: isDataReady ? orderForm.asset : '',
     enabled: isDataReady,
   });
 
   // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
+    providerId: orderVenueId,
     symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
@@ -886,6 +898,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: isDataReady ? orderForm.asset : '', // Defer subscription
+    providerId: orderVenueId,
   });
 
   // Track screen load with unified hook (measure data loading, not initial render)
@@ -1012,6 +1025,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: orderVenueId,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps,
@@ -1087,7 +1101,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Position size, margin, and effective price are derived together. For limit
   // orders with a valid limit price, that price is used for sizing/margin;
-  // otherwise the market price (sizing) and oracle mark price (margin) are used.
+  // otherwise the market price (sizing) and venue mark price (margin) are used.
   const { effectivePrice, positionSize, marginRequired } = useMemo(
     () =>
       deriveOrderSizing({
@@ -1263,7 +1277,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
-        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payToken.chainId;
+        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payTokenChainId;
       }
       track(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED, consideredProps);
     }, 1000);
@@ -1280,6 +1294,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
+    payTokenChainId,
     readShownSizeUnit,
     track,
   ]);
@@ -1326,7 +1341,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       asset: orderForm.asset,
       amount: orderForm.amount,
       payToken: payToken
-        ? `${payToken.symbol ?? ''}:${payToken.chainId ?? ''}`
+        ? `${payToken.symbol ?? ''}:${payTokenChainId ?? ''}`
         : null,
       payTotals,
       errorKey: blockingNoQuoteAlert?.key,
@@ -1371,6 +1386,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.asset,
     orderForm.amount,
     payToken,
+    payTokenChainId,
     track,
   ]);
 
@@ -2326,7 +2342,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             chartLibrary,
             vipTier,
             hasCustomTokenSelected,
-            payToken,
+            payToken: payToken && {
+              symbol: payToken.symbol,
+              chainId: payTokenChainId,
+            },
             maxSlippageBps,
             maxSlippageSource,
             estimatedSlippageBps:
@@ -2376,7 +2395,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
           if (!tpslResult.success) {
-            const errorMessage = translatePerpsError(tpslResult.error);
+            const errorMessage = translatePerpsError(tpslResult);
             showToast(
               PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
                 errorMessage,
@@ -2459,6 +2478,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       activeTransactionMeta,
       hasCustomTokenSelected,
       payToken,
+      payTokenChainId,
       onDepositConfirm,
       handleDepositConfirm,
       fromTokenDetails,
@@ -2626,23 +2646,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const existingSignedSize = Number.parseFloat(
     currentMarketPosition?.size ?? '0',
   );
-  // Cross orders liquidate against the account. The hook owns that estimate
-  // and the isolated fallback, so this view only renders the row.
+  // Cross orders liquidate against the account, so the controller estimates
+  // them. The hook also owns the isolated fallback; this view only renders.
   const orderLiquidation = useOrderLiquidationRow({
     isCrossOrder,
-    isPositionLoading: isCurrentPositionLoading,
+    symbol: orderForm.asset,
+    direction: orderForm.direction,
     entryPrice: effectivePrice,
     positionSize,
-    isLong: orderForm.direction === 'long',
-    maxLeverage:
-      typeof marketData?.maxLeverage === 'number'
-        ? marketData.maxLeverage
-        : undefined,
-    marginTableId: marketData?.marginTableId,
-    crossMarginSummary: account?.crossMarginSummary,
-    spotCollateral: account?.spotCollateral,
+    leverage: orderForm.leverage,
     providerId: liquidationProviderId,
-    existingSignedSize,
+    refreshKey: getCrossLiquidationRefreshKey({
+      account,
+      positionSize: currentMarketPosition?.size,
+    }),
     hasValidAmount,
     isolatedPrice: liquidationPrice,
   });
@@ -2856,7 +2873,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ? cachedChart
             : null,
         focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
-        cachedPrice: stream.prices.getSnapshotForSymbol(orderForm.asset),
+        cachedPrice: stream.prices.getSnapshotForSymbol(
+          orderForm.asset,
+          orderVenueId,
+        ),
       });
     }
     const tradeSheetHeaderPrice = hasLiveHeaderPrice
@@ -2871,21 +2891,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const isTradeSheetPayWithLoading = isLoadingAccount;
     const isTradeSheetMarginLoading =
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
-    const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
+    const parsedLiquidationPrice =
+      liquidationPrice === undefined
+        ? undefined
+        : Number.parseFloat(liquidationPrice);
     const hasLiquidationPrice =
       !isCrossOrder &&
       hasValidAmount &&
+      parsedLiquidationPrice !== undefined &&
       Number.isFinite(parsedLiquidationPrice) &&
       parsedLiquidationPrice > 0;
-    // Keep the last valid price visible during a refetch. The liquidation hook
-    // retains it while calculating; only the initial unresolved request needs
-    // a skeleton. Cross estimates are synchronous.
-    const isTradeSheetLiquidationLoading =
-      !isCrossOrder &&
-      (isLoadingMarketData ||
+    // Keep the last valid price visible during a refetch. The liquidation
+    // hooks retain it while calculating; only the initial unresolved request
+    // needs a skeleton.
+    const isTradeSheetLiquidationLoading = isCrossOrder
+      ? orderLiquidation.isCrossEstimateLoading
+      : isLoadingMarketData ||
         (hasValidAmount &&
           isCalculatingLiquidationPrice &&
-          !hasLiquidationPrice));
+          !hasLiquidationPrice);
     const tradeSheetLiquidationPrice = orderLiquidation.display;
     const tradeSheetLiquidationDistance =
       orderLiquidation.distancePrice === undefined
@@ -2993,6 +3017,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <PerpsTradeScreen
                 asset={getPerpsDisplaySymbol(orderForm.asset)}
                 oiCapSymbol={orderForm.asset}
+                oiCapProviderId={orderVenueId}
                 direction={orderForm.direction}
                 leverage={orderForm.leverage}
                 maxLeverage={maxLeverage}
@@ -3075,6 +3100,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ),
             leverage: (
               <PerpsTradeLeverageScreen
+                providerId={orderVenueId}
                 onConfirm={handleLeverageConfirm}
                 leverage={orderForm.leverage}
                 minLeverage={1}
@@ -3121,6 +3147,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <PerpsOrderHeader
+        providerId={orderVenueId}
         asset={orderForm.asset}
         price={assetData.price}
         orderType={orderForm.type}
@@ -3577,6 +3604,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Leverage Selector */}
       {isLeverageVisible && (
         <PerpsLeverageBottomSheet
+          providerId={orderVenueId}
           isVisible={isLeverageVisible}
           onClose={() => setIsLeverageVisible(false)}
           onConfirm={(leverage, inputMethod) => {
@@ -3642,6 +3670,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Limit Price Bottom Sheet */}
       {isLimitPriceVisible && (
         <PerpsLimitPriceBottomSheet
+          providerId={orderVenueId}
           isVisible={isLimitPriceVisible}
           onClose={() => {
             setIsLimitPriceVisible(false);
@@ -3747,6 +3776,7 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
   openStartTime,
 }) => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const orderProvider = useSelector(selectPerpsOrderProvider);
   const { payToken } = useTransactionPayToken();
   const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
@@ -3779,6 +3809,14 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
 
   return (
     <PerpsOrderProvider
+      // Match the venue the rest of the order view uses; an existing
+      // position's venue still wins over the routing default.
+      providerId={
+        route.params?.providerId ??
+        existingPosition?.providerId ??
+        orderProvider ??
+        undefined
+      }
       initialAsset={asset}
       initialDirection={direction}
       initialAmount={paramAmount}

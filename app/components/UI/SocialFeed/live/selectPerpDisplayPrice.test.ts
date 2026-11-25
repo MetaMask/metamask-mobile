@@ -4,7 +4,7 @@ describe('selectPerpDisplayPrice', () => {
   it('returns the oracle when the market is tradable', () => {
     const update = {
       price: '86.58',
-      markPrice: '86.51',
+      oraclePrice: '86.51',
       isTradable: true,
     };
 
@@ -16,7 +16,7 @@ describe('selectPerpDisplayPrice', () => {
   it('returns the live mid when the oracle has diverged', () => {
     const update = {
       price: '86.58',
-      markPrice: '25.999',
+      oraclePrice: '25.999',
       isTradable: false,
     };
 
@@ -34,7 +34,11 @@ describe('selectPerpDisplayPrice', () => {
   });
 
   it('returns undefined when neither price is usable', () => {
-    const update = { price: '0', markPrice: 'not-a-price', isTradable: false };
+    const update = {
+      price: '0',
+      oraclePrice: 'not-a-price',
+      isTradable: false,
+    };
 
     const price = selectPerpDisplayPrice(update);
 

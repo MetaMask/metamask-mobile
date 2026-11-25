@@ -3,6 +3,7 @@ import {
   BASIS_POINTS_DIVISOR,
   DECIMAL_PRECISION_CONFIG,
   CHASE_ORDER_CONFIG,
+  PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
@@ -91,10 +92,11 @@ import {
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
 import {
-  estimateCrossLiquidationPrice,
+  getCrossLiquidationRefreshKey,
   liquidationPriceForOrderSide,
   presentCrossLiquidationEstimate,
 } from '../../../../utils/crossMarginSummary';
+import { usePerpsCrossLiquidationEstimate } from '../../../../hooks/usePerpsCrossLiquidationEstimate';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -905,7 +907,7 @@ export const usePerpsProOrderForm = ({
     maxSlippageSource,
   });
 
-  const { isAtCap } = usePerpsOICap(symbol);
+  const { isAtCap } = usePerpsOICap(symbol, market.providerId);
   const vipTier = useVipTier();
 
   const {
@@ -1214,9 +1216,16 @@ export const usePerpsProOrderForm = ({
     isMarginModeLockPendingRef.current = isMarginModeLockPending;
   }, [isMarginModeLockPending]);
 
-  const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
+  const prices = usePerpsLivePrices({
+    providerId: market.providerId,
+    symbols: [symbol],
+    throttleMs: 1000,
+  });
   const currentPrice = prices[symbol];
-  const currentTopOfBook = usePerpsTopOfBook({ symbol });
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol,
+    providerId: market.providerId,
+  });
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -1925,6 +1934,7 @@ export const usePerpsProOrderForm = ({
     canFillWithinSlippage,
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
+    providerId: market.providerId,
     sizeUsd: orderUsdAmount,
     currentPrice: assetData.price,
     maxSlippageBps: resolvedMaxSlippageBps,
@@ -2145,55 +2155,30 @@ export const usePerpsProOrderForm = ({
     liquidationPrice: isolatedLiquidationPrice,
     isCalculating: isLiquidationCalculating,
   } = usePerpsLiquidationPrice(liquidationPriceParams);
-  // A Cross order liquidates against the whole cross account, so it is
-  // estimated from the account's cross collateral and maintenance margin,
-  // including an order that changes an open position. A Scale ladder stays
-  // unknown.
+  // A Cross order liquidates against the whole cross account, including an
+  // order that changes an open position, so the controller estimates it. A
+  // Scale ladder stays unknown.
   const { account: liveAccount } = usePerpsLiveAccount({
-    // Subscribe before Cross is selected so the estimate is ready on the
-    // first frame of a cross order.
+    // Subscribe before Cross is selected so the estimate re-reads the account
+    // as soon as it changes.
     enabled: isCrossMarginAvailableForMarket || marginMode === 'cross',
   });
-  const crossLiquidationEstimate = useMemo(() => {
-    // The default max leverage would estimate against the wrong maintenance
-    // margin, so wait for the market's own.
-    const marketMaxLeverage = marketData?.maxLeverage;
-    const existingSignedSize = Number.parseFloat(
-      currentMarketPosition?.size ?? '0',
-    );
-    if (
-      marginMode !== 'cross' ||
-      isScaleOrder ||
-      isPositionStreamLoading ||
-      typeof marketMaxLeverage !== 'number'
-    ) {
-      return { status: 'unknown' as const };
-    }
-    return estimateCrossLiquidationPrice({
+  const { estimate: crossLiquidationEstimate } =
+    usePerpsCrossLiquidationEstimate({
+      enabled: marginMode === 'cross' && !isScaleOrder && hasValidAmount,
+      symbol: orderForm.asset,
+      direction: orderForm.direction,
+      // A max close submits the exact position size, so estimate that size.
+      size: submissionPositionSize,
       entryPrice: effectivePrice,
-      size: Number.parseFloat(positionSize),
-      isLong: orderForm.direction === 'long',
-      maxLeverage: marketMaxLeverage,
-      crossMarginSummary: liveAccount?.crossMarginSummary,
-      spotCollateral: liveAccount?.spotCollateral,
+      leverage: orderForm.leverage,
       providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
-      existingSignedSize,
-      marginTableId: marketData?.marginTableId,
+      refreshKey: getCrossLiquidationRefreshKey({
+        account: liveAccount,
+        positionSize: currentMarketPosition?.size,
+      }),
+      debounceMs: PERFORMANCE_CONFIG.ValidationDebounceMs,
     });
-  }, [
-    marginMode,
-    isScaleOrder,
-    currentMarketPosition?.size,
-    effectivePrice,
-    positionSize,
-    orderForm.direction,
-    marketData?.maxLeverage,
-    marketData?.marginTableId,
-    liveAccount?.crossMarginSummary,
-    liveAccount?.spotCollateral,
-    market.providerId,
-    isPositionStreamLoading,
-  ]);
   const presentedCrossLiquidation = presentCrossLiquidationEstimate({
     estimate: crossLiquidationEstimate,
     hasValidAmount,
@@ -2201,7 +2186,9 @@ export const usePerpsProOrderForm = ({
   const crossLiquidationPrice = presentedCrossLiquidation.rawPrice;
   const crossLiquidationDisplay = presentedCrossLiquidation.display;
   const liquidationPrice =
-    marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;
+    marginMode === 'cross'
+      ? crossLiquidationPrice || undefined
+      : isolatedLiquidationPrice;
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -2219,7 +2206,13 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    // perps-controller 26.0.0 projects held Cross positions; the before→after
+    // row stays off for them until product signs off on Cross projections.
+    enabled:
+      isPositionModifyPreviewEnabled &&
+      !isScaleOrder &&
+      !isTwapOrder &&
+      currentMarketPosition?.leverage?.type !== 'cross',
   });
 
   const existingPositionLeverageForValidation =
@@ -2627,7 +2620,7 @@ export const usePerpsProOrderForm = ({
   const crossLiquidationPriceForTpSl = liquidationPriceForOrderSide({
     liquidationPrice: crossLiquidationPrice,
     existingSignedSize: Number.parseFloat(currentMarketPosition?.size ?? '0'),
-    orderSize: Number.parseFloat(positionSize),
+    orderSize: Number.parseFloat(submissionPositionSize),
     orderIsLong: orderForm.direction === 'long',
     checkIsLong: tpslDirection === 'long',
   });
@@ -2644,7 +2637,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? crossLiquidationPriceForTpSl
+        ? crossLiquidationPriceForTpSl || undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -3345,9 +3338,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3651,7 +3642,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4386,7 +4377,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

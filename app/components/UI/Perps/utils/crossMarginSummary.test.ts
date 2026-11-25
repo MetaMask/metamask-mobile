@@ -2,13 +2,14 @@ import { PERPS_CONSTANTS, type AccountState } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
-  estimateCrossLiquidationPrice,
+  getCrossLiquidationRefreshKey,
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
   getCrossMarginSummaryThrottleMs,
   liquidationPriceForOrderSide,
   presentCrossLiquidationEstimate,
+  selectOrderLiquidationRow,
 } from './crossMarginSummary';
 import {
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
@@ -112,165 +113,111 @@ describe('crossMarginSummary', () => {
     });
   });
 
-  describe('estimateCrossLiquidationPrice', () => {
-    const params = {
-      entryPrice: 100,
-      size: 10,
-      maxLeverage: 50,
+  describe('getCrossLiquidationRefreshKey', () => {
+    const account = {
       crossMarginSummary,
       spotCollateral: '0',
-      providerId: 'hyperliquid' as const,
-    };
+    } as AccountState;
 
-    it.each([
-      [true, 25.2525],
-      [false, 173.2673],
-    ])(
-      'finds where equity meets maintenance margin (long: %s)',
-      (isLong, expected) => {
-        const estimate = estimateCrossLiquidationPrice({ ...params, isLong });
+    it('changes when the cross figures, spot, or open position change', () => {
+      const base = getCrossLiquidationRefreshKey({
+        account,
+        positionSize: '4',
+      });
 
-        expect(estimate.status).toBe('price');
-        if (estimate.status === 'price') {
-          expect(estimate.price).toBeCloseTo(expected, 4);
-          expect(estimate.approximate).toBe(false);
-        }
-      },
-    );
-
-    it.each([
-      [true, '100', 100_000 - 800 / 0.1 / 0.99],
-      [false, '0', 100_000 + 900 / 0.1 / 1.01],
-    ])(
-      'matches the perps-controller cross formula (long: %s)',
-      (isLong, otherMaintenance, expected) => {
-        // The new 0.1 at 100,000 adds 100 of maintenance at 50x max leverage.
-        const estimate = estimateCrossLiquidationPrice({
-          ...params,
-          isLong,
-          entryPrice: 100_000,
-          size: 0.1,
-          marginTableId: 40,
-          crossMarginSummary: {
-            ...crossMarginSummary,
-            accountValue: '1000',
-            maintenanceMargin: otherMaintenance,
+      expect(
+        getCrossLiquidationRefreshKey({
+          account: {
+            ...account,
+            crossMarginSummary: { ...crossMarginSummary, accountValue: '900' },
           },
-        });
-
-        expect(estimate.status).toBe('price');
-        if (estimate.status === 'price') {
-          expect(estimate.price).toBeCloseTo(expected, 6);
-          expect(estimate.approximate).toBe(false);
-        }
-      },
-    );
-
-    it('returns unknown on a venue other than Hyperliquid', () => {
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: false,
-          providerId: 'lighter',
+          positionSize: '4',
         }),
-      ).toEqual({ status: 'unknown' });
+      ).not.toBe(base);
+      expect(
+        getCrossLiquidationRefreshKey({
+          account: { ...account, spotCollateral: '50' },
+          positionSize: '4',
+        }),
+      ).not.toBe(base);
+      expect(
+        getCrossLiquidationRefreshKey({ account, positionSize: '5' }),
+      ).not.toBe(base);
     });
 
-    it('returns none when the long cannot be liquidated', () => {
+    it('keeps the key when only unrelated fields change', () => {
       expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          crossMarginSummary: { ...crossMarginSummary, accountValue: '5000' },
+        getCrossLiquidationRefreshKey({
+          account: { ...account, totalBalance: '1234' },
+          positionSize: '4',
         }),
-      ).toEqual({ status: 'none' });
+      ).toBe(getCrossLiquidationRefreshKey({ account, positionSize: '4' }));
     });
+  });
 
-    it('returns none when the order closes the position', () => {
+  describe('selectOrderLiquidationRow', () => {
+    it('renders the cross estimate with its distance price', () => {
       expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: false,
-          size: 4,
-          existingSignedSize: 4,
+        selectOrderLiquidationRow({
+          isCrossOrder: true,
+          crossEstimate: { status: 'price', price: '25.25' },
+          hasValidAmount: true,
+          isolatedPrice: '80',
         }),
-      ).toEqual({ status: 'none' });
-    });
-
-    it('replaces the open position maintenance with the resulting size', () => {
-      // 4 long already open, buying 6 more. Existing maintenance at 1% is 4,
-      // so 254 of reported maintenance leaves 250 on other positions. The
-      // resulting size of 10 then matches the base case.
-      const estimate = estimateCrossLiquidationPrice({
-        ...params,
-        isLong: true,
-        size: 6,
-        existingSignedSize: 4,
-        crossMarginSummary: { ...crossMarginSummary, maintenanceMargin: '254' },
+      ).toEqual({
+        display: '$25.25',
+        rawPrice: '25.25',
+        contentKey: 'cross_liquidation_price',
+        distancePrice: 25.25,
       });
-
-      expect(estimate.status).toBe('price');
-      if (estimate.status === 'price') {
-        expect(estimate.price).toBeCloseTo(25.2525, 4);
-      }
     });
 
-    it('counts spot collateral and stays approximate while it is not published', () => {
-      // 500 of spot lifts the short's liquidation from 173.2673 to 222.7723
-      const withSpot = estimateCrossLiquidationPrice({
-        ...params,
-        isLong: false,
-        spotCollateral: '500',
-      });
-      const withoutSpot = estimateCrossLiquidationPrice({
-        ...params,
-        isLong: true,
-        spotCollateral: undefined,
-      });
-
-      expect(withSpot.status).toBe('price');
-      if (withSpot.status === 'price') {
-        expect(withSpot.price).toBeCloseTo(222.7723, 4);
-        expect(withSpot.approximate).toBe(false);
-      }
-      expect(withoutSpot.status).toBe('price');
-      if (withoutSpot.status === 'price') {
-        expect(withoutSpot.approximate).toBe(true);
-      }
-    });
-
-    it('marks tiered markets approximate', () => {
-      const estimate = estimateCrossLiquidationPrice({
-        ...params,
-        isLong: true,
-        marginTableId: 56,
-      });
-
-      expect(estimate.status).toBe('price');
-      if (estimate.status === 'price') {
-        expect(estimate.approximate).toBe(true);
-        expect(estimate.price).toBeCloseTo(25.2525, 4);
-      }
-    });
-
-    it('returns unknown without a cross summary, size, or max leverage', () => {
+    it('shows the fallback while the cross estimate is unavailable', () => {
       expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          crossMarginSummary: undefined,
+        selectOrderLiquidationRow({
+          isCrossOrder: true,
+          crossEstimate: { status: 'unavailable', reason: 'missing_inputs' },
+          hasValidAmount: true,
+          isolatedPrice: '80',
         }),
-      ).toEqual({ status: 'unknown' });
+      ).toEqual({
+        display: PERPS_CONSTANTS.FallbackDataDisplay,
+        rawPrice: '',
+        contentKey: 'cross_liquidation_estimate_unavailable',
+        distancePrice: undefined,
+      });
+    });
+
+    it('keeps the isolated price for an isolated order', () => {
       expect(
-        estimateCrossLiquidationPrice({ ...params, isLong: true, size: 0 }),
-      ).toEqual({ status: 'unknown' });
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          maxLeverage: 0,
+        selectOrderLiquidationRow({
+          isCrossOrder: false,
+          crossEstimate: undefined,
+          hasValidAmount: true,
+          isolatedPrice: '80',
         }),
-      ).toEqual({ status: 'unknown' });
+      ).toEqual({
+        display: '$80',
+        rawPrice: '80',
+        contentKey: 'liquidation_price',
+        distancePrice: 80,
+      });
+    });
+
+    it('shows the fallback when the isolated price is unavailable', () => {
+      expect(
+        selectOrderLiquidationRow({
+          isCrossOrder: false,
+          crossEstimate: undefined,
+          hasValidAmount: true,
+          isolatedPrice: undefined,
+        }),
+      ).toEqual({
+        display: PERPS_CONSTANTS.FallbackDataDisplay,
+        rawPrice: '',
+        contentKey: 'liquidation_price',
+        distancePrice: undefined,
+      });
     });
   });
 
@@ -347,11 +294,7 @@ describe('crossMarginSummary', () => {
     it('formats a price, the no-liquidation state, and the fallback dash', () => {
       expect(
         presentCrossLiquidationEstimate({
-          estimate: {
-            status: 'price',
-            price: 2183.6007130124776,
-            approximate: false,
-          },
+          estimate: { status: 'price', price: '2183.6007130124776' },
           hasValidAmount: true,
         }),
       ).toEqual({
@@ -361,14 +304,33 @@ describe('crossMarginSummary', () => {
       });
       expect(
         presentCrossLiquidationEstimate({
-          estimate: { status: 'none' },
+          estimate: { status: 'none', reason: 'covered_by_account' },
           hasValidAmount: true,
-        }).display,
-      ).toBe(strings('perps.cross_position.no_liquidation_price'));
+        }),
+      ).toEqual({
+        display: strings('perps.cross_position.no_liquidation_price'),
+        rawPrice: '',
+        contentKey: 'cross_no_liquidation_price',
+      });
       expect(
         presentCrossLiquidationEstimate({
-          estimate: { status: 'unknown' },
+          estimate: { status: 'unavailable', reason: 'account_unknown' },
           hasValidAmount: true,
+        }).display,
+      ).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+    });
+
+    it('shows the fallback before the first estimate or without an amount', () => {
+      expect(
+        presentCrossLiquidationEstimate({
+          estimate: undefined,
+          hasValidAmount: true,
+        }).contentKey,
+      ).toBe('cross_liquidation_estimate_unavailable');
+      expect(
+        presentCrossLiquidationEstimate({
+          estimate: { status: 'price', price: '25' },
+          hasValidAmount: false,
         }).display,
       ).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
     });

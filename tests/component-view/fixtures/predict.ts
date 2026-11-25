@@ -193,3 +193,72 @@ export const MOCK_PREDICT_LIVE_SPORT_MARKET: PredictMarket = {
     },
   },
 };
+
+/**
+ * Builds a BTC Up/Down market. Its tokens are `${id}-up` and `${id}-down`.
+ * Pass `seriesId` when the code under test looks up a real series id, such as
+ * the Predict home carousel resolving BTC 5m by `BTC_UP_DOWN_5M_SERIES_ID`.
+ */
+export const buildMockCryptoUpDownMarket = ({
+  id,
+  endDate,
+  seriesId = 'btc-up-down-series',
+}: {
+  id: string;
+  endDate: string;
+  seriesId?: string;
+}): PredictMarket => ({
+  id,
+  providerId: 'polymarket',
+  slug: `${id}-btc-up-or-down-5m`,
+  title: 'BTC Up or Down - 5 Minutes',
+  description: 'BTC Up or Down',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'crypto',
+  tags: ['crypto', 'up-or-down', 'bitcoin'],
+  outcomes: [
+    {
+      id: `${id}-outcome`,
+      providerId: 'polymarket',
+      marketId: id,
+      title: 'BTC Up or Down',
+      description: '',
+      image: '',
+      status: 'open',
+      tokens: [
+        { id: `${id}-up`, title: 'Up', price: 0.4 },
+        { id: `${id}-down`, title: 'Down', price: 0.6 },
+      ],
+      volume: 1_500_000,
+      groupItemTitle: 'BTC',
+    },
+  ],
+  liquidity: 500_000,
+  volume: 1_500_000,
+  endDate,
+  series: {
+    id: seriesId,
+    slug: 'btc-up-or-down-5m',
+    title: 'BTC Up or Down - 5 Minutes',
+    recurrence: '5m',
+  },
+});
+
+/** Remote flag override that turns on the crypto Up/Down cards. */
+export const PREDICT_UP_DOWN_FLAG_OVERRIDES = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictUpDown: {
+            enabled: true,
+            featureVersion: '1.0.0',
+            minimumVersion: '0.0.1',
+          },
+        },
+      },
+    },
+  },
+};

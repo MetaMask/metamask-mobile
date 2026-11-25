@@ -55,10 +55,30 @@ import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
 import PredictOffline from '../../components/PredictOffline';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
+
+type TabContentState = 'hidden' | 'skeleton' | 'content';
+
+const getTabContentState = ({
+  isLoading,
+  isUnavailable,
+  hasMarket,
+  isReady,
+}: {
+  isLoading: boolean;
+  isUnavailable: boolean;
+  hasMarket: boolean;
+  isReady: boolean;
+}): TabContentState => {
+  if (isLoading || isUnavailable || !hasMarket) {
+    return 'hidden';
+  }
+  return isReady ? 'content' : 'skeleton';
+};
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -72,6 +92,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
+  // Hold the tab content (outcome rows) out of the opening transition.
+  const isDeferredReady = useScreenTransitionComplete();
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const nonRegTimeSportsMarketTypes = useSelector(
@@ -506,6 +528,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
   }
 
+  const tabContentState = getTabContentState({
+    isLoading: isResolvedMarketLoading,
+    isUnavailable: isMarketUnavailable,
+    hasMarket: Boolean(market),
+    isReady: isDeferredReady,
+  });
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
@@ -583,8 +612,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         )}
 
-        {/* Tab content - only show when market is loaded */}
-        {!isResolvedMarketLoading && !isMarketUnavailable && market && (
+        {tabContentState === 'content' && (
           <PredictMarketDetailsTabContent
             activeTab={activeTab}
             tabsReady={tabsReady}
@@ -608,6 +636,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             isResolvedExpanded={isResolvedExpanded}
             onResolvedExpandedToggle={setIsResolvedExpanded}
           />
+        )}
+        {tabContentState === 'skeleton' && (
+          <Box twClassName="px-3">
+            <PredictDetailsContentSkeleton />
+          </Box>
         )}
       </ScrollView>
 

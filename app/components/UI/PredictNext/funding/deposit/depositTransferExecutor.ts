@@ -39,10 +39,10 @@ export interface SubmittedDepositTransfer {
 }
 
 /**
- * Sends the deposit transfer. One per build, chosen from the build's
- * environment only (`getPredictDepositEnvironment`): the wallet in
- * production, a simulation on the dev Predict API. A rejection or a failure
- * rejects the returned promise; it resolves only once a hash exists.
+ * Sends the deposit transfer. Chosen from the Venue catalog's `environment`
+ * (`resolvePredictDepositEnvironment`): `'wallet'` in production, `'simulated'`
+ * in sandbox. A rejection or a failure rejects the returned promise; it
+ * resolves only once a hash exists.
  */
 export interface DepositTransferExecutor {
   readonly mode: PredictDepositTransferMode;

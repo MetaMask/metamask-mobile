@@ -3,7 +3,6 @@ import { ExistingUserSheetSelectorsIDs } from '../../../app/components/Views/Not
 import { NewUserSheetSelectorsIDs } from '../../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import { PerpsGTMModalSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { WhatsNewModalSelectorsIDs } from '../../../app/components/UI/WhatsNewModal/WhatsNewModal.testIds';
-import { MoneyOnboardingViewTestIds } from '../../../app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.testIds';
 import { ProtectWalletModalSelectorsIDs } from '../../../app/components/UI/ProtectYourWalletModal/ProtectWalletModal.testIds';
 
 /** Locator used by the registry. Only stable identifiers or exact visible text. */
@@ -90,11 +89,6 @@ export const INTERRUPTING_SCREEN_REGISTRY: readonly InterruptingScreenDefinition
       name: 'whats-new-modal',
       detect: [testID(WhatsNewModalSelectorsIDs.CONTAINER)],
       dismiss: [testID(WhatsNewModalSelectorsIDs.CLOSE_BUTTON)],
-    },
-    {
-      name: 'money-onboarding-modal',
-      detect: [testID(MoneyOnboardingViewTestIds.MODAL)],
-      dismiss: [testID(MoneyOnboardingViewTestIds.CLOSE_BUTTON)],
     },
     {
       name: 'protect-your-wallet-modal',
