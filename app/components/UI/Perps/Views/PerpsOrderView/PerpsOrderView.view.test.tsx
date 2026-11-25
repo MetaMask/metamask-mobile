@@ -580,8 +580,8 @@ describe('PerpsOrderView', () => {
     // Switch the support context while the next support request stays
     // pending: the sheet must drop the stale explanation at once instead of
     // telling the new supported account it cannot trade.
-    getAccountSupport.mockImplementation(
-      () => new Promise<PerpsAccountSupport>(() => undefined),
+    getAccountSupport.mockReturnValue(
+      new Promise<PerpsAccountSupport>(() => undefined),
     );
     switchPerpsSupportContext(store);
 

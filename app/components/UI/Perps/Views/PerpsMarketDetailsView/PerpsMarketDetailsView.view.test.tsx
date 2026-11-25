@@ -362,7 +362,7 @@ describe('PerpsMarketDetailsView', () => {
       const getAccountSupport = jest.mocked(
         Engine.context.PerpsController.getAccountSupport,
       );
-      getAccountSupport.mockImplementation(() => new Promise(() => undefined));
+      getAccountSupport.mockReturnValue(new Promise(() => undefined));
       renderLiteMarketDetails();
       const longButton = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,

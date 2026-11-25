@@ -960,7 +960,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isFullWidth
               isDisabled={isSubmitDisabled}
               isLoading={isSubmitting}
-              onPress={handleSubmit}
+              onPress={() => {
+                void handleSubmit();
+              }}
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {submitLabel ?? directionLabel}

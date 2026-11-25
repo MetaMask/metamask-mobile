@@ -24,7 +24,7 @@ describe('Perps account support — integration', () => {
 
   it('rejects a Hyperliquid-native multisig account', async () => {
     const { controller, infoClient } = buildPerpsAccountSupportHarness();
-    infoClient.userToMultiSigSigners.mockResolvedValue({} as never);
+    infoClient.userToMultiSigSigners.mockResolvedValue({});
     await controller.init();
 
     try {

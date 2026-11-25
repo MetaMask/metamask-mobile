@@ -900,11 +900,10 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
       Engine.context.PerpsController.getAccountSupport,
     );
     let allowSupport!: () => void;
-    support.mockClear().mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          allowSupport = () => resolve({ isSupported: true });
-        }),
+    support.mockClear().mockReturnValueOnce(
+      new Promise((resolve) => {
+        allowSupport = () => resolve({ isSupported: true });
+      }),
     );
     fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
     await waitFor(() =>
@@ -915,11 +914,10 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
     // resolves. It must not be mistaken for a new user-entered draft.
     const validate = jest.mocked(Engine.context.PerpsController.validateOrder);
     let finishPriceValidation!: () => void;
-    validate.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          finishPriceValidation = () => resolve({ isValid: true });
-        }),
+    validate.mockClear().mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishPriceValidation = () => resolve({ isValid: true });
+      }),
     );
     act(() =>
       stream.emitPrices({
@@ -933,7 +931,7 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
         },
       }),
     );
-    await waitFor(() => expect(finishPriceValidation).toBeDefined());
+    await waitFor(() => expect(validate).toHaveBeenCalled());
     await act(async () => {
       allowSupport();
     });

@@ -1,9 +1,9 @@
 import { useCallback, useLayoutEffect, useRef } from 'react';
-import type {
-  OrderFormState,
-  PerpsProviderType,
+import {
+  type OrderFormState,
+  type PerpsProviderType,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   usePerpsAccountSupport,
   type UsePerpsAccountSupportReturn,
