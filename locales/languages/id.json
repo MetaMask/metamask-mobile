@@ -9275,28 +9275,13 @@
     "nickname": "nama panggilan"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Hal-hal yang perlu diingat",
     "testnet_network": "testnet {{type}}",
-    "first_description": "Token asli di jaringan ini adalah {{ticker}}. Ini merupakan token yang digunakan untuk biaya jaringan.",
-    "second_description": "Jika Anda mencoba mengirim aset secara langsung dari satu jaringan ke jaringan lain, ini dapat mengakibatkan aset Anda hilang secara permanen. Pastikan untuk menggunakan bridge.",
-    "third_description": "Token Anda mungkin tidak secara otomatis muncul di dompet Anda.",
-    "private_network": "Jaringan ini tidak dikenal dan bisa menggunakan token khusus untuk biaya jaringan.",
     "unknown_network": "Jaringan tidak dikenal",
-    "switched_network": "Anda telah beralih ke",
-    "learn_more": "Pelajari selengkapnya",
     "add_token": "Klik di sini untuk menambahkan token secara manual",
-    "add_token_manually": "Tambahkan secara manual.",
     "got_it": "Mengerti",
     "error_title": "Terjadi kesalahan",
     "error_message": "Terjadi kesalahan saat memuat informasi jaringan. Coba lagi nanti.",
-    "private_network_third_description": "Masukkan nama untuk jaringan ini agar mudah dikenali.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Aktifkan deteksi token otomatis",
-    "token_detection_mainnet_title": "Deteksi token diaktifkan sehingga token-token akan muncul di dompet Anda secara otomatis.",
-    "token_detection_mainnet_link": "Anda juga dapat menambahkan token secara manual.",
-    "or": "atau",
-    "non_evm_first_description": "Aset asli di jaringan ini adalah {{ticker}}. Aset ini digunakan untuk biaya transaksi.",
-    "non_evm_second_description": "Anda akan kehilangan aset milik Anda jika mencoba mengirimnya dari atau ke jaringan lain."
+    "private_network_third_description": "Masukkan nama untuk jaringan ini agar mudah dikenali."
   },
   "download_files": {
     "error": "Gagal mengunduh lampiran.",

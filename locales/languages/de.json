@@ -9275,28 +9275,13 @@
     "nickname": "Spitzname"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Was Sie beachten sollten",
     "testnet_network": "{{type}}-testnet",
-    "first_description": "Der native Token dieses Netzwerks ist {{ticker}}. Dieser Token wird zur Begleichung der Netzwerkgebühren verwendet.",
-    "second_description": "Wenn Sie versuchen, einen Vermögenswert direkt von einem Netzwerk an ein anderes zu senden, könnte dies einen permanenten Verlust zufolge haben. Stellen Sie sicher, dass Sie eine Brücke verwenden.",
-    "third_description": "Ihre Tokens werden möglicherweise nicht automatisch in Ihrer Wallet angezeigt.",
-    "private_network": "Dieses Netzwerk ist unbekannt und könnte ein spezielles Token für Netzwerkgebühren verwenden.",
     "unknown_network": "Unbekanntes Netzwerk",
-    "switched_network": "Sie haben gewechselt zu",
-    "learn_more": "Mehr erfahren",
     "add_token": "Klicken Sie hier, um die Token manuell hinzuzufügen",
-    "add_token_manually": "Fügen Sie sie manuell hinzu.",
     "got_it": "Verstanden",
     "error_title": "Hoppla! Etwas ist schiefgelaufen ...",
     "error_message": "Beim Laden der Netzwerkinformationen ist ein Fehler aufgetreten. Versuchen Sie es später erneut.",
-    "private_network_third_description": "Geben Sie einen Namen für dieses Netzwerk ein, damit es leicht identifiziert werden kann.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Automatische Token-Erkennung einschalten",
-    "token_detection_mainnet_title": "Die Token-Erkennung ist aktiviert, sodass viele Tokens automatisch in Ihrer Wallet auftauchen werden.",
-    "token_detection_mainnet_link": "Sie können Tokens auch manuell hinzufügen.",
-    "or": "oder",
-    "non_evm_first_description": "Das native Asset dieses Netzwerks ist {{ticker}}. Dieses Asset wird für die Transaktionsgebühr verwendet.",
-    "non_evm_second_description": "Sie werden Ihre Assets verlieren, wenn Sie versuchen, sie von einem anderen Netzwerk bzw. an ein anderes Netzwerk zu senden."
+    "private_network_third_description": "Geben Sie einen Namen für dieses Netzwerk ein, damit es leicht identifiziert werden kann."
   },
   "download_files": {
     "error": "Anhang konnte nicht heruntergeladen werden.",

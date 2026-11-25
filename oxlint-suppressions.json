@@ -5708,11 +5708,6 @@
       "count": 1
     }
   },
-  "app/components/UI/NetworkInfo/InfoDescription/infoDescription.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/NetworkManager/index.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

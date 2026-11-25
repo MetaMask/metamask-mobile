@@ -9275,28 +9275,13 @@
     "nickname": "takma ad"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Akılda tutulması gerekenler",
     "testnet_network": "{{type}} test Ağı",
-    "first_description": "Bu ağdaki yerli tokenlar {{ticker}}. Bu, ağ ücretleri için kullanılan tokenlar.",
-    "second_description": "Varlıkları doğrudan bir ağdan diğerine göndermeye çalışırsan bu, kalıcı varlık kaybına neden olabilir. Bir köprü kullandığından emin ol.",
-    "third_description": "Tokenleriniz cüzdanınızda otomatik olarak görünmeyebilir.",
-    "private_network": "Bu ağ bilinmiyor ve ağ ücretleri için özel bir tokenlar kullanabilir.",
     "unknown_network": "Bilinmeyen ağ",
-    "switched_network": "Şuna geçiş yaptın:",
-    "learn_more": "Daha fazla bilgi",
     "add_token": "Tokenleri manuel olarak eklemek için buraya tıklayın",
-    "add_token_manually": "Manuel olarak ekleyin.",
     "got_it": "Anladım",
     "error_title": "Bir şeyler ters gitti",
     "error_message": "Ağ bilgileri yüklenirken bir hata oluştu. Daha sonra tekrar deneyin.",
-    "private_network_third_description": "Tanımlamayı kolaylaştırmak amacıyla bu ağ için bir ad girin.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Otomatik token algılamayı etkinleştir",
-    "token_detection_mainnet_title": "Token algılama etkinleştirildi böylece pek çok token otomatik olarak cüzdanınızda gösterilecek.",
-    "token_detection_mainnet_link": "Manuel olarak da ekleyebilirsiniz.",
-    "or": "veya",
-    "non_evm_first_description": "Bu ağdaki yerli varlık {{ticker}}. İşlem ücretleri için kullanılır.",
-    "non_evm_second_description": "Başka bir ağdan veya başka bir ağa göndermeye çalışırsanız varlıklarınızı kaybedersiniz."
+    "private_network_third_description": "Tanımlamayı kolaylaştırmak amacıyla bu ağ için bir ad girin."
   },
   "download_files": {
     "error": "Ek indirilemedi.",
