@@ -1611,3 +1611,14 @@ export const PerpsRecentActivityListSelectorsIDs = {
 export const PerpsRecoveryPanelTestIds = {
   PANEL: 'perps-recovery-panel',
 } as const;
+
+// ========================================
+// PERPS TRADE ON SELECTOR SELECTORS
+// ========================================
+
+export const PerpsTradeOnSelectorsIDs = {
+  /** "Provided by [venue]" trigger row on the Lite market page. */
+  ROW: 'perps-trade-on-row',
+  SHEET: 'perps-trade-on-sheet',
+  SHEET_OPTION: 'perps-trade-on-sheet-option',
+} as const;

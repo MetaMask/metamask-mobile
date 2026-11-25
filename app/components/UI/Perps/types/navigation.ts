@@ -219,6 +219,12 @@ export type PerpsStackParamList = {
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
     source_section?: string;
+    /**
+     * Venue to preselect for per-order trading on the Lite market page
+     * (TAT-4418). Falls back to the saved default provider when absent.
+     * Senders populate this as routes gain providers (TAT-4390).
+     */
+    providerId?: PerpsProviderType;
     /** Telemetry-only reason when the header picker replaces the active market. */
     detailGenerationTrigger?: 'market_switch';
     button_clicked?: string;
