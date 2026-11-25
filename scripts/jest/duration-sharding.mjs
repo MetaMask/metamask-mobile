@@ -14,9 +14,9 @@ export const SNAPSHOT_RELATIVE_PATH = 'scripts/jest/suite-durations.json';
  * Suites faster than this are not stored in the snapshot. The file has one line
  * per recorded suite, so the threshold keeps it to a few hundred lines. The
  * recorded suites carry about 60% of the total duration. The rest are weighted
- * by size, and the unit spread across 10 shards stays near 5% in simulation.
+ * by size, and the unit spread across 10 shards stays under 8% in simulation (heaviest shard within 3% of the mean).
  */
-export const MIN_RECORDED_SUITE_MS = 3000;
+export const MIN_RECORDED_SUITE_MS = 3500;
 
 /**
  * Longest-processing-time greedy bin packing. The heaviest entry goes to the
