@@ -1,6 +1,6 @@
 /**
  * Component-view coverage for smoke `alert-system` typed-sign security API cases:
- * (1) Benign validation response -> no redesigned security banner (matches E2E mock
+ * (1) Benign validation response -> no security alert banner (matches E2E mock
  * `SECURITY_ALERTS_BENIGN_RESPONSE`).
  * (2) Malicious `malicious_domain` -> banner + confirm alert modal flow (matches E2E
  * acknowledge path; no live security API).
@@ -118,9 +118,7 @@ describeForPlatforms(
 
       await waitFor(() => {
         expect(
-          queryByTestId(
-            ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
-          ),
+          queryByTestId(ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER),
         ).toBeNull();
       });
 
@@ -133,9 +131,7 @@ describeForPlatforms(
       });
 
       expect(
-        queryByTestId(
-          ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
-        ),
+        queryByTestId(ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER),
       ).toBeNull();
     });
   },
@@ -168,8 +164,7 @@ describeForPlatforms('Alert system (typed sign — malicious blockaid)', () => {
       { state },
     );
 
-    const bannerTestId =
-      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED;
+    const bannerTestId = ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER;
 
     await waitFor(() => {
       expect(getByTestId(bannerTestId)).toBeOnTheScreen();

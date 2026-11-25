@@ -5,6 +5,9 @@ import type { CaipChainId } from '@metamask/utils';
  * supported set in va-mmcx-social-api (`SUPPORTED_CAIP2_CHAIN_IDS`). Clicker
  * defaults to spot-only chains when `chains` is omitted, so we pass the full
  * set explicitly to include Hyperliquid perps.
+ *
+ * Also the fallback for `useFeedChains`, which fetches the live list from
+ * `GET /v1/supportedNetworks` and uses this while it is loading or unavailable.
  */
 export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'eip155:8453', // base
