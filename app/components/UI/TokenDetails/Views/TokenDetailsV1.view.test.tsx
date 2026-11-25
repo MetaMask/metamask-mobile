@@ -25,6 +25,7 @@ import { strings } from '../../../../../locales/i18n';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenDetailsIds } from '../testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../Views/ActivityView/ActivitiesView.testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { STAT_EXPLAINER_KEYS, TokenStatKey } from '../constants/tokenStats';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
@@ -435,7 +436,7 @@ describeForPlatforms('TokenDetailsV1', () => {
     fireEvent(slot, 'layout', {
       nativeEvent: { layout: { x: 0, y: 420, width: 390, height: 48 } },
     });
-    fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+    fireEvent.scroll(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER), {
       nativeEvent: { contentOffset: { y: 420 } },
     });
     await userEvent.press(getByTestId(TokenDetailsIds.pinnedTab('security')));

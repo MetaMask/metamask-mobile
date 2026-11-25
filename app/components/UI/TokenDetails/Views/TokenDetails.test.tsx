@@ -218,7 +218,7 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockHandleStickySwapPress = jest.fn();
-const mockOnBuy = jest.fn();
+const mockOnBuy = jest.fn().mockResolvedValue(undefined);
 const mockOnSend = jest.fn();
 const mockOnReceive = jest.fn();
 const mockUseTokenActions = jest.fn();

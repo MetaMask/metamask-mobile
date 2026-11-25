@@ -126,6 +126,7 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 import TokenDetailsPagePending from './TokenDetailsPagePending';
+import Logger from '../../../../util/Logger';
 import { ActivitiesViewSelectorsIDs } from '../../../Views/ActivityView/ActivitiesView.testIds';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -711,7 +712,9 @@ const TokenDetails: React.FC<{
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
-    void onBuy();
+    onBuy().catch((error) => {
+      Logger.error(error, 'TokenDetails: buy failed');
+    });
   }, [onBuy, onCtaClicked]);
 
   const handleSend = useCallback(async () => {
