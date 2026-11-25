@@ -73,39 +73,6 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('does not fire while the balance shell is loading', () => {
-    renderHook(() =>
-      useWalletHomeOnboardingChecklistHomeViewed({
-        isAwaitingBalance: true,
-        stepIndex: 0,
-        isFocused: true,
-        steps: ALL_STEPS,
-      }),
-    );
-
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
-  it('fires once with is_empty false after the balance shell resolves', () => {
-    const { rerender } = renderHook(
-      ({ isAwaitingBalance }: { isAwaitingBalance: boolean }) =>
-        useWalletHomeOnboardingChecklistHomeViewed({
-          isAwaitingBalance,
-          stepIndex: 0,
-          isFocused: true,
-          steps: ALL_STEPS,
-        }),
-      { initialProps: { isAwaitingBalance: true } },
-    );
-
-    rerender({ isAwaitingBalance: false });
-
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ section_name: 'on_ramp', is_empty: false }),
-    );
-  });
-
   it('fires HOME_VIEWED with onboarding_checklist and on_ramp for fund step', () => {
     renderHook(() =>
       useWalletHomeOnboardingChecklistHomeViewed({

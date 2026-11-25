@@ -18,7 +18,7 @@ import { navigateToReceiveAddressList } from '../../Views/MultichainAccounts/Add
 
 /**
  * Opens the receiving address list from the wallet home onboarding fund step
- * (TMCU-1939 A/B treatment). Tracks `Action Button Clicked` with
+ * (TMCU-1939). Tracks `Action Button Clicked` with
  * `location: onboarding_checklist`; the address list reports the new
  * `onboarding_checklist` source via `Address List Viewed`.
  *

@@ -79,12 +79,6 @@ import {
 } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
 import { consumeWalletHomeOnboardingFundFlowCompletion } from './walletHomeOnboardingFundFlow';
-import { useABTest } from '../../../hooks/useABTest';
-import {
-  FUND_STEP_RECEIVE_AB_KEY,
-  FUND_STEP_RECEIVE_AB_TEST_EXPOSURE_OPTIONS,
-  FUND_STEP_RECEIVE_VARIANTS,
-} from './abTestConfig';
 
 const SLIDE_DISTANCE = Dimensions.get('window').width;
 
@@ -108,8 +102,8 @@ export interface WalletHomeOnboardingStepsProps {
   /** Fund step: opens buy / on-ramp and advances after the completed flow returns. */
   onFundPrimaryPress?: (onLaunchFailure: () => void) => void;
   /**
-   * Fund step A/B treatment (TMCU-1939): opens the receiving address list. Navigation only —
-   * never advances the step. The Receive button renders only when this is set.
+   * Fund step: opens the receiving address list. Navigation only — never advances the step.
+   * The Receive button renders next to Add funds only when this is set.
    */
   onReceivePress?: () => void;
   /**
@@ -177,20 +171,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     steps: visibleSteps,
   });
   const displayStepIndex = isBalanceShellVisible ? 0 : stepIndex;
-  /**
-   * Fund step Receive button A/B test (TMCU-1939). Exposure only counts once the user
-   * actually sees the fund step (index 0), with the balance shell resolved and the
-   * screen focused — not for users resuming on the trade/notifications steps.
-   */
-  const { variant: fundStepReceiveVariant } = useABTest(
-    FUND_STEP_RECEIVE_AB_KEY,
-    FUND_STEP_RECEIVE_VARIANTS,
-    {
-      ...FUND_STEP_RECEIVE_AB_TEST_EXPOSURE_OPTIONS,
-      trackExposure:
-        isFocused && !isBalanceShellVisible && displayStepIndex === 0,
-    },
-  );
   /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
   const visualStepIndexForProgress = walletHomeOnboardingCappedVisualStepIndex(
     displayStepIndex,
@@ -798,16 +778,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const primaryTestID = `${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
   const stepHero = WALLET_HOME_ONBOARDING_STEP_HERO[currentStep.kind];
   /**
-   * Treatment only: Receive takes the secondary slot next to Add funds on the fund step.
-   * Hidden while the balance shell is showing so the treatment layout is only painted once
-   * the user is exposed (`Experiment Viewed` fires on the same condition).
+   * Receive takes the secondary slot next to Add funds on the fund step. It follows the
+   * same disabled states as Add funds (balance shell, transitions), so the layout does not
+   * shift once the balance resolves.
    */
   const fundStepReceivePress =
-    currentStep.kind === 'fund' &&
-    fundStepReceiveVariant.showReceiveButton &&
-    !isBalanceShellVisible
-      ? onReceivePress
-      : undefined;
+    currentStep.kind === 'fund' ? onReceivePress : undefined;
 
   const heroContainerClassName =
     'relative h-52 w-full rounded-2xl overflow-hidden';

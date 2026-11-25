@@ -25,11 +25,6 @@ import {
   setWalletHomeOnboardingFundFlowOrderAccepted,
   startWalletHomeOnboardingFundFlow,
 } from './walletHomeOnboardingFundFlow';
-import {
-  FUND_STEP_RECEIVE_AB_KEY,
-  FUND_STEP_RECEIVE_VARIANTS,
-  FundStepReceiveVariant,
-} from './abTestConfig';
 
 let mockIsGlass = false;
 jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
@@ -57,11 +52,6 @@ jest.mock('./walletHomeOnboardingProgressAnimation', () => {
     ),
   };
 });
-
-const mockUseABTest = jest.fn();
-jest.mock('../../../hooks/useABTest', () => ({
-  useABTest: (...args: unknown[]) => mockUseABTest(...args),
-}));
 
 const mockUseIsFocused = jest.fn(() => true);
 const animateProgressRatioSpy =
@@ -94,12 +84,6 @@ async function flushWalletHomeStepTransition() {
 describe('WalletHomeOnboardingSteps', () => {
   beforeEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: false });
-    mockUseABTest.mockReset();
-    mockUseABTest.mockReturnValue({
-      variant: FUND_STEP_RECEIVE_VARIANTS[FundStepReceiveVariant.Control],
-      variantName: FundStepReceiveVariant.Control,
-      isActive: false,
-    });
     __resetRiveMocks();
     mockUseIsFocused.mockReturnValue(true);
     cancelWalletHomeOnboardingFundFlow();
@@ -965,15 +949,8 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  describe('fund step Receive button A/B test (TMCU-1939)', () => {
+  describe('fund step Receive button', () => {
     const receiveTestId = WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON;
-
-    const useTreatment = () =>
-      mockUseABTest.mockReturnValue({
-        variant: FUND_STEP_RECEIVE_VARIANTS[FundStepReceiveVariant.Treatment],
-        variantName: FundStepReceiveVariant.Treatment,
-        isActive: true,
-      });
 
     const renderFundStep = ({
       stepIndex = 0,
@@ -1001,20 +978,7 @@ describe('WalletHomeOnboardingSteps', () => {
         },
       );
 
-    it('keeps only Add funds on the fund step for control', () => {
-      const { getByTestId, queryByTestId } = renderFundStep({
-        onReceivePress: jest.fn(),
-      });
-
-      expect(getByTestId(primaryTestId)).toBeOnTheScreen();
-      expect(queryByTestId(receiveTestId)).toBeNull();
-      expect(
-        queryByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
-      ).toBeNull();
-    });
-
-    it('shows Receive next to Add funds on the fund step for treatment', () => {
-      useTreatment();
+    it('shows Receive next to Add funds on the fund step', () => {
       const { getByTestId, getByText, queryByTestId } = renderFundStep({
         onReceivePress: jest.fn(),
       });
@@ -1030,7 +994,6 @@ describe('WalletHomeOnboardingSteps', () => {
     });
 
     it('calls onReceivePress without advancing or deferring the fund step', async () => {
-      useTreatment();
       const onReceivePress = jest.fn();
       const { getByTestId, store } = renderFundStep({ onReceivePress });
 
@@ -1047,27 +1010,24 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(getByTestId(primaryTestId)).not.toBeDisabled();
     });
 
-    it('hides Receive while the balance shell is loading, even for treatment', () => {
-      useTreatment();
-      const { getByTestId, queryByTestId } = renderFundStep({
+    it('keeps Receive visible but disabled while the balance shell is loading', () => {
+      const { getByTestId } = renderFundStep({
         onReceivePress: jest.fn(),
         isAwaitingBalance: true,
       });
 
-      expect(queryByTestId(receiveTestId)).toBeNull();
+      expect(getByTestId(receiveTestId)).toBeDisabled();
       expect(getByTestId(primaryTestId)).toBeDisabled();
     });
 
     it('falls back to the single Add funds button when no receive handler is provided', () => {
-      useTreatment();
       const { getByTestId, queryByTestId } = renderFundStep();
 
       expect(queryByTestId(receiveTestId)).toBeNull();
       expect(getByTestId(primaryTestId)).toBeOnTheScreen();
     });
 
-    it('keeps Skip on the trade step for treatment', () => {
-      useTreatment();
+    it('keeps Skip on the trade step', () => {
       const { getByTestId, queryByTestId } = renderFundStep({
         stepIndex: 1,
         onReceivePress: jest.fn(),
@@ -1078,44 +1038,5 @@ describe('WalletHomeOnboardingSteps', () => {
       ).toBeOnTheScreen();
       expect(queryByTestId(receiveTestId)).toBeNull();
     });
-
-    it.each([
-      {
-        scenario: 'the fund step is visible with the balance resolved',
-        isFocused: true,
-        renderOptions: {},
-        expectedTrackExposure: true,
-      },
-      {
-        scenario: 'the balance is loading',
-        isFocused: true,
-        renderOptions: { isAwaitingBalance: true },
-        expectedTrackExposure: false,
-      },
-      {
-        scenario: 'a later checklist step is shown',
-        isFocused: true,
-        renderOptions: { stepIndex: 1 },
-        expectedTrackExposure: false,
-      },
-      {
-        scenario: 'the screen is not focused',
-        isFocused: false,
-        renderOptions: {},
-        expectedTrackExposure: false,
-      },
-    ])(
-      'sets trackExposure to $expectedTrackExposure when $scenario',
-      ({ isFocused, renderOptions, expectedTrackExposure }) => {
-        mockUseIsFocused.mockReturnValue(isFocused);
-        renderFundStep(renderOptions);
-
-        expect(mockUseABTest).toHaveBeenLastCalledWith(
-          FUND_STEP_RECEIVE_AB_KEY,
-          FUND_STEP_RECEIVE_VARIANTS,
-          expect.objectContaining({ trackExposure: expectedTrackExposure }),
-        );
-      },
-    );
   });
 });
