@@ -146,6 +146,7 @@ import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
 import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
+import { deriveMoneyCardSetupPollIntervalMs } from '../../../Money/utils/moneyMetaMaskCardMode';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
@@ -316,6 +317,8 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const {
     canEnableCard,
     enableCard,
@@ -323,7 +326,17 @@ const CardHome = () => {
     isEnableCardPending,
     isProvisioningPollActive,
     recheck: recheckProvisioning,
-  } = useCardEnableCard(data, { recheckOnFocus: true });
+  } = useCardEnableCard(data, {
+    recheckOnFocus: true,
+    // The waiting view re-checks a manual review on its own. The provisioning
+    // poll follows the same network cadence as Money home: off when offline,
+    // 15s on slow cellular, and 5s otherwise.
+    kycReviewSelfCheck: true,
+    pollIntervalMs: deriveMoneyCardSetupPollIntervalMs(
+      hardwareTier,
+      networkTier,
+    ),
+  });
   const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -686,8 +699,6 @@ const CardHome = () => {
   // unknown network keeps 3s while the card is being created and 15s in
   // review. Immersve's own 5s poll already covers the creating state, so
   // this interval stays off while that one is running.
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
   const { refreshRegistrationStatus } = useCardSetupPendingRefresh({
     isPending: waitingState.kind === 'waiting',
     isAuthenticated,

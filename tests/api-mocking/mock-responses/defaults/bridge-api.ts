@@ -1,3 +1,9 @@
+import type { StatusTypes } from '@metamask/bridge-controller';
+import type {
+  BridgeGetTokensResponse,
+  BridgeGetTxStatusResponse,
+} from '../../api-response-types';
+
 const BRIDGE_TOP_ASSETS_CHAIN_1 = [
   {
     address: '0x0000000000000000000000000000000000000000',
@@ -397,7 +403,7 @@ const BRIDGE_TOP_ASSETS_CHAIN_1 = [
   },
 ];
 
-const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
+export const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
   {
     address: '0x0000000000000000000000000000000000000000',
     chainId: 1,
@@ -564,7 +570,7 @@ const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
       },
     },
   },
-];
+] satisfies BridgeGetTokensResponse;
 
 /** Minimal valid response for `GET /getQuoteStatus` (QuoteStatusGetResponse). */
 const BRIDGE_QUOTE_STATUS_GET_RESPONSE = {
@@ -575,6 +581,17 @@ const BRIDGE_QUOTE_STATUS_GET_RESPONSE = {
     },
   },
 };
+
+// Default `getTxStatus` body. The old default, `{ status: 'complete' }`, failed
+// the controller's status validation (the enum is uppercase and `srcChain` is
+// required), so BridgeStatusController threw and left the history item pending.
+// A valid PENDING body keeps that outcome. Specs that need a transaction to
+// complete override it with a COMPLETE body (`helpers/swap/bridge-mocks.ts`,
+// `helpers/swap/smart-transactions-mocks.ts`).
+export const BRIDGE_TX_STATUS_PENDING = {
+  status: 'PENDING' as StatusTypes.PENDING,
+  srcChain: { chainId: 1 },
+} satisfies BridgeGetTxStatusResponse;
 
 export const DEFAULT_BRIDGE_API_MOCKS = {
   GET: [
@@ -592,7 +609,7 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
     {
       urlEndpoint:
         /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus(\?.*)?$/,
-      response: { status: 'complete' },
+      response: BRIDGE_TX_STATUS_PENDING,
       responseCode: 200,
     },
     {

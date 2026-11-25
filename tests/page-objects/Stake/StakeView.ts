@@ -33,7 +33,7 @@ class StakeView {
   async enterAmount(amount: string): Promise<void> {
     // Text match for "1"/"0" hits balances; use keypad testIDs.
     // iOS: accessibility-id matching for these keys is unreliable — use name XPath
-    // (same pattern as QuoteView.enterAmount / RedesignedSendView.enterAmountViaNumpad).
+    // (same pattern as QuoteView.enterAmount / SendView.enterAmountViaNumpad).
     const isAndroid = PlatformDetector.isAndroid();
     for (const digit of amount.split('')) {
       const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;

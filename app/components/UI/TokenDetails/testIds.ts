@@ -35,6 +35,7 @@ export const TokenDetailsIds = {
     CONTAINER: 'token-holder-row',
     PRESS: 'token-holder-row-press',
     NAME: 'token-holder-row-name',
+    VERIFIED_BADGE: 'token-holder-row-verified',
     FOLLOWERS: 'token-holder-row-followers',
     POSITION_VALUE: 'token-holder-row-position-value',
     PNL_PERCENT: 'token-holder-row-pnl-percent',

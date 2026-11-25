@@ -1,4 +1,5 @@
 import { MockEventsObject } from '../../../framework';
+import type { ContentfulBannersResponse } from '../../api-response-types';
 
 export const CONTENTFUL_BANNERS_MOCKS: MockEventsObject = {
   GET: [
@@ -17,7 +18,7 @@ export const CONTENTFUL_BANNERS_MOCKS: MockEventsObject = {
         includes: {
           Asset: [],
         },
-      },
+      } satisfies ContentfulBannersResponse,
     },
     {
       urlEndpoint: /contentful\.com.*promotionalBanner/,
@@ -33,7 +34,7 @@ export const CONTENTFUL_BANNERS_MOCKS: MockEventsObject = {
         includes: {
           Asset: [],
         },
-      },
+      } satisfies ContentfulBannersResponse,
     },
     {
       urlEndpoint: /contentful\.com.*showInMobile.*true/,
@@ -49,7 +50,7 @@ export const CONTENTFUL_BANNERS_MOCKS: MockEventsObject = {
         includes: {
           Asset: [],
         },
-      },
+      } satisfies ContentfulBannersResponse,
     },
   ],
 };

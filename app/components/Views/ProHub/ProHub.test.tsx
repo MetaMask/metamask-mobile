@@ -5,6 +5,7 @@ import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import {
   PRODUCT_TYPES,
+  RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
@@ -126,11 +127,13 @@ jest.mock('./hooks/useResumeMembership', () => ({
 const createPlusSubscription = (
   status: Subscription['status'],
   trialPeriodDays?: number,
+  interval: Subscription['interval'] = RECURRING_INTERVALS.year,
 ): Subscription =>
   ({
     id: 'sub-plus',
     products: [{ name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS }],
     status,
+    interval,
     ...(trialPeriodDays === undefined ? {} : { trialPeriodDays }),
   }) as Subscription;
 
@@ -743,6 +746,35 @@ describe('ProHub', () => {
         'accessibilityLabel',
         `${strings('pro_hub.physical_card.title')}. ${strings('pro_hub.physical_card.description')}`,
       );
+    });
+
+    it('hides the physical card banner for a monthly plan', () => {
+      const { queryByTestId } = renderProHub({
+        subscriptions: [
+          createPlusSubscription(
+            SUBSCRIPTION_STATUSES.active,
+            undefined,
+            RECURRING_INTERVALS.month,
+          ),
+        ],
+      });
+
+      expect(queryByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER)).toBeNull();
+      expect(queryByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE)).toBeNull();
+    });
+
+    it('hides the physical card banner for a monthly free trial', () => {
+      const { queryByTestId } = renderProHub({
+        subscriptions: [
+          createPlusSubscription(
+            SUBSCRIPTION_STATUSES.trialing,
+            undefined,
+            RECURRING_INTERVALS.month,
+          ),
+        ],
+      });
+
+      expect(queryByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER)).toBeNull();
     });
 
     it('renders the member pricing section title', () => {

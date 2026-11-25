@@ -4,7 +4,10 @@ import {
   calculateMarketOrderLiquidity,
   type MarketOrderLiquidityParams,
 } from '../utils/slippageCalculation';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import {
+  PERFORMANCE_CONFIG,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 
 export interface UsePerpsEstimatedSlippageOptions
   extends Pick<
@@ -13,6 +16,8 @@ export interface UsePerpsEstimatedSlippageOptions
   > {
   /** Asset symbol (e.g. 'BTC'). */
   symbol: string;
+  /** Venue whose book to walk. Omit to follow the default venue. */
+  providerId?: PerpsProviderType;
   /** USD notional to fill. Pass undefined / 0 to disable the calc. */
   sizeUsd: number | undefined;
   /** true = BUY (sweeps asks), false = SELL (sweeps bids). */
@@ -44,6 +49,7 @@ export interface UsePerpsEstimatedSlippageReturn {
  */
 export function usePerpsEstimatedSlippage({
   symbol,
+  providerId,
   sizeUsd,
   isBuy,
   enabled = true,
@@ -59,6 +65,7 @@ export function usePerpsEstimatedSlippage({
   // tick cheap (one VWAP walk).
   const { orderBook, dataSymbol, error } = usePerpsLiveOrderBook({
     symbol,
+    providerId,
     enabled: enabled && Boolean(symbol),
     levels: PERFORMANCE_CONFIG.SlippageEstimateBookLevels,
     throttleMs: PERFORMANCE_CONFIG.SlippageEstimateThrottleMs,
