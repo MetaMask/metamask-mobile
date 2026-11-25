@@ -16,8 +16,32 @@ export interface SummarySectionState {
   data: EarningsSummaryDto | null;
   loading: boolean;
   refreshing: boolean;
+  /** The last fetch failed. Cached amounts stay on screen with the banner. */
+  failed: boolean;
+  /** A failure that left nothing to show. The overview card uses this. */
   error: boolean;
   show: boolean;
+}
+
+/** Which breakdown fetch the one banner under the amounts reports. */
+export type BreakdownErrorSource = 'summary' | 'funnel';
+
+/**
+ * One banner under an earnings breakdown. A summary failure wins, because it
+ * covers every amount; the funnel banner is only for a funnel failure on its
+ * own.
+ */
+export function deriveBreakdownErrorSource(
+  summaryFailed: boolean,
+  funnelFailed: boolean,
+): BreakdownErrorSource | null {
+  if (summaryFailed) {
+    return 'summary';
+  }
+  if (funnelFailed) {
+    return 'funnel';
+  }
+  return null;
 }
 
 /**
@@ -30,13 +54,14 @@ export function deriveSummarySection(
   const data = entry?.data ?? null;
   const failed = Boolean(entry?.error);
   const loading = !data && (!entry || Boolean(entry.loading));
-  // A failed refresh keeps the last summary. The banner is only for a failure
-  // that left nothing to show, including while that retry is in flight.
+  // The overview card hides itself only when a failure left nothing to show.
+  // A breakdown keeps its rows and reads `failed` for the banner.
   const error = failed && !data;
   return {
     data,
     loading,
     refreshing: Boolean(entry?.loading),
+    failed,
     error,
     show: !error && (loading || data !== null),
   };
