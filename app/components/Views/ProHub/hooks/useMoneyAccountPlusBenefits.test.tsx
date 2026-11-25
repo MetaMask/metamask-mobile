@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   PRODUCT_TYPES,
+  RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
   SubscriptionControllerErrorMessage,
   type SubscriptionBenefitsState,
@@ -82,6 +83,7 @@ const mockGetPausedBenefits = jest.mocked(subscriptionService.getBenefits);
 
 const BENEFITS: SubscriptionBenefitsState = {
   billingPeriodId: 'bp_2026_08_15',
+  benefitPeriodEnd: '2026-09-15T00:00:00.000Z',
   swaps: {
     feeBips: '0',
     capMicroUsd: 500_000_000,
@@ -108,6 +110,7 @@ const BENEFITS: SubscriptionBenefitsState = {
 const PAUSED_BENEFITS_RESPONSE = {
   eligible: false,
   billingPeriodId: BENEFITS.billingPeriodId,
+  benefitPeriodEnd: BENEFITS.benefitPeriodEnd,
   products: {
     swaps: { ...BENEFITS.swaps, feeBips: null },
     perps: { ...BENEFITS.perps, builderFeeBips: null },
@@ -215,6 +218,7 @@ describe('useMoneyAccountPlusBenefits', () => {
     mockGetBenefits.mockResolvedValue({
       eligible: true,
       billingPeriodId: BENEFITS.billingPeriodId,
+      benefitPeriodEnd: BENEFITS.benefitPeriodEnd,
       products: {
         swaps: BENEFITS.swaps,
         perps: BENEFITS.perps,
@@ -350,6 +354,7 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
+    expect(result.current.resetsOn).toBe('Sep 15, 2026');
   });
 
   it.each([SUBSCRIPTION_STATUSES.pastDue, SUBSCRIPTION_STATUSES.awaitingFunds])(
@@ -443,6 +448,45 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
     expect(result.current.resetsOn).toBe('Sep 15, 2026');
+  });
+
+  it('shows the monthly reset day from benefitPeriodEnd when the period ends at midnight UTC', () => {
+    const { result } = renderBenefits(
+      createState({
+        benefits: { ...BENEFITS, benefitPeriodEnd: '2026-10-15T00:00:00.000Z' },
+      }),
+    );
+
+    expect(result.current.resetsOn).toBe('Oct 15, 2026');
+  });
+
+  it('shows the monthly reset day, not the yearly renewal, for an annual membership', () => {
+    const state = createState({
+      benefits: { ...BENEFITS, benefitPeriodEnd: '2026-10-15T00:00:00.000Z' },
+    });
+    state.engine.backgroundState.SubscriptionController.subscriptions = [
+      {
+        ...createPlusSubscription(),
+        interval: RECURRING_INTERVALS.year,
+        currentPeriodStart: '2026-09-15T12:00:00.000Z',
+        currentPeriodEnd: '2027-09-15T12:00:00.000Z',
+      },
+    ];
+
+    const { result } = renderBenefits(state);
+
+    expect(result.current.resetsOn).toBe('Oct 15, 2026');
+  });
+
+  it('hides Resets on when the benefits response has no benefitPeriodEnd, even with a currentPeriodEnd', () => {
+    const { result } = renderBenefits(
+      createState({
+        benefits: { ...BENEFITS, benefitPeriodEnd: undefined },
+      }),
+    );
+
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.resetsOn).toBeUndefined();
   });
 
   it('reports partial when a product cannot be mapped', async () => {

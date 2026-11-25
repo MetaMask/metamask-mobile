@@ -1,13 +1,24 @@
-import React, { useImperativeHandle, useRef, type Ref } from 'react';
-import type { View as RNView } from 'react-native';
+import React, {
+  ComponentRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  type Ref,
+} from 'react';
+import { useFocusEffect, useLinkProps } from '@react-navigation/native';
 import {
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   SectionDivider,
   SectionHeader,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { View } from '../../../../UI/primitives/View';
 import { Text } from '../../../../UI/primitives/Text';
+import { View } from '../../../../UI/primitives/View';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
 import useHomeViewedEvent, {
@@ -16,6 +27,10 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { useHomePacks } from '../../../../UI/Collectibles/hooks/useHomePacks';
+import {
+  collectiblesRoutes,
+  type CollectiblesParamList,
+} from '../../../../UI/Collectibles/routeNames';
 import {
   CollectiblesCarousel,
   CollectiblesCarouselSkeleton,
@@ -37,11 +52,26 @@ export function CollectiblesSection({
   sectionIndex,
   totalSectionsLoaded,
 }: Props) {
-  const sectionViewRef = useRef<RNView>(null);
+  const sectionViewRef = useRef<ComponentRef<typeof View>>(null);
   const { data: packs, isPending, refetch } = useHomePacks();
+  const collectiblesLink = useLinkProps<CollectiblesParamList>({
+    screen: collectiblesRoutes.root,
+  });
   // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
-  const isHidden = !isPending && isEmpty;
+  const isFirstFocus = useRef(true);
+
+  // Refetch when Home regains focus, so a pack that reopened shows again.
+  // useFocusEffect needs a stable callback.
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      void refetch();
+    }, [refetch]),
+  );
 
   // Pull-to-refresh on Home refetches the packs.
   useImperativeHandle(ref, () => ({
@@ -51,7 +81,7 @@ export function CollectiblesSection({
   }));
 
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: isHidden ? null : sectionViewRef,
+    sectionRef: sectionViewRef,
     isLoading: isPending,
     sectionName: HomeSectionNames.COLLECTIBLES,
     sectionIndex,
@@ -65,40 +95,55 @@ export function CollectiblesSection({
     sectionId: HomeSectionNames.COLLECTIBLES,
     contentReady: !isPending,
     isEmpty,
+    demandStarted: isPending || Boolean(packs?.length),
     isLoading: isPending,
   });
-
-  if (isHidden) {
-    return null;
-  }
 
   return (
     <View
       ref={sectionViewRef}
-      onLayout={onLayout}
       className="pb-3"
       testID={collectiblesTestIds.homeSection}
+      onLayout={onLayout}
     >
       <SectionDivider />
-      {/* TODO: make the header open Collectibles once it has routes */}
       <SectionHeader
         title={strings('collectibles.title')}
+        isInteractive
+        {...collectiblesLink}
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        className="px-4"
-      >
-        {strings('collectibles.home_section.description')}
-      </Text>
-      <View className="pt-3">
-        {isPending || !packs ? (
-          <CollectiblesCarouselSkeleton />
-        ) : (
-          <CollectiblesCarousel packs={packs} />
-        )}
-      </View>
+      {isPending ? (
+        <CollectiblesCarouselSkeleton />
+      ) : isEmpty ? (
+        // Same placeholder for an API failure and for no available packs.
+        <View
+          className="items-center gap-2 px-6 py-10"
+          testID={collectiblesTestIds.empty}
+        >
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Xl}
+            color={IconColor.IconAlternative}
+          />
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
+            className="text-center"
+          >
+            {strings('collectibles.home.empty')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            className="text-center"
+          >
+            {strings('collectibles.home.empty_description')}
+          </Text>
+        </View>
+      ) : (
+        <CollectiblesCarousel packs={packs} />
+      )}
     </View>
   );
 }

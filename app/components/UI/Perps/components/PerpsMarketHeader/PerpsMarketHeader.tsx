@@ -112,14 +112,14 @@ const PerpsMarketHeaderCompactPrice = ({
 }: {
   symbol: string;
   currentPrice: number;
-  percentChange24h?: number;
+  percentChange24h?: number | null;
   testIDPrice?: string;
   testIDChange?: string;
 }) => (
   <LivePriceHeader
     symbol={symbol}
     currentPrice={currentPrice}
-    percentChange24h={percentChange24h}
+    percentChange24h={percentChange24h ?? null}
     testIDPrice={testIDPrice}
     testIDChange={testIDChange}
   />
@@ -225,6 +225,7 @@ const PerpsMarketHeader = ({
   }));
 
   const livePrices = usePerpsLivePrices({
+    providerId: market.providerId,
     symbols: [market.symbol],
     throttleMs: 1000,
   });
@@ -250,7 +251,7 @@ const PerpsMarketHeader = ({
         <PerpsMarketHeaderCompactPrice
           symbol={market.symbol}
           currentPrice={currentPrice}
-          percentChange24h={percentChange24h}
+          percentChange24h={percentChange24h ?? null}
           testIDPrice=""
           testIDChange=""
         />
@@ -265,7 +266,7 @@ const PerpsMarketHeader = ({
         <PerpsMarketHeaderCompactPrice
           symbol={market.symbol}
           currentPrice={currentPrice}
-          percentChange24h={percentChange24h}
+          percentChange24h={percentChange24h ?? null}
           testIDPrice={testIDs.headerPrice}
           testIDChange={testIDs.headerPriceChange}
         />
@@ -289,8 +290,10 @@ const PerpsMarketHeader = ({
         }
         position={BadgeWrapperPosition.TopRight}
         positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-        positionXOffset={-4}
-        positionYOffset={4}
+        // Pull the badge in so it hugs the wallet glyph's top-right corner and
+        // stays inside the capsule instead of straddling its top edge.
+        positionXOffset={-6}
+        positionYOffset={8}
         badge={
           walletRiskBadge ? (
             <Box

@@ -65,8 +65,11 @@ const FIRST_FRAME_TRANSACTION_TYPES = [TransactionType.moneyAccountDeposit];
 
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,
@@ -136,7 +139,7 @@ export interface ConfirmationParams {
 
 /**
  * Route params accepted by the full-screen confirmation routes
- * (`RedesignedConfirmations` / `NoHeaderConfirmations`). This is a superset of
+ * (`Confirmations` / `NoHeaderConfirmations`). This is a superset of
  * {@link ConfirmationParams} because different entry points pass extra,
  * feature-specific fields: `showPerpsHeader` (Perps deposit+order flow renders a Perps header, read by
  * the Perps route's header options rather than the confirm component), and

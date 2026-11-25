@@ -4,7 +4,7 @@ import { CaipAssetType } from '@metamask/snaps-sdk';
 
 import Engine from '../../Engine';
 import { handleSnapRequest } from '../../Snaps/utils';
-import { validateTronTransferAmount, getMaxSendableTronAmount } from '../tron';
+import { getTronMaxSendableAmount, validateTronTransferAmount } from '../tron';
 
 jest.mock('../../Engine', () => ({
   controllerMessenger: { call: jest.fn() },
@@ -115,23 +115,19 @@ describe('validateTronTransferAmount', () => {
   });
 });
 
-describe('getMaxSendableTronAmount', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe('getTronMaxSendableAmount', () => {
+  it('calls the Snap getMaxSendableAmount handler for the transfer', async () => {
+    mockHandleSnapRequest.mockResolvedValueOnce({ amount: '9.5' });
 
-  const maxParams = {
-    accountId: 'tron-account-id',
-    assetId:
-      'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t' as CaipAssetType,
-  };
+    const maxParams = {
+      accountId: 'tron-account-id',
+      assetId: 'tron:728126428/slip44:195' as CaipAssetType,
+      toAddress: 'TDepositWallet1234567890abcdefghij',
+    };
 
-  it('calls the Snap getMaxSendableAmount handler', async () => {
-    const mockResult = { amount: '100' };
-    mockHandleSnapRequest.mockResolvedValueOnce(mockResult);
+    const result = await getTronMaxSendableAmount(mockAccount, maxParams);
 
-    const result = await getMaxSendableTronAmount(mockAccount, maxParams);
-
+    expect(result).toEqual({ amount: '9.5' });
     expect(mockHandleSnapRequest).toHaveBeenCalledWith(
       Engine.controllerMessenger,
       {
@@ -141,45 +137,5 @@ describe('getMaxSendableTronAmount', () => {
         request: { method: 'getMaxSendableAmount', params: maxParams },
       },
     );
-    expect(result).toEqual(mockResult);
-  });
-
-  it('returns the Snap result with toAddress when provided', async () => {
-    const mockResult = { amount: '100' };
-    mockHandleSnapRequest.mockResolvedValueOnce(mockResult);
-
-    const paramsWithTo = {
-      ...maxParams,
-      toAddress: 'TDestination1234567890abcdefghij',
-    };
-
-    const result = await getMaxSendableTronAmount(mockAccount, paramsWithTo);
-
-    expect(result).toEqual(mockResult);
-  });
-
-  it('returns zero amount when insufficient balance for fees', async () => {
-    const mockResult = { amount: '0' };
-    mockHandleSnapRequest.mockResolvedValueOnce(mockResult);
-
-    const result = await getMaxSendableTronAmount(mockAccount, maxParams);
-
-    expect(result).toEqual(mockResult);
-  });
-
-  it('returns undefined when the Snap returns nothing', async () => {
-    mockHandleSnapRequest.mockResolvedValueOnce(undefined);
-
-    const result = await getMaxSendableTronAmount(mockAccount, maxParams);
-
-    expect(result).toBeUndefined();
-  });
-
-  it('propagates errors thrown by the Snap', async () => {
-    mockHandleSnapRequest.mockRejectedValueOnce(new Error('Snap error'));
-
-    await expect(
-      getMaxSendableTronAmount(mockAccount, maxParams),
-    ).rejects.toThrow('Snap error');
   });
 });

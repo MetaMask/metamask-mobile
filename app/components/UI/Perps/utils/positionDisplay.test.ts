@@ -1,6 +1,7 @@
 import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
+  getDisplayedPositionMargin,
   getPerpsPositionHeaderDisplay,
   parsePositionRoePercentage,
 } from './positionDisplay';
@@ -32,6 +33,40 @@ const createPosition = (overrides: Partial<Position> = {}): Position => ({
   takeProfitCount: 0,
   stopLossCount: 0,
   ...overrides,
+});
+
+describe('getDisplayedPositionMargin', () => {
+  it('returns marginUsed when the venue does not send a display margin', () => {
+    expect(getDisplayedPositionMargin(createPosition())).toBe('1450');
+  });
+
+  it('returns the Hyperliquid display margin when cross equity scales it', () => {
+    expect(
+      getDisplayedPositionMargin(
+        createPosition({
+          marginUsed: '15',
+          displayMarginUsed: '7.18',
+          leverage: { type: 'cross', value: 20 },
+        }),
+      ),
+    ).toBe('7.18');
+  });
+
+  it('falls back to marginUsed when display margin is blank', () => {
+    const position = createPosition({ displayMarginUsed: '  ' });
+
+    const result = getDisplayedPositionMargin(position);
+
+    expect(result).toBe('1450');
+  });
+
+  it('falls back to marginUsed when display margin is not a number', () => {
+    const position = createPosition({ displayMarginUsed: 'not-a-number' });
+
+    const result = getDisplayedPositionMargin(position);
+
+    expect(result).toBe('1450');
+  });
 });
 
 describe('parsePositionRoePercentage', () => {

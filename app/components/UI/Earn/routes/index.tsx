@@ -38,7 +38,7 @@ const EarnScreenStack = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
         component={Confirm}
         options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
       />
@@ -74,7 +74,7 @@ const EarnModalStack = () => (
       options={{ headerShown: false }}
     />
     <ModalStack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
       component={Confirm}
       options={{ headerShown: false, presentation: 'card' }}
     />

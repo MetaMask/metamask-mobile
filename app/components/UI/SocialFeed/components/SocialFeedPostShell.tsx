@@ -56,10 +56,14 @@ import SocialFeedGif from './SocialFeedGif';
 import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
-import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
+import {
+  socialFeedPostAnalytics,
+  socialFeedPostSubject,
+} from '../utils/socialPositionAnalytics';
 import {
   SocialEvent,
   type SocialBlockedReason,
+  type SocialCopyTradeAnalyticsProperties,
   type SocialPositionAnalyticsProperties,
 } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
@@ -68,7 +72,7 @@ export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
   onCopyTradeInteraction?: (
-    position: SocialPositionAnalyticsProperties,
+    position: SocialCopyTradeAnalyticsProperties,
   ) => void;
   onReactionInteraction?: (
     action: 'added' | 'removed',
@@ -91,11 +95,16 @@ export interface SocialFeedPostShellProps {
    * pass this so they cannot copy their own trade.
    */
   showCopyTrade?: boolean;
+  /**
+   * When false, the attached GIF keeps its frame and drops the decoded image.
+   * Virtualized rows pass this from list viewability. Defaults to visible.
+   */
+  gifVisible?: boolean;
 }
 
 interface ShellCopyTradeTracking {
   postAnalytics: SocialPositionAnalyticsProperties;
-  notifyCopy?: (position: SocialPositionAnalyticsProperties) => void;
+  notifyCopy?: (position: SocialCopyTradeAnalyticsProperties) => void;
   notifyBlocked?: (
     position: SocialPositionAnalyticsProperties,
     reason: SocialBlockedReason,
@@ -121,10 +130,10 @@ const useShellCopyTrade = (
         notifyBlocked?.(postAnalytics, blockedReason);
         return false;
       }
-      notifyCopy?.(postAnalytics);
+      notifyCopy?.({ ...postAnalytics, ...socialFeedPostSubject(post) });
       return true;
     },
-    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, postAnalytics],
+    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, post, postAnalytics],
   );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
@@ -280,6 +289,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   requireSocialTerms = false,
   requireSocialProfile = false,
   showCopyTrade = true,
+  gifVisible = true,
 }) => {
   const tracked = useSocialFeedTracking();
   const { location } = useSocialFeedSurface();
@@ -532,6 +542,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
+          verifiedBadge: `${SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
           identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
@@ -575,6 +586,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             <Box twClassName="rounded-2xl overflow-hidden">
               <SocialFeedGif
                 uri={post.gifUri}
+                visible={gifVisible}
                 testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
               />
             </Box>

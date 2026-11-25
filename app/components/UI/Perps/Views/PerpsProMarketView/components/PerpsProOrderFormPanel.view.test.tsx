@@ -20,9 +20,12 @@ import {
   createFundedAccountForViews,
   createLongPositionForViews,
 } from '../../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { createAccountSwitcher } from '../../../../../../../tests/component-view/helpers/accountSwitcher';
 import {
   crossMarginMarketInfo,
+  goBackFromCrossMarginSheet,
   openMarginModeSheet,
+  pressMarginModeOption,
   resetMarginModeControllerMocks,
   selectCrossMarginMode,
 } from '../../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
@@ -35,6 +38,7 @@ import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import PerpsTPSLView from '../../PerpsTPSLView/PerpsTPSLView';
 import {
+  PerpsCrossMarginConfirmBottomSheetSelectorsIDs as confirmIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsOrderTypeBottomSheetSelectorsIDs as orderTypeIds,
   PerpsProOrderFormSelectorsIDs as formIds,
@@ -53,15 +57,19 @@ interface CrossGateCase {
 const blockedMarkets: CrossGateCase[] = [
   { name: 'rollout flag off', flag: false },
   { name: 'Pro inactive', pro: false },
-  { name: 'HIP-3 market', market: { marketSource: 'xyz' } },
   { name: 'Lighter market', market: { providerId: 'lighter' } },
   { name: 'isolated-only asset', metadata: { onlyIsolated: true } },
   { name: 'noCross asset', metadata: { marginMode: 'noCross' } },
   { name: 'strictIsolated asset', metadata: { marginMode: 'strictIsolated' } },
   {
-    name: 'HIP-3 market on the Terminal backend',
-    terminal: true,
+    name: 'noCross HIP-3 market',
     market: { marketSource: 'xyz' },
+    metadata: { marginMode: 'noCross' },
+  },
+  {
+    name: 'strictIsolated HIP-3 market',
+    market: { marketSource: 'xyz' },
+    metadata: { marginMode: 'strictIsolated' },
   },
   {
     name: 'Lighter market on the Terminal backend',
@@ -82,8 +90,29 @@ const terminalBackendFlags = (enabled: boolean) => ({
   },
 });
 
+const SECOND_ACCOUNT_ID = 'cross-margin-second-account';
+const SECOND_ACCOUNT = '0x0000000000000000000000000000000000000002';
+
+const getSelectedAccount = (
+  store: ReturnType<typeof renderPerpsCrossMarginOrderFormPanel>['store'],
+) => {
+  const { accounts, selectedAccount } =
+    store.getState().engine.backgroundState.AccountsController.internalAccounts;
+  return { id: selectedAccount, address: accounts[selectedAccount].address };
+};
+
+async function expectCrossSelectedWithoutConfirmation() {
+  await waitFor(() =>
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.margin_mode.cross_title'),
+    ),
+  );
+  expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen();
+}
+
 describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   let unwire: (() => void) | undefined;
+  let restoreAccount: (() => void) | undefined;
   beforeEach(resetMarginModeControllerMocks);
 
   it('starts a market with no saved margin mode on Isolated', async () => {
@@ -179,6 +208,8 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     cleanup();
     unwire?.();
     unwire = undefined;
+    restoreAccount?.();
+    restoreAccount = undefined;
     jest
       .mocked(Engine.context.PerpsController.previewPositionModify)
       .mockReset()
@@ -209,21 +240,9 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
         liquidationPrice: { available: true, value: 2100 },
       },
     };
-    let resolveCrossPreview: (
-      result: PositionModifyPreviewResult,
-    ) => void = () => undefined;
-    const pendingCrossPreview = new Promise<PositionModifyPreviewResult>(
-      (resolve) => {
-        resolveCrossPreview = resolve;
-      },
-    );
     jest
       .mocked(Engine.context.PerpsController.previewPositionModify)
-      .mockImplementation(({ position }) =>
-        position.leverage.type === 'cross'
-          ? pendingCrossPreview
-          : Promise.resolve(isolatedPreview),
-      );
+      .mockResolvedValue(isolatedPreview);
     jest
       .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
       .mockResolvedValue('1800');
@@ -291,12 +310,12 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
         strings('perps.margin_mode.cross_title'),
       ),
     );
-    await waitFor(() =>
-      expect(
-        Engine.context.PerpsController.previewPositionModify,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({ position: crossPosition }),
-      ),
+    // The Pro form keeps the before→after preview off for held Cross
+    // positions, so none is requested and the isolated one is not retained.
+    expect(
+      Engine.context.PerpsController.previewPositionModify,
+    ).not.toHaveBeenCalledWith(
+      expect.objectContaining({ position: crossPosition }),
     );
 
     expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
@@ -320,9 +339,6 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
         expect.objectContaining({ marginMode: 'cross', stopLossPrice: '2000' }),
       ),
-    );
-    await act(async () =>
-      resolveCrossPreview({ status: 'unsupported', reason: 'cross_margin' }),
     );
   });
 
@@ -376,6 +392,74 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
 
     await waitFor(() =>
       expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.pro_order_form.isolated'),
+    );
+  });
+
+  it('asks for the Cross confirmation only on the first Cross selection', async () => {
+    renderPerpsCrossMarginOrderFormPanel();
+    await openMarginModeSheet();
+    await selectCrossMarginMode();
+
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.ISOLATED_OPTION);
+
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
+
+    await expectCrossSelectedWithoutConfirmation();
+  });
+
+  it('reopens the Cross confirmation when the user goes back instead of confirming', async () => {
+    renderPerpsCrossMarginOrderFormPanel();
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
+    await goBackFromCrossMarginSheet();
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.pro_order_form.isolated'),
+    );
+
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
+
+    await screen.findByTestId(confirmIds.CONTAINER);
+  });
+
+  it('keeps the Cross confirmation separate for each account', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel();
+    const accountSwitcher = createAccountSwitcher(store);
+    restoreAccount = accountSwitcher.cleanup;
+    const firstAccount = getSelectedAccount(store);
+    await openMarginModeSheet();
+    await selectCrossMarginMode();
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.ISOLATED_OPTION);
+
+    act(() => accountSwitcher.switchTo(SECOND_ACCOUNT_ID, SECOND_ACCOUNT));
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
+    await goBackFromCrossMarginSheet();
+    act(() => accountSwitcher.switchTo(firstAccount.id, firstAccount.address));
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
+
+    await expectCrossSelectedWithoutConfirmation();
+  });
+
+  it('closes the Cross confirmation without selecting Cross when the account changes', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel();
+    const accountSwitcher = createAccountSwitcher(store);
+    restoreAccount = accountSwitcher.cleanup;
+    await openMarginModeSheet();
+    await pressMarginModeOption(marginIds.CROSS_OPTION);
+    await screen.findByTestId(confirmIds.CONTAINER);
+
+    act(() => accountSwitcher.switchTo(SECOND_ACCOUNT_ID, SECOND_ACCOUNT));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
     );
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.pro_order_form.isolated'),
@@ -594,6 +678,49 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       screen.getByTestId(formIds.MARGIN_MODE_BUTTON),
     ).not.toHaveTextContent(strings('perps.margin_mode.cross_title'));
   });
+
+  it.each([
+    { name: 'HIP-3 market', terminal: false },
+    { name: 'HIP-3 market on the Terminal backend', terminal: true },
+  ])(
+    'offers Cross on an XYZ $name whose venue metadata permits it',
+    async ({ terminal }) => {
+      jest
+        .mocked(Engine.context.PerpsController.getMarkets)
+        .mockResolvedValue([{ ...crossMarginMarketInfo }]);
+      const market = createEthMarketForViews({ marketSource: 'xyz' });
+      renderPerpsCrossMarginOrderFormPanel({
+        crossMarginEnabled: true,
+        initialParams: { market },
+        streamOverrides: { marketData: [market] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsTerminalBackendEnabled: {
+                    enabled: terminal,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await openMarginModeSheet();
+      await selectCrossMarginMode();
+
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.margin_mode.cross_title'),
+      );
+    },
+  );
 
   it.each(blockedMarkets)('keeps Cross unavailable for $name', async (gate) => {
     jest

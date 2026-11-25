@@ -4,7 +4,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
@@ -69,7 +68,7 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   }, [accountOverride, isMoneyAccountWithdraw, transactionId, transactionMeta]);
 
   const handleAccountSelected = useCallback(
-    (address: string) => {
+    (account: InternalAccount) => {
       if (!transactionId) {
         return;
       }
@@ -78,13 +77,13 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
         transactionId,
         nestedTransactions: transactionMeta?.nestedTransactions,
         oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
-        newAddress: address,
+        newAddress: account.address,
       });
 
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {
-          config.accountOverride = address as Hex;
+          config.accountOverride = account.id;
         },
       );
     },

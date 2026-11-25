@@ -98,6 +98,7 @@ export const SocialEvent = {
     TOKEN_DETAILS_HOLDERS: 'token_details_holders',
     PERPS_MARKET_FEED: 'perps_market_feed',
     PERPS_MARKET_HOLDERS: 'perps_market_holders',
+    MY_PROFILE: 'my_profile',
     /**
      * Feed tab that started a Social V1 action. Valid on Social Screen Viewed
      * and Social UI Interaction only — not on leaderboard, profile, onboarding,
@@ -206,6 +207,15 @@ export interface SocialPositionAnalyticsProperties {
   position_status?: SocialPositionStatus;
   trader_address?: string;
   trader_username?: string;
+}
+/**
+ * A copy-trade tap: the trade's trader plus the source post the copy came
+ * from and that post's author.
+ */
+export interface SocialCopyTradeAnalyticsProperties
+  extends SocialPositionAnalyticsProperties {
+  post_id?: string;
+  author_trader_id?: string;
 }
 export interface SocialScreenViewedProperties
   extends SocialPositionAnalyticsProperties {

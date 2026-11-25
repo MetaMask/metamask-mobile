@@ -82,15 +82,29 @@ export async function confirmCrossMarginSheet() {
   );
 }
 
-/** Pick Cross in the open margin mode sheet and confirm its risks. */
-export async function selectCrossMarginMode() {
-  // The option starts disabled until the lock and market reads settle.
+/** Leave the cross margin confirm sheet without acknowledging the risks. */
+export async function goBackFromCrossMarginSheet() {
+  await screen.findByTestId(confirmIds.CONTAINER);
+  fireEvent.press(screen.getByTestId(confirmIds.GO_BACK_BUTTON));
   await waitFor(() =>
-    expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+    expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
   );
-  fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+}
+
+/** Press an option in the open margin mode sheet and wait for it to close. */
+export async function pressMarginModeOption(
+  optionId: typeof marginIds.CROSS_OPTION | typeof marginIds.ISOLATED_OPTION,
+) {
+  // The option starts disabled until the lock and market reads settle.
+  await waitFor(() => expect(screen.getByTestId(optionId)).toBeEnabled());
+  fireEvent.press(screen.getByTestId(optionId));
   await waitFor(() =>
     expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
   );
+}
+
+/** Pick Cross in the open margin mode sheet and confirm its risks. */
+export async function selectCrossMarginMode() {
+  await pressMarginModeOption(marginIds.CROSS_OPTION);
   await confirmCrossMarginSheet();
 }

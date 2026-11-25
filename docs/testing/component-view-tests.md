@@ -54,6 +54,29 @@ yarn test:view:coverage:folder app/components/UI/MyFeature
 yarn eslint <path/to/test.tsx>
 ```
 
+### CI flakiness detection (PRs into main)
+
+PRs that add or modify `*.view.test.tsx` files get those files re-run 5 times by the `Component view flakiness detection` job before merge, with `TEST_OS=ios` like the component view gate. Every repetition shuffles the file order and passes `--randomize` to Jest, so order leaks surface with a reproducible seed printed in the job summary. A failure in any repetition blocks the merge and names the failing test (`file › describe › test`). A repetition that does not end cleanly — a Jest crash, hang, OOM kill, missing or unparsable report, or a suite-level runtime error — also blocks the merge and names the file(s) and reason even when no failing test assertion was parsed. Deleted paths are skipped, the file list is capped at 10, and a 60-minute budget stops further repetitions with a warning instead of failing — both when the budget runs out between repetitions and when it kills a running repetition — so the budget never fails a healthy run. Each repetition is also capped at a 20-minute hang limit (`HANG_TIMEOUT_MINUTES`): a run killed with budget still remaining is a suspected hang and still blocks the merge. Label a PR `skip-cv-flakiness-detection` to opt out. Reproduce a failure locally with the seed from the job summary:
+
+```bash
+yarn jest -c jest.config.view.js <file> --runInBand --silent --coverage=false --randomize --seed=<seed from the job summary>
+```
+
+### Repeat changed view tests locally before opening a PR
+
+`yarn test:view:repeat` runs the same repetition logic as the CI job — same `*.view.test.(ts|tsx)` pattern, MAX_FILES cap (default 10), time budget (default 60 minutes), per-repetition hang limit (default 20 minutes), per-repetition file-order shuffle and Jest `--randomize` — reusing the CI script's core rather than duplicating it. Files come from the arguments, or by default from the files changed vs `origin/main` (committed diff, uncommitted changes, and untracked files). It stops at the first failing repetition, prints that repetition's seed and failing tests together with the exact re-run command, and exits non-zero. No GitHub label check is involved.
+
+```bash
+yarn test:view:repeat                                             # repeat the view tests changed vs origin/main, 2×
+yarn test:view:repeat app/components/UI/Foo/Foo.view.test.tsx     # repeat specific files
+REPEAT_COUNT=5 yarn test:view:repeat                              # more repetitions
+TIME_BUDGET_MINUTES=30 yarn test:view:repeat                      # smaller budget (0 disables)
+HANG_TIMEOUT_MINUTES=10 yarn test:view:repeat                     # smaller hang limit (0 disables)
+TEST_OS=android yarn test:view:repeat                             # android like the component view gate
+```
+
+Run it from the repository root. Reports land in `tests/results/cv-flakiness/` (gitignored).
+
 ## Golden Rules (Enforced)
 
 1. **Only mock Engine and allowed native modules** — no arbitrary `jest.mock()` in `*.view.test.*` files. Allowed:
@@ -762,6 +785,8 @@ All HTTP API mocks for component view tests live under `tests/component-view/api
 - A **clear** function (e.g. `clearTrendingApiMocks()`) to call in `afterEach`
 
 Shared nock lifecycle helpers (`clearAllNockMocks`, `disableNetConnect`, `teardownNock`) are in `api-mocking/nockHelpers.ts`. Callers that use global `fetch` (undici) are not always settled by a nock interceptor. Pass the same reply body to `stubFetchPath(origin, path, body)` from `api-mocking/fetchStub.ts` inside `setupXxxApiMock`, and call `restoreFetchPath` from `clearXxxApiMocks`. Do not add a per-feature `globalThis.fetch` spy. To **add a new API mock** for another view, add a file `api-mocking/<feature>.ts` following the pattern in `api-mocking/trending.ts` (mock data, `setupXxxApiMock`, `clearXxxApiMocks` using `nockHelpers`), and call setup/clear in the view test's `beforeEach`/`afterEach`.
+
+**Defaults and the net connect guard.** Net connect is blocked for every component-view test, and the guard (`app/util/test/netConnectGuard.js`, installed from `testSetupView.js`) fails a test whose app code makes an HTTP request no mock answers, even when app code swallows the rejection — nock reports the request at the emitter layer, so the failure does not depend on the app propagating the error. The guard also trips on `WebSocket`: nock's interceptors do not see Node's built-in WebSocket, so the setup replaces it with a stub that records every `wss://` construction and reports it as `Unmocked WebSocket: <url>`. Secondary requests a test does not assert on (token metadata, spot prices, charts, favicon `HEAD` checks, account transactions) are answered by the shared neutral mocks in `api-mocking/defaults.ts`, installed automatically by the setup. Because nock answers with the interceptor registered **first** for a host, every feature setup helper calls `installDefaultApiMocks()` as its **last** step — the reinstall moves the defaults behind the feature mocks registered before them. A new feature helper must keep that ordering: register its interceptors, then call `installDefaultApiMocks()`, and clear via `teardownNock()` in `afterEach` (which reinstalls the defaults). A test that really needs a WebSocket swaps the tripwire for the fake from `api-mocking/webSocket.ts` (`setupFakeWebSocket`/`clearFakeWebSocket`); there is no allowlist.
 
 **Example (trending):**
 

@@ -4,6 +4,8 @@ import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
+import { screen } from '@testing-library/react-native';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -239,6 +241,37 @@ describe('OrderListItem', () => {
         <OrderListItem order={order as FiatOrder} />,
       );
       unmount();
+    });
+  });
+
+  describe('fiat amount', () => {
+    const baseOrder: FiatOrder = {
+      id: 'order-1',
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      createdAt: 1697241014535,
+      amount: '1234.5',
+      currency: 'USD',
+      cryptoAmount: '0.5',
+      cryptocurrency: 'ETH',
+      state: FIAT_ORDER_STATES.COMPLETED,
+      account: '0x0000000000000000000000000000000000000001',
+      network: '1',
+      excludeFromPurchases: false,
+      orderType: OrderOrderTypeEnum.Buy,
+      data: { order: {}, transfer: {} },
+    };
+
+    it.each([
+      ['1234.5', 'USD', '$1,234.50'],
+      ['1234.5', 'EUR', '€1,234.50'],
+      ['not-a-number', 'USD', '...'],
+      ['1234.5', '', '...'],
+    ])('formats %s %s as %s', (amount, currency, expected) => {
+      renderWithProvider(
+        <OrderListItem order={{ ...baseOrder, amount, currency }} />,
+      );
+
+      expect(screen.getByText(expected)).toBeOnTheScreen();
     });
   });
 });

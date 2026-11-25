@@ -132,8 +132,11 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
         // Different resolution — let setResolution handle the transition
         // naturally. TV calls getBars internally, the datafeed returns the
         // new bars (already stored via setOhlcvData above), and TV renders
-        // them smoothly without a blank frame. No resetData needed.
+        // them smoothly without a blank frame. No resetData needed. Reset the
+        // cache first so a quick switch back re-reads the series just posted
+        // instead of TradingView's cached copy.
         claimLegendSettleOwnership();
+        resetDatafeedCacheBeforeHotReload(widget);
         const seq = bumpHotReloadSeq();
         chart.setResolution(newResolution, () => {
           if (getHotReloadSeq() !== seq) {
@@ -205,9 +208,7 @@ function applyVisibleRange(
   // last bar + 2-bar padding. This one-sided framing works because Token
   // Details and Perps always want the right edge near the latest candle.
   const capturedGeneration = getOhlcvGeneration();
-  const subscription = chart.onDataLoaded();
-  const onLoaded = (): void => {
-    subscription.unsubscribe(null, onLoaded);
+  const frameVisibleRange = (): void => {
     if (capturedGeneration !== getOhlcvGeneration()) {
       return;
     }
@@ -225,6 +226,17 @@ function applyVisibleRange(
     } catch (error) {
       reportErrorToRN(error);
     }
+  };
+  // setResolution's callback runs after the new resolution's bars loaded, so a
+  // fresh onDataLoaded subscription there may never fire.
+  if (options?.dataAlreadyLoaded) {
+    frameVisibleRange();
+    return;
+  }
+  const subscription = chart.onDataLoaded();
+  const onLoaded = (): void => {
+    subscription.unsubscribe(null, onLoaded);
+    frameVisibleRange();
   };
   subscription.subscribe(null, onLoaded);
 }

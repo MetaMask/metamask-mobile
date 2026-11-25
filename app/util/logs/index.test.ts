@@ -173,6 +173,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('DeFiPositionsController')).toBe(false);
     expect(logs.includes('DeFiPositionsControllerV2')).toBe(false);
     expect(logs.includes('PredictController')).toBe(false);
+    expect(logs.includes('CollectiblesController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 

@@ -68,9 +68,8 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   const selectedAccount = accounts.find(
     (account) => account.id === selectedAccountId,
   );
-  // Design-system Switch copies `label` into accessibilityLabel and ignores a
-  // passed accessibilityLabel. This row keeps its own text so the label can
-  // fill the row, and the native switch carries the accessible name.
+  // This row keeps its own text so the label can fill the row, and the native
+  // switch carries the accessible name.
   const tradingActivityLabel = strings(
     'social_leaderboard.manage_profile.show_trading_activity',
   );

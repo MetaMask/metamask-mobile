@@ -47,6 +47,10 @@ export function buildCopyTradeSubmittedProperties(input: {
   amountUsd?: number;
   metamaskFeeUsd?: number;
   orderId?: string;
+  /** Comment id of the post the copy came from. */
+  postId?: string;
+  /** Social trader id of that post's author. */
+  authorTraderId?: string;
 }): SocialUIInteractionProperties {
   const source = getSocialEventSource(input.source);
   return {
@@ -64,5 +68,7 @@ export function buildCopyTradeSubmittedProperties(input: {
       ? { metamask_fee: input.metamaskFeeUsd }
       : {}),
     ...(input.orderId ? { order_id: input.orderId } : {}),
+    ...(input.postId ? { post_id: input.postId } : {}),
+    ...(input.authorTraderId ? { author_trader_id: input.authorTraderId } : {}),
   };
 }

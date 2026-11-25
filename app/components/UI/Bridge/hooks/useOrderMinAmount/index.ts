@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
+import I18n from '../../../../../../locales/i18n';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import type { BridgeToken } from '../../types';
 import { formatCurrency } from '../../utils/currencyUtils';
 import { useFiatToUsdRate } from '../useFiatToUsdRate';
@@ -27,6 +29,25 @@ function isValidRate(rate: number | undefined): rate is number {
   return rate !== undefined && Number.isFinite(rate) && rate > 0;
 }
 
+function formatMinAmount(amount: BigNumber.Value, currency: string): string {
+  const currencyFractionDigits =
+    getIntlNumberFormatter(I18n.locale, {
+      style: 'currency',
+      currency,
+    }).resolvedOptions().maximumFractionDigits ?? USD_CENT_DECIMALS;
+  const roundedAmount = new BigNumber(amount).decimalPlaces(
+    currencyFractionDigits,
+    BigNumber.ROUND_HALF_UP,
+  );
+
+  return formatCurrency(roundedAmount.toNumber(), currency, {
+    minimumFractionDigits: roundedAmount.isInteger()
+      ? 0
+      : currencyFractionDigits,
+    maximumFractionDigits: currencyFractionDigits,
+  });
+}
+
 /**
  * Values an order's source amount in USD and compares it with the supplied
  * minimum.
@@ -50,7 +71,7 @@ export function useOrderMinAmount({
     }
 
     if (currentCurrency === USD_CURRENCY) {
-      return formatCurrency(minAmountUsd, USD_CURRENCY);
+      return formatMinAmount(minAmountUsd, USD_CURRENCY);
     }
 
     const minAmountInCurrentCurrency = new BigNumber(minAmountUsd).dividedBy(
@@ -58,7 +79,7 @@ export function useOrderMinAmount({
     );
 
     return minAmountInCurrentCurrency.isFinite()
-      ? formatCurrency(minAmountInCurrentCurrency.toNumber(), currentCurrency)
+      ? formatMinAmount(minAmountInCurrentCurrency, currentCurrency)
       : undefined;
   }, [currentCurrency, fiatToUsdRate, minAmountUsd]);
 

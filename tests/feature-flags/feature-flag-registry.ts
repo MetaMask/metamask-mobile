@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-11-17
+ * Production defaults last synced: 2026-11-24
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -186,7 +186,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: true,
-      minimumVersion: '8.17.0',
+      minimumVersion: '8.21.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -207,8 +207,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.17.0',
+      enabled: true,
+      minimumVersion: '8.21.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -439,7 +439,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             thresholdName: 'feature is OFF',
             thresholdVersion: 2,
@@ -450,7 +450,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 0,
+              value: 1,
             },
             thresholdName: 'feature is ON',
             thresholdVersion: 2,
@@ -543,24 +543,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  ASSETS4098ShowRobinhoodRwa: {
-    name: 'ASSETS4098ShowRobinhoodRwa',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   networkAssetsSnapsMigrationSolana: {
     name: 'networkAssetsSnapsMigrationSolana',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       versions: {
-        '13.41.0': {
+        '8.19.0': {
           featureVersion: '1',
-          minimumSnapVersion: '2.9.0',
-          stage: 0,
+          minimumSnapVersion: '7.2.0',
+          stage: 1,
         },
       },
     },
@@ -573,10 +565,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '13.41.0': {
+        '8.19.0': {
           featureVersion: '1',
-          minimumSnapVersion: '0.0.1',
-          stage: 0,
+          minimumSnapVersion: '2.0.0',
+          stage: 1,
         },
       },
     },
@@ -648,7 +640,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS5043AbtestFirstQuoteFlush',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -982,6 +989,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
         },
         'eip155:59144': {
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
           enabled: true,
           foxConnectAddresses: {
             global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
@@ -1111,6 +1119,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
       constants: {
+        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
         applePayLearnMoreUrl: 'https://metamask.io/card',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
@@ -1384,7 +1393,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'cardImmersveCountries',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: ['GB'],
+    productionDefault: {
+      GB: {
+        fundingChannel: 'usdcBase',
+        minimumVersion: '8.15.0',
+      },
+      JP: {
+        fundingChannel: 'moneyAccount',
+        minimumVersion: '8.21.0',
+      },
+      NZ: {
+        fundingChannel: 'moneyAccount',
+        minimumVersion: '8.21.0',
+      },
+      TH: {
+        fundingChannel: 'moneyAccount',
+        minimumVersion: '8.21.0',
+      },
+      VN: {
+        fundingChannel: 'moneyAccount',
+        minimumVersion: '8.21.0',
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -1449,8 +1479,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.21.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -1460,6 +1490,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  collectiblesEnabled: {
+    name: 'collectiblesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.23.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4092,7 +4133,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   rampsProvidersAheadOfHistory: {
     name: 'rampsProvidersAheadOfHistory',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.22.0',
@@ -4266,6 +4307,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '8.6.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarningHistoryEnabled: {
+    name: 'earnMoneyEarningHistoryEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.21.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5048,8 +5100,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '8.21.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5269,10 +5321,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   slowNetworkBanner: {
     name: 'slowNetworkBanner',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.22.0',
+      minimumVersion: '8.21.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5282,8 +5334,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.80.0',
+      enabled: false,
+      minimumVersion: '7.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5935,7 +5987,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.21.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5981,7 +6034,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
       minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
@@ -6034,6 +6087,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
         },
       },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsFromMoney: {
+    name: 'swapsFromMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsToMoney: {
+    name: 'swapsToMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6245,6 +6318,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         sentinelUrl: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
       },
       '0x8f': {
+        gaslessBridgeWith7702Enabled: true,
         sentinelUrl: 'https://tx-sentinel-monad-mainnet.api.cx.metamask.io',
       },
       '0xa': {
@@ -6318,7 +6392,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '8.12.0': [
+        '8.21.0': [
           {
             scope: {
               type: 'threshold',
@@ -6450,6 +6524,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '7.78.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  chartsServerMigration: {
+    name: 'chartsServerMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.22.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -8155,6 +8240,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  assetsUnifiedWatchlistV1: {
+    name: 'assetsUnifiedWatchlistV1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   explorePageV2Enabled: {
     name: 'explorePageV2Enabled',
     type: FeatureFlagType.Remote,
@@ -8480,7 +8576,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   tmcuTransactionsRedesignEnabled: {
@@ -8491,7 +8587,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   assetsASSETS3380AbtestExploreQuickBuy: {
     name: 'assetsASSETS3380AbtestExploreQuickBuy',
@@ -8750,32 +8846,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '8.19.0': [
-          {
-            name: 's1',
-            scope: {
-              type: 'threshold',
-              value: 1,
-            },
-            value: {
-              featureVersion: '1',
-              minimumSnapVersion: '4.3.0',
-              stage: 1,
-            },
-          },
-          {
-            name: 'off',
-            scope: {
-              type: 'threshold',
-              value: 0,
-            },
-            value: {
-              featureVersion: '1',
-              minimumSnapVersion: '4.3.0',
-              stage: 0,
-            },
-          },
-        ],
+        '8.19.0': {
+          featureVersion: '1',
+          minimumSnapVersion: '4.3.0',
+          stage: 1,
+        },
       },
     },
     status: FeatureFlagStatus.Active,
@@ -9107,8 +9182,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.17.0',
+      enabled: true,
+      minimumVersion: '8.20.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -9235,13 +9310,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'on',
         scope: {
           type: 'threshold',
-          value: 0,
+          value: 1,
         },
         value: {
           currency: 'BRL',
           enabled: true,
           layout: 'Pix',
-          minimumVersion: '8.20.1',
+          minimumVersion: '8.20.0',
           regions: ['BR'],
         },
       },
@@ -9249,13 +9324,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'off',
         scope: {
           type: 'threshold',
-          value: 1,
+          value: 0,
         },
         value: {
           currency: 'BRL',
           enabled: false,
           layout: 'Pix',
-          minimumVersion: '8.20.1',
+          minimumVersion: '8.20.0',
           regions: ['BR'],
         },
       },
@@ -9272,7 +9347,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'on',
         scope: {
           type: 'threshold',
-          value: 0,
+          value: 1,
         },
         value: {
           currency: 'USD',
@@ -9286,7 +9361,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'off',
         scope: {
           type: 'threshold',
-          value: 1,
+          value: 0,
         },
         value: {
           currency: 'USD',
@@ -9426,7 +9501,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           currency: 'EUR',
           enabled: true,
           layout: 'Sepa',
-          minimumVersion: '8.21.0',
+          minimumVersion: '8.22.0',
           regions: [
             'AT',
             'BE',
@@ -9470,7 +9545,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           currency: 'EUR',
           enabled: false,
           layout: 'Sepa',
-          minimumVersion: '8.21.0',
+          minimumVersion: '8.22.0',
           regions: [
             'AT',
             'BE',
@@ -9521,8 +9596,49 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      blockedRegions: [],
+      blockedRegions: ['GB'],
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  sentry: {
+    name: 'sentry',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+  ASSETS4098ShowRobinhoodRwa: {
+    name: 'ASSETS4098ShowRobinhoodRwa',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1939AbtestFundStepReceiveButton: {
+    name: 'homeTMCU1939AbtestFundStepReceiveButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS5347AbtestImmediateFirstQuoteFetch: {
+    name: 'swapsSWAPS5347AbtestImmediateFirstQuoteFetch',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS5348AbtestYieldAfterFirstQuote: {
+    name: 'swapsSWAPS5348AbtestYieldAfterFirstQuote',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
     status: FeatureFlagStatus.Active,
   },
 };

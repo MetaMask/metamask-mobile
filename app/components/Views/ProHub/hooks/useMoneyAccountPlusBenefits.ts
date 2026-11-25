@@ -83,6 +83,7 @@ const toPausedBenefitsSnapshot = (
 
   return {
     billingPeriodId: response.billingPeriodId,
+    benefitPeriodEnd: response.benefitPeriodEnd,
     ...response.products,
   };
 };
@@ -220,8 +221,10 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     () => mapPlusBenefitsToTradeAllowances(benefitsForDisplay),
     [benefitsForDisplay],
   );
+  // Monthly reset day. Hidden when the response omits benefitPeriodEnd.
   const resetsOn = formatSubscriptionPeriodEnd(
-    plusSubscription?.currentPeriodEnd,
+    benefitsForDisplay?.benefitPeriodEnd ?? undefined,
+    { exclusivePeriodEnd: false },
   );
 
   // No stored plan yet: wait for subscriptions unless an entitlement already

@@ -19,6 +19,12 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
     );
   });
 
+  it('maps explore_crypto to the trader_profile entry point', () => {
+    expect(resolveQuickBuyOriginalEntryPointFromProfile('explore_crypto')).toBe(
+      'trader_profile',
+    );
+  });
+
   it('maps notification to notification', () => {
     expect(resolveQuickBuyOriginalEntryPointFromProfile('notification')).toBe(
       'notification',
