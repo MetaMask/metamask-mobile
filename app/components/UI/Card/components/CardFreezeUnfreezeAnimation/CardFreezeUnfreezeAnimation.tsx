@@ -200,8 +200,12 @@ const CardFreezeUnfreezeAnimation = ({
   const riveHeight = (riveWidth * ARTBOARD_HEIGHT) / ARTBOARD_WIDTH;
   // Keep the Rive view hidden (static card showing) until the native view
   // says it is ready and has drawn at its final size; its first frames can be
-  // drawn before the view is sized, which reads as a brief blow-up.
-  const [hasLaidOut, setHasLaidOut] = useState(false);
+  // drawn before the view is sized, which reads as a brief blow-up. The flag
+  // belongs to one native view: a view that drops and comes back is a new
+  // ref, so it waits for its own layout again.
+  const [laidOutViewRef, setLaidOutViewRef] =
+    useState<typeof riveViewRef>(null);
+  const hasLaidOut = riveViewRef !== null && laidOutViewRef === riveViewRef;
   useEffect(() => {
     if (!riveViewRef) {
       return;
@@ -213,7 +217,7 @@ const CardFreezeUnfreezeAnimation = ({
         requestAnimationFrame(() =>
           requestAnimationFrame(() => {
             if (!cancelled) {
-              setHasLaidOut(true);
+              setLaidOutViewRef(riveViewRef);
             }
           }),
         );
@@ -238,7 +242,10 @@ const CardFreezeUnfreezeAnimation = ({
           accessible={false}
         />
       )}
-      {animate && riveFile && (
+      {/* Nitro binds the view model when the native view is created, so the
+          view mounts only once the instance exists (as the Money card views
+          do); a later dataBind would leave the triggers unbound. */}
+      {animate && riveFile && viewModelInstance && (
         <View
           style={[
             styles.absolute,
@@ -262,7 +269,7 @@ const CardFreezeUnfreezeAnimation = ({
             autoPlay
             fit={Fit.Contain}
             alignment={Alignment.Center}
-            dataBind={viewModelInstance ?? undefined}
+            dataBind={viewModelInstance}
             onError={handleError}
           />
         </View>
