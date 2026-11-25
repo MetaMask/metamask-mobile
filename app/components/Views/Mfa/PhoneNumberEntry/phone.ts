@@ -634,6 +634,26 @@ export const isValidNational = (
 };
 
 /**
+ * Whether a country's dial code starts with the digits typed in a search:
+ * `1809`, `809` or `+1 809` all find the Dominican Republic.
+ *
+ * @param country - The country.
+ * @param digits - The digits typed, without the plus sign or spaces.
+ * @returns Whether the dial code matches.
+ */
+export const matchesDialCode = (
+  country: PhoneCountry,
+  digits: string,
+): boolean =>
+  country.callingCode.startsWith(digits) ||
+  (country.areaCodes?.some(
+    (areaCode) =>
+      areaCode.startsWith(digits) ||
+      `${country.callingCode}${areaCode}`.startsWith(digits),
+  ) ??
+    false);
+
+/**
  * The prefix to show beside a country: its calling code, with a North American
  * territory's area codes.
  *
@@ -674,18 +694,23 @@ export const parsePhoneInput = (
   }
   const all = normalizePhoneDigits(text);
   // Longest calling code first. Among countries sharing one, a territory whose
-  // area code the number starts with wins, then the current country, so +1
-  // stays in Canada for a Canadian user.
+  // area code the number starts with wins, then any country that takes the
+  // number, the current one first, so +1 stays in Canada for a Canadian user
+  // and a US number pasted over a territory moves to the US.
   const hasAreaCode = (country: PhoneCountry) =>
     country.areaCodes?.includes(
       all.slice(country.callingCode.length, country.callingCode.length + 3),
     ) ?? false;
+  // A territory only takes numbers with one of its area codes.
+  const accepts = (country: PhoneCountry) =>
+    !country.areaCodes || hasAreaCode(country);
   const matches = PHONE_COUNTRIES.filter((country) =>
     all.startsWith(country.callingCode),
   ).sort(
     (first, second) =>
       second.callingCode.length - first.callingCode.length ||
       Number(hasAreaCode(second)) - Number(hasAreaCode(first)) ||
+      Number(accepts(second)) - Number(accepts(first)) ||
       Number(second.iso === current.iso) - Number(first.iso === current.iso),
   );
   const country = matches[0];

@@ -137,6 +137,12 @@ describe('PhoneNumberEntry', () => {
     expect(getByTestId(ids.COUNTRY_OPTION('GB'))).toBeOnTheScreen();
     expect(queryByTestId(ids.COUNTRY_OPTION('FR'))).toBeNull();
 
+    ['1809', '+1 809', '+1787', '684'].forEach((query, index) => {
+      fireEvent.changeText(search, query);
+      const iso = ['DO', 'DO', 'PR', 'AS'][index];
+      expect(getByTestId(ids.COUNTRY_OPTION(iso))).toBeOnTheScreen();
+    });
+
     fireEvent.changeText(search, 'zzzz');
     expect(queryByTestId(ids.COUNTRY_OPTION('GB'))).toBeNull();
   });

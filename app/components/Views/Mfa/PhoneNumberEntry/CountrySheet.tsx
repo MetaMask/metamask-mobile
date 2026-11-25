@@ -21,6 +21,7 @@ import {
   PHONE_COUNTRIES,
   getCountryFlag,
   getDialPrefix,
+  matchesDialCode,
   type PhoneCountry,
 } from './phone';
 
@@ -39,19 +40,18 @@ const SORTED_COUNTRIES = [...PHONE_COUNTRIES].sort(
     first.name.localeCompare(second.name),
 );
 
-/** A search matches a country's name, ISO code or calling code. */
+/** A search matches a country's name, ISO code or dial code. */
 const filterCountries = (searchString: string): PhoneCountry[] => {
-  const query = searchString.trim().toLowerCase().replace(/^\+/u, '');
-  if (!query) {
+  const query = searchString.trim().toLowerCase();
+  const digits = /^[\d\s+()-]+$/u.test(query) ? query.replace(/\D/gu, '') : '';
+  if (!query.replace(/[\s+]/gu, '')) {
     return SORTED_COUNTRIES;
   }
   return SORTED_COUNTRIES.filter(
     (country) =>
       country.name.toLowerCase().includes(query) ||
       country.iso.toLowerCase() === query ||
-      country.callingCode.startsWith(query) ||
-      (country.areaCodes?.some((areaCode) => areaCode.startsWith(query)) ??
-        false),
+      (digits !== '' && matchesDialCode(country, digits)),
   );
 };
 

@@ -4,6 +4,7 @@ import {
   getCountryFlag,
   getCountryName,
   getDialPrefix,
+  matchesDialCode,
   getInitialPhone,
   getPhoneCountry,
   isValidNational,
@@ -202,6 +203,34 @@ describe('the rest of the world', () => {
     expect(getDialPrefix(getPhoneCountry('GB'))).toBe('+44');
     expect(getDialPrefix(getPhoneCountry('US'))).toBe('+1');
     expect(getDialPrefix(getPhoneCountry('DO'))).toBe('+1 809, 829, 849');
+  });
+
+  it('moves to the US when a US number is pasted over a territory', () => {
+    const parsed = parsePhoneInput('+1 415 555 2671', getPhoneCountry('DO'));
+    expect(parsed.country.iso).toBe('US');
+    expect(isValidNational(parsed.digits, parsed.country)).toBe(true);
+  });
+
+  it('keeps a territory for a number with one of its area codes', () => {
+    const parsed = parsePhoneInput('+1 829 555 1234', getPhoneCountry('DO'));
+    expect(parsed.country.iso).toBe('DO');
+    expect(parsed.digits).toBe('8295551234');
+  });
+
+  it('keeps Canada for a pasted number no territory owns', () => {
+    expect(
+      parsePhoneInput('+1 416 555 0100', getPhoneCountry('CA')).country.iso,
+    ).toBe('CA');
+  });
+
+  it('finds a territory by any form of its dial code', () => {
+    const dominicanRepublic = getPhoneCountry('DO');
+    ['1', '18', '1809', '809', '1829', '829'].forEach((digits) => {
+      expect(matchesDialCode(dominicanRepublic, digits)).toBe(true);
+    });
+    expect(matchesDialCode(dominicanRepublic, '1787')).toBe(false);
+    expect(matchesDialCode(getPhoneCountry('PR'), '1939')).toBe(true);
+    expect(matchesDialCode(getPhoneCountry('GB'), '44')).toBe(true);
   });
 
   it('keeps the current country when a calling code is shared', () => {
