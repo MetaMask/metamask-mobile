@@ -18889,7 +18889,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 6
+      "count": 5
     }
   },
   "app/components/Views/confirmations/components/info/money-account-deposit-info/money-account-deposit-info.tsx": {
