@@ -1,7 +1,10 @@
 import React from 'react';
-import { TextColor, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 

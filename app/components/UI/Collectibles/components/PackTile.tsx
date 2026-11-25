@@ -4,6 +4,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -12,7 +13,6 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
 import type { HomePack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
-import { Text } from '../../primitives/Text';
 import { CapsuleGlass } from '../../primitives/CapsuleGlass';
 
 // Tile width in px (w-48). The carousel snaps by it too.
