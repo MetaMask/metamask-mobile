@@ -216,6 +216,9 @@ describe('CampaignWinningView', () => {
       'font-hero-bold',
       'text-default',
       'text-center',
+      // design-system-react-native 0.59.0 passes the new `className` prop
+      // position as a trailing argument to `tw.style`.
+      undefined,
     );
   });
 
