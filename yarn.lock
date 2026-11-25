@@ -11065,23 +11065,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mpc-interface@npm:0.2.0, @metamask/mpc-interface@npm:^0.2.0":
+"@metamask/mpc-interface@npm:0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/mpc-interface@npm:0.3.0"
+  checksum: 10/57a922c68c48843faef4eaf1497ed296068d603b14502ca74965e4acd2e015d7d168c24cf97ece4568306ab889435e6caee55d1f7278b4091c8a23da0b93fa89
+  languageName: node
+  linkType: hard
+
+"@metamask/mpc-interface@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/mpc-interface@npm:0.2.0"
   checksum: 10/9762cd1e932ae392f32fe3bc48805f10dc52b7aa544c58242fc28d0663b82403dffe3bc93140c47ae7d12f147e7ca1a737aa4989151612bd66ece84d6e01a76b
   languageName: node
   linkType: hard
 
-"@metamask/mpc-react-native@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "@metamask/mpc-react-native@npm:0.2.2"
+"@metamask/mpc-react-native@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/mpc-react-native@npm:0.3.0"
   dependencies:
-    "@metamask/mpc-interface": "npm:0.2.0"
+    "@metamask/mpc-interface": "npm:0.3.0"
     uniffi-bindgen-react-native: "npm:^0.31.0-2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/516f862755aab0fc280ed5337126ecb4e7bf4bc5c0d04316ddae394050463ae76eb6a49852abe298876677ed85c94c15572c7c53a09310db726defc44f3f9508
+  checksum: 10/12b8a00e7edd12fef6d66d7920ce68c6567eddcb578d32148e72eac0c8a77ff434a3c1735a29744f2d06c6b138eb70acc529c6c4622466262faa68ffd221f50b
   languageName: node
   linkType: hard
 
@@ -38406,7 +38413,7 @@ __metadata:
     "@metamask/money-account-mfa-whitelist": "npm:^0.3.0"
     "@metamask/money-account-upgrade-controller": "npm:^7.0.0"
     "@metamask/money-account-utils": "npm:^2.2.1"
-    "@metamask/mpc-react-native": "npm:^0.2.2"
+    "@metamask/mpc-react-native": "npm:^0.3.0"
     "@metamask/multichain-account-service": "npm:^14.1.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^5.1.1"
