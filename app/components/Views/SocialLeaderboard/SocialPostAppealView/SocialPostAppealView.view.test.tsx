@@ -10,6 +10,7 @@
  */
 
 import '../../../../../tests/component-view/mocks';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
@@ -38,6 +39,18 @@ const fillForm = async (email: string, message: string) => {
 };
 
 describe('SocialPostAppealView', () => {
+  let announceSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    announceSpy.mockRestore();
+  });
+
   it('starts empty, with the email hint and Submit appeal disabled', async () => {
     renderSocialPostAppealView(APPEAL_PARAMS, APPEAL_ROUTES);
 
@@ -72,7 +85,7 @@ describe('SocialPostAppealView', () => {
     ).toBeEnabled();
   });
 
-  it('shows the email error instead of sending when the email is invalid, and clears it on edit', async () => {
+  it('shows the email error instead of confirming when the email has no domain', async () => {
     renderSocialPostAppealView(APPEAL_PARAMS, APPEAL_ROUTES);
     await fillForm('alex@example', 'I think this is wrong.');
 
@@ -89,6 +102,15 @@ describe('SocialPostAppealView', () => {
     expect(
       screen.queryByTestId(SocialPostAppealViewSelectorsIDs.EMAIL_HELPER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('brings back the email hint when the viewer edits the email', async () => {
+    renderSocialPostAppealView(APPEAL_PARAMS, APPEAL_ROUTES);
+    await fillForm('alex@example', 'I think this is wrong.');
+    fireEvent.press(
+      screen.getByTestId(SocialPostAppealViewSelectorsIDs.SUBMIT_BUTTON),
+    );
+    await screen.findByTestId(SocialPostAppealViewSelectorsIDs.EMAIL_ERROR);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostAppealViewSelectorsIDs.EMAIL_INPUT),
@@ -101,6 +123,38 @@ describe('SocialPostAppealView', () => {
     expect(
       screen.getByTestId(SocialPostAppealViewSelectorsIDs.EMAIL_HELPER),
     ).toBeOnTheScreen();
+  });
+
+  it('announces the email error to screen readers each time Submit appeal is pressed', async () => {
+    renderSocialPostAppealView(APPEAL_PARAMS, APPEAL_ROUTES);
+    await fillForm('alex@example', 'I think this is wrong.');
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostAppealViewSelectorsIDs.SUBMIT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostAppealViewSelectorsIDs.SUBMIT_BUTTON),
+    );
+
+    expect(announceSpy).toHaveBeenCalledTimes(2);
+    expect(announceSpy).toHaveBeenCalledWith(
+      strings('social_leaderboard.post_appeal.email_error'),
+    );
+  });
+
+  it('labels the email and message inputs for screen readers', async () => {
+    renderSocialPostAppealView(APPEAL_PARAMS, APPEAL_ROUTES);
+
+    expect(
+      await screen.findByLabelText(
+        strings('social_leaderboard.post_appeal.email_label'),
+      ),
+    ).toBe(screen.getByTestId(SocialPostAppealViewSelectorsIDs.EMAIL_INPUT));
+    expect(
+      screen.getByLabelText(
+        strings('social_leaderboard.post_appeal.message_label'),
+      ),
+    ).toBe(screen.getByTestId(SocialPostAppealViewSelectorsIDs.MESSAGE_INPUT));
   });
 
   it('confirms receipt of the appeal with the email it was sent for', async () => {

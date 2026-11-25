@@ -63,7 +63,7 @@ describe('SocialPostDecisionView', () => {
     const preview = screen.getByTestId(
       SocialPostDecisionViewSelectorsIDs.POST_PREVIEW,
     );
-    expect(within(preview).getByText('alphawhale')).toBeOnTheScreen();
+    expect(within(preview).getByText(POST_DECISION.handle)).toBeOnTheScreen();
     expect(
       within(preview).getByText(POST_DECISION.text ?? ''),
     ).toBeOnTheScreen();
@@ -135,8 +135,10 @@ describe('SocialPostDecisionView', () => {
     const card = screen.getByTestId(
       SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW,
     );
-    expect(within(card).getByText('alphawhale')).toBeOnTheScreen();
-    expect(within(card).getByText('@alphawhale')).toBeOnTheScreen();
+    expect(within(card).getByText(PROFILE_DECISION.handle)).toBeOnTheScreen();
+    expect(
+      within(card).getByText(`@${PROFILE_DECISION.handle}`),
+    ).toBeOnTheScreen();
     expect(
       within(card).getByTestId(
         SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_VERIFIED_BADGE,
@@ -191,7 +193,7 @@ describe('SocialPostDecisionView', () => {
     const preview = await screen.findByTestId(
       SocialPostDecisionViewSelectorsIDs.POST_PREVIEW,
     );
-    expect(within(preview).getByText('alphawhale')).toBeOnTheScreen();
+    expect(within(preview).getByText(POST_DECISION.handle)).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
         SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_TEXT,

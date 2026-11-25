@@ -48,6 +48,7 @@ import {
   PROFILE_DECISION_KINDS,
   REPORTER_DECISION_KINDS,
   type SocialDecisionKind,
+  type SocialPostDecisionViewParams,
 } from './SocialPostDecisionView.types';
 
 /** Matches `AvatarAccountSize.Lg`. */
@@ -175,6 +176,218 @@ const KeyValue: React.FC<KeyValueProps> = ({
   </Box>
 );
 
+/** The date shown on a reporter outcome; a poster's decision carries none. */
+const getReporterDate = (
+  kind: SocialDecisionKind,
+  timestampMs: number | undefined,
+): string | undefined =>
+  REPORTER_DECISION_KINDS.includes(kind) && timestampMs !== undefined
+    ? formatDecisionDate(timestampMs)
+    : undefined;
+
+type PreviewIdentity = Pick<
+  SocialPostDecisionViewParams,
+  'handle' | 'avatarUrl' | 'profileId' | 'verified'
+>;
+
+/** The hidden profile, shown as a card. */
+const ProfilePreview: React.FC<PreviewIdentity> = ({
+  handle,
+  avatarUrl,
+  profileId,
+  verified,
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    gap={2}
+    twClassName="rounded-2xl bg-muted px-4 py-3"
+    testID={SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW}
+  >
+    <TraderAvatar
+      imageUrl={avatarUrl}
+      profileId={profileId ?? handle}
+      size={PREVIEW_AVATAR_SIZE}
+      testID={SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_AVATAR}
+    />
+    <Box twClassName="flex-1 min-w-0">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          twClassName="shrink min-w-0"
+          testID={SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_NAME}
+        >
+          {handle}
+        </Text>
+        {verified ? (
+          <ProfileVerifiedBadge
+            testID={
+              SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_VERIFIED_BADGE
+            }
+          />
+        ) : null}
+      </Box>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        numberOfLines={1}
+        testID={SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_USERNAME}
+      >
+        {`@${handle}`}
+      </Text>
+    </Box>
+  </Box>
+);
+
+type PostPreviewProps = PreviewIdentity &
+  Pick<SocialPostDecisionViewParams, 'postedAt' | 'text'>;
+
+/** The post the decision is about, shown the way the feed shows it. */
+const PostPreview: React.FC<PostPreviewProps> = ({
+  handle,
+  avatarUrl,
+  profileId,
+  verified,
+  postedAt,
+  text,
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    gap={2}
+    twClassName="rounded-2xl bg-muted px-4 py-3"
+    testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW}
+  >
+    <TraderAvatar
+      imageUrl={avatarUrl}
+      profileId={profileId ?? handle}
+      size={PREVIEW_AVATAR_SIZE}
+      testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_AVATAR}
+    />
+    <Box gap={2} twClassName="flex-1 min-w-0">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+          twClassName="shrink min-w-0"
+        >
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink min-w-0"
+            testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_HANDLE}
+          >
+            {handle}
+          </Text>
+          {verified ? (
+            <ProfileVerifiedBadge
+              testID={
+                SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_VERIFIED_BADGE
+              }
+            />
+          ) : null}
+        </Box>
+        {postedAt === undefined ? null : (
+          <FeedPostAge
+            timestampMs={postedAt}
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            twClassName="shrink-0"
+            testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_AGE}
+          />
+        )}
+      </Box>
+      {text ? (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextDefault}
+          testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_TEXT}
+        >
+          {text}
+        </Text>
+      ) : null}
+    </Box>
+  </Box>
+);
+
+interface DecisionDetailsProps {
+  kind: SocialDecisionKind;
+  reason: string;
+  /** When the viewer filed the report. Reporter outcomes only. */
+  reportDate?: string;
+  /** When the decision was made. Reporter outcomes only. */
+  decisionDate?: string;
+}
+
+/** Why it was decided, when, and the AI disclosure every decision carries. */
+const DecisionDetails: React.FC<DecisionDetailsProps> = ({
+  kind,
+  reason,
+  reportDate,
+  decisionDate,
+}) => (
+  <Box gap={4}>
+    <Box flexDirection={BoxFlexDirection.Row} gap={4}>
+      <KeyValue
+        label={strings('social_leaderboard.post_decision.reason_label')}
+        value={reason}
+        testID={SocialPostDecisionViewSelectorsIDs.REASON_VALUE}
+        twClassName="flex-1"
+      />
+      {reportDate ? (
+        <KeyValue
+          label={strings('social_leaderboard.post_decision.your_report_label')}
+          value={reportDate}
+          testID={SocialPostDecisionViewSelectorsIDs.REPORT_VALUE}
+          twClassName="flex-1"
+        />
+      ) : null}
+    </Box>
+    {decisionDate ? (
+      <KeyValue
+        label={strings('social_leaderboard.post_decision.decision_label')}
+        value={strings('social_leaderboard.post_decision.decision_value', {
+          outcome: getReporterOutcome(kind),
+          date: decisionDate,
+        })}
+        testID={SocialPostDecisionViewSelectorsIDs.DECISION_VALUE}
+      />
+    ) : null}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      gap={2}
+      testID={SocialPostDecisionViewSelectorsIDs.AI_DISCLOSURE}
+    >
+      <Icon
+        name={IconName.Ai}
+        size={IconSize.Sm}
+        color={IconColor.IconAlternative}
+      />
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        twClassName="flex-1"
+      >
+        {strings('social_leaderboard.post_decision.ai_disclosure')}
+      </Text>
+    </Box>
+  </Box>
+);
+
 /**
  * Explains a moderation decision: the poster's removed post or hidden
  * profile, or the outcome of a post or profile the viewer reported. The poster
@@ -207,15 +420,8 @@ const SocialPostDecisionView: React.FC = () => {
   const isProfileDecision = PROFILE_DECISION_KINDS.includes(kind);
   const showsPost = POST_DECISION_KINDS.includes(kind);
   const isAppealable = APPEALABLE_DECISION_KINDS.includes(kind);
-  const isReporterDecision = REPORTER_DECISION_KINDS.includes(kind);
-  const reportDate =
-    isReporterDecision && reportedAt !== undefined
-      ? formatDecisionDate(reportedAt)
-      : undefined;
-  const decisionDate =
-    isReporterDecision && decidedAt !== undefined
-      ? formatDecisionDate(decidedAt)
-      : undefined;
+  const reportDate = getReporterDate(kind, reportedAt);
+  const decisionDate = getReporterDate(kind, decidedAt);
 
   const handleAppeal = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.POST_APPEAL, { kind, handle, reason });
@@ -244,19 +450,6 @@ const SocialPostDecisionView: React.FC = () => {
   const [subtitleBeforeLink, subtitleAfterLink] = useMemo(
     () => copy.subtitle.split(TERMS_LINK_TOKEN),
     [copy.subtitle],
-  );
-
-  const avatar = (
-    <TraderAvatar
-      imageUrl={avatarUrl}
-      profileId={profileId ?? handle}
-      size={PREVIEW_AVATAR_SIZE}
-      testID={
-        isProfileDecision
-          ? SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_AVATAR
-          : SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_AVATAR
-      }
-    />
   );
 
   return (
@@ -311,169 +504,31 @@ const SocialPostDecisionView: React.FC = () => {
         </Box>
 
         {isProfileDecision ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-            twClassName="rounded-2xl bg-muted px-4 py-3"
-            testID={SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW}
-          >
-            {avatar}
-            <Box twClassName="flex-1 min-w-0">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
-                  color={TextColor.TextDefault}
-                  numberOfLines={1}
-                  twClassName="shrink min-w-0"
-                  testID={
-                    SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_NAME
-                  }
-                >
-                  {handle}
-                </Text>
-                {verified ? (
-                  <ProfileVerifiedBadge
-                    testID={
-                      SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_VERIFIED_BADGE
-                    }
-                  />
-                ) : null}
-              </Box>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                testID={
-                  SocialPostDecisionViewSelectorsIDs.PROFILE_PREVIEW_USERNAME
-                }
-              >
-                {`@${handle}`}
-              </Text>
-            </Box>
-          </Box>
+          <ProfilePreview
+            handle={handle}
+            avatarUrl={avatarUrl}
+            profileId={profileId}
+            verified={verified}
+          />
         ) : null}
 
         {showsPost ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            gap={2}
-            twClassName="rounded-2xl bg-muted px-4 py-3"
-            testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW}
-          >
-            {avatar}
-            <Box gap={2} twClassName="flex-1 min-w-0">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
-                  twClassName="shrink min-w-0"
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Bold}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                    twClassName="shrink min-w-0"
-                    testID={
-                      SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_HANDLE
-                    }
-                  >
-                    {handle}
-                  </Text>
-                  {verified ? (
-                    <ProfileVerifiedBadge
-                      testID={
-                        SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_VERIFIED_BADGE
-                      }
-                    />
-                  ) : null}
-                </Box>
-                {postedAt === undefined ? null : (
-                  <FeedPostAge
-                    timestampMs={postedAt}
-                    variant={TextVariant.BodyXs}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    twClassName="shrink-0"
-                    testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_AGE}
-                  />
-                )}
-              </Box>
-              {text ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextDefault}
-                  testID={SocialPostDecisionViewSelectorsIDs.POST_PREVIEW_TEXT}
-                >
-                  {text}
-                </Text>
-              ) : null}
-            </Box>
-          </Box>
+          <PostPreview
+            handle={handle}
+            avatarUrl={avatarUrl}
+            profileId={profileId}
+            verified={verified}
+            postedAt={postedAt}
+            text={text}
+          />
         ) : null}
 
-        <Box gap={4}>
-          <Box flexDirection={BoxFlexDirection.Row} gap={4}>
-            <KeyValue
-              label={strings('social_leaderboard.post_decision.reason_label')}
-              value={reason}
-              testID={SocialPostDecisionViewSelectorsIDs.REASON_VALUE}
-              twClassName="flex-1"
-            />
-            {reportDate ? (
-              <KeyValue
-                label={strings(
-                  'social_leaderboard.post_decision.your_report_label',
-                )}
-                value={reportDate}
-                testID={SocialPostDecisionViewSelectorsIDs.REPORT_VALUE}
-                twClassName="flex-1"
-              />
-            ) : null}
-          </Box>
-          {decisionDate ? (
-            <KeyValue
-              label={strings('social_leaderboard.post_decision.decision_label')}
-              value={strings(
-                'social_leaderboard.post_decision.decision_value',
-                {
-                  outcome: getReporterOutcome(kind),
-                  date: decisionDate,
-                },
-              )}
-              testID={SocialPostDecisionViewSelectorsIDs.DECISION_VALUE}
-            />
-          ) : null}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            gap={2}
-            testID={SocialPostDecisionViewSelectorsIDs.AI_DISCLOSURE}
-          >
-            <Icon
-              name={IconName.Ai}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              twClassName="flex-1"
-            >
-              {strings('social_leaderboard.post_decision.ai_disclosure')}
-            </Text>
-          </Box>
-        </Box>
+        <DecisionDetails
+          kind={kind}
+          reason={reason}
+          reportDate={reportDate}
+          decisionDate={decisionDate}
+        />
       </ScrollView>
       <Box
         twClassName="px-4 pt-4 bg-default"

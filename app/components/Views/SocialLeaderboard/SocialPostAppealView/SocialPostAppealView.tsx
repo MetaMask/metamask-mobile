@@ -1,5 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  AccessibilityInfo,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -91,7 +96,14 @@ const SocialPostAppealView: React.FC = () => {
     () => setSentToEmail(trimmedEmail),
     [trimmedEmail],
   );
-  const handleFailed = useCallback(() => setHasSendError(true), []);
+  const handleFailed = useCallback(() => {
+    setHasSendError(true);
+    AccessibilityInfo.announceForAccessibility(
+      `${strings('social_leaderboard.post_appeal.error_title')}. ${strings(
+        'social_leaderboard.post_appeal.error_description',
+      )}`,
+    );
+  }, []);
   const dismissSendError = useCallback(() => setHasSendError(false), []);
 
   const submitAppeal = useSubmitSocialAppeal({
@@ -102,6 +114,9 @@ const SocialPostAppealView: React.FC = () => {
   const handleSubmit = useCallback(() => {
     if (!validateEmail(trimmedEmail)) {
       setHasEmailError(true);
+      AccessibilityInfo.announceForAccessibility(
+        strings('social_leaderboard.post_appeal.email_error'),
+      );
       return;
     }
     setHasSendError(false);
@@ -240,6 +255,9 @@ const SocialPostAppealView: React.FC = () => {
               )}
               isError={hasEmailError}
               inputProps={{
+                accessibilityLabel: strings(
+                  'social_leaderboard.post_appeal.email_label',
+                ),
                 testID: SocialPostAppealViewSelectorsIDs.EMAIL_INPUT,
                 keyboardType: 'email-address',
                 autoCapitalize: 'none',
@@ -278,6 +296,9 @@ const SocialPostAppealView: React.FC = () => {
                 'social_leaderboard.post_appeal.message_placeholder',
               )}
               maxLength={SOCIAL_APPEAL_MESSAGE_MAX_LENGTH}
+              accessibilityLabel={strings(
+                'social_leaderboard.post_appeal.message_label',
+              )}
               testID={SocialPostAppealViewSelectorsIDs.MESSAGE_INPUT}
             />
           </Box>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, screen, within } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -22,8 +23,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Support only fails to open on a broken navigator, which no real screen can
-// be driven into: report the failure the moment an appeal is submitted.
+// The appeal cannot fail until the Intercom hand-off exists (TSA-1668), so no
+// real screen can be driven into the failure. Report it the moment an appeal
+// is submitted to cover the banner. Move this into the component-view test once
+// the hand-off can fail for real.
 jest.mock('../../../UI/SocialFeed/hooks/useSubmitSocialAppeal', () => ({
   useSubmitSocialAppeal:
     ({ onFailed }: { onFailed: () => void }) =>
@@ -43,7 +46,19 @@ const fillForm = () => {
 };
 
 describe('SocialPostAppealView', () => {
-  it('shows the "couldn’t send" banner when support cannot open, keeping what the viewer typed', () => {
+  let announceSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    announceSpy.mockRestore();
+  });
+
+  it('shows the "couldn’t send" banner when the appeal cannot be submitted, keeping what the viewer typed', () => {
     renderWithProvider(<SocialPostAppealView />);
     fillForm();
 
@@ -103,5 +118,21 @@ describe('SocialPostAppealView', () => {
     expect(
       screen.queryByTestId(SocialPostAppealViewSelectorsIDs.ERROR_BANNER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('announces the "couldn’t send" banner to screen readers', () => {
+    renderWithProvider(<SocialPostAppealView />);
+    fillForm();
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostAppealViewSelectorsIDs.SUBMIT_BUTTON),
+    );
+
+    expect(announceSpy).toHaveBeenCalledTimes(1);
+    expect(announceSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        strings('social_leaderboard.post_appeal.error_title'),
+      ),
+    );
   });
 });
