@@ -575,20 +575,26 @@ export function useTransactionCustomAmount({
         tokenFiatRate,
         skipFiatRateConversion,
       );
-      void updateTransactionPayAmount(clampedAmountHuman).catch(
-        (error: unknown) => {
+
+      // Await the update and only clear the pending flag on success, so the
+      // effect can retry if the update fails.
+      void (async () => {
+        try {
+          await updateTransactionPayAmount(clampedAmountHuman);
+          // Clear the pending flag only after the update succeeds
+          pendingClampRef.current = false;
+        } catch (error: unknown) {
           Logger.error(
             error as Error,
             'Failed to update transaction pay amount with clamped value',
           );
-        },
-      );
+          // Keep pendingClampRef.current = true so the effect retries
+        }
+      })();
+    } else {
+      // No clamp needed; clear the pending flag
+      pendingClampRef.current = false;
     }
-
-    // Clear the pending flag after the clamp attempt completes (with a valid
-    // rate). Without the rate guard above, a missing rate would clear the flag
-    // before committing, so the effect would never retry.
-    pendingClampRef.current = false;
   }, [
     amountFiat,
     balanceUsd,
