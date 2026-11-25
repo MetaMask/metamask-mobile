@@ -105,6 +105,10 @@ const PendingMoneyReferralInvitePresenter = ({
       if (cancelled) {
         return;
       }
+      // Mirrors the settled detection result for the budget timer, which
+      // cannot await it. Starts at detectAppInstallation's error default
+      // (`true`); a first-session Branch link overwrites it with `false` once
+      // detection settles, normally long before the budget fires.
       let wasAppInstalled = true;
       const appInstallationPromise = detectAppInstallationWithTimeout().then(
         (appInstalled) => {
@@ -112,12 +116,14 @@ const PendingMoneyReferralInvitePresenter = ({
           return appInstalled;
         },
       );
+      // The load budget bounds the whole wait: if eligibility has not settled
+      // in time, the sheet opens anyway and owns the outcome.
       budgetTimer = setTimeout(
         () => openInvite(wasAppInstalled),
         MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS,
       );
       Promise.all([
-        fetchReferralMe({ forceFresh: true }).catch(() => undefined),
+        fetchReferralMe({ forceFresh: true }),
         appInstallationPromise,
       ])
         .then(([result, appInstalled]) => {
@@ -131,7 +137,9 @@ const PendingMoneyReferralInvitePresenter = ({
           ) {
             return;
           }
-          if (result?.status !== 'settled') {
+          // A discarded run never confirms eligibility: only a settled read
+          // can, so the sheet decides.
+          if (result.status !== 'settled') {
             openInvite(appInstalled);
             return;
           }
@@ -157,7 +165,12 @@ const PendingMoneyReferralInvitePresenter = ({
           // for the newer one.
           openInvite(appInstalled);
         })
-        .catch((): void => openInvite(wasAppInstalled));
+        .catch(() => {
+          // Any failure while settling eligibility — a rejected read or an
+          // error evaluating it — leaves eligibility unconfirmed, so the
+          // sheet decides.
+          openInvite(wasAppInstalled);
+        });
     });
 
     return () => {

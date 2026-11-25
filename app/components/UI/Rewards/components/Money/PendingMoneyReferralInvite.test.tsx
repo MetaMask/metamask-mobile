@@ -229,11 +229,11 @@ describe('PendingMoneyReferralInvite', () => {
       jest.useRealTimers();
     });
 
-    it('opens the invite when the read outlasts the load budget', () => {
+    it('opens the invite when the read outlasts the load budget', async () => {
       mockFetchReferralMe.mockReturnValue(new Promise(() => undefined));
       const { store } = renderInvite();
 
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS);
       });
 
