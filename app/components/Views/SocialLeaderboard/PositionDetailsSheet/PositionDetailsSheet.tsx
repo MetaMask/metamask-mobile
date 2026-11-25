@@ -504,7 +504,13 @@ const PositionDetailsSheet = () => {
   );
 
   const handlePerpsOrder = useCallback(
-    (direction: PerpDirection, leverage?: number) => {
+    function perpsOrder(direction: PerpDirection, leverage?: number): void {
+      if (
+        !ensureSocialTermsAccepted(() => perpsOrder(direction, leverage)) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
       trackInteraction(Interaction.BUTTON_CLICKED, {
         direction:
           direction === 'short'
@@ -513,15 +519,31 @@ const PositionDetailsSheet = () => {
       });
       openPerpsMarketOrder(direction, leverage);
     },
-    [openPerpsMarketOrder, trackInteraction],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openPerpsMarketOrder,
+      trackInteraction,
+    ],
   );
 
   const handleSpotTrade = useCallback(
-    (mode: QuickBuyTradeMode) => {
+    function spotTrade(mode: QuickBuyTradeMode): void {
+      if (
+        !ensureSocialTermsAccepted(() => spotTrade(mode)) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
       trackInteraction(Interaction.BUTTON_CLICKED);
       openQuickBuy(mode);
     },
-    [openQuickBuy, trackInteraction],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openQuickBuy,
+      trackInteraction,
+    ],
   );
 
   const handleCopyTrade = useCallback(

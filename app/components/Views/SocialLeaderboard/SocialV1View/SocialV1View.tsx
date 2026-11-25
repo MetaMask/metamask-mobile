@@ -98,6 +98,7 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { toSpotCopyTradeTarget } from '../../../UI/SocialFeed/utils/copyTrade';
@@ -237,6 +238,7 @@ const SocialV1ViewContent: React.FC = () => {
   );
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { track } = useSocialLeaderboardAnalytics();
   const programmaticTabChangeRef = useRef(false);
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
@@ -450,8 +452,11 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenMyProfile = useCallback(() => {
     playSelection().catch(() => undefined);
+    if (!ensureSocialProfileOnboarding()) {
+      return;
+    }
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
-  }, [navigation]);
+  }, [ensureSocialProfileOnboarding, navigation]);
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);

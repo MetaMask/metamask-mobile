@@ -1617,8 +1617,30 @@ describe('PositionDetailsSheet', () => {
       });
     });
 
-    it('opens Long on a closed perp without a linked social wallet', () => {
-      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+    it.each([
+      PositionDetailsSheetSelectorsIDs.LONG_BUTTON,
+      PositionDetailsSheetSelectorsIDs.SHORT_BUTTON,
+    ])(
+      'opens profile onboarding instead of %s without a linked social wallet',
+      (buttonTestId) => {
+        mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+        mockParams = { ...mockParams, position: buildPerpPosition() };
+        mockSheetData = perpData({ isClosed: true });
+
+        render(<PositionDetailsSheet />);
+        fireEvent.press(screen.getByTestId(buttonTestId));
+
+        expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+        expect(mockTrackInteraction).not.toHaveBeenCalledWith(
+          'button_clicked',
+          expect.anything(),
+        );
+      },
+    );
+
+    it('opens Long once the social terms are accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
       mockParams = { ...mockParams, position: buildPerpPosition() };
       mockSheetData = perpData({ isClosed: true });
 
@@ -1626,6 +1648,8 @@ describe('PositionDetailsSheet', () => {
       fireEvent.press(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
       );
+      expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
 
       expect(mockOpenPerpsOrder).toHaveBeenCalledWith({
         direction: 'long',
@@ -1633,6 +1657,25 @@ describe('PositionDetailsSheet', () => {
         leverage: undefined,
       });
     });
+
+    it.each([
+      PositionDetailsSheetSelectorsIDs.BUY_BUTTON,
+      PositionDetailsSheetSelectorsIDs.SELL_BUTTON,
+    ])(
+      'opens profile onboarding instead of %s without a linked social wallet',
+      (buttonTestId) => {
+        mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+        mockSheetData = buildSheetData({ isClosed: true });
+        mockHeldBalance = { balance: '1' };
+
+        render(<PositionDetailsSheet />);
+        fireEvent.press(screen.getByTestId(buttonTestId));
+
+        expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+        expect(screen.queryByTestId('quick-buy-sheet')).toBeNull();
+        expect(mockTrackInteraction).not.toHaveBeenCalledWith('button_clicked');
+      },
+    );
 
     it('plays a primary haptic when Buy is pressed', () => {
       mockSheetData = buildSheetData({ isClosed: true });
