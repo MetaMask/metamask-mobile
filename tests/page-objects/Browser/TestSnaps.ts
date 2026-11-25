@@ -863,7 +863,7 @@ class TestSnaps {
     });
     await this.blurActiveWebViewInput();
     // Multichain Solana signing can use SnapDialog/BottomSheetFooter instead of
-    // redesigned `confirm-button`.
+    // confirmation `confirm-button`.
     await Gestures.waitAndTap(
       Matchers.getElementByID(
         SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
