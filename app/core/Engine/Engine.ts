@@ -563,7 +563,9 @@ export class Engine {
       captureException(error);
     });
 
-    snapController.init();
+    snapController.init().catch((error) => {
+      captureException(error);
+    });
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
