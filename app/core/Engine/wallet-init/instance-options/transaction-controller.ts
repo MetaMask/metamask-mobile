@@ -9,6 +9,10 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
+import {
+  isPayTransactionResumable,
+  type TransactionPayControllerMessenger,
+} from '@metamask/transaction-pay-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
@@ -77,6 +81,11 @@ export function getTransactionControllerInstanceOptions({
     }),
     isFirstTimeInteractionEnabled: () =>
       isFirstTimeInteractionEnabled(initMessenger),
+    isResumable: (transactionMeta) =>
+      isPayTransactionResumable(
+        initMessenger as TransactionPayControllerMessenger,
+        transactionMeta,
+      ),
     isSimulationEnabled: (transactionMeta) =>
       isSimulationEnabled(transactionMeta, initMessenger),
     getSavedGasFees: (chainIdOrTransactionMeta) =>

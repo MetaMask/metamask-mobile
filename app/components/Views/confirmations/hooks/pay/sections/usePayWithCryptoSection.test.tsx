@@ -3,10 +3,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   PaymentOverride,
-  TransactionPaymentToken,
+  type TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import {
+  evmAssetId,
+  encodeEvmAssetIdMock,
+} from '../../../__mocks__/pay-token.mock';
 import {
   Icon,
   IconColor,
@@ -31,6 +35,7 @@ import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import Engine from '../../../../../../core/Engine';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
+import { selectEvmAssetIdEncoder } from '../../../../../../selectors/assets/assets-controller';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -77,16 +82,46 @@ jest.mock('../usePayWithSelectedToken');
 jest.mock('../useTransactionPayData');
 jest.mock('../useTransactionPayToken');
 
-const TOKEN_MOCK: TransactionPaymentToken = {
+const TOKEN_MOCK = {
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
-  balanceFiat: '$12.34',
-  balanceHuman: '12.34',
-  balanceRaw: '12340000',
   balanceUsd: '12.34',
   chainId: '0x1' as Hex,
-  decimals: 6,
   symbol: 'USDC',
 };
+
+/**
+ * Payment token for a token row, keyed by the asset ID the row resolves to.
+ *
+ * @param token - Token row.
+ * @param token.address - Token address.
+ * @param token.chainId - Hex chain ID.
+ * @param token.balanceUsd - Balance in USD.
+ * @param token.symbol - Token symbol.
+ * @returns The payment token.
+ */
+function toPaymentToken({
+  address,
+  balanceUsd,
+  chainId,
+  symbol,
+}: {
+  address: string;
+  balanceUsd: string;
+  chainId: string;
+  symbol: string;
+}): TransactionPaymentToken {
+  return {
+    assetId: evmAssetId(address, chainId),
+    balanceFiat: `$${balanceUsd}`,
+    balanceHuman: balanceUsd,
+    balanceRaw: '0',
+    balanceUsd,
+    decimals: 6,
+    symbol,
+  };
+}
+
+const PAY_TOKEN_MOCK = toPaymentToken(TOKEN_MOCK);
 
 const SELECTED_TOKEN_MOCK = {
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
@@ -141,10 +176,24 @@ describe('usePayWithCryptoSection', () => {
       isLastUsedMock(address, chainId) ? LAST_USED_TAG_SENTINEL : null,
   );
 
+  /**
+   * Mock the selectors read by the hook: the asset ID resolver and the
+   * payment override.
+   *
+   * @param paymentOverride - Payment override of the transaction.
+   */
+  function mockSelectors(paymentOverride?: PaymentOverride) {
+    useSelectorMock.mockImplementation((selector) =>
+      selector === selectEvmAssetIdEncoder
+        ? encodeEvmAssetIdMock
+        : paymentOverride,
+    );
+  }
+
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useSelectorMock.mockReturnValue(undefined);
+    mockSelectors();
 
     isNoFeeTokenSharedMock.mockReturnValue(false);
     renderNoFeeTagForTokenSharedMock.mockImplementation(
@@ -174,7 +223,7 @@ describe('usePayWithCryptoSection', () => {
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
-      selectedToken: TOKEN_MOCK,
+      selectedToken: PAY_TOKEN_MOCK,
     });
     usePayWithSelectedTokenMock.mockReturnValue({
       isSelectedDistinctFromAutomatic: false,
@@ -204,7 +253,7 @@ describe('usePayWithCryptoSection', () => {
     });
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: TOKEN_MOCK,
+      payToken: PAY_TOKEN_MOCK,
       setPayToken: setPayTokenMock,
     });
   });
@@ -456,11 +505,11 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('does not select the preferred token row when another token is selected', () => {
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -488,12 +537,12 @@ describe('usePayWithCryptoSection', () => {
       type: TransactionType.perpsDeposit,
       txParams: {},
     } as never);
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
       balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -576,11 +625,11 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('selects the preferred token and dismisses the sheet when its row is pressed', () => {
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -599,8 +648,7 @@ describe('usePayWithCryptoSection', () => {
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_MOCK.address,
-      chainId: TOKEN_MOCK.chainId,
+      assetId: evmAssetId(TOKEN_MOCK.address, TOKEN_MOCK.chainId),
     });
     expect(onPerpsPaymentTokenChangeMock).not.toHaveBeenCalled();
     expect(goBackMock).toHaveBeenCalledTimes(1);
@@ -629,8 +677,7 @@ describe('usePayWithCryptoSection', () => {
     });
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_MOCK.address,
-      chainId: TOKEN_MOCK.chainId,
+      assetId: evmAssetId(TOKEN_MOCK.address, TOKEN_MOCK.chainId),
     });
     expect(goBackMock).toHaveBeenCalledTimes(1);
   });
@@ -660,11 +707,11 @@ describe('usePayWithCryptoSection', () => {
       type: TransactionType.perpsDepositAndOrder,
     } as never);
     useIsPerpsBalanceSelectedMock.mockReturnValue(true);
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -760,8 +807,7 @@ describe('usePayWithCryptoSection', () => {
       chainId: TOKEN_MOCK.chainId,
     });
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_MOCK.address,
-      chainId: TOKEN_MOCK.chainId,
+      assetId: evmAssetId(TOKEN_MOCK.address, TOKEN_MOCK.chainId),
     });
     expect(onPerpsPaymentTokenChangeMock).not.toHaveBeenCalled();
     expect(goBackMock).toHaveBeenCalledTimes(1);
@@ -777,11 +823,11 @@ describe('usePayWithCryptoSection', () => {
       selectedPaymentToken: null,
       resetSelectedPaymentToken: resetPredictPaymentTokenMock,
     });
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -803,11 +849,11 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('does not assign a tap handler to the user-selected token row', () => {
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -866,12 +912,12 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('renders the last-used tag on the user-selected row when the last-used token matches the selected token', () => {
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
       balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -933,12 +979,12 @@ describe('usePayWithCryptoSection', () => {
   });
 
   it('hides the user-selected token row when a fiat payment method is selected', () => {
-    const distinctSelectedToken = {
+    const distinctSelectedToken = toPaymentToken({
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
       symbol: SELECTED_TOKEN_MOCK.symbol,
       balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
-    };
+    });
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
       preferredToken: TOKEN_MOCK,
@@ -964,7 +1010,7 @@ describe('usePayWithCryptoSection', () => {
 
   describe('money account selected', () => {
     beforeEach(() => {
-      useSelectorMock.mockReturnValue(PaymentOverride.MoneyAccount);
+      mockSelectors(PaymentOverride.MoneyAccount);
     });
 
     it('suppresses preferred token row checkmark when money account is selected', () => {
@@ -983,12 +1029,12 @@ describe('usePayWithCryptoSection', () => {
     });
 
     it('hides user-selected token row when money account is selected', () => {
-      const distinctSelectedToken = {
+      const distinctSelectedToken = toPaymentToken({
         ...TOKEN_MOCK,
         address: SELECTED_TOKEN_MOCK.address,
         symbol: SELECTED_TOKEN_MOCK.symbol,
         balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
-      };
+      });
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
         preferredToken: TOKEN_MOCK,
@@ -1018,7 +1064,7 @@ describe('usePayWithCryptoSection', () => {
           chainId: CHAIN_IDS.MONAD,
           symbol: 'mUSD',
         },
-        selectedToken: TOKEN_MOCK,
+        selectedToken: PAY_TOKEN_MOCK,
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1051,8 +1097,7 @@ describe('usePayWithCryptoSection', () => {
       });
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_MOCK.address,
-        chainId: TOKEN_MOCK.chainId,
+        assetId: evmAssetId(TOKEN_MOCK.address, TOKEN_MOCK.chainId),
       });
       expect(setTransactionConfigMock).toHaveBeenCalledWith(
         'tx-money-1',
@@ -1094,15 +1139,15 @@ describe('usePayWithCryptoSection', () => {
     });
 
     it('does not call setTransactionConfig when no paymentOverride is active', () => {
-      useSelectorMock.mockReturnValue(undefined);
+      mockSelectors();
 
       // Use a distinct selected token so the preferred token is NOT already
       // selected — otherwise the early-return guard skips setPayToken.
-      const distinctSelectedToken = {
+      const distinctSelectedToken = toPaymentToken({
         ...TOKEN_MOCK,
         address: SELECTED_TOKEN_MOCK.address,
         symbol: SELECTED_TOKEN_MOCK.symbol,
-      };
+      });
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
         preferredToken: TOKEN_MOCK,
@@ -1289,10 +1334,7 @@ describe('usePayWithCryptoSection', () => {
           ...TOKEN_MOCK,
           balanceUsd: '5',
         },
-        selectedToken: {
-          ...TOKEN_MOCK,
-          balanceUsd: '5',
-        },
+        selectedToken: toPaymentToken({ ...TOKEN_MOCK, balanceUsd: '5' }),
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1328,8 +1370,7 @@ describe('usePayWithCryptoSection', () => {
       });
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: noFeeTokenMock.address,
-        chainId: noFeeTokenMock.chainId,
+        assetId: evmAssetId(noFeeTokenMock.address, noFeeTokenMock.chainId),
       });
       expect(goBackMock).toHaveBeenCalledTimes(1);
     });
@@ -1367,12 +1408,12 @@ describe('usePayWithCryptoSection', () => {
           address === SELECTED_TOKEN_MOCK.address &&
           chainId === SELECTED_TOKEN_MOCK.chainId,
       );
-      const distinctSelectedToken = {
+      const distinctSelectedToken = toPaymentToken({
         ...TOKEN_MOCK,
         address: SELECTED_TOKEN_MOCK.address,
         symbol: SELECTED_TOKEN_MOCK.symbol,
         balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
-      };
+      });
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
         preferredToken: TOKEN_MOCK,
@@ -1434,13 +1475,6 @@ describe('usePayWithCryptoSection', () => {
         symbol: 'USDT',
         balanceUsd: '10',
       };
-      const noFeeTokenFullMock: TransactionPaymentToken = {
-        ...TOKEN_MOCK,
-        address: noFeeTokenMock.address,
-        chainId: noFeeTokenMock.chainId,
-        symbol: noFeeTokenMock.symbol,
-        balanceUsd: noFeeTokenMock.balanceUsd,
-      };
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
         isNoFeeToken: isNoFeeTokenSharedMock,
@@ -1450,7 +1484,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
         preferredToken: TOKEN_MOCK,
-        selectedToken: noFeeTokenFullMock,
+        selectedToken: toPaymentToken(noFeeTokenMock),
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1484,11 +1518,11 @@ describe('usePayWithCryptoSection', () => {
     });
 
     it('still calls setPayToken when pressing a preferred token that is not selected', () => {
-      const distinctSelectedToken = {
+      const distinctSelectedToken = toPaymentToken({
         ...TOKEN_MOCK,
         address: SELECTED_TOKEN_MOCK.address,
         symbol: SELECTED_TOKEN_MOCK.symbol,
-      };
+      });
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
         preferredToken: TOKEN_MOCK,
@@ -1507,8 +1541,7 @@ describe('usePayWithCryptoSection', () => {
       });
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: TOKEN_MOCK.address,
-        chainId: TOKEN_MOCK.chainId,
+        assetId: evmAssetId(TOKEN_MOCK.address, TOKEN_MOCK.chainId),
       });
       expect(goBackMock).toHaveBeenCalledTimes(1);
     });

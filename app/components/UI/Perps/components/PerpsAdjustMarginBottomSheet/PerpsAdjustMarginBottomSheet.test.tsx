@@ -603,8 +603,43 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       );
     });
 
-    expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250);
+    expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250, undefined);
     expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+  });
+
+  it('submits to the venue of the position being adjusted', async () => {
+    const lighterPosition: Position = { ...position, providerId: 'lighter' };
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add', 250),
+      position: lighterPosition,
+    });
+    render(
+      <PerpsAdjustMarginBottomSheet
+        position={lighterPosition}
+        initialMode="add"
+      />,
+    );
+    const slider = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER,
+    );
+
+    act(() => {
+      (
+        slider.props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(25);
+    });
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockUsePerpsAdjustMarginData).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 'lighter' }),
+    );
+    expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250, 'lighter');
   });
 
   it('freezes the margin transition while the submitted adjustment settles', async () => {
@@ -693,7 +728,7 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       );
     });
 
-    expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
+    expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100, undefined);
     expect(mockHandleAddMargin).not.toHaveBeenCalled();
   });
 

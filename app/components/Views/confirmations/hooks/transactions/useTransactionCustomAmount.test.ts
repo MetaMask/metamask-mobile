@@ -31,10 +31,7 @@ import {
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
-import {
-  PaymentOverride,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
 
@@ -47,6 +44,10 @@ import { mockedEmptyFlagsState } from '../../../../../selectors/featureFlagContr
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { DepositPrefillStatus } from './useDepositPrefillAmount';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+} from '../../__mocks__/pay-token.mock';
 
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
@@ -231,7 +232,7 @@ describe('useTransactionCustomAmount', () => {
   const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
 
   const updateTransactionPayAmountMock = jest.fn(
-    (_amountHuman: string): Promise<boolean | undefined> =>
+    async (_amountHuman: string): Promise<boolean | undefined> =>
       Promise.resolve(true),
   );
 
@@ -254,11 +255,11 @@ describe('useTransactionCustomAmount', () => {
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '1234.56',
-        chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});
@@ -282,7 +283,7 @@ describe('useTransactionCustomAmount', () => {
     useRampsBuyLimitsMock.mockReturnValue({
       amountLimitError: null,
       currency: 'usd',
-    } as ReturnType<typeof useRampsBuyLimits>);
+    });
 
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
       prefilledAmount: {
@@ -424,12 +425,12 @@ describe('useTransactionCustomAmount', () => {
       } as unknown as ReturnType<typeof useMMPayFiatConfig>);
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: '/payments/apple-pay',
-      } as ReturnType<typeof useTransactionPayFiatPayment>);
+      });
       useRampsBuyLimitsMock.mockReturnValue({
         maxAmount,
         amountLimitError: null,
         currency: 'usd',
-      } as ReturnType<typeof useRampsBuyLimits>);
+      });
     }
 
     it('ignores input that exceeds the fiat maximum purchase', async () => {
@@ -580,11 +581,11 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.hasPrefetchedQuote).toBe(true);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
-        address: '0x9876543210987654321098765432109876543210' as Hex,
+      payToken: buildPaymentTokenMock({
+        address: '0x9876543210987654321098765432109876543210',
         balanceUsd: '1234.56',
-        chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
     await act(async () => {
       rerender(undefined);
@@ -780,9 +781,8 @@ describe('useTransactionCustomAmount', () => {
     });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
-        address: TOKEN_ADDRESS_MOCK,
+        assetId: `eip155:1/erc20:${TOKEN_ADDRESS_MOCK}`,
         balanceUsd: '500',
-        chainId: '0x1',
         balanceFiat: '500',
         balanceHuman: '500',
         balanceRaw: '500000000',
@@ -882,17 +882,17 @@ describe('useTransactionCustomAmount', () => {
     });
     useParamsMock.mockReturnValue({ amount: '5' });
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
-        chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook({
       transactionMeta: {
         type: TransactionType.moneyAccountDeposit,
-        batchId: '0xtestbatchid' as Hex,
+        batchId: '0xtestbatchid',
       },
     });
 
@@ -917,17 +917,17 @@ describe('useTransactionCustomAmount', () => {
     });
     useParamsMock.mockReturnValue({ amount: '5' });
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
-        chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result, rerender } = runHook({
       transactionMeta: {
         type: TransactionType.moneyAccountDeposit,
-        batchId: '0xtestbatchid' as Hex,
+        batchId: '0xtestbatchid',
       },
     });
 
@@ -937,11 +937,11 @@ describe('useTransactionCustomAmount', () => {
 
     useParamsMock.mockReturnValue({ amount: '5' });
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '9999',
-        chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+        chainId: '0x1',
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     await act(async () => {
@@ -1113,11 +1113,11 @@ describe('useTransactionCustomAmount', () => {
   describe('updatePendingAmountPercentage updates amount fiat', () => {
     it('returns false when there is no balance', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -1133,11 +1133,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('returns false when balance rounds down to dust ($0.00)', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0.004',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -1177,11 +1177,11 @@ describe('useTransactionCustomAmount', () => {
       // The input truncates to cents but Total prices the committed amount in
       // full, so sub-cent digits left Total a cent above amount + fee.
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '58.841171',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -1614,11 +1614,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('does not auto-fill when balance is zero', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1644,11 +1644,11 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
 
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '9999',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -1661,11 +1661,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('returns isPrefillPending true while balance is not yet available', () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1715,13 +1715,13 @@ describe('useTransactionCustomAmount', () => {
       // path as every other Max; precision is preserved on the controller via
       // the atomic flag, not a full-precision override in the hook.
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1742,13 +1742,13 @@ describe('useTransactionCustomAmount', () => {
 
     it('updateTokenAmount uses fiat-derived amount for sub-100% deposit', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1770,13 +1770,13 @@ describe('useTransactionCustomAmount', () => {
 
     it('manual input clears the deposit max override', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1801,13 +1801,13 @@ describe('useTransactionCustomAmount', () => {
 
     it('does not set deposit max for non-deposit types at 100%', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook(); // default = simpleSend
@@ -1827,13 +1827,13 @@ describe('useTransactionCustomAmount', () => {
 
     it('resets deposit max when payToken changes', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -1846,13 +1846,13 @@ describe('useTransactionCustomAmount', () => {
 
       // Switch to a different token
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
-          address: '0xdifferent0000000000000000000000000000000' as Hex,
+        payToken: buildPaymentTokenMock({
+          address: '0xdifferent0000000000000000000000000000000',
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2067,9 +2067,12 @@ describe('useTransactionCustomAmount', () => {
           ...initialPayToken,
           payToken: {
             ...initialPayToken?.payToken,
-            address: matches
-              ? TOKEN_ADDRESS_MOCK
-              : '0x9999999999999999999999999999999999999999',
+            assetId: evmAssetId(
+              matches
+                ? TOKEN_ADDRESS_MOCK
+                : '0x9999999999999999999999999999999999999999',
+              '0x1',
+            ),
           },
         } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2087,7 +2090,7 @@ describe('useTransactionCustomAmount', () => {
       const { result } = runHook({
         transactionMeta: {
           ...depositTransactionMeta,
-          chainId: '0x2' as Hex,
+          chainId: '0x2',
         },
         stateOverrides: {
           engine: {
@@ -2285,11 +2288,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('returns skipped deposit prefill status for a zero-balance pay token', () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2311,13 +2314,13 @@ describe('useTransactionCustomAmount', () => {
       'prefills stablecoin $address on $chainId to max',
       async ({ address, chainId }) => {
         useTransactionPayTokenMock.mockReturnValue({
-          payToken: {
+          payToken: buildPaymentTokenMock({
             address,
             balanceUsd: '500',
             balanceRaw: '500000000',
             decimals: 6,
-            chainId: chainId as Hex,
-          } as TransactionPaymentToken,
+            chainId,
+          }),
         } as ReturnType<typeof useTransactionPayToken>);
 
         const { result } = runHook({
@@ -2350,13 +2353,13 @@ describe('useTransactionCustomAmount', () => {
 
     it('prefills a stableTokens-flag token that is not in the fallback list to max', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_DAI_ADDRESS,
           balanceUsd: '500',
           balanceRaw: '500000000',
           decimals: 18,
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2394,11 +2397,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('prefills non-stablecoin with 50% of balance via percentage path', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '1000',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2427,11 +2430,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('caps at deposit limit when balance exceeds it without Max flags', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '200000',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2480,11 +2483,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('resets amountFiat to zero when switching to zero-balance token', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2498,11 +2501,11 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('500');
 
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
-          address: '0xdifferent' as Hex,
+        payToken: buildPaymentTokenMock({
+          address: '0xdifferent',
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2515,11 +2518,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('resets amountFiat to zero when switching to a sub-cent balance token', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2535,11 +2538,11 @@ describe('useTransactionCustomAmount', () => {
       // Dust renders as $0.00 and cannot fund a quote, so the previous
       // token's amount must not survive the switch and get quoted against it.
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
-          address: '0xdifferent' as Hex,
+        payToken: buildPaymentTokenMock({
+          address: '0xdifferent',
           balanceUsd: '0.005',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2555,11 +2558,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('updates prefill amount when switching to a different funded token', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2573,11 +2576,11 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('500');
 
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2593,11 +2596,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('only prefills once even if balance changes', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2611,11 +2614,11 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('500');
 
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '9999',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2628,11 +2631,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('preserves user-edited amount when hasPrefilled re-toggles', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2655,11 +2658,11 @@ describe('useTransactionCustomAmount', () => {
       // token on the same address (accountOverride change), then back.
       // This mimics the transient tokenKey change that causes the bug.
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2668,11 +2671,11 @@ describe('useTransactionCustomAmount', () => {
       });
 
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2685,11 +2688,11 @@ describe('useTransactionCustomAmount', () => {
 
     it('allows prefill after pay token address changes even if user previously edited', async () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2710,11 +2713,11 @@ describe('useTransactionCustomAmount', () => {
 
       // Switch to a genuinely different token — userHasEditedRef resets
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+          chainId: '0x1',
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {

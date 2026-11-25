@@ -41,6 +41,10 @@ export const usePredictPrices = (
   const isMountedRef = useRef(true);
   const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fetchGenerationRef = useRef(0);
+  const isFetchInFlightRef = useRef(false);
+  // Read through a ref so toggling polling (e.g. when a live socket connects)
+  // does not rebuild `fetchPrices` and fire an extra request.
+  const pollingIntervalRef = useRef(pollingInterval);
 
   useEffect(
     () => () => {
@@ -88,6 +92,8 @@ export const usePredictPrices = (
       setIsFetching(true);
       setError(null);
     }
+
+    isFetchInFlightRef.current = true;
 
     try {
       if (!Engine || !Engine.context) {
@@ -137,24 +143,53 @@ export const usePredictPrices = (
         isMountedRef.current && generation === fetchGenerationRef.current;
 
       if (isCurrentFetch) {
+        isFetchInFlightRef.current = false;
         setIsFetching(false);
-        if (pollingInterval && enabled) {
+        const currentPollingInterval = pollingIntervalRef.current;
+        if (currentPollingInterval && enabled) {
           pollingTimeoutRef.current = setTimeout(() => {
-            fetchPrices();
-          }, pollingInterval);
+            pollingTimeoutRef.current = null;
+            void fetchPrices();
+          }, currentPollingInterval);
         }
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, queriesKey, pollingInterval]);
+  }, [enabled, queriesKey]);
 
   useEffect(() => {
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
     }
-    fetchPrices();
+    isFetchInFlightRef.current = false;
+    void fetchPrices();
   }, [fetchPrices]);
+
+  // Polling turning off only cancels the next tick. Polling turning on fetches
+  // now unless a request is already in flight, whose completion schedules the
+  // next tick.
+  useEffect(() => {
+    const previousPollingInterval = pollingIntervalRef.current;
+    pollingIntervalRef.current = pollingInterval;
+
+    if (previousPollingInterval === pollingInterval) {
+      return;
+    }
+
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
+
+    if (pollingInterval && enabled && !isFetchInFlightRef.current) {
+      void fetchPrices();
+    }
+    // Only a change of interval should run this; `fetchPrices` changing is
+    // handled by the effect above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pollingInterval]);
 
   return {
     prices,

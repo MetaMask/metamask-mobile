@@ -153,8 +153,8 @@ describe('LimitOrderRow', () => {
   });
 
   it('renders the limit price of a sell as entered when the API reports it inverted', () => {
-    // Selling BNB at 817.501762 USDT per BNB, which the API reports as
-    // 1 / 817.501762 BNB per USDT.
+    // Selling BNB at 817.501762 BSC-USD per BNB, which the API reports as
+    // 1 / 817.501762 BNB per BSC-USD.
     const sellOrder: LimitOrder = {
       ...MOCK_LIMIT_OPEN_ORDER,
       src: {
@@ -172,7 +172,7 @@ describe('LimitOrderRow', () => {
           assetId: 'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
           address: '0x55d398326f99059ff775485246999027b3197955',
           chainId: 56,
-          symbol: 'USDT',
+          symbol: 'BSC-USD',
           decimals: 18,
         },
         amount: '81750176200000000000',
@@ -187,7 +187,7 @@ describe('LimitOrderRow', () => {
 
     const { getByText, queryByText } = renderLimitOrderRow(sellOrder);
 
-    expect(getByText('≤ 817.501762 USDT')).toBeOnTheScreen();
+    expect(getByText('≤ 817.501762 BSC-USD')).toBeOnTheScreen();
     expect(
       getByText(strings('bridge.limit.limit_price', { symbol: 'BNB' })),
     ).toBeOnTheScreen();
@@ -219,7 +219,7 @@ describe('LimitOrderRow', () => {
               'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
             address: '0x55d398326f99059ff775485246999027b3197955',
             chainId: 56,
-            symbol: 'USDT',
+            symbol: 'BSC-USD',
             decimals: 18,
           },
           amount: destAmount,
@@ -230,7 +230,7 @@ describe('LimitOrderRow', () => {
 
       const { getByText } = renderLimitOrderRow(sellOrder);
 
-      expect(getByText(`≤ ${limitPrice} USDT`)).toBeOnTheScreen();
+      expect(getByText(`≤ ${limitPrice} BSC-USD`)).toBeOnTheScreen();
     },
   );
 

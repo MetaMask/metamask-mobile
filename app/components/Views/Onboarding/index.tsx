@@ -662,6 +662,8 @@ const Onboarding = () => {
       // Each destination below ends it via useNavigationPerformance.
       startOnboardingCtaNavigation(getSocialCtaId(provider));
 
+      // Create + existing always shows AccountAlreadyExists. Unlock wallet there
+      // navigates to OAuth rehydration, where highest enrolled MFA may start.
       if (createWallet) {
         if (result.existingUser) {
           navigation.navigate('AccountAlreadyExists', {

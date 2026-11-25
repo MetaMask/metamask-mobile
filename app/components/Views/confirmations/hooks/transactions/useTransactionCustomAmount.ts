@@ -50,6 +50,7 @@ import {
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -149,9 +150,8 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
-  const payTokenKey = `${payToken?.chainId ?? ''}:${
-    payToken?.address.toLowerCase() ?? ''
-  }`;
+  const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
   useEffect(() => {
     userHasEditedRef.current = false;
@@ -160,7 +160,7 @@ export function useTransactionCustomAmount({
     prefetchedQuotePayTokenKeyRef.current = undefined;
     setPrefetchedQuoteAmountHuman(undefined);
     setPrefetchedQuotePayTokenKey(undefined);
-  }, [payToken?.address, payToken?.chainId]);
+  }, [payTokenKey]);
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -299,7 +299,10 @@ export function useTransactionCustomAmount({
 
   const isFixedSpreadRoute = isSubsidizedRoute(
     relayFixedSpreadConfig,
-    { chainId: payToken?.chainId ?? '', address: payToken?.address ?? '' },
+    {
+      chainId: payTokenAsset?.chainId ?? '',
+      address: payTokenAsset?.address ?? '',
+    },
     { chainId, address: tokenAddress ?? '' },
   );
   const shouldHintAtomicMax = isAtomicMaxEnabled && isFixedSpreadRoute;
