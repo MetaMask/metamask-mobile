@@ -572,7 +572,7 @@ export function useTransactionCustomAmount({
 
     // Return early if a commit is already in flight to avoid clearing the
     // pending flag while the async update is still running.
-    if (clampCommitInFlightRef.current) {
+    if (isClampCommitPending) {
       return;
     }
 
@@ -667,6 +667,7 @@ export function useTransactionCustomAmount({
     transactionMeta,
     updateTransactionPayAmount,
     clampRetryCounter,
+    isClampCommitPending,
   ]);
 
   const isDepositPrefilled =
