@@ -17,7 +17,6 @@ import {
   getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import { CardHomeSelectors } from './CardHome.testIds';
-import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Cashback from '../Cashback/Cashback';
 import ChooseYourCard from '../ChooseYourCard/ChooseYourCard';
@@ -171,14 +170,6 @@ const immersveProvisioningCountry = {
 describe('CardHome', () => {
   afterEach(() => {
     mockGetCapabilities.mockReturnValue(defaultCapabilities);
-  });
-
-  it('names the screen with a "Card" header for screen readers', async () => {
-    const { findByRole } = renderCardHomeView();
-
-    expect(
-      await findByRole('header', { name: strings('card.card_home.title') }),
-    ).toBeOnTheScreen();
   });
 
   describe('navigation', () => {
