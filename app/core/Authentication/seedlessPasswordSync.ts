@@ -10,6 +10,7 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import Logger from '../../util/Logger';
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { containsErrorMessage } from '../../util/errorHandling';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import Engine from '../Engine';
 import {
@@ -19,6 +20,7 @@ import {
 import NavigationService from '../NavigationService';
 import ReduxService from '../redux';
 import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 
 export interface CheckIsSeedlessPasswordOutdatedOptions {
   /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
@@ -132,6 +134,53 @@ export const checkIsSeedlessPasswordOutdated = async (
 };
 
 /**
+ * Checks whether an error thrown by `SeedlessOnboardingController.reconcilePassword`
+ * represents an incorrect password.
+ *
+ * Depending on the failure path, a wrong password may surface as
+ * `SeedlessOnboardingControllerErrorMessage.IncorrectPassword` (TOPRF sync),
+ * plain `'Incorrect password'` (`@metamask/browser-passworder`), or mobile
+ * `Encryptor` decryption failures (QuickCrypto OpenSSL `bad decrypt`,
+ * `'Decrypt failed'`, or `'error in DoCipher, status: 2'`) when decrypting
+ * an already-rewritten local Seedless vault during recovery.
+ *
+ * @param error - Error thrown by `reconcilePassword`.
+ * @returns `true` if the error indicates an incorrect password.
+ */
+const isReconcileIncorrectPasswordError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  if (
+    error.message ===
+      SeedlessOnboardingControllerErrorMessage.IncorrectPassword ||
+    error.message === 'Incorrect password'
+  ) {
+    return true;
+  }
+
+  // Exclude other controller-level Seedless errors (e.g. VaultDataError:
+  // "The decrypted vault has an unexpected shape.") before substring-matching
+  // mobile Encryptor decrypt errors.
+  if (error.message.startsWith('SeedlessOnboardingController -')) {
+    return false;
+  }
+
+  return (
+    containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD) ||
+    containsErrorMessage(
+      error,
+      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD,
+    ) ||
+    containsErrorMessage(
+      error,
+      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_WRONG_PASSWORD_2,
+    )
+  );
+};
+
+/**
  * Sync latest global seedless password and reconcile the local Keyring with
  * the remote password state. Unlocks the vault with the latest global
  * password.
@@ -152,10 +201,6 @@ export const syncPasswordAndUnlockWallet = async (
     .catch(() => false);
 
   // Reconcile the Seedless password state with the submitted global password.
-  // Depending on the failure path, a wrong password may surface as
-  // SeedlessOnboardingControllerErrorMessage.IncorrectPassword (TOPRF sync)
-  // or as the encryptor's plain 'Incorrect password' error (decrypting an
-  // already-rewritten local Seedless vault during recovery).
   let recoveryInstruction: PasswordSyncInstruction;
   try {
     recoveryInstruction = await SeedlessOnboardingController.reconcilePassword({
@@ -189,12 +234,7 @@ export const syncPasswordAndUnlockWallet = async (
       return;
     }
 
-    const isIncorrectPasswordError =
-      errorMessage ===
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword ||
-      errorMessage === 'Incorrect password';
-
-    if (isIncorrectPasswordError) {
+    if (isReconcileIncorrectPasswordError(seedlessSyncError)) {
       if (isKeyringPasswordValid) {
         throw new SeedlessOnboardingControllerError(
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,

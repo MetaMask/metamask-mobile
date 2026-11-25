@@ -362,30 +362,75 @@ describe('seedlessPasswordSync', () => {
       );
     });
 
-    it('throws PasswordRecentlyUpdated when local vault decrypt rejects with plain Incorrect password and Keyring password is valid', async () => {
-      mockKeyringController.verifyPassword.mockResolvedValueOnce('');
-      mockSeedlessController.reconcilePassword.mockRejectedValueOnce(
-        new Error('Incorrect password'),
-      );
+    it.each([
+      ['plain Incorrect password', 'Incorrect password'],
+      [
+        'QuickCrypto Provider routines bad decrypt',
+        'Cipher.final(...): Cipher final failed: error:1C800064:Provider routines::bad decrypt',
+      ],
+      [
+        'legacy OpenSSL BAD_DECRYPT',
+        'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
+      ],
+      ['generic Decrypt failed', 'Decrypt failed'],
+      ['Android DoCipher error', 'error in DoCipher, status: 2'],
+    ])(
+      'throws PasswordRecentlyUpdated when local vault decrypt rejects with %s and Keyring password is valid',
+      async (_label, errorMessage) => {
+        mockKeyringController.verifyPassword.mockResolvedValueOnce('');
+        mockSeedlessController.reconcilePassword.mockRejectedValueOnce(
+          new Error(errorMessage),
+        );
 
-      await expect(
-        syncPasswordAndUnlockWallet(mockGlobalPassword, deps),
-      ).rejects.toThrow(
-        new SeedlessOnboardingControllerError(
-          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
-        ),
-      );
-    });
+        await expect(
+          syncPasswordAndUnlockWallet(mockGlobalPassword, deps),
+        ).rejects.toThrow(
+          new SeedlessOnboardingControllerError(
+            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+          ),
+        );
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
 
-    it('rethrows IncorrectPassword when local Keyring password is also invalid', async () => {
-      mockSeedlessController.reconcilePassword.mockRejectedValueOnce(
-        new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
-      );
-
-      await expect(
-        syncPasswordAndUnlockWallet(mockGlobalPassword, deps),
-      ).rejects.toThrow(
+    it.each([
+      [
+        'Seedless IncorrectPassword',
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      ],
+      [
+        'QuickCrypto bad decrypt',
+        'Cipher.final(...): Cipher final failed: error:1C800064:Provider routines::bad decrypt',
+      ],
+      ['generic Decrypt failed', 'Decrypt failed'],
+      ['Android DoCipher error', 'error in DoCipher, status: 2'],
+    ])(
+      'rethrows %s without Logger.error when local Keyring password is also invalid',
+      async (_label, errorMessage) => {
+        mockSeedlessController.reconcilePassword.mockRejectedValueOnce(
+          new Error(errorMessage),
+        );
+
+        await expect(
+          syncPasswordAndUnlockWallet(mockGlobalPassword, deps),
+        ).rejects.toThrow(errorMessage);
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
+
+    it('logs and rethrows Seedless VaultDataError even though its message contains "decrypted"', async () => {
+      const error = new Error(
+        SeedlessOnboardingControllerErrorMessage.VaultDataError,
+      );
+      mockKeyringController.verifyPassword.mockResolvedValueOnce('');
+      mockSeedlessController.reconcilePassword.mockRejectedValueOnce(error);
+
+      await expect(
+        syncPasswordAndUnlockWallet(mockGlobalPassword, deps),
+      ).rejects.toThrow(error);
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'Error in syncPasswordAndUnlockWallet',
       );
     });
 
