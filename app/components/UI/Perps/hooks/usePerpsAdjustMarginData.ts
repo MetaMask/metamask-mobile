@@ -181,8 +181,9 @@ export function usePerpsAdjustMarginData(
   );
 
   // Liquidation triggers on the venue mark. Mid until the mark is known.
+  const markPrice = parseOptionalNumber(livePrices?.[symbol]?.markPrice);
   const liquidationReferencePrice =
-    parseOptionalNumber(livePrices?.[symbol]?.markPrice) ?? currentPrice;
+    markPrice !== undefined && markPrice > 0 ? markPrice : currentPrice;
 
   const percentChange24h = useMemo(() => {
     const rawPercentChange = Number.parseFloat(

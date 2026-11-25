@@ -544,6 +544,28 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.currentPrice).toBe(100000);
     });
 
+    it('measures the distance from the mid when the mark is 0', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '100000',
+          markPrice: '0',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.currentLiquidationDistance).toBe('20.00%');
+    });
+
     it('returns undefined, never "at liquidation", when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: {

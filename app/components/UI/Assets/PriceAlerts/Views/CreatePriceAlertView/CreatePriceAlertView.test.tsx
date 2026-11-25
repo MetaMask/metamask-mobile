@@ -451,11 +451,39 @@ describe('CreatePriceAlertView', () => {
     expect(screen.getByText('$0.008764')).toBeOnTheScreen();
   });
 
-  it('updates the Perps header subtitle when a live tick arrives', () => {
+  it('anchors a Perps alert on the oracle price, not the mark or the mid', () => {
+    mockUsePerpsLiveFocusedPrice.mockReturnValue({
+      symbol: 'BTC',
+      price: '83900',
+      markPrice: '83950',
+      oraclePrice: '84000',
+      timestamp: 1,
+      isTradable: true,
+    });
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      szDecimals: 5,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$84,000')).toBeOnTheScreen();
+    expect(mockAbsoluteForm).toHaveBeenCalledWith(
+      expect.objectContaining({ currentPrice: 84000, szDecimals: 5 }),
+    );
+  });
+
+  it('uses the mid while the oracle price is unknown', () => {
     mockUsePerpsLiveFocusedPrice.mockReturnValue({
       symbol: 'BTC',
       price: '84000',
-      markPrice: '84000',
+      markPrice: '83950',
       timestamp: 1,
       isTradable: true,
     });
