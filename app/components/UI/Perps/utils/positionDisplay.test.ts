@@ -52,15 +52,20 @@ describe('getDisplayedPositionMargin', () => {
     ).toBe('7.18');
   });
 
-  it('falls back to marginUsed when display margin is blank or not a number', () => {
-    expect(
-      getDisplayedPositionMargin(createPosition({ displayMarginUsed: '  ' })),
-    ).toBe('1450');
-    expect(
-      getDisplayedPositionMargin(
-        createPosition({ displayMarginUsed: 'not-a-number' }),
-      ),
-    ).toBe('1450');
+  it('falls back to marginUsed when display margin is blank', () => {
+    const position = createPosition({ displayMarginUsed: '  ' });
+
+    const result = getDisplayedPositionMargin(position);
+
+    expect(result).toBe('1450');
+  });
+
+  it('falls back to marginUsed when display margin is not a number', () => {
+    const position = createPosition({ displayMarginUsed: 'not-a-number' });
+
+    const result = getDisplayedPositionMargin(position);
+
+    expect(result).toBe('1450');
   });
 });
 
