@@ -4,7 +4,7 @@ import type { Position } from '@metamask/perps-controller';
 import { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
 import {
   getAdjustMarginOptions,
-  getRedesignedConfirmationsHeaderOptions,
+  getConfirmationsHeaderOptions,
   PerpsAdjustMarginRouter,
   shouldRenderPerpsConfirmationLoader,
 } from './index';
@@ -39,9 +39,9 @@ jest.mock('../Views/PerpsAdjustMarginView/PerpsAdjustMarginView', () => {
     ReactActual.createElement(View, { testID: 'adjust-margin-screen' });
 });
 
-describe('getRedesignedConfirmationsHeaderOptions', () => {
+describe('getConfirmationsHeaderOptions', () => {
   it('returns push-style options without modal presentation when showPerpsHeader is false', () => {
-    const options = getRedesignedConfirmationsHeaderOptions({
+    const options = getConfirmationsHeaderOptions({
       showPerpsHeader: false,
     });
 
@@ -52,7 +52,7 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
   });
 
   it('returns header-visible options when showPerpsHeader is true', () => {
-    const options = getRedesignedConfirmationsHeaderOptions({
+    const options = getConfirmationsHeaderOptions({
       showPerpsHeader: true,
     });
 
@@ -62,7 +62,7 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
   });
 
   it('uses transparent modal presentation for the bottom-sheet treatment', () => {
-    const options = getRedesignedConfirmationsHeaderOptions({
+    const options = getConfirmationsHeaderOptions({
       useBottomSheet: true,
       showPerpsHeader: false,
     });
@@ -79,7 +79,7 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
 
   it('covers the adjust-margin sheet with the screen background', () => {
     const screenBackground = 'screen-background';
-    const options = getRedesignedConfirmationsHeaderOptions(
+    const options = getConfirmationsHeaderOptions(
       { launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin },
       screenBackground,
     );
@@ -95,7 +95,7 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
   });
 
   it('defaults to showing perps header when no params provided', () => {
-    const options = getRedesignedConfirmationsHeaderOptions();
+    const options = getConfirmationsHeaderOptions();
 
     expect(options.headerShown).toBe(true);
   });

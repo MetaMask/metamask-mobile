@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
-import { RedesignedSendViewSelectorsIDs } from '../RedesignedSendView.testIds';
+import { SendViewSelectorsIDs } from '../SendView.testIds';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import { useSendContext } from '../../../context/send-context/send-context';
@@ -396,7 +396,7 @@ describe('Recipient', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     expect(mockUseAddressPoisoningDetection).toHaveBeenCalledWith(
       'some_dummy_address',
@@ -735,7 +735,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -772,7 +772,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -847,7 +847,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -935,7 +935,7 @@ describe('SendAlertModal integration', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     expect(getByTestId('send-alert-modal')).toBeOnTheScreen();
   });
@@ -945,7 +945,7 @@ describe('SendAlertModal integration', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     expect(getByTestId('alert-modal-title')).toBeOnTheScreen();
     expect(getByTestId('alert-modal-error')).toBeOnTheScreen();
@@ -956,7 +956,7 @@ describe('SendAlertModal integration', () => {
 
     const { getByTestId, queryByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
     expect(getByTestId('send-alert-modal')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('alert-modal-close'));
@@ -969,7 +969,7 @@ describe('SendAlertModal integration', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     await fireEvent.press(getByTestId('alert-modal-acknowledge'));
 
@@ -991,7 +991,7 @@ describe('SendAlertModal integration', () => {
 
     const { getByTestId, queryByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
 
     expect(queryByTestId('send-alert-modal')).not.toBeOnTheScreen();
   });
@@ -1001,7 +1001,7 @@ describe('SendAlertModal integration', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId(SendViewSelectorsIDs.REVIEW_BUTTON));
     fireEvent.press(getByTestId('alert-modal-close'));
 
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
