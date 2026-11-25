@@ -394,7 +394,9 @@ const openManualUsernameStep = async () => {
  * awaits the resulting `ProfileController.checkUsernameAvailability` call
  * inside `act`, avoiding RNTL `waitFor` wall-clock timeout races on slow shards.
  */
-const awaitDebouncedUsernameCheck = async (trigger: () => void) => {
+const awaitDebouncedUsernameCheck = async (
+  trigger: () => void,
+): Promise<void> => {
   const availabilitySpy = jest.mocked(
     Engine.context.ProfileController.checkUsernameAvailability,
   );
