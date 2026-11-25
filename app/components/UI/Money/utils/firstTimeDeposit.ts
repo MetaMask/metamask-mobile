@@ -6,7 +6,7 @@ import { type CanonicalMoneyAccountBalanceResponse } from '@metamask/money-accou
 import BigNumber from 'bignumber.js';
 import { RootState } from '../../../../reducers';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountBalanceAddress } from '../../../../selectors/moneyAccountController';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { selectMoneyFirstTimeDepositAnimationEnabledFlag } from '../selectors/featureFlags';
@@ -31,14 +31,14 @@ export function hasPriorMoneyDeposit(
 }
 
 /**
- * Returns true if the primary money account's last-fetched balance is greater
- * than zero. Reads the cached balance, which at deposit-confirmation time
- * predates the deposit — so a restored, already-funded wallet counts as
- * having an existing balance.
+ * Returns true if the Money account's last-fetched balance is greater than
+ * zero. Reads the cached balance, which at deposit-confirmation time predates
+ * the deposit, so a restored, already-funded wallet counts as having an
+ * existing balance.
  */
 export function hasExistingMoneyBalance(state: RootState): boolean {
-  const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  if (!primaryMoneyAccount) {
+  const moneyAccountAddress = selectMoneyAccountBalanceAddress(state);
+  if (!moneyAccountAddress) {
     return false;
   }
 
@@ -46,7 +46,7 @@ export function hasExistingMoneyBalance(state: RootState): boolean {
     ReactQueryService.queryClient.getQueryData<CanonicalMoneyAccountBalanceResponse>(
       [
         MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-        primaryMoneyAccount.address,
+        moneyAccountAddress,
       ],
     );
   if (!balance?.totalBalance) {

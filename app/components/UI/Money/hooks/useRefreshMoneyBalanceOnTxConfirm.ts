@@ -12,7 +12,7 @@ import {
   setLastLocalMoneyFlow,
   type PersistedLocalMoneyFlow,
 } from '../../../../core/redux/slices/moneyBalance';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountBalanceAddress } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyAccountTx,
@@ -274,7 +274,7 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
 
-      const address = selectPrimaryMoneyAccount(store.getState())?.address;
+      const address = selectMoneyAccountBalanceAddress(store.getState());
       if (!address) return;
 
       // Direct Money txs (deposit/withdraw) plus Perps/Predict transfers to or
