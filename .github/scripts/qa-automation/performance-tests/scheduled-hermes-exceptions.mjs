@@ -123,10 +123,25 @@ function cleanBaseline(observations) {
   };
 }
 
+/**
+ * What one run contributes for one scenario: the first attempt's JS work, so
+ * a retry never stands in for the run. A report written before first-attempt
+ * measurements existed has none, which makes the observation incomplete.
+ */
+function observationOf(report, scenario) {
+  const measurement = scenario.firstAttempt;
+  return {
+    jsWorkMs: measurement?.measured ? measurement.jsWorkMs : 0,
+    segmentCount: measurement?.segmentCount,
+    headSha: report.meta?.headSha ?? null,
+  };
+}
+
 function observationFor(report, key) {
-  return (report?.scenarios || []).find(
-    (scenario) => scenarioKey(scenario) === key,
+  const scenario = (report?.scenarios || []).find(
+    (candidate) => scenarioKey(candidate) === key,
   );
+  return scenario ? observationOf(report, scenario) : undefined;
 }
 
 /**
@@ -148,14 +163,12 @@ export function buildScheduledException(
     for (const scenario of report.scenarios || []) {
       const key = scenarioKey(scenario);
       const observations = baselineByScenario.get(key) || [];
-      observations.push({
-        jsWorkMs: scenario.jsWorkMs,
-        segmentCount: scenario.segmentCount,
-      });
+      observations.push(observationOf(report, scenario));
       baselineByScenario.set(key, observations);
     }
   }
 
+  const currentSha = currentReport.meta?.headSha || null;
   const scenarios = currentReport.scenarios || [];
   const cleaned = new Map();
   let excludedIncompleteCount = 0;
@@ -168,21 +181,38 @@ export function buildScheduledException(
     excludedSpikeCount += result.spikeCount;
   }
 
-  // A scenario with too little clean history is not "clean"; it is unchecked.
-  // The all-clear says so instead of implying the whole run was compared.
+  // Every baseline run built the same commit as this run, so a change here is
+  // run-to-run variance on identical code, not a regression.
+  const isSameCommitOnly = (key) => {
+    const observations = cleaned.get(key)?.clean || [];
+    return (
+      Boolean(currentSha) &&
+      observations.length > 0 &&
+      observations.every((observation) => observation.headSha === currentSha)
+    );
+  };
+
+  // A scenario with too little clean history, an unmeasured first attempt, or
+  // only same-commit history is not "clean"; it is unchecked. The all-clear
+  // says so instead of implying the whole run was compared.
   const comparedScenarios = scenarios.filter(
-    (scenario) =>
-      cleaned.get(scenarioKey(scenario)).clean.length >= MIN_BASELINE_RUNS,
+    (scenario) => {
+      const key = scenarioKey(scenario);
+      return (
+        scenario.firstAttempt?.measured === true &&
+        !isSameCommitOnly(key) &&
+        cleaned.get(key).clean.length >= MIN_BASELINE_RUNS
+      );
+    },
   );
 
   const overThreshold = comparedScenarios
     .map((scenario) => {
       const key = scenarioKey(scenario);
       const { clean, reference, expectedSegmentCount } = cleaned.get(key);
+      const jsWorkMs = scenario.firstAttempt.jsWorkMs;
       const ratio =
-        reference > 0
-          ? Number((scenario.jsWorkMs / reference).toFixed(2))
-          : 0;
+        reference > 0 ? Number((jsWorkMs / reference).toFixed(2)) : 0;
       if (ratio < REGRESSION_RATIO) {
         return null;
       }
@@ -195,7 +225,7 @@ export function buildScheduledException(
         confirmed,
         projectName: scenario.projectName,
         scenario: scenario.scenario,
-        jsWorkMs: scenario.jsWorkMs,
+        jsWorkMs,
         // The filtered baseline average. The key keeps its original name so
         // issue markers written before the filter still parse.
         baselineMedianJsWorkMs: Number(reference.toFixed(2)),

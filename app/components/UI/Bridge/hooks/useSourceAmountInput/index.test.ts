@@ -146,6 +146,7 @@ describe('useSourceAmountInput token fiat rate', () => {
       result.current.handleToggle();
     });
 
+    expect(result.current.fiatRate).toBe(2500);
     expect(formatFiatInputAmount).toHaveBeenCalledWith('1', 2500);
     expect(formatFiatInputAmount).not.toHaveBeenCalledWith('1', 2000);
   });
@@ -164,6 +165,7 @@ describe('useSourceAmountInput token fiat rate', () => {
       result.current.handleToggle();
     });
 
+    expect(result.current.fiatRate).toBe(2000);
     expect(formatFiatInputAmount).toHaveBeenCalledWith('1', 2000);
   });
 });

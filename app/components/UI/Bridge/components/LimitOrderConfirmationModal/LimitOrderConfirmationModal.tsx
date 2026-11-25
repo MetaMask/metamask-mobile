@@ -25,7 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import DottedUnderline from '../../../DottedUnderline';
 import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
-import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
+import { PriceToleranceTooltip } from '../PriceToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
@@ -183,7 +183,7 @@ export const LimitOrderConfirmationModal = ({
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
           label={
-            <LimitOrderCostToleranceTooltip
+            <PriceToleranceTooltip
               testID={
                 LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
               }

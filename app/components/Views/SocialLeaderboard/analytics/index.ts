@@ -22,7 +22,6 @@ export {
 export type { SocialComposerEntry, SocialEventSource } from './socialEvents';
 export type {
   FollowTradingTokenSource,
-  LeaderboardScreenViewedSource,
   SocialLeaderboardSource,
   TraderFollowInteractionSource,
   TraderProfileScreenViewedSource,

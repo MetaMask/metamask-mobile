@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "tại",
-        "market_cap_suffix": "Vốn hóa thị trường",
-        "size_at_price": "{{size}} ở mức {{price}}",
-        "size_at_market_cap": "{{size}} tại {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Vốn hóa thị trường"
       },
       "trader_stats": {
         "pnl_30d": "Lãi/Lỗ {{pnl}} (30 ngày)",
@@ -1993,22 +1991,6 @@
         "4": "T5",
         "5": "T6",
         "6": "T7"
-      },
-      "tooltip": {
-        "label": "{{action}} ở giá {{price}}",
-        "bought": "Đã mua",
-        "sold": "Đã bán",
-        "perps_closed": "Đã đóng",
-        "perps_long_opened": "Đã mở vị thế mua khống",
-        "perps_long_added": "Đã tăng vị thế mua khống",
-        "perps_long_reduced": "Đã giảm vị thế mua khống",
-        "perps_short_opened": "Đã mở vị thế bán khống",
-        "perps_short_added": "Đã tăng vị thế bán khống",
-        "perps_short_reduced": "Đã mua lại",
-        "spot_opened": "Đã mua",
-        "spot_added": "Đã mua thêm",
-        "spot_reduced": "Đã bán một phần",
-        "spot_closed": "Đã bán hết"
       }
     },
     "trader_position": {
@@ -9912,7 +9894,7 @@
       "eyebrow": "MetaMask Tài chính",
       "title": "Sinh lời, giao dịch và chi tiêu từ cùng một số dư",
       "body_prefix": "MetaMask Tài chính là tài khoản đồng ổn định có mức sinh lời lên đến ",
-      "body_suffix": "— tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
+      "body_suffix": "- tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
       "body_no_apy": "MetaMask Tài chính là tài khoản đồng ổn định tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
       "benefit_convert_title": "Chuyển đổi sang MetaMask USD theo tỷ lệ 1:1",
       "benefit_convert_body": "Số tiền bạn nạp được chuyển đổi sang MetaMask USD theo tỷ lệ 1:1, hoàn toàn miễn phí.",

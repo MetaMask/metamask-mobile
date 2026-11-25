@@ -3,6 +3,8 @@ export interface HomePack {
   code: string;
   name: string;
   subtitle: string;
-  counterLabel: string;
-  priceLabel: string;
+  // Packs opened over the past 7 days, across all users.
+  openedCount: number;
+  // Missing when the pack has no price; those tiles are hidden.
+  priceLabel?: string;
 }

@@ -33,6 +33,19 @@ describe('SocialFeedGif', () => {
     expect(getAspectRatio('gif')).toBeCloseTo(4 / 3);
   });
 
+  it('drops the decoded image off screen and keeps the measured frame', () => {
+    const uri = 'https://static.klipy.com/c.gif';
+    const { rerender } = render(<SocialFeedGif uri={uri} testID="gif" />);
+    fireEvent(screen.getByTestId('gif'), 'load', {
+      nativeEvent: { source: { width: 400, height: 300 } },
+    });
+
+    rerender(<SocialFeedGif uri={uri} testID="gif" visible={false} />);
+
+    expect(screen.getByTestId('gif').props.source).toBeUndefined();
+    expect(getAspectRatio('gif')).toBeCloseTo(4 / 3);
+  });
+
   it('reuses a measured ratio on the next mount', () => {
     const uri = 'https://static.klipy.com/b.gif';
     const { unmount } = render(<SocialFeedGif uri={uri} testID="gif" />);

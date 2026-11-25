@@ -1476,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "pada",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} pada {{price}}",
-        "size_at_market_cap": "{{size}} pada {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30 hari)",
@@ -1993,22 +1991,6 @@
         "4": "Kam",
         "5": "Jum",
         "6": "Sab"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Dibeli",
-        "sold": "Terjual",
-        "perps_closed": "Ditutup",
-        "perps_long_opened": "Long terbuka",
-        "perps_long_added": "Ditambahkan ke posisi long",
-        "perps_long_reduced": "Dikurangi dari posisi long",
-        "perps_short_opened": "Posisi short dibuka",
-        "perps_short_added": "Ditambahkan ke posisi short",
-        "perps_short_reduced": "Dibeli kembali",
-        "spot_opened": "Dibeli",
-        "spot_added": "Membeli lagi",
-        "spot_reduced": "Dijual sebagian",
-        "spot_closed": "Dijual semua"
       }
     },
     "trader_position": {
@@ -9912,7 +9894,7 @@
       "eyebrow": "MetaMask Money",
       "title": "Hasilkan, perdagangkan, dan gunakan dari satu saldo",
       "body_prefix": "MetaMask Money merupakan akun stablecoin yang menghasilkan hingga ",
-      "body_suffix": "—dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
+      "body_suffix": "- dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
       "body_no_apy": "MetaMask Money merupakan akun stablecoin yang dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
       "benefit_convert_title": "Dikonversi ke MetaMask USD, 1:1",
       "benefit_convert_body": "Dana yang Anda tambahkan dikonversi dengan rasio 1:1 ke MetaMask USD, tanpa biaya apa pun.",

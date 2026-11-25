@@ -183,6 +183,12 @@ jest.mock('../../hooks', () => ({
       recentlyViewedState: {
         recentlyViewedMarketObjects: [],
       },
+      exchangeFilterState: {
+        isVisible: false,
+        selectedProviderIds: ['hyperliquid'],
+        onSave: jest.fn(),
+        availableProviderIds: ['hyperliquid'],
+      },
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
         stocks: 0,
@@ -1997,6 +2003,12 @@ describe('PerpsMarketListView', () => {
       },
       recentlyViewedState: {
         recentlyViewedMarketObjects: [],
+      },
+      exchangeFilterState: {
+        isVisible: false,
+        selectedProviderIds: ['hyperliquid'],
+        onSave: jest.fn(),
+        availableProviderIds: ['hyperliquid'],
       },
       marketCounts: {
         crypto: 0,

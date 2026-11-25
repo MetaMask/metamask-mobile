@@ -1,3 +1,4 @@
+import { buildVenueSymbolKey } from '../../providers/venueKeys';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
@@ -83,7 +84,10 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
 
   // Fetch current prices for fee calculations (throttled to avoid excessive updates)
   const symbols = useMemo(
-    () => (positions || []).map((pos) => pos.symbol),
+    () =>
+      (positions || []).map((pos) =>
+        buildVenueSymbolKey(pos.symbol, pos.providerId),
+      ),
     [positions],
   );
   const priceData = usePerpsLivePrices({
@@ -396,6 +400,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               receiveAmount={calculations.receiveAmount}
               margin={calculations.totalMargin}
               marginMode={calculations.summaryMarginMode}
+              showMargin
               testIDs={{
                 marginValue:
                   PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
