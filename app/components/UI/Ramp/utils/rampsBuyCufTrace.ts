@@ -551,25 +551,37 @@ export function buildRampsBuyOrderDetailsCufEndData(
   };
 }
 
+export type RampsBuyHeadlessCallbackOutcome =
+  /** The order resolved and is not failed. */
+  | 'completed'
+  /** The order resolved but is already `FAILED` or `ID_EXPIRED`. */
+  | 'order_failed'
+  /** The order could not be fetched or processed after the redirect. */
+  | 'error';
+
 /**
  * Closes the Buy journey for a headless checkout callback, which never shows
  * Order Details. The native child is closed first because ending the parent
  * abandons any child still open (TRAM-4173).
  *
- * On success the child is `success:true` (the order was created) and the parent
- * ends with `reason:headless`, matching the headless Order Processing path. On
- * failure both end with `reason:error`.
+ * For `completed`, the child is `success:true` and the parent ends
+ * `reason:headless`, matching the headless Order Processing path.
+ *
+ * For `order_failed`, the order was created, so the child is `success:true`,
+ * but the parent ends `reason:error`, as Order Details does for a failed order.
+ *
+ * For `error`, no order was resolved, so both end `reason:error`.
  */
 export function endRampsBuyHeadlessCallbackCuf({
   orderId,
-  failed,
+  outcome,
 }: {
   orderId: string;
-  failed: boolean;
+  outcome: RampsBuyHeadlessCallbackOutcome;
 }): void {
   endOpenRampsBuyCufChildrenByName(
     TraceName.RampBuyNativeToOrderCreated,
-    failed
+    outcome === 'error'
       ? {
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
@@ -580,9 +592,10 @@ export function endRampsBuyHeadlessCallbackCuf({
   endRampsBuyCufTrace({
     data: {
       [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-      [RAMPS_BUY_CUF_TAG.REASON]: failed
-        ? RAMPS_BUY_CUF_END_REASON.ERROR
-        : RAMPS_BUY_CUF_END_REASON.HEADLESS,
+      [RAMPS_BUY_CUF_TAG.REASON]:
+        outcome === 'completed'
+          ? RAMPS_BUY_CUF_END_REASON.HEADLESS
+          : RAMPS_BUY_CUF_END_REASON.ERROR,
       orderId,
     },
   });

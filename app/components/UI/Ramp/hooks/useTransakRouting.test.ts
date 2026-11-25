@@ -1851,7 +1851,7 @@ describe('useTransakRouting', () => {
       expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledTimes(1);
       expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledWith({
         orderId: 'order-hs',
-        failed: false,
+        outcome: 'completed',
       });
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
@@ -2057,6 +2057,11 @@ describe('useTransakRouting', () => {
       expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
         expect.objectContaining({ status: RampsOrderStatus.Failed }),
       );
+      // TRAM-4173: the Buy journey parent ends as an error, not headless.
+      expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledWith({
+        orderId: 'order-hs',
+        outcome: 'order_failed',
+      });
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -2198,7 +2203,7 @@ describe('useTransakRouting', () => {
       // callback.
       expect(mockEndHeadlessCallbackCuf).toHaveBeenCalledWith({
         orderId: 'order-hs',
-        failed: true,
+        outcome: 'error',
       });
     });
 
