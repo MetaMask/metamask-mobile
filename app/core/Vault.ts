@@ -4,6 +4,7 @@ import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { Authentication } from './Authentication/Authentication';
+import { syncAndCompleteKeyringEncryptionKey } from './Authentication/seedlessPasswordSync';
 import { signOutCardAfterPasswordChange } from './signOutCardAfterPasswordChange';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
@@ -91,7 +92,7 @@ export const recreateVaultsWithNewPassword = async (
     try {
       await recreateSeedlessVaultWithNewPassword(newPassword, password);
       await KeyringController.changePassword(newPassword);
-      await Authentication.syncAndCompleteKeyringEncryptionKey();
+      await syncAndCompleteKeyringEncryptionKey();
     } catch (error) {
       await Authentication.lockApp({ locked: true, reset: false });
       throw error;

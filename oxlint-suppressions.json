@@ -20939,7 +20939,7 @@
       "count": 3
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 31
+      "count": 16
     },
     "typescript/only-throw-error": {
       "count": 1

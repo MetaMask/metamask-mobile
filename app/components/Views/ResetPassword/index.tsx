@@ -234,7 +234,10 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, []);
 
   const handleSeedlessChangePasswordError = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    // Vault recreation locks the wallet and resets navigation to Login before
+    // rethrowing, so use the root navigator and only dismiss the sheet on
+    // confirm instead of navigating back into Security Settings while locked.
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings(
@@ -249,16 +252,13 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         type: 'error',
         icon: IconName.Danger,
         isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
-        },
         closeOnPrimaryButtonPress: true,
       },
     });
-  }, [navigation]);
+  }, []);
 
   const handleSeedlessPasswordOutdated = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings('login.seedless_password_outdated_modal_title'),
@@ -278,7 +278,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         closeOnPrimaryButtonPress: true,
       },
     });
-  }, [navigation, handleSeedlessChangePasswordError]);
+  }, [handleSeedlessChangePasswordError]);
 
   const recreateVault = useCallback(async () => {
     await recreateVaultsWithNewPassword(
@@ -355,7 +355,10 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           strings('choose_password.security_alert_message'),
         );
         setLoading(false);
-      } else if (castError.message.includes('SeedlessOnboardingController')) {
+      } else if (
+        isSeedlessOnboardingLoginFlow ||
+        castError.message.includes('SeedlessOnboardingController')
+      ) {
         Logger.error(castError);
         if (
           castError.message ===
@@ -377,6 +380,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     biometryChoice,
     rememberMe,
     biometryType,
+    isSeedlessOnboardingLoginFlow,
     recreateVault,
     handleSeedlessPasswordOutdated,
     handleSeedlessChangePasswordError,

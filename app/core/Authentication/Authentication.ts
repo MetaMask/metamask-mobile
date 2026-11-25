@@ -14,7 +14,6 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
-  setIsConnectionRemoved,
   setMoneyOnboardingSeen,
   setMoneySplashSeen,
 } from '../../actions/user';
@@ -52,7 +51,6 @@ import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
-import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -67,15 +65,10 @@ import {
   EncAccountDataType,
   SeedlessOnboardingMigrationVersion,
   InvalidPrimarySecretDataTypeError,
-  PasswordSyncInstruction,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../selectors/analyticsController';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
-import {
-  SeedlessOnboardingControllerError,
-  SeedlessOnboardingControllerErrorType,
-} from '../Engine/controllers/seedless-onboarding-controller/error';
 import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -126,6 +119,13 @@ import {
   getUnlockAppStartType,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
 } from '../Performance/unlockTraces';
+import {
+  checkAndShowSeedlessPasswordOutdatedModal,
+  checkIsSeedlessPasswordOutdated,
+  syncKeyringEncryptionKey,
+  syncPasswordAndUnlockWallet,
+} from './seedlessPasswordSync';
+export type { CheckIsSeedlessPasswordOutdatedOptions } from './seedlessPasswordSync';
 
 type Incident1745IdentifySource =
   | 'rehydrateSeedPhrase'
@@ -274,13 +274,6 @@ export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
   oauth2Login?: boolean;
-}
-
-export interface CheckIsSeedlessPasswordOutdatedOptions {
-  /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
-  skipCache?: boolean;
-  /** When true, failed controller checks are reported to Sentry via {@link Logger.error}. Default: false */
-  captureSentryError?: boolean;
 }
 
 class AuthenticationService {
@@ -1275,7 +1268,7 @@ class AuthenticationService {
         });
       }
 
-      await this.syncKeyringEncryptionKey();
+      await syncKeyringEncryptionKey();
 
       // New users already have dataType set on their secrets during creation,
       // so we mark the migration as complete to prevent it from running
@@ -1617,7 +1610,7 @@ class AuthenticationService {
             }
           }
         }
-        await this.syncKeyringEncryptionKey();
+        await syncKeyringEncryptionKey();
 
         this.dispatchOauthReset();
         ReduxService.store.dispatch(setExistingUser(true));
@@ -1640,148 +1633,12 @@ class AuthenticationService {
    *
    * @param {string} globalPassword - latest global seedless password
    */
-  syncPasswordAndUnlockWallet = async (
-    globalPassword: string,
-  ): Promise<void> => {
-    const { SeedlessOnboardingController, KeyringController } = Engine.context;
-
-    const isKeyringPasswordValid = await KeyringController.verifyPassword(
-      globalPassword,
-    )
-      .then(() => true)
-      .catch(() => false);
-
-    // Reconcile the Seedless password state with the submitted global password.
-    // Depending on the failure path, a wrong password may surface as
-    // SeedlessOnboardingControllerErrorMessage.IncorrectPassword (TOPRF sync)
-    // or as the encryptor's plain 'Incorrect password' error (decrypting an
-    // already-rewritten local Seedless vault during recovery).
-    let recoveryInstruction: PasswordSyncInstruction;
-    try {
-      recoveryInstruction =
-        await SeedlessOnboardingController.reconcilePassword({
-          globalPassword,
-          maxKeyChainLength: 20,
-        });
-    } catch (seedlessSyncError) {
-      const errorMessage =
-        seedlessSyncError instanceof Error ? seedlessSyncError.message : '';
-      Logger.log(
-        seedlessSyncError,
-        `error while reconciling password: ${errorMessage}`,
-      );
-
-      if (
-        errorMessage ===
-        SeedlessOnboardingControllerErrorMessage.MaxKeyChainLengthExceeded
-      ) {
-        // Unable to recover the old password encryption key because the device
-        // is too far behind; rehydrate from social backup instead.
-        try {
-          await SeedlessOnboardingController.refreshAuthTokens();
-        } catch (refreshError) {
-          Logger.error(
-            refreshError as Error,
-            'Failed to refresh auth tokens during MaxKeyChainLength recovery, attempting rehydration anyway',
-          );
-        }
-        await this.rehydrateSeedPhrase(globalPassword);
-        ReduxService.store.dispatch(setIsConnectionRemoved(true));
-        return;
-      }
-
-      const isIncorrectPasswordError =
-        errorMessage ===
-          SeedlessOnboardingControllerErrorMessage.IncorrectPassword ||
-        errorMessage === 'Incorrect password';
-
-      if (isIncorrectPasswordError) {
-        if (isKeyringPasswordValid) {
-          throw new SeedlessOnboardingControllerError(
-            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
-          );
-        }
-        throw seedlessSyncError;
-      }
-
-      Logger.error(
-        seedlessSyncError as Error,
-        'Error in syncPasswordAndUnlockWallet',
-      );
-      throw seedlessSyncError;
-    }
-
-    try {
-      switch (recoveryInstruction) {
-        case PasswordSyncInstruction.InSync:
-          await KeyringController.submitPassword(globalPassword);
-          await SeedlessOnboardingController.submitPassword(globalPassword);
-          return;
-        case PasswordSyncInstruction.ReconcileKeyring: {
-          // `reconcilePassword` has already rewritten the Seedless vault and
-          // re-wrapped the stored Keyring encryption key under `globalPassword`.
-          const keyringEncryptionKey =
-            await SeedlessOnboardingController.loadKeyringEncryptionKey();
-          await KeyringController.submitEncryptionKey(keyringEncryptionKey);
-          await KeyringController.changePassword(globalPassword);
-          await this.syncAndCompleteKeyringEncryptionKey();
-          // Card logout is a remote call with no timeout. It must not delay the
-          // unlock or sit between the password change and the key sync.
-          signOutCardAfterPasswordChange().catch(() => undefined);
-          break;
-        }
-        case PasswordSyncInstruction.SyncKey:
-          // `reconcilePassword` unlocked the Seedless vault, while Keyring
-          // remains locked until the submitted password is applied.
-          await KeyringController.submitPassword(globalPassword);
-          await this.syncAndCompleteKeyringEncryptionKey();
-          signOutCardAfterPasswordChange().catch(() => undefined);
-          break;
-        default:
-          throw new Error(
-            SeedlessOnboardingControllerErrorMessage.CouldNotRecoverPassword,
-          );
-      }
-
-      // `reconcilePassword` updates the Seedless vault but does not invalidate
-      // the controller's cached outdated-password result. Refresh it so the
-      // post-recovery check on Main sees in-sync state instead of a stale modal.
-      await SeedlessOnboardingController.resolvePasswordSyncState({
-        skipCache: true,
-      });
-    } catch (err) {
-      // Lock app again on error after partial unlock/reconciliation.
-      await this.lockApp({ locked: true, reset: false });
-      throw err;
-    }
-
-    // Reset biometrics since the previously stored password is no longer valid.
-    await this.resetPassword();
-  };
-
-  /**
-   * Resolves the current Seedless password synchronization instruction.
-   *
-   * Non-Seedless wallets are already in sync from the perspective of Seedless
-   * password recovery.
-   *
-   * @param options - Options for resolving the password synchronization state.
-   * @param options.skipCache - Whether to bypass the controller's cached remote
-   * state (default: false). A pending recovery checkpoint always forces a fresh
-   * remote check.
-   * @returns The current password synchronization and recovery instruction.
-   */
-  resolveSeedlessPasswordSyncInstruction = async ({
-    skipCache = false,
-  }: { skipCache?: boolean } = {}): Promise<PasswordSyncInstruction> => {
-    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-      return PasswordSyncInstruction.InSync;
-    }
-    const { SeedlessOnboardingController } = Engine.context;
-    return await SeedlessOnboardingController.resolvePasswordSyncState({
-      skipCache,
+  syncPasswordAndUnlockWallet = async (globalPassword: string): Promise<void> =>
+    await syncPasswordAndUnlockWallet(globalPassword, {
+      rehydrateSeedPhrase: this.rehydrateSeedPhrase,
+      lockApp: this.lockApp,
+      resetPassword: this.resetPassword,
     });
-  };
 
   /**
    * Checks if the seedless password is outdated or requires recovery.
@@ -1790,33 +1647,7 @@ class AuthenticationService {
    * @param options.captureSentryError - when true, failed checks are reported to Sentry via {@link Logger.error} (default: false)
    * @returns true if password sync or recovery is required, false otherwise (or when not in seedless flow)
    */
-  checkIsSeedlessPasswordOutdated = async (
-    options: CheckIsSeedlessPasswordOutdatedOptions = {},
-  ): Promise<boolean> => {
-    const skipCache = options.skipCache ?? true;
-    const captureSentryError = options.captureSentryError ?? false;
-    const { SeedlessOnboardingController } = Engine.context;
-    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-      return false;
-    }
-    try {
-      const passwordSyncInstruction =
-        await SeedlessOnboardingController.resolvePasswordSyncState({
-          skipCache,
-        });
-      return passwordSyncInstruction !== PasswordSyncInstruction.InSync;
-    } catch (error) {
-      if (captureSentryError) {
-        Logger.error(
-          error as Error,
-          'Error in checkIsSeedlessPasswordOutdated',
-        );
-      } else {
-        Logger.log('checkIsSeedlessPasswordOutdated', error);
-      }
-      return false;
-    }
-  };
+  checkIsSeedlessPasswordOutdated = checkIsSeedlessPasswordOutdated;
 
   /**
    * Prompts biometric unlock after checking whether the seedless password is
@@ -1860,88 +1691,14 @@ class AuthenticationService {
    */
   checkAndShowSeedlessPasswordOutdatedModal = async (
     isSeedlessPasswordOutdated: boolean,
-  ): Promise<void> => {
-    if (!isSeedlessPasswordOutdated) {
-      return;
-    }
-
-    // Check for latest seedless password outdated state
-    // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-    const isOutdated = await this.checkIsSeedlessPasswordOutdated({
-      skipCache: false,
-      captureSentryError: true,
-    });
-    if (!isOutdated) {
-      return;
-    }
-
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.PASSWORD_OUTDATED_MODAL_VIEWED,
-      )
-        .addProperties({ category: 'App' })
-        .build(),
-    );
-
-    // show seedless password outdated modal and force user to lock app
-    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('login.seedless_password_outdated_modal_title'),
-        description: strings('login.seedless_password_outdated_modal_content'),
-        primaryButtonLabel: strings(
-          'login.seedless_password_outdated_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          await this.lockApp({ locked: true });
-        },
-        closeOnPrimaryButtonPress: true,
+  ): Promise<void> =>
+    await checkAndShowSeedlessPasswordOutdatedModal(
+      isSeedlessPasswordOutdated,
+      {
+        checkIsSeedlessPasswordOutdated: this.checkIsSeedlessPasswordOutdated,
+        lockApp: this.lockApp,
       },
-    });
-  };
-
-  /**
-   * Stores the current keyring encryption key in the Seedless onboarding
-   * controller state.
-   *
-   * @returns {Promise<void>}
-   */
-  syncKeyringEncryptionKey = async (): Promise<void> => {
-    const { KeyringController, SeedlessOnboardingController } = Engine.context;
-    // store the keyring encryption key in the seedless onboarding controller
-    const keyringEncryptionKey = await KeyringController.exportEncryptionKey();
-    await SeedlessOnboardingController.storeKeyringEncryptionKey(
-      keyringEncryptionKey,
     );
-  };
-
-  /**
-   * Advances the Seedless password-change lifecycle to `KEY_SYNC_PENDING`,
-   * stores and verifies the current Keyring encryption key, and clears the
-   * lifecycle once synchronization is verified.
-   *
-   * @returns {Promise<void>}
-   */
-  syncAndCompleteKeyringEncryptionKey = async (): Promise<void> => {
-    const { KeyringController, SeedlessOnboardingController } = Engine.context;
-    await SeedlessOnboardingController.markPasswordChangeKeySyncPending();
-    await this.syncKeyringEncryptionKey();
-
-    // Verify that the stored key can be decrypted with the current Seedless
-    // password before clearing the recovery lifecycle.
-    const storedKeyringEncryptionKey =
-      await SeedlessOnboardingController.loadKeyringEncryptionKey();
-    const currentKeyringEncryptionKey =
-      await KeyringController.exportEncryptionKey();
-    if (storedKeyringEncryptionKey !== currentKeyringEncryptionKey) {
-      throw new Error('Keyring encryption key synchronization failed');
-    }
-
-    await SeedlessOnboardingController.completePasswordChange();
-  };
 
   /**
    * Runs seedless onboarding migrations if needed.
