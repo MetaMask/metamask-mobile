@@ -327,7 +327,7 @@ const MixedWatchlistSection = forwardRef<
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
   const { navigateToMarketDetails } = usePerpsNavigation();
   const { addToWatchlist: addPerpToWatchlist, removeFromWatchlist } =
-    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
+    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.WALLET_HOME, {
       showToasts: false,
     });
 
@@ -356,10 +356,7 @@ const MixedWatchlistSection = forwardRef<
 
   const handlePerpPress = useCallback(
     (market: PerpsMarketData) => {
-      navigateToMarketDetails(
-        market,
-        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-      );
+      navigateToMarketDetails(market, PERPS_EVENT_VALUE.SOURCE.WALLET_HOME);
     },
     [navigateToMarketDetails],
   );
