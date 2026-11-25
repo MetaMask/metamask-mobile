@@ -73,6 +73,10 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@mswjs/interceptors',
   '@open-draft/until',
   'rettime',
+  // mockttp 4.x depends on ESM-only milliparsec and get-port 7 (installed nested under mockttp).
+  'milliparsec',
+  'mockttp/node_modules/get-port',
+  'get-port',
   'react-native-wagmi-charts',
   'react-native-nitro-modules',
   '@notifee',

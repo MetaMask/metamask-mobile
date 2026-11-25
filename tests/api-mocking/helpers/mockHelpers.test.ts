@@ -9,6 +9,9 @@ import {
   setupMockRequest,
   type SeenProxiedRequest,
 } from './mockHelpers.ts';
+import { installCryptoRandomUUID } from './cryptoRandomUUID.ts';
+
+beforeAll(installCryptoRandomUUID);
 
 describe('processPostRequestBody', () => {
   describe('basic functionality', () => {

@@ -3,6 +3,9 @@ import { getLocal, type Mockttp } from 'mockttp';
 import { QAMockOAuthService } from '../../../app/core/OAuthService/QAMockOAuthService';
 import { AuthServer } from './constants';
 import { createOAuthMockttpService } from './OAuthMockttpService';
+import { installCryptoRandomUUID } from '../helpers/cryptoRandomUUID';
+
+beforeAll(installCryptoRandomUUID);
 
 describe('OAuthMockttpService', () => {
   let mockServer: Mockttp;
