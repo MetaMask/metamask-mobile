@@ -6,7 +6,7 @@ import { View } from '../../primitives/View';
 const chipKeys = ['c1', 'c2', 'c3', 'c4'];
 const tileKeys = ['t1', 't2', 't3', 't4'];
 
-export function PacksScreenSkeleton() {
+export function PackListingsSkeleton() {
   return (
     <View className="gap-4 pt-2" testID={collectiblesTestIds.packsSkeleton}>
       <View className="flex-row gap-2 overflow-hidden px-4">

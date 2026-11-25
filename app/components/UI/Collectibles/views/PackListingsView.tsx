@@ -20,7 +20,7 @@ import { usePacksCatalog } from '../hooks/usePacksCatalog';
 import { useAnnounce } from '../hooks/useAnnounce';
 import { PackCategoryFilter } from '../components/PackCategoryFilter';
 import { PackListingTile } from '../components/PackListingTile';
-import { PacksScreenSkeleton } from '../components/PacksScreenSkeleton';
+import { PackListingsSkeleton } from '../components/PackListingsSkeleton';
 
 const keyExtractor = (pack: ListedPack) => pack.code;
 
@@ -51,7 +51,7 @@ export function PackListingsView() {
   );
 
   if (isPending) {
-    return <PacksScreenSkeleton />;
+    return <PackListingsSkeleton />;
   }
 
   if (isEmpty) {

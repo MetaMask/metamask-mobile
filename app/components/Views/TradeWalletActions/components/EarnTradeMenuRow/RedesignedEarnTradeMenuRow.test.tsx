@@ -8,8 +8,7 @@ import {
   EARN_MODULE_REDIRECT_TARGETS,
 } from '../../../../../components/UI/Earn/constants/earnModuleEvents';
 import useEarnHighestRate from '../../../../../components/UI/Earn/hooks/useEarnHighestRate';
-import { selectIsEarnSectionEligible } from '../../../../../components/UI/Earn/selectors/eligibility';
-import type { RootState } from '../../../../../reducers';
+import useMoneyVaultApy from '../../../../../components/UI/Money/hooks/useMoneyVaultApy';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../WalletActions/WalletActionsBottomSheet.testIds';
 import RedesignedEarnTradeMenuRow from './RedesignedEarnTradeMenuRow';
@@ -25,11 +24,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../../components/UI/Earn/selectors/eligibility', () => ({
-  selectIsEarnSectionEligible: jest.fn(),
+jest.mock('../../../../../components/UI/Earn/hooks/useEarnHighestRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
-jest.mock('../../../../../components/UI/Earn/hooks/useEarnHighestRate', () => ({
+jest.mock('../../../../../components/UI/Money/hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -46,49 +46,52 @@ const mockOnActionSelected = jest.fn<
   void,
   [callback: () => void | Promise<void>]
 >();
-const mockSelectIsEarnSectionEligible = jest.mocked(
-  selectIsEarnSectionEligible,
-);
 const mockUseEarnHighestRate = jest.mocked(useEarnHighestRate);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 
-const renderRedesignedRow = () =>
-  render(
+const renderRedesignedRow = ({
+  isEarnEligible = true,
+  isMoneyAccountVisible = true,
+}: {
+  isEarnEligible?: boolean;
+  isMoneyAccountVisible?: boolean;
+} = {}) => {
+  mockUseSelector
+    .mockReturnValueOnce(isEarnEligible)
+    .mockReturnValueOnce(isMoneyAccountVisible);
+
+  return render(
     <RedesignedEarnTradeMenuRow
       onActionSelected={mockOnActionSelected}
       isDisabled={false}
     />,
   );
+};
 
 describe('RedesignedEarnTradeMenuRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockReset();
-    mockUseSelector.mockImplementation((selector) => selector({} as RootState));
-    mockSelectIsEarnSectionEligible.mockReturnValue(true);
     mockUseEarnHighestRate.mockReturnValue({ highestRate: undefined });
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: undefined,
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
   });
 
-  it.each([
-    [
-      { type: 'APY' as const, percentage: 6.2, status: 'ready' as const },
-      '6.2% APY',
-    ],
-    [
-      { type: 'APR' as const, percentage: 4.2, status: 'ready' as const },
-      '4.2% APR',
-    ],
-  ])('renders the ready %s rate tag', (highestRate, copy) => {
-    mockUseEarnHighestRate.mockReturnValue({ highestRate });
+  it('renders the Money account APY tag', () => {
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: 6.2,
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
 
     const { getByTestId } = renderRedesignedRow();
 
-    expect(mockUseEarnHighestRate).toHaveBeenCalled();
+    expect(mockUseEarnHighestRate).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
-    ).toHaveTextContent(copy);
+    ).toHaveTextContent('6.2% APY');
   });
 
-  it('omits the rate tag when no ready rate is available', () => {
+  it('omits the rate tag when Money APY is unavailable', () => {
     const { queryByTestId } = renderRedesignedRow();
 
     expect(
@@ -96,10 +99,52 @@ describe('RedesignedEarnTradeMenuRow', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the row when Earn section eligibility fails', () => {
-    mockSelectIsEarnSectionEligible.mockReturnValue(false);
+  it('renders the latest highest Earn rate when Money account is hidden', () => {
+    mockUseEarnHighestRate.mockReturnValue({
+      highestRate: {
+        type: 'APY',
+        percentage: 3.1,
+        status: 'ready',
+      },
+    });
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: 6.2,
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
 
-    const { queryByTestId } = renderRedesignedRow();
+    const { getByTestId, rerender } = renderRedesignedRow({
+      isMoneyAccountVisible: false,
+    });
+
+    expect(mockUseEarnHighestRate).toHaveBeenCalledWith({ enabled: true });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
+    ).toHaveTextContent('3.1% APY');
+
+    mockUseEarnHighestRate.mockReturnValue({
+      highestRate: {
+        type: 'APR',
+        percentage: 4.2,
+        status: 'ready',
+      },
+    });
+    mockUseSelector.mockReturnValueOnce(true).mockReturnValueOnce(false);
+    rerender(
+      <RedesignedEarnTradeMenuRow
+        onActionSelected={mockOnActionSelected}
+        isDisabled={false}
+      />,
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
+    ).toHaveTextContent('4.2% APR');
+  });
+
+  it('hides the row when Earn section eligibility fails', () => {
+    const { queryByTestId } = renderRedesignedRow({
+      isEarnEligible: false,
+    });
 
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
@@ -112,7 +157,7 @@ describe('RedesignedEarnTradeMenuRow', () => {
     fireEvent.press(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     );
-    mockOnActionSelected.mock.calls[0][0]();
+    void mockOnActionSelected.mock.calls[0][0]();
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
       screen: Routes.EARN.SEARCH_LIST,
@@ -125,13 +170,9 @@ describe('RedesignedEarnTradeMenuRow', () => {
   });
 
   it('tracks ready rate details when Earn row is pressed', () => {
-    mockUseEarnHighestRate.mockReturnValue({
-      highestRate: {
-        type: 'APY',
-        percentage: 6.2,
-        status: 'ready',
-      },
-    });
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: 6.2,
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
 
     const { getByTestId } = renderRedesignedRow();
 
@@ -149,14 +190,7 @@ describe('RedesignedEarnTradeMenuRow', () => {
     });
   });
 
-  it('tracks rate type without percentage when rate is not ready', () => {
-    mockUseEarnHighestRate.mockReturnValue({
-      highestRate: {
-        type: 'APR',
-        status: 'error',
-      },
-    });
-
+  it('tracks APY type without percentage when Money APY is unavailable', () => {
     const { getByTestId } = renderRedesignedRow();
 
     act(() => {
@@ -168,7 +202,49 @@ describe('RedesignedEarnTradeMenuRow', () => {
     expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
       component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
       redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+      rate_type: 'apy',
+    });
+  });
+
+  it('tracks the latest highest Earn rate when Money account is hidden', () => {
+    mockUseEarnHighestRate.mockReturnValue({
+      highestRate: {
+        type: 'APY',
+        percentage: 3.1,
+        status: 'ready',
+      },
+    });
+
+    const { getByTestId, rerender } = renderRedesignedRow({
+      isMoneyAccountVisible: false,
+    });
+
+    mockUseEarnHighestRate.mockReturnValue({
+      highestRate: {
+        type: 'APR',
+        percentage: 4.2,
+        status: 'ready',
+      },
+    });
+    mockUseSelector.mockReturnValueOnce(true).mockReturnValueOnce(false);
+    rerender(
+      <RedesignedEarnTradeMenuRow
+        onActionSelected={mockOnActionSelected}
+        isDisabled={false}
+      />,
+    );
+
+    act(() => {
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+      );
+    });
+
+    expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
+      redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
       rate_type: 'apr',
+      rate_percentage: 4.2,
     });
   });
 });
