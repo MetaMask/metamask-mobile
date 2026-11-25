@@ -385,7 +385,7 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
     expect(mockToast.dismiss).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.SECURITY_SETTINGS,
+      screen: Routes.SETTINGS.PRIVACY_SETTINGS,
     });
   });
 
