@@ -18171,14 +18171,6 @@
       "count": 2
     }
   },
-  "app/components/Views/TradeWalletActions/components/EarnTradeMenuRow/RedesignedEarnTradeMenuRow.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/Views/TransactionsView/index.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
