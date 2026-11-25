@@ -519,10 +519,10 @@ export function endOpenRampsBuyCufChildrenByName(
  * aggregator order (TRAM-4173).
  */
 export function isRampsNativeProviderId(providerId?: string | null): boolean {
-  return (
-    providerId?.replace(/^\/providers\//, '').startsWith('transak-native') ??
-    false
-  );
+  if (!providerId) {
+    return false;
+  }
+  return providerId.replace(/^\/providers\//, '').startsWith('transak-native');
 }
 
 function abandonOpenChildTraces(reason: string): void {

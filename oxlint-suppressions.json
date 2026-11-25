@@ -19443,7 +19443,7 @@
   },
   "app/components/Views/confirmations/hooks/pay/usePayTokenAccountBalance.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/Views/confirmations/hooks/pay/usePayWithNoFeeToken.test.ts": {
@@ -20147,6 +20147,11 @@
   "app/components/hooks/useAnalytics/useAnalytics.ts": {
     "typescript/promise-function-async": {
       "count": 2
+    }
+  },
+  "app/components/hooks/useArcDefaultTokens/index.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
     }
   },
   "app/components/hooks/useAsyncResult.test.ts": {
