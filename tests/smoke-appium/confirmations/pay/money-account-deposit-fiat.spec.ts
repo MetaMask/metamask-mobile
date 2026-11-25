@@ -122,10 +122,10 @@ appiumTest.describe(
             await MoneyHomeView.expectMoneyHomeVisible();
 
             await MoneyHomeView.verifyActivityItemLabelAndAmount(
-              'Deposited',
+              'Added',
               '+$50',
             );
-            await MoneyHomeView.tapActivityItemByLabel('Deposited');
+            await MoneyHomeView.tapActivityItemByLabel('Added');
             await TransactionDetailsModal.verifyConfirmedStatus();
           },
         );
