@@ -10,7 +10,7 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import initialRootState from '../../../../util/test/initial-root-state';
 import { trackExploreSearchOpened } from '../../../Views/TrendingView/search/analytics';
 import ExploreSearchScreen from '../../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import { NATIVE_TRADE_ICONS } from './homeTabs.icons';
+import { getNativeTradeIcons } from './homeTabs.icons';
 import { SEARCH_TAB_NAME, TRADE_TAB_NAME } from './homeTabs.mappers';
 import { useNativeSystemSlotTab } from './useNativeSystemSlotTab';
 
@@ -120,7 +120,7 @@ describe('useNativeSystemSlotTab', () => {
       });
       expect(resolveIcon(result.current.options)).toEqual({
         type: 'image',
-        source: NATIVE_TRADE_ICONS.closed,
+        source: getNativeTradeIcons('en').closed,
         tinted: true,
       });
       expect(
@@ -166,7 +166,7 @@ describe('useNativeSystemSlotTab', () => {
       });
       expect(resolveIcon(result.current.options)).toEqual({
         type: 'image',
-        source: NATIVE_TRADE_ICONS.open,
+        source: getNativeTradeIcons('en').open,
         tinted: true,
       });
 
@@ -178,7 +178,7 @@ describe('useNativeSystemSlotTab', () => {
 
       expect(resolveIcon(result.current.options)).toEqual({
         type: 'image',
-        source: NATIVE_TRADE_ICONS.closed,
+        source: getNativeTradeIcons('en').closed,
         tinted: true,
       });
     });

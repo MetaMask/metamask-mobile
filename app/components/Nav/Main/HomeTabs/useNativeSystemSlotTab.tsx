@@ -7,7 +7,7 @@ import type {
 import type { ParamListBase } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -17,7 +17,7 @@ import type { HeaderNavBarTrailingAction } from '../../../Views/Homepage/abTestC
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../Views/TrendingView/search/analytics';
 import ExploreSearchScreen from '../../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import { NATIVE_TRADE_ICONS } from './homeTabs.icons';
+import { getNativeTradeIcons } from './homeTabs.icons';
 import { SEARCH_TAB_NAME, TRADE_TAB_NAME } from './homeTabs.mappers';
 
 type NativeTabNavigation = NativeBottomTabNavigationProp<ParamListBase>;
@@ -68,6 +68,7 @@ export const useNativeSystemSlotTab = (
 
   return useMemo<NativeSystemSlotTab>(() => {
     if (trailingAction === 'trade') {
+      const tradeIcons = getNativeTradeIcons(I18n.locale);
       return {
         name: TRADE_TAB_NAME,
         options: {
@@ -77,9 +78,7 @@ export const useNativeSystemSlotTab = (
           tabBarLabel: strings('bottom_nav.trade'),
           tabBarIcon: () => ({
             type: 'image',
-            source: isTradeTrayOpen
-              ? NATIVE_TRADE_ICONS.open
-              : NATIVE_TRADE_ICONS.closed,
+            source: isTradeTrayOpen ? tradeIcons.open : tradeIcons.closed,
             tinted: true,
           }),
         },
