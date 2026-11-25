@@ -19,7 +19,11 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 
-function WithdrawableBalance({ balance }: { balance?: string }) {
+function WithdrawableBalance({
+  balance,
+}: {
+  balance?: string;
+}): React.ReactElement {
   const { styles } = useStyles(styleSheet, {});
 
   // formatPerpsBalance truncates (ROUND_DOWN) to 2 decimals so the displayed
@@ -41,25 +45,29 @@ function WithdrawableBalance({ balance }: { balance?: string }) {
   );
 }
 
-function HyperliquidWithdrawBalance() {
+function HyperliquidWithdrawBalance(): React.ReactElement {
   const { account } = usePerpsLiveAccount();
 
   return <WithdrawableBalance balance={account?.withdrawableBalance} />;
 }
 
-function LighterWithdrawBalance() {
-  const balance = useLighterWithdrawableBalance(true);
+function LighterWithdrawBalance({
+  address,
+}: {
+  address?: string;
+}): React.ReactElement {
+  const balance = useLighterWithdrawableBalance(address, true);
 
   return <WithdrawableBalance balance={balance} />;
 }
 
-export function PerpsWithdrawBalance() {
+export function PerpsWithdrawBalance(): React.ReactElement {
   const transactionMeta = useTransactionMetadataRequest();
 
   return hasTransactionType(transactionMeta, [
     TransactionType.perpsLighterWithdraw,
   ]) ? (
-    <LighterWithdrawBalance />
+    <LighterWithdrawBalance address={transactionMeta?.txParams?.from} />
   ) : (
     <HyperliquidWithdrawBalance />
   );

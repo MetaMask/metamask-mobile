@@ -96,6 +96,7 @@ describe('PerpsWithdrawBalance', () => {
       mockUseTransactionMetadataRequest.mockReturnValue({
         id: 'tx-1',
         type: TransactionType.perpsLighterWithdraw,
+        txParams: { from: '0xabc' },
       } as never);
     });
 
@@ -107,7 +108,10 @@ describe('PerpsWithdrawBalance', () => {
       expect(
         getByText(`${strings('confirm.available_balance')}$5.57`),
       ).toBeOnTheScreen();
-      expect(mockUseLighterWithdrawableBalance).toHaveBeenCalledWith(true);
+      expect(mockUseLighterWithdrawableBalance).toHaveBeenCalledWith(
+        '0xabc',
+        true,
+      );
     });
 
     it('renders a zero balance until the Lighter balance loads', () => {

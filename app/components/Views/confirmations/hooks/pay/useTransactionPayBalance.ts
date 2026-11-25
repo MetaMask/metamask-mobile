@@ -74,7 +74,10 @@ export function useTransactionPayBalance({
   const isLighterWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsLighterWithdraw,
   ]);
-  const lighterBalance = useLighterBalance(isLighterWithdraw);
+  const lighterBalance = useLighterBalance(
+    transactionMeta?.txParams?.from,
+    isLighterWithdraw,
+  );
   const predictBalance = usePredictBalance();
   const tokenBalance = useTokenBalance();
 
@@ -142,8 +145,11 @@ function usePerpsBalance(): TransactionPayBalance {
   };
 }
 
-function useLighterBalance(enabled: boolean): TransactionPayBalance {
-  const withdrawableBalance = useLighterWithdrawableBalance(enabled);
+function useLighterBalance(
+  address: string | undefined,
+  enabled: boolean,
+): TransactionPayBalance {
+  const withdrawableBalance = useLighterWithdrawableBalance(address, enabled);
 
   if (!withdrawableBalance) {
     return ZERO;

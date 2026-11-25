@@ -120,7 +120,7 @@ describe('useTransactionPayBalance', () => {
       balanceRaw: '5570887',
       balanceUsd: 5.570887,
     });
-    expect(useLighterWithdrawableBalance).toHaveBeenCalledWith(true);
+    expect(useLighterWithdrawableBalance).toHaveBeenCalledWith('0xabc', true);
   });
 
   it('returns zero for a Lighter withdraw until the balance loads', () => {
@@ -137,7 +137,10 @@ describe('useTransactionPayBalance', () => {
   it('does not enable the Lighter lookup for other flows', () => {
     runHook();
 
-    expect(useLighterWithdrawableBalance).toHaveBeenCalledWith(false);
+    expect(useLighterWithdrawableBalance).toHaveBeenCalledWith(
+      undefined,
+      false,
+    );
   });
 
   it('returns zero when the pay token is unset', () => {
