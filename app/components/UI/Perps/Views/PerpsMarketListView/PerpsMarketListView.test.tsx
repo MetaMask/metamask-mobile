@@ -3162,6 +3162,32 @@ describe('PerpsMarketListView', () => {
         ),
       ).toHaveTextContent('none');
     });
+
+    it('passes the selected venue logos to the filters bar when the exchange filter is visible (TAT-4511)', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        ...buildHookReturn(),
+        exchangeFilterState: {
+          isVisible: true,
+          // One venue selected: only its mark shows next to the count.
+          selectedProviderIds: ['lighter'],
+          onSave: jest.fn(),
+          availableProviderIds: ['hyperliquid', 'lighter'],
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-provider-logos`,
+        ),
+      ).toHaveTextContent('lighter');
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary-provider-logos`,
+        ),
+      ).toHaveTextContent('lighter');
+    });
   });
 
   describe('Edge Cases', () => {

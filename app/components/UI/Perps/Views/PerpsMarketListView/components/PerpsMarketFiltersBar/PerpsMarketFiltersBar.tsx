@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
 import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategoryBadges';
@@ -12,12 +13,11 @@ import {
   IconColor,
   IconName,
   IconSize,
-  SelectButton,
-  SelectButtonVariant,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 /**
  * PerpsMarketFiltersBar Component
@@ -52,12 +52,37 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   isWatchlistSelected,
   onWatchlistToggle,
   onExchangeFilterPress,
-  exchangeFilterLabel,
   showCategoryRow = true,
   showSortRow = true,
   testID,
 }) => {
+  const tw = useTailwind();
   const hasProviderLogos = providerIds !== undefined && providerIds.length > 0;
+
+  const marketCountText = (
+    <>
+      {/* TAT-4511: exchange mark(s) for the selected venue(s) immediately
+          left of the count. PerpsProviderLogos renders nothing when no
+          mark is drawable. */}
+      {hasProviderLogos ? (
+        <PerpsProviderLogos
+          providerIds={providerIds}
+          size={PERPS_AVAILABLE_BALANCE_LOGO_SIZE}
+          testID={testID ? `${testID}-provider-logos` : undefined}
+        />
+      ) : null}
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
+        testID={testID ? `${testID}-market-count` : undefined}
+      >
+        {marketCount === 1
+          ? strings('perps.market_count', { count: marketCount })
+          : strings('perps.market_count_plural', { count: marketCount })}
+      </Text>
+    </>
+  );
 
   return (
     <Box twClassName="w-full bg-default" testID={testID}>
@@ -73,54 +98,38 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
         />
       )}
 
-      {/* Row 2: Market count (left) + Sort dropdown (right) */}
+      {/* Row 2: Market count (left) + Sort dropdown (right). With an
+          exchange filter trigger, the count itself is the selector:
+          [logo(s)] "N markets" [chevron] opens the exchange filter sheet
+          (TAT-4511 design). Without one it is plain text. */}
       {showSortRow && (
         <Box twClassName="flex-row items-center justify-between py-1.5 pl-4 pr-1">
-          <Box twClassName="flex-row items-center">
-            {/* TAT-4511: exchange mark(s) immediately left of the count.
-                PerpsProviderLogos renders nothing when no mark is drawable. */}
-            {hasProviderLogos ? (
-              <PerpsProviderLogos
-                providerIds={providerIds}
-                size={PERPS_AVAILABLE_BALANCE_LOGO_SIZE}
-                testID={testID ? `${testID}-provider-logos` : undefined}
-                twClassName="mr-1"
-              />
-            ) : null}
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-              testID={testID ? `${testID}-market-count` : undefined}
+          {onExchangeFilterPress ? (
+            <Pressable
+              accessibilityRole="button"
+              testID={testID ? `${testID}-exchange-filter` : undefined}
+              onPress={onExchangeFilterPress}
+              hitSlop={{ top: 8, bottom: 8, left: 0, right: 8 }}
+              style={({ pressed }) =>
+                tw.style('flex-row items-center gap-1', pressed && 'opacity-70')
+              }
             >
-              {marketCount === 1
-                ? strings('perps.market_count', { count: marketCount })
-                : strings('perps.market_count_plural', { count: marketCount })}
-            </Text>
-          </Box>
-          <Box twClassName="flex-row items-center gap-2">
-            {onExchangeFilterPress ? (
-              <SelectButton
-                testID={testID ? `${testID}-exchange-filter` : undefined}
-                variant={SelectButtonVariant.Secondary}
-                placeholder={exchangeFilterLabel ?? ''}
-                value={exchangeFilterLabel ?? ''}
-                onPress={onExchangeFilterPress}
-                hideEndArrow
-                textProps={{
-                  variant: TextVariant.BodyMd,
-                  fontWeight: FontWeight.Medium,
-                  numberOfLines: 1,
-                }}
-                endAccessory={
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
+              {marketCountText}
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+                testID={
+                  testID ? `${testID}-exchange-filter-chevron` : undefined
                 }
               />
-            ) : null}
+            </Pressable>
+          ) : (
+            <Box twClassName="flex-row items-center gap-1">
+              {marketCountText}
+            </Box>
+          )}
+          <Box twClassName="flex-row items-center gap-2">
             <PerpsMarketSortDropdowns
               selectedOptionId={selectedOptionId}
               onSortPress={onSortPress}

@@ -547,29 +547,37 @@ describe('Exchange (venue) filter — TAT-4407', () => {
     withLighterBuildEnabled();
 
     it.each([
-      { venues: ['hyperliquid'], label: '1 exchange' },
-      { venues: ['hyperliquid', 'lighter'], label: '2 exchanges' },
-    ] as const)('renders $label', async ({ venues, label }) => {
-      const twoExchange = perpsTwoExchangeState('bothFunded');
-      renderPerpsMarketListView({
-        ...twoExchange,
-        overrides: {
-          ...twoExchange.overrides,
-          settings: {
-            ...twoExchange.overrides.settings,
-            perpsMarketListPreferences: { selectedProviderIds: [...venues] },
+      { venues: ['hyperliquid'], label: 'one selected venue' },
+      { venues: ['hyperliquid', 'lighter'], label: 'both venues' },
+    ] as const)(
+      'renders the count selector with $label',
+      async ({ venues }) => {
+        const twoExchange = perpsTwoExchangeState('bothFunded');
+        renderPerpsMarketListView({
+          ...twoExchange,
+          overrides: {
+            ...twoExchange.overrides,
+            settings: {
+              ...twoExchange.overrides.settings,
+              perpsMarketListPreferences: { selectedProviderIds: [...venues] },
+            },
           },
-        },
-      });
-      expect(await screen.findAllByText(label)).not.toHaveLength(0);
+        });
 
-      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
-      expect(
-        await screen.findAllByTestId(
-          `${sortFiltersId}-secondary-exchange-filter`,
-        ),
-      ).not.toHaveLength(0);
-    });
+        const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+        // TAT-4511: the count itself is the exchange selector.
+        expect(
+          await screen.findAllByTestId(
+            `${sortFiltersId}-secondary-exchange-filter`,
+          ),
+        ).not.toHaveLength(0);
+        expect(
+          await screen.findAllByTestId(
+            `${sortFiltersId}-secondary-exchange-filter-chevron`,
+          ),
+        ).not.toHaveLength(0);
+      },
+    );
   });
 
   describe('with a single venue available', () => {
@@ -626,6 +634,34 @@ describe('Market-count exchange logos — TAT-4511', () => {
       expect(
         await screen.findAllByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
       ).not.toHaveLength(0);
+    });
+
+    it('shows only the selected venue logo when one venue is selected', async () => {
+      const twoExchange = perpsTwoExchangeState('bothFunded');
+      renderPerpsMarketListView({
+        ...twoExchange,
+        overrides: {
+          ...twoExchange.overrides,
+          settings: {
+            ...twoExchange.overrides.settings,
+            perpsMarketListPreferences: { selectedProviderIds: ['lighter'] },
+          },
+        },
+      });
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      expect(
+        await screen.findAllByTestId(`${sortFiltersId}-provider-logos`),
+      ).not.toHaveLength(0);
+      expect(
+        await screen.findAllByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).not.toHaveLength(0);
+      // The unselected venue's mark must not appear next to the count.
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 });

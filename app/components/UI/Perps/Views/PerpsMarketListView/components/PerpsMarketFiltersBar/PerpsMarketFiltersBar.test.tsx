@@ -331,4 +331,60 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByTestId('filters-bar-market-count')).toBeTruthy();
     });
   });
+
+  describe('Market-count exchange selector — TAT-4511/TAT-4518', () => {
+    const mockOnExchangeFilterPress = jest.fn();
+
+    it('renders the count as a plain row without an exchange filter press handler', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} />,
+      );
+
+      expect(queryByTestId('filters-bar-exchange-filter')).toBeNull();
+      expect(queryByTestId('filters-bar-exchange-filter-chevron')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('renders the count as a tappable selector with a chevron when the handler is set', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          onExchangeFilterPress={mockOnExchangeFilterPress}
+        />,
+      );
+
+      expect(getByTestId('filters-bar-exchange-filter')).toBeTruthy();
+      expect(getByTestId('filters-bar-exchange-filter-chevron')).toBeTruthy();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('opens the exchange filter when the count selector is pressed', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          onExchangeFilterPress={mockOnExchangeFilterPress}
+        />,
+      );
+
+      fireEvent.press(getByTestId('filters-bar-exchange-filter'));
+      expect(mockOnExchangeFilterPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the selected venue logos inside the selector', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          providerIds={['lighter']}
+          onExchangeFilterPress={mockOnExchangeFilterPress}
+        />,
+      );
+
+      // Only the corresponding mark for a single selected venue.
+      expect(getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeTruthy();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeNull();
+      expect(getByTestId('filters-bar-exchange-filter')).toBeTruthy();
+    });
+  });
 });
