@@ -503,4 +503,134 @@ describe('useRampSellGasFee', () => {
       jest.useRealTimers();
     }
   });
+
+  it('accepts a slow success that lands after one refresh interval', async () => {
+    jest.useFakeTimers();
+    try {
+      const slow = deferred<{ gas: string; simulationFails: undefined }>();
+      mockEstimateGasBuffered.mockReturnValueOnce(slow.promise);
+
+      const { result } = renderHook();
+      await act(async () => undefined);
+      expect(result.current).toEqual({ status: 'loading' });
+
+      await act(async () => {
+        jest.advanceTimersByTime(15_000);
+      });
+      expect(mockEstimateGasBuffered).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        slow.resolve({ gas: '0x5208', simulationFails: undefined });
+      });
+      expect(result.current).toEqual({
+        status: 'ready',
+        gasFeeWei: 21_000n * 2n * GWEI,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('accepts a slow refresh after a ready value', async () => {
+    jest.useFakeTimers();
+    try {
+      const { result } = renderHook();
+      await act(async () => undefined);
+      expect(result.current.status).toBe('ready');
+
+      const refresh = deferred<{ gas: string; simulationFails: undefined }>();
+      mockEstimateGasBuffered.mockReturnValueOnce(refresh.promise);
+
+      // 15 s: the refresh starts.
+      await act(async () => {
+        jest.advanceTimersByTime(15_000);
+      });
+      // 30 s: stale cap flips to error; the tick does not start a duplicate.
+      await act(async () => {
+        jest.advanceTimersByTime(15_000);
+      });
+      expect(result.current).toEqual({ status: 'error' });
+      expect(mockEstimateGasBuffered).toHaveBeenCalledTimes(2);
+
+      // 32 s: the 17 s refresh lands and is accepted.
+      await act(async () => {
+        jest.advanceTimersByTime(2_000);
+        refresh.resolve({ gas: '0x5208', simulationFails: undefined });
+      });
+      expect(result.current).toEqual({
+        status: 'ready',
+        gasFeeWei: 21_000n * 2n * GWEI,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('replaces a hung request after the stale window and recovers', async () => {
+    jest.useFakeTimers();
+    try {
+      let calls = 0;
+      mockEstimateGasBuffered.mockImplementation(async () => {
+        calls += 1;
+        if (calls === 1) {
+          return new Promise<never>(() => undefined);
+        }
+        if (calls === 2) {
+          return Promise.reject(new Error('node unavailable'));
+        }
+        return Promise.resolve({ gas: '0x5208', simulationFails: undefined });
+      });
+
+      const { result } = renderHook();
+      await act(async () => undefined);
+      expect(result.current).toEqual({ status: 'loading' });
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+      expect(result.current).toEqual({ status: 'error' });
+
+      await act(async () => {
+        jest.advanceTimersByTime(15_000);
+      });
+      expect(result.current).toEqual({
+        status: 'ready',
+        gasFeeWei: 21_000n * 2n * GWEI,
+      });
+      expect(calls).toBe(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('starts a fresh request after going offline and back online', async () => {
+    jest.useFakeTimers();
+    try {
+      mockEstimateGasBuffered.mockReturnValueOnce(new Promise(() => undefined));
+      const { result, rerenderWith } = renderHook();
+      await act(async () => undefined);
+      expect(result.current).toEqual({ status: 'loading' });
+
+      mockNetworkTier = 'NONE';
+      await act(async () => {
+        rerenderWith({});
+      });
+      expect(result.current).toEqual({ status: 'idle' });
+
+      mockNetworkTier = 'WIFI';
+      mockEstimateGasBuffered.mockResolvedValue({
+        gas: '0x5208',
+        simulationFails: undefined,
+      });
+      await act(async () => {
+        rerenderWith({});
+      });
+      expect(result.current).toEqual({
+        status: 'ready',
+        gasFeeWei: 21_000n * 2n * GWEI,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

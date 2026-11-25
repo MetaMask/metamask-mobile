@@ -106,6 +106,8 @@ export default function useRampSellGasFee({
   const freshSinceRef = useRef(0);
   const staleAfterMsRef = useRef(staleAfterMs);
   staleAfterMsRef.current = staleAfterMs;
+  // Start time of the request in flight for the current key, or null.
+  const inFlightStartedAtRef = useRef<number | null>(null);
 
   const runEstimate = useCallback(async () => {
     const currentTransaction = transactionRef.current;
@@ -113,15 +115,25 @@ export default function useRampSellGasFee({
       return;
     }
 
-    const requestId = ++requestIdRef.current;
     const staleWindowMs = staleAfterMsRef.current;
+    const now = Date.now();
 
     // Checked before the request so a hanging request cannot keep an old
     // reservation, or a first estimate, pending forever: the next interval
     // marks it stale.
-    if (Date.now() - freshSinceRef.current >= staleWindowMs) {
+    if (now - freshSinceRef.current >= staleWindowMs) {
       setState({ status: 'error' });
     }
+
+    // Let a slow request land instead of cancelling it; replace it only once
+    // it has outlived the stale window.
+    const inFlightStartedAt = inFlightStartedAtRef.current;
+    if (inFlightStartedAt !== null && now - inFlightStartedAt < staleWindowMs) {
+      return;
+    }
+
+    const requestId = ++requestIdRef.current;
+    inFlightStartedAtRef.current = now;
 
     try {
       const multiplier = getRampGasBufferMultiplier(chainId, networkClientId);
@@ -174,6 +186,10 @@ export default function useRampSellGasFee({
       }
 
       setState({ status: 'error' });
+    } finally {
+      if (requestId === requestIdRef.current) {
+        inFlightStartedAtRef.current = null;
+      }
     }
   }, [chainId, isOffline, level, networkClientId]);
 
@@ -183,6 +199,7 @@ export default function useRampSellGasFee({
       keyRef.current = undefined;
       hasReadyForKeyRef.current = false;
       freshSinceRef.current = 0;
+      inFlightStartedAtRef.current = null;
       setState({ status: 'idle' });
       return;
     }
@@ -198,6 +215,7 @@ export default function useRampSellGasFee({
 
     return () => {
       requestIdRef.current += 1;
+      inFlightStartedAtRef.current = null;
     };
   }, [isEnabled, key, runEstimate]);
 
