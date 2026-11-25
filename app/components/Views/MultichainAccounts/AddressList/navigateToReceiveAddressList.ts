@@ -1,10 +1,13 @@
 import type { AccountGroupId } from '@metamask/account-api';
 import { strings } from '../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import type { AddressListViewedSourceValue } from '../../../../util/analytics/addressListViewedTracking';
+import type { AddressListViewedSource } from '../../../../util/analytics/addressListViewedTracking';
 import Logger from '../../../../util/Logger';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { createAddressListNavigationDetails } from './AddressList';
+
+type AddressListViewedSourceValue =
+  (typeof AddressListViewedSource)[keyof typeof AddressListViewedSource];
 
 interface NavigateToReceiveAddressListParams {
   navigation: AppNavigationProp;

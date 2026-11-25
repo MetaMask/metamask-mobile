@@ -12,9 +12,6 @@ export const AddressListViewedSource = {
   ONBOARDING_CHECKLIST: 'onboarding_checklist',
 } as const;
 
-export type AddressListViewedSourceValue =
-  (typeof AddressListViewedSource)[keyof typeof AddressListViewedSource];
-
 /**
  * Properties for Address List Viewed tracking.
  *
