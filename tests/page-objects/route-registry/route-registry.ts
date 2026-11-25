@@ -47,6 +47,7 @@ import type PredictMarketList from '../Predict/PredictMarketList';
 import type PredictPositions from '../Predict/PredictPositions';
 import type PredictUnavailableView from '../Predict/PredictUnavailableView';
 import type QuotesView from '../Ramps/QuotesView';
+import type AddressList from '../MultichainAccounts/AddressList';
 import type RemoveAccount from '../MultichainAccounts/RemoveAccount';
 import type RewardsMoneyView from '../Rewards/RewardsMoneyView';
 import type RewardsView from '../Rewards/RewardsView';
@@ -67,6 +68,7 @@ import type WalletView from '../wallet/WalletView';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 interface PageObjectModules {
+  AddressList: typeof AddressList;
   AccountDetails: typeof AccountDetails;
   ActivityDetails: typeof ActivityDetails;
   ActivitiesView: typeof ActivitiesView;
@@ -136,6 +138,7 @@ export type RoutePageObjectRegistry = Record<
 >;
 
 const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
+  MultichainAddressList: 'AddressList',
   EditAccountName: 'EditAccountNameView',
   ActivityDetails: 'ActivityDetails',
   TransactionsView: 'ActivitiesView',
@@ -226,7 +229,7 @@ const NO_PAGE_OBJECT_ROUTES =
   MoneyActivity MoneyApyInfoSheet MoneyBalanceInfoSheet MoneyCardTransactionDetails MoneyConfirmations MoneyDeeplinkModal MoneyDepositDeeplink MoneyEarnCryptoInfoSheet
   MoneyEarnings MoneyEarningsInfoSheet MoneyEstimatedBalanceSheet MoneyFirstTimeDeposit MoneyGeoBlockSheet MoneyHowItWorks MoneyLinkCardSheet MoneyMoreSheet MoneyMusdRescueRecipient MoneyMusdRescueSend
   MoneyPotentialEarnings MoneySplash MoneyTransactionDetails MoreTokenActionsMenu MultichainAccountActions MultichainAccountDetailActions MultichainAccountGroupDetails
-  MultichainAccountsExplorerWebview MultichainAccountsIntroModal MultichainAccountsLearnMoreBottomSheet MultichainAddressList MultichainPrivateKeyList MultichainTransactionDetails MultiRPcMigrationModal
+  MultichainAccountsExplorerWebview MultichainAccountsIntroModal MultichainAccountsLearnMoreBottomSheet MultichainPrivateKeyList MultichainTransactionDetails MultiRPcMigrationModal
   MyProfileView NetworkDetails NetworkSelector NetworksManagement NFTAutoDetectionModal NftDetails NftFullView NoHeaderConfirmations
   NotificationsDetails NotificationSettingsSection NotificationsSettings NotificationsView Onboarding OnboardingOAuthRehydrate OnboardingSuccess OpenLimitOrderDetailsModal
   OptinMetrics OptionsSheet OrderCompleted OrderProcessing OriginSpamModal OTAUpdatesModal OtpCode PermittedNetworksInfoSheet
