@@ -561,9 +561,13 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(
       screen.queryByTestId('perps-limit-price-bottom-sheet'),
     ).not.toBeOnTheScreen();
-    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(order.orderId, {
-      limitPrice: '170',
-    });
+    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(
+      order.orderId,
+      {
+        limitPrice: '170',
+      },
+      order.providerId,
+    );
     expect(mockEditOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         orderId: order.orderId,
@@ -622,9 +626,13 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(
       screen.queryByTestId('perps-order-size-bottom-sheet'),
     ).not.toBeOnTheScreen();
-    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(order.orderId, {
-      size: '2',
-    });
+    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(
+      order.orderId,
+      {
+        size: '2',
+      },
+      order.providerId,
+    );
     expect(mockEditOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         orderId: order.orderId,

@@ -23,7 +23,6 @@ import type {
   SeasonStateDto,
   SubscriptionBenefitDto,
   LineaTokenRewardDto,
-  ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
   ClientVersionRequirementDto,
@@ -236,16 +235,6 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
 export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
   type: `${typeof SERVICE_NAME}:getSeasonOneLineaRewardTokens`;
   handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
-}
-
-export interface RewardsDataServiceValidateBonusCodeAction {
-  type: `${typeof SERVICE_NAME}:validateBonusCode`;
-  handler: RewardsDataService['validateBonusCode'];
-}
-
-export interface RewardsDataServiceApplyBonusCodeAction {
-  type: `${typeof SERVICE_NAME}:applyBonusCode`;
-  handler: RewardsDataService['applyBonusCode'];
 }
 
 export interface RewardsDataServiceGetSubscriptionAccountsAction {
@@ -480,8 +469,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
-  | RewardsDataServiceValidateBonusCodeAction
-  | RewardsDataServiceApplyBonusCodeAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
@@ -632,14 +619,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
       this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateBonusCode`,
-      this.validateBonusCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyBonusCode`,
-      this.applyBonusCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSubscriptionAccounts`,
@@ -1202,33 +1181,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Validate a bonus code.
-   * @param code - The bonus code to validate.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
-   */
-  async validateBonusCode(
-    code: string,
-    subscriptionId: string,
-  ): Promise<{ valid: boolean }> {
-    const response = await this.makeRequest(
-      `/subscriptions/bonus-code?code=${encodeURIComponent(code)}`,
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to validate bonus code. Please try again shortly.`,
-      );
-    }
-
-    return (await response.json()) as { valid: boolean };
-  }
-
-  /**
    * Join an account to a subscription via mobile login.
    * @param body - The mobile login request body containing account, timestamp, and signature.
    * @param subscriptionId - The subscription ID to join the account to.
@@ -1518,39 +1470,6 @@ export class RewardsDataService {
       subscriptionId: data.subscriptionId,
       amount: String(data.amount),
     } as LineaTokenRewardDto;
-  }
-
-  /**
-   * Apply a bonus code to a subscription.
-   * @param dto - The DTO containing the bonus code to apply.
-   * @param subscriptionId - The subscription ID to apply the bonus code to.
-   * @returns Promise that resolves when the bonus code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyBonusCode(
-    dto: ApplyBonusCodeDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-bonus-code',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply bonus code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
   }
 
   /**

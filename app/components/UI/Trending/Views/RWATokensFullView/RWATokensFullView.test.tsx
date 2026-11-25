@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import RWATokensFullView from './RWATokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
-import type TrendingTokensList from '../../components/TrendingTokensList';
+import type TrendingTokensList from '../../components/TrendingTokensList/TrendingTokensList';
 import mockState from '../../../../../util/test/initial-root-state';
 
 const TEST_IDS = {

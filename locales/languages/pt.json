@@ -7161,7 +7161,6 @@
     "gas_education_3": "A MetaMask não lucra com as taxas de gás.",
     "gas_education_4": "As taxas de gás variam com base no tráfego da rede e na complexidade da transação.",
     "gas_education_learn_more": "Saiba mais sobre as taxas de gás",
-    "confusable_title": "Verifique o endereço do destinatário",
     "confusable_msg": "Detectamos um caractere ambíguo no nome ENS. Verifique o nome ENS para evitar um possível golpe.",
     "similar_to": "é similar a",
     "contains_zero_width": "contém caractere de largura zero",
@@ -7179,8 +7178,7 @@
     "hex_data_copied": "Dados hexa copiados para a área de transferência",
     "invalid_recipient": "Destinatário inválido",
     "invalid_recipient_description": "Verifique o endereço e certifique-se de que ele é válido",
-    "swap_tokens": "Trocar tokens",
-    "fromWithColon": "De:"
+    "swap_tokens": "Trocar tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -7458,8 +7456,6 @@
     "hash_copied_to_clipboard": "Hash da transação copiado para a área de transferência",
     "address_copied_to_clipboard": "Endereço copiado para a área de transferência",
     "transaction_error": "Erro na transação",
-    "address_to_placeholder": "Pesquisa, endereço público (0x) ou ENS",
-    "address_from_balance": "Saldo:",
     "status": "Status",
     "date": "Data",
     "nonce": "Nonce",
@@ -7540,11 +7536,8 @@
     "delete_contact": "Excluir contato",
     "delete": "Excluir",
     "cancel": "Cancelar",
-    "add_to_address_book": "Adicionar ao catálogo de endereços",
-    "enter_an_alias": "Insira um apelido",
     "add_this_address": "Adicione este endereço ao seu catálogo de endereços",
     "next": "Avançar",
-    "enter_an_alias_placeholder": "por exemplo, Vitalik B.",
     "add_contact_title": "Adicionar contato",
     "add_contact": "Adicionar contato",
     "edit_contact_title": "Editar contato",
@@ -8971,19 +8964,7 @@
     "contact_support": "Falar com o suporte"
   },
   "whats_new": {
-    "title": "Novidades",
-    "remove_gns_new_ui_update": {
-      "title": "Nova atualização da IU",
-      "introduction": "Fizemos atualizações para melhorar a experiência com o aplicativo.",
-      "descriptions": {
-        "description_1": "Menu suspenso de rede movido para seus ativos",
-        "description_2": "Faça trocas e pontes em um único fluxo simples",
-        "description_3": "Experiência de envio simplificada",
-        "description_4": "Uma nova visão da conta"
-      },
-      "more_information": "Agora você pode se concentrar em seus tokens e atividades, não nas redes por trás deles.",
-      "got_it": "Entendi"
-    }
+    "title": "Novidades"
   },
   "invalid_network": {
     "title": "A ID da blockchain para a rede personalizada \n {{network}} \nprecisa ser reinserida.",
@@ -9294,28 +9275,13 @@
     "nickname": "apelido"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Coisas para manter em mente",
     "testnet_network": "{{type}} testnet",
-    "first_description": "O token nativo desta rede é o {{ticker}}. Ele é o token utilizado para as taxas de rede.",
-    "second_description": "Se você tentar enviar ativos diretamente de uma rede para outra, isso poderá resultar em perda permanente de ativos. Certifique-se de usar uma ponte.",
-    "third_description": "Seus tokens podem não ser automaticamente exibidos em sua carteira.",
-    "private_network": "Esta rede é desconhecida e pode usar um token especial para taxas de rede.",
     "unknown_network": "Rede desconhecida",
-    "switched_network": "Você alternou para",
-    "learn_more": "Saiba mais",
     "add_token": "Clique aqui para adicionar os tokens manualmente",
-    "add_token_manually": "Adicione-os manualmente.",
     "got_it": "Entendi",
     "error_title": "Ocorreu algum erro",
     "error_message": "Ocorreu um erro ao carregar as informações de rede. Tente novamente mais tarde.",
-    "private_network_third_description": "Insira um nome para esta rede para facilitar a identificação.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Ative a detecção automática de tokens",
-    "token_detection_mainnet_title": "Como a detecção de tokens está ativada, os tokens serão automaticamente exibidos em sua carteira.",
-    "token_detection_mainnet_link": "Você também pode adicionar tokens manualmente.",
-    "or": "ou",
-    "non_evm_first_description": "O ativo nativo desta rede é {{ticker}}. Ele é usado para as taxas de transação.",
-    "non_evm_second_description": "Você perderá seus ativos se tentar recebê-los ou enviá-los usando outra rede."
+    "private_network_third_description": "Insira um nome para esta rede para facilitar a identificação."
   },
   "download_files": {
     "error": "Falha ao baixar anexo.",

@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { Keyboard, Platform } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
@@ -130,6 +131,7 @@ import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
+import NativeSocialTabBadge from './HomeTabs/NativeSocialTabBadge';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -242,7 +244,6 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
-import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -860,6 +861,10 @@ const HomeTabs = () => {
 
   const tabComponentFor = (tab: HomeTabDefinition) =>
     tab.key === 'social' ? socialTabComponent : HOME_TAB_COMPONENTS[tab.key];
+  const nativeTabs = tabs.filter((tab) => !tab.isHidden);
+  const nativeSocialTabIndex = nativeTabs.findIndex(
+    (tab) => tab.key === 'social',
+  );
 
   const renderJsTabScreen = (tab: HomeTabDefinition) => (
     <JsTab.Screen
@@ -881,8 +886,8 @@ const HomeTabs = () => {
       options={
         tab.hidesTabBarFor
           ? ({ route }: { route: HomeTabRoute }) =>
-              toNativeTabOptions(tab, route, colors.success.default)
-          : toNativeTabOptions(tab, undefined, colors.success.default)
+              toNativeTabOptions(tab, route)
+          : toNativeTabOptions(tab)
       }
       listeners={getNativeTabListeners(tab)}
       initialParams={tab.initialParams}
@@ -897,29 +902,37 @@ const HomeTabs = () => {
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
         <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-          <NativeTab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            screenOptions={{
-              headerShown: false,
-              // Mount on first visit like the JS navigator; the native
-              // default renders every tab at launch and never freezes them.
-              lazy: true,
-              // UIKit picks the inactive colour.
-              tabBarActiveTintColor: colors.icon.default,
-              // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
-              tabBarMinimizeBehavior: 'none',
-              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-              overrideScrollViewContentInsetAdjustmentBehavior: false,
-            }}
-          >
-            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-            <NativeTab.Screen
-              name={systemSlotTab.name}
-              options={systemSlotTab.options}
-              listeners={systemSlotTab.listeners}
-              component={systemSlotTab.component}
-            />
-          </NativeTab.Navigator>
+          <Box twClassName="flex-1">
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
+                tabBarMinimizeBehavior: 'none',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
+              }}
+            >
+              {nativeTabs.map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+            {showSocialTabNewBadge && nativeSocialTabIndex >= 0 ? (
+              <NativeSocialTabBadge
+                tabIndex={nativeSocialTabIndex}
+                tabCount={nativeTabs.length}
+              />
+            ) : null}
+          </Box>
         </FloatingTabBarInsetContext.Provider>
       </HomeTabSheetHosts>
     );
@@ -1103,10 +1116,6 @@ const MainNavigator = () => {
        * included) from the bottom.
        */}
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as ScreenComponent}
-        />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal as ScreenComponent}

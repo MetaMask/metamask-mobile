@@ -89,7 +89,7 @@ export type MoneyScreensStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyConfirmationsNavigationParamList = {
-  RedesignedConfirmations: ConfirmationParams | undefined;
+  Confirmations: ConfirmationParams | undefined;
 };
 
 export interface MoneyAddMoneySheetParams {
