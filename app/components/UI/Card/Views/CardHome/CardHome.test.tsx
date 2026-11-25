@@ -8308,27 +8308,6 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
       ).toBeOnTheScreen();
 
-      // The quick actions show for a signed-in cardholder even at zero
-      // balance — never hidden or disabled because of it; the balance-gated
-      // rows are the Manage list ones below.
-      expect(
-        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-      ).not.toBeDisabled();
-      expect(
-        screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
-      ).not.toBeDisabled();
       expect(
         screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
       ).toBeNull();
@@ -8338,6 +8317,32 @@ describe('CardHome Component', () => {
       expect(screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
       expect(screen.queryByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeNull();
     });
+
+    it.each([
+      CardHomeSelectors.ADD_FUNDS_BUTTON,
+      CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
+      CardHomeSelectors.VIEW_PIN_BUTTON,
+      CardHomeSelectors.FREEZE_CARD_BUTTON,
+    ])(
+      'keeps the %s quick action visible and enabled at a $0.00 balance',
+      (testId) => {
+        setupLoadCardDataMock({ isAuthenticated: true });
+        overrideCardHomeDataBalance(
+          {
+            rawTokenBalance: 0,
+            rawFiatNumber: 0,
+            balanceFiat: '$0.00',
+            balanceFormatted: '0.000000 USDC',
+          },
+          false,
+          { type: CardType.VIRTUAL, isFreezable: true },
+        );
+
+        render();
+
+        expect(screen.getByTestId(testId)).toBeEnabled();
+      },
+    );
 
     it('shows all manage options when priority token balance is positive', () => {
       setupLoadCardDataMock({ isAuthenticated: true });

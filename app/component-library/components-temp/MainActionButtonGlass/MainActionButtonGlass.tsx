@@ -106,6 +106,7 @@ const CustomIconMainActionButton = ({
     <AnimatedPressable
       disabled={isDisabled}
       accessible
+      accessibilityRole="button"
       onPress={!isDisabled ? onPress : undefined}
       onPressIn={!isDisabled ? onPressInHandler : undefined}
       onPressOut={!isDisabled ? onPressOutHandler : undefined}
