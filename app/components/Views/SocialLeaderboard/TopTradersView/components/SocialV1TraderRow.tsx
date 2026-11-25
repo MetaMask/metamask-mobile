@@ -17,6 +17,7 @@ import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import XTrustMark from '../../../../UI/SocialFeed/components/XTrustMark';
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import {
   RankMedal,
   isTopRank,
@@ -186,6 +187,11 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
           >
             {trader.username}
           </Text>
+          {trader.verified ? (
+            <ProfileVerifiedBadge
+              testID={SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE}
+            />
+          ) : null}
           {trader.xHandle ? <XTrustMark /> : null}
           {nameTag ? (
             <Tag

@@ -31,6 +31,7 @@ export interface TraderPositionAnimatedHeaderProps {
   traderImageUrl?: string;
   traderAddress?: string;
   traderProfileId?: string;
+  isTraderVerified?: boolean;
   symbol: string;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
@@ -70,6 +71,7 @@ const TraderPositionAnimatedHeader: React.FC<
   traderImageUrl,
   traderAddress,
   traderProfileId,
+  isTraderVerified,
   symbol,
   pricePercentChange,
   activeTimePeriodLabel,
@@ -160,6 +162,7 @@ const TraderPositionAnimatedHeader: React.FC<
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={traderProfileId}
+            isVerified={isTraderVerified}
             variant="nav"
             onPress={onTraderPress}
             testID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
@@ -179,6 +182,7 @@ const TraderPositionAnimatedHeader: React.FC<
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             traderProfileId={traderProfileId}
+            isTraderVerified={isTraderVerified}
             onTraderPress={onTraderPress}
           />
         </Animated.View>

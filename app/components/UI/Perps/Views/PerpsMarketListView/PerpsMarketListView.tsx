@@ -23,6 +23,7 @@ import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
+import PerpsExchangeFilterSheet from '../../components/PerpsExchangeFilterSheet/PerpsExchangeFilterSheet';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsRecentlyViewedRail, {
@@ -49,6 +50,7 @@ import {
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -141,6 +143,7 @@ const PerpsMarketListView = ({
     favoritesState,
     marketTypeFilterState,
     recentlyViewedState,
+    exchangeFilterState,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -151,6 +154,14 @@ const PerpsMarketListView = ({
     defaultSortDirection,
     showZeroVolume: __DEV__,
   });
+
+  const count = exchangeFilterState?.selectedProviderIds.length ?? 1;
+  const exchangeFilterLabel = strings(
+    count > 1
+      ? 'perps.exchange_filter.trigger_plural'
+      : 'perps.exchange_filter.trigger',
+    { count },
+  );
 
   const { searchQuery, setSearchQuery } = searchState;
 
@@ -168,6 +179,12 @@ const PerpsMarketListView = ({
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
+
+  // TAT-4407: venue filter sheet for the markets list. The trigger is only
+  // shown when more than one venue is available, and saving persists the
+  // selection across restarts. Positions and orders always show every provider.
+  const [isExchangeFilterSheetVisible, setIsExchangeFilterSheetVisible] =
+    useState(false);
 
   const { track } = usePerpsEventTracking();
 
@@ -846,6 +863,12 @@ const PerpsMarketListView = ({
             marketCount={visibleWatchlistMarkets.length}
             isWatchlistSelected={showFavoritesOnly}
             showCategoryRow={false}
+            onExchangeFilterPress={
+              exchangeFilterState?.isVisible
+                ? () => setIsExchangeFilterSheetVisible(true)
+                : undefined
+            }
+            exchangeFilterLabel={exchangeFilterLabel}
             testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
           />
           <PerpsWatchlistMarkets
@@ -940,6 +963,12 @@ const PerpsMarketListView = ({
         marketCount={filteredMarkets.length}
         isWatchlistSelected={showFavoritesOnly}
         showCategoryRow={false}
+        onExchangeFilterPress={
+          exchangeFilterState?.isVisible
+            ? () => setIsExchangeFilterSheetVisible(true)
+            : undefined
+        }
+        exchangeFilterLabel={exchangeFilterLabel}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
       />
     );
@@ -1046,6 +1075,24 @@ const PerpsMarketListView = ({
         onOptionSelect={handleSortChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
+
+      {/* Exchange (venue) Filter Bottom Sheet — TAT-4407. The sheet opens on
+          mount (no isVisible prop), so it is mounted only while the user has
+          the trigger open; `isVisible` on the filter state only controls the
+          trigger button. */}
+      {exchangeFilterState?.isVisible && isExchangeFilterSheetVisible ? (
+        <PerpsExchangeFilterSheet
+          selectedProviderIds={exchangeFilterState.selectedProviderIds}
+          onSave={(providerIds: PerpsProviderType[]) => {
+            exchangeFilterState.onSave(providerIds);
+            setIsExchangeFilterSheetVisible(false);
+          }}
+          onClose={() => setIsExchangeFilterSheetVisible(false)}
+          testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS.concat(
+            '-exchange-sheet',
+          )}
+        />
+      ) : null}
     </View>
   );
 };

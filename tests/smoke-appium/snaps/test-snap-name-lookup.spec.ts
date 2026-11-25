@@ -2,7 +2,7 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeSnaps } from '../../tags.js';
 import { Assertions, Gestures, Matchers } from '../../framework/index.js';
 import BrowserView from '../../page-objects/Browser/BrowserView.js';
-import RedesignedSendView from '../../page-objects/Send/RedesignedSendView.js';
+import SendView from '../../page-objects/Send/SendView.js';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView.js';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
@@ -76,11 +76,11 @@ appiumTest.describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
           await TokenOverview.tapSendButton();
 
           const domain = 'metamask.domain';
-          await RedesignedSendView.enterZeroAmount();
-          await RedesignedSendView.pressContinueButton();
-          await RedesignedSendView.inputRecipientAddress(domain);
+          await SendView.enterZeroAmount();
+          await SendView.pressContinueButton();
+          await SendView.inputRecipientAddress(domain);
 
-          await RedesignedSendView.pressReviewButton();
+          await SendView.pressReviewButton();
           await TransactionConfirmView.tapAdvancedDetails();
 
           await Gestures.waitAndTap(Matchers.getElementByText(domain, 0), {

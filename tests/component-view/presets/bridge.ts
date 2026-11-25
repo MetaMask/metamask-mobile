@@ -64,6 +64,7 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
       swapsRecurringBuy: {
         enabled: true,
         enabledChainIds: ['eip155:1'],
+        defaultPriceTolerance: 3,
       },
     });
 

@@ -393,6 +393,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const needsMarketsForRelated =
     isRelatedMarketsEnabled && hasRelatedMarketsCategory(routeMarket);
   const { markets } = usePerpsMarkets({
+    fullCatalog: true,
     skipInitialFetch: !needsEnrichment && !needsMarketsForRelated,
   });
   const market = useMemo(() => {
@@ -664,6 +665,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Subscribe to live prices for current position price (allMids baseline, ~2 s)
   const livePrices = usePerpsLivePrices({
+    providerId: market?.providerId,
     symbols: market?.symbol ? [market.symbol] : [],
     throttleMs: 1000,
   });
@@ -672,12 +674,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // Prefer focused price on this detail screen; fall back to the allMids
   // baseline so the display is never blank on first render.
   const focusedPrice = usePerpsLiveFocusedPrice({
+    providerId: market?.providerId,
     symbol: market?.symbol ?? '',
     enabled: Boolean(market?.symbol),
   });
 
   // Get current price for the symbol
-  // Use mark price (oracle price) for stop loss calculations to reduce manipulation risk
+  // Use the venue mark price for stop loss calculations: HyperLiquid triggers
+  // TP/SL on mark, and it resists manipulation better than the mid
   // Falls back to mid price if mark price unavailable
   const currentPrice = useMemo(() => {
     if (!market?.symbol) return 0;
@@ -695,7 +699,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   usePerpsConnection();
 
   // Check if market is at open interest cap
-  const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
+  const { isAtCap: isAtOICap } = usePerpsOICap(
+    market?.symbol,
+    market?.providerId,
+  );
 
   // Check if trading is halted due to price deviation
   const {
@@ -1865,6 +1872,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         visible: isDeferredReady,
         content: (
           <PerpsMarketStatisticsCard
+            providerId={market?.providerId}
             symbol={market?.symbol || ''}
             marketStats={marketStats}
             onTooltipPress={handleTooltipPress}
@@ -2108,6 +2116,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         />
       )}
       <PerpsMarketSummary
+        providerId={market?.providerId}
         symbol={market.symbol}
         currentPrice={syncedChartCurrentPrice}
         testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY}
