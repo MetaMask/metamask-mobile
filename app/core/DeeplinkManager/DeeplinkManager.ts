@@ -2,7 +2,7 @@
 
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
-import { Linking, Platform } from 'react-native';
+import { Linking } from 'react-native';
 import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
 import { ensureError } from '../../util/errorUtils';
@@ -11,8 +11,7 @@ import FCMService, {
   toPushTapResult,
 } from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
-import { isSupportedAction } from './types/deepLink.types';
-import { isMetaMaskUniversalLink } from './util/deeplinks';
+import { AndroidShortlinkGate } from './utils/androidShortlinkGate';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
   getBrazeInitialPush,
@@ -35,45 +34,6 @@ import { getUnlockAppStartType } from '../Performance/unlockTraces';
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
 export type DeeplinkResolveResult = DeeplinkIntent | false | null;
-
-export const BRANCH_SHORTLINK_FALLBACK_MS = 1500;
-const BRANCH_RESOLUTION_WINDOW_MS = 5000;
-
-/**
- * Returns true when a universal link on a MetaMask Branch host has a first path
- * segment the deeplink pipeline does not route (for example `invite-perps` or
- * `1WkF6GmE40b`), meaning it is likely a Branch short link whose destination
- * arrives asynchronously via Branch `$deeplink_path`.
- */
-export function isPendingBranchShortlink(url: string): boolean {
-  if (!isMetaMaskUniversalLink(url)) {
-    return false;
-  }
-
-  try {
-    const { pathname } = new URL(url);
-    const firstSegment = pathname.split('/')[1] ?? '';
-    return firstSegment.length > 0 && !isSupportedAction(firstSegment);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Keys a short link by origin and path so the bare alias Android delivers via
- * `Linking` matches the same alias as reported by Branch. Cold-start Branch
- * reports the stored `~referring_link`, which carries attribution params
- * (`_branch_match_id`, `_branch_referrer`) that the intent often lacks, so a
- * full-URL comparison would miss the duplicate and replay the invalid modal.
- */
-function getShortlinkMatchKey(uri: string): string {
-  try {
-    const parsed = new URL(uri);
-    return `${parsed.origin}${parsed.pathname}`;
-  } catch {
-    return uri;
-  }
-}
 
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
@@ -223,53 +183,13 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
-    let pendingShortlinkTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastBranchResolvedKey: string | null = null;
-    let lastBranchResolvedAt = 0;
-
-    const clearPendingShortlink = () => {
-      if (pendingShortlinkTimer !== null) {
-        clearTimeout(pendingShortlinkTimer);
-        pendingShortlinkTimer = null;
-      }
-    };
-
-    const recordBranchResolution = (rawUri?: string) => {
-      clearPendingShortlink();
-      if (rawUri) {
-        lastBranchResolvedKey = getShortlinkMatchKey(rawUri);
-        lastBranchResolvedAt = Date.now();
-      }
-    };
-
-    // On Android, React Native Linking receives the raw App Link intent before
-    // Branch resolves short-link aliases (such as link.metamask.io/invite-home
-    // or metamask.app.link/1WkF6GmE40b). Hold unknown paths on Branch hosts so
-    // Branch delivers the resolved $deeplink_path first instead of flashing the
-    // invalid-link modal, while keeping a fallback timer for offline/404 paths.
-    const handleLinkingUrl = (url: string) => {
-      if (Platform.OS === 'android' && isPendingBranchShortlink(url)) {
-        if (
-          lastBranchResolvedKey === getShortlinkMatchKey(url) &&
-          Date.now() - lastBranchResolvedAt < BRANCH_RESOLUTION_WINDOW_MS
-        ) {
-          return;
-        }
-        clearPendingShortlink();
-        pendingShortlinkTimer = setTimeout(() => {
-          pendingShortlinkTimer = null;
-          handleDeeplink({ uri: url });
-        }, BRANCH_SHORTLINK_FALLBACK_MS);
-        return;
-      }
-
-      clearPendingShortlink();
-      handleDeeplink({ uri: url });
-    };
+    const shortlinkGate = new AndroidShortlinkGate((uri) =>
+      handleDeeplink({ uri }),
+    );
 
     const getBranchDeeplink = async (uri?: string, rawUri?: string) => {
       if (uri) {
-        recordBranchResolution(rawUri ?? uri);
+        shortlinkGate.recordBranchResolution(rawUri ?? uri);
         handleDeeplink({ uri });
         return;
       }
@@ -286,14 +206,14 @@ export class DeeplinkManager {
           latestParams as Record<string, unknown> | undefined,
         );
         if (rewritten) {
-          recordBranchResolution(referringLink ?? rewritten);
+          shortlinkGate.recordBranchResolution(referringLink ?? rewritten);
           handleDeeplink({ uri: rewritten });
           return;
         }
 
         const deeplink = latestParams?.['+non_branch_link'] as string;
         if (deeplink) {
-          recordBranchResolution(deeplink);
+          shortlinkGate.recordBranchResolution(deeplink);
           handleDeeplink({ uri: deeplink });
         }
       } catch (error) {
@@ -382,7 +302,7 @@ export class DeeplinkManager {
           return;
         }
         Logger.log(`handleDeeplink:: got initial URL ${url}`);
-        handleLinkingUrl(url);
+        shortlinkGate.handleLinkingUrl(url);
       })
       .catch((error: unknown) => {
         Logger.error(ensureError(error), 'Error handling initial deeplink');
@@ -390,7 +310,7 @@ export class DeeplinkManager {
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
-      handleLinkingUrl(url);
+      shortlinkGate.handleLinkingUrl(url);
     });
 
     // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.

@@ -11,11 +11,13 @@ import NotificationsService from '../../util/notifications/services/Notification
 import NavigationService from '../NavigationService';
 import { Linking, Platform } from 'react-native';
 import SharedDeeplinkManager, {
-  BRANCH_SHORTLINK_FALLBACK_MS,
   DeeplinkManager,
-  isPendingBranchShortlink,
   rewriteBranchUri,
 } from './DeeplinkManager';
+import {
+  BRANCH_SHORTLINK_FALLBACK_MS,
+  isPendingBranchShortlink,
+} from './utils/androidShortlinkGate';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
