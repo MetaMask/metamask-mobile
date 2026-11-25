@@ -17,10 +17,12 @@ export const useExploreSearchFooterPress = ({
   searchQuery,
   tabName,
   resultCount,
+  stocksPromoted,
 }: {
   searchQuery: string;
   tabName: SearchFeedPill;
   resultCount?: number;
+  stocksPromoted?: boolean;
 }) => {
   const { onPress: navigateToBrowser } = useSearchFooterBrowserNavigation();
 
@@ -34,9 +36,12 @@ export const useExploreSearchFooterPress = ({
         item_clicked: action,
         result_count: resultCount,
         query_length: getSearchQueryLength(searchQuery),
+        ...(stocksPromoted !== undefined
+          ? { stocks_promoted: stocksPromoted }
+          : {}),
       });
       navigateToBrowser(url);
     },
-    [searchQuery, tabName, resultCount, navigateToBrowser],
+    [searchQuery, tabName, resultCount, stocksPromoted, navigateToBrowser],
   );
 };

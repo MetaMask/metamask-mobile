@@ -119,6 +119,9 @@ jest.mock('../Perps/providers/PerpsStreamManager', () => ({
 jest.mock('../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn(() => true),
 }));
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '8.22.0'),
+}));
 jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: jest.fn(() => ({
     goToSwaps: jest.fn(),
@@ -742,6 +745,227 @@ describe('UrlAutocomplete', () => {
         // Sites section header should not be visible (API-dependent)
         expect(screen.queryByText('Sites')).toBeNull();
       });
+    });
+  });
+
+  describe('Stocks promotion on exact ticker match', () => {
+    const mockCryptoTsla = {
+      assetId: 'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+      name: 'TSLA Memecoin',
+      symbol: 'TSLA',
+      decimals: 18,
+      price: '0.01',
+      priceChangePct: { h24: '5.0' },
+    };
+
+    const mockStockTsla = {
+      assetId: 'eip155:1/erc20:0x2222222222222222222222222222222222222222',
+      name: 'Tesla (Ondo Tokenized)',
+      symbol: 'TSLAon',
+      decimals: 18,
+      price: '250.00',
+      priceChangePct: { h24: '1.2' },
+      rwaData: {
+        ticker: 'TSLA',
+        instrumentType: 'equity',
+      },
+    };
+
+    const stateWithFlag = (enabled: boolean) => ({
+      ...defaultState,
+      engine: {
+        ...defaultState.engine,
+        backgroundState: {
+          ...defaultState.engine?.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              exploreSearchPromoteStocksExactTicker: {
+                enabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const mockUseExploreSearch = jest.requireMock(
+      '../../Views/TrendingView/search/useExploreSearch',
+    ).useExploreSearch as jest.Mock;
+
+    afterEach(() => {
+      mockUseExploreSearch.mockImplementation(() => mockUseExploreSearchReturn);
+    });
+
+    it.each(['TSLA', 'tsla', '$TSLA', 'Tesla', 'tesla'])(
+      'places Stocks ahead of Crypto for exact ticker or name query %p when flag is enabled',
+      async (query) => {
+        mockUseExploreSearch.mockReturnValue({
+          sections: [
+            {
+              feedId: 'tokens',
+              title: 'Crypto',
+              items: [mockCryptoTsla],
+              isLoading: false,
+            },
+            {
+              feedId: 'stocks',
+              title: 'Stocks',
+              items: [mockStockTsla],
+              isLoading: false,
+            },
+          ],
+        });
+
+        const ref = React.createRef<UrlAutocompleteRef>();
+        render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+          state: stateWithFlag(true),
+        });
+
+        act(() => {
+          ref.current?.search(query);
+          jest.runAllTimers();
+        });
+
+        const renderedTexts = (
+          await screen.findAllByText(/Tesla \(Ondo Tokenized\)|TSLA Memecoin/, {
+            includeHiddenElements: true,
+          })
+        ).map((node) => node.props.children);
+
+        expect(renderedTexts).toEqual([
+          'Tesla (Ondo Tokenized)',
+          'TSLA Memecoin',
+        ]);
+      },
+    );
+
+    it('keeps Crypto ahead of Stocks when the remote flag is off', async () => {
+      mockUseExploreSearch.mockReturnValue({
+        sections: [
+          {
+            feedId: 'tokens',
+            title: 'Crypto',
+            items: [mockCryptoTsla],
+            isLoading: false,
+          },
+          {
+            feedId: 'stocks',
+            title: 'Stocks',
+            items: [mockStockTsla],
+            isLoading: false,
+          },
+        ],
+      });
+
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: stateWithFlag(false),
+      });
+
+      act(() => {
+        ref.current?.search('TSLA');
+        jest.runAllTimers();
+      });
+
+      const renderedTexts = (
+        await screen.findAllByText(/Tesla \(Ondo Tokenized\)|TSLA Memecoin/, {
+          includeHiddenElements: true,
+        })
+      ).map((node) => node.props.children);
+
+      expect(renderedTexts).toEqual([
+        'TSLA Memecoin',
+        'Tesla (Ondo Tokenized)',
+      ]);
+    });
+
+    it.each(['TSL', 'tesl', 'eth'])(
+      'keeps Crypto ahead of Stocks for non-exact query %p',
+      async (query) => {
+        mockUseExploreSearch.mockReturnValue({
+          sections: [
+            {
+              feedId: 'tokens',
+              title: 'Crypto',
+              items: [mockCryptoTsla],
+              isLoading: false,
+            },
+            {
+              feedId: 'stocks',
+              title: 'Stocks',
+              items: [mockStockTsla],
+              isLoading: false,
+            },
+          ],
+        });
+
+        const ref = React.createRef<UrlAutocompleteRef>();
+        render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+          state: stateWithFlag(true),
+        });
+
+        act(() => {
+          ref.current?.search(query);
+          jest.runAllTimers();
+        });
+
+        const renderedTexts = (
+          await screen.findAllByText(/Tesla \(Ondo Tokenized\)|TSLA Memecoin/, {
+            includeHiddenElements: true,
+          })
+        ).map((node) => node.props.children);
+
+        expect(renderedTexts).toEqual([
+          'TSLA Memecoin',
+          'Tesla (Ondo Tokenized)',
+        ]);
+      },
+    );
+
+    it('does not promote Stocks while Stocks is loading or when item lacks rwaData', async () => {
+      const stockWithoutRwa = {
+        ...mockStockTsla,
+        symbol: 'TSLA',
+        rwaData: undefined,
+      };
+      mockUseExploreSearch.mockReturnValue({
+        sections: [
+          {
+            feedId: 'tokens',
+            title: 'Crypto',
+            items: [mockCryptoTsla],
+            isLoading: false,
+          },
+          {
+            feedId: 'stocks',
+            title: 'Stocks',
+            items: [stockWithoutRwa],
+            isLoading: false,
+          },
+        ],
+      });
+
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: stateWithFlag(true),
+      });
+
+      act(() => {
+        ref.current?.search('TSLA');
+        jest.runAllTimers();
+      });
+
+      const renderedTexts = (
+        await screen.findAllByText(/Tesla \(Ondo Tokenized\)|TSLA Memecoin/, {
+          includeHiddenElements: true,
+        })
+      ).map((node) => node.props.children);
+
+      expect(renderedTexts).toEqual([
+        'TSLA Memecoin',
+        'Tesla (Ondo Tokenized)',
+      ]);
     });
   });
 });

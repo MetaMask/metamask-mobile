@@ -9,6 +9,7 @@ import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settin
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
+import { stripLeadingDollarQuery } from '../../search/stocksPromotion';
 
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
@@ -54,8 +55,8 @@ export const useStocksFeed = ({
   pageSize,
   refresh,
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
-  const trimmedQuery = query?.trim();
-  const hasQuery = Boolean(trimmedQuery);
+  const normalizedQuery = stripLeadingDollarQuery(query);
+  const hasQuery = Boolean(normalizedQuery);
   const chainIds = hasQuery ? RWA_CHAIN_IDS : STOCKS_FEED_RWA_CHAIN_IDS;
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -69,7 +70,7 @@ export const useStocksFeed = ({
     refetch,
     loadMore,
   } = useRwaTokens({
-    searchQuery: hasQuery ? trimmedQuery : undefined,
+    searchQuery: hasQuery ? normalizedQuery : undefined,
     chainIds,
     pageSize,
     ...(hasQuery && performance ? { performance } : {}),

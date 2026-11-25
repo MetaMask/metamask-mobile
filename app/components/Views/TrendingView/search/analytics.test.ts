@@ -302,6 +302,28 @@ describe('useInstrumentedSearchEffect', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
+
+  it.each([true, false])(
+    'includes stocks_promoted=%s when getStocksPromoted is provided',
+    (stocksPromoted) => {
+      renderHook(() =>
+        useInstrumentedSearchEffect({
+          searchQuery: 'TSLA',
+          isLoading: false,
+          getPill,
+          getSections,
+          getStocksPromoted: () => stocksPromoted,
+        }),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+        interaction_type: 'searched',
+        search_query: 'TSLA',
+        stocks_promoted: stocksPromoted,
+      });
+    },
+  );
 });
 
 describe('Explore search analytics', () => {

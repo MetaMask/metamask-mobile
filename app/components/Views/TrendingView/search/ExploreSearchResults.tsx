@@ -53,6 +53,11 @@ import {
 import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { POPULAR_SEARCH_ASSETS } from './popularSearchAssets';
 import { useExploreSearchFooterPress } from './useExploreSearchFooterPress';
+import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
+import {
+  orderExploreSearchSections,
+  shouldPromoteStocksSection,
+} from './stocksPromotion';
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -92,6 +97,22 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const isStocksPromotionEnabled = useSelector(
+    selectExploreSearchPromoteStocksExactTickerEnabled,
+  );
+
+  const isStocksPromoted = useMemo(() => {
+    if (!isStocksPromotionEnabled) {
+      return false;
+    }
+    const stocksSection = sections.find((s) => s.feedId === 'stocks');
+    return shouldPromoteStocksSection(searchQuery, stocksSection);
+  }, [isStocksPromotionEnabled, searchQuery, sections]);
+
+  const orderedSections = useMemo(
+    () => orderExploreSearchSections(sections, isStocksPromoted),
+    [sections, isStocksPromoted],
+  );
 
   const totalResultCount = useMemo(
     () => getTotalSectionResultCount(sections),
@@ -117,7 +138,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     analyticsSearchQuery,
-    { tab_name: activeTab, result_count: totalResultCount },
+    {
+      tab_name: activeTab,
+      result_count: totalResultCount,
+      stocks_promoted: isStocksPromoted,
+    },
   );
 
   useEffect(() => {
@@ -133,10 +158,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         previous_tab: activeTab,
         comes_from_view_all_tap: true,
         result_count: section.total ?? section.items.length,
+        stocks_promoted: isStocksPromoted,
       });
       onViewMore(section.feedId);
     },
-    [onViewMore, analyticsSearchQuery, activeTab],
+    [onViewMore, analyticsSearchQuery, activeTab, isStocksPromoted],
   );
 
   const renderSectionHeader = useCallback(
@@ -201,7 +227,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const flatData = useMemo<FlatListItem[]>(() => {
     const result: FlatListItem[] = [];
-    const visibleSections = isBasicFunctionalityEnabled ? sections : [];
+    const visibleSections = isBasicFunctionalityEnabled ? orderedSections : [];
     let headerCount = 0;
 
     visibleSections.forEach((section) => {
@@ -229,11 +255,20 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [isBasicFunctionalityEnabled, sections]);
+  }, [isBasicFunctionalityEnabled, orderedSections]);
+
+  const sectionOrderKey = useMemo(
+    () =>
+      orderedSections
+        .filter((s) => s.isLoading || s.items.length > 0)
+        .map((s) => s.feedId)
+        .join(','),
+    [orderedSections],
+  );
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [searchQuery, flatData.length, emptyFeedTitle]);
+  }, [searchQuery, flatData.length, emptyFeedTitle, sectionOrderKey]);
 
   const tokensSection = sections.find((s) => s.feedId === 'tokens');
   useSearchTracking({
@@ -250,6 +285,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     searchQuery,
     tabName: activeTab,
     resultCount: totalResultCount,
+    stocksPromoted: isStocksPromoted,
   });
 
   const renderFooter =
@@ -279,6 +315,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           analyticsSearchQuery={analyticsSearchQuery}
           tabName={activeTab}
           resultCount={totalResultCount}
+          stocksPromoted={isStocksPromoted}
           onQuickTrade={
             (item.feedId === 'tokens' || item.feedId === 'stocks') &&
             quickBuyVariant.showQuickTradeButton
@@ -295,6 +332,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       analyticsSearchQuery,
       activeTab,
       totalResultCount,
+      isStocksPromoted,
       quickBuyVariant.showQuickTradeButton,
     ],
   );
@@ -381,8 +419,13 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ref={flashListRef}
         data={flatData}
         renderItem={renderFlatItem}
-        getItemType={(item) => item.type}
+        getItemType={(item) =>
+          item.type === 'header' && item.isFirstHeader
+            ? 'first-header'
+            : item.type
+        }
         keyExtractor={keyExtractor}
+        maintainVisibleContentPosition={{ disabled: true }}
         contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"

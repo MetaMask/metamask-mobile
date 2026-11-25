@@ -5307,6 +5307,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreSearchPromoteStocksExactTicker: {
+    name: 'exploreSearchPromoteStocksExactTicker',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   glassHeaders: {
     name: 'glassHeaders',
     type: FeatureFlagType.Remote,

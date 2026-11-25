@@ -34,6 +34,7 @@ interface SearchFeedRowProps {
   analyticsSearchQuery?: string;
   tabName: SearchFeedPill;
   resultCount?: number;
+  stocksPromoted?: boolean;
   onQuickTrade?: (token: TrendingAsset) => void;
 }
 
@@ -94,6 +95,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   analyticsSearchQuery = searchQuery,
   tabName,
   resultCount,
+  stocksPromoted,
   onQuickTrade,
 }) => {
   const searchQueryRef = useRef(searchQuery);
@@ -102,6 +104,8 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
   resultCountRef.current = resultCount;
+  const stocksPromotedRef = useRef(stocksPromoted);
+  stocksPromotedRef.current = stocksPromoted;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
@@ -113,6 +117,9 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       position: index,
       result_count: resultCountRef.current,
       query_length: getSearchQueryLength(searchQueryRef.current),
+      ...(stocksPromotedRef.current !== undefined
+        ? { stocks_promoted: stocksPromotedRef.current }
+        : {}),
       ...getTokenIdentityProperties(feedId, item),
       ...getPredictMarketProperties(feedId, item),
     });

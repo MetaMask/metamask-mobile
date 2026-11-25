@@ -153,6 +153,36 @@ describe('useStocksFeed', () => {
         }),
       );
     });
+
+    it.each([
+      ['$TSLA', 'TSLA'],
+      ['  $TSLA  ', 'TSLA'],
+      ['$ tsla', 'tsla'],
+    ])(
+      'strips a leading $ from %p before calling useRwaTokens',
+      (input, expected) => {
+        renderHook(() => useStocksFeed({ query: input }));
+        expect(mockUseRwaTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            searchQuery: expected,
+            chainIds: ['eip155:1', 'eip155:56', 'eip155:4663'],
+            includeTokenSecurityData: true,
+          }),
+        );
+      },
+    );
+
+    it('treats a lone $ query like no query', () => {
+      const { result } = renderHook(() => useStocksFeed({ query: '$' }));
+      const symbols = result.current.data.map((d) => d.symbol);
+      expect(symbols).toStrictEqual(['OUSG', 'BUIDL', 'AAPL']);
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          searchQuery: undefined,
+          chainIds: ['eip155:1', 'eip155:4663'],
+        }),
+      );
+    });
   });
 
   describe('loading, refetch, and pagination passthrough', () => {

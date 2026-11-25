@@ -89,6 +89,8 @@ export interface ExploreSearchInteractedProperties {
   market_slug?: string;
   market_tags?: string[];
   market_title?: string;
+  /** True when the Stocks section was promoted above Crypto on an exact ticker match. */
+  stocks_promoted?: boolean;
 }
 
 export type ExploreTabName =
@@ -342,6 +344,7 @@ export const useInstrumentedSearchEffect = ({
   focusCount = 0,
   getPill,
   getSections,
+  getStocksPromoted,
 }: {
   searchQuery: string;
   redactSearchQuery?: boolean;
@@ -349,6 +352,7 @@ export const useInstrumentedSearchEffect = ({
   focusCount?: number;
   getPill: () => SearchFeedPill;
   getSections: () => SearchFeedSection[];
+  getStocksPromoted?: () => boolean;
 }): void => {
   const instrumentedRef = useRef<{ query: string; sessionId?: string } | null>(
     null,
@@ -377,6 +381,9 @@ export const useInstrumentedSearchEffect = ({
       tab_name: pill,
       result_count: resultCount,
       query_length: getSearchQueryLength(searchQuery),
+      ...(getStocksPromoted !== undefined
+        ? { stocks_promoted: getStocksPromoted() }
+        : {}),
     });
     instrumentedRef.current = { query: searchQuery, sessionId };
   }, [
@@ -386,6 +393,7 @@ export const useInstrumentedSearchEffect = ({
     focusCount,
     getPill,
     getSections,
+    getStocksPromoted,
   ]);
 };
 

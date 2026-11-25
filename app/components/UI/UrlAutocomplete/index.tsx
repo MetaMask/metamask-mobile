@@ -53,6 +53,8 @@ import {
   useExploreSearch,
   type SearchFeedId,
 } from '../../Views/TrendingView/search/useExploreSearch';
+import { shouldPromoteStocksSection } from '../../Views/TrendingView/search/stocksPromotion';
+import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import {
@@ -204,6 +206,9 @@ const SearchContent: React.FC<SearchContentProps> = ({
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const isStocksPromotionEnabled = useSelector(
+    selectExploreSearchPromoteStocksExactTickerEnabled,
+  );
 
   // Bridge Explore `useExploreSearch` ({ sections }) to the record shape this UI expects
   const exploreResult = useExploreSearch(searchQuery);
@@ -224,10 +229,14 @@ const SearchContent: React.FC<SearchContentProps> = ({
       if (sectionId === 'tokens') {
         const tokensSec = byFeedId.get('tokens');
         const stocksSec = byFeedId.get('stocks');
-        data.tokens = [
-          ...((tokensSec?.items as TrendingAsset[]) ?? []),
-          ...((stocksSec?.items as TrendingAsset[]) ?? []),
-        ];
+        const isStocksPromoted =
+          isStocksPromotionEnabled &&
+          shouldPromoteStocksSection(searchQuery, stocksSec);
+        const tokenItems = (tokensSec?.items as TrendingAsset[]) ?? [];
+        const stockItems = (stocksSec?.items as TrendingAsset[]) ?? [];
+        data.tokens = isStocksPromoted
+          ? [...stockItems, ...tokenItems]
+          : [...tokenItems, ...stockItems];
         isLoading.tokens =
           Boolean(tokensSec?.isLoading) || Boolean(stocksSec?.isLoading);
         continue;
@@ -247,7 +256,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
       isLoading: isLoading as Record<SearchFeedId, boolean>,
       sectionsOrder: order,
     };
-  }, [exploreResult, predictions]);
+  }, [exploreResult, predictions, isStocksPromotionEnabled, searchQuery]);
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {

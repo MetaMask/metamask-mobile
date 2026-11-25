@@ -77,6 +77,8 @@ import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeader
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { selectExploreBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/exploreBrandRefresh';
+import { selectExploreSearchPromoteStocksExactTickerEnabled } from '../../../../../selectors/featureFlagController/exploreSearchPromoteStocksExactTicker';
+import { shouldPromoteStocksSection } from '../../search/stocksPromotion';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
@@ -329,6 +331,18 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   });
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
+  const isStocksPromotionEnabled = useSelector(
+    selectExploreSearchPromoteStocksExactTickerEnabled,
+  );
+  const isStocksPromoted = useMemo(() => {
+    if (!isStocksPromotionEnabled) {
+      return false;
+    }
+    const stocksSection = sections.find((s) => s.feedId === 'stocks');
+    return shouldPromoteStocksSection(searchQuery, stocksSection);
+  }, [isStocksPromotionEnabled, searchQuery, sections]);
+  const stocksPromotedRef = useRef(isStocksPromoted);
+  stocksPromotedRef.current = isStocksPromoted;
 
   const isLoading = sections.some((s) => s.isLoading);
 
@@ -367,6 +381,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const getActivePill = useCallback(() => activePillRef.current, []);
   const getSections = useCallback(() => sectionsRef.current, []);
+  const getStocksPromoted = useCallback(() => stocksPromotedRef.current, []);
 
   useInstrumentedSearchEffect({
     searchQuery,
@@ -375,6 +390,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     focusCount,
     getPill: getActivePill,
     getSections,
+    getStocksPromoted,
   });
 
   const handlePillSelect = useCallback(
@@ -390,6 +406,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
         tab_name: key as SearchFeedPill,
         previous_tab: activePillRef.current,
         result_count: resultCount,
+        stocks_promoted: stocksPromotedRef.current,
       });
       setActivePill(key as ActivePill);
     },
