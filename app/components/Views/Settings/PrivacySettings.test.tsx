@@ -142,6 +142,7 @@ describe('PrivacySettings', () => {
     await waitFor(() =>
       expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
     );
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(measureLayoutSpy).not.toHaveBeenCalled();
   });
 
