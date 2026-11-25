@@ -45,7 +45,6 @@ import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import Logger from '../../../../util/Logger';
 import { useTokenDetailsFeedCopyTrade } from '../hooks/useTokenDetailsFeedCopyTrade';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
