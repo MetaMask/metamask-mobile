@@ -21663,11 +21663,6 @@
       "count": 1
     }
   },
-  "app/core/Engine/controllers/tokens-controller-init.ts": {
-    "typescript/unbound-method": {
-      "count": 1
-    }
-  },
   "app/core/Engine/controllers/transaction-controller/event-handlers/metrics.test.ts": {
     "typescript/no-floating-promises": {
       "count": 1
