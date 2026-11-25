@@ -1,4 +1,4 @@
-export const RedesignedSendViewSelectorsIDs = {
+export const SendViewSelectorsIDs = {
   SEND_AMOUNT: 'send_amount',
   EDIT_AMOUNT_KEYBOARD: 'edit-amount-keyboard',
   PERCENTAGE_BUTTON_50: 'percentage-button-50',

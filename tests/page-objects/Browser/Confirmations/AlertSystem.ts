@@ -13,7 +13,7 @@ import { type AppiumElement } from '../../../framework';
 class AlertSystem {
   get securityAlertBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
     );
   }
 
