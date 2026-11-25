@@ -1,7 +1,6 @@
 import '../mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
-import { useSelector } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   useIsFocused,
@@ -16,15 +15,11 @@ import TaxFormQuestionSheet from '../../../app/components/UI/Rewards/components/
 import TaxFormOpenFormSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormContactUsSheet';
 import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
-import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
-import RewardsTabSkeleton from '../../../app/components/UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
-import { useRewardsMoneyTabRouting } from '../../../app/components/UI/Rewards/hooks/useRewardsMoneyTabRouting';
-import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard.testIds';
-import type { RootState } from '../../../app/reducers';
-import { selectReferralMeEntry } from '../../../app/reducers/rewardsMoney/selectors';
-import { selectSessionProfileId } from '../../../app/selectors/identity';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyClaimsPausedModal, {
+  type RewardsMoneyClaimsPausedModalParams,
+} from '../../../app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
 import ReduxService from '../../../app/core/redux/ReduxService';
@@ -126,9 +121,9 @@ function pendingPage(): Promise<never> {
  * Installs Rewards Money reads on the shared Engine mock.
  *
  * `mockReset` drops a previous test's implementation. Unknown
- * RewardsMoneyController actions throw. Everything else, including
- * MoneyAccountBalanceService:getVaultApy, delegates to the implementation
- * captured when this module loaded.
+ * RewardsMoneyController actions throw. Everything else, including Money
+ * balance reads, delegates to the implementation captured when this module
+ * loaded.
  */
 export function installRewardsMoneyEngine({
   referralMe = referralMeFixture('referee'),
@@ -297,6 +292,12 @@ function RewardsFlowProbe() {
         name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
         component={routeProbe(Routes.REWARDS_TRADING_COMMISSIONS_VIEW)}
       />
+      <FlowStack.Screen
+        name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
+        component={createRouteParamsProbe(
+          Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+        )}
+      />
     </FlowStack.Navigator>
   );
 }
@@ -332,6 +333,10 @@ function RootModalFlowProbe() {
         name={Routes.WEBVIEW.SIMPLE}
         component={SupportWebviewProbe}
       />
+      <FlowStack.Screen
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        component={routeProbe(Routes.MODAL.TRADE_WALLET_ACTIONS)}
+      />
     </FlowStack.Navigator>
   );
 }
@@ -339,6 +344,7 @@ function RootModalFlowProbe() {
 function rewardsFlowRoutes() {
   return [
     { name: Routes.REWARDS_FLOW, Component: RewardsFlowProbe },
+    { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     {
       name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
       Component: createRouteParamsProbe(
@@ -430,25 +436,6 @@ export function renderEarningsTab(options: RenderRewardsMoneyOptions = {}) {
   return renderMoneyScreen(Screen, 'EarningsTab', { ...options, persona });
 }
 
-export function renderPerformanceTab(
-  options: RenderRewardsMoneyOptions & { active?: boolean } = {},
-) {
-  const persona = options.persona ?? 'referee';
-  const active = options.active ?? true;
-
-  function Screen() {
-    return (
-      <PerformanceTab
-        profileId={REWARDS_MONEY_PROFILE_ID}
-        persona={persona}
-        active={active}
-      />
-    );
-  }
-
-  return renderMoneyScreen(Screen, 'PerformanceTab', { ...options, persona });
-}
-
 let restoreRewardsDashboardReduxStore: (() => void) | undefined;
 
 /**
@@ -478,6 +465,16 @@ export function renderRewardsDashboard(
     { state },
   );
 
+  shareStoreWithReduxService(result.store);
+
+  return { ...result, engine };
+}
+
+/**
+ * Makes `ReduxService.store` the rendered store, for code that reads Redux
+ * outside React. Undo it with `restoreRewardsDashboardStore`.
+ */
+function shareStoreWithReduxService(store: unknown): void {
   restoreRewardsDashboardStore();
   let previousStore: ReduxStore | undefined;
   try {
@@ -485,15 +482,13 @@ export function renderRewardsDashboard(
   } catch {
     previousStore = undefined;
   }
-  ReduxService.store = result.store as unknown as ReduxStore;
+  ReduxService.store = store as ReduxStore;
   restoreRewardsDashboardReduxStore = () => {
     restoreRewardsDashboardReduxStore = undefined;
     if (previousStore) {
       ReduxService.store = previousStore;
     }
   };
-
-  return { ...result, engine };
 }
 
 export function renderRewardsMoneyDashboard(
@@ -557,34 +552,34 @@ export function renderRewardsSettingsView(
   };
 }
 
-function WaysToEarnAfterReferralLoad() {
-  const { moneyReferralResolved, moneyPersona } = useRewardsMoneyTabRouting();
-  const profileId = useSelector(selectSessionProfileId);
-  const referralMe = useSelector(
-    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
-  );
-  const personaReady =
-    moneyPersona === 'referee' || moneyPersona === 'referrer';
+export function renderWaysToEarnTab({
+  onOpenShareCode = () => undefined,
+  onOpenCampaigns = () => undefined,
+  ...options
+}: RenderRewardsMoneyOptions & {
+  onOpenShareCode?: () => void;
+  onOpenCampaigns?: () => void;
+} = {}) {
+  const persona = options.persona ?? 'referee';
 
-  if (!moneyReferralResolved || !profileId || !referralMe || !personaReady) {
+  function Screen() {
     return (
-      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
+      <WaysToEarnTab
+        profileId={REWARDS_MONEY_PROFILE_ID}
+        persona={persona}
+        onOpenShareCode={onOpenShareCode}
+        onOpenCampaigns={onOpenCampaigns}
+      />
     );
   }
 
-  return <WaysToEarnTab profileId={profileId} referralMe={referralMe} />;
-}
-
-export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
-  return renderMoneyScreen(WaysToEarnAfterReferralLoad, 'WaysToEarnTab', {
-    seedReferralMe: false,
-    moneyControllerEnabled: true,
-    handlers: {
-      'AuthenticationController:getSessionProfile': () =>
-        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
-      'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
-    },
+  const result = renderMoneyScreen(Screen, 'WaysToEarnTab', {
+    ...options,
+    persona,
   });
+  // Opening the Social tab reads its onboarding state from `ReduxService`.
+  shareStoreWithReduxService(result.store);
+  return result;
 }
 
 export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {
@@ -611,15 +606,34 @@ export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
   HOST: 'referral-invite-host',
 } as const;
 
-function ReferralInviteJourneyHost() {
-  const navigation = useNavigation<AppNavigationProp>();
+/**
+ * Host screen that opens a modal route on mount and shows a labelled marker
+ * while it is focused, so a journey can assert it is back on the screen below.
+ */
+function createModalJourneyHost(
+  modalRoute:
+    | typeof Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
+    | typeof Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  hostTestId: string,
+  label: string,
+) {
+  return function ModalJourneyHost() {
+    const navigation = useNavigation<AppNavigationProp>();
+    const isFocused = useIsFocused();
 
-  React.useEffect(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_MONEY_INVITE_SHEET);
-  }, [navigation]);
+    React.useEffect(() => {
+      navigation.navigate(modalRoute);
+    }, [navigation]);
 
-  return <Text testID={REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST}>Swap</Text>;
+    return isFocused ? <Text testID={hostTestId}>{label}</Text> : null;
+  };
 }
+
+const ReferralInviteJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+  REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST,
+  'Swap',
+);
 
 /**
  * Deeplink invite sheet pushed over a destination, with the accepted splash
@@ -665,7 +679,7 @@ export function renderRewardsMoneyInviteSheet(
 
   return {
     ...renderScreenWithRoutes(
-      ReferralInviteJourneyHost as unknown as React.ComponentType,
+      ReferralInviteJourneyHost,
       { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
       [
         {
@@ -678,6 +692,48 @@ export function renderRewardsMoneyInviteSheet(
     ),
     engine,
   };
+}
+
+export const CLAIMS_PAUSED_JOURNEY_TEST_IDS = {
+  HOST: 'claims-paused-host',
+} as const;
+
+const ClaimsPausedJourneyHost = createModalJourneyHost(
+  Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+  CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST,
+  'Earnings',
+);
+
+/**
+ * Claims paused sheet, or the balance breakdown, pushed over a host screen with
+ * the in-app browser registered as a params probe. The sheet reads the terms
+ * copy from the referral-me entry in Redux. Closing it returns to the host.
+ */
+export function renderRewardsMoneyClaimsPausedModal(
+  params: RewardsMoneyClaimsPausedModalParams,
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const state = rewardsMoneyViewState(options);
+
+  function ClaimsPausedScreen() {
+    return <RewardsMoneyClaimsPausedModal route={{ params }} />;
+  }
+
+  return renderScreenWithRoutes(
+    ClaimsPausedJourneyHost,
+    { name: 'ClaimsPausedHost' },
+    [
+      {
+        name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        Component: ClaimsPausedScreen,
+      },
+      {
+        name: Routes.BROWSER.HOME,
+        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
+      },
+    ],
+    { state },
+  );
 }
 
 function ReferralSplashJourneyDestination() {
