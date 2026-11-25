@@ -173,7 +173,8 @@ Goal: change `polymarket: 'legacy'` to `polymarket: 'next'` and delete the legac
 ### 0. Before
 
 - [ ] The PredictNext Polymarket adapter serves the canonical contract (catalog, Feeds, search, Positions, Portfolio Summary, Activity, Orders), per the [feasibility table](./canonical-portfolio-activity-catalog-contract.md#polymarket-feasibility-pred-1356) and [Inputs for PRED-1356](./public-api-contract.md#inputs-for-pred-1356-polymarket-backend-adapter).
-- [ ] `POLYMARKET_STATIC_VENUE_CATALOG` (`config/venueCatalogs.ts`) is replaced by the backend catalog, and `PREDICT_SURFACE_FEED_KEYS` maps every Polymarket surface (Homepage slots including World Cup and BTC up/down, Explore tabs, campaign rows) to a Feed key the catalog serves.
+- [ ] Replace `POLYMARKET_STATIC_VENUE_CATALOG` (`config/venueCatalogs.ts`) with the backend venue catalog. Add the Polymarket Feed Screens and Home sections to that catalog, with references to the Feed keys it serves.
+- [ ] The Polymarket adapter emits full-game moneyline Markets in a `choice` group under the `moneyline` section and `full_game` subgroup, with `gameSelection` on the matching Outcomes. PredictNext needs this metadata for team prices on Game cards and the dual-team chart.
 - [ ] Polymarket funding (deposit, withdraw, claim) has a `next` flow and a `PREDICT_FUNDING_IMPLEMENTATIONS.next` entry.
 
 ### 1. Flip the map (the only switch)

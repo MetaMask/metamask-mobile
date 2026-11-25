@@ -10,6 +10,7 @@ import {
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import type { FollowerConnection } from './types';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 
 export interface UseFollowersOptions {
   /**
@@ -66,6 +67,7 @@ const mapFollowers = (data: FollowersResponse | undefined) => {
     username: profile.name,
     address: profile.address,
     avatarUri: profile.imageUrl ?? undefined,
+    verified: isProfileVerified(profile),
   }));
 };
 

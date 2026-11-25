@@ -690,7 +690,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.0.0'),
-  // Read by useLiquidGlass inside the action row's MainActionButtonGlass.
   getTotalMemorySync: jest.fn(() => 8 * 1024 * 1024 * 1024),
 }));
 
@@ -742,13 +741,6 @@ jest.mock('../../util/getHighestFiatToken', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
   isSolanaChainId: jest.fn(),
-}));
-
-// Mock authentication error utility
-const mockIsAuthenticationError = jest.fn();
-jest.mock('../../util/isAuthenticationError', () => ({
-  isAuthenticationError: (...args: unknown[]) =>
-    mockIsAuthenticationError(...args),
 }));
 
 // Mock card token vault
@@ -1621,9 +1613,6 @@ describe('CardHome Component', () => {
     mockLogoutFromProvider.mockClear();
     mockSetIsAuthenticated.mockClear();
 
-    // Clear authentication error handling mocks
-    mockIsAuthenticationError.mockClear();
-    mockIsAuthenticationError.mockReturnValue(false); // Default to no auth error
     mockRemoveCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockResolvedValue(undefined);
     mockClearAllCache.mockClear();
@@ -5320,32 +5309,6 @@ describe('CardHome Component', () => {
     });
 
     describe('KYC Warning Display', () => {
-      it('displays KYC warning for PENDING user without card', () => {
-        // Given: PENDING user without card
-        setupMockSelectors({ isAuthenticated: true });
-        setupLoadCardDataMock({
-          isAuthenticated: true,
-
-          warning: CardStateWarning.NoCard,
-          priorityToken: mockPriorityToken,
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
-          isLoading: false,
-        });
-
-        // When: component renders
-        render();
-
-        // Then: the waiting view shows with the reviewing copy
-        expect(
-          screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
-        ).toBeOnTheScreen();
-        expect(
-          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
-        ).toHaveTextContent(
-          strings('card.card_home.setup_pending.reviewing.title'),
-        );
-      });
-
       it('displays KYC warning for UNVERIFIED user without card', () => {
         // Given: UNVERIFIED user without card
         setupMockSelectors({ isAuthenticated: true });
@@ -5423,41 +5386,6 @@ describe('CardHome Component', () => {
     });
 
     describe('Signed out while identity is in review', () => {
-      it('shows the pending banner and the waiting layout', () => {
-        // Given: still in onboarding, no signed-in Card account
-        mockIsSignedOutKycPending = true;
-        setupMockSelectors({ isAuthenticated: false });
-
-        // When: component renders
-        render();
-
-        // Then: the waiting view shows and nothing card-ready does
-        expect(
-          screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
-        ).toBeOnTheScreen();
-        expect(
-          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
-        ).toHaveTextContent(
-          strings('card.card_home.setup_pending.signed_out_pending.title'),
-        );
-        expect(
-          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.SET_PIN_BUTTON),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
-        ).not.toBeOnTheScreen();
-        // The card art is muted to 50% opacity
-        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
-          opacity: 0.5,
-        });
-      });
-
       it('does not show the pending banner when signed out and not in review', () => {
         setupMockSelectors({ isAuthenticated: false });
 

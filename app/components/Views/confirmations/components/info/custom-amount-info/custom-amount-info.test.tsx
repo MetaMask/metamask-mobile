@@ -531,12 +531,11 @@ describe('CustomAmountInfo', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
-        address: '0x123',
+        assetId: 'eip155:1/erc20:0x123',
         balanceHuman: '0',
         balanceFiat: '0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
       },
@@ -1761,12 +1760,11 @@ describe('CustomAmountInfo', () => {
     it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'TST',
         },
@@ -1793,12 +1791,11 @@ describe('CustomAmountInfo', () => {
         } as never);
         useTransactionPayTokenMock.mockReturnValue({
           payToken: {
-            address: '0x123',
+            assetId: 'eip155:1/erc20:0x123',
             balanceHuman: '0',
             balanceFiat: '0',
             balanceRaw: '0',
             balanceUsd: '0',
-            chainId: '0x1',
             decimals: 18,
             symbol: 'TST',
           },
@@ -1845,12 +1842,11 @@ describe('CustomAmountInfo', () => {
       useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
@@ -2094,12 +2090,11 @@ describe('CustomAmountInfo', () => {
       useTransactionPayTokenMock.mockReturnValue({
         isNative: true,
         payToken: {
-          address: '0x0000000000000000000000000000000000000000',
+          assetId: 'eip155:1/slip44:60',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },

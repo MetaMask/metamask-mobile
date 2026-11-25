@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   AvatarIcon,
@@ -8,25 +7,18 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonSize,
-  ButtonVariant,
   IconColor,
   IconName,
   SectionDivider,
   SectionHeader,
   Skeleton,
-  TabEmptyState,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
-import type { EarningsSummaryEntry } from '../../../../../../reducers/rewardsMoney';
 import {
-  isCopyTradingOnly,
   refereeMoneySections,
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
@@ -34,229 +26,31 @@ import {
   type MoneyDashboardPersona,
   type RefereeMoneySections,
 } from '../../../../../../reducers/rewardsMoney/selectors';
-import { navigateToSocialLeaderboard } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import type {
-  ClaimDto,
   EarningsSummaryDto,
-  LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
-import { navigateToRewardsRoute } from '../../../utils';
-import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
-import {
-  canClaimEarnings,
-  canSignEarningAddress,
-  claimBlockedOnThisDevice,
-  claimHasUnsignableAddress,
-  claimRouteOptions,
-  routesSignableOnDevice,
-  displayClaimTotals,
-  incomeHeldOnOpenRoute,
-  isPendingClaimRow,
-  mergeInFlightClaims,
-  type EarningsHistoryListItem,
-} from '../../../utils/claimEarnings';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
-import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
-import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
-import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
-import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
-import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
-import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
-import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
-import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
-  underReviewBlockedBaseUnits,
   selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
-import ClaimableRewardsCard from '../ClaimableRewardsCard';
-import type {
-  ClaimsPausedLabels,
-  ClaimsPausedTotals,
-} from '../RewardsMoneyClaimsPausedModal';
-import { EarningsHistoryRow } from '../EarningsHistoryRows';
-import RewardsPausedBanner from '../RewardsPausedBanner';
-import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
-
+import { earnActionRows } from './earnActionRows';
+import EarnActionSection from './EarnActionSection';
+import { EARN_ACTION_SECTION_TEST_IDS } from './EarnActionSection.testIds';
+import { deriveSummarySection, musdAmount } from './earningsSummarySection';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
-/** Rows shown under History before "see all". Matches the Performance preview. */
-const EARNINGS_HISTORY_PREVIEW_COUNT = 5;
-
-/** mUSD base units as a two-decimal amount, or a dash when there is none. */
-const musdAmount = (baseUnits: string | null | undefined): string =>
-  formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '—';
-
-/**
- * Sheet rows. Available and Pending use the display split. Held and blocked
- * stay the summary values so the rows still add up to the lifetime total.
- */
-function claimsPausedTotals(summary: EarningsSummaryDto): ClaimsPausedTotals {
-  const display = displayClaimTotals(summary);
-  return {
-    lifetime_total: summary.lifetime_total,
-    claimable: display.claimable,
-    held: summary.held,
-    blocked: summary.blocked,
-    voided: summary.voided,
-    pending: display.pending,
-    claimed: summary.claimed,
-  };
-}
-
-/** Row copy, using the localized_text keys as they are. */
-function claimsPausedLabels(
-  localizedText: ReferralLocalizedText,
-): ClaimsPausedLabels {
-  return {
-    breakdown: localizedText.breakdown,
-    recordedEarningsLabel: localizedText.totalEarningsLabel,
-    availableToClaim: localizedText.availableToClaim,
-    held: localizedText.held,
-    blocked: localizedText.blocked,
-    voided: localizedText.voided,
-    pending: localizedText.pending,
-    claimed: localizedText.claimed,
-  };
+/** Ways to earn rows do not open anything yet. Destinations land later. */
+function openWayToEarn(): void {
+  return undefined;
 }
 
 // ---------------------------------------------------------------------------
-// Derived state. Each source (summary, history) reduces to the same
-// questions: is it loading, did it fail, should its section render.
-// ---------------------------------------------------------------------------
-
-interface SummarySectionState {
-  data: EarningsSummaryDto | null;
-  loading: boolean;
-  refreshing: boolean;
-  error: boolean;
-  show: boolean;
-}
-
-function deriveSummarySection(
-  entry: EarningsSummaryEntry | undefined,
-): SummarySectionState {
-  const data = entry?.data ?? null;
-  const failed = Boolean(entry?.error);
-  const loading = !data && (!entry || Boolean(entry.loading));
-  // A failed refresh keeps the last summary. The banner is only for a failure
-  // that left nothing to show, including while that retry is in flight.
-  const error = failed && !data;
-  return {
-    data,
-    loading,
-    refreshing: Boolean(entry?.loading),
-    error,
-    show: !error && (loading || data !== null),
-  };
-}
-
-interface HistorySectionState {
-  items: EarningsHistoryListItem[];
-  loading: boolean;
-  error: boolean;
-  show: boolean;
-  listEmpty: boolean;
-}
-
-function deriveHistorySection(
-  list: UseCursorPaginatedListResult<LedgerEntryDto>,
-  claims: ClaimDto[],
-): HistorySectionState {
-  const items = (mergeInFlightClaims(list.items, claims) ?? []).slice(
-    0,
-    EARNINGS_HISTORY_PREVIEW_COUNT,
-  );
-  const loading = list.isLoading && !list.items;
-  const failed = Boolean(list.error);
-  // Cached rows stay without a banner. The banner is the empty failure.
-  const error = failed && items.length === 0;
-  return {
-    items,
-    loading,
-    error,
-    show: !(error && !loading),
-    listEmpty: !loading && items.length === 0,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Error banner. One per tab: the unwindowed summary wins, then last 7 days,
-// then history, and retry refetches only that source.
-// ---------------------------------------------------------------------------
-
-type ErrorSource = 'summary' | 'last7' | 'history';
-
-function deriveErrorSource(
-  summaryError: boolean,
-  last7Error: boolean,
-  historyError: boolean,
-): ErrorSource | null {
-  if (summaryError) {
-    return 'summary';
-  }
-  if (last7Error) {
-    return 'last7';
-  }
-  if (historyError) {
-    return 'history';
-  }
-  return null;
-}
-
-const EarningsErrorBanner: React.FC<{
-  source: ErrorSource;
-  summaryRefreshing: boolean;
-  last7Refreshing: boolean;
-  onRetrySummary: () => void;
-  onRetryLast7: () => void;
-  onRetryHistory: () => void;
-}> = ({
-  source,
-  summaryRefreshing,
-  last7Refreshing,
-  onRetrySummary,
-  onRetryLast7,
-  onRetryHistory,
-}) => {
-  const copy =
-    source === 'history'
-      ? 'rewards.trading_activity_error'
-      : 'rewards.referral_details_error';
-  const retry = {
-    summary: onRetrySummary,
-    last7: onRetryLast7,
-    history: onRetryHistory,
-  }[source];
-  const refreshing = {
-    summary: summaryRefreshing,
-    last7: last7Refreshing,
-    history: false,
-  }[source];
-  const testID = {
-    summary: EARNINGS_TAB_TEST_IDS.SUMMARY_ERROR,
-    last7: EARNINGS_TAB_TEST_IDS.LAST_7_ERROR,
-    history: EARNINGS_TAB_TEST_IDS.HISTORY_ERROR,
-  }[source];
-
-  return (
-    <RewardsErrorBanner
-      title={strings(`${copy}.error_fetching_title`)}
-      description={strings(`${copy}.error_fetching_description`)}
-      onConfirm={retry}
-      confirmButtonLabel={strings(`${copy}.retry_button`)}
-      onConfirmLoading={refreshing}
-      testID={testID}
-    />
-  );
-};
-
-// ---------------------------------------------------------------------------
-// Breakdown section: lifetime totals per earning family.
+// Your earnings section: lifetime totals per earning family.
 // ---------------------------------------------------------------------------
 
 interface BreakdownRow {
@@ -341,20 +135,18 @@ const BreakdownSection: React.FC<{
   localizedText: ReferralLocalizedText;
   rows: BreakdownRow[];
   loading: boolean;
-  /** A section above this one supplies the divider and header spacing. */
+  /** Ways to earn above this section supplies the divider and header spacing. */
   followsSection: boolean;
-  onViewPerformance?: () => void;
-}> = ({ localizedText, rows, loading, followsSection, onViewPerformance }) => (
+}> = ({ localizedText, rows, loading, followsSection }) => (
   <>
     {followsSection ? <SectionDivider marginVertical={8} /> : null}
     <SectionHeader
-      title={localizedText.breakdown}
-      isInteractive={Boolean(onViewPerformance)}
-      onPress={onViewPerformance}
+      // A payload cached before the server added the key has no yourEarnings.
+      title={localizedText.yourEarnings ?? localizedText.breakdown}
       twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
       testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER}
     />
-    <Box twClassName="px-4">
+    <Box twClassName="px-4 pb-8">
       {loading ? (
         <BreakdownSkeleton rows={rows.length} />
       ) : (
@@ -382,7 +174,12 @@ const BreakdownSection: React.FC<{
                   {row.description}
                 </Text>
               </Box>
-              <Text variant={TextVariant.BodyMd}>{row.amount}</Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.SuccessDefault}
+              >
+                {row.amount}
+              </Text>
             </Box>
           ))}
         </Box>
@@ -392,404 +189,94 @@ const BreakdownSection: React.FC<{
 );
 
 // ---------------------------------------------------------------------------
-// History section: a header that opens the full list while there are rows,
-// then a skeleton, an empty state, or the preview rows.
-// ---------------------------------------------------------------------------
-
-const HistorySection: React.FC<{
-  localizedText: ReferralLocalizedText;
-  state: HistorySectionState;
-  /** A section above this one supplies the divider and header spacing. */
-  followsSection: boolean;
-  /** Copy-trading-only sharers get the copy-trading empty copy and action. */
-  copyTradingOnly: boolean;
-  /** Under-review base units from the summary, or null when none are held. */
-  pausedBaseUnits: string | null;
-  onEmptyAction: () => void;
-  onOpenList: () => void;
-}> = ({
-  localizedText,
-  state,
-  followsSection,
-  copyTradingOnly,
-  pausedBaseUnits,
-  onEmptyAction,
-  onOpenList,
-}) => {
-  const { items, loading, listEmpty } = state;
-
-  let body: React.ReactElement;
-  if (loading) {
-    body = (
-      <TradingActivityListSkeleton rows={EARNINGS_HISTORY_PREVIEW_COUNT} />
-    );
-  } else if (listEmpty) {
-    body = (
-      <Box twClassName="items-center py-4">
-        <TabEmptyState
-          icon={
-            <AvatarIcon
-              iconName={copyTradingOnly ? IconName.People : IconName.Activity}
-              size={AvatarIconSize.Xl}
-              severity={AvatarIconSeverity.Neutral}
-              iconProps={{ color: IconColor.IconDefault }}
-            />
-          }
-          description={
-            copyTradingOnly
-              ? localizedText.copyTradingEmptyDescription
-              : localizedText.tradingActivityEmptyDescription
-          }
-          descriptionProps={{
-            variant: TextVariant.BodyMd,
-            color: TextColor.TextAlternative,
-          }}
-          actionButtonText={
-            copyTradingOnly
-              ? localizedText.copyTradingEmptyAction
-              : localizedText.tradingActivityEmptyAction
-          }
-          actionButtonProps={{
-            variant: ButtonVariant.Primary,
-            size: ButtonSize.Lg,
-            twClassName: 'mt-3 self-stretch',
-            testID: `${EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY}-action`,
-          }}
-          onAction={onEmptyAction}
-          testID={EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY}
-        />
-      </Box>
-    );
-  } else {
-    body = (
-      <Box twClassName="gap-4" testID={EARNINGS_TAB_TEST_IDS.HISTORY}>
-        {items.map((item) => (
-          <EarningsHistoryRow
-            key={
-              isPendingClaimRow(item)
-                ? `pending-${item.id}`
-                : `${item.type}-${item.id}`
-            }
-            item={item}
-            localizedText={localizedText}
-          />
-        ))}
-      </Box>
-    );
-  }
-
-  return (
-    <>
-      {followsSection ? <SectionDivider marginVertical={8} /> : null}
-      <SectionHeader
-        title={localizedText.history}
-        isInteractive={!listEmpty}
-        onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
-        testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
-      />
-      <Box twClassName="px-4 pb-8">
-        {pausedBaseUnits ? (
-          <Box twClassName="mb-4">
-            <RewardsPausedBanner
-              baseUnits={pausedBaseUnits}
-              localizedText={localizedText}
-            />
-          </Box>
-        ) : null}
-        {body}
-      </Box>
-    </>
-  );
-};
-
-// ---------------------------------------------------------------------------
 // Tab.
 // ---------------------------------------------------------------------------
 
 interface EarningsTabProps {
   profileId: string;
   persona: MoneyDashboardPersona;
-  onViewPerformance?: () => void;
 }
 
-const EarningsTab: React.FC<EarningsTabProps> = ({
-  profileId,
-  persona,
-  onViewPerformance,
-}) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const openTradeActions = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
-    });
-  }, [navigation]);
-  const openHistory = useCallback(() => {
-    navigateToRewardsRoute(navigation, Routes.REWARDS_EARNINGS_HISTORY_VIEW);
-  }, [navigation]);
+const EarningsTab: React.FC<EarningsTabProps> = ({ profileId, persona }) => {
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
-  const { followTradeClaimOpen, revShareClaimOpen } =
-    useClaimMechanisms(profileId);
-  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const roles = useSelector(
     (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
   );
   const sections = refereeMoneySections(roles);
-  const copyTradingOnly = isCopyTradingOnly(roles);
-  const openSocialTab = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate);
-  }, [navigation]);
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
-  const openBalanceBreakdown = useCallback(
-    (summaryData: EarningsSummaryDto) => {
-      if (!localizedText) {
-        return;
-      }
-      navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
-        variant: 'breakdown',
-        title: localizedText.breakdown,
-        totals: claimsPausedTotals(summaryData),
-        labels: claimsPausedLabels(localizedText),
-      });
-    },
-    [localizedText, navigation],
-  );
-  const openClaimsPaused = useCallback(
-    (
-      summaryData:
-        | EarningsSummaryDto
-        | undefined = earningsSummaryEntry?.data ?? undefined,
-    ) => {
-      if (!localizedText) {
-        return;
-      }
-      navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
-        title: localizedText.claimsPausedTitle,
-        description: localizedText.claimsPausedDescription,
-        totals: summaryData ? claimsPausedTotals(summaryData) : undefined,
-        labels: claimsPausedLabels(localizedText),
-      });
-    },
-    [earningsSummaryEntry?.data, localizedText, navigation],
-  );
   const retrySummary = useCallback(() => {
     void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
       () => undefined,
     );
   }, [fetchEarningsSummary]);
-  const last7 = useLast7DaysEarnings(profileId);
-  const historyList = useEarningsHistory(profileId);
-  const inFlight = useInFlightClaims(profileId);
-  const { prefetchTaxMe, onClaimPress, openAfterClaimRefusal } =
-    useTaxDocumentation(profileId);
-  useFocusEffect(
-    useCallback(() => {
-      prefetchTaxMe();
-    }, [prefetchTaxMe]),
-  );
-  const { claim, isClaiming, isClaimWaiting, claimWaitCaption } =
-    useClaimEarnings(profileId, {
-      summary: earningsSummaryEntry?.data ?? null,
-      onOpened: () => {
-        inFlight.refresh({ forceFresh: true }).catch(() => undefined);
-      },
-      onSubmitted: async () => {
-        const refreshed = await fetchEarningsSummary({ forceFresh: true });
-        // No summary means this refresh did not finish. Claim stays disabled
-        // until a later summary replaces the one it was pressed against.
-        if (!refreshed) {
-          throw new Error('Earnings summary refresh did not finish');
-        }
-      },
-      onTaxRequired: () => {
-        void openAfterClaimRefusal().catch(() => {
-          openClaimsPaused();
-        });
-      },
-      onClaimsPaused: () => {
-        // The sheet copies these totals into route params, so it has to open
-        // with the summary this refresh returns. The selector still holds the
-        // pre-refusal figures until the next render. A refresh that returns
-        // nothing has not finished, so the sheet stays closed.
-        void fetchEarningsSummary({ forceFresh: true })
-          .then((summary) => {
-            if (!summary) {
-              return;
-            }
-            openClaimsPaused(summary);
-          })
-          .catch(() => {
-            openClaimsPaused();
-          });
-      },
-    });
-  // Subscribing re-renders this screen when the account list changes (an
-  // import), which re-runs the sign check below. Signing itself stays the
-  // claim runner's keyring check, hardware and snap included.
-  useSelector(selectInternalAccounts);
-  const signRouteOptions = claimRouteOptions(
-    localizedText?.taxFormUrl,
-    followTradeClaimOpen,
-    revShareClaimOpen,
-  );
-  const earnedElsewhere =
-    Boolean(localizedText?.earnedOnOtherAccounts) &&
-    claimHasUnsignableAddress(
-      earningsSummaryEntry?.data,
-      signRouteOptions,
-      canSignEarningAddress,
-    );
-  const claimBlockedOnDevice =
-    Boolean(localizedText?.earnedOnOtherAccounts) &&
-    claimBlockedOnThisDevice(
-      earningsSummaryEntry?.data,
-      signRouteOptions,
-      canSignEarningAddress,
-    );
-  // Same sign check as the button. A later cashback-only press must not
-  // treat an unsignable cashback balance as something this phone can pay.
-  const cashbackSignableOnDevice = routesSignableOnDevice(
-    earningsSummaryEntry?.data,
-    ['referral-trade-fee-cashback'],
-    canSignEarningAddress,
-  ).includes('referral-trade-fee-cashback');
 
   if (!localizedText) {
     return null;
   }
 
   const summary = deriveSummarySection(earningsSummaryEntry);
-  const history = deriveHistorySection(historyList, inFlight.claims);
-  const last7Loading = last7.isLoading && !last7.data;
-  const last7Amount = last7.data ? musdAmount(last7.data.lifetime_total) : null;
-  const errorSource = deriveErrorSource(
-    summary.error,
-    last7.error && !last7.data,
-    history.error,
-  );
   const rows = breakdownRows(
     persona,
     summary.data,
     localizedText,
     sections,
-    showTradingCommissions,
+    isSocialV1Enabled,
   );
-  // One earning type does not need a split. The section appears only when
-  // two rows remain after the role and Social V1 filters.
-  const showBreakdown = summary.show && rows.length >= 2;
-  const display = displayClaimTotals(summary.data);
-  const routeOptions = claimRouteOptions(
-    localizedText?.taxFormUrl,
-    followTradeClaimOpen,
-    revShareClaimOpen,
+  const waysToEarnRows = earnActionRows(
+    persona,
+    localizedText,
+    sections,
+    isSocialV1Enabled,
   );
-  const claimEnabled = canClaimEarnings(summary.data, routeOptions);
-  const taxHeld = incomeHeldOnOpenRoute(summary.data, routeOptions);
+  const showWaysToEarn = waysToEarnRows.length > 0;
+  // The role and Social V1 filters decide the rows. One row is enough.
+  const showBreakdown = summary.show && rows.length >= 1;
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
-      {/* Same block as the hero cards on Ways to Earn: the banner and the
-          card share one padded box so the gap between them matches. */}
-      {errorSource || summary.show ? (
-        <Box twClassName="gap-3 px-4 pt-4">
-          {errorSource ? (
-            <EarningsErrorBanner
-              source={errorSource}
-              summaryRefreshing={summary.refreshing}
-              last7Refreshing={last7.isLoading}
-              onRetrySummary={retrySummary}
-              onRetryLast7={last7.retry}
-              onRetryHistory={historyList.retry}
-            />
-          ) : null}
-          {summary.show ? (
-            <ClaimableRewardsCard
-              localizedText={localizedText}
-              claimable={display.claimable}
-              pending={display.pending}
-              claimed={summary.data?.claimed}
-              held={summary.data?.held}
-              blocked={summary.data?.blocked}
-              claimableAmount={musdAmount(display.claimable)}
-              pendingAmount={musdAmount(display.pending)}
-              heldAmount={musdAmount(summary.data?.held)}
-              isReferrer={persona === 'referrer'}
-              recordedAmount={musdAmount(summary.data?.lifetime_total)}
-              last7Amount={last7Amount}
-              isSummaryLoading={summary.loading}
-              isLast7Loading={last7Loading}
-              canClaim={claimEnabled}
-              taxHeld={taxHeld}
-              isClaiming={isClaiming}
-              isClaimWaiting={isClaimWaiting}
-              claimWaitCaption={claimWaitCaption ?? undefined}
-              earnedElsewhereCaption={
-                earnedElsewhere
-                  ? localizedText.earnedOnOtherAccounts
-                  : undefined
-              }
-              claimBlockedOnDevice={claimBlockedOnDevice}
-              onClaim={
-                summary.data
-                  ? () => {
-                      const summaryData = summary.data;
-                      if (!summaryData) {
-                        return;
-                      }
-                      void onClaimPress(
-                        summaryData,
-                        (options) =>
-                          claim(options?.summary ?? summaryData, options).catch(
-                            () => undefined,
-                          ),
-                        { cashbackSignableOnDevice },
-                      );
-                    }
-                  : undefined
-              }
-              onPaused={() => openClaimsPaused()}
-              onBalanceBreakdown={
-                summary.data
-                  ? () => {
-                      const summaryData = summary.data;
-                      if (!summaryData) {
-                        return;
-                      }
-                      openBalanceBreakdown(summaryData);
-                    }
-                  : undefined
-              }
-            />
-          ) : null}
+      {summary.error ? (
+        <Box twClassName="px-4 pt-4">
+          <RewardsErrorBanner
+            title={strings(
+              'rewards.referral_details_error.error_fetching_title',
+            )}
+            description={strings(
+              'rewards.referral_details_error.error_fetching_description',
+            )}
+            onConfirm={retrySummary}
+            confirmButtonLabel={strings(
+              'rewards.referral_details_error.retry_button',
+            )}
+            onConfirmLoading={summary.refreshing}
+            testID={EARNINGS_TAB_TEST_IDS.SUMMARY_ERROR}
+          />
         </Box>
+      ) : null}
+      {showWaysToEarn ? (
+        <EarnActionSection
+          title={localizedText.waysToEarn}
+          rows={waysToEarnRows}
+          onPressRow={openWayToEarn}
+          followsSection={false}
+          testIDs={{
+            container: EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN,
+            header: EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_HEADER,
+            row: EARN_ACTION_SECTION_TEST_IDS.WAYS_TO_EARN_ROW,
+          }}
+        />
       ) : null}
       {showBreakdown ? (
         <BreakdownSection
           localizedText={localizedText}
           rows={rows}
           loading={summary.loading}
-          followsSection={summary.show}
-          onViewPerformance={onViewPerformance}
-        />
-      ) : null}
-      {history.show ? (
-        <HistorySection
-          localizedText={localizedText}
-          state={history}
-          followsSection={summary.show || showBreakdown}
-          copyTradingOnly={copyTradingOnly}
-          pausedBaseUnits={
-            summary.loading || history.loading
-              ? null
-              : underReviewBlockedBaseUnits(summary.data)
-          }
-          onEmptyAction={copyTradingOnly ? openSocialTab : openTradeActions}
-          onOpenList={openHistory}
+          followsSection={showWaysToEarn}
         />
       ) : null}
     </Box>

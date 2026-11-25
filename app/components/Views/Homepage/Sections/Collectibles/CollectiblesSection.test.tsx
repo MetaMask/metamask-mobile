@@ -71,12 +71,16 @@ describe('CollectiblesSection', () => {
   it.each([
     ['there are no packs', { data: [] }],
     ['the query fails', { data: undefined, isError: true }],
-  ])('renders nothing when %s', (_, state) => {
+  ])('shows the empty placeholder when %s', (_, state) => {
     mockQuery = { ...mockQuery, ...state };
     renderSection();
+    expect(screen.getByTestId(collectiblesTestIds.empty)).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(collectiblesTestIds.homeSection),
-    ).not.toBeOnTheScreen();
+      screen.getByText(strings('collectibles.home.empty')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('collectibles.home.empty_description')),
+    ).toBeOnTheScreen();
   });
 
   it('keeps cached packs when a refetch fails', () => {
@@ -96,7 +100,7 @@ describe('CollectiblesSection', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
     expect(screen.getByText(firstPack.subtitle)).toBeOnTheScreen();
-    expect(screen.getByText(firstPack.priceLabel)).toBeOnTheScreen();
+    expect(screen.getByText(String(firstPack.priceLabel))).toBeOnTheScreen();
   });
 
   it('opens the collectibles landing screen from the header', async () => {

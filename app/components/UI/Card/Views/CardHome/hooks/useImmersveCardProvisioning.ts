@@ -142,12 +142,6 @@ export function useImmersveCardProvisioning(
     options?.pollIntervalMs === undefined
       ? POLL_INTERVAL_MS
       : options.pollIntervalMs;
-  const isProvisioningPollActive =
-    isProvisioning &&
-    isFocused &&
-    !pendingAction &&
-    !isReconciling &&
-    pollIntervalMs !== null;
   // Latest interval for the settling retry. The reconcile effect must not
   // depend on it, or a network change cancels the request in flight.
   const pollIntervalMsRef = useRef(pollIntervalMs);
@@ -219,6 +213,13 @@ export function useImmersveCardProvisioning(
 
     return () => clearInterval(interval);
   }, [isProvisioning, isFocused, pendingAction, isReconciling, pollIntervalMs]);
+
+  const isProvisioningPollActive =
+    isProvisioning &&
+    isFocused &&
+    !pendingAction &&
+    !isReconciling &&
+    pollIntervalMs !== null;
 
   // Going offline drops a waiting retry. Coming back restarts a funding
   // settle, and an error retry that was dropped before its timer could run.
