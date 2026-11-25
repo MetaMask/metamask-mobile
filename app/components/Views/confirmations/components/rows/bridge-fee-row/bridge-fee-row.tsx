@@ -286,6 +286,8 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:
     'confirm.tooltip.money_account_deposit.transaction_fee',
+  [TransactionType.membershipSubscription]:
+    'confirm.tooltip.money_account_deposit.transaction_fee',
   [TransactionType.perpsDeposit]:
     'confirm.tooltip.perps_deposit.transaction_fee',
   [TransactionType.perpsLighterDeposit]:

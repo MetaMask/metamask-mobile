@@ -447,16 +447,17 @@ describe('BridgeFeeRow', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders moneyAccountDeposit tooltip copy when the deposit is nested under a non-batch transaction', async () => {
+    it('renders a non-empty fee tooltip for the Orange membership top-up batch', async () => {
       const { getByTestId, getByText } = render({
-        type: TransactionType.contractInteraction,
-        nestedTypes: [TransactionType.moneyAccountDeposit],
+        type: TransactionType.batch,
+        nestedTypes: [
+          TransactionType.tokenMethodApprove,
+          TransactionType.membershipSubscription,
+        ],
       });
 
-      expect(getByTestId('transaction-fee-pressable')).toBeOnTheScreen();
-
       await act(async () => {
-        fireEvent.press(getByTestId('transaction-fee-pressable'));
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
       });
 
       expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
