@@ -14,9 +14,9 @@ export function PacksScreenSkeleton() {
           <Skeleton key={key} className="h-8 w-20 rounded-full" />
         ))}
       </View>
-      <View className="flex-row flex-wrap px-2.5">
+      <View className="flex-row flex-wrap px-2">
         {tileKeys.map((key) => (
-          <View key={key} className="w-1/2 gap-2 px-1.5 pb-6">
+          <View key={key} className="w-1/2 gap-2 px-2 pb-6">
             <Skeleton className="h-60 w-full rounded-xl" />
             <Skeleton className="h-5 w-3/4" />
             <Skeleton className="h-8 w-full rounded-full" />

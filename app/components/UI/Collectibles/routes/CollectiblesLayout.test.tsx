@@ -39,7 +39,7 @@ const Stack = createNativeStackNavigator();
 
 const tabs = [
   [strings('collectibles.tabs.popular'), collectiblesTestIds.popularView],
-  [strings('collectibles.tabs.packs'), collectiblesTestIds.packsView],
+  [strings('collectibles.tabs.packs'), collectiblesTestIds.packsSkeleton],
   [strings('collectibles.tabs.collection'), collectiblesTestIds.collectionView],
   [
     strings('collectibles.tabs.marketplace'),

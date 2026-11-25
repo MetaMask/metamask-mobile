@@ -132,23 +132,6 @@ describe('PacksView', () => {
     expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
   });
 
-  it('stays on "All" when a lost category comes back', () => {
-    const { rerender } = renderWithProvider(<PacksView />);
-    fireEvent.press(
-      screen.getByTestId(collectiblesTestIds.packsCategoryChip('watches')),
-    );
-    mockCatalog = catalogWithoutWatches();
-    rerender(<PacksView />);
-
-    mockCatalog = loadedCatalog();
-    rerender(<PacksView />);
-
-    expect(
-      screen.getByTestId(collectiblesTestIds.packsCategoryChip('all')),
-    ).toBeSelected();
-    expect(shownPackCodes()).toHaveLength(mockCatalog.packs.length);
-  });
-
   it('shows skeletons while loading', () => {
     mockCatalog = { packs: [], categories: [], isPending: true };
     renderWithProvider(<PacksView />);

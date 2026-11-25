@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import React, { useState } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import {
   ButtonIcon,
@@ -18,17 +17,17 @@ import { Text } from '../../primitives/Text';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import type { ListedPack } from '../types/packs';
 import { usePacksCatalog } from '../hooks/usePacksCatalog';
+import { useAnnounce } from '../hooks/useAnnounce';
 import { PackCategoryChips } from '../components/PackCategoryChips';
 import { PacksGridTile } from '../components/PacksGridTile';
 import { PacksScreenSkeleton } from '../components/PacksScreenSkeleton';
 
-function keyExtractor(pack: ListedPack) {
-  return pack.code;
-}
+const keyExtractor = (pack: ListedPack) => pack.code;
 
 export function PacksView() {
   const tw = useTailwind();
   const { packs, categories, isPending } = usePacksCatalog();
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
 
   const activeCategoryId = categories.some(
@@ -36,103 +35,88 @@ export function PacksView() {
   )
     ? selectedCategoryId
     : undefined;
-  if (selectedCategoryId && !activeCategoryId) {
-    setSelectedCategoryId(undefined);
-  }
+
   const visiblePacks = activeCategoryId
     ? packs.filter((pack) => pack.categoryId === activeCategoryId)
     : packs;
 
   const isEmpty = !isPending && !packs.length;
-  useEffect(() => {
-    if (isEmpty) {
-      AccessibilityInfo.announceForAccessibility(
-        strings('collectibles.packs.empty'),
-      );
-    }
-  }, [isEmpty]);
 
-  function renderItem({ item }: { item: ListedPack }) {
+  useAnnounce(isEmpty, strings('collectibles.packs.empty'));
+
+  const renderItem = ({ item }: { item: ListedPack }) => (
+    <View className="flex-1 px-2 pb-6">
+      <PacksGridTile pack={item} />
+    </View>
+  );
+
+  if (isPending) {
+    return <PacksScreenSkeleton />;
+  }
+
+  if (isEmpty) {
     return (
-      <View className="flex-1 px-1.5 pb-6">
-        <PacksGridTile pack={item} />
+      <View
+        className="flex-1 items-center gap-2 px-6 py-10"
+        testID={collectiblesTestIds.packsEmpty}
+      >
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Xl}
+          color={IconColor.IconAlternative}
+        />
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Bold}
+          className="text-center"
+        >
+          {strings('collectibles.packs.empty')}
+        </Text>
       </View>
     );
   }
 
-  function renderContent() {
-    if (isPending) {
-      return <PacksScreenSkeleton />;
-    }
-    if (isEmpty) {
-      return (
-        <View
-          className="items-center gap-2 px-6 py-10"
-          testID={collectiblesTestIds.packsEmpty}
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Xl}
-            color={IconColor.IconAlternative}
-          />
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Bold}
-            className="text-center"
-          >
-            {strings('collectibles.packs.empty')}
-          </Text>
-        </View>
-      );
-    }
-    return (
-      <>
-        <PackCategoryChips
-          categories={categories}
-          selectedId={activeCategoryId}
-          onSelect={setSelectedCategoryId}
-        />
-        <View className="flex-row items-center justify-between pl-4 pr-2 pt-2">
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            testID={collectiblesTestIds.packsFilterSortLine}
-          >
-            {strings('collectibles.packs.filter_sort', {
-              filter: strings('collectibles.packs.all_prices'),
-              sort: strings('collectibles.packs.lowest_price'),
-            })}
-          </Text>
-          <View className="flex-row">
-            <ButtonIcon
-              iconName={IconName.Filter}
-              accessibilityLabel={strings('collectibles.packs.filter')}
-              testID={collectiblesTestIds.packsFilterButton}
-            />
-            <ButtonIcon
-              iconName={IconName.SwapVertical}
-              accessibilityLabel={strings('collectibles.packs.sort')}
-              testID={collectiblesTestIds.packsSortButton}
-            />
-          </View>
-        </View>
-        <View className="flex-1">
-          <FlashList
-            data={visiblePacks}
-            numColumns={2}
-            renderItem={renderItem}
-            keyExtractor={keyExtractor}
-            contentContainerStyle={tw.style('px-2.5 pb-6 pt-2')}
-            testID={collectiblesTestIds.packsGrid}
-          />
-        </View>
-      </>
-    );
-  }
-
   return (
-    <View className="flex-1" testID={collectiblesTestIds.packsView}>
-      {renderContent()}
+    <View className="flex-1 pt-2" testID={collectiblesTestIds.packsView}>
+      <PackCategoryChips
+        categories={categories}
+        selectedId={activeCategoryId}
+        onSelect={setSelectedCategoryId}
+      />
+
+      <View className="flex-row items-center justify-between pl-4 pr-2 pt-2">
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          testID={collectiblesTestIds.packsFilterSortLine}
+        >
+          {strings('collectibles.packs.filter_sort', {
+            filter: strings('collectibles.packs.all_prices'),
+            sort: strings('collectibles.packs.lowest_price'),
+          })}
+        </Text>
+        <View className="flex-row">
+          <ButtonIcon
+            iconName={IconName.Filter}
+            accessibilityLabel={strings('collectibles.packs.filter')}
+            testID={collectiblesTestIds.packsFilterButton}
+          />
+          <ButtonIcon
+            iconName={IconName.SwapVertical}
+            accessibilityLabel={strings('collectibles.packs.sort')}
+            testID={collectiblesTestIds.packsSortButton}
+          />
+        </View>
+      </View>
+
+      <FlashList
+        data={visiblePacks}
+        numColumns={2}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={tw.style('px-2 pb-6 pt-2')}
+        testID={collectiblesTestIds.packsGrid}
+      />
     </View>
   );
 }
