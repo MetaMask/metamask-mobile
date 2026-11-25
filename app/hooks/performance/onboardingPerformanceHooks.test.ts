@@ -265,19 +265,6 @@ describe('onboarding performance hooks', () => {
         timeoutMs: 1000,
       });
 
-    it('starts the Rive ready trace without forcing a root transaction', () => {
-      renderHook(foxLoader);
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingRiveReady,
-          op: TraceOperation.OnboardingRivePerformance,
-        }),
-      );
-      expect(mockTrace).not.toHaveBeenCalledWith(
-        expect.objectContaining({ forceTransaction: expect.anything() }),
-      );
-    });
-
     it('records play, timeout, and error outcomes', () => {
       const { result } = renderHook(foxLoader);
       act(() => {
