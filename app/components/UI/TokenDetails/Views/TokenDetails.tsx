@@ -126,6 +126,7 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 import TokenDetailsPagePending from './TokenDetailsPagePending';
+import { ActivitiesViewSelectorsIDs } from '../../../Views/ActivityView/ActivitiesView.testIds';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -710,7 +711,7 @@ const TokenDetails: React.FC<{
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
-    onBuy();
+    void onBuy();
   }, [onBuy, onCtaClicked]);
 
   const handleSend = useCallback(async () => {
@@ -908,7 +909,7 @@ const TokenDetails: React.FC<{
                 scrollEnabled={!isChartBeingTouched}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
-                testID={TokenDetailsIds.scrollView}
+                testID={ActivitiesViewSelectorsIDs.CONTAINER}
               >
                 {overviewContent}
               </ScrollView>

@@ -36,7 +36,7 @@ import {
 } from '../../../../selectors/bridge/featureFlags';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsTestIds } from './TokenDetails.testIds';
-import { TokenDetailsIds } from '../testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../Views/ActivityView/ActivitiesView.testIds';
 import {
   selectAssetsMemecoinTdpV1Enabled,
   selectMemecoinTdpV1TabConfigOrder,
@@ -1890,7 +1890,7 @@ describe('TokenDetails', () => {
       getByTestId: (id: string) => Parameters<typeof fireEvent.scroll>[0],
       y: number,
     ) => {
-      fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      fireEvent.scroll(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER), {
         nativeEvent: { contentOffset: { y } },
       });
     };
@@ -2010,7 +2010,7 @@ describe('TokenDetails', () => {
       withBrandRefresh();
       const { getByTestId } = render(<TokenDetails />);
 
-      fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      fireEvent.scroll(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER), {
         nativeEvent: { contentOffset: { y: 64 } },
       });
 
