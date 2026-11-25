@@ -53,6 +53,7 @@ export const mockBridgeReducerState: BridgeState = {
 
   // Recurring
   recurring: initialRecurringState,
+  recurringPriceTolerance: undefined,
 
   // Limit orders
   limitOrderCostTolerance: undefined,

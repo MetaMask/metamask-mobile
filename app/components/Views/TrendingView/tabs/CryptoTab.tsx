@@ -39,11 +39,6 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
-import {
-  RobinhoodBanner,
-  RobinhoodBannerSurface,
-  useRobinhoodBanner,
-} from '../../../UI/RobinhoodBanner';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -139,12 +134,6 @@ const CryptoTabContent: React.FC<TabProps> = ({
     EXPLORE_QUICK_BUY_VARIANTS,
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
-
-  const {
-    dismiss: dismissRobinhoodBanner,
-    handlePress: handleRobinhoodBannerPress,
-    shouldShow: shouldShowRobinhoodBanner,
-  } = useRobinhoodBanner(RobinhoodBannerSurface.ExploreCrypto);
 
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictTrendingFeed({
@@ -284,12 +273,6 @@ const CryptoTabContent: React.FC<TabProps> = ({
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
       >
-        {shouldShowRobinhoodBanner ? (
-          <RobinhoodBanner
-            onDismiss={dismissRobinhoodBanner}
-            onPress={handleRobinhoodBannerPress}
-          />
-        ) : null}
         <ExploreSectionList sections={sections} />
       </ExploreScroll>
     </View>

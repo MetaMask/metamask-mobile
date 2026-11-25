@@ -1331,7 +1331,8 @@ describe('Engine', () => {
             (!isEmpty(controller.state) ||
               controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'DelegationController'),
+              controllerName === 'DelegationController' ||
+              controllerName === 'CollectiblesController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1344,6 +1345,42 @@ describe('Engine', () => {
   });
 
   describe('resetState', () => {
+    it('clears profile metrics state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for profile metrics state to clear before resetting circuit breakers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      let finishClear: () => void = () => undefined;
+      jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              finishClear = resolve;
+            }),
+        );
+      const resetCircuitBreakersSpy = jest
+        .spyOn(engine.context.ProfileMetricsService, 'resetCircuitBreakers')
+        .mockReturnValue(undefined);
+
+      const reset = engine.resetState();
+
+      expect(resetCircuitBreakersSpy).not.toHaveBeenCalled();
+
+      finishClear();
+      await reset;
+
+      expect(resetCircuitBreakersSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('calls MoneyAccountController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
@@ -1586,6 +1623,25 @@ describe('Engine', () => {
       expect(engine.context.PredictVenueController.state).toMatchObject({
         venueSelectionPreference: null,
         lastActiveVenue: null,
+      });
+    });
+
+    it('resets TransactionController state without a swapsTransactions key', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+
+      await engine.resetState();
+
+      // swapsTransactions has no entry in the TransactionController state
+      // metadata, so leaving it in the reset state makes every later
+      // TransactionController update throw "No metadata found for
+      // 'swapsTransactions'" and report it to Sentry.
+      expect(engine.context.TransactionController.state).toEqual({
+        methodData: {},
+        transactions: [],
+        transactionBatches: [],
+        batchTransactionCounts: {},
+        lastFetchedBlockNumbers: {},
+        submitHistory: [],
       });
     });
 

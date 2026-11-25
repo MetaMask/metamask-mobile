@@ -86,8 +86,6 @@ certs/                                                      @MetaMask/mobile-adm
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
-scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
-scripts/validate-secrets-from-config.js                     @MetaMask/mobile-admins
 
 # DevOps Team
 .github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform
@@ -186,8 +184,9 @@ app/components/UI/QuickBuy/                              @MetaMask/swaps-enginee
 **/QuickBuy/**                                           @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
-.github/scripts/swaps/performance-budgets/               @MetaMask/swaps-engineers
+.github/scripts/swaps/                                   @MetaMask/swaps-engineers
 .github/workflows/swaps-performance-budgets.yml          @MetaMask/swaps-engineers
+.github/workflows/swaps-cpu-profile-report.yml           @MetaMask/swaps-engineers
 
 # Engagement Team
 # Braze
@@ -256,6 +255,14 @@ app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/earn/**                           @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
+# Card product UI that lives under Money.
+# Must stay below **/Money/** — last matching pattern wins.
+app/components/UI/Money/components/MoneyMetaMaskCard/      @MetaMask/card
+app/components/UI/Money/components/MoneyLinkCardSheet/     @MetaMask/card
+app/components/UI/Money/components/MoneyCardTiltAnimation/ @MetaMask/card
+app/components/UI/Money/components/MoneyCardFlipAnimation/ @MetaMask/card
+app/components/UI/Money/utils/moneyMetaMaskCardMode.ts     @MetaMask/card
+app/components/UI/Money/utils/moneyMetaMaskCardMode.test.ts @MetaMask/card
 app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
 **/EarnSection/**    @MetaMask/earn
 
@@ -386,7 +393,6 @@ app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
 app/components/Views/AccountsMenu                @MetaMask/mobile-core-ux
-app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
 app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
 app/components/UI/TransactionElement             @MetaMask/mobile-core-ux
 app/components/UI/Transactions                   @MetaMask/mobile-core-ux

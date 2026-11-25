@@ -110,6 +110,7 @@ import {
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import { usePerpsFeeDisplayAbTest } from '../../../../hooks/usePerpsFeeDisplayAbTest';
 import { usePerpsMarginModeLock } from '../../../../hooks/usePerpsMarginModeLock';
+import { usePerpsSavedMarginMode } from '../../../../hooks/usePerpsSavedMarginMode';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -1063,13 +1064,18 @@ export const usePerpsProOrderForm = ({
     !marketData.onlyIsolated &&
     !marketData.marginMode;
   // Loading is temporary uncertainty, not a change to the trader's choice.
-  // Clear the choice only when the gate or fresh metadata rules out Cross.
+  // Clear the in-memory pick only when the gate or fresh metadata rules out
+  // Cross. A missing metadata read is not a restriction.
   const isCrossMarginUnsupported =
     !isCrossMarginAvailable ||
     !isProviderMetadataAvailable ||
     (!isMarketDataLoading &&
       !!marketData &&
       !!(marketData.onlyIsolated || marketData.marginMode));
+  const isCrossMarginRestrictedByMetadata =
+    !isMarketDataLoading &&
+    !!marketData &&
+    !!(marketData.onlyIsolated || marketData.marginMode);
   // An omitted provider in this eligible flow means the default Hyperliquid
   // route, so hydrating its id does not change the selection context.
   const perpsAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
@@ -1079,12 +1085,23 @@ export const usePerpsProOrderForm = ({
     perpsAccountAddress,
     network,
   ]);
+  const { savedMarginMode, saveMarginMode } = usePerpsSavedMarginMode(
+    symbol,
+    market.providerId,
+  );
   const [marginModeSelection, setMarginModeSelection] = useState<{
     contextKey: string;
     marginMode: MarginMode;
   } | null>(null);
-  // Forget the pick on a context change or restriction, so switching back
-  // does not revive it. A metadata reload in the same context keeps it.
+  // Fresh metadata restricted Cross this visit, so a metadata reload must not
+  // revive the saved mode. The form is keyed per market, and a later visit
+  // reads the saved mode again. The temporary cross-margin gate is not a
+  // restriction; isCrossMarginUnsupported hides the saved mode while it lasts.
+  const [isSavedMarginModeRuledOut, setIsSavedMarginModeRuledOut] =
+    useState(false);
+  // The in-memory pick overrides the saved mode for this visit. Drop it on a
+  // context change or restriction; the saved per-market mode then applies.
+  // A metadata reload in the same context keeps it.
   useEffect(() => {
     setMarginModeSelection((selection) =>
       !isCrossMarginUnsupported &&
@@ -1093,18 +1110,33 @@ export const usePerpsProOrderForm = ({
         : null,
     );
   }, [marginModeContextKey, isCrossMarginUnsupported]);
+  useEffect(() => {
+    if (isCrossMarginRestrictedByMetadata) {
+      setIsSavedMarginModeRuledOut(true);
+    }
+  }, [isCrossMarginRestrictedByMetadata]);
+  const persistedMarginMode =
+    !isSavedMarginModeRuledOut &&
+    (savedMarginMode === 'cross' || savedMarginMode === 'isolated')
+      ? savedMarginMode
+      : undefined;
   const selectedMarginMode: MarginMode =
     !isCrossMarginUnsupported &&
     marginModeSelection?.contextKey === marginModeContextKey
       ? marginModeSelection.marginMode
-      : 'isolated';
+      : !isCrossMarginUnsupported && persistedMarginMode
+        ? persistedMarginMode
+        : 'isolated';
   const onMarginModeSelect = useCallback(
-    (nextMarginMode: MarginMode) =>
+    (nextMarginMode: MarginMode) => {
       setMarginModeSelection({
         contextKey: marginModeContextKey,
         marginMode: nextMarginMode,
-      }),
-    [marginModeContextKey],
+      });
+      setIsSavedMarginModeRuledOut(false);
+      saveMarginMode(nextMarginMode);
+    },
+    [marginModeContextKey, saveMarginMode],
   );
   const {
     lock: marginModeLock,
@@ -2125,7 +2157,7 @@ export const usePerpsProOrderForm = ({
       currentMarketPosition ||
       marketMaxLeverage === undefined
     ) {
-      return '';
+      return undefined;
     }
     const estimate = estimateCrossLiquidationPrice({
       entryPrice: effectivePrice,
@@ -2136,7 +2168,9 @@ export const usePerpsProOrderForm = ({
       spotCollateral: liveAccount?.spotCollateral,
       providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
     });
-    return estimate === undefined ? '' : new BigNumber(estimate).toFixed();
+    return estimate === undefined
+      ? undefined
+      : new BigNumber(estimate).toFixed();
   }, [
     marginMode,
     isScaleOrder,
@@ -2168,7 +2202,13 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    // perps-controller 26.0.0 projects held Cross positions; the before→after
+    // row stays off for them until product signs off on Cross projections.
+    enabled:
+      isPositionModifyPreviewEnabled &&
+      !isScaleOrder &&
+      !isTwapOrder &&
+      currentMarketPosition?.leverage?.type !== 'cross',
   });
 
   const existingPositionLeverageForValidation =
@@ -2586,7 +2626,7 @@ export const usePerpsProOrderForm = ({
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
       marginMode === 'cross'
-        ? ''
+        ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
     marketPrice: assetData.price,
@@ -3287,9 +3327,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3593,7 +3631,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4325,7 +4363,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

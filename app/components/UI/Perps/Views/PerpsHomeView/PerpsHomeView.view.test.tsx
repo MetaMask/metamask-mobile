@@ -49,11 +49,11 @@ import {
   getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
-  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
   PerpsProviderLogosSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
   PerpsWatchlistSelectorsIDs,
 } from '../../Perps.testIds';
 import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exploreSessionTab';
@@ -1092,6 +1092,43 @@ describe('PerpsHomeView', () => {
           expect.objectContaining({
             scope: 'all',
             chains: ['eip155:999'],
+          }),
+        );
+      });
+
+      it('opens the position sheet when a Live trades row is pressed', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+          extraRoutes: [
+            {
+              name: Routes.SOCIAL.POSITION_SHEET,
+              Component: createRouteParamsProbe(
+                Routes.SOCIAL.POSITION_SHEET,
+              ) as ComponentType<unknown>,
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            rowIdOf(highWinRateTrade),
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        );
+        const sheetProbe = await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.SOCIAL.POSITION_SHEET),
+        );
+        expect(JSON.parse(sheetProbe.props.children as string)).toEqual(
+          expect.objectContaining({
+            positionId: highWinRateTrade.positionId,
+            analyticsSource: 'perps_home',
           }),
         );
       });
@@ -2960,9 +2997,25 @@ describe('Perps home cross margin risk', () => {
       ),
     );
 
+    // The explanation replaces the summary in the open sheet.
     expect(
-      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
-    ).toHaveTextContent(strings('perps.tooltips.account_ratio.content'));
+      await screen.findByText(strings('perps.tooltips.account_ratio.content')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('61%');
   });
 
   it('opens a safe balance summary without a home banner or risk icon', async () => {

@@ -39,7 +39,10 @@ import {
   resolveMoneyAccountPlusEntry,
   useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
-import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import {
+  selectIsMoneyAccountPlusAnnual,
+  selectIsMoneyAccountPlusTrialing,
+} from '../../../selectors/subscriptionController';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
@@ -127,6 +130,7 @@ const ProHub = () => {
     useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
+  const isAnnual = useSelector(selectIsMoneyAccountPlusAnnual);
   const { sinceInceptionQuery: premiumSinceInceptionQuery } =
     useMoneyPremiumAccountInterest();
   const baseSinceInceptionQuery = useMoneyAccountSinceInceptionInterest();
@@ -320,13 +324,17 @@ const ProHub = () => {
             </Box>
           </Box>
 
-          <PhysicalCardBanner
-            onPress={isTrialing ? undefined : handleGetCard}
-            isSubscriptionTrialing={isTrialing}
-            cashbackRate={formatPercent(MOCK_PRO_HUB_STATS.musdBackRate)}
-          />
+          {isAnnual && (
+            <>
+              <PhysicalCardBanner
+                onPress={isTrialing ? undefined : handleGetCard}
+                isSubscriptionTrialing={isTrialing}
+                cashbackRate={formatPercent(MOCK_PRO_HUB_STATS.musdBackRate)}
+              />
 
-          <SectionDivider marginVertical={5} />
+              <SectionDivider marginVertical={5} />
+            </>
+          )}
 
           <MemberPricingOnTrades />
 

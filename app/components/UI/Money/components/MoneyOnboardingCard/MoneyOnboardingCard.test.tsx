@@ -671,7 +671,7 @@ describe('MoneyOnboardingCard', () => {
       );
     });
 
-    it('renders the Link card primary CTA when user is a cardholder but not authenticated', () => {
+    it('renders the Log in primary CTA when user is a cardholder but not authenticated', () => {
       setupDefaultMocks({
         currentStep: 1,
         isCardholder: true,
@@ -682,7 +682,7 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
 
       expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
-        strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
+        strings('money.onboarding.step_2.unlinked_card_account.cta_log_in'),
       );
     });
 

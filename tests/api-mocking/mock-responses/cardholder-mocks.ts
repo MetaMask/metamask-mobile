@@ -1,18 +1,13 @@
 import { TestSpecificMock } from '../../framework/types.ts';
-import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder.ts';
 import { setupMockRequest } from '../helpers/mockHelpers.ts';
 import { createGeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
 import { RAMPS_NETWORKS_RESPONSE } from './ramps/responses/ramps-networks-response.ts';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
-import { ethers } from 'ethers';
 
 /**
  * Mock responses for cardholder API calls
  * Used in E2E tests to avoid dependency on external APIs
  */
-
-// Balance scanner contract address on Linea
-const LINEA_BALANCE_SCANNER = '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a';
 
 // Static mock responses for Linea RPC calls
 const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
@@ -34,47 +29,6 @@ const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
   net_version: '59144',
 };
 
-/**
- * Generate ABI-encoded response for spendersAllowancesForTokens.
- * Returns Result[][] where Result is (bool success, bytes data).
- * Each token has 2 spenders (global and US).
- *
- * @param tokenAllowances - Per-token allowances (0=USDC,1=USDT,2=WETH,3=EURe,4=GBPe,5=aUSDC). Used for spender[0] (global); spender[1] (us) is always 0.
- */
-const generateSpendersAllowancesResponse = (
-  tokenAllowances: (number | string)[],
-): string => {
-  const zeroData = ethers.utils.defaultAbiCoder.encode(['uint256'], [0]);
-
-  const innerArrays = tokenAllowances.map((allowance) => {
-    const allowanceData = ethers.utils.defaultAbiCoder.encode(
-      ['uint256'],
-      [allowance],
-    );
-    return [
-      [true, allowanceData], // spender 0 (global)
-      [true, zeroData], // spender 1 (us)
-    ] as [boolean, string][];
-  });
-
-  return ethers.utils.defaultAbiCoder.encode(
-    ['tuple(bool,bytes)[][]'],
-    [innerArrays],
-  );
-};
-
-// USDC (index 0): allowance 200000000000 > ARBITRARY_ALLOWANCE (100000000000) → Active
-// All other tokens: 0 → Inactive
-// With USDC as the only Active token, BaanxProvider sets it as primaryAsset.
-const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse([
-  200000000000, // USDC — Active
-  0, // USDT — Inactive
-  0, // WETH — Inactive
-  0, // EURe — Inactive
-  0, // GBPe — Inactive
-  0, // aUSDC — Inactive
-]);
-
 const clientConfig = {
   urlEndpoint:
     /^https:\/\/client-config\.api\.cx\.metamask\.io\/v1\/flags\?client=mobile&distribution=main&environment=(dev|test|prod)$/,
@@ -91,7 +45,6 @@ const clientConfig = {
       },
       cardFeature: {
         constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
           onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
         },
         chains: {
@@ -140,7 +93,6 @@ const clientConfig = {
                 address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
               },
             ],
-            balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
             enabled: true,
             foxConnectAddresses: {
               us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
@@ -148,6 +100,10 @@ const clientConfig = {
             },
           },
         },
+      },
+      cardLinkApi: {
+        enabled: true,
+        minimumVersion: '0.0.0',
       },
     },
   ],
@@ -166,23 +122,6 @@ const handleLineaRpcRequest = (
 ): { id: number; jsonrpc: string; result: unknown } => {
   const method = body?.method;
 
-  // Special handling for balance scanner eth_call
-  if (method === 'eth_call') {
-    const params = body?.params as { to?: string; data?: string }[] | undefined;
-    const to = params?.[0]?.to?.toLowerCase();
-
-    if (to === LINEA_BALANCE_SCANNER) {
-      // Return properly ABI-encoded spendersAllowancesForTokens response
-      // This is Result[][] where Result is (bool success, bytes data)
-      // 6 tokens with 2 spenders each, all returning allowance of 0
-      return {
-        id: body?.id ?? 1,
-        jsonrpc: '2.0',
-        result: SPENDERS_ALLOWANCES_RESPONSE,
-      };
-    }
-  }
-
   const result = method
     ? (LINEA_MOCK_RESPONSES as Record<string, unknown>)[method] || '0x'
     : '0x';
@@ -200,6 +139,44 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2';
 
   // Helper to get decoded URL from proxy request
+  /** Minimal Baanx registration settings so Card login can render a country. */
+  const BAANX_REGISTRATION_SETTINGS = {
+    countries: [
+      {
+        id: 'es',
+        name: 'Spain',
+        iso3166alpha2: 'ES',
+        callingCode: '34',
+        canSignUp: true,
+      },
+    ],
+    usStates: [],
+    links: {
+      us: {
+        termsAndConditions: 'https://example.com/us/terms',
+        accountOpeningDisclosure: 'https://example.com/us/account-opening',
+        noticeOfPrivacy: 'https://example.com/us/privacy',
+        eSignConsentDisclosure: 'https://example.com/us/esign',
+      },
+      intl: {
+        termsAndConditions: 'https://example.com/intl/terms',
+        rightToInformation: 'https://example.com/intl/right-to-information',
+      },
+    },
+    config: {
+      us: {
+        emailSpecialCharactersDomainsException: '',
+        consentSmsNumber: '',
+        supportEmail: 'support@example.com',
+      },
+      intl: {
+        emailSpecialCharactersDomainsException: '',
+        consentSmsNumber: '',
+        supportEmail: 'support@example.com',
+      },
+    },
+  };
+
   const getDecodedProxiedURL = (url: string): string => {
     try {
       return decodeURIComponent(String(new URL(url).searchParams.get('url')));
@@ -257,13 +234,6 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     .asPriority(1000)
     .thenCallback(createRpcCallback());
 
-  // Public Linea RPC fallback used by BaanxProvider.getOnChainAssets
-  // (LINEA_PUBLIC_RPC_URL) when Infura is unavailable.
-  await mockServer
-    .forPost('https://rpc.linea.build')
-    .asPriority(1000)
-    .thenCallback(createRpcCallback());
-
   // Mock Linea Tenderly RPC through the mobile proxy
   await mockServer
     .forPost('/proxy')
@@ -293,6 +263,28 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     })
     .asPriority(1000)
     .thenCallback(createRpcCallback());
+
+  // Card login loads registration settings before the country select is usable.
+  // The e2e build calls the dev Baanx host; UAT and production are covered so a
+  // different build target does not leak a live request.
+  const isBaanxRegistrationSettings = (url: string): boolean =>
+    /https:\/\/(foxdev2-ag\.foxcard\.io|dev\.api\.baanx\.com|api\.baanx\.com)\/v1\/auth\/settings\/?/.test(
+      url,
+    );
+
+  await mockServer
+    .forGet()
+    .matching((request) => isBaanxRegistrationSettings(request.url))
+    .asPriority(1000)
+    .thenJson(200, BAANX_REGISTRATION_SETTINGS);
+
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) =>
+      isBaanxRegistrationSettings(getDecodedProxiedURL(request.url)),
+    )
+    .asPriority(1000)
+    .thenJson(200, BAANX_REGISTRATION_SETTINGS);
 
   // Geolocation mocks - set to Spain (all envs)
   for (const mock of createGeolocationResponse(
@@ -329,10 +321,18 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/metadata\?.*$/,
-    response: {
-      is: [`eip155:0:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`],
-    },
+    url: /^https:\/\/card\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v1\/card\/links$/,
+    response: [
+      {
+        provider: 'baanx',
+        status: 'active',
+        linkedAccountRef: null,
+        closedReason: null,
+        migratedToProvider: null,
+        linkedAt: '2026-09-01T00:00:00.000Z',
+        updatedAt: '2026-09-01T00:00:00.000Z',
+      },
+    ],
     responseCode: 200,
   });
 

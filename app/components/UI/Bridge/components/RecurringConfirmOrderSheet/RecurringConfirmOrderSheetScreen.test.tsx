@@ -14,10 +14,7 @@ import {
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_PREPARE_QUERY,
 } from '../../api/recurringOrders.mock';
-import {
-  showRecurringAutoUpgradeError,
-  showRecurringOrderCreatedToast,
-} from './RecurringConfirmOrderSheet.utils';
+import { showRecurringOrderCreatedToast } from './RecurringConfirmOrderSheet.utils';
 import { RecurringConfirmOrderSheetScreen } from './RecurringConfirmOrderSheetScreen';
 import {
   FeatureId,
@@ -31,6 +28,7 @@ import { OrderType } from '../../types/advancedOrders';
 import { useCreateRecurringOrder } from '../../hooks/useCreateRecurringOrder';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { getRecurringOrderDelegationParams } from '../../utils/recurringOrders/getRecurringOrderDelegationParams';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import {
   finishRecurringOrderTrace,
   startRecurringOrderCreateTrace,
@@ -63,6 +61,7 @@ const expectAdvancedOrderProperties = (
 };
 
 const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 const mockAutoUpgradeEIP7702Account = jest.fn();
 const mockCreateRecurringOrder = jest.fn();
@@ -79,6 +78,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    replace: mockReplace,
     goBack: mockGoBack,
   }),
 }));
@@ -145,8 +145,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../utils/showGenericErrorToast', () => ({
+  showGenericErrorToast: jest.fn(),
+}));
+
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
-  showRecurringAutoUpgradeError: jest.fn(),
   showRecurringOrderCreatedToast: jest.fn(),
 }));
 
@@ -157,7 +160,7 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isPriceRangeConversionReady,
     isSubmitting,
     onConfirm,
-    onEditSlippagePress,
+    onEditPriceTolerancePress,
     onDelegationFeeInfoPress,
     goBack,
   }: {
@@ -165,7 +168,7 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isPriceRangeConversionReady: boolean;
     isSubmitting: boolean;
     onConfirm: () => void;
-    onEditSlippagePress: () => void;
+    onEditPriceTolerancePress: () => void;
     onDelegationFeeInfoPress: () => void;
     goBack: () => void;
   }) => {
@@ -199,8 +202,11 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
       ),
       ReactModule.createElement(
         Pressable,
-        { testID: 'edit-slippage', onPress: onEditSlippagePress },
-        ReactModule.createElement(Text, null, 'Edit slippage'),
+        {
+          testID: 'edit-price-tolerance',
+          onPress: onEditPriceTolerancePress,
+        },
+        ReactModule.createElement(Text, null, 'Edit price tolerance'),
       ),
       ReactModule.createElement(
         Pressable,
@@ -266,6 +272,20 @@ const configuredRecurringState = {
     min: '1000',
     max: '2000',
   },
+};
+
+const EXPECTED_USD_PRICE_RANGE = {
+  side: 'src',
+  currency: 'USD',
+  min: '1000',
+  max: '2000',
+};
+
+const EXPECTED_EUR_CONVERTED_PRICE_RANGE = {
+  side: 'src',
+  currency: 'USD',
+  min: '1080',
+  max: '2160',
 };
 
 function renderScreen(
@@ -345,20 +365,6 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     });
   });
 
-  it('opens the shared slippage modal above the confirmation modal', () => {
-    const { getByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId('edit-slippage'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken.chainId,
-        destChainId: destToken.chainId,
-      },
-    });
-  });
-
   it('opens the delegation fee info modal above the confirmation modal', () => {
     const { getByTestId } = renderScreen();
 
@@ -367,6 +373,24 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
     });
+  });
+
+  it('replaces the confirmation modal with the recurring price tolerance editor', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('edit-price-tolerance'));
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL,
+      {
+        sourceModal: {
+          screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+          params: {
+            location: MetaMetricsSwapsEventSource.TokenView,
+          },
+        },
+      },
+    );
   });
 
   it('passes the delegation fee estimate to the confirmation sheet', () => {
@@ -431,7 +455,10 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     );
     expect(
       recurringOrdersApiClient.prepareRecurringDelegation,
-    ).toHaveBeenCalledWith(MOCK_RECURRING_PREPARE_QUERY);
+    ).toHaveBeenCalledWith({
+      ...MOCK_RECURRING_PREPARE_QUERY,
+      priceRange: EXPECTED_USD_PRICE_RANGE,
+    });
     expect(signLimitOrderDelegations).toHaveBeenCalledWith(
       prepareResponse.delegations,
     );
@@ -445,17 +472,9 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       dest: {
         assetId: MOCK_RECURRING_PREPARE_QUERY.destAssetId,
       },
-      schedule: {
-        every: MOCK_RECURRING_PREPARE_QUERY.every,
-        unit: MOCK_RECURRING_PREPARE_QUERY.unit,
-        repeatCount: MOCK_RECURRING_PREPARE_QUERY.repeatCount,
-      },
-      priceRange: {
-        side: 'src',
-        currency: 'USD',
-        min: '1000',
-        max: '2000',
-      },
+      priceTolerance: 3,
+      schedule: MOCK_RECURRING_PREPARE_QUERY.schedule,
+      priceRange: EXPECTED_USD_PRICE_RANGE,
       delegations: prepareResponse.delegations,
     });
     expect(
@@ -479,19 +498,18 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     );
   });
 
-  it('includes only a user-overridden slippage value', async () => {
+  it('includes the recurring price tolerance override', async () => {
     const { getByTestId } = renderScreen({
       recurring: configuredRecurringState,
       sourceAmount: '1',
-      slippage: '0.75',
-      isSlippageUserOverride: true,
+      recurringPriceTolerance: '0.75',
     });
 
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
       expect(mockCreateRecurringOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ slippage: 0.75 }),
+        expect.objectContaining({ priceTolerance: 0.75 }),
       );
     });
   });
@@ -518,14 +536,15 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     await waitFor(() => {
       expect(mockCreateRecurringOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          priceRange: {
-            side: 'src',
-            currency: 'USD',
-            min: '1080',
-            max: '2160',
-          },
+          priceRange: EXPECTED_EUR_CONVERTED_PRICE_RANGE,
         }),
       );
+    });
+    expect(
+      recurringOrdersApiClient.prepareRecurringDelegation,
+    ).toHaveBeenCalledWith({
+      ...MOCK_RECURRING_PREPARE_QUERY,
+      priceRange: EXPECTED_EUR_CONVERTED_PRICE_RANGE,
     });
   });
 
@@ -581,7 +600,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     );
   });
 
-  it('surfaces upgrade failures without submitting or closing', async () => {
+  it('surfaces upgrade failures without submitting', async () => {
     const error = new Error('Upgrade failed');
     mockAutoUpgradeEIP7702Account.mockRejectedValue(error);
     const { getByTestId, store } = renderScreen({
@@ -592,11 +611,11 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
-      expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
     });
     expect(mockCreateRecurringOrder).not.toHaveBeenCalled();
     expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
     expect(store.getState().bridge.sourceAmount).toBe('1');
     expect(getByTestId('confirm-order')).toHaveTextContent('Confirm');
@@ -647,9 +666,24 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     });
   });
 
+  it('shows a generic error when order submission fails', async () => {
+    mockCreateRecurringOrder.mockRejectedValue(
+      new Error('Order submission failed'),
+    );
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
+    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('preserves recurring inputs when order submission fails', async () => {
-    const error = new Error('Order submission failed');
-    mockCreateRecurringOrder.mockRejectedValue(error);
+    mockCreateRecurringOrder.mockRejectedValue(
+      new Error('Order submission failed'),
+    );
     const { getByTestId, store } = renderScreen({
       recurring: configuredRecurringState,
       sourceAmount: '1',
@@ -658,12 +692,12 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
-      expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
     });
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
     expect(store.getState().bridge.sourceAmount).toBe('1');
     expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(finishRecurringOrderTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'create-trace-id' }),
       {
@@ -731,7 +765,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       fireEvent.press(getByTestId('confirm-order'));
 
       await waitFor(() => {
-        expect(showRecurringAutoUpgradeError).toHaveBeenCalledTimes(1);
+        expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
         ...EXPECTED_TOKEN_PROPERTIES,
@@ -753,7 +787,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       fireEvent.press(getByTestId('confirm-order'));
 
       await waitFor(() => {
-        expect(showRecurringAutoUpgradeError).toHaveBeenCalledTimes(1);
+        expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
         ...EXPECTED_TOKEN_PROPERTIES,

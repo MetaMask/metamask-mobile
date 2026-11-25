@@ -95,10 +95,12 @@ describe('PredictMarketDataService', () => {
   it('serves the Venue catalog from cache for five minutes', async () => {
     const catalog = {
       venueId: KALSHI_VENUE_ID,
+      environment: 'production' as const,
       actions: ['buy' as const],
       feeds: { 'nfl-games': feedId },
       categories: [],
       searchSupported: true,
+      screens: [],
     };
     const marketData = createMarketData();
     marketData.fetchVenueCatalog.mockResolvedValue(catalog);

@@ -116,6 +116,7 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import { collectiblesControllerInit } from './controllers/collectibles-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
@@ -355,6 +356,7 @@ export class Engine {
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        CollectiblesController: collectiblesControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
@@ -428,6 +430,8 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
+    const collectiblesController =
+      messengerClientsByName.CollectiblesController;
     const rewardsController = messengerClientsByName.RewardsController;
     const rewardsMoneyController =
       messengerClientsByName.RewardsMoneyController;
@@ -656,6 +660,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
@@ -1342,12 +1347,20 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      ProfileMetricsController,
+      ProfileMetricsService,
       PredictOrderService,
       PredictFundingService,
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
+      CollectiblesController,
     } = this.context;
+
+    // Wait for any in-flight profile metrics poll before clearing its state
+    // and resetting the circuit breakers for the next wallet.
+    await ProfileMetricsController.clearState();
+    ProfileMetricsService.resetCircuitBreakers();
 
     // Remove all permissions.
     PermissionController?.clearState?.();
@@ -1369,7 +1382,6 @@ export class Engine {
       batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
-      swapsTransactions: {},
     }));
 
     LoggingController.clear();
@@ -1425,6 +1437,9 @@ export class Engine {
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();
+
+    // Collectibles:
+    CollectiblesController.clearState();
   };
 
   removeAllListeners() {
@@ -1592,6 +1607,7 @@ export default {
       PerpsController,
       PhishingController,
       PredictController,
+      CollectiblesController,
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
@@ -1668,6 +1684,7 @@ export default {
       PerpsController: PerpsController.state,
       PhishingController: PhishingController.state,
       PredictController: PredictController.state,
+      CollectiblesController: CollectiblesController.state,
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,

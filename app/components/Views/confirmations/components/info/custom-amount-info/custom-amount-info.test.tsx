@@ -67,6 +67,10 @@ import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMe
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
+import {
+  MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
+  useSnapAmountToMax,
+} from '../../../hooks/custom-amount/useSnapAmountToMax';
 
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
@@ -150,6 +154,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/custom-amount/useSnapAmountToMax', () => ({
+  ...jest.requireActual('../../../hooks/custom-amount/useSnapAmountToMax'),
+  useSnapAmountToMax: jest.fn(),
+}));
 jest.mock('../../../hooks/ui/useMMPayNavigation');
 jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
 jest.mock('../../../hooks/pay/useTransactionPayAccountLoading');
@@ -199,6 +207,12 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
+jest.mock('../../rows/money-deposit-to-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    MoneyDepositToRow: () => <View testID="money-deposit-to-row-mock" />,
+  };
+});
 jest.mock('../../rows/perps-receive-to-row', () => ({
   DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
   PerpsReceiveToRow: () => null,
@@ -484,9 +498,15 @@ describe('CustomAmountInfo', () => {
   );
 
   const useRouteMock = jest.mocked(useRoute);
+  const useSnapAmountToMaxMock = jest.mocked(useSnapAmountToMax);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useSnapAmountToMaxMock.mockReturnValue({
+      isSnapToMax: () => false,
+      resolveAmountFiat: (amount: string) => amount,
+    });
     mockToast.mockReset();
     mockTransactionPayControllerState.transactionData = {};
 
@@ -511,12 +531,11 @@ describe('CustomAmountInfo', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
-        address: '0x123',
+        assetId: 'eip155:1/erc20:0x123',
         balanceHuman: '0',
         balanceFiat: '0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
       },
@@ -1741,12 +1760,11 @@ describe('CustomAmountInfo', () => {
     it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'TST',
         },
@@ -1773,12 +1791,11 @@ describe('CustomAmountInfo', () => {
         } as never);
         useTransactionPayTokenMock.mockReturnValue({
           payToken: {
-            address: '0x123',
+            assetId: 'eip155:1/erc20:0x123',
             balanceHuman: '0',
             balanceFiat: '0',
             balanceRaw: '0',
             balanceUsd: '0',
-            chainId: '0x1',
             decimals: 18,
             symbol: 'TST',
           },
@@ -1825,12 +1842,11 @@ describe('CustomAmountInfo', () => {
       useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
@@ -1880,7 +1896,10 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText('Max'));
       });
 
-      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(100);
+      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(
+        100,
+        undefined,
+      );
     });
 
     it('calls handleDone when amountFiat updates after Max press', async () => {
@@ -1996,6 +2015,120 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('snap to Max on Done', () => {
+    const updateTokenAmountMock = jest.fn();
+    const updatePendingAmountPercentageMock = jest.fn();
+    const isSnapToMaxMock = jest.fn();
+    const resolveAmountFiatMock = jest.fn();
+
+    beforeEach(() => {
+      updatePendingAmountPercentageMock.mockReturnValue(true);
+      isSnapToMaxMock.mockReturnValue(false);
+      resolveAmountFiatMock.mockImplementation((amount: string) => amount);
+      useSnapAmountToMaxMock.mockReturnValue({
+        isSnapToMax: isSnapToMaxMock,
+        resolveAmountFiat: resolveAmountFiatMock,
+      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '2.28',
+          amountFiatDebounced: '2.28',
+          updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+    });
+
+    async function pressDone(view: ReturnType<typeof render>) {
+      await act(async () => {
+        fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      });
+    }
+
+    it('commits the amount through the Max path when it matches the displayed balance', async () => {
+      isSnapToMaxMock.mockReturnValue(true);
+
+      const view = render({ hasMax: true });
+      await pressDone(view);
+
+      expect(isSnapToMaxMock).toHaveBeenCalledWith('2.28');
+      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(
+        100,
+        MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
+      );
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('commits the typed amount when it does not match the displayed balance', async () => {
+      const view = render({ hasMax: true });
+      await pressDone(view);
+
+      expect(updatePendingAmountPercentageMock).not.toHaveBeenCalled();
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('enables snapping when Max is offered', () => {
+      render({ hasMax: true });
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: true,
+      });
+    });
+
+    it('disables snapping when Max is not offered', () => {
+      render();
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: false,
+      });
+    });
+
+    it('disables snapping for a native pay token on deposits', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        isNative: true,
+        payToken: {
+          assetId: 'eip155:1/slip44:60',
+          balanceHuman: '0',
+          balanceFiat: '0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          decimals: 18,
+          symbol: 'ETH',
+        },
+        setPayToken: noop as never,
+      });
+
+      render({ hasMax: true });
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: false,
+      });
+    });
+
+    it('disables snapping when a fiat payment method is selected', () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'debit-card',
+      } as ReturnType<typeof useTransactionPayFiatPayment>);
+
+      render({ hasMax: true });
+
+      expect(useSnapAmountToMaxMock).toHaveBeenLastCalledWith({
+        isMaxAvailable: false,
+      });
+    });
+
+    it('evaluates pending amount alerts against the resolved amount', () => {
+      resolveAmountFiatMock.mockReturnValue('2.2895');
+
+      render({ hasMax: true });
+
+      expect(resolveAmountFiatMock).toHaveBeenCalledWith('2.28');
+      expect(useTransactionCustomAmountAlertsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ pendingFiatAmount: '2.2895' }),
+      );
     });
   });
 
@@ -2226,7 +2359,7 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('PayWithRow visibility for moneyAccountDeposit', () => {
-    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+    it('renders PayWithRow and MoneyDepositToRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         txParams: { from: '0x123' },
@@ -2237,6 +2370,53 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(getByTestId('pay-with')).toBeOnTheScreen();
+      expect(getByTestId('money-deposit-to-row-mock')).toBeOnTheScreen();
+    });
+  });
+
+  describe('DepositToRow placement for perpsDeposit and predictDeposit', () => {
+    it.each([
+      [TransactionType.perpsDeposit, 'Perps balance'],
+      [TransactionType.predictDeposit, 'Predict balance'],
+    ])(
+      'renders DepositToRow directly below the Convert row for %s',
+      (type, expectedDestination) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type,
+          txParams: { from: '0x123' },
+        } as never);
+
+        const { getByTestId, toJSON } = render({ transactionType: type });
+
+        expect(getByTestId('pay-with')).toBeOnTheScreen();
+        expect(getByTestId('deposit-to')).toBeOnTheScreen();
+        expect(getByTestId('deposit-to-value')).toHaveTextContent(
+          expectedDestination,
+        );
+
+        const json = JSON.stringify(toJSON());
+        expect(json.indexOf('"pay-with"')).toBeLessThan(
+          json.indexOf('"deposit-to"'),
+        );
+      },
+    );
+
+    it('hides DepositToRow when payWithOption is money_account', () => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { queryByTestId } = render({
+        transactionType: TransactionType.perpsDeposit,
+      });
+
+      expect(queryByTestId('deposit-to')).toBeNull();
     });
   });
 
@@ -2525,6 +2705,93 @@ describe('CustomAmountInfo', () => {
     expect(
       getByText(strings('confirm.custom_amount.buy_predict')),
     ).toBeOnTheScreen();
+  });
+
+  describe('when the deposit prefill is skipped and nothing can fund it', () => {
+    const renderWithSkippedPrefill = (transactionType: TransactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          depositPrefillStatus: DepositPrefillStatus.Skipped,
+        }),
+      );
+
+      return render({ transactionType });
+    };
+
+    it('offers Buy crypto for a Predict deposit', () => {
+      const { getByText } = renderWithSkippedPrefill(
+        TransactionType.predictDeposit,
+      );
+
+      expect(
+        getByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('confirm.custom_amount.buy_predict')),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.moneyAccountDeposit,
+    ])('keeps Buy crypto hidden for %s', (transactionType) => {
+      const { queryByText } = renderWithSkippedPrefill(transactionType);
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+  });
+
+  it('keeps the keypad and hides Buy crypto for a Predict deposit with a skipped prefill and a payment option', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        depositPrefillStatus: DepositPrefillStatus.Skipped,
+      }),
+    );
+
+    const { getByTestId, queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
+  it('keeps Buy crypto hidden for a Predict deposit while its prefill loads', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        depositPrefillStatus: DepositPrefillStatus.Loading,
+      }),
+    );
+
+    const { queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
   });
 
   it('renders headless buy error when no alert message is present', () => {
