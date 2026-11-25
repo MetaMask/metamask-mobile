@@ -73,6 +73,8 @@ export interface DepositFailedParams extends ToastPressParams {
   intent?: DepositIntent;
 }
 
+export interface DepositDeclinedParams extends ToastPressParams {}
+
 export interface WithdrawSuccessParams {
   amountFiat?: string;
   destination: string;
@@ -97,6 +99,7 @@ export interface MoneyToastOptionsConfig {
     inProgress: (params?: DepositInProgressParams) => MoneyToastOptions;
     success: (params: DepositSuccessParams) => MoneyToastOptions;
     failed: (params?: DepositFailedParams) => MoneyToastOptions;
+    declined: (params?: DepositDeclinedParams) => MoneyToastOptions;
   };
   withdraw: {
     inProgress: () => MoneyToastOptions;
@@ -220,6 +223,12 @@ const useMoneyToasts = (): {
             onPress: buildToastPress(params?.onPress),
           };
         },
+        declined: (params?: DepositDeclinedParams) => ({
+          ...moneyBaseToastOptions.error,
+          title: strings('money.toasts.deposit_declined_title_card'),
+          description: strings('money.toasts.deposit_declined_body_card'),
+          onPress: buildToastPress(params?.onPress),
+        }),
       },
       withdraw: {
         inProgress: () => ({
