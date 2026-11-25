@@ -693,7 +693,7 @@ describe('TokenDetails', () => {
       await layoutFooter(getByTestId, 137);
 
       await waitFor(() =>
-expect(
+        expect(
           getByTestId(ActivitiesViewSelectorsIDs.CONTAINER).props
             .contentContainerStyle,
         ).toStrictEqual({ paddingBottom: 137 }),
@@ -711,7 +711,7 @@ expect(
       await layoutFooter(getByTestId, 137);
 
       await waitFor(() =>
-expect(
+        expect(
           getByTestId(ActivitiesViewSelectorsIDs.CONTAINER).props
             .contentContainerStyle,
         ).toStrictEqual({ paddingBottom: 137 }),
