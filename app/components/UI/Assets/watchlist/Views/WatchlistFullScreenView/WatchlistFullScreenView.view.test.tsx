@@ -29,7 +29,10 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import {
+  getEditablePerpRowTestId,
+  WatchlistFullScreenViewSelectorsIDs,
+} from './WatchlistFullScreenView.testIds';
 import { WatchlistSearchContentTestIds } from './WatchlistSearchContent.testIds';
 import { WatchlistSearchRowItemTestIds } from '../../components/WatchlistSearchRowItem/WatchlistSearchRowItem.testIds';
 import { WatchlistStarButtonTestIds } from '../../components/WatchlistStarButton.testIds';
@@ -214,14 +217,18 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     fireEvent.press(
       await view.findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     );
-    const unwatchButtons = view.getAllByTestId(
+    const unavailablePerpRow = view.getByTestId(
+      getEditablePerpRowTestId(symbol),
+    );
+    const unavailablePerpButton = within(unavailablePerpRow).getByTestId(
       WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
     );
-    const unavailablePerpButton = unwatchButtons[unwatchButtons.length - 1];
-    if (!unavailablePerpButton) {
-      throw new Error('Expected an unavailable Perps remove button');
-    }
-    fireEvent.press(unavailablePerpButton);
+    await userEvent.press(unavailablePerpButton);
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(getUnavailablePerpRowTestId(symbol)),
+      ).not.toBeOnTheScreen();
+    });
     fireEvent.press(
       view.getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
     );

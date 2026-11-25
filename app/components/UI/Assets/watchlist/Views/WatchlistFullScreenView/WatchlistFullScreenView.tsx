@@ -35,7 +35,10 @@ import { WatchlistAnalytics } from '../../constants/watchlistAnalytics';
 import { mapWatchlistTokenToTrendingAsset } from '../../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
 import TrendingTokensSkeleton from '../../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { strings } from '../../../../../../../locales/i18n';
-import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import {
+  getEditablePerpRowTestId,
+  WatchlistFullScreenViewSelectorsIDs,
+} from './WatchlistFullScreenView.testIds';
 import WatchlistEditableRow from './WatchlistEditableRow';
 import WatchlistEditableRowChrome from './WatchlistEditableRowChrome';
 import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
@@ -133,7 +136,11 @@ const MixedPerpsRow = ({
   }
 
   return (
-    <WatchlistEditableRowChrome isEditMode onRemove={onRemove}>
+    <WatchlistEditableRowChrome
+      isEditMode
+      onRemove={onRemove}
+      rowTestID={getEditablePerpRowTestId(item.symbol)}
+    >
       {row}
     </WatchlistEditableRowChrome>
   );
