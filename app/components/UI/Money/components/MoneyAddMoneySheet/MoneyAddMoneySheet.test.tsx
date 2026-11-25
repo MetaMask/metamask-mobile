@@ -33,6 +33,7 @@ import {
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -165,6 +166,7 @@ describe('MoneyAddMoneySheet', () => {
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
+      trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     });
     (useQuickDepositStablecoins as jest.Mock).mockReturnValue(undefined);
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
@@ -594,12 +596,14 @@ describe('MoneyAddMoneySheet', () => {
         getByTestId(MoneyAddMoneySheetTestIds.MOVE_STABLECOIN_OPTION),
       );
 
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-        deposit_intent: intent,
-        deposit_token_symbol: symbol,
-        deposit_token_chain_id: CHAIN_IDS.BASE,
+        token_symbol: symbol,
+        token_position_in_list: 1,
+        token_chain_id: CHAIN_IDS.BASE,
+        tokens_in_list: 1,
+        token_has_balance: true,
       });
     });
 

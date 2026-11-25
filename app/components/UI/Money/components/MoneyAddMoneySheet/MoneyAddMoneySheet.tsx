@@ -89,7 +89,11 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   );
   const canDepositFiat = isFiatDepositEnabled && regionHasFiatProvider;
 
-  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+  const {
+    trackBottomSheetViewed,
+    trackSurfaceClicked,
+    trackTokenSurfaceClicked,
+  } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
   });
 
@@ -187,12 +191,14 @@ const MoneyAddMoneySheetContent: React.FC = () => {
 
   const depositHeldStablecoin = useCallback(
     (option: QuickDepositStablecoinOption) => {
-      trackSurfaceClicked({
+      trackTokenSurfaceClicked({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_STABLECOIN,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-        deposit_intent: option.intent,
-        deposit_token_symbol: option.symbol,
-        deposit_token_chain_id: option.preferredPaymentToken.chainId,
+        token_symbol: option.symbol,
+        token_position_in_list: 1,
+        token_chain_id: option.preferredPaymentToken.chainId,
+        tokens_in_list: 1,
+        token_has_balance: true,
       });
 
       startDeposit({
@@ -200,7 +206,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
         preferredPaymentToken: option.preferredPaymentToken,
       });
     },
-    [startDeposit, trackSurfaceClicked],
+    [startDeposit, trackTokenSurfaceClicked],
   );
 
   // Live row (eligible): promoted to the top. Coming-soon row (flag off):

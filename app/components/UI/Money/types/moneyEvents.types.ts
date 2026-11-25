@@ -18,10 +18,6 @@ import {
   EARN_MODULE_SCREEN_NAMES,
   EARN_MODULE_COMPONENT_NAMES,
 } from '../../Earn/constants/earnModuleEvents';
-import type {
-  QuickDepositIntent,
-  QuickDepositSymbol,
-} from '../utils/quickDepositStablecoins';
 
 /**
  * Properties for tracking location-based events.
@@ -50,12 +46,7 @@ export type MoneyRedirectEventProperties = {
 };
 
 export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
-  Partial<MoneyLocationEventProperties> & {
-    /** Funding intent for the dynamic stablecoin row. */
-    deposit_intent?: QuickDepositIntent;
-    deposit_token_symbol?: QuickDepositSymbol;
-    deposit_token_chain_id?: string;
-  };
+  Partial<MoneyLocationEventProperties>;
 
 export type MoneyTokenSurfaceClickedEventProperties =
   MoneySurfaceClickedEventProperties & MoneyTokenRowEventProperties;
