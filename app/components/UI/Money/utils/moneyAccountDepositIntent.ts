@@ -1,9 +1,6 @@
-export type MoneyAccountDepositIntent =
-  | 'convert'
-  | 'addMusd'
-  | 'addUsdc'
-  | 'addUsdt'
-  | 'card';
+import type { QuickDepositIntent } from './quickDepositStablecoins';
+
+export type MoneyAccountDepositIntent = 'convert' | 'card' | QuickDepositIntent;
 
 /** Intents that prefill 100% of the selected pay token. */
 export const isFullBalanceDepositIntent = (
