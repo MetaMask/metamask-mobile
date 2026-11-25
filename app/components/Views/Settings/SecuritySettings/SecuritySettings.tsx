@@ -4,6 +4,7 @@ import { ScrollView, View, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
