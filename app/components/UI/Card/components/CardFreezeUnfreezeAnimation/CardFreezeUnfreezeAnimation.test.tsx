@@ -23,10 +23,17 @@ import cardFrontFullRes from '../../../../../images/card_freeze_card_front.png';
 // the native view (awaitViewReady). RiveView props are captured so tests can
 // assert the overlay geometry, the data binding, and drive `onError`.
 const mockTrigger = jest.fn();
+const mockSetFrozen = jest.fn();
+const mockInitFrozen = jest.fn();
 const mockPlayIfNeeded = jest.fn();
 const mockAwaitViewReady = jest.fn(async () => undefined);
 const mockRiveFile = { __mockRiveFile: true };
-const mockViewModelInstance = { __mockViewModelInstance: true };
+const mockViewModelInstance = {
+  __mockViewModelInstance: true,
+  booleanProperty: (path: string) => ({
+    set: (value: boolean) => mockInitFrozen(path, value),
+  }),
+};
 const mockUseRiveFile = jest.fn();
 const mockLastRiveViewProps: {
   current?: {
@@ -72,9 +79,22 @@ jest.mock('@rive-app/react-native', () => {
       riveViewRef: mockViewReady ? mockRiveViewRef : null,
       setHybridRef: { f: jest.fn() },
     }),
-    useViewModelInstance: () => ({
-      instance: mockInstanceReady ? mockViewModelInstance : null,
-      isLoading: !mockInstanceReady,
+    useViewModelInstance: (
+      _file: unknown,
+      params?: { onInit?: (instance: typeof mockViewModelInstance) => void },
+    ) => {
+      if (mockInstanceReady) {
+        params?.onInit?.(mockViewModelInstance);
+      }
+      return {
+        instance: mockInstanceReady ? mockViewModelInstance : null,
+        isLoading: !mockInstanceReady,
+        error: null,
+      };
+    },
+    useRiveBoolean: (path: string) => ({
+      value: undefined,
+      setValue: (value: boolean) => mockSetFrozen(path, value),
       error: null,
     }),
     useRiveTrigger: (path: string) => ({
@@ -135,9 +155,9 @@ describe('CardFreezeUnfreezeAnimation', () => {
     expect(mockLastRiveViewProps.current).toBeUndefined();
   });
 
-  it('shows the full-resolution static card until the Rive view is ready and laid out', async () => {
+  it('shows the full-resolution static card until a frozen card Rive view is ready and laid out', async () => {
     mockViewReady = false;
-    const { getByTestId, rerender } = render(animationElement(false));
+    const { getByTestId, rerender } = render(animationElement(true));
     const container = getByTestId('freeze-animation');
 
     const fallbackImages = container.findAllByType(Image);
@@ -151,7 +171,7 @@ describe('CardFreezeUnfreezeAnimation', () => {
     expect(StyleSheet.flatten([hiddenWrapper?.props.style])?.opacity).toBe(0);
 
     mockViewReady = true;
-    rerender(animationElement(false));
+    rerender(animationElement(true));
 
     await waitFor(() => {
       expect(container.findAllByType(Image)).toHaveLength(0);
@@ -171,7 +191,7 @@ describe('CardFreezeUnfreezeAnimation', () => {
   });
 
   it('holds a recovered Rive view hidden until it is laid out again', async () => {
-    const { getByTestId, rerender } = render(animationElement(false));
+    const { getByTestId, rerender } = render(animationElement(true));
     const container = getByTestId('freeze-animation');
     await waitFor(() => {
       expect(container.findAllByType(Image)).toHaveLength(0);
@@ -185,10 +205,10 @@ describe('CardFreezeUnfreezeAnimation', () => {
     );
 
     mockViewReady = false;
-    rerender(animationElement(false));
+    rerender(animationElement(true));
     mockRiveViewRef = createMockRiveViewRef();
     mockViewReady = true;
-    rerender(animationElement(false));
+    rerender(animationElement(true));
 
     const recoveredWrapper = findRiveOverlayWrapper(container);
     expect(StyleSheet.flatten([recoveredWrapper?.props.style])?.opacity).toBe(
@@ -203,6 +223,49 @@ describe('CardFreezeUnfreezeAnimation', () => {
           ?.opacity,
       ).toBeUndefined();
     });
+  });
+
+  it('keeps an unfrozen card on the static art until a trigger plays', async () => {
+    const { getByTestId, rerender } = render(animationElement(false));
+    const container = getByTestId('freeze-animation');
+    // Let awaitViewReady and both layout frames run.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(container.findAllByType(Image)).toHaveLength(1);
+    expect(
+      StyleSheet.flatten([findRiveOverlayWrapper(container)?.props.style])
+        ?.opacity,
+    ).toBe(0);
+
+    rerender(animationElement(true));
+
+    await waitFor(() => {
+      expect(container.findAllByType(Image)).toHaveLength(0);
+    });
+    expect(
+      StyleSheet.flatten([findRiveOverlayWrapper(container)?.props.style])
+        ?.opacity,
+    ).toBeUndefined();
+  });
+
+  it.each([false, true])(
+    'starts the view model frozen=%s to match the card',
+    (isFrozen) => {
+      render(animationElement(isFrozen));
+
+      expect(mockInitFrozen).toHaveBeenLastCalledWith('frozen', isFrozen);
+    },
+  );
+
+  it('keeps the view model frozen value in step with the card', () => {
+    const { rerender } = render(animationElement(false));
+    expect(mockSetFrozen).toHaveBeenLastCalledWith('frozen', false);
+
+    rerender(animationElement(true));
+
+    expect(mockSetFrozen).toHaveBeenLastCalledWith('frozen', true);
   });
 
   it('fires the freeze trigger on mount for a card that loads frozen', () => {

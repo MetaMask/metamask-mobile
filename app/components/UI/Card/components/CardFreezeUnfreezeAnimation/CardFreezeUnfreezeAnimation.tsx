@@ -12,6 +12,7 @@ import {
   RiveErrorType,
   RiveView,
   useRive,
+  useRiveBoolean,
   useRiveFile,
   useRiveTrigger,
   useViewModelInstance,
@@ -30,6 +31,8 @@ const STATE_MACHINE_NAME = 'CardStateMachine';
 const VIEW_MODEL_NAME = 'Card';
 const FREEZE_TRIGGER_PATH = 'freeze';
 const UNFREEZE_TRIGGER_PATH = 'unfreeze';
+/** The file's default instance sets this to true, so it is always set from the card. */
+const FROZEN_PATH = 'frozen';
 
 /** Out-of-band asset the .riv file references for the card face art. */
 const CARD_FRONT_ASSET_NAME = 'DigitalCard-NewBrand';
@@ -117,9 +120,13 @@ const CardFreezeUnfreezeAnimation = ({
   const [hasRiveError, setHasRiveError] = useState(false);
   const { riveFile } = useRiveFile(cardFreezeUnfreezeRiv, RIVE_FILE_OPTIONS);
   const { riveViewRef, setHybridRef } = useRive();
+  const isFrozenRef = useRef(isFrozen);
+  isFrozenRef.current = isFrozen;
   const { instance: viewModelInstance } = useViewModelInstance(riveFile, {
     async: true,
     viewModelName: VIEW_MODEL_NAME,
+    onInit: (instance) =>
+      instance.booleanProperty(FROZEN_PATH)?.set(isFrozenRef.current),
   });
 
   const animate = !reduceMotion && !hasRiveError;
@@ -145,9 +152,16 @@ const CardFreezeUnfreezeAnimation = ({
   // available — not at mount, which races the async view model load.
 
   const hasFiredRef = useRef(false);
-  const isFrozenRef = useRef(isFrozen);
-  isFrozenRef.current = isFrozen;
+  // The overlay is wider than the card and can draw a frame before it is
+  // sized, so an unfrozen card shows the static art until a trigger plays.
+  const [hasPlayed, setHasPlayed] = useState(isFrozen);
 
+  const { setValue: setFrozen } = useRiveBoolean(
+    FROZEN_PATH,
+    viewModelInstance,
+  );
+  const setFrozenRef = useRef(setFrozen);
+  setFrozenRef.current = setFrozen;
   const { trigger: fireFreezeTrigger, error: freezeTriggerError } =
     useRiveTrigger(FREEZE_TRIGGER_PATH, viewModelInstance);
   const { trigger: fireUnfreezeTrigger, error: unfreezeTriggerError } =
@@ -169,11 +183,12 @@ const CardFreezeUnfreezeAnimation = ({
 
   useEffect(() => {
     if (!canFire) {
-      // A view or view model that comes back starts from the unfrozen state,
-      // so treat it as a fresh mount: re-apply a freeze, never replay a melt.
+      // A view or view model that comes back is treated as a fresh mount:
+      // re-apply a freeze, never replay a melt.
       hasFiredRef.current = false;
       return;
     }
+    setFrozenRef.current(isFrozenRef.current);
     if (!hasFiredRef.current) {
       hasFiredRef.current = true;
       if (isFrozenRef.current) {
@@ -182,6 +197,7 @@ const CardFreezeUnfreezeAnimation = ({
       }
       return;
     }
+    setHasPlayed(true);
     if (isFrozenRef.current) {
       fireFreezeRef.current?.();
     } else {
@@ -233,7 +249,7 @@ const CardFreezeUnfreezeAnimation = ({
       style={[{ width, height: cardHeight }, styles.overflowVisible]}
       testID={testID}
     >
-      {(!isRiveReady || !hasLaidOut) && (
+      {(!isRiveReady || !hasLaidOut || !hasPlayed) && (
         <Image
           source={animate ? cardFrontFullRes : fallbackSource}
           // The static art has no ice, so dim a frozen card like CardImage.
@@ -256,7 +272,7 @@ const CardFreezeUnfreezeAnimation = ({
               left: (width - riveWidth) / 2,
               top: (cardHeight - riveHeight) / 2,
             },
-            !hasLaidOut && styles.hidden,
+            (!hasLaidOut || !hasPlayed) && styles.hidden,
           ]}
           pointerEvents="none"
         >
