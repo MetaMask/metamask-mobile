@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectFollowingProfileIds } from '../../../../../selectors/socialController';
 import { syncFollowingState } from '../../../../../util/social/followingSync';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
@@ -19,6 +20,8 @@ export interface FollowedTrader {
   address: string;
   /** Profile avatar URL, if any. */
   avatarUri?: string;
+  /** Profile API verified this trader. */
+  verified?: boolean;
 }
 
 export interface UseFollowedTradersOptions {
@@ -121,6 +124,7 @@ export const useFollowedTraders = (
       username: profile.name,
       address: profile.address,
       avatarUri: profile.imageUrl ?? undefined,
+      verified: isProfileVerified(profile),
     }));
   }, [data]);
 

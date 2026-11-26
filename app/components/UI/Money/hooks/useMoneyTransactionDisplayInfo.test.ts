@@ -1104,6 +1104,37 @@ describe('useMoneyTransactionDisplayInfo — failed amount', () => {
     expect(result.current.primaryAmount).toBe('-0.00 mUSD');
     expect(result.current.fiatAmount).toBe('-$0.00');
   });
+
+  it('shows the attempted amount without a sign for a failed fiat deposit', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: {
+        strategy: 'fiat',
+        totalFiat: '6.14',
+        bridgeFeeFiat: '1.14',
+        targetFiat: '4.96',
+      },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposit_failed');
+    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.fiatAmount).toBe('$5.00');
+  });
+
+  it('keeps the signed zero for a failed fiat deposit without a quote total', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: { strategy: 'fiat' },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.fiatAmount).toBe('+$0.00');
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -77,6 +77,7 @@ import {
   handlePerpsCufPositionsDelivered,
 } from '../../../app/components/UI/Perps/utils/perpsCufTrace';
 import {
+  type AccountAggregateMetadata,
   type AccountState,
   type CandleData,
   CandlePeriod,
@@ -467,7 +468,7 @@ const pricesChannel = (
   };
 };
 
-interface TestStreamManagerBundle {
+export interface TestStreamManagerBundle {
   streamManager: PerpsStreamManager;
   stream: PerpsStreamControls;
 }
@@ -529,6 +530,12 @@ export interface PerpsStreamOverrides {
   /** When set, usePerpsLiveAccount() receives this account state. */
   account?: unknown;
   /**
+   * Completeness metadata for the account stream (TAT-4407). `partial` models
+   * an aggregated total where a venue has not reported. Defaults to null
+   * (single-venue state).
+   */
+  aggregate?: AccountAggregateMetadata | null;
+  /**
    * When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details).
    * `null` leaves the channel empty until `emitPositions`, so the order view stays on its loading label.
    */
@@ -567,7 +574,7 @@ export interface PerpsStreamOverrides {
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
-function createTestStreamManager(
+export function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): TestStreamManagerBundle {
   const positions =
@@ -582,16 +589,37 @@ function createTestStreamManager(
       : createMarketDataChannel(
           streamOverrides?.marketData ?? initialMarketData,
         );
-  const account = createAccountChannel(
-    streamOverrides?.account ?? initialAccount,
-  );
+  const account = {
+    ...createAccountChannel(streamOverrides?.account ?? initialAccount),
+    // Aggregated-stream API (TAT-4407): view tests render single-venue state
+    // unless a test supplies completeness metadata. No per-venue breakdown.
+    getAggregateMetadata: (): AccountAggregateMetadata | null =>
+      streamOverrides?.aggregate ?? null,
+    getVenueAccountStates: (): unknown[] => [],
+  };
   const prices = createPricesChannel(
     streamOverrides?.prices,
     streamOverrides?.cachedPrices,
   );
-  const oiCaps = mutableChannelWithInitialValue<string[]>(
+  const oiCapsInner = mutableChannelWithInitialValue<string[]>(
     streamOverrides?.oiCaps ?? [],
   );
+  const oiCaps = {
+    ...oiCapsInner,
+    // Venue-scoped API (TAT-4407): deliver the same caps to symbol subscribers.
+    subscribeToSymbol: (params: {
+      symbol: string;
+      providerId?: string;
+      callback: (caps: string[]) => void;
+    }): (() => void) => {
+      if (params?.callback) {
+        return oiCapsInner.subscribe({
+          callback: (caps) => params.callback(caps ?? []),
+        });
+      }
+      return noopUnsubscribe;
+    },
+  };
   const cachedCandles = streamOverrides?.cachedCandles ?? null;
   const chartCacheFresh =
     streamOverrides?.chartCacheFresh ?? cachedCandles != null;
@@ -889,7 +917,7 @@ const selectModifyActionExtraRoutes = [
   { name: Routes.PERPS.ADJUST_MARGIN },
   { name: Routes.PERPS.TUTORIAL },
   {
-    name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    name: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
     Component: () => (
       <Text testID={ROUTE_ORDER_CONFIRMATION_TEST_ID}>Order</Text>
     ),

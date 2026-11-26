@@ -108,7 +108,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
             </Text>
             {/* No track colors: the platform switch is the same green used on
                 social onboarding. A design-system Switch would wrap this
-                control and replace its accessibility label. */}
+                control in its own row layout. */}
             <Switch
               value={isTradingActivityPublic}
               disabled={!isControllerBacked || isUpdating}

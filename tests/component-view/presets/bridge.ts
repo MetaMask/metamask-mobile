@@ -40,6 +40,11 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
         backgroundState: {
           // useBridgeQuoteEvents -> selectTokensBalances
           TokenBalancesController: { tokenBalances: {} },
+          // BridgeTokenSelector -> useMoneyToken -> selectMoneyAccounts
+          MoneyAccountController: {
+            moneyAccounts: {},
+            defaultMoneyAccountId: null,
+          },
         },
       },
       bridge: {
@@ -59,6 +64,7 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
       swapsRecurringBuy: {
         enabled: true,
         enabledChainIds: ['eip155:1'],
+        defaultPriceTolerance: 3,
       },
     });
 

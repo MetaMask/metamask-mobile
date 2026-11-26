@@ -3,6 +3,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import {
   assetChainScope,
+  isOpenPositionChain,
   resolveOpenPositionWallet,
   tokenAddressFromAsset,
 } from './openPositionWallet';
@@ -52,6 +53,43 @@ describe('assetChainScope', () => {
 
   it('returns undefined for an unparseable asset id', () => {
     expect(assetChainScope('not-an-asset' as CaipAssetType)).toBeUndefined();
+  });
+});
+
+describe('isOpenPositionChain', () => {
+  it.each([
+    ['base', 'eip155:8453'],
+    ['ethereum', 'eip155:1'],
+    ['bsc', 'eip155:56'],
+    ['robinhood', 'eip155:4663'],
+    ['hyperliquid', 'eip155:999'],
+    ['solana mainnet', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+  ] as const)('serves %s (%s)', (_name, scope) => {
+    expect(isOpenPositionChain(scope)).toBe(true);
+  });
+
+  it.each([
+    ['polygon', 'eip155:137'],
+    ['optimism', 'eip155:10'],
+    ['bitcoin', 'bip122:000000000019d6689c085ae165831e93'],
+  ] as const)('does not serve %s (%s)', (_name, scope) => {
+    expect(isOpenPositionChain(scope)).toBe(false);
+  });
+
+  it('does not serve an asset with no resolvable chain', () => {
+    expect(isOpenPositionChain(undefined)).toBe(false);
+  });
+
+  it('checks the chains it is given instead of the built-in list', () => {
+    expect(isOpenPositionChain('eip155:137', ['eip155:137'])).toBe(true);
+    expect(isOpenPositionChain('eip155:1', ['eip155:137'])).toBe(false);
+  });
+
+  it('does not serve native Bitcoin through its asset id', () => {
+    const nativeBtc =
+      'bip122:000000000019d6689c085ae165831e93/slip44:0' as CaipAssetType;
+
+    expect(isOpenPositionChain(assetChainScope(nativeBtc))).toBe(false);
   });
 });
 

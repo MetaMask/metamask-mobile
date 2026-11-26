@@ -2,11 +2,16 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import {
   isMusdOnMoneyAccountChain,
   isMusdToken,
 } from '../../Earn/constants/musd';
+import {
+  isMoneyDepositTransaction,
+  isMoneyWithdrawTransaction,
+} from './moneyAccountUsage';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import type { MoneyAccountDepositIntent } from '../hooks/useMoneyAccount';
@@ -24,10 +29,22 @@ export const nestedTxWithType = (
   );
 
 export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
-  transactionMeta.type === TransactionType.moneyAccountDeposit ||
-  Boolean(
-    nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
-  );
+  isMoneyDepositTransaction(transactionMeta);
+
+/**
+ * True when a Money deposit is funded by a fiat on-ramp (e.g. a card). Fiat
+ * order metadata appears only once an order exists, so the pay strategy is
+ * also checked.
+ */
+export const isFiatMoneyDeposit = (
+  transactionMeta: TransactionMeta,
+): boolean => {
+  if (!isMoneyDepositTx(transactionMeta)) {
+    return false;
+  }
+  const { fiat, strategy } = transactionMeta.metamaskPay ?? {};
+  return Boolean(fiat) || strategy === TransactionPayStrategy.Fiat;
+};
 
 /**
  * Derives the funding method of a Money account deposit from the transaction's
@@ -39,7 +56,7 @@ export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
 export const resolveMoneyDepositIntent = (
   transactionMeta: TransactionMeta,
 ): MoneyAccountDepositIntent => {
-  if (transactionMeta.metamaskPay?.fiat) {
+  if (isFiatMoneyDeposit(transactionMeta)) {
     return 'card';
   }
   if (isMusdToken(transactionMeta.metamaskPay?.tokenAddress)) {
@@ -49,10 +66,7 @@ export const resolveMoneyDepositIntent = (
 };
 
 export const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
-  transactionMeta.type === TransactionType.moneyAccountWithdraw ||
-  Boolean(
-    nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
-  );
+  isMoneyWithdrawTransaction(transactionMeta);
 
 /**
  * True when a Money Account withdrawal lands as mUSD (single-row hero and

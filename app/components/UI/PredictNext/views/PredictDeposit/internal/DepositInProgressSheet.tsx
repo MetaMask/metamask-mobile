@@ -1,13 +1,20 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { AccessibilityInfo, Modal, StyleSheet, View } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -18,6 +25,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { PredictDepositOperation } from '../../../types';
 import { formatUsd } from '../../../utils/formatUsd';
 import { PredictDepositScreenTestIds } from '../PredictDepositScreen.testIds';
+import type { DepositEnvironmentResolution } from './DepositEnvironment';
+
+// ButtonIconSize.Xs is 20pt; 12pt on each side makes a 44pt target.
+const COPY_BUTTON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -28,7 +39,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 0,
   },
+  referenceText: {
+    writingDirection: 'ltr',
+  },
 });
+
+const getSupportReference = (deposit: PredictDepositOperation): string =>
+  deposit.next?.kind === 'review'
+    ? deposit.next.supportReference
+    : deposit.operationId;
+
+const copySupportReference = (reference: string): void => {
+  Clipboard.setString(reference);
+  AccessibilityInfo.announceForAccessibility(
+    strings('predict_next.deposit.status.reference_copied'),
+  );
+};
 
 const describeDeposit = (
   deposit: PredictDepositOperation | null,
@@ -51,10 +77,7 @@ const describeDeposit = (
     case 'under_review':
       return strings('predict_next.deposit.in_progress.under_review', {
         amount,
-        reference:
-          deposit.next?.kind === 'review'
-            ? deposit.next.supportReference
-            : deposit.operationId.slice(0, 8),
+        reference: getSupportReference(deposit),
       });
     case 'processing':
       return strings('predict_next.deposit.in_progress.processing', {
@@ -70,6 +93,14 @@ interface DepositInProgressSheetProps {
   deposit: PredictDepositOperation | null;
   /** Whether a transfer for this deposit already went out and only needs reporting. */
   hasSubmittedTransfer?: boolean;
+  /** Resolved catalog deposit environment (drives availability copy and retry). */
+  environmentResolution: DepositEnvironmentResolution;
+  /** Whether Continue is allowed (disabled while deposit environment is loading/unavailable unless a transfer already went out). */
+  canContinue?: boolean;
+  /** Whether Cancel is allowed (disabled when the sent-or-not state cannot be checked). */
+  canCancel?: boolean;
+  /** Controls modal visibility without unmounting the sheet host mid-action. */
+  isVisible?: boolean;
   isCancelling: boolean;
   cancelFailed: boolean;
   onContinue: (deposit: PredictDepositOperation) => void;
@@ -87,6 +118,10 @@ interface DepositInProgressSheetProps {
 export const DepositInProgressSheet = ({
   deposit,
   hasSubmittedTransfer = false,
+  environmentResolution,
+  canContinue = true,
+  canCancel = true,
+  isVisible = true,
   isCancelling,
   cancelFailed,
   onContinue,
@@ -100,9 +135,22 @@ export const DepositInProgressSheet = ({
     deposit.next?.kind === 'wallet_transfer'
       ? deposit
       : null;
+  const needsEnvironmentToContinue = payable !== null && !hasSubmittedTransfer;
+  const reviewReference =
+    deposit?.status === 'under_review' ? getSupportReference(deposit) : null;
   const cancelFailedText = cancelFailed
     ? strings('predict_next.deposit.in_progress.cancel_failed')
     : undefined;
+  let unavailableText: string | undefined;
+  if (
+    needsEnvironmentToContinue &&
+    environmentResolution.status === 'unavailable'
+  ) {
+    unavailableText =
+      environmentResolution.reason === 'error'
+        ? strings('predict_next.deposit.unavailable_error')
+        : strings('predict_next.deposit.unavailable');
+  }
 
   // VoiceOver ignores RN live regions on iOS, so announce the failure when it
   // appears after Cancel.
@@ -112,10 +160,16 @@ export const DepositInProgressSheet = ({
     }
   }, [cancelFailedText]);
 
+  useEffect(() => {
+    if (isVisible && unavailableText) {
+      AccessibilityInfo.announceForAccessibility(unavailableText);
+    }
+  }, [isVisible, unavailableText]);
+
   return (
     <View pointerEvents="box-none" style={styles.modalHost}>
       <Modal
-        visible
+        visible={isVisible}
         transparent
         animationType="none"
         statusBarTranslucent
@@ -132,12 +186,54 @@ export const DepositInProgressSheet = ({
                 {strings('predict_next.deposit.in_progress.title')}
               </BottomSheetHeader>
               <Box twClassName="gap-4 px-4 pb-6">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {describeDeposit(deposit, hasSubmittedTransfer)}
-                </Text>
+                {reviewReference && deposit ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={2}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                      twClassName="shrink"
+                    >
+                      {strings(
+                        'predict_next.deposit.in_progress.under_review_label',
+                        {
+                          amount: formatUsd(deposit.amount),
+                        },
+                      )}{' '}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
+                        style={styles.referenceText}
+                      >
+                        {reviewReference}
+                      </Text>
+                    </Text>
+                    <ButtonIcon
+                      iconName={IconName.Copy}
+                      size={ButtonIconSize.Xs}
+                      iconProps={{ color: IconColor.IconAlternative }}
+                      hitSlop={COPY_BUTTON_HIT_SLOP}
+                      accessibilityRole="button"
+                      accessibilityLabel={strings(
+                        'predict_next.deposit.status.copy_reference',
+                      )}
+                      onPress={() => copySupportReference(reviewReference)}
+                      testID={
+                        PredictDepositScreenTestIds.IN_PROGRESS_COPY_REFERENCE
+                      }
+                    />
+                  </Box>
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {describeDeposit(deposit, hasSubmittedTransfer)}
+                  </Text>
+                )}
                 {cancelFailedText ? (
                   <Text
                     variant={TextVariant.BodySm}
@@ -147,19 +243,55 @@ export const DepositInProgressSheet = ({
                     {cancelFailedText}
                   </Text>
                 ) : null}
+                {needsEnvironmentToContinue &&
+                environmentResolution.status === 'loading' ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={PredictDepositScreenTestIds.IN_PROGRESS_LOADING}
+                  >
+                    {strings(
+                      'predict_next.deposit.in_progress.checking_availability',
+                    )}
+                  </Text>
+                ) : null}
+                {unavailableText ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                    accessibilityRole="alert"
+                    testID={PredictDepositScreenTestIds.IN_PROGRESS_ALERT}
+                  >
+                    {unavailableText}
+                  </Text>
+                ) : null}
                 {payable ? (
                   <Box twClassName="gap-3">
                     <Button
                       variant={ButtonVariant.Primary}
                       size={ButtonSize.Lg}
                       isFullWidth
-                      isDisabled={isCancelling}
+                      isDisabled={isCancelling || !canContinue}
                       onPress={() => onContinue(payable)}
                       testID={PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE}
                     >
                       {strings('predict_next.deposit.in_progress.continue')}
                     </Button>
-                    {hasSubmittedTransfer ? null : (
+                    {needsEnvironmentToContinue &&
+                    environmentResolution.status === 'unavailable' &&
+                    environmentResolution.reason === 'error' ? (
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        size={ButtonSize.Lg}
+                        isFullWidth
+                        isDisabled={isCancelling}
+                        onPress={environmentResolution.retry}
+                        testID={PredictDepositScreenTestIds.IN_PROGRESS_RETRY}
+                      >
+                        {strings('predict_next.deposit.retry')}
+                      </Button>
+                    ) : null}
+                    {hasSubmittedTransfer || !canCancel ? null : (
                       <Button
                         variant={ButtonVariant.Secondary}
                         size={ButtonSize.Lg}

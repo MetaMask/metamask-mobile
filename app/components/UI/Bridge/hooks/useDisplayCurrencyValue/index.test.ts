@@ -151,6 +151,19 @@ describe('useDisplayCurrencyValue', () => {
       );
     });
 
+    it('forwards an optional token fiat rate to getDisplayCurrencyValue', () => {
+      const token = makeToken();
+
+      renderHookWithProvider(
+        () => useDisplayCurrencyValue('10', token, 0.9994),
+        { state: {} },
+      );
+
+      expect(mockGetDisplayCurrencyValue).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenFiatRate: 0.9994 }),
+      );
+    });
+
     it('forwards evmMultiChainMarketData from selectTokenMarketData', () => {
       // Arrange
       const customMarketData = {

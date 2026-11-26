@@ -63,7 +63,6 @@ export enum EARN_MODULE_REDIRECT_TARGETS {
   STABLECOIN_LENDING_DEPOSIT = 'stablecoin_lending_deposit',
   TRX_STAKING_DEPOSIT = 'trx_staking_deposit',
   MONEY_HOME = 'money_home',
-  MONEY_ONBOARDING = 'money_onboarding',
   MONEY_SPLASH = 'money_splash',
   MONEY_DEPOSIT = 'money_deposit',
   SWAP = 'swap',

@@ -121,7 +121,7 @@ const BNB_CHAIN_BNB = {
 const BNB_CHAIN_USDT = {
   chainId: 56,
   assetId: 'eip155:56/erc20:0x55d398326f99059fF775485246999027B3197955',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
   name: 'Tether USD',
   address: '0x55d398326f99059fF775485246999027B3197955',
   decimals: 18,
@@ -194,7 +194,7 @@ function createMockRecurringOrder({
       repeatCount: REPEAT_COUNT,
     },
     priceRange,
-    slippage: 0.5,
+    priceTolerance: 0.5,
     timingData: {
       createdAt,
       startsAt: createdAt,
@@ -229,9 +229,11 @@ export const MOCK_RECURRING_PREPARE_QUERY: PrepareRecurringDelegationQuery = {
   srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
   srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
   destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
-  every: 2,
-  unit: 'day',
-  repeatCount: 4,
+  schedule: {
+    every: 2,
+    unit: 'day',
+    repeatCount: 4,
+  },
 };
 
 export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({
