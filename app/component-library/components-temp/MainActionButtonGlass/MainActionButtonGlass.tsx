@@ -30,11 +30,7 @@ const MainActionButtonGlass = ({
   const resolvedStyle = useGlass ? transparentStyle : (style ?? containerStyle);
 
   const button = (
-    <MainActionButton
-      {...props}
-      iconName={iconName}
-      style={resolvedStyle}
-    />
+    <MainActionButton {...props} iconName={iconName} style={resolvedStyle} />
   );
 
   if (!useGlass) {
