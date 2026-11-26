@@ -154,16 +154,14 @@ export function startLatencyMonitoring(
     previousNetInfoKey = key;
     const wasTransportNone = isTransportNone;
     const tier = computeNetworkTier(input);
+    updateNetworkTierSnapshot(tier);
     isTransportNone = tier === 'NONE';
     // `wasTransportNone` covers leaving NONE without a transport key change
     // (reachability false → true on the same transport): in-flight fetches
     // span the offline gap, so their elapsed time is not a latency signal.
-    updateNetworkTierSnapshot(
-      tier,
-      changed || isTransportNone || wasTransportNone
-        ? clearLatencySamples
-        : undefined,
-    );
+    if (changed || isTransportNone || wasTransportNone) {
+      clearLatencySamples();
+    }
   });
 
   AppState.addEventListener('change', (next) => {

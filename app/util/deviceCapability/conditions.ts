@@ -1,13 +1,7 @@
 import { readHardwareTier } from './hardwareTier';
-import { getLatencySnapshot, subscribeLatency } from './latencyStore';
-import {
-  getNetworkTierSnapshot,
-  subscribeNetworkTierSnapshot,
-} from './networkTierSnapshot';
-import {
-  getDeviceCapabilityOverride,
-  subscribeDeviceCapabilityOverride,
-} from './override';
+import { getLatencySnapshot } from './latencyStore';
+import { getNetworkTierSnapshot } from './networkTierSnapshot';
+import { getDeviceCapabilityOverride } from './override';
 import type { HardwareTier, LatencyBucket, NetworkTier } from './types';
 
 export interface NetworkConditions {
@@ -29,26 +23,4 @@ export function getNetworkConditions(): NetworkConditions {
     network: getNetworkTierSnapshot(),
     latency: getLatencySnapshot(),
   };
-}
-
-/** Subscribes only to effective condition changes and returns a teardown. */
-export function subscribeNetworkConditions(listener: () => void): () => void {
-  let previous = getNetworkConditions();
-  const notify = (): void => {
-    const next = getNetworkConditions();
-    if (
-      next.hardware === previous.hardware &&
-      next.network === previous.network &&
-      next.latency === previous.latency
-    )
-      return;
-    previous = next;
-    listener();
-  };
-  const unsubscribers = [
-    subscribeNetworkTierSnapshot(notify),
-    subscribeLatency(notify),
-    subscribeDeviceCapabilityOverride(notify),
-  ];
-  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 }

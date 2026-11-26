@@ -3,7 +3,7 @@ import {
   type NetInfoState,
 } from '@react-native-community/netinfo';
 import { getTotalMemorySync } from 'react-native-device-info';
-import { getNetworkConditions, subscribeNetworkConditions } from './conditions';
+import { getNetworkConditions } from './conditions';
 import {
   getLatencySampleEpoch,
   recordFetchSample,
@@ -27,18 +27,16 @@ describe('network conditions', () => {
   it('follows measured transport and latency through the existing NetInfo listener', () => {
     startLatencyMonitoring('HIGH');
     const [onNetworkChange] = jest.mocked(addEventListener).mock.calls[0];
-    const listener = jest.fn(() => getNetworkConditions());
-    const unsubscribe = subscribeNetworkConditions(listener);
 
     onNetworkChange(wifi(true));
+    const connected = getNetworkConditions();
     for (let i = 0; i < 3; i++) {
       recordFetchSample(100, getLatencySampleEpoch());
     }
+    const sampled = getNetworkConditions();
     onNetworkChange(wifi(false));
-    unsubscribe();
-    onNetworkChange(wifi(true));
 
-    expect(listener.mock.results.map(({ value }) => value)).toEqual([
+    expect([connected, sampled, getNetworkConditions()]).toEqual([
       { hardware: 'HIGH', network: 'WIFI', latency: 'UNKNOWN' },
       { hardware: 'HIGH', network: 'WIFI', latency: 'OK' },
       { hardware: 'HIGH', network: 'NONE', latency: 'UNKNOWN' },
@@ -47,15 +45,13 @@ describe('network conditions', () => {
     expect(getTotalMemorySync).toHaveBeenCalledTimes(1);
   });
 
-  it('publishes the effective dev override and restores measured conditions', () => {
+  it('returns the dev override and restores measured conditions', () => {
     const measured = getNetworkConditions();
     const dev = jest.replaceProperty(
       global as typeof global & { __DEV__: boolean },
       '__DEV__',
       true,
     );
-    const listener = jest.fn(() => getNetworkConditions());
-    const unsubscribe = subscribeNetworkConditions(listener);
     const override = {
       hardware: 'LOW',
       network: 'SLOW_CELLULAR',
@@ -64,15 +60,10 @@ describe('network conditions', () => {
 
     try {
       setDeviceCapabilityOverride(override);
-      setDeviceCapabilityOverride(override);
+      expect(getNetworkConditions()).toEqual(override);
       setDeviceCapabilityOverride({});
-
-      expect(listener.mock.results.map(({ value }) => value)).toEqual([
-        override,
-        measured,
-      ]);
+      expect(getNetworkConditions()).toEqual(measured);
     } finally {
-      unsubscribe();
       setDeviceCapabilityOverride();
       dev.restore();
     }
