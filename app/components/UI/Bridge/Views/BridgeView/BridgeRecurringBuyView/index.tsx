@@ -9,6 +9,7 @@ import {
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
+  AdvancedOrderMetricsEventName,
   FeatureId,
   formatAddressToAssetId,
   formatChainIdToCaip,
@@ -24,6 +25,7 @@ import {
   selectRecurringPriceTolerance,
   selectRecurringScheduleValidation,
 } from '../../../../../../core/redux/slices/bridge';
+import { selectIsDestAssetRequireActivate } from '../../../../../../selectors/bridge';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
@@ -46,6 +48,11 @@ import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteEvents } from '../../../hooks/useBridgeQuoteEvents';
+import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError';
+import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
@@ -78,6 +85,7 @@ import {
   RECURRING_ORDERS_REFETCH_INTERVAL,
 } from '../../../constants/recurringOrders';
 import CostToleranceRow from '../../../components/LimitOrderDetails/CostToleranceRow';
+import { BridgeTabKey } from '../BridgeView.constants';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
@@ -106,6 +114,7 @@ const BridgeRecurringBuyViewContent = ({
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const {
     latestSourceBalance,
+    renderedTab,
     recurringOrdersTab = OrdersTabKey.OpenOrders,
     setRecurringOrdersTab = () => undefined,
   } = useBridgeSession();
@@ -180,7 +189,33 @@ const BridgeRecurringBuyViewContent = ({
   const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
   const ordersNetworkFilter = useSelector(selectOrdersNetworkFilter);
   const scheduleValidation = useSelector(selectRecurringScheduleValidation);
-  const { activeQuote, isLoading } = useBridgeQuoteDataContext();
+  const {
+    activeQuote,
+    blockaidError,
+    isLoading,
+    isNoQuotesAvailable,
+    shouldShowPriceImpactWarning,
+  } = useBridgeQuoteDataContext();
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+  const hasInsufficientNativeReserveError = Boolean(
+    useInsufficientNativeReserveError({
+      amount: sourceAmount,
+      token: sourceToken,
+      latestAtomicBalance: latestSourceBalance?.atomicBalance,
+      walletAddress,
+      activeQuote,
+    }),
+  );
+  const isDestAssetRequireActivate = useSelector(
+    selectIsDestAssetRequireActivate,
+  );
   const openOrdersQuery = useRecurringOrders({
     walletAddress,
     orderStates: OPEN_ORDER_STATES,
@@ -252,6 +287,21 @@ const BridgeRecurringBuyViewContent = ({
     feeTokenValidation.isValid &&
     !hasMinAmountError &&
     !isBelowMinAmount;
+
+  useBridgeQuoteEvents({
+    enabled: renderedTab === BridgeTabKey.Recurring,
+    eventName: AdvancedOrderMetricsEventName.QuotesReceived,
+    hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
+    hasNoQuotesAvailable: isNoQuotesAvailable,
+    hasInsufficientGas,
+    hasTxAlert: Boolean(blockaidError),
+    isNetworkFeeUnavailable,
+    isSubmitDisabled: !canPreviewOrder,
+    isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    hasDestAssetRequireActivate: isDestAssetRequireActivate,
+    hasUsableQuote: Boolean(activeQuote && !isPairPendingReplacement),
+  });
   const previewOrderLabel =
     isBelowMinAmount && formattedMinAmountInSelectedCurrency !== undefined
       ? strings('bridge.recurring.min_order_amount', {

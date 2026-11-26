@@ -1,9 +1,12 @@
 import React, { type ReactNode } from 'react';
-import { TextColor, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import type { HomePack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
-import { Text } from '../../primitives/Text';
 import { PackArt } from './PackArt';
 
 export const packTileWidth = 192;

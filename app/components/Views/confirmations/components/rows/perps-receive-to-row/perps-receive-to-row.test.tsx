@@ -34,8 +34,6 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 
-const ORIGINAL_CONFIRMATION_ENV =
-  process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED;
 const ORIGINAL_PROVIDER_ENV = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
 function ControlledRow() {
@@ -76,6 +74,16 @@ function renderRow(
       engine: {
         backgroundState: {
           ...backgroundState,
+          PerpsController: {
+            ...backgroundState.PerpsController,
+            perpsBalances: {
+              lighter: {
+                totalBalance: '12.349',
+                unrealizedPnl: '0',
+                lastUpdated: 1,
+              },
+            },
+          },
           RemoteFeatureFlagController: {
             ...backgroundState.RemoteFeatureFlagController,
             remoteFeatureFlags,
@@ -88,7 +96,6 @@ function renderRow(
 
 describe('PerpsReceiveToRow', () => {
   beforeEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'true';
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
     mockUsePerpsLiveAccount.mockReturnValue({
       account: { totalBalance: '50.389' },
@@ -97,8 +104,6 @@ describe('PerpsReceiveToRow', () => {
   });
 
   afterEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED =
-      ORIGINAL_CONFIRMATION_ENV;
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = ORIGINAL_PROVIDER_ENV;
   });
 
@@ -138,7 +143,7 @@ describe('PerpsReceiveToRow', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: 'XXX.XX' }),
+        strings('confirm.perps_receive_to.available', { amount: '$12.34' }),
       ),
     ).toBeOnTheScreen();
 
@@ -151,23 +156,15 @@ describe('PerpsReceiveToRow', () => {
       getByText(strings('confirm.perps_receive_to.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('(XXX.XX)', { includeHiddenElements: true }),
+      getByText('($12.34)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
           'confirm.perps_receive_to.lighter',
-        )}, XXX.XX`,
+        )}, $12.34`,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders nothing when the confirmation env is off', () => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'false';
-
-    const { queryByTestId } = renderRow();
-
-    expect(queryByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeNull();
   });
 
   it('renders nothing when the provider env is off', () => {

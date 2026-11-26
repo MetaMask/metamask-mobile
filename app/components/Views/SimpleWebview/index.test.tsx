@@ -8,6 +8,17 @@ import Share from 'react-native-share';
 import Logger from '../../../util/Logger';
 import { getHardwareTier } from '../../../util/deviceCapability';
 import { useNetworkTier } from '../../../hooks/useNetworkTier';
+import {
+  attachWebviewAuthSessionClose,
+  dismissWebviewAuthSession,
+  handleWebviewAuthRedirect,
+} from '../../../util/webviewAuthSession';
+
+jest.mock('../../../util/webviewAuthSession', () => ({
+  attachWebviewAuthSessionClose: jest.fn(() => true),
+  dismissWebviewAuthSession: jest.fn(),
+  handleWebviewAuthRedirect: jest.fn(() => false),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -168,5 +179,185 @@ describe('SimpleWebview', () => {
       'about:blank',
       'about:srcdoc',
     ]);
+  });
+
+  it('preserves domStorageEnabled for non-auth webviews', () => {
+    const { getByTestId } = render(<SimpleWebview />);
+
+    expect(getByTestId('simple-webview').props.domStorageEnabled).toBe(true);
+  });
+
+  describe('authSessionId mode', () => {
+    const AUTH_URL = 'https://x.com/i/oauth2/authorize';
+    const AUTH_REDIRECT_URL =
+      'https://link.metamask.io/x-oauth-redirect?code=abc&state=xyz';
+
+    it('enables domStorage for auth sessions', () => {
+      mockRouteParams({
+        url: AUTH_URL,
+        authSessionId: 'session-1',
+      });
+
+      const { getByTestId } = render(<SimpleWebview />);
+
+      expect(getByTestId('simple-webview').props.domStorageEnabled).toBe(true);
+    });
+
+    it('attaches the auth session close callback on mount', () => {
+      mockRouteParams({
+        url: AUTH_URL,
+        authSessionId: 'session-1',
+      });
+
+      render(<SimpleWebview />);
+
+      expect(attachWebviewAuthSessionClose).toHaveBeenCalledWith(
+        'session-1',
+        expect.any(Function),
+      );
+    });
+
+    it('allows non-matching navigation requests', () => {
+      mockRouteParams({
+        url: AUTH_URL,
+        authSessionId: 'session-1',
+      });
+      jest.mocked(handleWebviewAuthRedirect).mockReturnValueOnce(false);
+      const { getByTestId } = render(<SimpleWebview />);
+
+      const shouldLoad = getByTestId(
+        'simple-webview',
+      ).props.onShouldStartLoadWithRequest({
+        url: 'https://x.com/login',
+      });
+
+      expect(shouldLoad).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('blocks navigation requests that match the auth redirect', () => {
+      mockRouteParams({
+        url: AUTH_URL,
+        authSessionId: 'session-1',
+      });
+      jest.mocked(handleWebviewAuthRedirect).mockReturnValueOnce(true);
+      const { getByTestId } = render(<SimpleWebview />);
+
+      const shouldLoad = getByTestId(
+        'simple-webview',
+      ).props.onShouldStartLoadWithRequest({
+        url: AUTH_REDIRECT_URL,
+      });
+
+      expect(shouldLoad).toBe(false);
+    });
+
+    it('closes the screen when a navigation request matches the auth redirect', () => {
+      mockRouteParams({
+        url: AUTH_URL,
+        authSessionId: 'session-1',
+      });
+      jest.mocked(handleWebviewAuthRedirect).mockReturnValueOnce(true);
+      const { getByTestId } = render(<SimpleWebview />);
+
+      getByTestId('simple-webview').props.onShouldStartLoadWithRequest({
+        url: AUTH_REDIRECT_URL,
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks repeated redirect requests while closing without calling goBack twice', () => {
+      mockRouteParams({
+        url: 'https://x.com/i/oauth2/authorize',
+        authSessionId: 'session-repeat',
+      });
+      jest
+        .mocked(handleWebviewAuthRedirect)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+
+      const { getByTestId } = render(<SimpleWebview />);
+      const webView = getByTestId('simple-webview');
+      const redirectUrl =
+        'https://link.metamask.io/x-oauth-redirect?code=abc&state=xyz';
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({ url: redirectUrl }),
+      ).toBe(false);
+      expect(
+        webView.props.onShouldStartLoadWithRequest({ url: redirectUrl }),
+      ).toBe(false);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes on navigation state change when redirect matches', () => {
+      mockRouteParams({ authSessionId: 'session-2' });
+      jest.mocked(handleWebviewAuthRedirect).mockReturnValueOnce(true);
+
+      const { getByTestId } = render(<SimpleWebview />);
+      const webView = getByTestId('simple-webview');
+      const redirectUrl =
+        'https://link.metamask.io/x-oauth-redirect?code=abc&state=xyz';
+
+      webView.props.onNavigationStateChange({ url: redirectUrl });
+
+      expect(handleWebviewAuthRedirect).toHaveBeenCalledWith(
+        'session-2',
+        redirectUrl,
+      );
+      expect(
+        webView.props.onShouldStartLoadWithRequest({ url: redirectUrl }),
+      ).toBe(false);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses the auth session when unmounted', () => {
+      mockRouteParams({ authSessionId: 'session-3' });
+
+      const { unmount } = render(<SimpleWebview />);
+      unmount();
+
+      expect(dismissWebviewAuthSession).toHaveBeenCalledWith('session-3');
+    });
+
+    it('closes immediately, blocks loads, and cleans up when the auth session already ended before mount', () => {
+      mockRouteParams({ authSessionId: 'stale-session' });
+      jest.mocked(attachWebviewAuthSessionClose).mockReturnValueOnce(false);
+
+      const { getByTestId, unmount } = render(<SimpleWebview />);
+      const webView = getByTestId('simple-webview');
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'https://link.metamask.io/x-oauth-redirect?code=abc&state=xyz',
+        }),
+      ).toBe(false);
+
+      unmount();
+
+      expect(dismissWebviewAuthSession).toHaveBeenCalledWith('stale-session');
+    });
+
+    it('blocks subsequent loads after closing via header close button', () => {
+      mockRouteParams({
+        useGlassHeader: true,
+        authSessionId: 'session-close',
+      });
+
+      const { getByTestId } = render(<SimpleWebview />);
+      const webView = getByTestId('simple-webview');
+
+      fireEvent.press(getByTestId('simple-webview-close-button'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'https://link.metamask.io/x-oauth-redirect?code=abc&state=xyz',
+        }),
+      ).toBe(false);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 });

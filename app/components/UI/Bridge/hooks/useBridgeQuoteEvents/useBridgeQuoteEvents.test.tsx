@@ -5,17 +5,23 @@ import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import {
   MoneyAccountAction,
+  AdvancedOrderMetricsEventName,
+  FeatureId,
   QuoteStreamCompleteReason,
   RequestStatus,
   toQuoteResponseV2,
+  UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import {
   selectBridgeQuotes,
   selectControllerFields,
 } from '../../../../../core/redux/slices/bridge';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
+import { act } from '@testing-library/react-native';
 
 jest.mock('../../../../../core/Engine', () => ({
+  state: {},
   context: {
     BridgeController: {
       trackUnifiedSwapBridgeEvent: jest.fn(),
@@ -90,6 +96,8 @@ describe('useBridgeQuoteEvents', () => {
       renderHookWithProvider(
         () =>
           useBridgeQuoteEvents({
+            enabled: true,
+            eventName: UnifiedSwapBridgeEventName.QuotesReceived,
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
@@ -121,6 +129,8 @@ describe('useBridgeQuoteEvents', () => {
     renderHookWithProvider(
       () =>
         useBridgeQuoteEvents({
+          enabled: true,
+          eventName: UnifiedSwapBridgeEventName.QuotesReceived,
           hasNoQuotesAvailable: false,
           hasInsufficientBalance: false,
           hasInsufficientGas: false,
@@ -172,6 +182,8 @@ describe('useBridgeQuoteEvents', () => {
       renderHookWithProvider(
         () =>
           useBridgeQuoteEvents({
+            enabled: true,
+            eventName: UnifiedSwapBridgeEventName.QuotesReceived,
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
@@ -223,6 +235,8 @@ describe('useBridgeQuoteEvents', () => {
     renderHookWithProvider(
       () =>
         useBridgeQuoteEvents({
+          enabled: true,
+          eventName: UnifiedSwapBridgeEventName.QuotesReceived,
           hasNoQuotesAvailable: false,
           hasInsufficientBalance: false,
           hasInsufficientGas: false,
@@ -263,6 +277,8 @@ describe('useBridgeQuoteEvents', () => {
     renderHookWithProvider(
       () =>
         useBridgeQuoteEvents({
+          enabled: true,
+          eventName: UnifiedSwapBridgeEventName.QuotesReceived,
           hasNoQuotesAvailable: false,
           hasInsufficientBalance: false,
           hasInsufficientGas: false,
@@ -308,6 +324,8 @@ describe('useBridgeQuoteEvents', () => {
     renderHookWithProvider(
       () =>
         useBridgeQuoteEvents({
+          enabled: true,
+          eventName: UnifiedSwapBridgeEventName.QuotesReceived,
           hasNoQuotesAvailable: true,
           hasInsufficientBalance: false,
           hasInsufficientGas: false,
@@ -341,6 +359,8 @@ describe('useBridgeQuoteEvents', () => {
     renderHookWithProvider(
       () =>
         useBridgeQuoteEvents({
+          enabled: true,
+          eventName: UnifiedSwapBridgeEventName.QuotesReceived,
           hasNoQuotesAvailable: false,
           hasInsufficientBalance: false,
           hasInsufficientGas: false,
@@ -355,5 +375,106 @@ describe('useBridgeQuoteEvents', () => {
     );
 
     expect(mockFinishQuoteTrace).toHaveBeenCalledWith('error');
+  });
+
+  it('publishes Advanced QuotesReceived for a successful recurring quote refresh', () => {
+    const recurringQuote = {
+      ...mockQuoteWithMetadata,
+      featureId: FeatureId.RECURRING_ORDER,
+    };
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [recurringQuote],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          enabled: true,
+          eventName: AdvancedOrderMetricsEventName.QuotesReceived,
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
+        }),
+      { state: testState },
+    );
+
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledWith(
+      AdvancedOrderMetricsEventName.QuotesReceived,
+      expect.objectContaining({
+        feature_id: FeatureId.RECURRING_ORDER,
+      }),
+    );
+  });
+
+  it('does not replay on enable and emits the next successful refresh once', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 1,
+      },
+    });
+    let enabled = false;
+    const { rerender, store } = renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          enabled,
+          eventName: AdvancedOrderMetricsEventName.QuotesReceived,
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
+        }),
+      { state: testState },
+    );
+
+    enabled = true;
+    rerender(undefined);
+
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).not.toHaveBeenCalled();
+
+    Object.assign(Engine.state, {
+      BridgeController: {
+        ...testState.engine?.backgroundState?.BridgeController,
+        quotesRefreshCount: 2,
+      },
+    });
+    act(() => {
+      store.dispatch(updateBgState({ key: 'BridgeController' }));
+    });
+
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledWith(
+      AdvancedOrderMetricsEventName.QuotesReceived,
+      expect.any(Object),
+    );
   });
 });

@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
-import type { PerpsMarketData, PerpsMode } from '@metamask/perps-controller';
+import type {
+  PerpsProviderType,
+  PerpsMarketData,
+  PerpsMode,
+} from '@metamask/perps-controller';
 import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
 
 /** Fixed header height, in px. */
@@ -54,6 +58,11 @@ export interface PerpsMarketHeaderProps {
    * navigation actions remain silent.
    */
   enableModeHaptics?: boolean;
+  /**
+   * Venue whose mark overlays the header's token logo. Callers
+   * gate this on the multi-provider flag.
+   */
+  providerId?: PerpsProviderType;
   /**
    * Scroll offset from the parent's `Animated.ScrollView`, shared via
    * `useHeaderStandardAnimated()`. Drives the subtitle/price crossfade.

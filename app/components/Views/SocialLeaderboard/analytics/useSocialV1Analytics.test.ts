@@ -53,7 +53,10 @@ describe('useSocialAnalytics', () => {
       );
       rerender({ active: true, terminal: outcome });
       rerender({ active: true, terminal: outcome });
-      expect(mockTrack).toHaveBeenCalledTimes(1);
+      const screenViewedCalls = mockTrack.mock.calls.filter(
+        ([event]) => event === MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+      );
+      expect(screenViewedCalls).toHaveLength(1);
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
         expect.objectContaining({ outcome }),

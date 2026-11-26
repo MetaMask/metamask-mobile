@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import ManageCardOptions from './ManageCardOptions';
 import type { CardHomeActionVisibility } from './CardHomeActionButtonRow';
 import { CardHomeSelectors } from '../CardHome.testIds';
@@ -13,10 +14,18 @@ import {
 
 jest.mock('../../../components/ManageCardListItem', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
-  return (props: { testID?: string; title?: string; onPress?: () => void }) => (
-    <Pressable testID={props.testID} onPress={props.onPress}>
-      <Text>{props.title}</Text>
-    </Pressable>
+  return (props: {
+    testID?: string;
+    title?: string;
+    description?: React.ReactNode;
+    onPress?: () => void;
+  }) => (
+    <>
+      <Pressable testID={props.testID} onPress={props.onPress}>
+        <Text>{props.title}</Text>
+      </Pressable>
+      {props.description}
+    </>
   );
 });
 
@@ -77,6 +86,15 @@ const renderComponent = (
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
     hiddenQuickActionRows?: CardHomeActionVisibility;
+    spendingLimitReadOnly?: boolean;
+    spendingLimitOnly?: boolean;
+    privacyMode?: boolean;
+    isSpendingLimitActive?: boolean;
+    showLimitedSpendingAmounts?: boolean;
+    spendingLimitRemaining?: string;
+    spendingLimitTotal?: string;
+    spendingLimitSymbol?: string;
+    onManageSpendingLimit?: () => void;
   } = {},
 ) =>
   render(
@@ -99,7 +117,15 @@ const renderComponent = (
       onViewPin={jest.fn()}
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
-      onManageSpendingLimit={jest.fn()}
+      onManageSpendingLimit={overrides.onManageSpendingLimit ?? jest.fn()}
+      spendingLimitReadOnly={overrides.spendingLimitReadOnly}
+      spendingLimitOnly={overrides.spendingLimitOnly}
+      privacyMode={overrides.privacyMode}
+      isSpendingLimitActive={overrides.isSpendingLimitActive ?? true}
+      showLimitedSpendingAmounts={overrides.showLimitedSpendingAmounts}
+      spendingLimitRemaining={overrides.spendingLimitRemaining}
+      spendingLimitTotal={overrides.spendingLimitTotal}
+      spendingLimitSymbol={overrides.spendingLimitSymbol}
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
@@ -110,7 +136,6 @@ const renderComponent = (
       onRevokeAllowance={overrides.onRevokeAllowance}
       fundingAccountName={overrides.fundingAccountName}
       onOrderMetalCard={jest.fn()}
-      isSpendingLimitActive
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
       hiddenQuickActionRows={overrides.hiddenQuickActionRows}
@@ -165,6 +190,56 @@ describe('ManageCardOptions contact details gating', () => {
 });
 
 describe('ManageCardOptions funding-limit gating', () => {
+  it('shows a blocked card spending limit without opening the limit screen', () => {
+    const onManageSpendingLimit = jest.fn();
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      {
+        spendingLimitReadOnly: true,
+        spendingLimitOnly: true,
+        onManageSpendingLimit,
+      },
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM));
+    expect(onManageSpendingLimit).not.toHaveBeenCalled();
+  });
+
+  describe('spending limit amounts', () => {
+    const amountProps = {
+      isSpendingLimitActive: false,
+      showLimitedSpendingAmounts: true,
+      spendingLimitRemaining: '40',
+      spendingLimitTotal: '100',
+      spendingLimitSymbol: 'USDC',
+      spendingLimitOnly: true,
+    };
+    const amounts = () =>
+      strings(
+        'card.card_home.manage_card_options.manage_spending_limit_description_remaining',
+        { remaining: '40', total: '100', symbol: 'USDC' },
+      );
+
+    it('shows the amounts outside privacy mode', () => {
+      const { getByText } = renderComponent(
+        buildCapabilities({ supportsFundingLimits: true }),
+        amountProps,
+      );
+
+      expect(getByText(amounts())).toBeOnTheScreen();
+    });
+
+    it('masks the amounts in privacy mode', () => {
+      const { getByText, queryByText } = renderComponent(
+        buildCapabilities({ supportsFundingLimits: true }),
+        { ...amountProps, privacyMode: true },
+      );
+
+      expect(queryByText(amounts())).toBeNull();
+      expect(getByText('••••••')).toBeOnTheScreen();
+    });
+  });
+
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {
     const { getByTestId } = renderComponent(
       buildCapabilities({ supportsFundingLimits: true }),
