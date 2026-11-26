@@ -11,6 +11,7 @@ import {
   ORDER_SLIPPAGE_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  calculateCloseSize,
   calculateSignedRoEForPrice,
   estimateCloseReceive,
   type InputMethod,
@@ -45,6 +46,7 @@ import { usePerpsAbandonOrderTracking } from './usePerpsAbandonOrderTracking';
 import { usePerpsCloseInFlight } from './usePerpsClosePosition';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
+import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
 import {
@@ -60,7 +62,6 @@ import {
 import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
-  calculateCloseAmountFromPercentage,
   calculatePercentageFromTokenAmount,
   formatCloseAmountUSD,
   validateCloseAmountLimits,
@@ -136,6 +137,9 @@ function readAssetKeypadCommit(params: {
       : typedClose.amount,
   };
 }
+
+/** Nothing to close yet: validation blocks a zero amount. */
+const EMPTY_CLOSE_AMOUNT = { closeAmount: '0', calculatedUSDString: '0.00' };
 
 export interface UsePerpsClosePositionFormOptions {
   /** Overrides `navigation.goBack()` so a sheet can animate closed first. */
@@ -331,10 +335,13 @@ export function usePerpsClosePositionForm(
   const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
+  // Market closes use the saved max slippage, as the order form does; Core's
+  // ORDER_SLIPPAGE_CONFIG is only the default behind it.
+  const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
   const effectiveMaxSlippageBps =
     effectiveOrderType === 'limit'
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
+      : maxSlippageBps;
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -487,10 +494,7 @@ export function usePerpsClosePositionForm(
   const resolveDisplayedCloseAmount = useCallback(
     (percentage: number) => {
       if (isLoadingMarketData) {
-        return {
-          closeAmount: '0',
-          calculatedUSDString: '0.00',
-        };
+        return EMPTY_CLOSE_AMOUNT;
       }
 
       if (exactCloseTokenAmount !== null && percentage === closePercentage) {
@@ -509,16 +513,21 @@ export function usePerpsClosePositionForm(
       const szDecimals =
         marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
 
-      const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
-        percentage,
+      const closeSize = calculateCloseSize({
         positionSize: absSize,
-        currentPrice: effectivePrice,
-        szDecimals,
+        price: effectivePrice,
+        sizeDecimals: szDecimals,
+        percent: percentage,
       });
 
+      // An unusable price sizes nothing, as while market data loads.
+      if (closeSize === undefined) {
+        return EMPTY_CLOSE_AMOUNT;
+      }
+
       return {
-        closeAmount: tokenAmount.toString(),
-        calculatedUSDString: formatCloseAmountUSD(usdValue),
+        closeAmount: closeSize.size.toString(),
+        calculatedUSDString: formatCloseAmountUSD(closeSize.usdValue),
       };
     },
     [
@@ -651,9 +660,12 @@ export function usePerpsClosePositionForm(
   const receiveAmount = closeEstimate.receive;
 
   // Get minimum order amount for this asset
-  const { minimumOrderAmount } = useMinimumOrderAmount({
-    asset: position.symbol,
-  });
+  const { minimumOrderAmount, maxOraclePriceDeviation } = useMinimumOrderAmount(
+    {
+      asset: position.symbol,
+      providerId: livePosition.providerId,
+    },
+  );
 
   // Calculate remaining position value after partial close
   const remainingPositionValue = positionValue * (1 - closePercentage / 100);
@@ -672,6 +684,7 @@ export function usePerpsClosePositionForm(
     // closingValue below.
     currentPrice,
     referencePrice,
+    maxOraclePriceDeviation,
     positionSize: absSize,
     positionValue,
     minimumOrderAmount,
@@ -772,7 +785,7 @@ export function usePerpsClosePositionForm(
       isPositionGone ||
       // Core tracking takes a numeric fee, so wait for the quote instead of
       // reporting an unknown fee as 0. A quoted 0 rate still submits.
-      feeResults.totalFeeRate === undefined
+      feeResults.totalFee === undefined
     ) {
       return;
     }
@@ -860,7 +873,7 @@ export function usePerpsClosePositionForm(
         ...(effectiveOrderType === 'market'
           ? {
               maxSlippageBps: effectiveMaxSlippageBps,
-              maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
+              maxSlippageSource,
             }
           : {}),
       },
@@ -885,7 +898,6 @@ export function usePerpsClosePositionForm(
     handleClosePosition,
     livePosition,
     feeResults.totalFee,
-    feeResults.totalFeeRate,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.metamaskFee,
@@ -897,6 +909,7 @@ export function usePerpsClosePositionForm(
     routeSource,
     vipTier,
     effectiveMaxSlippageBps,
+    maxSlippageSource,
     priceData,
     position.symbol,
     closingValueString,

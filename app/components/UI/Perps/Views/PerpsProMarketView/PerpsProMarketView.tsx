@@ -76,7 +76,10 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
-import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  selectPerpsOrderProvider,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsStackParamList } from '../../types/navigation';
 import {
@@ -143,7 +146,10 @@ const PerpsProOrderBookColumn = ({
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol, providerId });
-  const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: symbol,
+    providerId,
+  });
 
   const handleSelectPrice = useCallback(
     (price: string, size?: string) => {
@@ -191,7 +197,11 @@ const PerpsProOrderBookColumn = ({
         if (new BigNumber(rowAmount).gt(0)) {
           // Compare the unrounded notional: cents rounding can lift a row just
           // under the minimum onto it, and the exact size would then be refused.
-          if (new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)) {
+          // An unknown minimum fills the row as is.
+          if (
+            minimumOrderAmount !== undefined &&
+            new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)
+          ) {
             setAmount(String(minimumOrderAmount));
           } else {
             fillOrderBookSize({
@@ -288,11 +298,8 @@ const PerpsProMarketView = ({
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
   const activeProvider = useSelector(selectPerpsProvider);
-  const routeProviderId =
-    routeMarket?.providerId ??
-    (activeProvider === 'aggregated'
-      ? PROVIDER_CONFIG.DefaultProvider
-      : activeProvider);
+  const defaultProviderId = useSelector(selectPerpsOrderProvider) ?? undefined;
+  const routeProviderId = routeMarket?.providerId ?? defaultProviderId;
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
   const buttonLocation = route.params?.button_location;
@@ -321,12 +328,9 @@ const PerpsProMarketView = ({
       markets.find(
         (item) =>
           item.symbol === routeMarket?.symbol &&
-          (item.providerId ??
-            (activeProvider === 'aggregated'
-              ? PROVIDER_CONFIG.DefaultProvider
-              : activeProvider)) === routeProviderId,
+          (item.providerId ?? defaultProviderId) === routeProviderId,
       ),
-    [activeProvider, markets, routeMarket?.symbol, routeProviderId],
+    [defaultProviderId, markets, routeMarket?.symbol, routeProviderId],
   );
   const market = useMemo(() => {
     const resolvedMarket = hasFormattedMaxLeverage
@@ -353,11 +357,7 @@ const PerpsProMarketView = ({
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
-      const nextProviderId =
-        nextMarket.providerId ??
-        (activeProvider === 'aggregated'
-          ? PROVIDER_CONFIG.DefaultProvider
-          : activeProvider);
+      const nextProviderId = nextMarket.providerId ?? defaultProviderId;
       if (
         !nextMarket.symbol ||
         (nextMarket.symbol === routeMarket?.symbol &&
@@ -381,7 +381,7 @@ const PerpsProMarketView = ({
       });
     },
     [
-      activeProvider,
+      defaultProviderId,
       navigation,
       playSelection,
       routeMarket?.symbol,
@@ -432,9 +432,16 @@ const PerpsProMarketView = ({
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const isAdvancedChartEnabled = useSelector(
+  const isAdvancedChartFlagEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const currentProviderId = market?.providerId ?? defaultProviderId;
+  // The shared Advanced adapter subscribes to the controller's default route.
+  const isAdvancedChartEnabled =
+    isAdvancedChartFlagEnabled &&
+    (activeProvider !== 'aggregated' ||
+      (currentProviderId !== undefined &&
+        currentProviderId === defaultProviderId));
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
@@ -452,11 +459,6 @@ const PerpsProMarketView = ({
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
   const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
   const currentSymbol = market?.symbol;
-  const currentProviderId =
-    market?.providerId ??
-    (activeProvider === 'aggregated'
-      ? PROVIDER_CONFIG.DefaultProvider
-      : activeProvider);
   const currentMarketIdentityKey = `${currentSymbol ?? ''}|${currentProviderId}`;
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const {
@@ -474,10 +476,11 @@ const PerpsProMarketView = ({
     setAdvancedChartCurrentPrice,
     priceDeliveryRevision,
   } = usePerpsSyncedChartPrice({
+    providerId: activeProvider === 'aggregated' ? currentProviderId : undefined,
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
     isAdvancedChartEnabled,
-    marketContextKey,
+    marketContextKey: marketSectionContextKey,
     isMarketContextReady,
   });
   const {
@@ -577,10 +580,8 @@ const PerpsProMarketView = ({
       currentSymbol &&
         (hasFormattedMaxLeverage ||
           (enrichedMarket?.symbol === currentSymbol &&
-            (enrichedMarket.providerId ??
-              (activeProvider === 'aggregated'
-                ? PROVIDER_CONFIG.DefaultProvider
-                : activeProvider)) === currentProviderId)),
+            (enrichedMarket.providerId ?? defaultProviderId) ===
+              currentProviderId)),
     ),
     Boolean(marketsError),
     areMarketsLoading || !haveMarketsResolved,
@@ -729,6 +730,9 @@ const PerpsProMarketView = ({
           )}
           <PerpsProChartPanel
             symbol={market.symbol}
+            providerId={
+              activeProvider === 'aggregated' ? currentProviderId : undefined
+            }
             selectedCandlePeriod={selectedCandlePeriod}
             isAdvancedChartEnabled={isAdvancedChartEnabled}
             configuredChartLibrary={configuredChartLibrary}
@@ -765,8 +769,8 @@ const PerpsProMarketView = ({
                 context (TAT-3643). Keyed by symbol so form state resets when the
                 market changes. */}
             <PerpsOrderProvider
-              providerId={market.providerId}
               key={currentMarketIdentityKey}
+              providerId={market.providerId}
               initialAsset={market.symbol}
               initialDirection={initialDirection}
               fallbackAmount=""
@@ -793,7 +797,7 @@ const PerpsProMarketView = ({
                 orderBook={
                   <PerpsProOrderBookColumn
                     symbol={market.symbol}
-                    providerId={market.providerId}
+                    providerId={currentProviderId}
                     marketPrice={marketPrice}
                     isMarketContextReady={isMarketContextReady}
                     marketContextKey={marketSectionContextKey}

@@ -276,7 +276,7 @@ describe('usePerpsTerminateTwap', () => {
     // warning that filled size stays as a position
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       false,
-      'TWAP',
+      'twap',
       'long',
       '4',
       'BTC',
@@ -295,7 +295,7 @@ describe('usePerpsTerminateTwap', () => {
     // Assert
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       false,
-      'TWAP',
+      'twap',
       undefined,
       undefined,
       undefined,
@@ -314,7 +314,7 @@ describe('usePerpsTerminateTwap', () => {
     // Assert
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       true,
-      'TWAP',
+      'twap',
       undefined,
       undefined,
       undefined,

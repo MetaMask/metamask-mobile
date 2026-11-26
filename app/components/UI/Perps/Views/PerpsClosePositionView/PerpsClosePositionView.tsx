@@ -18,6 +18,8 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
+  // Locale-independent: PerpsAmountDisplay parses and localizes it once.
+  formatPositionSize as formatCanonicalPositionSize,
   getPerpsDisplaySymbol,
   isStrategyOrderType,
 } from '@metamask/perps-controller';
@@ -168,7 +170,7 @@ const PerpsClosePositionView: React.FC = () => {
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+          tokenAmount={formatCanonicalPositionSize(liveCloseAmount, szDecimals)}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.symbol}
           showMaxAmount={false}
@@ -288,8 +290,8 @@ const PerpsClosePositionView: React.FC = () => {
           mid-session flag flip closes it immediately (effectiveOrderType can
           only be 'limit' while the feature flag is enabled). */}
       <PerpsLimitPriceBottomSheet
-        providerId={position.providerId}
         isVisible={isLimitPriceVisible && effectiveOrderType === 'limit'}
+        providerId={position.providerId}
         onClose={() => {
           setIsLimitPriceVisible(false);
           // If user dismisses without entering a price, revert order type to market

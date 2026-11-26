@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
-import { BigNumber } from 'bignumber.js';
 import {
   TransactionType,
   hasTransactionType,
@@ -20,6 +19,8 @@ import {
 } from '../../../../UI/Perps/constants/perpsConfig';
 import type { PerpsTransaction } from '../../../../UI/Perps/types/transactionHistory';
 import {
+  buildFillSizeByOrderKey,
+  getProviderOrderKey,
   transformFillsToTransactions,
   transformFundingToTransactions,
   transformOrdersToTransactions,
@@ -100,24 +101,22 @@ async function fetchPerpsActivityPage({
     provider.getUserHistory({ accountId }),
   ]);
 
-  const orderMap = new Map(orders.map((order) => [order.orderId, order]));
-  const fillSizeByOrderId = new Map<string, BigNumber>();
-  for (const fill of fills) {
-    if (!fill.orderId) {
-      continue;
-    }
-    const current = fillSizeByOrderId.get(fill.orderId) ?? new BigNumber(0);
-    fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
-  }
+  // Keyed by providerId + orderId: venue-local order ids can collide in
+  // aggregated mode.
+  const orderMap = new Map(
+    orders.map((order) => [getProviderOrderKey(order), order]),
+  );
+  const fillSizeByOrderKey = buildFillSizeByOrderKey(fills);
 
   // Attaching detailedOrderType keeps the TP/SL pill on the trade rows.
   const enrichedFills = fills.map((fill) => ({
     ...fill,
-    detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
+    detailedOrderType: orderMap.get(getProviderOrderKey(fill))
+      ?.detailedOrderType,
   }));
 
   const transactions = dedupeById([
-    ...transformOrdersToTransactions(orders, fillSizeByOrderId),
+    ...transformOrdersToTransactions(orders, fillSizeByOrderKey),
     ...transformFundingToTransactions(funding),
     ...transformUserHistoryToTransactions(userHistory),
   ]);

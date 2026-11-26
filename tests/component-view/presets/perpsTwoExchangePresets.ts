@@ -139,8 +139,12 @@ export const perpsTwoExchangeState = (
       providerId: provider,
       state: {
         ...createFundedAccountForViews(account.total),
+        spendableBalance: String(
+          Number(account.total) - Number(account.marginUsed ?? 0),
+        ),
         marginUsed: account.marginUsed ?? '0',
         unrealizedPnl: account.unrealizedPnl ?? '0',
+        providerId: provider,
       },
     };
   }

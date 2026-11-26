@@ -81,6 +81,14 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsTopOfBook: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: () => ({
+    orderCapabilities: {
+      status: 'ready',
+      orderLimits: { sizeDecimals: 4, maxOraclePriceDeviation: 0.95 },
+    },
+  }),
+}));
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
@@ -568,6 +576,31 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(siblings.indexOf(cursor)).toBeLessThan(siblings.indexOf(input));
     });
 
+    it('places the empty limit price cursor after the currency symbol', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      const currency = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURRENCY,
+      );
+      const cursor = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
+      );
+      const input = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+      );
+      const rowNodes = utils
+        .getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW)
+        .findAll((node) => typeof node.type === 'string');
+
+      expect(currency).toHaveTextContent('$');
+      expect(input).toHaveTextContent('0.00');
+      expect(rowNodes.indexOf(currency)).toBeGreaterThan(-1);
+      expect(rowNodes.indexOf(currency)).toBeLessThan(rowNodes.indexOf(cursor));
+      expect(rowNodes.indexOf(cursor)).toBeLessThan(rowNodes.indexOf(input));
+    });
+
     it('keeps the limit price cursor visible after digits are entered', () => {
       const utils = renderSheet();
 
@@ -848,6 +881,7 @@ describe('PerpsClosePositionBottomSheet', () => {
     it('does not repeat a limit-price error already shown on the field', () => {
       const tooFarError = getLimitPriceTooFarMessage(
         Number.parseFloat(defaultPerpsLivePricesMock.ETH.price),
+        0.95,
       );
       usePerpsClosePositionValidationMock.mockReturnValue({
         ...defaultPerpsClosePositionValidationMock,

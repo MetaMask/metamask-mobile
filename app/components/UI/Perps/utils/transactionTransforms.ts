@@ -8,12 +8,18 @@ import {
   Funding,
   Order,
   OrderFill,
+  PERPS_ORDER_TYPE_LABELS,
   UserHistoryItem,
+  adaptTriggerOrderTypeFromSDK,
   calculateNetClosedPnl,
+  getFillAggregationKey,
+  getOrderFillKey,
   getPerpsDisplaySymbol,
+  getTriggerDirection,
   isLimitExecutionOrderType,
   isTriggerOrderType,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   FillType,
@@ -21,7 +27,12 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
-import { formatPerpsFiat } from './formatUtils';
+import {
+  formatFundingPayment,
+  formatFundingRate,
+  formatPerpsUsdCents,
+  formatPnl,
+} from './formatUtils';
 import {
   formatOrderLabel,
   getInlineOrderLabelDirection,
@@ -32,46 +43,6 @@ import { getTokenTransferData } from '../../../Views/confirmations/utils/transac
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
-
-/**
- * Determines the direction category for aggregation purposes.
- * Returns a normalized direction string for grouping fills that should be aggregated together.
- * Opens, closes and flips all qualify: a single order that HyperLiquid filled in several
- * pieces must be shown as one trade whichever way it moved the position.
- *
- * @param direction - The fill direction string (e.g., "Close Long", "Open Short", "Long > Short")
- * @returns A normalized direction for grouping, or null when the direction is unknown
- */
-function getDirectionForAggregation(
-  direction: string | undefined,
-): string | null {
-  if (!direction) return null;
-
-  const [part1, part2] = direction.split(' ');
-
-  // Handle standard open and close directions
-  if (part1 === 'Open' || part1 === 'Close') {
-    return `${part1} ${part2}`; // e.g. "Open Long" or "Close Short"
-  }
-
-  // Handle position flips, which HyperLiquid reports as "Long > Short"
-  if (part2 === '>') {
-    return direction;
-  }
-
-  // Handle spot-perps and prelaunch markets that use "Buy"/"Sell"
-  if (direction === 'Buy' || direction === 'Sell') {
-    return direction;
-  }
-
-  // Handle auto-deleveraging as a closeable position
-  if (direction === 'Auto-Deleveraging') {
-    return 'Auto-Deleveraging';
-  }
-
-  // Unknown direction - don't aggregate
-  return null;
-}
 
 interface FillSeed {
   /** `${symbol}-${direction}` - the partition every grouping rule is scoped to. */
@@ -89,24 +60,24 @@ interface FillSeed {
  * @returns Its grouping keys, or null when the direction is not aggregatable
  */
 function getFillSeedKey(fill: OrderFill): FillSeed | null {
-  const direction = getDirectionForAggregation(fill.direction);
+  const seedKey = getFillAggregationKey(fill);
 
-  if (direction === null) {
+  if (seedKey === undefined) {
     return null;
   }
 
-  const bucket = `${fill.symbol}-${direction}`;
-  const isCloseCategory =
-    direction.startsWith('Close ') ||
-    direction === 'Sell' ||
-    direction === 'Auto-Deleveraging';
+  // Core scopes the seed to `symbol-direction`, then to a second (closes) or
+  // an order (everything else).
+  const closeSuffix = `-second-${Math.floor(fill.timestamp / 1000)}`;
+  const isCloseCategory = seedKey.endsWith(closeSuffix);
+  const suffix = isCloseCategory
+    ? closeSuffix
+    : `-order-${fill.orderId || `solo-${fill.timestamp}`}`;
 
   return {
-    bucket,
+    bucket: seedKey.slice(0, -suffix.length),
     isCloseCategory,
-    seedKey: isCloseCategory
-      ? `${bucket}-second-${Math.floor(fill.timestamp / 1000)}`
-      : `${bucket}-order-${fill.orderId || `solo-${fill.timestamp}`}`,
+    seedKey,
   };
 }
 
@@ -444,7 +415,7 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
  * When a WS fill lacks `detailedOrderType` or `liquidation` that the REST fill has,
  * the REST metadata is preserved so TP/SL pills remain visible on all screens.
  *
- * Dedup key: `orderId-timestamp-size-price`
+ * Dedup key: Core `getOrderFillKey`
  *
  * @param restFills - Historical fills from the REST API
  * @param liveFills - Real-time fills from the WebSocket
@@ -457,12 +428,12 @@ export function mergeOrderFills(
   const fillsMap = new Map<string, OrderFill>();
 
   for (const fill of restFills) {
-    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    const key = getOrderFillKey(fill);
     fillsMap.set(key, fill);
   }
 
   for (const fill of liveFills) {
-    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    const key = getOrderFillKey(fill);
     const existing = fillsMap.get(key);
     if (existing?.detailedOrderType && !fill.detailedOrderType) {
       fillsMap.set(key, {
@@ -643,14 +614,7 @@ export function transformFillsToTransactions(
         displayAmount = strings('perps.transactions.unknown_pnl');
       } else {
         amountBN = openingFee;
-        displayAmount = `-${formatPerpsFiat(
-          amountBN.absoluteValue().toNumber(),
-          {
-            minimumDecimals: 2,
-            maximumDecimals: 2,
-            stripTrailingZeros: false,
-          },
-        )}`;
+        displayAmount = formatPerpsUsdCents(amountBN.absoluteValue().negated());
         isPositive = false; // Fee is always a cost
       }
     } else if (
@@ -666,27 +630,26 @@ export function transformFillsToTransactions(
       // For closing positions: reported PnL net of the fee, from Core
       amountBN = BigNumber(netClosedPnl);
       const netPnL = netClosedPnl;
-      // For display, show + for positive, - for negative, nothing for 0
-      if (netPnL > 0) {
-        displayAmount = `+$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = true;
-      } else if (netPnL < 0) {
-        displayAmount = `-$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = false;
-      } else {
-        displayAmount = `$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = true; // Treat break-even as positive (green)
-      }
+      // + for positive, - for negative, nothing for 0
+      displayAmount = formatPnl(netPnL, { sign: 'exceptZero' });
+      // Treat break-even as positive (green)
+      isPositive = netPnL >= 0;
     } else {
       // Fallback: show order size value
       amountBN = BigNumber(fill.size).times(fill.price);
-      displayAmount = `$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
+      displayAmount = formatPerpsUsdCents(amountBN.absoluteValue());
       isPositive = false; // Default to false for unknown cases
     }
 
     const isLiquidation = Boolean(liquidation);
-    const isTakeProfit = Boolean(detailedOrderType?.includes('Take Profit'));
-    const isStopLoss = Boolean(detailedOrderType?.includes('Stop'));
+    const fillTriggerType = adaptTriggerOrderTypeFromSDK(detailedOrderType);
+    const fillTriggerDirection =
+      fillTriggerType && getTriggerDirection(fillTriggerType);
+    const isTakeProfit =
+      fill.orderType === 'take_profit' ||
+      fillTriggerDirection === 'take_profit';
+    const isStopLoss =
+      fill.orderType === 'stop_loss' || fillTriggerDirection === 'stop';
 
     let title = '';
 
@@ -781,40 +744,67 @@ function resolveOrderExecutionType(
 }
 
 /**
- * Restores the user-facing conditional order type from provider terminology
- * and preserves the order's opening/closing direction.
+ * Labels a conditional order from its normalized type (Core
+ * `PERPS_ORDER_TYPE_LABELS`) and keeps its opening/closing direction.
  */
-function formatTriggeredOrderLabel(
-  order: Order,
-  executionType: NonNullable<PerpsTransaction['order']>['type'],
-): string {
-  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
-  const isLimit = executionType === 'limit';
-  let typeLabel: string;
+function formatTriggeredOrderLabel(order: Order, orderType: OrderType): string {
+  return `${strings(PERPS_ORDER_TYPE_LABELS[orderType].key)} ${getInlineOrderLabelDirection(order)}`;
+}
 
-  if (detailedOrderType.includes('take')) {
-    typeLabel = strings(
-      isLimit
-        ? 'perps.order.type.take_profit_limit.title'
-        : 'perps.order.type.take_profit_market.title',
+/**
+ * Order identity across venues: `orderId` is only unique within a provider,
+ * so aggregated lists key orders and fills by `providerId` + `orderId`.
+ *
+ * @param item - An order or a fill.
+ * @param item.providerId - Venue of the order, when tagged.
+ * @param item.orderId - Venue-local order id.
+ * @returns The provider-scoped order key.
+ */
+export const getProviderOrderKey = ({
+  providerId,
+  orderId,
+}: {
+  providerId?: PerpsProviderType;
+  orderId: string;
+}): string => `${providerId ?? ''}:${orderId}`;
+
+/**
+ * Total filled size per order (keyed by `getProviderOrderKey`). An order with
+ * a fill of unknown size gets no entry, so its fill is not under-counted.
+ *
+ * @param fills - Order fills.
+ * @returns Map of provider-scoped order key to total filled size.
+ */
+export function buildFillSizeByOrderKey(
+  fills: OrderFill[],
+): Map<string, BigNumber> {
+  const fillSizeByOrderKey = new Map<string, BigNumber>();
+  const unknownSizeKeys = new Set<string>();
+  for (const fill of fills) {
+    if (!fill.orderId) {
+      continue;
+    }
+    const key = getProviderOrderKey(fill);
+    const size = new BigNumber(fill.size);
+    if (!size.isFinite()) {
+      unknownSizeKeys.add(key);
+      continue;
+    }
+    fillSizeByOrderKey.set(
+      key,
+      (fillSizeByOrderKey.get(key) ?? new BigNumber(0)).plus(size),
     );
-  } else if (detailedOrderType.includes('stop')) {
-    typeLabel = strings(
-      isLimit
-        ? 'perps.order.type.stop_limit.title'
-        : 'perps.order.type.stop_market.title',
-    );
-  } else {
-    typeLabel = strings(isLimit ? 'perps.order.limit' : 'perps.order.market');
   }
-
-  return `${typeLabel} ${getInlineOrderLabelDirection(order)}`;
+  for (const key of unknownSizeKeys) {
+    fillSizeByOrderKey.delete(key);
+  }
+  return fillSizeByOrderKey;
 }
 
 /**
  * Transform abstract Order objects to PerpsTransaction format
  * @param orders - Array of abstract Order objects
- * @param fillSizeByOrderId - Optional map of orderId to total filled size (from actual fills).
+ * @param fillSizeByOrderKey - Optional map of `getProviderOrderKey` to total filled size (from actual fills).
  * When provided, uses actual fill data to calculate accurate filled percentages.
  * This is important because HyperLiquid's historical orders API returns sz=0 for all
  * completed orders, making it impossible to calculate partial fill percentages without fill data.
@@ -822,7 +812,7 @@ function formatTriggeredOrderLabel(
  */
 export function transformOrdersToTransactions(
   orders: Order[],
-  fillSizeByOrderId?: Map<string, BigNumber>,
+  fillSizeByOrderKey?: Map<string, BigNumber>,
 ): PerpsTransaction[] {
   return orders.map((order) => {
     const {
@@ -866,7 +856,7 @@ export function transformOrdersToTransactions(
         : undefined;
 
     const title = isTrigger
-      ? formatTriggeredOrderLabel(order, executionType)
+      ? formatTriggeredOrderLabel(order, normalizedOrderType)
       : formatOrderLabel(order);
     const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
@@ -895,7 +885,9 @@ export function transformOrdersToTransactions(
 
     // Calculate filled percentage - prefer actual fill data when available
     let filledPercent: string;
-    const actualFilledSize = fillSizeByOrderId?.get(orderId);
+    const actualFilledSize = fillSizeByOrderKey?.get(
+      getProviderOrderKey(order),
+    );
 
     if (actualFilledSize !== undefined) {
       // Use actual fill data for accurate percentage
@@ -976,11 +968,7 @@ export function transformFundingToTransactions(
   return funding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
 
-    // Create safe amount strings
     const isPositive = BigNumber(amountUsd).isGreaterThan(0);
-    const amountUSDC = `${isPositive ? '+' : '-'}$${BigNumber(amountUsd)
-      .absoluteValue()
-      .toString()}`;
 
     return {
       id: `funding-${timestamp}-${symbol}`,
@@ -992,11 +980,9 @@ export function transformFundingToTransactions(
       asset: symbol,
       fundingAmount: {
         isPositive,
-        fee: amountUSDC,
+        fee: formatFundingPayment(amountUsd),
         feeNumber: parseFloat(amountUsd),
-        rate: `${BigNumber(rate ?? '0')
-          .multipliedBy(100)
-          .toString()}%`,
+        rate: formatFundingRate(rate),
       },
     };
   });
@@ -1020,7 +1006,10 @@ export function transformUserHistoryToTransactions(
 
       // Format amount with appropriate sign
       const amountBN = BigNumber(amount);
-      const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
+      const displayAmount = formatPerpsUsdCents(
+        isDeposit ? amountBN : amountBN.negated(),
+        'always',
+      );
 
       // For completed transactions, status is always positive (green)
       const statusText = strings(
@@ -1095,7 +1084,7 @@ export function transformWalletPerpsDepositsToTransactions(
           )
         : new BigNumber(0);
 
-    const displayAmount = `+$${amountBN.toFixed(2)}`;
+    const displayAmount = formatPerpsUsdCents(amountBN, 'always');
     const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
     const statusText =
       status === 'completed'
@@ -1145,7 +1134,7 @@ export function transformWithdrawalRequestsToTransactions(
     const { id, timestamp, amount, asset, txHash, status } = request;
 
     const amountBN = BigNumber(amount);
-    const displayAmount = `-$${amountBN.toFixed(2)}`;
+    const displayAmount = formatPerpsUsdCents(amountBN.negated(), 'always');
 
     const statusText =
       status === 'completed'
@@ -1231,7 +1220,7 @@ export function transformDepositRequestsToTransactions(
 
       // Format amount with positive sign for deposits
       const amountBN = BigNumber(amount);
-      const displayAmount = `+$${amountBN.toFixed(2)}`;
+      const displayAmount = formatPerpsUsdCents(amountBN, 'always');
 
       // For completed deposits, status is always positive (green)
       const statusText = strings(

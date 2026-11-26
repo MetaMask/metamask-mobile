@@ -13,8 +13,8 @@ import {
 } from '../hooks/usePerpsOrderForm';
 import {
   OrderType,
-  Position,
   type PerpsProviderType,
+  Position,
 } from '@metamask/perps-controller';
 
 /**

@@ -1,6 +1,7 @@
 import { strings } from '../../../../../locales/i18n';
 import { hasProperty } from '@metamask/utils';
 import {
+  getPerpsErrorCopy,
   isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
   type OrderResult,
@@ -136,216 +137,13 @@ const getErrorInterpolationData = (
   return interpolationData;
 };
 
-/**
- * Maps error codes to i18n keys
- */
-export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
-  [PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED]:
-    'perps.errors.clientNotInitialized',
-  [PERPS_ERROR_CODES.CLIENT_REINITIALIZING]:
-    'perps.errors.clientReinitializing',
-  [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
-    'perps.errors.providerNotAvailable',
-  [PERPS_ERROR_CODES.PROVIDER_NOT_FOUND]: 'perps.errors.providerNotAvailable',
-  [PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED]:
-    'perps.errors.providerRouteRequired',
-  [PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE]:
-    'perps.errors.clientReinitializing',
-  [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
-  [PERPS_ERROR_CODES.BRIDGE_CONTRACT_NOT_FOUND]:
-    'perps.errors.bridgeContractNotFound',
-  [PERPS_ERROR_CODES.WITHDRAW_FAILED]: 'perps.errors.withdrawFailed',
-  [PERPS_ERROR_CODES.POSITIONS_FAILED]: 'perps.errors.positionsFailed',
-  [PERPS_ERROR_CODES.POSITION_NOT_FOUND]: 'perps.errors.position_not_found',
-  [PERPS_ERROR_CODES.MARKET_NOT_FOUND]: 'perps.errors.marketNotFound',
-  [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
-  [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
-  [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
-  [PERPS_ERROR_CODES.BATCH_INCOMPLETE]: 'perps.errors.batchIncomplete',
-  [PERPS_ERROR_CODES.ORDERS_FAILED]: 'perps.errors.ordersFailed',
-  [PERPS_ERROR_CODES.ORDER_NO_LONGER_OPEN]: 'perps.errors.orderNoLongerOpen',
-  [PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE]:
-    'perps.errors.liquidationPriceUnavailable',
-  [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
-    'perps.errors.orderLeverageReductionFailed',
-  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',
-  [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
-  // Withdraw validation errors
-  [PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED]:
-    'perps.errors.withdrawValidation.assetIdRequired',
-  [PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED]:
-    'perps.errors.withdrawValidation.amountRequired',
-  [PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE]:
-    'perps.errors.withdrawValidation.amountPositive',
-  [PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION]:
-    'perps.errors.withdrawValidation.invalidDestination',
-  [PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED]:
-    'perps.errors.withdrawValidation.assetNotSupported',
-  [PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE]:
-    'perps.errors.withdrawValidation.insufficientBalance',
-  // Deposit validation errors
-  [PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED]:
-    'perps.errors.depositValidation.assetIdRequired',
-  [PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED]:
-    'perps.errors.depositValidation.amountRequired',
-  [PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE]:
-    'perps.errors.depositValidation.amountPositive',
-  [PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT]: 'perps.errors.minimumDeposit',
-  // Order validation errors
-  [PERPS_ERROR_CODES.ORDER_COIN_REQUIRED]:
-    'perps.errors.orderValidation.coinRequired',
-  [PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED]:
-    'perps.errors.orderValidation.limitPriceRequired',
-  [PERPS_ERROR_CODES.ORDER_PRICE_POSITIVE]:
-    'perps.errors.orderValidation.pricePositive',
-  [PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN]:
-    'perps.errors.orderValidation.unknownCoin',
-  [PERPS_ERROR_CODES.ORDER_SIZE_POSITIVE]:
-    'perps.errors.orderValidation.sizePositive',
-  [PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED]:
-    'perps.order.validation.price_required',
-  [PERPS_ERROR_CODES.ORDER_SIZE_MIN]: 'perps.order.validation.minimum_amount',
-  [PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID]:
-    'perps.order.validation.invalid_leverage',
-  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_INVALID]:
-    'perps.errors.orderValidation.marginModeInvalid',
-  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED]:
-    'perps.errors.orderValidation.marginModeUnsupported',
-  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_POSITION_OPEN]:
-    'perps.errors.orderValidation.marginModePositionOpen',
-  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN]:
-    'perps.errors.orderValidation.marginModeOrderOpen',
-  [PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION]:
-    'perps.order.validation.leverage_below_position',
-  [PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED]:
-    'perps.order.validation.max_order_value',
-  // Trigger placement validation errors (stop / take profit order types)
-  [PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_REQUIRED]:
-    'perps.errors.orderValidation.triggerPriceRequired',
-  [PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_POSITIVE]:
-    'perps.errors.orderValidation.triggerPricePositive',
-  [PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_NOT_SUPPORTED]:
-    'perps.errors.orderValidation.triggerPriceNotSupported',
-  [PERPS_ERROR_CODES.ORDER_TRIGGER_TPSL_UNSUPPORTED]:
-    'perps.errors.orderValidation.triggerTpslUnsupported',
-  [PERPS_ERROR_CODES.ORDER_TIME_IN_FORCE_NOT_SUPPORTED]:
-    'perps.errors.orderValidation.timeInForceNotSupported',
-  // Attached TP/SL validation errors
-  [PERPS_ERROR_CODES.ORDER_TPSL_SIZE_INVALID]:
-    'perps.errors.orderValidation.tpslSizeInvalid',
-  [PERPS_ERROR_CODES.ORDER_TPSL_LINKAGE_CONFLICT]:
-    'perps.errors.orderValidation.tpslLinkageConflict',
-  [PERPS_ERROR_CODES.ORDER_TPSL_LINKAGE_REQUIRED]:
-    'perps.errors.orderValidation.tpslLinkageRequired',
-  [PERPS_ERROR_CODES.ORDER_TPSL_POSITION_LINKAGE_UNSUPPORTED]:
-    'perps.errors.orderValidation.tpslPositionLinkageUnsupported',
-  // Order edit errors
-  [PERPS_ERROR_CODES.ORDER_EDIT_TRIGGER_UNSUPPORTED]:
-    'perps.errors.orderValidation.editTriggerUnsupported',
-  [PERPS_ERROR_CODES.ORDER_EDIT_ORDER_UNVERIFIABLE]:
-    'perps.errors.orderValidation.editOrderUnverifiable',
-  // Strategy placement validation errors (TWAP / scale / chase)
-  [PERPS_ERROR_CODES.ORDER_STRATEGY_PARAMS_NOT_SUPPORTED]:
-    'perps.errors.orderValidation.strategyParamsNotSupported',
-  [PERPS_ERROR_CODES.ORDER_STRATEGY_FIELD_UNSUPPORTED]:
-    'perps.errors.orderValidation.strategyFieldUnsupported',
-  [PERPS_ERROR_CODES.ORDER_STRATEGY_MARKET_UNSUPPORTED]:
-    'perps.errors.orderValidation.strategyMarketUnsupported',
-  [PERPS_ERROR_CODES.ORDER_STRATEGY_ROUTE_UNAVAILABLE]:
-    'perps.errors.orderValidation.strategyMarketUnsupported',
-  [PERPS_ERROR_CODES.ORDER_STRATEGY_HANDLE_UNKNOWN]:
-    'perps.errors.orderValidation.strategyHandleUnknown',
-  [PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE]:
-    'perps.errors.orderValidation.strategyCancelIncomplete',
-  [PERPS_ERROR_CODES.ORDER_EDIT_STRATEGY_UNSUPPORTED]:
-    'perps.errors.orderValidation.strategyEditUnsupported',
-  [PERPS_ERROR_CODES.ORDER_TWAP_DURATION_REQUIRED]:
-    'perps.errors.orderValidation.twapDurationRequired',
-  [PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID]:
-    'perps.errors.orderValidation.twapDurationInvalid',
-  [PERPS_ERROR_CODES.ORDER_TWAP_NOTIONAL_TOO_SMALL]:
-    'perps.errors.orderValidation.twapNotionalTooSmall',
-  [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_REQUIRED]:
-    'perps.errors.orderValidation.scaleRangeRequired',
-  [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID]:
-    'perps.errors.orderValidation.scaleRangeInvalid',
-  [PERPS_ERROR_CODES.ORDER_SCALE_COUNT_INVALID]:
-    'perps.errors.orderValidation.scaleCountInvalid',
-  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_TOO_SMALL]:
-    'perps.errors.orderValidation.scaleSizeTooSmall',
-  [PERPS_ERROR_CODES.ORDER_SCALE_NOTIONAL_TOO_SMALL]:
-    'perps.errors.orderValidation.scaleNotionalTooSmall',
-  [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
-    'perps.errors.orderValidation.scalePreviewStale',
-  // Internal scale-order failures; not caused by user input
+// Core maps these internal scale failures to the generic unknown error; Mobile
+// has its own copy for them.
+const MOBILE_ERROR_COPY: Partial<Record<PerpsErrorCode, string>> = {
   [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
     'perps.errors.orderValidation.scaleSizeConservationFailed',
   [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
     'perps.errors.orderValidation.scaleExposureExceedsIntent',
-  [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
-    'perps.errors.orderValidation.chaseIntervalInvalid',
-  [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
-    'perps.errors.orderValidation.chaseDurationInvalid',
-  [PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED]:
-    'perps.errors.orderValidation.chaseLimitReached',
-  [PERPS_ERROR_CODES.ORDER_CHASE_ABANDONED]:
-    'perps.errors.orderValidation.chaseAbandoned',
-  [PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE]:
-    'perps.errors.orderValidation.chaseTouchUnavailable',
-  [PERPS_ERROR_CODES.ORDER_CHASE_MAX_DISTANCE_INVALID]:
-    'perps.errors.orderValidation.chaseMaxDistanceInvalid',
-  // HyperLiquid client/service errors
-  [PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE]:
-    'perps.errors.exchangeClientNotAvailable',
-  [PERPS_ERROR_CODES.EXCHANGE_ACCOUNT_NOT_FOUND]:
-    'perps.errors.exchangeAccountNotFound',
-  [PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED]:
-    'perps.errors.exchangeMultiSigRequired',
-  [PERPS_ERROR_CODES.EXCHANGE_INVALID_NONCE]:
-    'perps.errors.exchangeInvalidNonce',
-  [PERPS_ERROR_CODES.INFO_CLIENT_NOT_AVAILABLE]:
-    'perps.errors.infoClientNotAvailable',
-  [PERPS_ERROR_CODES.SUBSCRIPTION_CLIENT_NOT_AVAILABLE]:
-    'perps.errors.subscriptionClientNotAvailable',
-  // Wallet/account errors
-  [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
-  // Keyring locked errors are handled silently in ensure* methods; never shown to users
-  [PERPS_ERROR_CODES.KEYRING_LOCKED]: 'perps.errors.unknownError',
-  [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
-    'perps.errors.invalidAddressFormat',
-  // Transfer/swap errors
-  [PERPS_ERROR_CODES.TRANSFER_FAILED]: 'perps.errors.transferFailed',
-  [PERPS_ERROR_CODES.SWAP_FAILED]: 'perps.errors.swapFailed',
-  [PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND]: 'perps.errors.spotPairNotFound',
-  [PERPS_ERROR_CODES.PRICE_UNAVAILABLE]: 'perps.errors.priceUnavailable',
-  // Batch operation errors
-  [PERPS_ERROR_CODES.BATCH_CANCEL_FAILED]: 'perps.errors.batchCancelFailed',
-  [PERPS_ERROR_CODES.BATCH_CLOSE_FAILED]: 'perps.errors.batchCloseFailed',
-  // Position/margin errors
-  [PERPS_ERROR_CODES.INSUFFICIENT_MARGIN]: 'perps.errors.insufficientMargin',
-  [PERPS_ERROR_CODES.INSUFFICIENT_BALANCE]: 'perps.errors.insufficientBalance',
-  [PERPS_ERROR_CODES.REDUCE_ONLY_VIOLATION]: 'perps.errors.reduceOnlyViolation',
-  [PERPS_ERROR_CODES.POSITION_WOULD_FLIP]: 'perps.errors.positionWouldFlip',
-  [PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED]:
-    'perps.errors.marginAdjustmentFailed',
-  [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
-  [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
-  [PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED]:
-    'perps.errors.tpslLegReplaceUnsupported',
-  // Post-only rejections
-  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS]:
-    'perps.errors.postOnlyWouldCross',
-  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW]: 'perps.errors.postOnlyWindow',
-  // Order execution errors
-  [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
-  [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
-  [PERPS_ERROR_CODES.PRICE_MOVED]: 'perps.errors.priceMoved',
-  [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
-  // Network/service errors
-  [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
-  [PERPS_ERROR_CODES.NETWORK_ERROR]: 'perps.errors.networkErrorSimple',
-  [PERPS_ERROR_CODES.UNSUPPORTED_COLLATERAL]:
-    'perps.errors.unsupportedCollateral',
 };
 
 const getErrorI18nKey = (
@@ -355,7 +153,7 @@ const getErrorI18nKey = (
   errorCode === PERPS_ERROR_CODES.IOC_CANCEL &&
   interpolationData.maxSlippage === undefined
     ? 'perps.errors.iocCancelUnknownTolerance'
-    : ERROR_CODE_TO_I18N_KEY[errorCode];
+    : (MOBILE_ERROR_COPY[errorCode] ?? getPerpsErrorCopy(errorCode).key);
 
 /**
  * Translates an error code to a localized message
@@ -521,7 +319,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   });
 
   // Check if it's a Core PerpsController or Perps Provider error code
-  if (errorCode && errorCode in ERROR_CODE_TO_I18N_KEY) {
+  if (isPerpsErrorCodeValue(errorCode)) {
     // Map error codes to their required parameters
     switch (errorCode) {
       case PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED:

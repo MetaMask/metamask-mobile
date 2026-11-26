@@ -49,6 +49,7 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { toCoreTrackingData } from '../../utils/orderParams';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -119,9 +120,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   // mid, so the exchange can value it below its mid-price notional.
   const { minimumOrderAmount } = useMinimumOrderAmount({
     asset: position.symbol,
+    providerId: position.providerId,
   });
+  // Unknown minimum: no local check; the venue still validates the order.
   const isBelowMinimum =
     hasValidAmount &&
+    minimumOrderAmount !== undefined &&
     parseFloat(usdAmount) <
       minimumOrderAmount *
         (1 + PERPS_SLIPPAGE_DEFAULT_BPS / BASIS_POINTS_DIVISOR);
@@ -171,21 +175,24 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     if (enableHaptics) {
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
-    await handleFlipPosition(position, {
-      totalFee: feeResults.totalFee,
-      metamaskFee: feeResults.metamaskFee,
-      metamaskFeeRate: feeResults.metamaskFeeRate,
-      marketPrice: markPrice || price,
-      vipTier: vipTier ?? undefined,
-      vipDiscount: feeResults.feeDiscountPercentage,
-      ...toPerpsEntryAttribution({
+    await handleFlipPosition(
+      position,
+      toCoreTrackingData({
+        totalFee: feeResults.totalFee,
+        metamaskFee: feeResults.metamaskFee,
+        metamaskFeeRate: feeResults.metamaskFeeRate,
+        marketPrice: markPrice || price,
+        vipTier: vipTier ?? undefined,
+        vipDiscount: feeResults.feeDiscountPercentage,
+        ...toPerpsEntryAttribution({
+          source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+        }),
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+        ...(feeResults.protocolFeeRate !== undefined
+          ? { hlFeeRate: feeResults.protocolFeeRate }
+          : {}),
       }),
-      source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
-      ...(feeResults.protocolFeeRate !== undefined
-        ? { hlFeeRate: feeResults.protocolFeeRate }
-        : {}),
-    });
+    );
   }, [
     position,
     enableHaptics,
@@ -368,7 +375,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                 </View>
               )}
 
-            {isBelowMinimum && (
+            {isBelowMinimum && minimumOrderAmount !== undefined && (
               <PerpsValidationErrors
                 errors={[
                   strings('perps.flip_position.below_minimum', {

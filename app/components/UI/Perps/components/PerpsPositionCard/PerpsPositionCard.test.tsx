@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { SensitiveText, TextColor } from '@metamask/design-system-react-native';
 import {
   fireEvent,
   render,
@@ -318,7 +319,7 @@ describe('PerpsPositionCard', () => {
       );
       expect(returnCard).toHaveProp('accessible', true);
       expect(returnCard).toHaveTextContent(
-        'perps.position.card.return_label+1250.00%',
+        'perps.position.card.return_label+1,250.0%',
       );
     });
 
@@ -486,7 +487,24 @@ describe('PerpsPositionCard', () => {
       const returnValue = screen.getByTestId(
         PerpsPositionCardSelectorsIDs.RETURN_VALUE,
       );
-      expect(returnValue).toHaveTextContent(/\+1250\.00%/); // ROE is 12.5 * 100 = 1250%
+      expect(returnValue).toHaveTextContent(/\+1,250\.0%/); // ROE is 12.5 * 100 = 1250%, at RoE precision
+    });
+
+    it('keeps the minus on a losing Return that rounds to zero', () => {
+      // Arrange - RoE -0.004% rounds to 0.0% beside a -$0.01 P&L
+      const nearZeroLoss = {
+        ...mockPosition,
+        unrealizedPnl: '-0.01',
+        returnOnEquity: '-0.00004',
+      };
+
+      // Act
+      render(<PerpsPositionCard position={nearZeroLoss} />);
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_VALUE),
+      ).toHaveTextContent('-0.0%');
     });
 
     it('handles missing PnL percentage data', () => {
@@ -499,11 +517,18 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithoutROE} />);
 
-      // Assert - Should show 0% when ROE is missing
+      // Assert - Shows the shared placeholder, not a formatted zero
       const returnValue = screen.getByTestId(
         PerpsPositionCardSelectorsIDs.RETURN_VALUE,
       );
-      expect(returnValue).toHaveTextContent(/\+0\.00%/);
+      expect(returnValue).toHaveTextContent('--%');
+      const returnText = screen
+        .UNSAFE_getAllByType(SensitiveText)
+        .find(
+          (element) =>
+            element.props.testID === PerpsPositionCardSelectorsIDs.RETURN_VALUE,
+        );
+      expect(returnText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('handles missing liquidation price', () => {

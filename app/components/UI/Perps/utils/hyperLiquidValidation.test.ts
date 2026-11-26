@@ -36,7 +36,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('hyperLiquidValidation', () => {
   describe('createErrorResult', () => {
-    it('should create error result with Error message', () => {
+    it('normalizes an unrecognized Error to a typed failure', () => {
       const error = new Error('Test error');
       const defaultResponse = { success: true };
 
@@ -50,7 +50,7 @@ describe('hyperLiquidValidation', () => {
       });
     });
 
-    it('should keep a string error message', () => {
+    it('normalizes an unrecognized string to a typed failure', () => {
       const error = 'string error';
       const defaultResponse = { success: true, data: null };
 

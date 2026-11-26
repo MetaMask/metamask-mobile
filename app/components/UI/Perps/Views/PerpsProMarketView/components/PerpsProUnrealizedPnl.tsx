@@ -18,11 +18,13 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import { formatPercentage, formatPnl } from '../../../utils/formatUtils';
+import { formatPnl, formatRoePercentage } from '../../../utils/formatUtils';
 
 interface PerpsProUnrealizedPnlProps {
-  unrealizedPnl: string;
-  returnOnEquity: string;
+  /** Aggregate PnL; `undefined` while unknown renders the placeholder */
+  unrealizedPnl?: string;
+  /** Aggregate ROE in percent; `undefined` while unknown renders the placeholder */
+  returnOnEquity?: string;
   positionCount: number;
   isFiltered?: boolean;
   onCloseAll?: () => void;
@@ -39,15 +41,18 @@ const PerpsProUnrealizedPnl = ({
   onCloseAll,
 }: PerpsProUnrealizedPnlProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const pnl = parseFloat(unrealizedPnl) || 0;
-  const roe = parseFloat(returnOnEquity) || 0;
-  const valueColor = privacyMode
-    ? TextColor.TextDefault
-    : pnl > 0
-      ? TextColor.SuccessDefault
-      : pnl < 0
-        ? TextColor.ErrorDefault
-        : TextColor.TextDefault;
+  const pnl =
+    unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
+  const roe =
+    returnOnEquity === undefined ? undefined : parseFloat(returnOnEquity);
+  const valueColor =
+    privacyMode || pnl === undefined
+      ? TextColor.TextDefault
+      : pnl > 0
+        ? TextColor.SuccessDefault
+        : pnl < 0
+          ? TextColor.ErrorDefault
+          : TextColor.TextDefault;
 
   return (
     <Box twClassName="px-2 py-3">
@@ -70,7 +75,7 @@ const PerpsProUnrealizedPnl = ({
             color={valueColor}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
-          >{`${formatPnl(pnl)} (${formatPercentage(roe, 1)})`}</SensitiveText>
+          >{`${formatPnl(unrealizedPnl)} (${formatRoePercentage(roe, pnl !== undefined && pnl < 0)})`}</SensitiveText>
         </Box>
         <Button
           variant={ButtonVariant.Tertiary}

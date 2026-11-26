@@ -106,9 +106,6 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
             feedback.totalCount,
           ),
         );
-        if (feedback.shouldCloseOverlay) {
-          closeSheetIfOverlay();
-        }
       }
     },
     [showToast, PerpsToastOptions, closeSheetIfOverlay],

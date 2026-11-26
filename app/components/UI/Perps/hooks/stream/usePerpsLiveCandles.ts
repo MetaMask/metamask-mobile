@@ -91,6 +91,8 @@ export function usePerpsLiveCandles(
     providerId,
   } = options;
   const stream = usePerpsStream();
+  const route = JSON.stringify([symbol, providerId, interval, resetKey]);
+  const [dataRoute, setDataRoute] = useState<string>();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -102,6 +104,7 @@ export function usePerpsLiveCandles(
   useEffect(() => {
     let isActive = true;
     // Reset state immediately when symbol or interval changes to prevent stale data
+    setDataRoute(route);
     setCandleData(null);
     setIsLoading(true);
     setError(null);
@@ -222,23 +225,26 @@ export function usePerpsLiveCandles(
   }, [
     stream,
     symbol,
+    providerId,
     interval,
     duration,
     throttleMs,
     resetKey,
+    route,
     enabled,
-    providerId,
   ]);
 
+  const routedCandleData = dataRoute === route ? candleData : null;
   const hasHistoricalData =
-    candleData !== null && candleData.candles.length > 0;
+    routedCandleData !== null && routedCandleData.candles.length > 0;
 
   /**
    * Fetch additional historical candles before the current oldest candle
    * Used when user scrolls to the left edge of the chart
    */
   const fetchMoreHistory = async (): Promise<void> => {
-    if (!symbol || isLoadingMore) {
+    // Core's history endpoint still reads the routing default.
+    if (!symbol || isLoadingMore || providerId !== undefined) {
       return;
     }
 
@@ -275,8 +281,8 @@ export function usePerpsLiveCandles(
   };
 
   return {
-    candleData,
-    isLoading,
+    candleData: routedCandleData,
+    isLoading: isLoading || (enabled && dataRoute !== route),
     isLoadingMore,
     hasHistoricalData,
     error,

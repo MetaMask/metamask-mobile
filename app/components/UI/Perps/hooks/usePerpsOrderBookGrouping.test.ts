@@ -39,10 +39,12 @@ describe('usePerpsOrderBookGrouping', () => {
     expect(result.current.savedGrouping).toBeUndefined();
   });
 
-  it('saves grouping via PerpsController', () => {
+  it('saves grouping under the selected venue', () => {
     mockUsePerpsSelector.mockReturnValue(undefined);
 
-    const { result } = renderHook(() => usePerpsOrderBookGrouping('BTC'));
+    const { result } = renderHook(() =>
+      usePerpsOrderBookGrouping('BTC', 'lighter'),
+    );
 
     act(() => {
       result.current.saveGrouping(50);
@@ -50,7 +52,7 @@ describe('usePerpsOrderBookGrouping', () => {
 
     expect(
       Engine.context.PerpsController?.saveOrderBookGrouping,
-    ).toHaveBeenCalledWith('BTC', 50);
+    ).toHaveBeenCalledWith('BTC', 50, 'lighter');
   });
 
   it('memoizes saveGrouping callback by symbol', () => {

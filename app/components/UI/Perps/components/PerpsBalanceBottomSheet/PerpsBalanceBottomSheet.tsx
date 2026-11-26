@@ -27,11 +27,8 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
-import {
-  formatPercentage,
-  formatPerpsBalance,
-  formatPnl,
-} from '../../utils/formatUtils';
+import { formatPerpsBalance } from '../../utils/formatUtils';
+import { formatAccountPnl } from '../../utils/positionDisplay';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsInlineInfoScreen } from '../PerpsInlineInfoScreen/PerpsInlineInfoScreen';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
@@ -84,18 +81,21 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     closeEligibilityModal,
   } = usePerpsHomeActions({ buttonLocation });
 
-  const totalBalance = perpsAccount?.totalBalance || '0';
-  const spendableBalance = perpsAccount?.spendableBalance || '0';
-  const unrealizedPnl = parseFloat(perpsAccount?.unrealizedPnl || '0');
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
+  // Unknown until the account loads: the formatters render the placeholder.
+  const totalBalance = perpsAccount?.totalBalance;
+  const spendableBalance = perpsAccount?.spendableBalance;
+  const unrealizedPnl = perpsAccount?.unrealizedPnl;
+  const pnlValue =
+    unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
 
-  const pnlColor = privacyMode
-    ? TextColor.TextDefault
-    : unrealizedPnl > 0
-      ? TextColor.SuccessDefault
-      : unrealizedPnl < 0
-        ? TextColor.ErrorDefault
-        : TextColor.TextDefault;
+  const pnlColor =
+    privacyMode || pnlValue === undefined
+      ? TextColor.TextDefault
+      : pnlValue > 0
+        ? TextColor.SuccessDefault
+        : pnlValue < 0
+          ? TextColor.ErrorDefault
+          : TextColor.TextDefault;
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -217,7 +217,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
                           length={SensitiveTextLength.Short}
                           testID={PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE}
                         >
-                          {`${formatPnl(unrealizedPnl)} (${formatPercentage(roe, 1)})`}
+                          {formatAccountPnl(perpsAccount)}
                         </SensitiveText>
                       </Box>
                     </Box>

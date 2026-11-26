@@ -56,10 +56,12 @@ import PerpsOrderBookTable, {
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  calculateOrderBookAggregationParams,
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import {
   usePerpsMarkets,
+  usePerpsMarketData,
   usePerpsNavigation,
   usePositionManagement,
 } from '../../hooks';
@@ -85,11 +87,11 @@ import {
 } from '../../utils/formatUtils';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import {
-  calculateAggregationParams,
   calculateGroupingOptions,
+  selectDefaultGrouping,
   FAST_ORDER_BOOK_LEVELS,
   formatGroupingLabel,
-  selectDefaultGrouping,
+  formatSpreadPercent,
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
@@ -129,6 +131,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Get market data for the header
   const { markets } = usePerpsMarkets({ fullCatalog: true });
+  // Venue size precision for base-currency order book totals.
+  const { marketData: marketMetadata } = usePerpsMarketData({
+    asset: symbol || '',
+    providerId: routeMarketData?.providerId,
+  });
   const market = useMemo(() => {
     if (!symbol) {
       return undefined;
@@ -258,7 +265,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     if (Number.isFinite(baselineParsed) && baselineParsed > 0) {
       return baselineParsed;
     }
-    return marketPrice ?? 0;
+    return marketPrice ?? undefined;
   }, [focusedPrice, livePrices, symbol, marketPrice]);
 
   const spreadMetrics = useMemo(() => {
@@ -280,7 +287,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Round to eliminate floating point artifacts (e.g., 0.09999999999990905 → 0.1)
     const spread = Number((ask - bid).toPrecision(10));
     const mid = (ask + bid) / 2;
-    const spreadPercentage = mid > 0 ? ((spread / mid) * 100).toFixed(3) : '0';
+    const spreadPercentage = formatSpreadPercent(
+      mid > 0 ? (spread / mid) * 100 : 0,
+    );
 
     return {
       spread,
@@ -291,7 +300,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Calculate aggregation params (nSigFigs + mantissa) based on grouping
   const aggregationParams = useMemo(() => {
     if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
-    return calculateAggregationParams(currentGrouping, marketPrice);
+    return calculateOrderBookAggregationParams(currentGrouping, marketPrice);
   }, [currentGrouping, marketPrice]);
 
   // Subscribe to live order book data with dynamic nSigFigs and mantissa
@@ -435,7 +444,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         title={`${displaySymbol}-USD`}
         titleProps={{ testID: PerpsMarketHeaderSelectorsIDs.ASSET_NAME }}
         description={
-          currentPrice > 0 ? (
+          currentPrice !== undefined && currentPrice > 0 ? (
             <LivePriceHeader
               symbol={symbol}
               testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
@@ -721,6 +730,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             orderBook={orderBook}
             symbol={symbol || ''}
             unit={unitDisplay}
+            szDecimals={marketMetadata?.szDecimals}
             isLoading={isLoading}
             testID={PerpsOrderBookViewSelectorsIDs.TABLE}
           />
@@ -747,7 +757,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              ({spreadMetrics.spreadPercentage}%)
+              ({spreadMetrics.spreadPercentage})
             </Text>
             <ButtonIcon
               iconName={IconName.Info}

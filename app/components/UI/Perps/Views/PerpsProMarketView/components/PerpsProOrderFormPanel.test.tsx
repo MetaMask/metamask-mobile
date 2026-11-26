@@ -4,6 +4,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
+  HYPERLIQUID_TWAP_LIMITS,
   PERPS_CONSTANTS,
   TRIGGER_ORDER_TYPES,
   type OrderType,
@@ -284,6 +285,13 @@ const renderPanel = (
   props: Partial<React.ComponentProps<typeof PerpsProOrderFormPanel>> = {},
 ) => render(<PerpsProOrderFormPanel market={market} {...props} />);
 
+const hyperliquidTwapRules = {
+  minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+  maxDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
+  minNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  sliceIntervalSeconds: HYPERLIQUID_TWAP_LIMITS.SliceIntervalSeconds,
+};
+
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -301,6 +309,7 @@ describe('PerpsProOrderFormPanel', () => {
       orderCapabilities: {
         status: 'ready',
         providerId: 'hyperliquid',
+        strategyRules: { twap: hyperliquidTwapRules },
         supportedStrategies: ['twap', 'scale', 'chase'],
       },
       supportsTwapOrders: true,
@@ -466,6 +475,7 @@ describe('PerpsProOrderFormPanel', () => {
       orderCapabilities: {
         status: 'ready',
         providerId: 'hyperliquid',
+        strategyRules: { twap: hyperliquidTwapRules },
         supportedStrategies: ['twap', 'scale'],
       },
       supportsTwapOrders: true,

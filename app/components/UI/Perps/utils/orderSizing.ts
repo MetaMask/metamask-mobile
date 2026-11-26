@@ -31,8 +31,8 @@ export interface DeriveOrderSizingInput {
   triggerPrice?: string;
   /** Mid/market price used for market orders and display. */
   marketPrice: number;
-  /** Venue mark price (`PriceUpdate.markPrice`), the standard margin basis. */
-  markPrice: number;
+  /** Venue mark price (`PriceUpdate.markPrice`), the standard margin basis; undefined while unknown. */
+  markPrice?: number;
   leverage: number;
   /** Asset size decimals from market data; falls back when unknown. */
   szDecimals: number | null;
@@ -179,8 +179,7 @@ export const getProspectiveExecutionPrice = ({
  *
  * Priced placements (limit, trigger-limit with a limit, trigger-market with a
  * trigger) size and margin off that price; otherwise the mid is used for
- * sizing and the venue mark price, which HyperLiquid margins on, is used for
- * margin.
+ * sizing and the venue mark price (the mid while it is unknown) for margin.
  *
  * @param input - Order sizing inputs.
  * @returns The effective price, position size, and margin required.
@@ -231,7 +230,9 @@ export const deriveOrderSizing = ({
       : undefined;
   const marginPrice =
     triggerMarketMarginPrice ??
-    (hasPricedReference ? effectivePrice : markPrice);
+    (hasPricedReference || markPrice === undefined
+      ? effectivePrice
+      : markPrice);
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay
@@ -288,8 +289,8 @@ export const getReduceOnlyMaxUsdAmount = ({
 export interface PayWithTokenDepositAmountInput {
   /** Margin from `deriveOrderSizing`, priced at mark for market orders. */
   marginRequired: string | undefined;
-  /** Estimated taker + builder fees for the order, in USD. */
-  estimatedFeesUsd: number;
+  /** Estimated taker + builder fees for the order, in USD; undefined while unknown. */
+  estimatedFeesUsd: number | undefined;
   orderType: OrderType;
   maxSlippageBps: number;
 }
@@ -303,7 +304,7 @@ export interface PayWithTokenDepositAmountInput {
  * Rounded up to cents so rounding never eats the headroom.
  *
  * @param input - Margin, fees, order type, and max slippage.
- * @returns The deposit amount in USD, or `''` while margin is unknown.
+ * @returns The deposit amount in USD, or `''` while margin or fees are unknown.
  */
 export const getPayWithTokenDepositAmount = ({
   marginRequired,
@@ -311,18 +312,20 @@ export const getPayWithTokenDepositAmount = ({
   orderType,
   maxSlippageBps,
 }: PayWithTokenDepositAmountInput): string => {
-  if (marginRequired == null) {
+  if (
+    marginRequired == null ||
+    estimatedFeesUsd === undefined ||
+    !Number.isFinite(estimatedFeesUsd)
+  ) {
     return '';
   }
 
   const isMarketOrder =
     !isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType);
   const slippageBufferBps = isMarketOrder ? maxSlippageBps : 0;
-  const fees = Number.isFinite(estimatedFeesUsd) ? estimatedFeesUsd : 0;
-
   return new BigNumber(marginRequired)
     .times(1 + slippageBufferBps / 10_000)
-    .plus(fees)
+    .plus(estimatedFeesUsd)
     .decimalPlaces(2, BigNumber.ROUND_UP)
     .toString(10);
 };

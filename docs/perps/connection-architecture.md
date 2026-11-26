@@ -11,7 +11,7 @@ Mobile decides when the Perps connection opens and closes. The controller's conn
 | `PerpsConnectionProvider` | React context for one section. Polls the manager every 100 ms.                                                                                                                                                                                      |
 | `usePerpsConnection`      | Reads the context. Throws outside a `PerpsConnectionProvider`.                                                                                                                                                                                      |
 | `PerpsGlobalErrorGate`    | The connection error screen and its forced retry inside the Perps stack. Polls the manager every 100 ms.                                                                                                                                            |
-| `PerpsStreamManager`      | 10 stream channels that subscribe to the controller and cache its data. See [caching-architecture.md](./caching-architecture.md).                                                                                                                   |
+| `PerpsStreamManager`      | 11 stream channels that subscribe to the controller and cache its data. See [caching-architecture.md](./caching-architecture.md).                                                                                                                   |
 
 ```mermaid
 graph TD
@@ -91,7 +91,7 @@ Code: `app/components/UI/Perps/services/PerpsConnectionManager.ts` `resumeFromFo
 
 - Leaving `active` (to `inactive` or `background`) calls `disconnect()`. When the reference count reaches 0, it starts a `ConnectionGracePeriodMs` (20 s) grace period. Each tutorial mount adds a reference, so the next `disconnect()` after it starts no grace period.
 - When Chase is enabled, has live orders, or discovery is unresolved, the disconnect waits. At `background` the provider suspends Chase orders, then disconnects.
-- Android runs the grace timer with `BackgroundTimer` and fully disconnects after 20 s. It cleans up prewarm, clears all 10 channels and calls `PerpsController.disconnect()`.
+- Android runs the grace timer with `BackgroundTimer` and fully disconnects after 20 s. It cleans up prewarm, clears all 11 channels and calls `PerpsController.disconnect()`.
 - iOS ignores a grace timer armed while the app was not active, so backgrounding never disconnects; `resumeFromForeground` re-validates on return. A grace period armed while active disconnects on schedule.
 - Returning to `active` cancels pending timers and resumes after 300 ms.
 
@@ -105,7 +105,7 @@ After the first successful ping, `preloadSubscriptions()` runs once per session:
 2. `await prices.prewarm()` subscribes to all market prices.
 3. Waits `InitialDataDelayMs` for first data.
 
-`topOfBook`, `focusedPrice` and `candles` are screen-driven and not prewarmed. After a reconnect the manager reconnects them for mounted screens. `cleanupPreloadedSubscriptions()` runs on every full disconnect and at the start of every reconnection. Which venue feed backs each channel is a provider detail; see Core [venues/hyperliquid/README.md](https://github.com/MetaMask/core/blob/main/packages/perps-controller/docs/venues/hyperliquid/README.md).
+`topOfBook`, `focusedPrice`, `availableToTrade` and `candles` are screen-driven and not prewarmed. After a reconnect the manager reconnects them for mounted screens. `availableToTrade` holds one venue stream per market (the Pro order form's "available to trade"), throttled by `PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS` (1 s). It is user data: account, provider and network switches, hard teardown and the start of every reconnection clear it, so the form shows its placeholder until the new value arrives. `cleanupPreloadedSubscriptions()` runs on every full disconnect and at the start of every reconnection. Which venue feed backs each channel is a provider detail; see Core [venues/hyperliquid/README.md](https://github.com/MetaMask/core/blob/main/packages/perps-controller/docs/venues/hyperliquid/README.md).
 
 Code: `app/components/UI/Perps/services/PerpsConnectionManager.ts` `preloadSubscriptions`, `cleanupPreloadedSubscriptions`; `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `prewarm`.
 
@@ -119,6 +119,8 @@ Each channel's `connect()` calls `ensureReady()` before subscribing:
 
 Retries stop when no subscribers remain or after 150 attempts. Without the guard, the controller's `subscribeTo*` returns a no-op unsubscribe when no provider exists, the channel keeps it, and no callback ever fires, which leaves an endless skeleton.
 
+The Pro chart and order book pin their subscriptions to the selected venue when a route is needed. The dedicated aggregated order-book connection is Hyperliquid-only. Other venues use their controller-routed book and Core's grouping function.
+
 All channels except `candles` use `ensureReady()`. `marketData` skips it when the Terminal global snapshot is active. `CandleStreamChannel` runs its own reinitialization and `isInitialized` checks.
 
 Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `StreamChannel.ensureReady`, `deferConnect`, `awaitConnectionThenConnect`, `MAX_CONNECT_RETRIES`; `app/components/UI/Perps/providers/channels/CandleStreamChannel.ts`.
@@ -128,7 +130,7 @@ Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `StreamChannel.
 | Trigger                                                | Detected by                                                                              | What happens                                                                                                                                                    |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Account change                                         | Redux subscriber on `selectSelectedInternalAccountByScope('eip155:1')`                   | Only while connected. Prepares Chase for the change, clears user channels and the user disk key, then calls `reconnectWithNewContext()` after a 50 ms debounce. |
-| Perps network, provider or HIP-3 config version change | Same subscriber (`selectPerpsNetwork`, `selectPerpsProvider`, `selectHip3ConfigVersion`) | Same, but clears all 10 channels and both disk keys.                                                                                                            |
+| Perps network, provider or HIP-3 config version change | Same subscriber (`selectPerpsNetwork`, `selectPerpsProvider`, `selectHip3ConfigVersion`) | Same, but clears all 11 channels and both disk keys.                                                                                                            |
 | Network restore                                        | NetInfo offline to online                                                                | `reconnectWithNewContext({ force: true })`, up to `NetworkRestoreMaxRetries` (8) attempts, `NetworkRestoreRetryBaseMs` (1.5 s) times the attempt number apart.  |
 | User retry                                             | `PerpsGlobalErrorGate`, `PerpsSectionMain`                                               | `reconnectWithNewContext({ force: true })`.                                                                                                                     |
 | WebSocket drop                                         | `useWebSocketHealthToast`                                                                | `PerpsController.reconnect()` after 10 s. Provider-level retries are Core's.                                                                                    |

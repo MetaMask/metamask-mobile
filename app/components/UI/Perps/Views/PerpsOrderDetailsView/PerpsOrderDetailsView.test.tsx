@@ -189,6 +189,25 @@ describe('PerpsOrderDetailsView', () => {
     mockRouteParams = {};
   });
 
+  it("cancels on the order's venue", async () => {
+    // Arrange
+    mockRouteParams = { order: { ...mockOrder, providerId: 'lighter' } };
+    render(<PerpsOrderDetailsView />);
+
+    // Act
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    // Assert: without it Core cancels on the default venue
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'order-123',
+          providerId: 'lighter',
+        }),
+      );
+    });
+  });
+
   it('renders order details view with order data', () => {
     render(<PerpsOrderDetailsView />);
 

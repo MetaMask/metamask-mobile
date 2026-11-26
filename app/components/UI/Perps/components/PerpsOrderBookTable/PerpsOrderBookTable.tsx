@@ -14,8 +14,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
+  formatPerpsCompact,
   formatPerpsFiat,
-  formatLargeNumber,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 
@@ -28,6 +28,8 @@ export interface PerpsOrderBookTableProps {
   symbol: string;
   /** Current unit display preference */
   unit: UnitDisplay;
+  /** Asset base-size decimal precision (Hyperliquid `szDecimals`), for base-currency totals. */
+  szDecimals?: number;
   /** Whether the order book is loading */
   isLoading?: boolean;
   /** Test ID for E2E testing */
@@ -46,6 +48,7 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
   orderBook,
   symbol,
   unit,
+  szDecimals,
   isLoading = false,
   testID = PerpsOrderBookTableSelectorsIDs.CONTAINER,
 }) => {
@@ -62,30 +65,22 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
     [],
   );
 
-  // Format total based on unit preference
-  // Use compact notation for large USD values to prevent text wrapping
+  // Format total based on unit preference, with Core's compact order book
+  // formats so large values do not wrap
   const formatTotal = useCallback(
     (level: OrderBookLevel): string => {
       if (unit === 'usd') {
-        const value = parseFloat(level.totalNotional);
-        // Use compact notation for large values to prevent text wrapping
-        if (value >= 1_000_000) {
-          return '$' + formatLargeNumber(value, { decimals: 1 }); // "$55.4M"
-        }
-        if (value >= 10_000) {
-          return '$' + formatLargeNumber(value, { decimals: 0 }); // "$121K"
-        }
-        // Standard formatting for smaller values
-        return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
+        return formatPerpsCompact(level.totalNotional, {
+          field: 'orderBookUsd',
+        });
       }
-      // Base currency
       const total = parseFloat(level.total);
-      if (total >= 1) {
-        return total.toFixed(4);
-      }
-      return total.toFixed(6);
+      return formatPerpsCompact(total, {
+        field: 'orderBookSize',
+        szDecimals,
+      });
     },
-    [unit],
+    [unit, szDecimals],
   );
 
   // Format price with appropriate precision

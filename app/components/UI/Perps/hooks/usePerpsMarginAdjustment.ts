@@ -1,21 +1,17 @@
 import { useCallback, useRef, useState } from 'react';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import {
+  calculateMaxRemovableMargin,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { translatePerpsError } from '../utils/translatePerpsError';
-import { calculateMaxRemovableMargin } from '../utils/marginUtils';
-import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;
@@ -40,7 +36,6 @@ export function usePerpsMarginAdjustment(
   const isAdjustingRef = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { track } = usePerpsEventTracking();
 
   // Re-reads the position so a removal is checked against what the exchange
   // will see, not the snapshot the form was built from. Returns null when the
@@ -67,7 +62,6 @@ export function usePerpsMarginAdjustment(
         const params = {
           currentMargin: parseFloat(position.marginUsed),
           positionSize: Math.abs(parseFloat(position.size)),
-          entryPrice: parseFloat(position.entryPrice),
           currentPrice: 0,
           positionLeverage: position.leverage?.value ?? 0,
           notionalValue: parseFloat(position.positionValue),
@@ -116,23 +110,9 @@ export function usePerpsMarginAdjustment(
         `usePerpsMarginAdjustment: Setting isAdjusting to true (action: ${action})`,
       );
 
-      // Positive for add, negative for remove
+      // Positive for add, negative for remove. Core's updateMargin emits the
+      // Perp Risk Management event for success and failure; Mobile adds none.
       const adjustmentAmount = action === 'remove' ? -amount : amount;
-      const trackAdjustment = (
-        status:
-          | typeof PERPS_EVENT_VALUE.STATUS.SUCCESS
-          | typeof PERPS_EVENT_VALUE.STATUS.FAILED,
-        errorMessage?: string,
-      ) => {
-        track(MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION, {
-          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
-          [PERPS_EVENT_PROPERTY.ACTION]: action,
-          [PERPS_EVENT_PROPERTY.STATUS]: status,
-          ...(errorMessage && {
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-          }),
-        });
-      };
 
       try {
         if (action === 'remove') {
@@ -174,18 +154,12 @@ export function usePerpsMarginAdjustment(
                 ),
           );
 
-          trackAdjustment(PERPS_EVENT_VALUE.STATUS.SUCCESS);
-
           // Call success callback if provided
           options?.onSuccess?.();
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
           const errorMessage = translatePerpsError(result);
-          trackAdjustment(
-            PERPS_EVENT_VALUE.STATUS.FAILED,
-            result.errorCode ?? result.error,
-          );
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -224,10 +198,6 @@ export function usePerpsMarginAdjustment(
         });
 
         const errorMessage = translatePerpsError(error);
-        trackAdjustment(
-          PERPS_EVENT_VALUE.STATUS.FAILED,
-          ensureError(error).message,
-        );
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -249,7 +219,6 @@ export function usePerpsMarginAdjustment(
       showToast,
       PerpsToastOptions.positionManagement.margin,
       options,
-      track,
     ],
   );
 

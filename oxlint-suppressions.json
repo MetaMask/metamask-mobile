@@ -6057,7 +6057,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 3
     },
     "typescript/unbound-method": {
       "count": 2
@@ -6215,10 +6215,10 @@
       "count": 14
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 26
+      "count": 25
     },
     "typescript/promise-function-async": {
-      "count": 10
+      "count": 2
     }
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx": {
@@ -6226,7 +6226,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 11
     },
     "typescript/promise-function-async": {
       "count": 2
@@ -6340,7 +6340,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 9
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderForm/usePerpsProSizeInput.test.ts": {
@@ -6476,9 +6476,6 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
       "count": 1
     },
     "typescript/unbound-method": {
@@ -6634,9 +6631,6 @@
   "app/components/UI/Perps/components/PerpsBalanceBottomSheet/PerpsBalanceBottomSheet.tsx": {
     "typescript/no-floating-promises": {
       "count": 3
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 4
     }
   },
   "app/components/UI/Perps/components/PerpsBalanceBottomSheet/index.ts": {
@@ -7107,9 +7101,6 @@
     }
   },
   "app/components/UI/Perps/components/TradingViewChart/TradingViewChart.incremental.test.tsx": {
-    "typescript/no-implied-eval": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -7188,14 +7179,6 @@
   },
   "app/components/UI/Perps/hooks/useDepositRequests.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Perps/hooks/useDepositRequests.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
   },
@@ -7292,11 +7275,6 @@
   "app/components/UI/Perps/hooks/usePerpsClosePositionForm.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 3
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsClosePositionValidation.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/hooks/usePerpsDepositProgress.ts": {
@@ -7671,11 +7649,6 @@
       "count": 2
     }
   },
-  "app/components/UI/Perps/hooks/usePerpsPositionModifyPreview.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Perps/hooks/usePerpsPrewarmDepositOrder.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -7700,11 +7673,6 @@
     },
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsProPositionsPanelActions.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/hooks/usePerpsProvider.test.ts": {
@@ -7796,12 +7764,6 @@
     }
   },
   "app/components/UI/Perps/hooks/usePerpsTransactionHistory.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -7812,9 +7774,6 @@
     }
   },
   "app/components/UI/Perps/hooks/usePerpsTwapOrders.ts": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -7849,9 +7808,6 @@
     "typescript/no-base-to-string": {
       "count": 2
     },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 18
-    },
     "typescript/restrict-template-expressions": {
       "count": 2
     }
@@ -7859,11 +7815,6 @@
   "app/components/UI/Perps/hooks/usePerpsWithdrawQuote.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 3
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsWithdrawStatus.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 5
     }
   },
   "app/components/UI/Perps/hooks/useStopLossPrompt.ts": {
@@ -7944,9 +7895,6 @@
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 3
     },
     "typescript/promise-function-async": {
       "count": 1
@@ -25062,11 +25010,6 @@
     },
     "typescript/unbound-method": {
       "count": 1
-    }
-  },
-  "tests/component-view/helpers/perpsMarginModeTestHelpers.ts": {
-    "typescript/unbound-method": {
-      "count": 9
     }
   },
   "tests/component-view/helpers/perpsViewTestHelpers.ts": {

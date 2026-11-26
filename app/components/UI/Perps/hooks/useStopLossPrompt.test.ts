@@ -583,6 +583,25 @@ describe('useStopLossPrompt', () => {
       expect(result.current.suggestedStopLossPercent).toBe(-70);
     });
 
+    it('returns null for the ROE when leverage is unknown instead of assuming 1x', () => {
+      const position = createMockPosition({
+        entryPrice: '50000',
+        size: '1',
+        leverage: { type: 'isolated' },
+        liquidationPrice: '45000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 48000,
+        }),
+      );
+
+      expect(result.current.suggestedStopLossPrice).toBe('46500');
+      expect(result.current.suggestedStopLossPercent).toBeNull();
+    });
+
     it('returns null for suggested price when no position', () => {
       const { result } = renderHook(() =>
         useStopLossPrompt({

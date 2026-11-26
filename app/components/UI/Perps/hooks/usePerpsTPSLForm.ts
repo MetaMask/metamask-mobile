@@ -5,6 +5,7 @@ import { strings } from '../../../../../locales/i18n';
 import { regex } from '../../../../util/regex';
 import {
   DECIMAL_PRECISION_CONFIG,
+  calculateExpectedTriggerPnl,
   calculatePositionSize,
   calculatePriceForRoE,
   calculateRoEForPrice,
@@ -20,7 +21,6 @@ import {
   type TpslCalculationParams,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
-import { calculateExpectedPnL } from '../utils/pnlCalculations';
 import {
   formatRoEPercentageDisplay,
   getStopLossErrorDirection,
@@ -1180,9 +1180,14 @@ export function usePerpsTPSLForm(
     symbol: asset,
   });
 
+  // An unknown closing fee leaves the expected PnL unknown.
   const expectedTakeProfitPnL =
-    takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
-      ? calculateExpectedPnL({
+    takeProfitPrice &&
+    positionSizeForPnL !== 0 &&
+    entryPrice &&
+    entryPrice > 0 &&
+    tpClosingFees.totalFee !== undefined
+      ? calculateExpectedTriggerPnl({
           triggerPrice: Number.parseFloat(takeProfitPrice),
           entryPrice,
           size: positionSizeForPnL,
@@ -1207,8 +1212,12 @@ export function usePerpsTPSLForm(
   });
 
   const expectedStopLossPnL =
-    stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
-      ? calculateExpectedPnL({
+    stopLossPrice &&
+    positionSizeForPnL !== 0 &&
+    entryPrice &&
+    entryPrice > 0 &&
+    slClosingFees.totalFee !== undefined
+      ? calculateExpectedTriggerPnl({
           triggerPrice: Number.parseFloat(stopLossPrice),
           entryPrice,
           size: positionSizeForPnL,

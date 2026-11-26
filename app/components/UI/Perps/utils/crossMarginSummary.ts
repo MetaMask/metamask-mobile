@@ -1,10 +1,8 @@
 import {
   calculateAccountSummary,
-  getCrossCollateral,
   type AccountState,
-  type CrossMarginSummary,
+  type CrossMarginRatioTone,
   type PerpsAccountSummary,
-  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import type {
   HardwareTier,
@@ -12,13 +10,9 @@ import type {
 } from '../../../../util/deviceCapability/types';
 import { formatCrossMarginRatio } from './formatUtils';
 import {
-  CROSS_MARGIN_RATIO_DANGER_THRESHOLD,
-  CROSS_MARGIN_RATIO_WARNING_THRESHOLD,
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS,
   CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
 } from '../constants/perpsConfig';
-
-export type CrossMarginRatioTone = 'safe' | 'warning' | 'danger';
 
 /** A ratio that needs an alert. Safe and unknown ratios do not. */
 export type CrossMarginRatioAlert = Exclude<CrossMarginRatioTone, 'safe'>;
@@ -46,16 +40,9 @@ export const calculateCrossMarginAccountSummaryFromAccount = (
         totalEquity: account.totalBalance,
         crossMarginSummary: account.crossMarginSummary,
         spotCollateral: account.spotCollateral,
+        accountMode: account.accountMode,
       })
     : EMPTY_ACCOUNT_SUMMARY;
-
-const toFiniteNumber = (value: string | undefined): number | undefined => {
-  if (value === undefined || value === '') {
-    return undefined;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
 
 /**
  * Stream throttle for the cross margin summary from the UX matrix in
@@ -84,76 +71,19 @@ export const getCrossMarginSummaryThrottleMs = ({
 };
 
 /**
- * Estimates where a new cross position liquidates: the price at which the
- * cross collateral, after the position's P&L, falls to the maintenance margin
- * of the existing cross positions plus the new one. Maintenance margin is half
- * the initial margin at the market's max leverage, which is Hyperliquid's
- * rule, so other venues get no estimate. TAT-4668 moves this to
- * perps-controller.
- *
- * @returns The liquidation price, or undefined when an input is missing (the
- * spot collateral included) or the position cannot be liquidated at a
- * positive price.
+ * The streamed account figures a Cross liquidation estimate depends on, as a
+ * request key: the estimate is made again when they move, never on a timer.
  */
-export const estimateCrossLiquidationPrice = ({
-  entryPrice,
-  size,
-  isLong,
-  maxLeverage,
-  crossMarginSummary,
-  spotCollateral,
-  providerId,
-}: {
-  entryPrice: number;
-  /** Unsigned order size in base units. */
-  size: number;
-  isLong: boolean;
-  maxLeverage: number;
-  crossMarginSummary: CrossMarginSummary | undefined;
-  /** `AccountState.spotCollateral`: undefined while it is not known yet. */
-  spotCollateral: string | undefined;
-  /** Venue that takes the order. */
-  providerId: PerpsProviderType;
-}): number | undefined => {
-  if (providerId !== 'hyperliquid') {
-    return undefined;
-  }
-  const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
-  const maintenanceMargin = toFiniteNumber(
-    crossMarginSummary?.maintenanceMargin,
-  );
-  if (
-    collateral === undefined ||
-    maintenanceMargin === undefined ||
-    !(entryPrice > 0) ||
-    !(size > 0) ||
-    !(maxLeverage > 0)
-  ) {
-    return undefined;
-  }
-  const side = isLong ? 1 : -1;
-  const maintenanceFraction = 1 / (2 * maxLeverage);
-  const marginAvailable =
-    collateral - maintenanceMargin - size * entryPrice * maintenanceFraction;
-  const liquidationPrice =
-    entryPrice -
-    (side * marginAvailable) / size / (1 - maintenanceFraction * side);
-  return Number.isFinite(liquidationPrice) && liquidationPrice > 0
-    ? liquidationPrice
+export const getCrossAccountKey = (
+  account: AccountState | null | undefined,
+): string | undefined =>
+  account?.crossMarginSummary
+    ? JSON.stringify([
+        account.accountMode,
+        account.crossMarginSummary,
+        account.spotCollateral,
+      ])
     : undefined;
-};
-
-export const getCrossMarginRatioTone = (
-  ratio: number | undefined,
-): CrossMarginRatioTone | undefined => {
-  if (ratio === undefined || !Number.isFinite(ratio)) {
-    return undefined;
-  }
-  if (ratio < CROSS_MARGIN_RATIO_WARNING_THRESHOLD) {
-    return 'safe';
-  }
-  return ratio <= CROSS_MARGIN_RATIO_DANGER_THRESHOLD ? 'warning' : 'danger';
-};
 
 /** The alert level of a tone, or undefined when the ratio is safe or unknown. */
 export const getCrossMarginRatioAlert = (

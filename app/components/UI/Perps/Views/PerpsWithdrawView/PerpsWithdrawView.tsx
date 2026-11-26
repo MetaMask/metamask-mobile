@@ -36,7 +36,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
-  HYPERLIQUID_ASSET_CONFIGS,
   PERPS_CONSTANTS,
   USDC_DECIMALS,
   USDC_SYMBOL,
@@ -48,7 +47,6 @@ import {
   usePerpsMeasurement,
   usePerpsNetwork,
   usePerpsWithdrawQuote,
-  useWithdrawTokens,
 } from '../../hooks';
 import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
@@ -60,7 +58,8 @@ import {
   truncateToTwoDecimals,
 } from '../../utils/formatUtils';
 
-import type { Hex } from '@metamask/utils';
+import { parseCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -71,6 +70,7 @@ import { BadgePosition } from '../../../../../component-library/components/Badge
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { useSelector } from 'react-redux';
+import { selectPerpsOrderProvider } from '../../selectors/perpsController';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
@@ -94,17 +94,15 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Hooks
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { account } = usePerpsLiveAccount();
+  const providerId = useSelector(selectPerpsOrderProvider) ?? undefined;
+  const { account } = usePerpsLiveAccount({ providerId });
 
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
-  // Get withdrawal tokens from hook
-  const { destToken } = useWithdrawTokens();
-
   // Truncate to 2 decimals so the user can withdraw exactly what they see.
   const withdrawableBalance = useMemo(() => {
-    if (!account?.withdrawableBalance) return 0;
+    if (account?.withdrawableBalance === undefined) return undefined;
     return truncateToTwoDecimals(
       parseCurrencyString(account.withdrawableBalance),
     );
@@ -115,7 +113,8 @@ const PerpsWithdrawView: React.FC = () => {
     [withdrawableBalance],
   );
 
-  const hasPositiveBalance = withdrawableBalance > 0;
+  const hasPositiveBalance =
+    withdrawableBalance !== undefined && withdrawableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -123,35 +122,45 @@ const PerpsWithdrawView: React.FC = () => {
     isBelowMinimum,
     hasInsufficientBalance,
     getMinimumAmount,
-  } = useWithdrawValidation({ withdrawAmount: withdrawAmountDetailed });
+    withdrawalRoute,
+    isLoadingRoute,
+  } = useWithdrawValidation({
+    withdrawAmount: withdrawAmountDetailed,
+    providerId,
+  });
+  const destinationChainId = withdrawalRoute
+    ? toHex(Number(parseCaipChainId(withdrawalRoute.chainId).reference))
+    : undefined;
+  const isRouteUnavailable = !isLoadingRoute && !withdrawalRoute;
 
   // Check if inputs are valid
   const hasValidInputs =
+    Boolean(withdrawalRoute) &&
     hasAmount &&
     !isBelowMinimum &&
     !hasInsufficientBalance &&
     hasPositiveBalance;
 
   // Get withdrawal quote
-  const { formattedQuoteData } = usePerpsWithdrawQuote({
+  const { formattedQuoteData, networkFeeAmount } = usePerpsWithdrawQuote({
     amount: withdrawAmountDetailed,
+    withdrawalRoute,
   });
 
-  // Calculate destination amount (for now, same as withdrawal amount minus fees)
+  // Calculate destination amount (for now, same as withdrawal amount minus fees).
+  // Uses the numeric fee: the display string is localized and grouped.
   const destAmount = useMemo(() => {
-    if (!withdrawAmountDetailed || !formattedQuoteData?.networkFee) return '';
+    if (!withdrawalRoute || !withdrawAmountDetailed) return '';
     const amount = parseFloat(withdrawAmountDetailed) || 0;
-    const fee = parseFloat(formattedQuoteData.networkFee.replace('$', '')) || 0;
-    const result = Math.max(0, amount - fee);
+    const result = Math.max(0, amount - networkFeeAmount);
     return result.toFixed(2);
-  }, [withdrawAmountDetailed, formattedQuoteData]);
+  }, [withdrawalRoute, withdrawAmountDetailed, networkFeeAmount]);
 
   // Performance tracking: Measure withdrawal screen load time until core data is ready
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
       !!account?.withdrawableBalance,
-      !!destToken,
       withdrawableBalance !== undefined,
     ],
   });
@@ -224,7 +233,7 @@ const PerpsWithdrawView: React.FC = () => {
   }, [handlePercentagePress]);
 
   const handleContinue = useCallback(async () => {
-    if (!hasValidInputs || isSubmittingTx) return;
+    if (!withdrawalRoute || !hasValidInputs || isSubmittingTx) return;
 
     setIsSubmittingTx(true);
 
@@ -236,31 +245,23 @@ const PerpsWithdrawView: React.FC = () => {
     // Navigate back immediately to close the withdrawal screen
     navigation.goBack();
 
-    // Execute withdrawal asynchronously
-    // Get the correct assetId for USDC on Arbitrum (declare outside try block for error handling)
-    const assetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
+    const { assetId, chainId } = withdrawalRoute;
+    const withdrawalProviderId = withdrawalRoute.providerId ?? providerId;
 
     try {
       // Execute withdrawal directly using controller
       const controller = Engine.context.PerpsController;
 
-      // Construct assetId in CAIP format: eip155:{chainId}/erc20:{tokenAddress}/default
-      // Convert hex chainId to decimal for CAIP format
-      const chainIdDecimal = parseInt(destToken.chainId, 16).toString();
-
       DevLogger.log('Initiating withdrawal with params:', {
         amount: withdrawAmountDetailed,
-        destination: destToken.address,
         assetId,
-        chainId: destToken.chainId,
-        chainIdDecimal,
+        chainId,
       });
 
       const result = await controller.withdraw({
         amount: withdrawAmountDetailed,
-        assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
+        assetId,
+        ...(withdrawalProviderId && { providerId: withdrawalProviderId }),
       });
 
       if (result.success) {
@@ -282,8 +283,7 @@ const PerpsWithdrawView: React.FC = () => {
           data: {
             amount: withdrawAmountDetailed,
             assetId,
-            destination: destToken.address,
-            chainId: destToken.chainId,
+            chainId,
             isTestnet,
             rawError:
               error instanceof Error
@@ -305,9 +305,9 @@ const PerpsWithdrawView: React.FC = () => {
     showToast,
     PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,
-    destToken.chainId,
-    destToken.address,
+    withdrawalRoute,
     isTestnet,
+    providerId,
     withdrawAmountDetailed,
   ]);
 
@@ -422,29 +422,31 @@ const PerpsWithdrawView: React.FC = () => {
               />
             </Pressable>
           </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={NetworkBadgeSource(destToken.chainId as Hex)}
-                />
-              }
+          {destinationChainId && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
             >
-              <AvatarToken
-                name={destToken.symbol}
-                // hardcoding usdc token image url until we support other withdrawal token types
-                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-                size={AvatarSize.Sm}
-              />
-            </BadgeWrapper>
-            <Text variant={TextVariant.BodyMd}>{USDC_SYMBOL}</Text>
-          </Box>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={NetworkBadgeSource(destinationChainId)}
+                  />
+                }
+              >
+                <AvatarToken
+                  name={USDC_SYMBOL}
+                  // hardcoding usdc token image url until we support other withdrawal token types
+                  imageSource={{ uri: USDC_TOKEN_ICON_URL }}
+                  size={AvatarSize.Sm}
+                />
+              </BadgeWrapper>
+              <Text variant={TextVariant.BodyMd}>{USDC_SYMBOL}</Text>
+            </Box>
+          )}
         </Box>
 
         {/* Provider Fee */}
@@ -483,7 +485,9 @@ const PerpsWithdrawView: React.FC = () => {
                   color={TextColor.TextAlternative}
                   testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
                 >
-                  {formattedQuoteData?.networkFee || '$1.00'}
+                  {withdrawalRoute
+                    ? formattedQuoteData.networkFee
+                    : formatPerpsFiat(undefined)}
                 </Text>
               ),
             }}
@@ -516,7 +520,7 @@ const PerpsWithdrawView: React.FC = () => {
                   color={TextColor.TextAlternative}
                   testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
                 >
-                  {formattedQuoteData?.estimatedTime}
+                  {withdrawalRoute && formattedQuoteData.estimatedTime}
                 </Text>
               ),
             }}
@@ -560,16 +564,19 @@ const PerpsWithdrawView: React.FC = () => {
                 'text-center',
                 // Control visibility - opacity 0 when no error
                 !(
+                  isRouteUnavailable ||
                   (isBelowMinimum && hasAmount) ||
                   (hasInsufficientBalance && hasAmount)
                 ) && 'opacity-0',
               )}
             >
-              {hasInsufficientBalance
-                ? strings('perps.withdrawal.insufficient_funds')
-                : strings('perps.withdrawal.minimum_amount_error', {
-                    amount: getMinimumAmount(),
-                  })}
+              {isRouteUnavailable
+                ? strings('perps.withdrawal.route_unavailable')
+                : hasInsufficientBalance
+                  ? strings('perps.withdrawal.insufficient_funds')
+                  : strings('perps.withdrawal.minimum_amount_error', {
+                      amount: getMinimumAmount(),
+                    })}
             </Text>
           </Box>
           {/* Dynamic action row - either percentage buttons or withdrawal button */}

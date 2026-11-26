@@ -35,6 +35,8 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
+  formatLeverage,
+  formatLiquidationDistance,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -44,11 +46,6 @@ import {
   PerpsLeverageBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
-import {
-  calculateLiquidationDistance,
-  clampLiquidationDistance,
-} from '../../utils/liquidationDistance';
 import {
   Box,
   BoxAlignItems,
@@ -282,28 +279,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     },
   });
 
-  const liquidationDropPercentage = useMemo(() => {
-    if (currentPrice === 0 || !currentPrice) return 0;
-
-    if (tempLeverage === 1) {
-      return 100;
-    }
-
-    if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
-      return clampLiquidationDistance((1 / tempLeverage) * 100);
-    }
-
-    return clampLiquidationDistance(
-      calculateLiquidationDistance(currentPrice, dynamicLiquidationPrice),
-    );
-  }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
-
   const isRecalculating = marginMode !== 'cross' && leverageChanged;
 
   const hasValidApiPrice =
     !Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0;
 
-  // The cached estimate and leverage-based distance are isolated-only.
+  // The cached estimate is isolated-only.
   const displayLiquidationPrice =
     marginMode === 'cross' || isRecalculating
       ? null
@@ -311,9 +292,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         ? dynamicLiquidationPrice
         : lastValidLiquidationPrice.current;
 
+  // Core distance from the displayed quote; undefined without one, so the
+  // sheet never shows an invented 100% or 1/leverage figure.
   const displayLiquidationPercentage = isRecalculating
-    ? null
-    : `${liquidationDropPercentage.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+    ? undefined
+    : formatLiquidationDistance(currentPrice, displayLiquidationPrice);
 
   const leverageOptions = useMemo(
     () =>
@@ -544,35 +527,32 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                           })
                         : PERPS_CONSTANTS.FallbackDataDisplay}
                     </Text>
-                    {marginMode !== 'cross' &&
-                      (tempLeverage === 1 ||
-                        displayLiquidationPrice !== null) &&
-                      displayLiquidationPercentage && (
-                        <>
-                          <Icon
-                            name={
-                              direction === 'long'
-                                ? IconName.TrendDown
-                                : IconName.TrendUp
-                            }
-                            size={IconSize.Sm}
-                            color={IconColor.IconAlternative}
-                            twClassName="ml-1"
-                            testID={
-                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
-                            }
-                          />
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
-                            testID={
-                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                            }
-                          >
-                            {displayLiquidationPercentage}
-                          </Text>
-                        </>
-                      )}
+                    {marginMode !== 'cross' && displayLiquidationPercentage && (
+                      <>
+                        <Icon
+                          name={
+                            direction === 'long'
+                              ? IconName.TrendDown
+                              : IconName.TrendUp
+                          }
+                          size={IconSize.Sm}
+                          color={IconColor.IconAlternative}
+                          twClassName="ml-1"
+                          testID={
+                            PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
+                          }
+                        />
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.TextAlternative}
+                          testID={
+                            PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                          }
+                        >
+                          {displayLiquidationPercentage}
+                        </Text>
+                      </>
+                    )}
                   </Box>
                 )
               }
@@ -640,7 +620,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   <Pressable
                     key={value}
                     accessibilityRole="button"
-                    accessibilityLabel={`${value}x`}
+                    accessibilityLabel={formatLeverage(value)}
                     accessibilityState={{ selected: isSelected }}
                     onPress={() => handleLeveragePress(value)}
                     testID={getPerpsLeveragePickerItemTestId(value)}
@@ -658,7 +638,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                       fontWeight={FontWeight.Medium}
                       color={isSelected ? TextColor.TextDefault : textColor}
                     >
-                      {value}x
+                      {formatLeverage(value)}
                     </Text>
                   </Pressable>
                 );

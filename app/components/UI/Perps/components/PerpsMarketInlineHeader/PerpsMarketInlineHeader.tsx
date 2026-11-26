@@ -17,7 +17,8 @@ import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/feature
 export interface PerpsMarketInlineHeaderProps {
   market: PerpsMarketData;
   /** Current price from candle stream - syncs header with chart */
-  currentPrice: number;
+  /** Undefined while unknown; renders the price placeholder. */
+  currentPrice: number | undefined;
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;

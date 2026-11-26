@@ -2,7 +2,10 @@ import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import type { OrdinaryOrderType } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type OrdinaryOrderType,
+} from '@metamask/perps-controller';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
@@ -456,7 +459,40 @@ describe('PerpsDetails', () => {
     );
   });
 
-  it('renders funding rate and signed funding fee', () => {
+  it('renders the shared placeholder while the order fee is loading', () => {
+    mockUsePerpsRecordedOrderFees.mockReturnValueOnce({
+      totalFee: undefined,
+      isLoading: true,
+      hasError: false,
+    });
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-fee-loading',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Take profit close short',
+      order: {
+        orderId: 'order-fee-loading',
+        text: PerpsOrderTransactionStatus.Canceled,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'limit',
+        size: '10.23',
+        limitPrice: '98023',
+        filled: '45%',
+      },
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PerpsDetails
+        item={perpsItem('marketCloseShort', transaction, 'cancelled')}
+      />,
+    );
+
+    expect(getByText(PERPS_CONSTANTS.FallbackDataDisplay)).toBeOnTheScreen();
+    expect(queryByText('—')).toBeNull();
+  });
+
+  it('renders the funding rate and rounds funding below the display precision', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
       id: 'funding-1',
@@ -479,7 +515,7 @@ describe('PerpsDetails', () => {
 
     expect(getByText('Rate')).toBeOnTheScreen();
     expect(getByText('Funding fee')).toBeOnTheScreen();
-    expect(getByText('+$0.00000001')).toBeOnTheScreen();
+    expect(getByText('$0.00')).toBeOnTheScreen();
   });
 
   it('formats perps fiat rows with the shared Perps formatter (universal ranges)', () => {

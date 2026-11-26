@@ -313,11 +313,21 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         return null;
       }
       const totals = calculatePositionAggregateTotals(positions);
-      const roe = parseFloat(totals.returnOnEquity);
-      const pnlNum = parseFloat(totals.unrealizedPnl);
+      // An unknown position leaves the totals unknown: placeholder, neutral tone.
+      const roe = totals.returnOnEquity;
+      const pnlNum =
+        totals.unrealizedPnl === undefined
+          ? undefined
+          : parseFloat(totals.unrealizedPnl);
       const valueText = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const tone: HomepageUnrealizedPnlTone =
-        pnlNum > 0 ? 'positive' : pnlNum < 0 ? 'negative' : 'neutral';
+        pnlNum === undefined
+          ? 'neutral'
+          : pnlNum > 0
+            ? 'positive'
+            : pnlNum < 0
+              ? 'negative'
+              : 'neutral';
       return { valueText, tone };
     }, [positions, showHomepageUnrealizedPnl]);
 

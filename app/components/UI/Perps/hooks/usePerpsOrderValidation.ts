@@ -5,7 +5,6 @@ import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   VALIDATION_THRESHOLDS,
-  TRADING_DEFAULTS,
   PERPS_ERROR_CODES,
   getMaxOrderValue,
   isLimitExecutionOrderType,
@@ -24,7 +23,6 @@ import {
   canonicalizeOrderPrice,
   type OrderFormFieldIssue,
 } from '../utils/triggerOrderValidation';
-import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
 
@@ -32,12 +30,21 @@ interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
   assetPrice: number;
-  /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
-  spendableBalance: number;
+  /**
+   * Max USD that can collateralize a new position (mirrors
+   * AccountState.spendableBalance); undefined while the account is unresolved,
+   * which skips the balance check instead of reporting insufficient balance.
+   */
+  spendableBalance: number | undefined;
   marginRequired: string;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
   originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
+  /**
+   * The venue's minimum order value in USD (`useMinimumOrderAmount`); omitted
+   * while unknown, which skips the local minimum check.
+   */
+  minimumOrderAmount?: number;
   /** When true, passes reduceOnly through to protocol validation. */
   reduceOnly?: boolean;
   /**
@@ -49,6 +56,10 @@ interface UsePerpsOrderValidationParams {
   triggerPrice?: string;
   /** Live mid price used for trigger placement-side validation. */
   midPrice?: number;
+  /** Oracle price the deviation band is measured from; the mid while unknown. */
+  referencePrice?: number;
+  /** The venue's deviation limit; no band check while unknown. */
+  maxOraclePriceDeviation?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
   /** TWAP running time in whole minutes. */
@@ -125,9 +136,9 @@ interface BuildOrderParamsInput {
 
 interface ImmediateValidationInput {
   marginRequired: string;
-  spendableBalance: number;
+  spendableBalance: number | undefined;
   originalUsdAmount?: string;
-  minimumOrderSize: number;
+  minimumOrderSize?: number;
   reduceOnly?: boolean;
   isFullClose?: boolean;
 }
@@ -142,7 +153,7 @@ interface ProtocolValidationErrorsInput {
   requestFieldIssues: OrderFormFieldIssue[];
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
-  minimumOrderSize: number;
+  minimumOrderSize?: number;
   suppressedProtocolErrors: ReadonlySet<string>;
   maxLeverage?: number;
 }
@@ -166,11 +177,6 @@ interface ValidationOutcome {
   attempt: ValidationAttempt;
   state: ValidationState;
 }
-
-const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
-  network === 'mainnet'
-    ? TRADING_DEFAULTS.amount.mainnet
-    : TRADING_DEFAULTS.amount.testnet;
 
 const isValidationReady = ({
   assetPrice,
@@ -199,7 +205,7 @@ const getImmediateValidationErrors = ({
   const insufficientBalanceErrors: string[] = [];
   const requiredMargin = Number.parseFloat(marginRequired);
 
-  if (requiredMargin > spendableBalance) {
+  if (spendableBalance !== undefined && requiredMargin > spendableBalance) {
     const insufficientBalanceError = strings(
       'perps.order.validation.insufficient_balance',
       {
@@ -213,7 +219,12 @@ const getImmediateValidationErrors = ({
 
   const usdAmount = Number.parseFloat(originalUsdAmount || '0');
   const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
-  if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
+  if (
+    !skipMinimumAmount &&
+    minimumOrderSize !== undefined &&
+    usdAmount > 0 &&
+    usdAmount < minimumOrderSize
+  ) {
     errors.push(
       strings('perps.order.validation.minimum_amount', {
         amount: minimumOrderSize.toString(),
@@ -273,7 +284,7 @@ const getProtocolErrorContext = ({
   error?: string;
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
-  minimumOrderSize: number;
+  minimumOrderSize?: number;
   maxLeverage?: number;
 }): Record<string, unknown> => {
   switch (error) {
@@ -300,7 +311,13 @@ const getProtocolErrorContext = ({
       };
     }
     case PERPS_ERROR_CODES.ORDER_SIZE_MIN:
-      return { amount: minimumOrderSize.toString() };
+      // The copy has a literal `$`: an unknown minimum reads `$---`.
+      return {
+        amount:
+          minimumOrderSize === undefined
+            ? PERPS_CONSTANTS.FallbackPriceDisplay.replace('$', '')
+            : minimumOrderSize.toString(),
+      };
     case PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN:
       return { symbol: orderForm.asset };
     default:
@@ -449,10 +466,13 @@ export function usePerpsOrderValidation(
     existingPositionLeverage,
     skipValidation,
     originalUsdAmount,
+    minimumOrderAmount,
     reduceOnly,
     isFullClose,
     triggerPrice,
     midPrice = assetPrice,
+    referencePrice = midPrice,
+    maxOraclePriceDeviation,
     szDecimals,
     twapDuration,
     twapRandomize,
@@ -462,7 +482,6 @@ export function usePerpsOrderValidation(
   } = params;
 
   const { validateOrder } = usePerpsTrading();
-  const network = usePerpsNetwork();
   const orderFormValidationData = useMemo<OrderFormValidationData>(
     () => ({
       asset: orderForm.asset,
@@ -503,10 +522,14 @@ export function usePerpsOrderValidation(
         triggerPrice,
         limitPrice: orderForm.limitPrice,
         midPrice,
+        referencePrice,
+        maxDeviation: maxOraclePriceDeviation,
         szDecimals,
       }),
     [
+      maxOraclePriceDeviation,
       midPrice,
+      referencePrice,
       orderForm.direction,
       orderForm.limitPrice,
       orderForm.type,
@@ -515,7 +538,8 @@ export function usePerpsOrderValidation(
     ],
   );
 
-  const minimumOrderSize = getMinimumOrderSize(network);
+  // Unknown minimum: skip the local check; protocol validation still runs.
+  const minimumOrderSize = minimumOrderAmount;
   const immediateValidation = useMemo(
     () =>
       getImmediateValidationErrors({
@@ -554,7 +578,11 @@ export function usePerpsOrderValidation(
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
+  // An unresolved account has no known balance: no insufficient-balance copy,
+  // but the order stays blocked until the balance is known.
+  const isBalanceKnown = spendableBalance !== undefined;
   const isLocallyValid =
+    isBalanceKnown &&
     localErrors.length === 0 &&
     !fieldIssues.some((issue) => !isAdvisoryOrderFormFieldIssue(issue));
 
@@ -810,9 +838,15 @@ export function usePerpsOrderValidation(
       };
     }
 
-    return performValidation(requestId, fieldIssues, localErrors);
+    const attempt = await performValidation(
+      requestId,
+      fieldIssues,
+      localErrors,
+    );
+    return isBalanceKnown ? attempt : { ...attempt, isValid: false };
   }, [
     clearValidationTimer,
+    isBalanceKnown,
     fieldIssues,
     localErrors,
     performValidation,

@@ -621,6 +621,12 @@ jest.mock('../../app/core/Engine', () => {
           providerId: 'hyperliquid',
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
+        estimateCrossLiquidation: jest
+          .fn()
+          .mockResolvedValue({ status: 'unavailable', reason: 'provider' }),
+        getMarginAdjustmentLimits: jest
+          .fn()
+          .mockResolvedValue({ status: 'unavailable', reason: 'provider' }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
@@ -716,8 +722,11 @@ jest.mock('../../app/core/Engine', () => {
         saveMarginMode: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
-            assetId: 'usdc-mainnet',
-            constraints: { minAmount: 10 },
+            assetId:
+              'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+            chainId: 'eip155:42161',
+            contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            constraints: { minAmount: '10' },
           },
         ]),
         startMarketDataPreload: jest.fn(),

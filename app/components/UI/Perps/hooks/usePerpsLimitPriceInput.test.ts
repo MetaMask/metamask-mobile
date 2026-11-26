@@ -1,13 +1,18 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { usePerpsLimitPriceInput } from './usePerpsLimitPriceInput';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsLivePrices, usePerpsTopOfBook } from './stream';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { usePerpsProvider } from './usePerpsProvider';
 
 jest.mock('./stream', () => ({
   usePerpsLivePrices: jest.fn(),
   usePerpsTopOfBook: jest.fn(),
+}));
+
+jest.mock('./usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(),
 }));
 
 jest.mock('./usePerpsEventTracking', () => ({
@@ -23,6 +28,20 @@ const mockUsePerpsTopOfBook = usePerpsTopOfBook as jest.MockedFunction<
 const mockUsePerpsEventTracking = usePerpsEventTracking as jest.MockedFunction<
   typeof usePerpsEventTracking
 >;
+
+const mockUsePerpsProvider = jest.mocked(usePerpsProvider);
+
+const mockMaxOraclePriceDeviation = (
+  maxOraclePriceDeviation: number | undefined,
+) =>
+  mockUsePerpsProvider.mockReturnValue({
+    orderCapabilities: {
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: [],
+      orderLimits: { sizeDecimals: 4, maxOraclePriceDeviation },
+    },
+  } as unknown as ReturnType<typeof usePerpsProvider>);
 
 const TEST_IDS = {
   mid: 'preset-mid',
@@ -62,6 +81,7 @@ const renderLimitPriceInput = (
 describe('usePerpsLimitPriceInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMaxOraclePriceDeviation(0.95);
     mockUsePerpsEventTracking.mockReturnValue({
       track: mockTrack,
     } as unknown as ReturnType<typeof usePerpsEventTracking>);
@@ -216,6 +236,29 @@ describe('usePerpsLimitPriceInput', () => {
     });
   });
 
+  describe('draft display', () => {
+    afterEach(() => {
+      I18n.locale = 'en-US';
+    });
+
+    it.each([
+      ['1234.', '1.234,\u00a0$'],
+      ['1234.50', '1.234,50\u00a0$'],
+    ])(
+      'shows the German draft %s with the separator before the currency',
+      (limitPrice, expected) => {
+        // Arrange
+        I18n.locale = 'de';
+
+        // Act
+        const { result } = renderLimitPriceInput({ limitPrice });
+
+        // Assert
+        expect(result.current.formattedLimitPrice).toBe(expected);
+      },
+    );
+  });
+
   describe('validation', () => {
     it('blocks a closing price outside the venue deviation band', () => {
       const { result } = renderLimitPriceInput({
@@ -224,7 +267,7 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000, 0.95));
     });
 
     it('measures the deviation band from the oracle price, not the mark price', () => {
@@ -237,7 +280,9 @@ describe('usePerpsLimitPriceInput', () => {
       const { result } = renderLimitPriceInput({ limitPrice: '500' });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(20000));
+      expect(result.current.error).toBe(
+        getLimitPriceTooFarMessage(20000, 0.95),
+      );
     });
 
     it('blocks an opening price outside the venue deviation band', () => {
@@ -247,7 +292,15 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000, 0.95));
+    });
+
+    it('applies no band while the venue reports no limit', () => {
+      mockMaxOraclePriceDeviation(undefined);
+
+      const { result } = renderLimitPriceInput({ limitPrice: '10' });
+
+      expect(result.current.exceedsMaxDeviation).toBe(false);
     });
 
     it('warns when a closing long rests below market', () => {

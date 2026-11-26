@@ -170,6 +170,30 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
   });
 
+  it('keeps 24h high and low as the placeholder when a live price arrives without candles', () => {
+    // Arrange: a live price but no candle history
+    mockSubscribeToPrices.mockImplementation(({ callback }) => {
+      callback([mockPriceData.BTC]);
+      return jest.fn();
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: null,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    // Act
+    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
+
+    // Assert: the live price is known, but it is not a 24h high or low
+    expect(result.current.currentPrice).toBe(45000);
+    expect(result.current.high24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+    expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+  });
+
   it('displays default values when no market data is available', () => {
     // Arrange: Set up empty market data state
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
@@ -225,8 +249,8 @@ describe('usePerpsMarketStats', () => {
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.volume24h).toBe('$12.35T'); // Decimals in formatVolume for detailed view
-    expect(result.current.openInterest).toBe('$99.00T'); // Decimals in formatLargeNumber for detailed view
+    expect(result.current.volume24h).toBe('$12.35T');
+    expect(result.current.openInterest).toBe('$99.00T');
   });
 
   it('subscribes to prices only once when the first price tick arrives', () => {
@@ -389,10 +413,10 @@ describe('usePerpsMarketStats', () => {
     expect(callbacks).toHaveLength(2);
 
     act(() => callbacks[1]([{ ...mockPriceData.BTC, volume24h: 1 }]));
-    expect(result.current.volume24h).toBe('$1');
+    expect(result.current.volume24h).toBe('$1.00');
 
     act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 2 }]));
-    expect(result.current.volume24h).toBe('$1');
+    expect(result.current.volume24h).toBe('$1.00');
   });
 
   it('formats negative funding rates with proper sign and decimals', () => {
@@ -447,9 +471,9 @@ describe('usePerpsMarketStats', () => {
     // Act
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    // Assert: actual zeros format as $0, not the missing-data placeholder
-    expect(result.current.volume24h).toBe('$0');
-    expect(result.current.openInterest).toBe('$0');
+    // Assert: actual zeros format as $0.00, not the missing-data placeholder
+    expect(result.current.volume24h).toBe('$0.00');
+    expect(result.current.openInterest).toBe('$0.00');
   });
 
   it('does not treat a current-symbol tick without stats as live data', () => {

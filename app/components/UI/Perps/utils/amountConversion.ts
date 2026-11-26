@@ -14,14 +14,15 @@ export type AmountConversionLogger = PerpsLogger | undefined;
  *
  * @param amount - Amount in various formats (USD string or numeric string)
  * @param logger - Optional logger for error reporting
- * @returns Formatted USD string using Perps formatting standards
+ * @returns Formatted USD string using Perps formatting standards, or the Core
+ * placeholder (`$---`) when the amount is empty or cannot be read
  */
 export const convertPerpsAmountToUSD = (
   amount: string,
   logger?: AmountConversionLogger,
 ): string => {
   if (!amount) {
-    return formatPerpsFiat(0);
+    return formatPerpsFiat(undefined);
   }
 
   try {
@@ -34,7 +35,7 @@ export const convertPerpsAmountToUSD = (
 
     // Hex wei input is not supported in the Perps flow (all deposits use ERC-20 USDC)
     if (amount.startsWith('0x')) {
-      return '$0';
+      return formatPerpsFiat(undefined);
     }
 
     // Otherwise, treat as a direct USD amount (e.g., "1.30" = $1.30)
@@ -44,8 +45,8 @@ export const convertPerpsAmountToUSD = (
       return formatPerpsFiat(numericValue);
     }
 
-    // Invalid input - return formatted zero
-    return formatPerpsFiat(0);
+    // Invalid input: the amount is unknown
+    return formatPerpsFiat(undefined);
   } catch (error) {
     logger?.error(ensureError(error, 'amountConversion.convertAmountToUsd'), {
       context: {
@@ -53,6 +54,6 @@ export const convertPerpsAmountToUSD = (
         data: { message: `Error converting Perps amount to USD: ${amount}` },
       },
     });
-    return formatPerpsFiat(0);
+    return formatPerpsFiat(undefined);
   }
 };

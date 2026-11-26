@@ -1,16 +1,25 @@
-import { useMemo } from 'react';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { usePerpsNetwork } from './usePerpsNetwork';
-import { TRADING_DEFAULTS } from '@metamask/perps-controller';
+import { usePerpsProvider } from './usePerpsProvider';
+import { type PerpsProviderType } from '@metamask/perps-controller';
 
 interface UseMinimumOrderAmountParams {
   /** Asset symbol to get minimum order amount for */
   asset: string;
+  /** Venue whose order limits apply; omitted uses the active route. */
+  providerId?: PerpsProviderType;
 }
 
 interface UseMinimumOrderAmountReturn {
-  /** Minimum order amount in USD */
-  minimumOrderAmount: number;
+  /**
+   * Minimum order amount in USD; undefined while it is unknown (capabilities
+   * loading, or neither the venue nor the market reports one).
+   */
+  minimumOrderAmount: number | undefined;
+  /**
+   * The venue's limit on a price's distance from the oracle, as a fraction;
+   * undefined while unknown or when the venue has none.
+   */
+  maxOraclePriceDeviation: number | undefined;
   /** Loading state */
   isLoading: boolean;
   /** Error state */
@@ -18,8 +27,10 @@ interface UseMinimumOrderAmountReturn {
 }
 
 /**
- * Hook to get the minimum order amount for a specific asset
- * Falls back to network-specific defaults if market data doesn't specify
+ * Hook to get the venue's order limits for a specific asset.
+ * Reads the venue's `orderLimits.minOrderNotionalUsd` from Core
+ * `getOrderCapabilities`, then the market's own minimum. Never falls back to
+ * another venue's default.
  *
  * @param params Parameters containing the asset symbol
  * @returns Object containing minimum order amount and loading states
@@ -27,33 +38,24 @@ interface UseMinimumOrderAmountReturn {
 export function useMinimumOrderAmount(
   params: UseMinimumOrderAmountParams,
 ): UseMinimumOrderAmountReturn {
-  const { asset } = params;
+  const { asset, providerId } = params;
 
   // Get market data which may contain minimum order size
-  const { marketData, isLoading, error } = usePerpsMarketData(asset);
+  const { marketData, isLoading, error } = usePerpsMarketData({
+    asset,
+    providerId,
+  });
 
-  // Get current network to determine fallback defaults
-  const network = usePerpsNetwork();
-
-  // Calculate minimum order amount with fallbacks
-  const minimumOrderAmount = useMemo(() => {
-    // First priority: Use market-specific minimum if available
-    if (marketData?.minimumOrderSize !== undefined) {
-      return marketData.minimumOrderSize;
-    }
-
-    // Fallback: Use network-specific defaults
-    // Note: These match HyperLiquid's TRADING_DEFAULTS values
-    // Future providers should implement their own defaults via protocol config
-    if (network === 'mainnet') {
-      return TRADING_DEFAULTS.amount.mainnet;
-    }
-
-    return TRADING_DEFAULTS.amount.testnet;
-  }, [marketData, network]);
+  const { orderCapabilities } = usePerpsProvider({ symbol: asset, providerId });
+  const orderLimits =
+    orderCapabilities?.status === 'ready'
+      ? orderCapabilities.orderLimits
+      : undefined;
 
   return {
-    minimumOrderAmount,
+    minimumOrderAmount:
+      orderLimits?.minOrderNotionalUsd ?? marketData?.minimumOrderSize,
+    maxOraclePriceDeviation: orderLimits?.maxOraclePriceDeviation,
     isLoading,
     error,
   };

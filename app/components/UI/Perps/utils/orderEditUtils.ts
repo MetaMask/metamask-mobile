@@ -58,24 +58,26 @@ export const getOrderEditPreviousValue = (
   return getOrderEditableSize(order);
 };
 
-/** Market price used in edit-order tracking for the given field update. */
+/**
+ * Market price used in edit-order tracking for the given field update;
+ * undefined when the order has no usable price.
+ */
 export const getOrderEditMarketPrice = (
   order: Order,
   field: OrderEditField,
   newValue: string,
-): number => {
+): number | undefined => {
   if (field === 'price') {
     const parsedNewPrice = Number.parseFloat(newValue);
-    const currentPrice = getValidOrderPrice(order);
     return Number.isFinite(parsedNewPrice) && parsedNewPrice > 0
       ? parsedNewPrice
-      : (currentPrice ?? 0);
+      : (getValidOrderPrice(order) ?? undefined);
   }
 
   const parsedLimitPrice = Number.parseFloat(getOrderEditableLimitPrice(order));
   return Number.isFinite(parsedLimitPrice) && parsedLimitPrice > 0
     ? parsedLimitPrice
-    : 0;
+    : undefined;
 };
 
 /** Size string included in the post-edit success toast. */

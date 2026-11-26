@@ -1,3 +1,4 @@
+import { calculateMarginRequired } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 
 export interface IncrementalMarginCheckParams {
@@ -42,10 +43,13 @@ export const getIncrementalMarginInsufficientBalanceError = ({
   const availableBalance = Number.isFinite(spendableBalance)
     ? spendableBalance
     : 0;
-  const additionalMarginRequired = additionalNotionalUsd / leverage;
-  if (additionalMarginRequired > availableBalance) {
+  const additionalMarginRequired = calculateMarginRequired({
+    amount: String(additionalNotionalUsd),
+    leverage,
+  });
+  if (Number(additionalMarginRequired) > availableBalance) {
     return strings('perps.order.validation.insufficient_balance', {
-      required: additionalMarginRequired.toFixed(2),
+      required: additionalMarginRequired,
       available: availableBalance.toFixed(2),
     });
   }

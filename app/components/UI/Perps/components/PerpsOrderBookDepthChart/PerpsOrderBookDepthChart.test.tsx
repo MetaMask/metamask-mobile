@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import PerpsOrderBookDepthChart from './PerpsOrderBookDepthChart';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { PerpsOrderBookDepthChartSelectorsIDs } from '../../Perps.testIds';
@@ -64,7 +65,12 @@ jest.mock('../../../../hooks/useStyles', () => ({
 
 // Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
-  formatPerpsFiat: jest.fn((value: number) => `$${value.toLocaleString()}`),
+  formatPerpsFiat: jest.fn((value: number | undefined) =>
+    value === undefined
+      ? jest.requireActual('@metamask/perps-controller').PERPS_CONSTANTS
+          .FallbackPriceDisplay
+      : `$${value.toLocaleString()}`,
+  ),
   PRICE_RANGES_UNIVERSAL: [],
 }));
 
@@ -275,6 +281,22 @@ describe('PerpsOrderBookDepthChart', () => {
       expect(
         getByTestId(PerpsOrderBookDepthChartSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the placeholder range labels for a one-sided book', () => {
+      const emptyAsksData: OrderBookData = {
+        ...mockOrderBookData,
+        asks: [],
+      };
+
+      const { getAllByText, queryByText } = render(
+        <PerpsOrderBookDepthChart orderBook={emptyAsksData} />,
+      );
+
+      expect(getAllByText(PERPS_CONSTANTS.FallbackPriceDisplay)).toHaveLength(
+        2,
+      );
+      expect(queryByText('$0')).toBeNull();
     });
 
     it('handles both empty bids and asks arrays', () => {

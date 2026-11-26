@@ -19,7 +19,10 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import {
+  calculateOrderBookAggregationParams,
   getPerpsDisplaySymbol,
+  getPerpsOrderBookPriceFormat,
+  type PerpsOrderBookPriceFormat,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
@@ -53,30 +56,28 @@ import {
 } from '../../../hooks/usePerpsProOrderBookPosition';
 import {
   formatPerpsFiat,
+  formatPerpsOrderBookPrice,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import {
-  calculateAggregationParams,
   calculateGroupingOptions,
+  selectDefaultGrouping,
   formatColumnValue,
-  formatOrderBookPrice,
   formatSpreadPercent,
   getDepthRatio,
   getDepthWidth,
-  getOrderBookPriceFormat,
   getOrderBookPriceValue,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
-  selectDefaultGrouping,
   type OrderBookListCurrency,
   type OrderBookListMetric,
-  type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
 import {
   getPerpsOrderBookSizeOnClickPreference,
   setPerpsOrderBookSizeOnClickPreference,
 } from '../../../utils/perpsOrderBookSizeOnClickStorage';
+import { isServerAggregatedOrderBookRoute } from '../../../services/aggregatedOrderBookConnection';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import styles from './PerpsProOrderBookPanel.styles';
 
@@ -140,7 +141,7 @@ interface OrderBookRowProps {
   depthMax: number;
   depthBarColor: string;
   szDecimals?: number;
-  priceFormat: OrderBookPriceFormat | null;
+  priceFormat: PerpsOrderBookPriceFormat | null;
   onSelectPrice?: (price: string, size: string) => void;
   /** Side the order-book column is pinned to; mirrors the row when 'left'. */
   layout: PerpsProOrderBookPosition;
@@ -178,7 +179,7 @@ const OrderBookRow = ({
     width: `${depthWidthSv.value}%`,
   }));
 
-  const priceLabel = formatOrderBookPrice(level.price, priceFormat);
+  const priceLabel = formatPerpsOrderBookPrice(level.price, priceFormat);
 
   const priceCell = (
     <Text
@@ -472,7 +473,10 @@ const PerpsProOrderBookPanel = ({
     setIsConfigOpen(true);
   }, [playSelection]);
 
-  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
+  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(
+    symbol,
+    providerId,
+  );
   const { orderBookPosition, setOrderBookPosition } =
     usePerpsProOrderBookPosition();
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
@@ -533,8 +537,10 @@ const PerpsProOrderBookPanel = ({
     return null;
   }, [marketPrice, rawOrderBook?.midPrice, rawOrderBookSymbol, symbol]);
 
+  // No mid price, no ladder: a ladder derived from 0 is the wrong scale.
   const groupingOptions = useMemo(
-    () => calculateGroupingOptions(midPriceValue ?? 0),
+    () =>
+      midPriceValue === null ? [] : calculateGroupingOptions(midPriceValue),
     [midPriceValue],
   );
 
@@ -560,14 +566,18 @@ const PerpsProOrderBookPanel = ({
     if (!currentGrouping || !midPriceValue) {
       return { nSigFigs: 5 as const };
     }
-    return calculateAggregationParams(currentGrouping, midPriceValue);
+    return calculateOrderBookAggregationParams(currentGrouping, midPriceValue);
   }, [currentGrouping, midPriceValue]);
 
   // One shared price format for the whole ladder, derived from the grouping
-  // step — see `getOrderBookPriceFormat` for why per-row magnitude formatting
-  // is not usable here.
+  // step — see Core `getPerpsOrderBookPriceFormat` for why per-row magnitude
+  // formatting is not usable here.
   const priceFormat = useMemo(
-    () => getOrderBookPriceFormat(currentGrouping, midPriceValue, szDecimals),
+    () =>
+      getPerpsOrderBookPriceFormat(currentGrouping, {
+        midPrice: midPriceValue,
+        szDecimals,
+      }),
     [currentGrouping, midPriceValue, szDecimals],
   );
 
@@ -615,11 +625,13 @@ const PerpsProOrderBookPanel = ({
       aggregatedOrderBook
         ? groupOrderBook(
             aggregatedOrderBook,
-            null,
+            isServerAggregatedOrderBookRoute(providerId)
+              ? null
+              : currentGrouping,
             ORDER_BOOK_AGGREGATED_LEVELS,
           )
         : null,
-    [aggregatedOrderBook],
+    [aggregatedOrderBook, providerId, currentGrouping],
   );
 
   const readinessBaselineRef = useRef({

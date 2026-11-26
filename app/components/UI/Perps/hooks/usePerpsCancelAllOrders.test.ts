@@ -127,7 +127,8 @@ describe('usePerpsCancelAllOrders', () => {
     // Arrange
     const orders = [createMockOrder(), createMockOrder({ orderId: 'order-2' })];
     const mockResult = {
-      success: false,
+      success: true,
+      status: 'partial',
       successCount: 1,
       failureCount: 1,
       results: [],
@@ -146,7 +147,7 @@ describe('usePerpsCancelAllOrders', () => {
     await waitFor(() => {
       expect(result.current.isCanceling).toBe(false);
     });
-    expect(mockNavigation.goBack).toHaveBeenCalled();
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
     expect(result.current.error).toBeNull();
   });
 
@@ -402,8 +403,16 @@ describe('usePerpsCancelAllOrders', () => {
   it('cancels only the passed orders when the view is filtered', async () => {
     // Arrange
     const orders = [
-      createMockOrder({ orderId: 'eth-1', symbol: 'ETH' }),
-      createMockOrder({ orderId: 'eth-2', symbol: 'ETH' }),
+      createMockOrder({
+        orderId: 'eth-1',
+        symbol: 'ETH',
+        providerId: 'hyperliquid',
+      }),
+      createMockOrder({
+        orderId: 'eth-1',
+        symbol: 'ETH',
+        providerId: 'lighter',
+      }),
     ];
     (
       Engine.context.PerpsController.cancelOrders as jest.Mock
@@ -424,7 +433,10 @@ describe('usePerpsCancelAllOrders', () => {
 
     // Assert
     expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
-      orderIds: ['eth-1', 'eth-2'],
+      orders: [
+        { orderId: 'eth-1', providerId: 'hyperliquid' },
+        { orderId: 'eth-1', providerId: 'lighter' },
+      ],
     });
     expect(
       Engine.context.PerpsController.cancelOrders,

@@ -19,11 +19,13 @@ import {
 import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
+  PERPS_DISPLAY_PRECISION,
   formatAccountToCaipAccountId,
   type OrderType,
   type PerpsFeeSource,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { formatPercentage } from '../utils/formatUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
 
@@ -40,8 +42,8 @@ let pointsCalculationCache: {
  * Fee calculation result with loading states
  */
 export interface OrderFeesResult {
-  /** Total fee in USD (protocol + MetaMask) */
-  totalFee: number;
+  /** Total fee in USD (protocol + MetaMask); undefined while the rate is unknown */
+  totalFee: number | undefined;
   /** Total fee rate as decimal (protocol + MetaMask) - undefined means unavailable/error state */
   totalFeeRate: number | undefined;
   /**
@@ -49,11 +51,11 @@ export interface OrderFeesResult {
    * Equals `totalFee` when no discount is in effect. Consumers use this to
    * display a struck-through "original" fee alongside the discounted one.
    */
-  undiscountedTotalFee: number;
-  /** Protocol trading fee in USD */
-  protocolFee: number;
-  /** MetaMask service fee in USD */
-  metamaskFee: number;
+  undiscountedTotalFee: number | undefined;
+  /** Protocol trading fee in USD; undefined while the rate is unknown */
+  protocolFee: number | undefined;
+  /** MetaMask service fee in USD; undefined while the rate is unknown */
+  metamaskFee: number | undefined;
   /** Protocol fee rate as decimal (e.g., 0.00045 for 0.045%) - undefined means unavailable/error state */
   protocolFeeRate: number | undefined;
   /** MetaMask fee rate as decimal (e.g., 0.01 for 1%) - undefined means unavailable/error state */
@@ -192,7 +194,7 @@ export function usePerpsOrderFees({
       tradeAmount: string,
       tradeCoin: string,
       isClose: boolean,
-      actualFeeUSD?: number,
+      actualFeeUSD: number,
     ): Promise<EstimatedPointsDto | null> => {
       try {
         const amountNum = Number.parseFloat(tradeAmount || '0');
@@ -208,16 +210,13 @@ export function usePerpsOrderFees({
           return null;
         }
 
-        // Use provided actual fee or calculate with base rate as fallback
-        const estimatedFeeUSD = actualFeeUSD ?? amountNum * 0.001; // 0.1% = 10bps default
-
         const estimatePointsDto: EstimatePointsDto = {
           activityType: 'PERPS',
           account: caipAccountId,
           activityContext: {
             perpsContext: {
               type: isClose ? 'CLOSE_POSITION' : 'OPEN_POSITION',
-              usdFeeValue: estimatedFeeUSD.toString(),
+              usdFeeValue: actualFeeUSD.toString(),
               coin: tradeCoin, // EstimatePerpsContextDto uses 'coin' field
             },
           },
@@ -439,10 +438,10 @@ export function usePerpsOrderFees({
     if (errorMessage) {
       setError(errorMessage);
     }
-    setProtocolFeeRate(0);
-    setMetamaskFeeRate(0);
-    setOriginalMetamaskFeeRate(0);
-    setTotalFeeRate(0);
+    setProtocolFeeRate(undefined);
+    setMetamaskFeeRate(undefined);
+    setOriginalMetamaskFeeRate(undefined);
+    setTotalFeeRate(undefined);
     setFeeDiscountPercentage(undefined);
     setFeeSource(undefined);
     setEstimatedPoints(undefined);
@@ -618,13 +617,13 @@ export function usePerpsOrderFees({
   return useMemo(() => {
     const amountNum = Number.parseFloat(amount || '0');
 
-    // Calculate fee amounts based on rates
-    // If rates are undefined (unavailable/error state), fees are 0
+    // An unknown rate (loading or failed quote) leaves its fee unknown.
     const protocolFee =
-      protocolFeeRate !== undefined ? amountNum * protocolFeeRate : 0;
+      protocolFeeRate !== undefined ? amountNum * protocolFeeRate : undefined;
     const metamaskFee =
-      metamaskFeeRate !== undefined ? amountNum * metamaskFeeRate : 0;
-    const totalFee = totalFeeRate !== undefined ? amountNum * totalFeeRate : 0;
+      metamaskFeeRate !== undefined ? amountNum * metamaskFeeRate : undefined;
+    const totalFee =
+      totalFeeRate !== undefined ? amountNum * totalFeeRate : undefined;
 
     const undiscountedTotalFee =
       protocolFeeRate !== undefined && originalMetamaskFeeRate !== undefined
@@ -675,11 +674,12 @@ export function usePerpsOrderFees({
 /**
  * Format fee rate as percentage
  * @param rate Fee rate as decimal (e.g., 0.00045)
- * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
+ * @returns Formatted percentage string (e.g., "0.045%"), or the shared `--%`
+ * placeholder when the rate is unknown
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || Number.isNaN(rate)) {
-    return 'N/A';
-  }
-  return `${(rate * 100).toFixed(3)}%`;
+  return formatPercentage(
+    rate === undefined || rate === null ? rate : rate * 100,
+    { decimals: PERPS_DISPLAY_PRECISION.FeeRatePercent, sign: 'never' },
+  );
 }

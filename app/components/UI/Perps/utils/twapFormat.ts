@@ -1,5 +1,6 @@
-import I18n, { strings } from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { PERPS_DISPLAY_PRECISION } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
+import { formatPercentage } from './formatUtils';
 import { PERPS_TWAP_UI_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -86,13 +87,15 @@ export const formatTwapElapsedClock = (
 };
 
 /**
- * Render basis points as a percent string, e.g. 2500 -> `25%`.
+ * Render basis points as a percent string without trailing zeros, e.g.
+ * 2500 -> `25%`, 3333 -> `33.33%`.
  * The controller reports TWAP fill and time progress in bps.
  */
 export const formatTwapProgressPercent = (bps: number): string => {
   const clampedBps = Math.min(Math.max(bps, 0), 10000);
-  return getIntlNumberFormatter(I18n.locale, {
-    style: 'percent',
-    maximumFractionDigits: 2,
-  }).format(clampedBps / 10000);
+  return formatPercentage(clampedBps / 100, {
+    decimals: PERPS_DISPLAY_PRECISION.TwapProgressPercent,
+    stripTrailingZeros: true,
+    sign: 'never',
+  });
 };

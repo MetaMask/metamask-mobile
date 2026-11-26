@@ -43,9 +43,9 @@ const PerpsProOrderEditSheets = ({
     return (
       <PerpsProModalPortal onRequestClose={onClose}>
         <PerpsLimitPriceBottomSheet
-          providerId={editingOrder.providerId}
           isVisible
           asset={editingOrder.symbol}
+          providerId={editingOrder.providerId}
           limitPrice={getOrderEditableLimitPrice(editingOrder)}
           direction={getOrderPositionDirection(editingOrder)}
           isClosingPosition={isClosingOrder(editingOrder)}

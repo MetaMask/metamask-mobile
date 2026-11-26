@@ -5,13 +5,14 @@ import {
   CLOSE_POSITION_CONFIG,
   type Position,
 } from '@metamask/perps-controller';
+import { PERPS_TPSL_PERCENT_DISPLAY_DECIMALS } from '../constants/perpsConfig';
+import { formatPercentage } from './formatUtils';
 
-interface CloseAmountFromPercentageParams {
-  percentage: number;
-  positionSize: number;
-  currentPrice: number;
-  szDecimals: number;
-}
+const formatTpSlPercent = (percent: number): string =>
+  formatPercentage(percent, {
+    decimals: PERPS_TPSL_PERCENT_DISPLAY_DECIMALS,
+    sign: 'never',
+  });
 
 interface CloseAmountLimitsParams {
   amount: number;
@@ -28,57 +29,6 @@ interface CloseAmountDisplayParams {
 interface CloseValueParams {
   amount: number;
   price: number;
-}
-
-/**
- * Calculate close amounts from percentage for both USD and token modes
- * Uses USD as source of truth with precision validation (matches order placement logic)
- * @param params - Percentage, position size, current price, and asset-specific decimal precision
- * @returns Object with token amount and USD value
- */
-export function calculateCloseAmountFromPercentage(
-  params: CloseAmountFromPercentageParams,
-): { tokenAmount: number; usdValue: number } {
-  const { percentage, positionSize, currentPrice, szDecimals } = params;
-
-  // Validate required parameters
-  if (szDecimals === undefined || szDecimals === null) {
-    throw new Error('szDecimals is required for close position calculation');
-  }
-  if (szDecimals < 0) {
-    throw new Error(`szDecimals must be >= 0, got: ${szDecimals}`);
-  }
-
-  if (
-    isNaN(percentage) ||
-    isNaN(positionSize) ||
-    isNaN(currentPrice) ||
-    percentage < 0 ||
-    percentage > 100
-  ) {
-    return { tokenAmount: 0, usdValue: 0 };
-  }
-
-  // Calculate initial token amount and USD value
-  let tokenAmount = (percentage / 100) * Math.abs(positionSize);
-  const usdValue = tokenAmount * currentPrice;
-
-  // Apply asset-specific decimal precision rounding
-  const multiplier = Math.pow(10, szDecimals);
-  tokenAmount = Math.round(tokenAmount * multiplier) / multiplier;
-
-  // Ensure rounded size meets requested USD value (fix validation gap)
-  // This matches the logic in calculatePositionSize for consistency
-  const actualUsd = tokenAmount * currentPrice;
-  if (actualUsd < usdValue) {
-    // Add 1 minimum increment to meet requested USD
-    tokenAmount += 1 / multiplier;
-  }
-
-  return {
-    tokenAmount: Number(tokenAmount.toFixed(szDecimals)),
-    usdValue: Number(usdValue.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces)),
-  };
 }
 
 /**
@@ -232,38 +182,13 @@ export function buildTpSlLabel(
 
   if (Number.isFinite(tp) && tp > 0) {
     const tpPct = Math.abs(((tp - entry) / entry) * 100);
-    parts.push(`${tpLabel} ${tpPct.toFixed(0)}%`);
+    parts.push(`${tpLabel} ${formatTpSlPercent(tpPct)}`);
   }
 
   if (Number.isFinite(sl) && sl > 0) {
     const slPct = Math.abs(((sl - entry) / entry) * 100);
-    parts.push(`${slLabel} ${slPct.toFixed(0)}%`);
+    parts.push(`${slLabel} ${formatTpSlPercent(slPct)}`);
   }
 
   return parts.length > 0 ? parts.join(', ') : null;
-}
-
-/**
- * Helper function to determine position direction based on size value
- * @param sizeString - The position size as a string
- * @returns 'long', 'short', or 'unknown'
- */
-export function getPositionDirection(
-  sizeString: string,
-): 'long' | 'short' | 'unknown' {
-  const sizeValue = parseFloat(sizeString);
-
-  if (!Number.isFinite(sizeValue)) {
-    return 'unknown';
-  }
-
-  if (sizeValue > 0) {
-    return 'long';
-  }
-
-  if (sizeValue < 0) {
-    return 'short';
-  }
-
-  return 'unknown';
 }

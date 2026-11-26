@@ -70,19 +70,13 @@ import {
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
+  formatLiquidationDistance,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
-import {
-  calculateLiquidationDistance,
-  clampLiquidationDistance,
-} from '../../utils/liquidationDistance';
-import {
-  LIQUIDATION_DISTANCE_DECIMALS,
-  TP_SL_VIEW_CONFIG,
-} from '../../constants/perpsConfig';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
@@ -1024,22 +1018,11 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   // Sheet-only: the control arm must keep the plain liquidation price it ships
   // with today, or the experiment measures two changes at once.
   const liquidationDistanceDisplay = useMemo(() => {
-    if (!isSheet || !hasLiquidationPrice || !currentPrice) {
+    if (!isSheet || !hasLiquidationPrice) {
       return undefined;
     }
-
-    const parsedLiquidationPrice = Number.parseFloat(
-      String(displayLiquidationPrice),
-    );
-    if (!Number.isFinite(parsedLiquidationPrice)) {
-      return undefined;
-    }
-
-    const distance = clampLiquidationDistance(
-      calculateLiquidationDistance(currentPrice, parsedLiquidationPrice),
-    );
-
-    return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+    // Core distance; undefined while either price is unknown.
+    return formatLiquidationDistance(currentPrice, displayLiquidationPrice);
   }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice, isSheet]);
 
   const takeProfitHasError = !isValid && Boolean(takeProfitError);

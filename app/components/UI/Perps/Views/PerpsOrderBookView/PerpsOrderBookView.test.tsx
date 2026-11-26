@@ -184,6 +184,13 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: { szDecimals: 5 },
+    isLoading: false,
+    isProviderMetadataAvailable: true,
+    error: null,
+    refetch: jest.fn(),
+  })),
   usePositionManagement: jest.fn(() => ({
     showModifyActionSheet: false,
     modifyActionSheetRef: mockModifyActionSheetRef,
@@ -1627,6 +1634,22 @@ describe('PerpsOrderBookView', () => {
       expect(
         getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('spread percentage', () => {
+    it('renders the spread percentage through the shared formatter', () => {
+      mockUsePerpsTopOfBook.mockReturnValue({
+        bestBid: '99.9',
+        bestAsk: '100.1',
+        spread: '0.2',
+      });
+
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByText('(0.2%)')).toBeOnTheScreen();
     });
   });
 

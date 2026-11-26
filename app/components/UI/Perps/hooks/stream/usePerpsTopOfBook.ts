@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { PerpsProviderType } from '@metamask/perps-controller';
+import { useEffect, useMemo, useState } from 'react';
+import { usePerpsStream } from '../../providers/PerpsStreamManager';
 
 /**
  * Top of book data (best bid/ask only)
@@ -14,10 +14,7 @@ export interface TopOfBookData {
 export interface UsePerpsTopOfBookOptions {
   /** Symbol to subscribe to top of book data */
   symbol: string;
-  /**
-   * Venue the top of book must come from (TAT-4407). Without one the stream
-   * follows the active/default venue.
-   */
+  /** Restrict the quote to this execution venue when provided. */
   providerId?: PerpsProviderType;
 }
 
@@ -55,28 +52,31 @@ export function usePerpsTopOfBook(
 ): TopOfBookData | undefined {
   const { symbol, providerId } = options;
   const stream = usePerpsStream();
-  const [topOfBook, setTopOfBook] = useState<TopOfBookData | undefined>(
-    undefined,
+  const route = useMemo(
+    () => ({ symbol, providerId, stream }),
+    [symbol, providerId, stream],
   );
+  const [snapshot, setSnapshot] = useState<{
+    route: typeof route;
+    topOfBook: TopOfBookData | undefined;
+  }>();
 
   useEffect(() => {
-    // Drop the previous market's quote so fees never price off another
-    // symbol or venue while the new subscription warms up.
-    setTopOfBook(undefined);
-    if (!symbol) return;
+    if (!route.symbol) return;
 
-    const unsubscribe = stream.topOfBook.subscribeToSymbol({
-      symbol,
-      providerId,
-      callback: (newTopOfBook) => {
-        setTopOfBook(newTopOfBook);
+    let active = true;
+    const unsubscribe = route.stream.topOfBook.subscribeToSymbol({
+      symbol: route.symbol,
+      providerId: route.providerId,
+      callback: (topOfBook) => {
+        if (active) setSnapshot({ route, topOfBook });
       },
     });
-
     return () => {
+      active = false;
       unsubscribe();
     };
-  }, [stream, symbol, providerId]);
+  }, [route]);
 
-  return topOfBook;
+  return snapshot?.route === route ? snapshot.topOfBook : undefined;
 }

@@ -49,7 +49,6 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -91,8 +90,8 @@ const PerpsAdjustMarginView: React.FC = () => {
   // rather than values recalculating as position data updates from WebSocket.
   // Uses ref (not state) since setting this shouldn't trigger a re-render.
   const submittedEstimateRef = useRef<{
-    price: number;
-    distance: number;
+    price: number | undefined;
+    distance: string | undefined;
   } | null>(null);
 
   // Derived numeric value from string
@@ -152,14 +151,18 @@ const PerpsAdjustMarginView: React.FC = () => {
     freshMaxAmount,
     setFreshMaxAmount,
     position,
-    snapshotMaxAmount: floorUsd(maxAmount),
+    snapshotMaxAmount: maxAmount === undefined ? 0 : floorUsd(maxAmount),
     exchangeMaxAmount,
     isAddMode,
   });
   // The buffered Max is a suggestion; only the submit limit means nothing
   // can be removed, including an amount selected before a price tick.
   const hasNoRemovableMargin =
-    !isAddMode && !isLoading && hasValidPositionData && submitLimitAmount <= 0;
+    !isAddMode &&
+    !isLoading &&
+    hasValidPositionData &&
+    maxAmount !== undefined &&
+    submitLimitAmount <= 0;
   // Close an open keypad once nothing is left to remove.
   useEffect(() => {
     if (hasNoRemovableMargin) {
@@ -182,6 +185,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     // The zero-removable explanation replaces an error on a retained amount.
     if (
       !hasNoRemovableMargin &&
+      maxAmount !== undefined &&
       marginAmount > submitLimitAmount &&
       marginAmount > 0
     ) {
@@ -195,6 +199,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   }, [
     isInputFocused,
     hasNoRemovableMargin,
+    maxAmount,
     marginAmount,
     submitLimitAmount,
     isAddMode,
@@ -272,16 +277,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
-  const formatLiquidationDistance = useCallback(
-    (distance: number, liquidationPrice: number): string => {
-      if (liquidationPrice === 0) {
-        return PERPS_CONSTANTS.FallbackDataDisplay;
-      }
-      return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
-    },
-    [],
-  );
-
   const handleConfirm = useCallback(async () => {
     if (
       marginAmount <= 0 ||
@@ -292,11 +287,8 @@ const PerpsAdjustMarginView: React.FC = () => {
       return;
     }
 
-    // Prevent submission if amount exceeds max removable (extra safety for remove mode)
-    if (
-      !isAddMode &&
-      (hasNoRemovableMargin || marginAmount > submitLimitAmount)
-    ) {
+    // Nothing above the limit is sent, including while the limits are unknown.
+    if (hasNoRemovableMargin || marginAmount > submitLimitAmount) {
       return;
     }
 
@@ -418,9 +410,11 @@ const PerpsAdjustMarginView: React.FC = () => {
             ? strings('perps.adjust_margin.margin_available_to_add')
             : strings('perps.adjust_margin.margin_available_to_remove')
         }
-        value={formatPerpsFiat(flooredMaxAmount, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        })}
+        value={formatPerpsFiat(
+          // An unknown limit renders the placeholder, not $0.
+          maxAmount === undefined ? undefined : flooredMaxAmount,
+          { ranges: PRICE_RANGES_MINIMAL_VIEW },
+        )}
         valueTextProps={{
           testID: PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE,
         }}
@@ -450,14 +444,8 @@ const PerpsAdjustMarginView: React.FC = () => {
           onPress: () => handleTooltipPress('liquidation_distance'),
         }}
         value={renderTransitionValue(
-          formatLiquidationDistance(
-            currentLiquidationDistance,
-            currentLiquidationPrice,
-          ),
-          formatLiquidationDistance(
-            displayNewLiquidationDistance,
-            displayNewLiquidationPrice,
-          ),
+          currentLiquidationDistance ?? PERPS_CONSTANTS.FallbackDataDisplay,
+          displayNewLiquidationDistance ?? PERPS_CONSTANTS.FallbackDataDisplay,
           PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
         )}
       />

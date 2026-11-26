@@ -16,7 +16,6 @@ import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
-import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
@@ -138,23 +137,14 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const livePriceUpdate = symbol ? livePrices[symbol] : undefined;
   const liveFunding = livePriceUpdate?.funding;
 
-  // Prefer the live WebSocket funding value, then a saved rate, then the
-  // missing or zero display. Same precedence as PerpsMarketStatisticsCard.
+  // Prefer the live WebSocket funding value, fall back to the stats hook, then
+  // to the unknown-rate placeholder — identical precedence to
+  // PerpsMarketStatisticsCard. An unknown rate is never shown as zero.
   const fundingRateDisplay = useMemo(() => {
     if (liveFunding !== undefined) {
       return formatFundingRate(liveFunding);
     }
-    if (
-      marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay &&
-      marketStats.fundingRate !== PERPS_CONSTANTS.FallbackPercentageDisplay
-    ) {
-      return marketStats.fundingRate;
-    }
-    if (marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    return FUNDING_RATE_CONFIG.ZeroDisplay;
+    return marketStats.fundingRate || formatFundingRate(undefined);
   }, [liveFunding, marketStats.fundingRate]);
 
   // Funding countdown — same calculator as FundingCountdown, formatted as
@@ -184,9 +174,10 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         : TextColor.ErrorDefault;
     }
 
+    // The unknown-rate placeholder starts with '-' but is not a negative rate.
     if (
       !marketStats.fundingRate ||
-      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay ||
+      marketStats.fundingRate === formatFundingRate(0) ||
       marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
     ) {
       return TextColor.TextDefault;

@@ -78,31 +78,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-jest.mock('../constants/perpsConfig', () => ({
-  MARGIN_REMOVAL_PRICE_MOVE_BUFFER: 0.01,
-}));
-
-jest.mock('@metamask/perps-controller', () => {
-  const actual = jest.requireActual('@metamask/perps-controller');
-  return {
-    MARGIN_ADJUSTMENT_CONFIG: { MarginRemovalSafetyBuffer: 0.1 },
-    PERPS_CONSTANTS: { FeatureName: 'perps' },
-    PERPS_EVENT_PROPERTY: {
-      ACTION: 'action',
-      ASSET: 'asset',
-      ERROR_MESSAGE: 'error_message',
-      STATUS: 'status',
-    },
-    PERPS_EVENT_VALUE: {
-      STATUS: { FAILED: 'failed', SUCCESS: 'success' },
-    },
-    PERPS_ERROR_CODES: actual.PERPS_ERROR_CODES,
-    PROVIDER_CONFIG: actual.PROVIDER_CONFIG,
-    isPerpsErrorCode: actual.isPerpsErrorCode,
-    getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
-  };
-});
-
 describe('usePerpsMarginAdjustment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -230,22 +205,15 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnSuccess).toHaveBeenCalled();
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'add',
-          asset: 'BTC',
-          status: 'success',
-        },
-      );
+      // Core's updateMargin emits Perp Risk Management; no second event.
+      expect(mockTrack).not.toHaveBeenCalled();
     });
 
     it('shows error toast on failed add margin', async () => {
       mockUpdateMargin.mockResolvedValue({
         success: false,
-        error: 'Insufficient funds',
+        error: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
       });
       const mockOnError = jest.fn();
 
@@ -262,19 +230,10 @@ describe('usePerpsMarginAdjustment', () => {
           type: 'error',
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
-      expect(mockOnError).not.toHaveBeenCalledWith('Insufficient funds');
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'add',
-          asset: 'ETH',
-          error_message: 'Insufficient funds',
-          status: 'failed',
-        },
+      expect(mockOnError).toHaveBeenCalledWith(
+        'perps.errors.insufficientMargin',
       );
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 
@@ -317,7 +276,8 @@ describe('usePerpsMarginAdjustment', () => {
     it('shows error toast on failed remove margin', async () => {
       mockUpdateMargin.mockResolvedValue({
         success: false,
-        error: 'Cannot reduce below minimum',
+        error: PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED,
+        errorCode: PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED,
       });
       const mockOnError = jest.fn();
 
@@ -334,13 +294,12 @@ describe('usePerpsMarginAdjustment', () => {
           type: 'error',
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
-      expect(mockOnError).not.toHaveBeenCalledWith(
-        'Cannot reduce below minimum',
+      expect(mockOnError).toHaveBeenCalledWith(
+        'perps.errors.marginAdjustmentFailed',
       );
     });
 
-    it('uses the margin error code for analytics and translated copy for UI', async () => {
+    it('shows translated copy for a coded margin failure, never the raw diagnostic', async () => {
       const diagnostic =
         'Hyperliquid signer 0xabc returned an internal stack trace';
       mockUpdateMargin.mockResolvedValue({
@@ -369,17 +328,7 @@ describe('usePerpsMarginAdjustment', () => {
         type: 'error',
         error: 'perps.errors.insufficientBalance',
       });
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'remove',
-          asset: 'ETH',
-          error_message: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
-          status: 'failed',
-        },
-      );
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 
@@ -505,8 +454,8 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
-    it('logs unclassified exceptions and reports retryable copy', async () => {
-      const testError = new Error('Network error');
+    it('handles exceptions and logs via Logger.error', async () => {
+      const testError = new Error('NETWORK_ERROR');
       mockUpdateMargin.mockRejectedValue(testError);
       const mockOnError = jest.fn();
 
@@ -538,18 +487,10 @@ describe('usePerpsMarginAdjustment', () => {
           }),
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'add',
-          asset: 'ETH',
-          error_message: 'Network error',
-          status: 'failed',
-        },
+      expect(mockOnError).toHaveBeenCalledWith(
+        'perps.errors.networkErrorSimple',
       );
+      expect(mockTrack).not.toHaveBeenCalled();
     });
 
     it('captures remove action in Logger context', async () => {

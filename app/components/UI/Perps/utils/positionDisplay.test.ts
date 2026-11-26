@@ -1,6 +1,7 @@
 import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
+  formatAccountPnl,
   getDisplayedPositionMargin,
   getPerpsPositionHeaderDisplay,
   parsePositionRoePercentage,
@@ -33,6 +34,23 @@ const createPosition = (overrides: Partial<Position> = {}): Position => ({
   takeProfitCount: 0,
   stopLossCount: 0,
   ...overrides,
+});
+
+describe('formatAccountPnl', () => {
+  it.each([
+    [{ unrealizedPnl: '12.5', marginUsed: '120' }, '+$12.50 (+10.4%)'],
+    [{ unrealizedPnl: '-12.5', marginUsed: '120' }, '-$12.50 (-10.4%)'],
+    // A return that rounds to zero keeps the loss sign.
+    [{ unrealizedPnl: '-0.01', marginUsed: '120' }, '-$0.01 (-0.0%)'],
+    [{ unrealizedPnl: '0', marginUsed: '120' }, '+$0.00 (+0.0%)'],
+    // No margin in use: no return to show.
+    [{ unrealizedPnl: '0', marginUsed: '0' }, '+$0.00'],
+    [{ unrealizedPnl: '', marginUsed: '120' }, '$---'],
+    [null, '$--- (--%)'],
+    [undefined, '$--- (--%)'],
+  ])('formats %o as %s', (account, expected) => {
+    expect(formatAccountPnl(account)).toBe(expected);
+  });
 });
 
 describe('getDisplayedPositionMargin', () => {
@@ -142,6 +160,6 @@ describe('getPerpsPositionHeaderDisplay', () => {
 
     const result = getPerpsPositionHeaderDisplay(position);
 
-    expect(result.roeText).toBe('+0.0%');
+    expect(result.roeText).toBe('--%');
   });
 });

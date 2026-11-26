@@ -16,6 +16,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import PerpsMarketLimitToggle from '../../../components/PerpsMarketLimitToggle';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import { formatLeverage } from '../../../utils/formatUtils';
 import LivePriceHeader from '../../../components/LivePriceDisplay/LivePriceHeader';
 
 export interface PerpsClosePositionSheetHeaderProps {
@@ -78,7 +79,7 @@ const PerpsClosePositionSheetHeader: React.FC<
             twClassName="self-center"
             testID={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_LEVERAGE}
           >
-            {`${leverage}x`}
+            {formatLeverage(leverage)}
           </Tag>
         ) : null}
       </Box>

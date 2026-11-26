@@ -6,6 +6,8 @@ import {
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 
+const EMPTY_PRICES: Record<string, PriceUpdate> = {};
+
 export interface UsePerpsLivePricesOptions {
   /** Array of symbols to subscribe to */
   symbols: string[];
@@ -66,7 +68,7 @@ export function usePerpsLivePrices(
   const [snapshot, setSnapshot] = useState<{
     identity: string;
     prices: Record<string, PriceUpdate>;
-  }>({ identity, prices: {} });
+  }>({ identity, prices: EMPTY_PRICES });
   useEffect(() => {
     const groups = new Map<
       PerpsProviderType | undefined,
@@ -79,19 +81,20 @@ export function usePerpsLivePrices(
       group.set(parsed.symbol, key);
       groups.set(venue, group);
     });
+    let active = true;
     const unsubscribes: (() => void)[] = [];
-    for (const [venue, keys] of groups) {
+    groups.forEach((keys, venue) => {
       unsubscribes.push(
         stream.prices.subscribeToSymbols({
           symbols: Array.from(keys.keys()),
           providerId: venue,
           throttleMs,
           callback: (updates) => {
-            if (!updates) return;
+            if (!active || !updates) return;
             setSnapshot((prev) => ({
               identity,
               prices: applyVenuePriceUpdates(
-                prev.identity === identity ? prev.prices : {},
+                prev.identity === identity ? prev.prices : EMPTY_PRICES,
                 updates,
                 keys,
               ),
@@ -99,10 +102,13 @@ export function usePerpsLivePrices(
           },
         }),
       );
-    }
-    return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    });
+    return () => {
+      active = false;
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
     // identity captures the symbol values, not the caller's array reference.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identity, stream, throttleMs]);
-  return snapshot.identity === identity ? snapshot.prices : {};
+  return snapshot.identity === identity ? snapshot.prices : EMPTY_PRICES;
 }

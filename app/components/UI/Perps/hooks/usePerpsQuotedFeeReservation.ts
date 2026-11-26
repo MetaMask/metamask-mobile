@@ -13,6 +13,6 @@ export function usePerpsQuotedFeeReservation(
 ): void {
   const { setEstimatedFeeRate } = usePerpsOrderContext();
   useEffect(() => {
-    setEstimatedFeeRate(totalFeeRate ?? 0);
+    setEstimatedFeeRate(totalFeeRate);
   }, [totalFeeRate, setEstimatedFeeRate]);
 }

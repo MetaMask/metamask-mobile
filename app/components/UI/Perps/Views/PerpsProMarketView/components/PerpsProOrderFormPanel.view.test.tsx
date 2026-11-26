@@ -10,6 +10,7 @@ import {
 import type {
   MarketInfo,
   PerpsMarketData,
+  PerpsOrderCapabilities,
   PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import type { ComponentType } from 'react';
@@ -22,6 +23,7 @@ import {
 } from '../../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { createAccountSwitcher } from '../../../../../../../tests/component-view/helpers/accountSwitcher';
 import {
+  crossMarginCapabilities,
   crossMarginMarketInfo,
   goBackFromCrossMarginSheet,
   openMarginModeSheet,
@@ -343,6 +345,12 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   });
 
   it('selects Cross, updates the form and submits the chosen mode on the Terminal backend', async () => {
+    const estimateCrossLiquidation = jest.mocked(
+      Engine.context.PerpsController.estimateCrossLiquidation,
+    );
+    jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockResolvedValue('2000');
     const { store } = renderPerpsCrossMarginOrderFormPanel({
       streamOverrides: { account: createFundedAccountForViews('1000') },
       overrides: terminalBackendFlags(true),
@@ -359,6 +367,11 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       () =>
         expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
       { timeout: 5000 },
+    );
+    await waitFor(() =>
+      expect(estimateCrossLiquidation).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', direction: 'long' }),
+      ),
     );
     expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
       /--/,
@@ -637,13 +650,24 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     expect(screen.getByTestId(marginIds.ISOLATED_OPTION)).toBeDisabled();
   });
 
-  it('uses the selected provider metadata and ignores another provider position with the same symbol', async () => {
+  it('uses the selected venue capabilities and ignores another venue position with the same symbol', async () => {
     jest
       .mocked(Engine.context.PerpsController.getMarkets)
       .mockResolvedValue([
         { ...crossMarginMarketInfo, providerId: 'lighter', onlyIsolated: true },
         crossMarginMarketInfo,
       ]);
+    jest
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockImplementation(async ({ providerId }) =>
+        providerId === 'hyperliquid'
+          ? crossMarginCapabilities
+          : {
+              ...crossMarginCapabilities,
+              providerId: 'lighter',
+              supportedMarginModes: ['isolated'],
+            },
+      );
     renderPerpsCrossMarginOrderFormPanel({
       streamOverrides: {
         positions: [createLongPositionForViews({ providerId: 'lighter' })],
@@ -727,6 +751,15 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       .mocked(Engine.context.PerpsController.getMarkets)
       .mockResolvedValue([{ ...crossMarginMarketInfo, ...gate.metadata }]);
     const market = createEthMarketForViews(gate.market);
+    if (gate.flag !== false && gate.pro !== false) {
+      jest
+        .mocked(Engine.context.PerpsController.getOrderCapabilities)
+        .mockResolvedValue({
+          ...crossMarginCapabilities,
+          providerId: market.providerId ?? 'hyperliquid',
+          supportedMarginModes: ['isolated'],
+        });
+    }
     renderPerpsCrossMarginOrderFormPanel({
       crossMarginEnabled: gate.flag ?? true,
       initialParams: { market },
@@ -766,15 +799,12 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   });
 
   it('keeps Cross unavailable on the Terminal backend when only the venue reports an isolated-only asset', async () => {
-    // Terminal market lists carry no margin restriction; the venue read
-    // (skipFilters) does.
     jest
-      .mocked(Engine.context.PerpsController.getMarkets)
-      .mockImplementation(async (params) => [
-        params?.skipFilters
-          ? { ...crossMarginMarketInfo, onlyIsolated: true }
-          : crossMarginMarketInfo,
-      ]);
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockResolvedValue({
+        ...crossMarginCapabilities,
+        supportedMarginModes: ['isolated'],
+      });
     renderPerpsCrossMarginOrderFormPanel({
       overrides: terminalBackendFlags(true),
     });
@@ -782,8 +812,10 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     await openMarginModeSheet();
     fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
 
-    expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith(
-      expect.objectContaining({ skipFilters: true }),
+    expect(
+      Engine.context.PerpsController.getOrderCapabilities,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'ETH', providerId: 'hyperliquid' }),
     );
     expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeDisabled();
     expect(
@@ -835,23 +867,28 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   });
 
   it('keeps Cross unavailable until market restrictions arrive', async () => {
-    let resolveMarkets: (markets: MarketInfo[]) => void = () => undefined;
-    const pendingMarkets = new Promise<MarketInfo[]>((resolve) => {
-      resolveMarkets = resolve;
-    });
+    let resolveCapabilities: (value: PerpsOrderCapabilities) => void = () =>
+      undefined;
+    const pendingCapabilities = new Promise<PerpsOrderCapabilities>(
+      (resolve) => {
+        resolveCapabilities = resolve;
+      },
+    );
     jest
-      .mocked(Engine.context.PerpsController.getMarkets)
-      .mockReturnValue(pendingMarkets);
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockReturnValue(pendingCapabilities);
     renderPerpsCrossMarginOrderFormPanel();
     await waitFor(() =>
-      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalled(),
+      expect(
+        Engine.context.PerpsController.getOrderCapabilities,
+      ).toHaveBeenCalled(),
     );
 
     fireEvent.press(await screen.findByTestId(formIds.MARGIN_MODE_BUTTON));
     expect(await screen.findByTestId(marginIds.CROSS_OPTION)).toBeDisabled();
     fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
     expect(screen.getByTestId(marginIds.CONTAINER)).toBeOnTheScreen();
-    await act(async () => resolveMarkets([crossMarginMarketInfo]));
+    await act(async () => resolveCapabilities(crossMarginCapabilities));
 
     await selectCrossMarginMode();
     await waitFor(() =>

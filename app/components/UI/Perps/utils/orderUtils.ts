@@ -1,8 +1,10 @@
-import { capitalize } from 'lodash';
 import {
+  adaptTriggerOrderTypeFromSDK,
+  buildTriggerOrderType,
   isLimitExecutionOrderType,
   isTPSLOrder,
   isTriggerOrderType,
+  PERPS_ORDER_TYPE_LABELS,
   type OrderParams,
   type Order,
   type OrderDirection,
@@ -55,10 +57,9 @@ export const getValidOrderPrice = (order: Order): number | null =>
   getValidPerpsPrice(order.price);
 
 /**
- * The oracle price is HyperLiquid's reference for the oracle price band. Falls
- * back to the mid price when the oracle price is missing or does not parse to a
- * finite positive number, so a NaN reference cannot silently skip the band
- * check in {@link isPriceOutsideDeviationBand}.
+ * The oracle price is the venue's reference for the limit-price deviation
+ * band. Falls back to the mid price when it is missing or does not parse to a
+ * finite positive number, so a NaN reference cannot silently skip the check.
  */
 export const resolveOracleReferencePrice = (
   oraclePrice: string | undefined,
@@ -96,72 +97,6 @@ export const calculateLimitPriceForPercentage = (
     .toString();
 };
 
-/**
- * Whether an order price is outside HyperLiquid's allowed band relative to a
- * reference (oracle/mark) price. HyperLiquid rejects orders whose price is more
- * than `maxDeviation` away from the reference price ("oracleRejected").
- *
- * The check is ratio-based: the smaller of the order price and the reference
- * price must be at least `(1 - maxDeviation)` of the larger one. Equivalently,
- * the reference price can't be lower than `(1 - maxDeviation)` of the order
- * price (blocks fat-fingered highs), and the order price can't be lower than
- * `(1 - maxDeviation)` of the reference price (blocks fat-fingered lows).
- *
- * Returns false when either price is missing/invalid so callers don't block on
- * incomplete data.
- *
- * @param price - The order (limit) price
- * @param referencePrice - The reference price to compare against (oracle/mark)
- * @param maxDeviation - Max allowed deviation as a decimal (e.g. 0.95 = 95%)
- * @returns True when the order price is outside the allowed band
- */
-export const isPriceOutsideDeviationBand = (
-  price: number,
-  referencePrice: number,
-  maxDeviation: number,
-): boolean => {
-  if (
-    !referencePrice ||
-    referencePrice <= 0 ||
-    !Number.isFinite(price) ||
-    price <= 0
-  ) {
-    return false;
-  }
-  const minPrice = Math.min(price, referencePrice);
-  const maxPrice = Math.max(price, referencePrice);
-  return minPrice < (1 - maxDeviation) * maxPrice;
-};
-
-/**
- * Inclusive HyperLiquid price band around a reference price.
- * `isPriceOutsideDeviationBand` is true exactly when `price` is outside this range.
- *
- * @param referencePrice - Oracle/mark used as the band center
- * @param maxDeviation - Max allowed deviation as a decimal (e.g. 0.95 = 95%)
- * @returns `{ min, max }` when the reference is usable, otherwise `undefined`
- */
-export const getPriceDeviationBand = (
-  referencePrice: number,
-  maxDeviation: number,
-): { min: number; max: number } | undefined => {
-  if (
-    !referencePrice ||
-    referencePrice <= 0 ||
-    !Number.isFinite(referencePrice) ||
-    !Number.isFinite(maxDeviation) ||
-    maxDeviation <= 0 ||
-    maxDeviation >= 1
-  ) {
-    return undefined;
-  }
-  const ratio = 1 - maxDeviation;
-  return {
-    min: ratio * referencePrice,
-    max: referencePrice / ratio,
-  };
-};
-
 type OrderPriceLabelKey =
   | 'perps.order.limit_price'
   | 'perps.order.market_price';
@@ -194,19 +129,11 @@ export const resolvePerpsTransactionOrderType = (
     return order.orderType;
   }
 
-  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
-
-  if (detailedOrderType.includes('take profit')) {
-    return detailedOrderType.includes('limit')
-      ? 'take_profit_limit'
-      : 'take_profit_market';
-  }
-
-  if (detailedOrderType.includes('stop')) {
-    return detailedOrderType.includes('limit') ? 'stop_limit' : 'stop_market';
-  }
-
-  return order.orderType ?? order.type;
+  return (
+    adaptTriggerOrderTypeFromSDK(order.detailedOrderType) ??
+    order.orderType ??
+    order.type
+  );
 };
 
 export interface PerpsOrderPriceRowVisibility {
@@ -630,6 +557,10 @@ const buildSyntheticTriggerOrder = (
     status: 'open',
     timestamp: parentOrder.timestamp,
     detailedOrderType: syntheticDetailedType,
+    triggerOrderType: buildTriggerOrderType({
+      direction: triggerType === 'tp' ? 'take_profit' : 'stop',
+      execution: syntheticOrderType,
+    }),
     isTrigger: true,
     reduceOnly: true,
     triggerPrice: normalizedTriggerPrice,
@@ -756,46 +687,13 @@ export const getOrderPositionDirection = (order: Order): OrderDirection =>
   resolveOrderDirection(order.side, isClosingOrder(order));
 
 /**
- * Resolves the raw order type token from provider data before i18n or
- * title-casing. Prefers `detailedOrderType` when present; otherwise maps
- * `orderType` to canonical limit/market tokens shared by label formatters.
+ * Localized Core label of the order's normalized type: the trigger placement
+ * type when present, otherwise `orderType`.
  */
-const resolveOrderTypeString = (order: Order): string => {
-  const detailedType = order.detailedOrderType?.trim();
-  if (detailedType) {
-    return detailedType;
-  }
-
-  return order.orderType === 'limit' ? 'limit' : 'market';
-};
-
-/**
- * Formats a resolved order type token for compact UI pills with i18n for
- * canonical limit/market types and title-casing for provider-specific names.
- */
-const formatOrderTypeString = (typeString: string): string => {
-  const normalized = typeString.toLowerCase();
-  if (normalized === 'limit') {
-    return strings('perps.order.limit');
-  }
-  if (normalized === 'market') {
-    return strings('perps.order.market');
-  }
-  if (normalized === 'stop limit') {
-    return strings('perps.order.type.stop_limit.title');
-  }
-  if (normalized === 'stop market') {
-    return strings('perps.order.type.stop_market.title');
-  }
-  if (normalized === 'take profit limit') {
-    return strings('perps.order.type.take_profit_limit.title');
-  }
-  if (normalized === 'take profit market') {
-    return strings('perps.order.type.take_profit_market.title');
-  }
-
-  return capitalize(typeString);
-};
+const getOrderTypeLabel = (order: Order): string =>
+  strings(
+    PERPS_ORDER_TYPE_LABELS[order.triggerOrderType ?? order.orderType].key,
+  );
 
 const getLocalizedOrderDirectionLabel = (
   order: Order,
@@ -820,42 +718,23 @@ const getLocalizedOrderDirectionLabel = (
 
 /**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
+ * from Core `PERPS_ORDER_TYPE_LABELS` and localized direction copy.
  *
- * Examples:
- * - Market Long
- * - Market Close Long
- * - Limit Short
- * - Limit Close Short
- * - Stop Market Close Long
- * - Take Limit Close Short
+ * Examples (English):
+ * - Market long
+ * - Market close long
+ * - Limit short
+ * - Stop market close long
+ * - Take limit close short
  *
  * @param order - The order object
  * @returns Formatted order label string
  */
-export const formatOrderLabel = (order: Order): string => {
-  const { side } = order;
-
-  const isClosing = isClosingOrder(order);
-  const direction = resolveOrderDirection(side, isClosing);
-  const resolvedTypeString = resolveOrderTypeString(order);
-  const isTrigger = isTriggerOrder(order);
-  const typeString = isTrigger
-    ? formatOrderTypeString(resolvedTypeString)
-    : resolvedTypeString;
-  const localizedDirection = isTrigger
-    ? getLocalizedOrderDirectionLabel(order, isClosing)
-    : direction;
-
-  // Build the label: [Type] [Close?] [Direction]
-  const label = isTrigger
-    ? `${typeString} ${localizedDirection}`
-    : isClosing
-      ? `${typeString} close ${direction}`
-      : `${typeString} ${direction}`;
-
-  // Preserve the legacy Lite label path for ordinary market/limit orders.
-  return isTrigger ? label : capitalize(label);
-};
+export const formatOrderLabel = (order: Order): string =>
+  `${getOrderTypeLabel(order)} ${getLocalizedOrderDirectionLabel(
+    order,
+    isClosingOrder(order),
+  )}`;
 
 /**
  * Format just the order type portion of an order label (no direction/close).
@@ -866,7 +745,7 @@ export const formatOrderLabel = (order: Order): string => {
  * @returns Formatted order type string for compact UI pills
  */
 export const formatOrderTypeLabel = (order: Order): string =>
-  formatOrderTypeString(resolveOrderTypeString(order));
+  getOrderTypeLabel(order);
 
 /**
  * Get just the direction portion of an order label

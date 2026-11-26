@@ -9,9 +9,8 @@ import {
 } from '@metamask/perps-controller';
 import {
   formatFundingRate,
-  formatLargeNumber,
   formatPerpsFiat,
-  LARGE_NUMBER_RANGES_DETAILED,
+  formatVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
@@ -211,35 +210,18 @@ export const usePerpsMarketStats = (
       initialPrice?.identity === marketStatsIdentity
         ? initialPrice.value
         : undefined;
-    const displayFallbackPrice =
-      fallbackPrice !== undefined && fallbackPrice > 0
-        ? formatPerpsFiat(fallbackPrice, {
-            ranges: PRICE_RANGES_UNIVERSAL,
-          })
-        : PERPS_CONSTANTS.FallbackPriceDisplay;
-
     return {
-      // 24h high/low from candlestick data, with fallback estimates (4 sig figs)
+      // 24h high/low from candlestick data only; a live price is not a range
       high24h:
         high > 0
           ? formatPerpsFiat(high, { ranges: PRICE_RANGES_UNIVERSAL })
-          : displayFallbackPrice,
+          : PERPS_CONSTANTS.FallbackPriceDisplay,
       low24h:
         low > 0
           ? formatPerpsFiat(low, { ranges: PRICE_RANGES_UNIVERSAL })
-          : displayFallbackPrice,
-      volume24h:
-        currentMarketData.volume24h !== undefined
-          ? `$${formatLargeNumber(currentMarketData.volume24h, {
-              ranges: LARGE_NUMBER_RANGES_DETAILED,
-            })}`
           : PERPS_CONSTANTS.FallbackPriceDisplay,
-      openInterest:
-        currentMarketData.openInterest !== undefined
-          ? `$${formatLargeNumber(currentMarketData.openInterest, {
-              ranges: LARGE_NUMBER_RANGES_DETAILED,
-            })}`
-          : PERPS_CONSTANTS.FallbackPriceDisplay,
+      volume24h: formatVolume(currentMarketData.volume24h),
+      openInterest: formatVolume(currentMarketData.openInterest),
       fundingRate: formatFundingRate(currentMarketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !currentCandleData,

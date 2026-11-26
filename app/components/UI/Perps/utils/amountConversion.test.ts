@@ -1,10 +1,20 @@
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { convertPerpsAmountToUSD } from './amountConversion';
 
 describe('convertPerpsAmountToUSD', () => {
-  it('handles empty or null input', () => {
-    expect(convertPerpsAmountToUSD('')).toBe('$0');
-    expect(convertPerpsAmountToUSD(null as unknown as string)).toBe('$0');
-    expect(convertPerpsAmountToUSD(undefined as unknown as string)).toBe('$0');
+  it('renders the placeholder, not $0, for an empty amount', () => {
+    expect(convertPerpsAmountToUSD('')).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
+  });
+
+  it('renders the placeholder, not $0, for an unparseable amount', () => {
+    expect(convertPerpsAmountToUSD('abc')).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
+    expect(convertPerpsAmountToUSD('$abc')).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
   });
 
   it('handles USD strings correctly', () => {
@@ -14,8 +24,10 @@ describe('convertPerpsAmountToUSD', () => {
   });
 
   it('handles hex wei values correctly', () => {
-    // Hex wei is not supported in Perps flow; all inputs return '$0'
-    expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$0');
+    // Hex wei is not supported in Perps flow: the amount is unknown
+    expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
   });
 
   it('handles numeric strings correctly', () => {
@@ -27,12 +39,16 @@ describe('convertPerpsAmountToUSD', () => {
   it('handles edge cases', () => {
     expect(convertPerpsAmountToUSD('0')).toBe('$0');
     expect(convertPerpsAmountToUSD('$0')).toBe('$0');
-    expect(convertPerpsAmountToUSD('0x0')).toBe('$0');
+    expect(convertPerpsAmountToUSD('0x0')).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
   });
 
   it('handles very small amounts', () => {
-    // Very small wei amount
-    expect(convertPerpsAmountToUSD('0x1')).toBe('$0');
+    // Very small wei amount (hex is unsupported)
+    expect(convertPerpsAmountToUSD('0x1')).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
 
     // Very small decimal - gets threshold formatting from formatPerpsFiat
     expect(convertPerpsAmountToUSD('0.001')).toBe('<$0.01');

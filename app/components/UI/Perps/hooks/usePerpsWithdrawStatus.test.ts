@@ -5,6 +5,7 @@ import usePerpsToasts, {
   PerpsToastOptions,
   PerpsToastOptionsConfig,
 } from './usePerpsToasts';
+import type { AssetRoute, PerpsProviderType } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
@@ -15,11 +16,22 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+let mockWithdrawalRoutes: AssetRoute[] = [];
+let mockWithdrawalRequests: {
+  id: string;
+  txHash?: string;
+  providerId?: PerpsProviderType;
+}[] = [];
+
 jest.mock('./usePerpsToasts');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       clearWithdrawResult: jest.fn(),
+      getWithdrawalRoutes: () => mockWithdrawalRoutes,
+      get state() {
+        return { withdrawalRequests: mockWithdrawalRequests };
+      },
     },
   },
   controllerMessenger: {
@@ -125,7 +137,7 @@ describe('usePerpsWithdrawStatus', () => {
           },
         },
       };
-      return selector(state as RootState);
+      return selector(state);
     });
   });
 
@@ -157,14 +169,58 @@ describe('usePerpsWithdrawStatus', () => {
             },
           },
         };
-        return selector(state as RootState);
+        return selector(state);
       });
 
       renderHook(() => usePerpsWithdrawStatus());
 
       expect(
         mockPerpsToastOptions.accountManagement.withdrawal.withdrawalSuccess,
-      ).toHaveBeenCalledWith('50', 'USDC');
+      ).toHaveBeenCalledWith('50', 'USDC', undefined);
+    });
+
+    it('passes the route of the venue that signed the withdrawal', () => {
+      const hyperliquidRoute: AssetRoute = {
+        assetId: 'eip155:42161/erc20:0x1/default',
+        chainId: 'eip155:42161',
+        contractAddress: '0x1',
+        providerId: 'hyperliquid',
+        constraints: { fees: { fixed: 1, token: 'USDC' } },
+      };
+      const lighterRoute: AssetRoute = {
+        ...hyperliquidRoute,
+        chainId: 'eip155:1',
+        providerId: 'lighter',
+        constraints: { fees: { fixed: 0, token: 'USDC' } },
+      };
+      mockWithdrawalRoutes = [hyperliquidRoute, lighterRoute];
+      mockWithdrawalRequests = [
+        { id: 'w1', txHash: '0xdef', providerId: 'lighter' },
+      ];
+      mockUseSelector.mockImplementation((selector) => {
+        const state = {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                lastWithdrawResult: {
+                  success: true,
+                  txHash: '0xdef',
+                  amount: '50',
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      renderHook(() => usePerpsWithdrawStatus());
+
+      expect(
+        mockPerpsToastOptions.accountManagement.withdrawal.withdrawalSuccess,
+      ).toHaveBeenCalledWith('50', 'USDC', lighterRoute);
+      mockWithdrawalRoutes = [];
+      mockWithdrawalRequests = [];
     });
 
     it('shows error toast when withdrawal fails', () => {
@@ -182,7 +238,7 @@ describe('usePerpsWithdrawStatus', () => {
             },
           },
         };
-        return selector(state as RootState);
+        return selector(state);
       });
 
       renderHook(() => usePerpsWithdrawStatus());
@@ -207,7 +263,7 @@ describe('usePerpsWithdrawStatus', () => {
             },
           },
         };
-        return selector(state as RootState);
+        return selector(state);
       });
 
       renderHook(() => usePerpsWithdrawStatus());
@@ -233,7 +289,7 @@ describe('usePerpsWithdrawStatus', () => {
             },
           },
         };
-        return selector(state as RootState);
+        return selector(state);
       });
 
       renderHook(() => usePerpsWithdrawStatus());

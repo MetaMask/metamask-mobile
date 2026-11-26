@@ -666,7 +666,7 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenCalledWith('152.41');
   });
 
-  it('snaps asset display to the USD round-trip size on blur', () => {
+  it('keeps the typed asset size on blur and commits its USD projection', () => {
     const params = createParams({ effectivePrice: 123.456, szDecimals: 4 });
     const { result } = renderHook(() => usePerpsProSizeInput(params));
 
@@ -684,12 +684,35 @@ describe('usePerpsProSizeInput', () => {
       result.current.sizeInput.onBlur();
     });
 
-    expect(result.current.sizeInput.value).toBe('1.2339');
+    expect(result.current.sizeInput.value).toBe('1.234');
+    expect(result.current.typedAssetSize).toBe('1.234');
     expect(result.current.effectiveUsdAmount).toBe('152.34');
     expect(mockSetAmount).toHaveBeenLastCalledWith('152.34');
   });
 
-  it('refreshes snapped asset projection when price changes after blur', () => {
+  it('sends the typed coin size when its value is under half a cent per increment', () => {
+    const params = createParams({
+      assetSymbol: 'PEPE',
+      effectivePrice: 0.003,
+      szDecimals: 0,
+    });
+    const { result } = renderHook(() => usePerpsProSizeInput(params));
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    act(() => {
+      result.current.sizeInput.onChange('3333');
+    });
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('3333');
+    expect(result.current.typedAssetSize).toBe('3333');
+  });
+
+  it('keeps a typed asset size and re-projects USD when price changes after blur', () => {
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
@@ -711,8 +734,6 @@ describe('usePerpsProSizeInput', () => {
       result.current.sizeInput.onBlur();
     });
 
-    expect(result.current.sizeInput.value).toBe('1.2339');
-
     // Echo the blur commit at the same price first (clears pending internal USD).
     rerender(
       createParams({
@@ -721,9 +742,6 @@ describe('usePerpsProSizeInput', () => {
         szDecimals: 4,
       }),
     );
-    expect(result.current.sizeInput.value).toBe('1.2339');
-
-    // Clean draft: price-only updates refresh the asset projection.
     rerender(
       createParams({
         usdAmount: '152.34',
@@ -732,7 +750,28 @@ describe('usePerpsProSizeInput', () => {
       }),
     );
 
-    expect(result.current.sizeInput.value).toBe('0.7617');
+    expect(result.current.sizeInput.value).toBe('1.234');
+    expect(result.current.typedAssetSize).toBe('1.234');
+    expect(result.current.effectiveUsdAmount).toBe('246.8');
+  });
+
+  it('does not report a typed asset size for USD or slider sizes', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ effectivePrice: 100 })),
+    );
+
+    act(() => {
+      result.current.sizeInput.onChange('50');
+    });
+    expect(result.current.typedAssetSize).toBeUndefined();
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    act(() => {
+      result.current.sizeSlider.onDragEnd(200);
+    });
+    expect(result.current.typedAssetSize).toBeUndefined();
   });
 
   it('preserves dirty asset text when the price changes', () => {

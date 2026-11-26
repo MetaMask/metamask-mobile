@@ -1,6 +1,7 @@
 import {
   MarketCategory,
   MARKET_CATEGORIES,
+  matchesCategory,
   type MarketTypeFilter,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
@@ -44,14 +45,9 @@ export function isHip3Filter(
   return !!value && HIP3_FILTER_KEYS.has(value as MarketTypeFilter);
 }
 
-/**
- * Non-HIP-3 market tagged `memecoin`. Overlaps Crypto by design.
- * Local because Core `matchesCategory` also matches HIP-3 crypto.
- */
-export function isMemecoinMarket(
-  market: Pick<PerpsMarketData, 'isHip3' | 'tags'>,
-): boolean {
-  return !market.isHip3 && !!market.tags?.includes(MarketCategory.Memecoin);
+/** Core's memecoin rule: a main-DEX market tagged `memecoin`. Overlaps Crypto. */
+export function isMemecoinMarket(market: PerpsMarketData): boolean {
+  return matchesCategory(market, MarketCategory.Memecoin);
 }
 
 /**
@@ -73,12 +69,10 @@ export function normalizeFilterKey(filter: string): string {
  * - `'new'`: uncategorized HIP-3 markets flagged as new.
  * - Any other {@link MarketTypeFilter}: HIP-3 markets whose `marketType` matches the filter exactly.
  */
-export function filterMarketsByCategory<
-  T extends Pick<
-    PerpsMarketData,
-    'isHip3' | 'isNewMarket' | 'marketType' | 'tags'
-  >,
->(markets: T[], filter: MarketTypeFilter): T[] {
+export function filterMarketsByCategory<T extends PerpsMarketData>(
+  markets: T[],
+  filter: MarketTypeFilter,
+): T[] {
   if (filter === 'all') {
     return markets;
   }

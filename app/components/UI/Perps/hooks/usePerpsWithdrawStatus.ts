@@ -62,11 +62,28 @@ export const usePerpsWithdrawStatus = () => {
       // Parse amount from the result if available
       const amount = lastWithdrawResult.amount || '';
 
+      // The route of the venue that signed this withdrawal carries its fee and
+      // destination chain. Unknown routes render the toast placeholder.
+      const controller = Engine.context.PerpsController;
+      const providerId = controller.state.withdrawalRequests.find(
+        (request) =>
+          Boolean(request.txHash) &&
+          request.txHash === lastWithdrawResult.txHash,
+      )?.providerId;
+      const route = controller
+        .getWithdrawalRoutes()
+        .find(
+          (candidate) =>
+            candidate.providerId === providerId ||
+            candidate.providerId === undefined,
+        );
+
       // Show withdrawal initiated toast with arrival time info
       showToast(
         PerpsToastOptions.accountManagement.withdrawal.withdrawalSuccess(
           amount,
           'USDC',
+          route,
         ),
       );
 

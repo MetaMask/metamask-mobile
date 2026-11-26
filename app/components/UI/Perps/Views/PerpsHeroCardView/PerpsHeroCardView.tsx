@@ -34,7 +34,9 @@ import ButtonIcon, {
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
+  formatLeverage,
   formatPerpsFiat,
+  formatRoePercentage,
   parseCurrencyString,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -95,10 +97,14 @@ const PerpsHeroCardView: React.FC = () => {
     const isLong = Number.parseFloat(position.size) >= 0;
     const direction = isLong ? 'long' : 'short';
     const pnlValue = Number.parseFloat(position.unrealizedPnl);
-    const roeValue = Number.parseFloat(position.returnOnEquity || '0') * 100;
+    // Unknown return on equity stays undefined and renders the placeholder.
+    const parsedRoe = Number.parseFloat(position.returnOnEquity);
+    const roeValue = Number.isFinite(parsedRoe) ? parsedRoe * 100 : undefined;
     const entryPrice = position.entryPrice;
 
-    const marketPriceParsed = parseCurrencyString(marketPrice ?? '');
+    const marketPriceParsed = marketPrice
+      ? parseCurrencyString(marketPrice)
+      : undefined;
 
     return {
       asset: position.symbol,
@@ -107,7 +113,7 @@ const PerpsHeroCardView: React.FC = () => {
       pnl: pnlValue,
       roe: roeValue,
       entryPrice,
-      markPrice: formatPerpsFiat(marketPriceParsed ?? '', {
+      markPrice: formatPerpsFiat(marketPriceParsed, {
         ranges: PRICE_RANGES_UNIVERSAL,
       }),
       isLong,
@@ -175,12 +181,18 @@ const PerpsHeroCardView: React.FC = () => {
     navigation.goBack();
   };
 
-  const pnlSign = data.pnl >= 0 ? '+' : '';
-  const pnlDisplay = `${pnlSign}${data.roe.toFixed(2)}%`;
+  const isRoeLoss = data.roe !== undefined && data.roe < 0;
+  const pnlDisplay = formatRoePercentage(data.roe, isRoeLoss);
+  let pnlStyle = styles.pnlPositive;
+  if (data.roe === undefined) {
+    pnlStyle = styles.priceValue;
+  } else if (isRoeLoss) {
+    pnlStyle = styles.pnlNegative;
+  }
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage
-    ? `${directionText} ${data.leverage}x`
+    ? `${directionText} ${formatLeverage(data.leverage)}`
     : directionText;
 
   const carouselCards = useMemo(
@@ -243,7 +255,7 @@ const PerpsHeroCardView: React.FC = () => {
             <Text
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
-              style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
+              style={pnlStyle}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >
               {pnlDisplay}
@@ -302,7 +314,7 @@ const PerpsHeroCardView: React.FC = () => {
     [
       styles,
       data.asset,
-      data.roe,
+      pnlStyle,
       data.entryPrice,
       data.markPrice,
       directionBadgeText,

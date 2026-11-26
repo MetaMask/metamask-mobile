@@ -19,6 +19,7 @@ import { useAppThemeFromContext } from '../../../../util/theme';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { isPerpsPredictMoneyWithdraw } from '../../Money/utils/moneyTransactionGuards';
 import { store } from '../../../../store';
+import { formatPerpsUsdCents } from '../utils/formatUtils';
 
 function getWithdrawConfirmedDescription(transactionId: string): string {
   const { isPostQuote, targetFiat, tokenSymbol } = resolveWithdrawTokenInfo(
@@ -31,7 +32,7 @@ function getWithdrawConfirmedDescription(transactionId: string): string {
   }
 
   return strings('perps.withdrawal.toast_completed_any_token_subtitle', {
-    amount: `$${targetFiat.toFixed(2)}`,
+    amount: formatPerpsUsdCents(targetFiat),
     token: tokenSymbol,
   });
 }

@@ -352,17 +352,20 @@ describe('getPayWithTokenDepositAmount', () => {
     expect(result).toBe('10.01');
   });
 
-  it('ignores a non-finite fee estimate instead of producing NaN', () => {
-    // Arrange / Act
-    const result = getPayWithTokenDepositAmount({
-      ...base,
-      estimatedFeesUsd: Number.NaN,
-      orderType: 'limit',
-    });
+  it.each([undefined, Number.NaN])(
+    'returns an empty amount while the fee is unresolved (%s)',
+    (estimatedFeesUsd) => {
+      // Arrange / Act
+      const result = getPayWithTokenDepositAmount({
+        ...base,
+        estimatedFeesUsd,
+        orderType: 'limit',
+      });
 
-    // Assert
-    expect(result).toBe('3.39');
-  });
+      // Assert: depositing margin alone would fail with insufficient margin
+      expect(result).toBe('');
+    },
+  );
 
   it('returns an empty amount while margin is unknown', () => {
     // Arrange / Act

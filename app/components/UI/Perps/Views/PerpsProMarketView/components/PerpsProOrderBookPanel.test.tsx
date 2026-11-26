@@ -691,6 +691,30 @@ describe('PerpsProOrderBookPanel', () => {
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
   });
 
+  it('offers no grouping ladder while the mid price is unknown', () => {
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: { ...mockOrderBook, midPrice: '' },
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    // No ladder derived from a 0 mid (the 0.01 / 0.1 / 1 fallback).
+    expect(
+      queryByTestId(`${testID}-config-sheet-grouping-0.01`),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(`${testID}-config-sheet-grouping-1`),
+    ).not.toBeOnTheScreen();
+  });
+
   it('persists the chosen order book side on save', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,

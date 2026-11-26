@@ -6,7 +6,11 @@ import {
 } from '@metamask/base-controller';
 import { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
-import { parseVolume, type OrderBookData } from '@metamask/perps-controller';
+import {
+  parseVolume,
+  TRADING_DEFAULTS,
+  type OrderBookData,
+} from '@metamask/perps-controller';
 import { calculateMarketOrderLiquidity } from '../../../app/components/UI/Perps/utils/slippageCalculation';
 import {
   applyE2EPerpsControllerMocks,
@@ -26,6 +30,7 @@ import {
 /** Root keys on `PerpsStreamManager` that the E2E plain-object mock must provide. */
 const EXPECTED_E2E_STREAM_ROOT_KEYS = [
   'account',
+  'availableToTrade',
   'candles',
   'fills',
   'focusedPrice',
@@ -141,6 +146,16 @@ describe('createE2EMockStreamManager', () => {
         return parseVolume(market.openInterest) > 0;
       }),
     ).toBe(true);
+  });
+});
+
+describe('E2EControllerOverrides.getMarkets', () => {
+  it('reports a minimum order size so the order form can prefill an amount', async () => {
+    const overrides = new E2EControllerOverrides({});
+
+    const [market] = await overrides.getMarkets({ symbols: ['ETH'] });
+
+    expect(market.minimumOrderSize).toBe(TRADING_DEFAULTS.amount.mainnet);
   });
 });
 

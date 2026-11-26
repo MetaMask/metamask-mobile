@@ -1,4 +1,7 @@
-import { AggregatedOrderBookConnection } from '@metamask/perps-controller';
+import {
+  AggregatedOrderBookConnection,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 
 /**
@@ -13,6 +16,15 @@ import Engine from '../../../../core/Engine';
  * Lazy singleton: created on first use and reused for the app lifetime. The
  * connection tears its socket down when the last subscriber unsubscribes.
  */
+/**
+ * Whether a route reads this connection's server-aggregated book. The socket is
+ * Hyperliquid's, so other venues get the raw book and group it client-side.
+ * An omitted provider is the default (Hyperliquid) route.
+ */
+export const isServerAggregatedOrderBookRoute = (
+  providerId: PerpsProviderType | undefined,
+): boolean => providerId === undefined || providerId === 'hyperliquid';
+
 let aggregatedOrderBookConnection: AggregatedOrderBookConnection | null = null;
 
 export function getAggregatedOrderBookConnection(): AggregatedOrderBookConnection {

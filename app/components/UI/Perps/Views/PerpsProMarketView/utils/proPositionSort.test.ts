@@ -54,16 +54,19 @@ describe('sortProPositions', () => {
     ]);
   });
 
-  it('sorts by market funding rate high to low when configured', () => {
+  it('sorts known market funding rates high to low before unknown rates', () => {
     const positions = [
       makePosition({ symbol: 'BTC' }),
       makePosition({ symbol: 'ETH' }),
       makePosition({ symbol: 'SOL' }),
+      makePosition({ symbol: 'HYPE' }),
+      makePosition({ symbol: 'DOGE' }),
     ];
     const fundingRatesBySymbol = {
       BTC: 0.015,
       ETH: -0.005,
       SOL: 0.0025,
+      DOGE: 0,
     };
 
     const sorted = sortProPositions(
@@ -78,7 +81,9 @@ describe('sortProPositions', () => {
     expect(sorted.map((position) => position.symbol)).toEqual([
       'BTC',
       'SOL',
+      'DOGE',
       'ETH',
+      'HYPE',
     ]);
   });
 });

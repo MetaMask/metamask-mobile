@@ -329,6 +329,10 @@ function createTestStreamManager(
     prices: pricesChannel(prices),
     topOfBook: topOfBookChannel(topOfBook),
     focusedPrice: focusedPriceChannel(),
+    availableToTrade: {
+      subscribeToMarket: () => () => undefined,
+      getSnapshot: () => null,
+    },
     positions: channelWithInitialValue(streamOverrides.positions ?? []),
     account: accountChannel,
     orders: channelWithInitialValue([]),

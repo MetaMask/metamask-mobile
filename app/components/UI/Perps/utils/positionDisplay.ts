@@ -1,11 +1,14 @@
 import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import {
+  calculateAccountReturnOnEquity,
   getPerpsDisplaySymbol,
+  type AccountState,
   type Position,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
-  formatPercentage,
+  formatLeverage,
+  formatRoePercentage,
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
@@ -37,6 +40,33 @@ export const parsePositionRoePercentage = (
 ): number | undefined => {
   const roeValue = Number.parseFloat(returnOnEquity ?? '');
   return Number.isNaN(roeValue) ? undefined : roeValue * 100;
+};
+
+/**
+ * An account's unrealized PnL and its return on the margin in use, from the
+ * account totals: `"+$12.50 (+10.4%)"`. Without margin there is no return to
+ * show, only the PnL; an unknown account shows both placeholders.
+ *
+ * @param account - Account totals, or nothing while they load.
+ * @returns The display string.
+ */
+export const formatAccountPnl = (
+  account:
+    | Pick<AccountState, 'unrealizedPnl' | 'marginUsed'>
+    | null
+    | undefined,
+): string => {
+  const formatRoe = (roe: number | undefined) =>
+    `(${formatRoePercentage(roe, roe !== undefined && roe < 0)})`;
+  if (!account) {
+    return `${formatPnl(undefined)} ${formatRoe(undefined)}`;
+  }
+  const pnl = formatPnl(account.unrealizedPnl);
+  const roe = calculateAccountReturnOnEquity({
+    unrealizedPnl: account.unrealizedPnl,
+    marginUsed: account.marginUsed,
+  });
+  return roe === undefined ? pnl : `${pnl} ${formatRoe(roe)}`;
 };
 
 /**
@@ -81,7 +111,7 @@ export const getPerpsPositionHeaderDisplay = (
     ? strings('perps.market.long')
     : strings('perps.market.short');
   const pnl = Number.parseFloat(position.unrealizedPnl);
-  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
+  const roe = parsePositionRoePercentage(position.returnOnEquity);
   const pnlColor = pnl >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
   const positionValue = formatPerpsFiat(position.positionValue, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -90,13 +120,16 @@ export const getPerpsPositionHeaderDisplay = (
   return {
     displaySymbol,
     absoluteSize,
-    directionLabel: `${position.leverage.value}x ${direction}`,
+    directionLabel:
+      position.leverage.value === undefined
+        ? direction
+        : `${formatLeverage(position.leverage.value)} ${direction}`,
     directionSeverity: isLong ? TagSeverity.Success : TagSeverity.Danger,
     description: `${formatPositionSize(
       absoluteSize.toString(),
     )} ${displaySymbol} • ${positionValue}`,
     pnlText: formatPnl(pnl),
-    roeText: formatPercentage(roe, 1),
+    roeText: formatRoePercentage(roe, pnl < 0),
     pnlColor,
   };
 };

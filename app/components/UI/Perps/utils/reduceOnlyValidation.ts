@@ -1,5 +1,7 @@
-import type { Position } from '@metamask/perps-controller';
-import { getPositionDirection } from './positionCalculations';
+import {
+  getPositionDirection,
+  type Position,
+} from '@metamask/perps-controller';
 
 /** Tolerance for token-size comparisons (covers floating-point / szDecimals noise). */
 const SIZE_EPSILON = 1e-10;
@@ -60,9 +62,9 @@ export const validateReduceOnlyOrder = ({
 
   const positionDirection = position
     ? getPositionDirection(position.size)
-    : 'unknown';
+    : undefined;
 
-  if (!position || positionDirection === 'unknown') {
+  if (!position || positionDirection === undefined) {
     return {
       isValid: false,
       errorCode: 'no_position',

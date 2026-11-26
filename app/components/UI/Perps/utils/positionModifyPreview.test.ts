@@ -2,7 +2,10 @@ import {
   PERPS_CONSTANTS,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
-import { getPositionModifySummaryDisplay } from './positionModifyPreview';
+import {
+  getCrossPreviewLiquidation,
+  getPositionModifySummaryDisplay,
+} from './positionModifyPreview';
 
 const formatUsd = (value: number) => `$${value}`;
 
@@ -20,15 +23,47 @@ describe('getPositionModifySummaryDisplay', () => {
     expect(result.tpslDirection).toBeUndefined();
   });
 
-  it('returns showBeforeAfter false for unsupported cross margin', () => {
+  it('returns showBeforeAfter false for an unsupported provider', () => {
     const result = getPositionModifySummaryDisplay({
-      preview: { status: 'unsupported', reason: 'cross_margin' },
+      preview: { status: 'unsupported', reason: 'provider' },
       formatMargin: formatUsd,
       formatLiquidation: formatUsd,
       hasValidAmount: true,
     });
 
     expect(result.showBeforeAfter).toBe(false);
+  });
+
+  it.each([
+    ['covered_by_account' as const, 'N/A'],
+    ['missing_inputs' as const, PERPS_CONSTANTS.FallbackDataDisplay],
+  ])('shows a Cross result unavailable for %s as %s', (reason, expected) => {
+    const result = getPositionModifySummaryDisplay({
+      preview: {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 400 },
+          liquidationPrice: { available: false },
+        },
+        resulting: {
+          direction: 'long',
+          size: 2,
+          entryPrice: 2000,
+          leverage: 10,
+          margin: { available: true, value: 300 },
+          liquidationPrice: { available: false, reason },
+        },
+      },
+      formatMargin: formatUsd,
+      formatLiquidation: formatUsd,
+      hasValidAmount: true,
+      isCurrentCoveredByAccount: true,
+    });
+
+    expect(result.currentLiquidationDisplay).toBe('N/A');
+    expect(result.resultingLiquidationDisplay).toBe(expected);
+    expect(result.tpslLiquidationPrice).toBeUndefined();
   });
 
   it('maps an open increase with independent margin and liquidation', () => {
@@ -154,5 +189,60 @@ describe('getPositionModifySummaryDisplay', () => {
       PERPS_CONSTANTS.FallbackDataDisplay,
     );
     expect(result.tpslLiquidationPrice).toBeUndefined();
+  });
+});
+
+describe('getCrossPreviewLiquidation', () => {
+  const current = {
+    margin: { available: true, value: 400 } as const,
+    liquidationPrice: { available: false } as const,
+  };
+  const open = (
+    liquidationPrice: Extract<
+      PositionModifyPreviewResult,
+      { status: 'open' }
+    >['resulting']['liquidationPrice'],
+  ): PositionModifyPreviewResult => ({
+    status: 'open',
+    kind: 'increase',
+    current,
+    resulting: {
+      direction: 'long',
+      size: 2,
+      entryPrice: 2000,
+      leverage: 10,
+      margin: { available: true, value: 300 },
+      liquidationPrice,
+    },
+  });
+
+  it.each<[string, PositionModifyPreviewResult, object]>([
+    [
+      'a price',
+      open({ available: true, value: 1836 }),
+      { status: 'price', price: '1836' },
+    ],
+    [
+      'a covered account',
+      open({ available: false, reason: 'covered_by_account' }),
+      { status: 'none' },
+    ],
+    [
+      'missing inputs',
+      open({ available: false, reason: 'missing_inputs' }),
+      { status: 'unavailable' },
+    ],
+    [
+      'a full close',
+      { status: 'full_close', current, resultingDirection: 'long' },
+      { status: 'none' },
+    ],
+    [
+      'no preview',
+      { status: 'unsupported', reason: 'provider' },
+      { status: 'unavailable' },
+    ],
+  ])('maps %s', (_label, preview, expected) => {
+    expect(getCrossPreviewLiquidation(preview)).toEqual(expected);
   });
 });

@@ -97,6 +97,43 @@ describe('Perps margin-mode lock — integration', () => {
       expect(harness.mocks.infoClient.activeAssetData).not.toHaveBeenCalled();
     });
 
+    it('reads an open position from a current stream with no venue request', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      harness.mocks.subscription.getCachedPositionsForDex.mockReturnValue([
+        {
+          symbol: 'BTC',
+          size: '0.1',
+          entryPrice: '50000',
+          positionValue: '5000',
+          unrealizedPnl: '0',
+          marginUsed: '1000',
+          leverage: { type: 'cross', value: 5 },
+          liquidationPrice: null,
+          maxLeverage: 50,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+      ]);
+
+      const lock = await harness.provider.getMarginModeLock({ symbol: 'BTC' });
+
+      expect(lock).toStrictEqual({
+        status: 'locked',
+        providerId: 'hyperliquid',
+        marginMode: 'cross',
+        reason: 'position',
+      });
+      expect(
+        harness.mocks.infoClient.clearinghouseState,
+      ).not.toHaveBeenCalled();
+    });
+
     it('reports the asset mode bound by a resting order', async () => {
       const harness = buildHarness();
       harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([

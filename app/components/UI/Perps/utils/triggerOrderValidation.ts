@@ -1,8 +1,10 @@
 import {
   DECIMAL_PRECISION_CONFIG,
   formatHyperLiquidPrice,
+  getPriceDeviationBand,
   getTriggerDirection,
   isLimitExecutionOrderType,
+  isPriceOutsideDeviationBand,
   isTriggerOrderType,
   PRICE_RANGES_UNIVERSAL,
   type OrderType,
@@ -10,12 +12,7 @@ import {
   type TriggerOrderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
-import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from './formatUtils';
-import {
-  getPriceDeviationBand,
-  isPriceOutsideDeviationBand,
-} from './orderUtils';
 
 export type TriggerPriceValidationIssue =
   | { code: 'required' }
@@ -143,7 +140,8 @@ export const getRequiredTriggerSide = (
  * activate TP/SL orders; this check only validates the placement-side rule.
  *
  * @param input - Order type, side, typed trigger, and live mid.
- * @returns A typed issue, or `undefined` when the trigger is valid or N/A.
+ * @returns A typed issue, or `undefined` when the trigger is valid or N/A. A
+ * trigger that cannot be checked because the mid is unknown is `wrong_side`.
  */
 export const getTriggerPriceValidationIssue = ({
   orderType,
@@ -167,16 +165,13 @@ export const getTriggerPriceValidationIssue = ({
     return { code: 'positive' };
   }
 
-  const referencePrice = midPrice ?? 0;
-  if (!(referencePrice > 0)) {
-    return undefined;
-  }
-
   const requiredSide = getRequiredTriggerSide(orderType, direction);
+  // Without a usable mid the side cannot be checked, which is not a pass.
   const isOnValidSide =
-    requiredSide === 'above'
-      ? trigger > referencePrice
-      : trigger < referencePrice;
+    midPrice !== undefined &&
+    Number.isFinite(midPrice) &&
+    midPrice > 0 &&
+    (requiredSide === 'above' ? trigger > midPrice : trigger < midPrice);
 
   if (isOnValidSide) {
     return undefined;
@@ -190,20 +185,21 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
- * Localized 95% band error, including the live acceptable range when the
+ * Localized deviation band error, including the live acceptable range when the
  * reference price is usable.
  *
- * @param referencePrice - Live oracle/mark used for the band.
+ * @param referencePrice - Live oracle price used for the band.
+ * @param maxDeviation - The venue's `maxOraclePriceDeviation`.
  * @returns User-facing helper text.
  */
-export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
+export const getLimitPriceTooFarMessage = (
+  referencePrice: number,
+  maxDeviation: number,
+): string => {
   const constraint = strings(
     'perps.order.limit_price_modal.limit_price_too_far',
   );
-  const band = getPriceDeviationBand(
-    referencePrice,
-    LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-  );
+  const band = getPriceDeviationBand(referencePrice, maxDeviation);
   if (!band) {
     return constraint;
   }
@@ -219,20 +215,23 @@ export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
 
 /**
  * Validates the structural price input for limit and trigger-limit placements,
- * including HyperLiquid's live 95% reference-price band.
+ * including the venue's live oracle deviation band.
  *
- * @param input - Order type, candidate limit price, and live mid.
+ * @param input - Order type, candidate limit price, oracle price and limit.
  * @returns A typed limit-price issue, or `undefined`.
  */
 export const getLimitPriceValidationIssue = ({
   orderType,
   limitPrice,
-  midPrice,
+  referencePrice,
+  maxDeviation,
   szDecimals,
 }: {
   orderType: OrderType;
   limitPrice: string | undefined;
-  midPrice?: number;
+  referencePrice?: number;
+  /** Omitted while unknown or when the venue has no limit: no band check. */
+  maxDeviation?: number;
   szDecimals?: number;
 }): LimitPriceValidationIssue | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
@@ -246,17 +245,11 @@ export const getLimitPriceValidationIssue = ({
   }
 
   if (
-    midPrice !== undefined &&
-    isPriceOutsideDeviationBand(
-      parsedLimit,
-      midPrice,
-      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-    )
+    referencePrice !== undefined &&
+    maxDeviation !== undefined &&
+    isPriceOutsideDeviationBand(parsedLimit, referencePrice, maxDeviation)
   ) {
-    const band = getPriceDeviationBand(
-      midPrice,
-      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-    );
+    const band = getPriceDeviationBand(referencePrice, maxDeviation);
     if (band) {
       return {
         code: 'too_far',
@@ -297,6 +290,8 @@ export const getOrderFormFieldIssues = ({
   triggerPrice,
   limitPrice,
   midPrice,
+  referencePrice = midPrice,
+  maxDeviation,
   szDecimals,
 }: {
   orderType: OrderType;
@@ -304,6 +299,9 @@ export const getOrderFormFieldIssues = ({
   triggerPrice?: string;
   limitPrice?: string;
   midPrice: number;
+  /** Oracle price for the deviation band; the mid while it is unknown. */
+  referencePrice?: number;
+  maxDeviation?: number;
   szDecimals?: number;
 }): OrderFormFieldIssue[] => {
   const issues: OrderFormFieldIssue[] = [];
@@ -321,7 +319,8 @@ export const getOrderFormFieldIssues = ({
   const limitIssue = getLimitPriceValidationIssue({
     orderType,
     limitPrice,
-    midPrice,
+    referencePrice,
+    maxDeviation,
     szDecimals,
   });
   if (limitIssue) {

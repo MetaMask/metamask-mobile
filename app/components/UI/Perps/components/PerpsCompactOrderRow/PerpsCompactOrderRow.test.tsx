@@ -26,6 +26,8 @@ jest.mock('../../utils/formatUtils', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  PERPS_ORDER_TYPE_LABELS: jest.requireActual('@metamask/perps-controller')
+    .PERPS_ORDER_TYPE_LABELS,
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
   PERPS_CONSTANTS: {
     FallbackPriceDisplay: '$---',
@@ -80,6 +82,7 @@ describe('PerpsCompactOrderRow', () => {
     price: '48000',
     triggerPrice: '47000',
     detailedOrderType: 'Stop Market',
+    triggerOrderType: 'stop_market',
   };
 
   beforeEach(() => {
@@ -125,6 +128,7 @@ describe('PerpsCompactOrderRow', () => {
       ...mockTriggerOrder,
       orderType: 'market',
       detailedOrderType: 'Stop Market',
+      triggerOrderType: 'stop_market',
       triggerPrice: '0',
       price: '48000',
     };
@@ -142,6 +146,7 @@ describe('PerpsCompactOrderRow', () => {
     const triggerLimitOrderWithInvalidTriggerPrice: Order = {
       ...mockTriggerOrder,
       detailedOrderType: 'Take Profit Limit',
+      triggerOrderType: 'take_profit_limit',
       triggerPrice: '0',
       price: '46000',
     };
@@ -260,6 +265,7 @@ describe('PerpsCompactOrderRow', () => {
       side: 'sell',
       reduceOnly: true,
       detailedOrderType: 'Take Profit Limit',
+      triggerOrderType: 'take_profit_limit',
       isTrigger: true,
     };
 
@@ -274,6 +280,7 @@ describe('PerpsCompactOrderRow', () => {
       side: 'buy',
       reduceOnly: true,
       detailedOrderType: 'Stop Market',
+      triggerOrderType: 'stop_market',
       isTrigger: true,
     };
 

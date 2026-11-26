@@ -36,6 +36,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   TimeDuration,
+  type Order,
   type PerpsActiveProviderMode,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
@@ -418,6 +419,7 @@ interface MockOpenOrder {
   isTrigger: boolean;
   reduceOnly: boolean;
   isPositionTpsl?: boolean;
+  triggerOrderType?: Order['triggerOrderType'];
   takeProfitPrice?: string;
   stopLossPrice?: string;
   takeProfitOrderId?: string;
@@ -5320,6 +5322,7 @@ describe('PerpsMarketDetailsView', () => {
             filledSize: '0',
             remainingSize: '1.0',
             detailedOrderType: 'Take Profit Limit',
+            triggerOrderType: 'take_profit_limit',
             isTrigger: true,
             reduceOnly: true,
             isPositionTpsl: false,

@@ -279,27 +279,32 @@ export function usePerpsCloseAllCalculations({
         // Step 2: Batch points estimation for all positions in a single API call
         // Using batch API to improve performance (N+1 → 2 API calls)
         let batchPoints: EstimatedPointsDto | null = null;
-        try {
-          const perpsContextArray = feeResults.map((result) => ({
-            type: 'CLOSE_POSITION' as const,
-            usdFeeValue: (result.fees.feeAmount ?? 0).toString(),
-            coin: result.position.symbol, // EstimatePerpsContextDto uses 'coin' field
-          }));
-
+        const perpsContext = feeResults.flatMap(({ fees, position }) =>
+          fees.feeAmount === undefined
+            ? []
+            : [
+                {
+                  type: 'CLOSE_POSITION' as const,
+                  usdFeeValue: fees.feeAmount.toString(),
+                  coin: position.symbol,
+                },
+              ],
+        );
+        // The response describes the whole batch, so every leg needs a quote.
+        if (perpsContext.length === feeResults.length) {
           const batchEstimateBody: EstimatePointsDto = {
             activityType: 'PERPS',
             account: caipAccountId,
-            activityContext: {
-              perpsContext: perpsContextArray, // Batch API: array of positions
-            },
+            activityContext: { perpsContext },
           };
-
-          batchPoints =
-            await Engine.context.RewardsController.estimatePoints(
-              batchEstimateBody,
-            );
-        } catch (pointsError) {
-          console.warn('Failed to estimate batch points:', pointsError);
+          try {
+            batchPoints =
+              await Engine.context.RewardsController.estimatePoints(
+                batchEstimateBody,
+              );
+          } catch (pointsError) {
+            console.warn('Failed to estimate batch points:', pointsError);
+          }
         }
 
         // Step 3: Combine fee results with batch points
@@ -413,8 +418,8 @@ export function usePerpsCloseAllCalculations({
       ) {
         return;
       }
-      const discountBips = fees.metamaskFeeDiscountBips ?? 0;
-      if (discountBips <= 0) {
+      const discountBips = fees.metamaskFeeDiscountBips;
+      if (discountBips === undefined || discountBips <= 0) {
         return;
       }
       if (fees.feeSource === 'subscription') {

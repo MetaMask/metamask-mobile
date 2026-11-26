@@ -1,19 +1,23 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { PerpsAccountSummary } from '@metamask/perps-controller';
+import {
+  getCrossMarginRatioTone,
+  type CrossMarginRatioTone,
+  type PerpsAccountSummary,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsLiveAccount, usePerpsLivePositions } from './stream';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
-  getCrossMarginRatioTone,
   getCrossMarginSummaryThrottleMs,
-  type CrossMarginRatioTone,
 } from '../utils/crossMarginSummary';
 import { CROSS_MARGIN_SUMMARY_THROTTLE_MS } from '../constants/perpsConfig';
 
 export interface UsePerpsCrossMarginSummaryOptions {
+  providerId?: PerpsProviderType;
   /** Whether to subscribe to account and position updates. */
   enabled?: boolean;
   /**
@@ -40,8 +44,11 @@ export interface UsePerpsCrossMarginSummaryReturn extends PerpsAccountSummary {
 export const usePerpsCrossMarginSummary = (
   options: UsePerpsCrossMarginSummaryOptions = {},
 ): UsePerpsCrossMarginSummaryReturn => {
-  const { enabled = true, throttleMs = CROSS_MARGIN_SUMMARY_THROTTLE_MS } =
-    options;
+  const {
+    enabled = true,
+    providerId,
+    throttleMs = CROSS_MARGIN_SUMMARY_THROTTLE_MS,
+  } = options;
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isActive = enabled && isCrossMarginEnabled;
   // UX matrix (app/util/deviceCapability/README.md): the tiers are read
@@ -54,6 +61,7 @@ export const usePerpsCrossMarginSummary = (
   });
 
   const { account } = usePerpsLiveAccount({
+    providerId,
     enabled: isActive,
     throttleMs: streamThrottleMs,
   });
@@ -63,8 +71,15 @@ export const usePerpsCrossMarginSummary = (
   });
 
   const hasCrossPosition = useMemo(
-    () => positions.some((position) => position.leverage?.type === 'cross'),
-    [positions],
+    () =>
+      positions.some(
+        (position) =>
+          position.leverage?.type === 'cross' &&
+          (providerId === undefined ||
+            position.providerId === undefined ||
+            position.providerId === providerId),
+      ),
+    [positions, providerId],
   );
 
   return useMemo(() => {

@@ -35,9 +35,15 @@ jest.mock('../../../../core/Engine', () => ({
         getSelectedAccount: () => mockSelectedAccount(),
       },
       AccountTreeController: {
-        getAccountsFromSelectedAccountGroup: jest.fn(() => [
-          { address: `0x${'1'.repeat(40)}`, type: 'eip155:eoa' },
-        ]),
+        getAccountsFromSelectedAccountGroup: jest.fn(() => {
+          const selected = mockSelectedAccount();
+          return selected.type === 'eip155:eoa'
+            ? [selected]
+            : [
+                selected,
+                { address: `0x${'1'.repeat(40)}`, type: 'eip155:eoa' },
+              ];
+        }),
       },
     },
     controllerMessenger: { subscribe: jest.fn(), tryUnsubscribe: jest.fn() },

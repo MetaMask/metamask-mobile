@@ -380,8 +380,9 @@ describe('enrichWithABTests', () => {
   });
 
   it('attaches the Perps screen-vs-bottom-sheet assignment to margin-adjustment conversions', () => {
+    // Core reports margin updates as Perp Risk Management.
     const event = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
+      MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
     ).build();
 
     const result = enrichWithABTests(event, {

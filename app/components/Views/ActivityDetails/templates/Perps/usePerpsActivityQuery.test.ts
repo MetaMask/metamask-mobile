@@ -112,4 +112,60 @@ describe('usePerpsActivityQuery', () => {
       2,
     );
   });
+
+  it('keys fill sizes by provider so colliding venue order ids stay apart', async () => {
+    const order = {
+      orderId: '7',
+      symbol: 'ETH',
+      side: 'buy',
+      orderType: 'limit',
+      size: '0',
+      originalSize: '10',
+      price: '3000',
+      filledSize: '0',
+      remainingSize: '0',
+      status: 'canceled',
+      timestamp: 1700000000000,
+    };
+    controller.getOrders.mockResolvedValue([
+      { ...order, providerId: 'hyperliquid' },
+      {
+        ...order,
+        status: 'filled',
+        // Distinct row id; the fill-size key is what this test covers.
+        timestamp: order.timestamp + 1,
+        providerId: 'lighter',
+      },
+    ]);
+    controller.getOrderFills.mockResolvedValue([
+      {
+        orderId: '7',
+        providerId: 'lighter',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '10',
+        price: '3000',
+        direction: 'Open Long',
+        fee: '0.1',
+        feeToken: 'USDC',
+        timestamp: 1700000000000,
+      },
+    ]);
+
+    const { result } = renderHook(
+      () => usePerpsActivityQuery('eip155:42161:0xabc', true),
+      { wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    const filledByStatus = Object.fromEntries(
+      result.current.transactions
+        .filter((tx) => tx.type === 'order')
+        .map((tx) => [tx.order?.statusType, tx.order?.filled]),
+    );
+    expect(filledByStatus).toEqual({ canceled: '0%', filled: '100%' });
+  });
 });

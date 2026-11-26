@@ -3,6 +3,7 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
   buildEditOrderParamsFromOrder,
+  toCoreTrackingData,
 } from './orderParams';
 
 const trackingData = buildPerpsOrderTrackingData({
@@ -334,6 +335,28 @@ describe('buildPerpsOrderTrackingData', () => {
     expect(buildPerpsOrderTrackingData(base)).not.toHaveProperty('entryPoint');
   });
 
+  it('leaves an unknown fee out of the tracking data, never sending 0', () => {
+    const result = buildPerpsOrderTrackingData({
+      ...base,
+      feeResults: { ...base.feeResults, totalFee: undefined },
+    });
+
+    expect(result).not.toHaveProperty('totalFee');
+    expect(result).toHaveProperty('marketPrice', base.marketPrice);
+  });
+
+  it('keeps known figures, including a real zero, and drops unknown ones', () => {
+    expect(
+      toCoreTrackingData({ totalFee: 5, marketPrice: 90000, source: 'x' }),
+    ).toEqual({ totalFee: 5, marketPrice: 90000, source: 'x' });
+    expect(
+      toCoreTrackingData({ totalFee: undefined, marketPrice: 90000 }),
+    ).toEqual({ marketPrice: 90000 });
+    expect(toCoreTrackingData({ totalFee: 0, marketPrice: undefined })).toEqual(
+      { totalFee: 0 },
+    );
+  });
+
   it('marks trades without a custom token and omits pay-token fields', () => {
     // Arrange / Act
     const result = buildPerpsOrderTrackingData(base) as Record<string, unknown>;
@@ -442,6 +465,18 @@ describe('buildEditOrderParamsFromOrder', () => {
         trackingData: expect.objectContaining({ source: 'test' }),
       }),
     );
+  });
+
+  it("edits on the order's venue", () => {
+    // Arrange / Act
+    const params = buildEditOrderParamsFromOrder({
+      order: { ...order, providerId: 'lighter' as const },
+      newLimitPrice: '3100',
+      trackingData: { totalFee: 0, marketPrice: 3100, source: 'test' },
+    });
+
+    // Assert: without it Core edits on the default venue
+    expect(params.providerId).toBe('lighter');
   });
 
   it('builds limit edit params with updated size', () => {

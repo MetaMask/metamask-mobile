@@ -6,8 +6,10 @@ import PerpsHeroCardView from './PerpsHeroCardView';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
+import { formatPerpsFiat } from '../../utils/formatUtils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
@@ -58,7 +60,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value) => `$${value}`),
+  formatLeverage: jest.requireActual('../../utils/formatUtils').formatLeverage,
   parseCurrencyString: jest.fn((value) => value?.replace('$', '') || ''),
+  formatPercentage: jest.requireActual('../../utils/formatUtils')
+    .formatPercentage,
+  formatRoePercentage: jest.requireActual('../../utils/formatUtils')
+    .formatRoePercentage,
   PRICE_RANGES_MINIMAL_VIEW: [],
 }));
 jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({
@@ -144,7 +151,24 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('+10.00%');
+      expect(pnlText).toHaveTextContent('+10.0%');
+    });
+  });
+
+  describe('missing market price', () => {
+    it('formats an unknown mark price, not 0', () => {
+      const routeParams = createMockRouteParams();
+      mockUseRoute.mockReturnValue({
+        params: { ...routeParams.params, marketPrice: undefined },
+      } as never);
+
+      render(<PerpsHeroCardView />);
+
+      expect(formatPerpsFiat).toHaveBeenCalledWith(
+        undefined,
+        expect.any(Object),
+      );
+      expect(formatPerpsFiat).not.toHaveBeenCalledWith(0, expect.anything());
     });
   });
 
@@ -423,7 +447,21 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('-10.00%');
+      expect(pnlText).toHaveTextContent('-10.0%');
+    });
+
+    it('displays the placeholder, not 0%, when the return on equity is unknown', () => {
+      mockUseRoute.mockReturnValue(
+        createMockRouteParams({ returnOnEquity: '' }) as never,
+      );
+
+      const { getByTestId } = render(<PerpsHeroCardView />);
+
+      const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
+
+      expect(pnlText).toHaveTextContent(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
     });
   });
 });

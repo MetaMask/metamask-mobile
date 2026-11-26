@@ -12,8 +12,8 @@ import {
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
   selectSelectedOrderType,
-  type PerpsProviderType,
   type OrderFormState,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import {
@@ -22,10 +22,13 @@ import {
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { usePerpsNetwork } from './usePerpsNetwork';
+import { useMinimumOrderAmount } from './useMinimumOrderAmount';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsMode,
+  selectPerpsOrderProvider,
+} from '../selectors/perpsController';
 import {
   getMaxAllowedAmountAtExecutionPrice,
   getProspectiveExecutionPrice,
@@ -131,9 +134,13 @@ export interface UsePerpsOrderFormReturn {
    */
   setMaxPossibleAmountOverride: (amount: number | null) => void;
   /** Reserves the quoted trading fee (fraction of notional) in the margin-based max. */
-  setEstimatedFeeRate: (rate: number) => void;
-  /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
-  balanceForValidation: number;
+  setEstimatedFeeRate: (rate: number | undefined) => void;
+  /**
+   * Balance to use for validation and UI (Perps balance or selected token
+   * amount in USD when paying with custom token); undefined while the account
+   * is unresolved.
+   */
+  balanceForValidation: number | undefined;
 }
 
 /**
@@ -144,6 +151,7 @@ export function usePerpsOrderForm(
   params: UsePerpsOrderFormParams = {},
 ): UsePerpsOrderFormReturn {
   const {
+    providerId: marketProviderId,
     initialAsset = 'BTC',
     initialDirection,
     initialAmount,
@@ -154,19 +162,20 @@ export function usePerpsOrderForm(
     effectiveAvailableBalance: effectiveAvailableBalanceParam,
   } = params;
 
-  const currentNetwork = usePerpsNetwork();
   const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
-  const { account } = usePerpsLiveAccount();
+  const defaultProviderId = useSelector(selectPerpsOrderProvider);
+  const providerId = marketProviderId ?? defaultProviderId ?? undefined;
+  const { account } = usePerpsLiveAccount({ providerId });
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
-    providerId: params.providerId,
     symbols: [initialAsset],
+    providerId,
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
   const { marketData } = usePerpsMarketData({
     asset: initialSzDecimals == null ? initialAsset : '',
-    providerId: params.providerId,
+    providerId,
   });
   const assetSzDecimals =
     initialSzDecimals ??
@@ -180,41 +189,47 @@ export function usePerpsOrderForm(
       positions.find(
         (p) =>
           p.symbol === initialAsset &&
-          (!p.providerId ||
-            !params.providerId ||
-            p.providerId === params.providerId),
+          (p.providerId === undefined || p.providerId === providerId),
       )?.leverage?.value,
-    [positions, initialAsset, params.providerId],
+    [positions, initialAsset, providerId],
   );
 
   // Get saved trade configuration for this asset (user preference for new positions)
   const savedConfig = usePerpsSelector((state) =>
-    selectTradeConfiguration(state, initialAsset),
+    selectTradeConfiguration(state, initialAsset, providerId),
   );
 
   // Get pending trade configuration for this asset (temporary, expires after 30 seconds)
   const pendingConfig = usePerpsSelector((state) =>
-    selectPendingTradeConfiguration(state, initialAsset),
+    selectPendingTradeConfiguration(state, initialAsset, providerId),
   );
 
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
   const perpsMode = useSelector(selectPerpsMode);
 
-  const spendableBalance = Number.parseFloat(
-    effectiveAvailableBalanceParam != null
-      ? effectiveAvailableBalanceParam.toString()
-      : (account?.spendableBalance?.toString() ?? '0'),
-  );
+  // Undefined while the account is unresolved: an unknown balance is not 0.
+  let spendableBalance: number | undefined;
+  if (effectiveAvailableBalanceParam != null) {
+    spendableBalance = effectiveAvailableBalanceParam;
+  } else if (account?.spendableBalance != null) {
+    spendableBalance = Number.parseFloat(account.spendableBalance.toString());
+  }
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
 
-  // Determine default amount based on network
-  const defaultAmount =
-    currentNetwork === 'mainnet'
-      ? TRADING_DEFAULTS.amount.mainnet
-      : TRADING_DEFAULTS.amount.testnet;
-  const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
+  // Default amount is the venue's minimum; empty while it is unknown.
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: initialAsset,
+    providerId,
+  });
+  const fallbackAmount =
+    fallbackAmountParam ?? minimumOrderAmount?.toString() ?? '';
+  const isDefaultAmountPending =
+    !initialAmount &&
+    !pendingConfig?.amount &&
+    fallbackAmountParam === undefined &&
+    minimumOrderAmount === undefined;
 
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
@@ -243,6 +258,11 @@ export function usePerpsOrderForm(
 
     if (fallbackAmount === '') {
       return '';
+    }
+
+    // Do not clamp to a balance that is not known yet.
+    if (balanceForMax === undefined) {
+      return fallbackAmount;
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
@@ -295,7 +315,7 @@ export function usePerpsOrderForm(
     ? parsedInitialAmount / defaultLeverage
     : 0;
   const initialBalancePercent =
-    spendableBalance > 0
+    spendableBalance !== undefined && spendableBalance > 0
       ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
       : TRADING_DEFAULTS.marginPercent;
 
@@ -335,7 +355,7 @@ export function usePerpsOrderForm(
   // order surface from its own resolved fee quote (`usePerpsOrderFees`), so the
   // max size and the displayed fee never diverge. Fees are charged on top of
   // margin, so the max size must leave room for them.
-  const [estimatedFeeRate, setEstimatedFeeRate] = useState(0);
+  const [estimatedFeeRate, setEstimatedFeeRate] = useState<number>();
 
   const effectiveMaxSlippageBps = useMemo(
     () =>
@@ -351,9 +371,15 @@ export function usePerpsOrderForm(
   // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
+    // No max while the balance is unknown; 0 disables the max clamps below.
+    if (balanceForMax === undefined) {
+      return 0;
+    }
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
     const feeAdjustedBalance =
-      balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
+      estimatedFeeRate === undefined
+        ? balanceForMax
+        : balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
@@ -420,12 +446,23 @@ export function usePerpsOrderForm(
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
   const hasSetInitialAmount = useRef(false);
+  // Set while the default waits for the venue minimum; the late default then
+  // fills only an amount the user has not edited.
+  const waitedForDefaultAmount = useRef(false);
   useEffect(() => {
-    if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
-      setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
-      hasSetInitialAmount.current = true;
+    if (hasSetInitialAmount.current || initialAmountValue === '0') return;
+    if (isDefaultAmountPending) {
+      waitedForDefaultAmount.current = true;
+      return;
     }
-  }, [initialAmountValue]);
+    const keepUserAmount = waitedForDefaultAmount.current;
+    setOrderForm((prev) =>
+      keepUserAmount && prev.amount !== ''
+        ? prev
+        : { ...prev, amount: initialAmountValue },
+    );
+    hasSetInitialAmount.current = true;
+  }, [initialAmountValue, isDefaultAmountPending]);
 
   useEffect(() => {
     if (!pendingConfig) return;
@@ -629,7 +666,7 @@ export function usePerpsOrderForm(
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
-      if (balanceForMax === 0) return;
+      if (!balanceForMax) return;
       const raw = balanceForMax * orderForm.leverage * percentage;
       const clamped = Math.min(raw, maxPossibleAmount);
       const newAmount = Math.floor(clamped).toString();
@@ -641,7 +678,7 @@ export function usePerpsOrderForm(
   // Handle max amount selection (respects custom token amount when set).
   // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
-    if (balanceForMax === 0) return;
+    if (!balanceForMax) return;
     setOrderForm((prev) => ({
       ...prev,
       amount: Math.floor(maxPossibleAmount).toString(),
@@ -650,15 +687,13 @@ export function usePerpsOrderForm(
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {
-    const minAmount =
-      currentNetwork === 'mainnet'
-        ? TRADING_DEFAULTS.amount.mainnet
-        : TRADING_DEFAULTS.amount.testnet;
+    // No-op while the venue minimum is unknown.
+    if (minimumOrderAmount === undefined) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: minAmount.toString(),
+      amount: minimumOrderAmount.toString(),
     }));
-  }, [currentNetwork]);
+  }, [minimumOrderAmount]);
 
   return useMemo(
     () => ({

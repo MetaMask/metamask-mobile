@@ -22,6 +22,10 @@ import { PerpsProMarketViewSelectorsIDs } from '../Perps.testIds';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
+  NO_ORDER_ACTION_FEE_USD,
+  toCoreTrackingData,
+} from '../utils/orderParams';
+import {
   getOrderPositionDirection,
   getValidOrderPrice,
   getValidTriggerPrice,
@@ -142,7 +146,7 @@ export const usePerpsProPositionsPanelActions =
           }
 
           await action();
-        });
+        }).catch(() => undefined);
       },
       [gate, isEligible, showGeoBlockForSource],
     );
@@ -351,7 +355,7 @@ export const usePerpsProPositionsPanelActions =
             orderDirection,
             order.size,
             order.symbol,
-            order.orderType,
+            order.triggerOrderType ?? order.orderType,
           ),
         );
 
@@ -359,21 +363,25 @@ export const usePerpsProPositionsPanelActions =
           const result = await cancelOrder({
             orderId: order.orderId,
             symbol: order.symbol,
-            trackingData: {
-              totalFee: 0,
-              marketPrice: effectivePrice ?? 0,
+            // Cancel on the order's venue, or Core falls back to the default one.
+            ...(order.providerId !== undefined
+              ? { providerId: order.providerId }
+              : {}),
+            trackingData: toCoreTrackingData({
+              totalFee: NO_ORDER_ACTION_FEE_USD,
+              marketPrice: effectivePrice,
               source: PRO_MARKET_SOURCE,
               ...toPerpsEntryAttribution({
                 source: PRO_MARKET_SOURCE,
               }),
-            },
+            }),
           });
 
           if (result.success) {
             showToast(
               PerpsToastOptions.orderManagement.shared.cancellationSuccess(
                 order.reduceOnly,
-                order.orderType,
+                order.triggerOrderType ?? order.orderType,
                 orderDirection,
                 order.size,
                 order.symbol,

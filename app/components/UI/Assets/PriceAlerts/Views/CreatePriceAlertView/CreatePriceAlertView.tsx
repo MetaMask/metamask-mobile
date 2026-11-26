@@ -50,7 +50,8 @@ const PerpsAlertLivePrice: React.FC<{
   onPrice: (price: number) => void;
 }> = ({ symbol, onPrice }) => {
   const focused = usePerpsLiveFocusedPrice({ symbol, enabled: true });
-  const raw = focused?.markPrice ?? focused?.price;
+  // Alerts anchor on the oracle price; the mid stands in until it arrives.
+  const raw = focused?.oraclePrice ?? focused?.price;
   const parsed = raw === undefined ? Number.NaN : Number.parseFloat(raw);
 
   useEffect(() => {

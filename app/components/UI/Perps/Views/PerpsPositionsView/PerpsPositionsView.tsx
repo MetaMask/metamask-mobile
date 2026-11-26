@@ -15,7 +15,10 @@ import {
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import {
+  getPositionDirection,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 import { usePerpsLivePositions } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -23,7 +26,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -230,7 +232,7 @@ const PerpsPositionsView: React.FC = () => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={
-                privacyMode
+                privacyMode || totalUnrealizedPnl === undefined
                   ? TextColor.TextDefault
                   : totalUnrealizedPnl >= 0
                     ? TextColor.SuccessDefault

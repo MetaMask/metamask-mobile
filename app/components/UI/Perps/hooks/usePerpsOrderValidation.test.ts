@@ -218,7 +218,7 @@ describe('usePerpsOrderValidation', () => {
       });
       const { result, rerender } = renderHook(
         (params) => usePerpsOrderValidation(params),
-        { initialProps: defaultParams },
+        { initialProps: { ...defaultParams, minimumOrderAmount: 10 } },
       );
       await act(async () => {
         await Promise.resolve();
@@ -230,6 +230,7 @@ describe('usePerpsOrderValidation', () => {
       // Act
       rerender({
         ...defaultParams,
+        minimumOrderAmount: 10,
         positionSize: '0',
       });
 
@@ -294,7 +295,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       const { result } = renderHook(() =>
-        usePerpsOrderValidation(defaultParams),
+        usePerpsOrderValidation({ ...defaultParams, minimumOrderAmount: 10 }),
       );
 
       // Wait a tick for initial validation
@@ -365,6 +366,47 @@ describe('usePerpsOrderValidation', () => {
       });
     });
 
+    it('reports no insufficient balance while the balance is unknown', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: undefined,
+          marginRequired: '10.00',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.insufficientBalanceErrors).toEqual([]);
+    });
+
+    it('blocks the order while the balance is unknown', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: undefined,
+          marginRequired: '10.00',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.isValid).toBe(false);
+      let attempt: ValidationAttempt | undefined;
+      await act(async () => {
+        attempt = await result.current.validateNow();
+      });
+      expect(attempt?.isValid).toBe(false);
+    });
+
     it('excludes the minimum amount error from the insufficient balance errors', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
@@ -374,6 +416,7 @@ describe('usePerpsOrderValidation', () => {
           spendableBalance: 5,
           marginRequired: '10.00',
           originalUsdAmount: '3.59',
+          minimumOrderAmount: 10,
         }),
       );
 
@@ -920,11 +963,58 @@ describe('usePerpsOrderValidation', () => {
       expect(mockValidateOrder).toHaveBeenCalledTimes(2);
     });
 
+    it('skips the local minimum check while the minimum is unknown', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          originalUsdAmount: '1',
+          minimumOrderAmount: undefined,
+        }),
+      );
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Assert: no Hyperliquid $10 fallback; protocol validation still runs
+      expect(result.current.errors).not.toContain('Minimum order size is $10');
+      expect(mockValidateOrder).toHaveBeenCalled();
+    });
+
+    it('shows the placeholder minimum in a protocol minimum error while the minimum is unknown', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          originalUsdAmount: '1',
+          minimumOrderAmount: undefined,
+        }),
+      );
+
+      // Assert
+      await fastWaitFor(() => {
+        expect(result.current.errors).toContain('Minimum order size is $---');
+      });
+      expect(result.current.errors).not.toContain(
+        'Minimum order size is $undefined',
+      );
+    });
+
     it('validates immediately when the amount crosses above the minimum', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
       const belowMinimumParams = {
         ...defaultParams,
         originalUsdAmount: '1',
+        minimumOrderAmount: 10,
       };
       const { result, rerender } = renderHook(
         (props) => usePerpsOrderValidation(props),
@@ -1278,6 +1368,7 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
           orderForm: { ...defaultOrderForm, amount: '5' },
           originalUsdAmount: '5',
+          minimumOrderAmount: 10,
           reduceOnly: true,
           isFullClose: true,
           marginRequired: '0',

@@ -110,7 +110,8 @@ jest.mock('../../../../../util/haptics', () => ({
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
-  formatPerpsFiat: (value: number) => `$${value.toFixed(2)}`,
+  formatPerpsFiat: (value: number | undefined) =>
+    value === undefined ? '$---' : `$${value.toFixed(2)}`,
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
@@ -239,9 +240,8 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
   maxAmount: mode === 'add' ? 1000 : 200,
   currentLiquidationPrice: 1900,
   newLiquidationPrice: mode === 'add' ? 1800 : 1950,
-  currentLiquidationDistance: 5,
-  newLiquidationDistance: mode === 'add' ? 10 : 2.5,
-  spendableBalance: 1000,
+  currentLiquidationDistance: '5.00%',
+  newLiquidationDistance: mode === 'add' ? '10.00%' : '2.50%',
   currentPrice: 2000,
   percentChange24h: 1.5,
   isAddMode: mode === 'add',
@@ -455,8 +455,8 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       ...createMarginData('add'),
       currentLiquidationPrice: 0,
       newLiquidationPrice: 0,
-      currentLiquidationDistance: 0,
-      newLiquidationDistance: 0,
+      currentLiquidationDistance: undefined,
+      newLiquidationDistance: undefined,
     });
 
     render(
@@ -473,6 +473,44 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
     ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+  });
+
+  it('shows placeholders, not zeros, while price, balance and liquidation price are unknown', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      maxAmount: undefined,
+      currentLiquidationPrice: undefined,
+      newLiquidationPrice: undefined,
+      currentLiquidationDistance: undefined,
+      newLiquidationDistance: undefined,
+      currentPrice: undefined,
+      percentChange24h: null,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.AVAILABLE_VALUE,
+      ),
+    ).toHaveTextContent('$---');
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('supports quick amounts while the keypad is open', () => {

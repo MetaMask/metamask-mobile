@@ -1,6 +1,8 @@
 import {
+  MARKET_SORTING_CONFIG,
   PERPS_CONSTANTS,
   parseVolume,
+  sortMarkets,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import type { PerpsMarketDataWithVolumeNumber } from '../hooks/usePerpsMarkets';
@@ -28,9 +30,11 @@ const computeFilteredAndSortedMarkets = (
     return true;
   });
 
-  return filteredData
-    .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
-    .sort((a, b) => b.volumeNumber - a.volumeNumber);
+  return sortMarkets({
+    markets: filteredData,
+    sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
+    direction: 'desc',
+  }).map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }));
 };
 
 const resultsByInput = new WeakMap<
@@ -39,7 +43,8 @@ const resultsByInput = new WeakMap<
 >();
 
 /**
- * Filter out zero/invalid market metrics and sort by volume descending.
+ * Filter out zero/invalid market metrics and sort by volume descending
+ * (Core `sortMarkets`).
  */
 export function filterAndSortMarkets({
   marketData,

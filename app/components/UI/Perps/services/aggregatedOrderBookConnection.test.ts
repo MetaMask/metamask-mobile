@@ -2,6 +2,7 @@ import { AggregatedOrderBookConnection } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import {
   getAggregatedOrderBookConnection,
+  isServerAggregatedOrderBookRoute,
   resetAggregatedOrderBookConnectionForTesting,
 } from './aggregatedOrderBookConnection';
 
@@ -69,4 +70,15 @@ describe('aggregatedOrderBookConnection', () => {
     expect(first).not.toBe(second);
     expect(first.close).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    [undefined, true],
+    ['hyperliquid', true],
+    ['lighter', false],
+  ] as const)(
+    'reports whether route %s reads the server-aggregated book',
+    (providerId, expected) => {
+      expect(isServerAggregatedOrderBookRoute(providerId)).toBe(expected);
+    },
+  );
 });

@@ -13,6 +13,7 @@ import {
   CandlePeriod,
   TimeDuration,
   getPerpsDisplaySymbol,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -78,6 +79,7 @@ const PRO_CHART_BUTTON = {
 } as const;
 interface PerpsProChartPanelProps {
   symbol: string;
+  providerId?: PerpsProviderType;
   selectedCandlePeriod: CandlePeriod;
   isAdvancedChartEnabled: boolean;
   configuredChartLibrary: string;
@@ -115,6 +117,7 @@ interface PerpsProChartPanelProps {
  */
 const PerpsProChartPanel = ({
   symbol,
+  providerId,
   selectedCandlePeriod,
   isAdvancedChartEnabled,
   configuredChartLibrary,
@@ -168,6 +171,7 @@ const PerpsProChartPanel = ({
     deliveryRevision = 0,
   } = usePerpsLiveCandles({
     symbol,
+    ...(providerId && { providerId }),
     interval: selectedCandlePeriod,
     duration: TimeDuration.YearToDate,
     throttleMs: 1000,

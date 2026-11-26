@@ -45,11 +45,11 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  formatPnl,
-  formatPercentage,
   formatPerpsBalance,
+  formatPerpsFiat,
   formatCrossMarginRatio,
 } from '../../utils/formatUtils';
+import { formatAccountPnl } from '../../utils/positionDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   useBottomSafeAreaInset,
@@ -411,8 +411,8 @@ const PerpsHomeView = () => {
     },
   });
 
-  // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const isAggregatePartial = perpsAccount?.aggregate?.status === 'partial';
   const totalBalance = perpsAccount?.totalBalance || '0';
   const spendableBalance = perpsAccount?.spendableBalance || '0';
   const totalBn = BigNumber(totalBalance);
@@ -435,7 +435,7 @@ const PerpsHomeView = () => {
   const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
 
   let availableBalance: React.ReactNode;
-  if (!isBalanceEmpty) {
+  if (!isBalanceEmpty && !isAggregatePartial) {
     const availableBalanceLabel = (
       <PerpsAvailableBalanceLabel
         spendableBalance={spendableBalance}
@@ -460,9 +460,8 @@ const PerpsHomeView = () => {
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
 
-  // Calculate P&L for positions subtitle
-  const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
+  // P&L for positions subtitle; unknown until the account loads
+  const unrealizedPnl = perpsAccount?.unrealizedPnl;
 
   // Fetch all home screen data
   const {
@@ -502,10 +501,11 @@ const PerpsHomeView = () => {
   const hasPositions = positions.length > 0;
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
-      const pnlNum = parseFloat(unrealizedPnl);
+      const parsedPnl = parseFloat(unrealizedPnl ?? '');
+      const pnlNum = Number.isFinite(parsedPnl) ? parsedPnl : undefined;
 
       // Open (filled) positions only — hide when flat so spacing matches homepage sections
-      if (!hasPositions) {
+      if (!hasPositions || isAggregatePartial) {
         return {
           positionsSubtitle: undefined,
           positionsSubtitleColor: undefined,
@@ -514,13 +514,15 @@ const PerpsHomeView = () => {
       }
 
       const color =
-        pnlNum > 0
-          ? TextColor.SuccessDefault
-          : pnlNum < 0
-            ? TextColor.ErrorDefault
-            : TextColor.TextDefault;
+        pnlNum === undefined
+          ? TextColor.TextDefault
+          : pnlNum > 0
+            ? TextColor.SuccessDefault
+            : pnlNum < 0
+              ? TextColor.ErrorDefault
+              : TextColor.TextDefault;
 
-      const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
+      const subtitle = formatAccountPnl(perpsAccount);
       const suffix = strings('perps.unrealized_pnl');
 
       return {
@@ -528,7 +530,7 @@ const PerpsHomeView = () => {
         positionsSubtitleColor: color,
         positionsSubtitleSuffix: suffix,
       };
-    }, [hasPositions, unrealizedPnl, roe]);
+    }, [hasPositions, isAggregatePartial, perpsAccount, unrealizedPnl]);
 
   // Determine if any data is loading for initial load tracking
   // Orders and activity load via WebSocket instantly, only track positions and markets
@@ -1408,7 +1410,7 @@ const PerpsHomeView = () => {
               testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
             }}
             amount={
-              !isBalanceEmpty ? (
+              !isBalanceEmpty || isAggregatePartial ? (
                 <SensitiveText
                   variant={TextVariant.AmountDisplayLg}
                   fontFamily={FontFamily.Hero}
@@ -1417,7 +1419,9 @@ const PerpsHomeView = () => {
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Medium}
                 >
-                  {formatPerpsBalance(totalBalance)}
+                  {isAggregatePartial
+                    ? formatPerpsFiat(undefined)
+                    : formatPerpsBalance(totalBalance)}
                 </SensitiveText>
               ) : undefined
             }

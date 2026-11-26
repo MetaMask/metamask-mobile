@@ -18,15 +18,15 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
+  type CrossMarginRatioTone,
   type PerpsAccountSummary,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  formatAccountLeverage,
   formatCrossMarginRatio,
+  formatLeverage,
   formatPerpsFiat,
 } from '../../utils/formatUtils';
-import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
 import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../constants/perpsConfig';
 import {
   getPerpsCrossMarginSummaryLabelSelector,
@@ -192,11 +192,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
     />
     <SummaryRow
       tooltipKey="account_leverage"
-      value={
-        accountLeverage === undefined
-          ? PERPS_CONSTANTS.FallbackDataDisplay
-          : formatAccountLeverage(accountLeverage)
-      }
+      value={formatLeverage(accountLeverage)}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_LEVERAGE_VALUE}
       onInfoPress={onInfoPress}

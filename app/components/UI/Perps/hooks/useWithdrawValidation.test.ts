@@ -16,8 +16,8 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 // Mock other hooks
-jest.mock('./index', () => ({
-  usePerpsNetwork: jest.fn(),
+jest.mock('./usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(),
 }));
 
 jest.mock('./stream', () => ({
@@ -45,7 +45,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
-import { usePerpsNetwork } from './index';
+import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsLiveAccount } from './stream';
 
 describe('useWithdrawValidation', () => {
@@ -71,10 +71,24 @@ describe('useWithdrawValidation', () => {
       },
       isInitialLoading: false,
     });
-    (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
+    (usePerpsConnection as jest.Mock).mockReturnValue({ isInitialized: true });
     (
       Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
     ).mockReturnValue([mockRoute]);
+  });
+
+  it('reads the route when the connection initializes with an already cached balance', () => {
+    const connection = usePerpsConnection as jest.Mock;
+    connection.mockReturnValue({ isInitialized: false });
+    const { result, rerender } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
+    );
+    expect(result.current.withdrawalRoute).toBeUndefined();
+
+    connection.mockReturnValue({ isInitialized: true });
+    rerender();
+
+    expect(result.current.withdrawalRoute).toEqual(mockRoute);
   });
 
   it('should parse available balance correctly', () => {
@@ -228,7 +242,6 @@ describe('useWithdrawValidation', () => {
   });
 
   it('should handle testnet network', () => {
-    (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
     const testnetRoute = {
       assetId: HYPERLIQUID_ASSET_CONFIGS.usdc.testnet,
       chainId: 'eip155:421614',
@@ -249,5 +262,27 @@ describe('useWithdrawValidation', () => {
     );
 
     expect(result.current.withdrawalRoute).toEqual(testnetRoute);
+  });
+
+  it('selects the Lighter route for a Lighter withdrawal', () => {
+    const lighterRoute = {
+      assetId:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/default',
+      chainId: 'eip155:1',
+      providerId: 'lighter',
+      constraints: { minAmount: '5', fees: { fixed: 0, token: 'USDC' } },
+    };
+    (
+      Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
+    ).mockReturnValue([
+      { ...mockRoute, providerId: 'hyperliquid' },
+      lighterRoute,
+    ]);
+
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100', providerId: 'lighter' }),
+    );
+
+    expect(result.current.withdrawalRoute).toEqual(lighterRoute);
   });
 });

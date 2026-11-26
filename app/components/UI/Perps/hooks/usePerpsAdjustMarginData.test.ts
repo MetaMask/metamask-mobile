@@ -6,12 +6,21 @@ import {
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsMarginAdjustmentLimits } from './usePerpsMarginAdjustmentLimits';
 
 // Mock the dependencies
 jest.mock('./stream', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsLiveAccount: jest.fn(),
   usePerpsLivePrices: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({ useSelector: () => '0xaccount' }));
+
+jest.mock('./usePerpsNetwork', () => ({ usePerpsNetwork: () => 'testnet' }));
+
+jest.mock('./usePerpsMarginAdjustmentLimits', () => ({
+  usePerpsMarginAdjustmentLimits: jest.fn(),
 }));
 
 jest.mock('./usePerpsMarkets', () => ({
@@ -30,6 +39,10 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
 const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
+
+const mockUsePerpsMarginAdjustmentLimits = jest.mocked(
+  usePerpsMarginAdjustmentLimits,
+);
 
 describe('usePerpsAdjustMarginData', () => {
   const mockPosition = {
@@ -95,6 +108,12 @@ describe('usePerpsAdjustMarginData', () => {
         timestamp: Date.now(),
         isTradable: true,
       },
+    });
+
+    // A provider without limits: the streamed figures apply.
+    mockUsePerpsMarginAdjustmentLimits.mockReturnValue({
+      status: 'unavailable',
+      reason: 'provider',
     });
 
     mockUsePerpsMarkets.mockReturnValue({
@@ -170,7 +189,9 @@ describe('usePerpsAdjustMarginData', () => {
       );
 
       expect(result.current.hasValidPositionData).toBe(true);
-      expect(result.current.currentLiquidationPrice).toBe(0);
+      expect(result.current.currentLiquidationPrice).toBeUndefined();
+      expect(result.current.newLiquidationPrice).toBeUndefined();
+      expect(result.current.currentLiquidationDistance).toBeUndefined();
     });
 
     it('returns isLoading true when positions are loading', () => {
@@ -216,19 +237,7 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.positionValue).toBe(50000);
     });
 
-    it('returns available balance from live account', () => {
-      const { result } = renderHook(() =>
-        usePerpsAdjustMarginData({
-          symbol: 'BTC',
-          mode: 'add',
-          inputAmount: 0,
-        }),
-      );
-
-      expect(result.current.spendableBalance).toBe(10000);
-    });
-
-    it('uses safe finite values when live numeric data is malformed', () => {
+    it('keeps malformed price, balance and liquidation price unknown, not 0', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [
           {
@@ -269,10 +278,9 @@ describe('usePerpsAdjustMarginData', () => {
 
       expect(result.current.currentMargin).toBe(0);
       expect(result.current.positionValue).toBe(0);
-      expect(result.current.currentLiquidationPrice).toBe(0);
-      expect(result.current.currentPrice).toBe(0);
-      expect(result.current.spendableBalance).toBe(0);
-      expect(result.current.maxAmount).toBe(0);
+      expect(result.current.currentLiquidationPrice).toBeUndefined();
+      expect(result.current.currentPrice).toBeUndefined();
+      expect(result.current.maxAmount).toBeUndefined();
       expect(Number.isFinite(result.current.positionLeverage)).toBe(true);
       expect(result.current.hasValidPositionData).toBe(false);
     });
@@ -321,25 +329,15 @@ describe('usePerpsAdjustMarginData', () => {
         positions: [{ ...mockPosition, providerId: 'lighter' }],
         isInitialLoading: false,
       });
-      mockUsePerpsLiveAccount.mockReturnValue({
+      // The account hook scopes the aggregated account to the venue.
+      mockUsePerpsLiveAccount.mockImplementation((options) => ({
         account: {
           ...mockAccount,
-          spendableBalance: '13000',
-          providerStates: {
-            hyperliquid: {
-              status: 'available',
-              providerId: 'hyperliquid',
-              state: { ...mockAccount, spendableBalance: '10000' },
-            },
-            lighter: {
-              status: 'available',
-              providerId: 'lighter',
-              state: { ...mockAccount, spendableBalance: '3000' },
-            },
-          },
+          spendableBalance:
+            options?.providerId === 'lighter' ? '3000' : '13000',
         },
         isInitialLoading: false,
-      });
+      }));
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -350,29 +348,18 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.spendableBalance).toBe(3000);
       expect(result.current.maxAmount).toBe(3000);
     });
 
-    it('offers no add max while the position venue has not reported', () => {
+    it('keeps the add max unknown while the position venue has not reported', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, providerId: 'lighter' }],
         isInitialLoading: false,
       });
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          ...mockAccount,
-          providerStates: {
-            hyperliquid: {
-              status: 'available',
-              providerId: 'hyperliquid',
-              state: mockAccount,
-            },
-            lighter: { status: 'pending', providerId: 'lighter' },
-          },
-        },
+      mockUsePerpsLiveAccount.mockImplementation((options) => ({
+        account: options?.providerId === 'lighter' ? null : mockAccount,
         isInitialLoading: false,
-      });
+      }));
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -383,7 +370,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.maxAmount).toBe(0);
+      expect(result.current.maxAmount).toBeUndefined();
     });
 
     it('calculates max removable margin for remove mode', () => {
@@ -430,6 +417,106 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.maxAmount).toBe(2500);
       // The exchange itself accepts up to 8000 - 5000 = 3000
       expect(result.current.exchangeMaxAmount).toBe(3000);
+    });
+  });
+
+  describe('venue limits', () => {
+    it.each([
+      ['add' as const, 315.35],
+      ['remove' as const, 12.5],
+    ])('shows the venue maximum as it is in %s mode', (mode, expected) => {
+      mockUsePerpsMarginAdjustmentLimits.mockReturnValue({
+        status: 'available',
+        maxAdd: '315.35',
+        maxRemove: '12.5',
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({ symbol: 'BTC', mode, inputAmount: 0 }),
+      );
+
+      expect(result.current.maxAmount).toBe(expected);
+    });
+
+    it('removes nothing from a strict isolated market', () => {
+      mockUsePerpsMarginAdjustmentLimits.mockReturnValue({
+        status: 'available',
+        maxAdd: '315.35',
+        maxRemove: '0',
+      });
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, marginUsed: '8000' }],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.maxAmount).toBe(0);
+      expect(result.current.exchangeMaxAmount).toBe(0);
+    });
+
+    it.each([
+      ['add' as const, undefined],
+      ['remove' as const, undefined],
+      ['add' as const, 'account_unknown' as const],
+      ['remove' as const, 'account_unknown' as const],
+    ])(
+      'keeps the %s maximum unknown while the limits are %s',
+      (mode, reason) => {
+        mockUsePerpsMarginAdjustmentLimits.mockReturnValue(
+          reason && { status: 'unavailable', reason },
+        );
+
+        const { result } = renderHook(() =>
+          usePerpsAdjustMarginData({ symbol: 'BTC', mode, inputAmount: 0 }),
+        );
+
+        expect(result.current.maxAmount).toBeUndefined();
+        expect(result.current.exchangeMaxAmount).toBeUndefined();
+      },
+    );
+
+    it('re-reads the limits for the position and settled balance, not its PnL', () => {
+      const { rerender } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+      const first = mockUsePerpsMarginAdjustmentLimits.mock.lastCall?.[0];
+
+      // $100 more PnL: margin, total and PnL all move together.
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          { ...mockPosition, marginUsed: '5100', unrealizedPnl: '600' },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccount,
+          totalBalance: '15100',
+          unrealizedPnl: '600',
+        },
+        isInitialLoading: false,
+      });
+      rerender();
+      const second = mockUsePerpsMarginAdjustmentLimits.mock.lastCall?.[0];
+
+      expect(first).toMatchObject({
+        symbol: 'BTC',
+        contextKey: '0xaccount|testnet',
+        settledBalance: 14500,
+        enabled: true,
+      });
+      expect(second).toEqual(first);
     });
   });
 
@@ -501,12 +588,56 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      // currentPrice = 100000, liquidationPrice = 80000
-      // distance = |100000 - 80000| / 100000 * 100 = 20%
-      expect(result.current.currentLiquidationDistance).toBe(20);
+      // Core formatLiquidationDistance: |100000 - 80000| / 100000 = 20.00%
+      expect(result.current.currentLiquidationDistance).toBe('20.00%');
     });
 
-    it('returns 0 when current price is 0', () => {
+    it('measures the distance from the venue mark when it is known', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '100000',
+          markPrice: '160000',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.currentLiquidationDistance).toBe('50.00%');
+      expect(result.current.currentPrice).toBe(100000);
+    });
+
+    it('measures the distance from the mid when the mark is 0', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '100000',
+          markPrice: '0',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.currentLiquidationDistance).toBe('20.00%');
+    });
+
+    it('returns undefined, never "at liquidation", when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: {
           price: '0',
@@ -524,7 +655,23 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.currentLiquidationDistance).toBe(0);
+      expect(result.current.currentLiquidationDistance).toBeUndefined();
+      expect(result.current.newLiquidationDistance).toBeUndefined();
+    });
+
+    it('returns undefined when there is no live price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.currentPrice).toBeUndefined();
+      expect(result.current.currentLiquidationDistance).toBeUndefined();
     });
   });
 

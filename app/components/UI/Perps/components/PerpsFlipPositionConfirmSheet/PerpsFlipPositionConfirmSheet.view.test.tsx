@@ -41,6 +41,15 @@ const renderFlipSheet = (size: string) => {
 describe('PerpsFlipPositionConfirmSheet', () => {
   beforeEach(() => {
     jest.mocked(Engine.context.PerpsController.flipPosition).mockClear();
+    // Hyperliquid reports its $10 order minimum through order capabilities.
+    jest
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale', 'chase'],
+        orderLimits: { sizeDecimals: 4, minOrderNotionalUsd: 10 },
+      });
   });
 
   it('disables Reverse and names the minimum when the reverse order is under $10 plus slippage', async () => {

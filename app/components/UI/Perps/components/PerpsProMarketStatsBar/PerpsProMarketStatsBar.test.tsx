@@ -7,8 +7,11 @@ import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import type { UsePerpsMarketStatsReturn } from '../../hooks/usePerpsMarketStats';
+import I18n from '../../../../../../locales/i18n';
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: jest.fn((key: string) => key),
 }));
 
@@ -195,6 +198,42 @@ describe('PerpsProMarketStatsBar', () => {
     expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
   });
 
+  describe('in a non-English app language', () => {
+    afterEach(() => {
+      I18n.locale = 'en-US';
+    });
+
+    it('colours a localized zero rate neutrally', () => {
+      I18n.locale = 'de';
+      mockUsePerpsMarketStats.mockReturnValue({
+        ...mockMarketStats,
+        fundingRate: '0,0000%',
+      });
+
+      const { UNSAFE_getAllByType } = renderComponent();
+
+      const fundingRateText = UNSAFE_getAllByType(Text).find(
+        (textElement) => textElement.props.children === '0,0000% / 39:24',
+      );
+      expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
+    });
+
+    it('shows the unknown-rate placeholder, not the zero rate, when there is no rate', () => {
+      I18n.locale = 'de';
+      mockUsePerpsMarketStats.mockReturnValue({
+        ...mockMarketStats,
+        fundingRate: '',
+      });
+
+      const { getByText, queryByText } = renderComponent();
+
+      expect(
+        getByText(`${PERPS_CONSTANTS.FallbackPercentageDisplay} / 39:24`),
+      ).toBeOnTheScreen();
+      expect(queryByText('0,0000% / 39:24')).toBeNull();
+    });
+  });
+
   it('displays a positive threshold funding rate in success color', () => {
     mockUsePerpsMarketStats.mockReturnValue({
       ...mockMarketStats,
@@ -207,6 +246,20 @@ describe('PerpsProMarketStatsBar', () => {
       (textElement) => textElement.props.children === '<0.0001% / 39:24',
     );
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('shows the unknown-rate placeholder in the default colour', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '--%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '--% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('displays a negative threshold funding rate in error color', () => {

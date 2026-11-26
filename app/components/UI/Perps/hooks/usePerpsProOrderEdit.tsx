@@ -18,6 +18,10 @@ import {
   type OrderEditField,
 } from '../utils/orderEditUtils';
 import {
+  NO_ORDER_ACTION_FEE_USD,
+  toCoreTrackingData,
+} from '../utils/orderParams';
+import {
   getOrderPositionDirection,
   isLimitOrderEditable,
   isLimitOrderSizeEditable,
@@ -232,15 +236,15 @@ export const usePerpsProOrderEdit = ({
             field,
             newValue,
             editingOrderLeverage,
-            {
-              totalFee: 0,
+            toCoreTrackingData({
+              totalFee: NO_ORDER_ACTION_FEE_USD,
               marketPrice: getOrderEditMarketPrice(
                 orderToEdit,
                 field,
                 newValue,
               ),
               source: PRO_MARKET_SOURCE,
-            },
+            }),
           ),
           // Size-only edits still send price (venue needs it) but the price
           // does not change — skip the ORDER_PRICE_UPDATED watcher so CUF

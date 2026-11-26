@@ -56,6 +56,7 @@ import {
   limitAssetAmountDecimals,
 } from '../../utils/assetAmountInput';
 import {
+  formatLeverage,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -486,7 +487,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   testID={PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG}
                 >
                   {/* Must be a single string: Tag only wraps string children in <Text>. */}
-                  {`${maxLeverage}x`}
+                  {formatLeverage(maxLeverage)}
                 </Tag>
               ) : null}
             </Box>
@@ -628,13 +629,13 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               label={strings('perps.order.leverage')}
               accessibilityLabel={`${strings(
                 'perps.order.leverage',
-              )}, ${leverage}x`}
+              )}, ${formatLeverage(leverage)}`}
               value={
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                 >
-                  {leverage}x
+                  {formatLeverage(leverage)}
                 </Text>
               }
               onPress={() => navigateWithHaptic('leverage')}

@@ -12,19 +12,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-// Mock BigNumber so percentage-preset tests can assert the base price passed in
-jest.mock('bignumber.js', () => {
-  const MockBigNumber = jest.fn().mockImplementation((value) => ({
-    multipliedBy: jest.fn().mockReturnThis(),
-    toString: jest.fn(() => value.toString()),
-  }));
-  return {
-    __esModule: true,
-    default: MockBigNumber,
-    BigNumber: MockBigNumber,
-  };
-});
-
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
   usePerpsTopOfBook: jest.fn(() => ({
@@ -35,6 +22,15 @@ jest.mock('../../hooks/stream', () => ({
     account: { spendableBalance: '1000' },
     isInitialLoading: false,
   })),
+}));
+
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: () => ({
+    orderCapabilities: {
+      status: 'ready',
+      orderLimits: { sizeDecimals: 4, maxOraclePriceDeviation: 0.95 },
+    },
+  }),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -300,8 +296,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
         ),
       );
 
-      // Verify limit price was updated (BigNumber mock returns base price)
-      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2970');
     });
 
     it('sets price when percentage button is pressed for short orders', () => {
@@ -315,8 +310,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
         ),
       );
 
-      // Verify limit price was updated (BigNumber mock returns base price)
-      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3030');
     });
   });
 
@@ -324,8 +318,6 @@ describe('PerpsLimitPriceBottomSheet', () => {
     it('uses limitPrice as base (not currentPrice) when limitPrice is already set', () => {
       // Regression: old code always used currentPrice, so repeated presses had no effect
       // because the calculated value never changed.
-      const { BigNumber: MockBigNumber } = jest.requireMock('bignumber.js');
-
       render(
         <PerpsLimitPriceBottomSheet
           {...defaultProps}
@@ -335,23 +327,14 @@ describe('PerpsLimitPriceBottomSheet', () => {
         />,
       );
 
-      // Clear constructor calls that may have occurred during rendering
-      MockBigNumber.mockClear();
-
       fireEvent.press(
         screen.getByTestId(
           `${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}-1`,
         ),
       );
 
-      // BigNumber must be called with the limitPrice (3100), not currentPrice (3000).
-      // The mock's toString() returns its constructor argument, so this assertion
-      // would fail on the pre-fix code that always passed currentPrice.
-      const constructorArgs = MockBigNumber.mock.calls.map(
-        ([arg]: [number]) => arg,
-      );
-      expect(constructorArgs).toContain(3100);
-      expect(constructorArgs).not.toContain(3000);
+      // 1% below the limit price (3100), not below the market price (3000).
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3069');
     });
   });
 
@@ -412,8 +395,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       );
       fireEvent.press(pctButton);
 
-      // BigNumber mock returns base price (2.3418) → 5 sig figs → 4 decimals
-      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3418');
+      // 2.3418 × 0.99 = 2.318382 → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3184');
     });
   });
 
@@ -885,16 +868,13 @@ describe('PerpsLimitPriceBottomSheet', () => {
       ).toBeEnabled();
     });
 
-    it('keeps Set enabled for a high limit price still within the ratio band', () => {
-      // Arrange - 30000 is 10x the 3000 market price. The reference price (3000)
-      // is 10% of the limit price, above the 5% floor, so it is allowed. This
-      // guards against a purely additive deviation check that would wrongly
-      // block anything above ~2x the market price.
+    it('keeps Set enabled for a high limit price still within the band', () => {
+      // Arrange - the venue accepts up to 3000 × 1.95 = 5850.
       render(
         <PerpsLimitPriceBottomSheet
           {...defaultProps}
           isClosingPosition
-          limitPrice="30000"
+          limitPrice="5800"
           currentPrice={3000}
         />,
       );

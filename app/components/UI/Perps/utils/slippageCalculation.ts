@@ -2,8 +2,10 @@ import {
   BASIS_POINTS_DIVISOR,
   calculateFinalPositionSize,
   calculateOrderPriceAndSize,
+  estimateOrderBookSlippage,
   type OrderBookData,
 } from '@metamask/perps-controller';
+import { BigNumber } from 'bignumber.js';
 
 export interface EstimatedSlippageParams {
   /** Live order book snapshot (typically from usePerpsLiveOrderBook). */
@@ -99,58 +101,20 @@ export function calculateMarketOrderLiquidity({
     return unavailableLiquidity;
   }
 
-  let filledBaseSize = 0;
-  let weightedPriceSum = 0;
-  let worstPrice: number | null = null;
-
-  for (const level of levels) {
-    const price = Number(level.price);
-    const size = Number(level.size);
-    if (
-      !Number.isFinite(price) ||
-      price <= 0 ||
-      !Number.isFinite(size) ||
-      size <= 0
-    ) {
-      continue;
-    }
-
-    worstPrice =
-      worstPrice === null
-        ? price
-        : isBuy
-          ? Math.max(worstPrice, price)
-          : Math.min(worstPrice, price);
-    const remainingBase = targetBaseSize - filledBaseSize;
-
-    if (remainingBase <= size) {
-      // This level finishes the fill — only take the remaining base size.
-      weightedPriceSum += remainingBase * price;
-      filledBaseSize += remainingBase;
-      break;
-    }
-
-    weightedPriceSum += size * price;
-    filledBaseSize += size;
-  }
-
+  const estimate = estimateOrderBookSlippage({
+    orderBook,
+    isBuy,
+    size: targetBaseSize,
+    referencePrice: midPrice,
+  });
   if (
-    filledBaseSize < targetBaseSize ||
-    filledBaseSize <= 0 ||
-    worstPrice === null
+    !estimate.canFill ||
+    estimate.estimatedSlippageBps === undefined ||
+    estimate.worstSlippageBps === undefined
   ) {
     return { ...unavailableLiquidity, canFillWithinSlippage: false };
   }
 
-  const vwap = weightedPriceSum / filledBaseSize;
-  const slippageBps =
-    ((vwap - midPrice) / midPrice) * BASIS_POINTS_DIVISOR * (isBuy ? 1 : -1);
-  const worstSlippageBps = Math.max(
-    0,
-    ((worstPrice - midPrice) / midPrice) *
-      BASIS_POINTS_DIVISOR *
-      (isBuy ? 1 : -1),
-  );
   let canFillWithinSlippage: boolean | null = null;
   if (maxSlippageBps !== undefined) {
     // Reuse the venue's rounding so the guard checks the actual submitted limit.
@@ -168,13 +132,17 @@ export function calculateMarketOrderLiquidity({
               szDecimals,
             }).formattedPrice,
           );
-    canFillWithinSlippage = isBuy
-      ? worstPrice <= limitPrice
-      : worstPrice >= limitPrice;
+    // Same exact decimals as the estimate, so a level at the limit fills.
+    const limitSlippageBps = new BigNumber(limitPrice)
+      .minus(midPrice)
+      .dividedBy(midPrice)
+      .multipliedBy(BASIS_POINTS_DIVISOR * (isBuy ? 1 : -1))
+      .toNumber();
+    canFillWithinSlippage = estimate.worstSlippageBps <= limitSlippageBps;
   }
   return {
-    estimatedSlippageBps: Math.max(0, slippageBps),
-    worstSlippageBps,
+    estimatedSlippageBps: estimate.estimatedSlippageBps,
+    worstSlippageBps: estimate.worstSlippageBps,
     canFillWithinSlippage,
   };
 }

@@ -403,14 +403,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       callback(cached);
       onDelivery?.('cache');
       subscription.hasReceivedFirstUpdate = true;
-    } else if (cached) {
-      this.prewarmCandles(
-        symbol,
-        interval,
-        params.duration,
-        false,
-        providerId,
-      ).catch((error) => {
+    } else if (cached && providerId === undefined) {
+      // Core's history endpoint ignores the venue, so only a default-routed
+      // cache can refresh from it.
+      this.prewarmCandles(symbol, interval, params.duration).catch((error) => {
         DevLogger.log('CandleStreamChannel: Failed to refresh stale cache', {
           symbol,
           interval,

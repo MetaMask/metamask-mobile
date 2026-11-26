@@ -20,9 +20,9 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
-  type PerpsProviderType,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
@@ -46,6 +46,7 @@ interface PerpsLimitPriceBottomSheetProps {
   onClose: () => void;
   onConfirm: (limitPrice: string) => void;
   asset: string;
+  /** Venue whose deviation limit applies; omitted uses the active route. */
   providerId?: PerpsProviderType;
   limitPrice?: string;
   currentPrice?: number;

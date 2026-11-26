@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
-import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
@@ -22,6 +21,8 @@ import {
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
+  buildFillSizeByOrderKey,
+  getProviderOrderKey,
   transformFillsToTransactions,
   transformOrdersToTransactions,
   transformFundingToTransactions,
@@ -194,24 +195,23 @@ export const usePerpsTransactionHistory = ({
           controller.getFunding({ accountId }, { forceRefresh }),
         ]);
 
-        const orderMap = new Map(orders.map((order) => [order.orderId, order]));
+        // Keyed by providerId + orderId: venue-local order ids can collide
+        // in aggregated mode.
+        const orderMap = new Map(
+          orders.map((order) => [getProviderOrderKey(order), order]),
+        );
 
         // Attaching detailedOrderType allows us to display the TP/SL pill in the trades history list.
         const enrichedFills = fills.map((fill) => ({
           ...fill,
-          detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
+          detailedOrderType: orderMap.get(getProviderOrderKey(fill))
+            ?.detailedOrderType,
         }));
 
-        // Build fill size map: orderId -> total filled size
+        // Build fill size map: order key -> total filled size
         // This allows accurate filled percentage calculation for historical orders,
         // since HyperLiquid's historical orders API returns sz=0 for all completed orders
-        const fillSizeByOrderId = new Map<string, BigNumber>();
-        for (const fill of fills) {
-          if (fill.orderId) {
-            const current = fillSizeByOrderId.get(fill.orderId) || BigNumber(0);
-            fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
-          }
-        }
+        const fillSizeByOrderKey = buildFillSizeByOrderKey(fills);
 
         // Store raw enriched fills so mergedTransactions can merge at fill level
         // (prevents WS partial-snapshot from overwriting correctly aggregated REST data)
@@ -222,7 +222,7 @@ export const usePerpsTransactionHistory = ({
         // so we only need orders, funding, and user history here.
         const orderTransactions = transformOrdersToTransactions(
           orders,
-          fillSizeByOrderId,
+          fillSizeByOrderKey,
         );
         const fundingTransactions = transformFundingToTransactions(funding);
         const userHistoryTransactions = transformUserHistoryToTransactions(
@@ -364,7 +364,7 @@ export const usePerpsTransactionHistory = ({
       // the screen was closed. Force a fresh fetch on mount / reconnect;
       // rate-limit burst absorption comes from the market-switch hooks, not
       // from activity-screen opens.
-      runFetch({ force: true });
+      runFetch({ force: true }).catch(() => undefined);
     }
   }, [skipInitialFetch, prevSkipInitialFetch, runFetch]);
 

@@ -226,7 +226,7 @@ describe('PerpsCancelAllOrdersView', () => {
     });
   });
 
-  it('closes the overlay when cancel all reports a partial success', async () => {
+  it('keeps the overlay open when cancel all reports a partial success', async () => {
     const onClose = jest.fn();
     const cancelOrders = Engine.context.PerpsController
       .cancelOrders as jest.Mock;
@@ -253,8 +253,11 @@ describe('PerpsCancelAllOrdersView', () => {
 
     await waitFor(() => {
       expect(cancelOrders).toHaveBeenCalledWith({ cancelAll: true });
-      expect(onClose).toHaveBeenCalled();
     });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(strings('perps.cancel_all_modal.confirm')),
+    ).toBeOnTheScreen();
   });
 
   it('keeps the overlay open when cancel all fails', async () => {

@@ -1,7 +1,10 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import {
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 import {
   ImpactMoment,
   playImpact,
@@ -459,17 +462,22 @@ describe('PerpsLeverageBottomSheet', () => {
       ).toBe(IconName.TrendUp);
     });
 
-    it('displays 100.00% liquidation distance at 1x leverage', () => {
+    it('hides the distance at 1x leverage without a liquidation quote', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} leverage={1} />);
 
       expect(
         screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+      expect(
+        screen.queryByTestId(
           PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
         ),
-      ).toHaveTextContent('100.00%');
+      ).not.toBeOnTheScreen();
     });
 
-    it('caps liquidation distance at 100.00%', () => {
+    it('formats a near-total distance with Core formatLiquidationDistance', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         'BTC-USD': { price: '100' },
       });
@@ -484,7 +492,7 @@ describe('PerpsLeverageBottomSheet', () => {
         screen.getByTestId(
           PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
         ),
-      ).toHaveTextContent('100.00%');
+      ).toHaveTextContent('99.99%');
     });
 
     it('hides the distance when the API price is unavailable', () => {

@@ -51,6 +51,10 @@ import {
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
 } from '../../utils/orderUtils';
+import {
+  NO_ORDER_ACTION_FEE_USD,
+  toCoreTrackingData,
+} from '../../utils/orderParams';
 
 interface OrderDetailsRouteParams {
   order: Order;
@@ -211,7 +215,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         orderDirection,
         order.size,
         order.symbol,
-        order.orderType,
+        order.triggerOrderType ?? order.orderType,
       ),
     );
 
@@ -219,14 +223,17 @@ const PerpsOrderDetailsView: React.FC = () => {
       const result = await cancelOrder({
         orderId: order.orderId,
         symbol: order.symbol,
-        trackingData: {
-          totalFee,
-          marketPrice: priceMetrics.effectivePrice ?? 0,
+        ...(order.providerId !== undefined
+          ? { providerId: order.providerId }
+          : {}),
+        trackingData: toCoreTrackingData({
+          totalFee: NO_ORDER_ACTION_FEE_USD,
+          marketPrice: priceMetrics.effectivePrice,
           source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
           ...toPerpsEntryAttribution({
             source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
           }),
-        },
+        }),
       });
 
       // Show success/failure toast
@@ -234,7 +241,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         showToast(
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             order.reduceOnly,
-            order.orderType,
+            order.triggerOrderType ?? order.orderType,
             orderDirection,
             order.size,
             order.symbol,
@@ -256,7 +263,6 @@ const PerpsOrderDetailsView: React.FC = () => {
     navigation,
     showToast,
     PerpsToastOptions,
-    totalFee,
     priceMetrics.effectivePrice,
   ]);
 

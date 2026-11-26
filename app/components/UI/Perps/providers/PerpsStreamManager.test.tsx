@@ -379,6 +379,7 @@ describe('PerpsStreamManager', () => {
             bestAsk: '50100',
             spread: '200',
             markPrice: '50050',
+            oraclePrice: '50060',
             isTradable: true,
           },
         ];
@@ -407,12 +408,41 @@ describe('PerpsStreamManager', () => {
           bestAsk: '50100',
           spread: '200',
           markPrice: '50050',
+          oraclePrice: '50060',
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
           isTradable: true,
         },
       });
+    });
+  });
+
+  it('delivers and replays only the requested venue price for a shared symbol', () => {
+    mockSubscribeToPrices.mockReturnValue(jest.fn());
+    const lighterCallback = jest.fn();
+    testStreamManager.prices.subscribeToSymbols({
+      symbols: ['BTC'],
+      providerId: 'lighter',
+      callback: lighterCallback,
+    });
+    const { callback } = mockSubscribeToPrices.mock.calls[0][0];
+    callback([{ symbol: 'BTC', providerId: 'hyperliquid', price: '100' }]);
+    expect(lighterCallback).not.toHaveBeenCalled();
+
+    callback([{ symbol: 'BTC', providerId: 'lighter', price: '200' }]);
+    expect(lighterCallback).toHaveBeenCalledWith({
+      BTC: expect.objectContaining({ providerId: 'lighter', price: '200' }),
+    });
+
+    const cachedCallback = jest.fn();
+    testStreamManager.prices.subscribeToSymbols({
+      symbols: ['BTC'],
+      providerId: 'hyperliquid',
+      callback: cachedCallback,
+    });
+    expect(cachedCallback).toHaveBeenCalledWith({
+      BTC: expect.objectContaining({ providerId: 'hyperliquid', price: '100' }),
     });
   });
 
@@ -530,6 +560,7 @@ describe('PerpsStreamManager', () => {
           bestAsk: undefined,
           spread: undefined,
           markPrice: undefined,
+          oraclePrice: undefined,
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
@@ -630,6 +661,7 @@ describe('PerpsStreamManager', () => {
           bestAsk: undefined,
           spread: undefined,
           markPrice: undefined,
+          oraclePrice: undefined,
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
@@ -4680,6 +4712,46 @@ describe('PerpsStreamManager', () => {
   });
 
   describe('TopOfBookStreamChannel', () => {
+    it('shares a symbol subscription while keeping venue books separate', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+      const hyperliquid = jest.fn();
+      const lighter = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        callback: hyperliquid,
+      });
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: lighter,
+      });
+      const { callback } = mockSubscribeToPrices.mock.calls[0][0];
+
+      callback([
+        {
+          symbol: 'BTC',
+          providerId: 'hyperliquid',
+          bestBid: '100',
+          bestAsk: '101',
+        },
+        {
+          symbol: 'BTC',
+          providerId: 'lighter',
+          bestBid: '200',
+          bestAsk: '201',
+        },
+      ]);
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      expect(hyperliquid).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '100', bestAsk: '101' }),
+      );
+      expect(lighter).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '200', bestAsk: '201' }),
+      );
+    });
+
     it('subscribes to top of book with includeOrderBook flag', () => {
       const callback = jest.fn();
 
@@ -5157,7 +5229,7 @@ describe('PerpsStreamManager', () => {
           symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: undefined,
-          takeProfitCount: 1,
+          takeProfitCount: 0,
           stopLossCount: 0,
         }),
       ]);
@@ -5218,7 +5290,7 @@ describe('PerpsStreamManager', () => {
           takeProfitPrice: undefined,
           stopLossPrice: '2700',
           takeProfitCount: 0,
-          stopLossCount: 1,
+          stopLossCount: 0,
         }),
       ]);
 
@@ -5277,8 +5349,8 @@ describe('PerpsStreamManager', () => {
           symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: '2700',
-          takeProfitCount: 1,
-          stopLossCount: 1,
+          takeProfitCount: 0,
+          stopLossCount: 0,
         }),
       ]);
 
@@ -5342,8 +5414,73 @@ describe('PerpsStreamManager', () => {
           symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: undefined,
-          takeProfitCount: 0,
-          stopLossCount: 0,
+          takeProfitCount: 1,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('keeps the controller trigger counts when a position has several legs', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position with two TP legs and one SL
+      const initialPosition = createMockPosition({
+        takeProfitPrice: undefined,
+        stopLossPrice: '2500',
+        takeProfitCount: 2,
+        stopLossCount: 1,
+      });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update to one TP leg
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2600',
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          takeProfitPrice: '3300',
+          stopLossPrice: '2600',
+          takeProfitCount: 2,
+          stopLossCount: 1,
         }),
       ]);
 
@@ -5408,8 +5545,8 @@ describe('PerpsStreamManager', () => {
         symbol: 'ETH',
         takeProfitPrice: '3300',
         stopLossPrice: '2700',
-        takeProfitCount: 1,
-        stopLossCount: 1,
+        takeProfitCount: 0,
+        stopLossCount: 0,
       });
 
       // Verify BTC position was NOT updated (should keep original values)
@@ -5569,8 +5706,8 @@ describe('PerpsStreamManager', () => {
           leverage: { type: 'isolated', value: 20 },
           takeProfitPrice: '3400',
           stopLossPrice: '2800',
-          takeProfitCount: 1,
-          stopLossCount: 1,
+          takeProfitCount: 0,
+          stopLossCount: 0,
         }),
       ]);
 
@@ -6866,6 +7003,315 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToOrderFills).toHaveBeenCalled();
     });
   });
+
+  describe('availableToTrade channel', () => {
+    const btcValue = {
+      providerId: 'hyperliquid' as const,
+      symbol: 'BTC',
+      long: '8.65',
+      short: '9.65',
+    };
+
+    const lastControllerSubscription = (subscribe: jest.Mock) =>
+      subscribe.mock.calls[subscribe.mock.calls.length - 1][0] as {
+        symbol: string;
+        providerId?: string;
+        callback: (value: typeof btcValue) => void;
+        onError: (error: Error) => void;
+      };
+
+    it('shares one controller subscription between subscribers of a market', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const first = jest.fn();
+      const second = jest.fn();
+
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        callback: first,
+        throttleMs: 0,
+      });
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        callback: second,
+        throttleMs: 0,
+      });
+      lastControllerSubscription(subscribe).callback(btcValue);
+
+      expect(subscribe).toHaveBeenCalledTimes(1);
+      expect(lastControllerSubscription(subscribe)).toMatchObject({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      });
+      expect(first).toHaveBeenCalledWith(btcValue);
+      expect(second).toHaveBeenCalledWith(btcValue);
+    });
+
+    it('gives a later subscriber the cached value of its market', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+      lastControllerSubscription(subscribe).callback(btcValue);
+      const late = jest.fn();
+
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: late,
+      });
+
+      expect(late).toHaveBeenCalledWith(btcValue);
+    });
+
+    it('does not give a reopened market the cached value from before its last subscriber left', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const unsubscribeBtc =
+        testStreamManager.availableToTrade.subscribeToMarket({
+          symbol: 'BTC',
+          callback: jest.fn(),
+          throttleMs: 0,
+        });
+      lastControllerSubscription(subscribe).callback(btcValue);
+      unsubscribeBtc();
+      const reopened = jest.fn();
+
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: reopened,
+        throttleMs: 0,
+      });
+
+      expect(reopened).not.toHaveBeenCalledWith(btcValue);
+      expect(testStreamManager.availableToTrade.getSnapshot()).toBeNull();
+    });
+
+    it('does not give a returning market the cached value from before a switch away', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      lastControllerSubscription(subscribe).callback(btcValue);
+
+      // The form moves to another market, then back to BTC: the value cached
+      // before the switch is stale (a trade in between is not reflected).
+      const unsubscribeEth =
+        testStreamManager.availableToTrade.subscribeToMarket({
+          symbol: 'ETH',
+          callback: jest.fn(),
+          throttleMs: 0,
+        });
+      unsubscribeEth();
+      const returning = jest.fn();
+
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: returning,
+        throttleMs: 0,
+      });
+
+      // The venue value is unknown again until the stream delivers a fresh one.
+      expect(returning).not.toHaveBeenCalled();
+    });
+
+    it('ignores a value reported for another market', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const callback = jest.fn();
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback,
+        throttleMs: 0,
+      });
+
+      lastControllerSubscription(subscribe).callback({
+        ...btcValue,
+        symbol: 'ETH',
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(testStreamManager.availableToTrade.getSnapshot()).toBeNull();
+    });
+
+    it('resets subscribers to unknown on reconnect and streams again', () => {
+      const unsubscribeController = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => unsubscribeController);
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const callback = jest.fn();
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback,
+        throttleMs: 0,
+      });
+      lastControllerSubscription(subscribe).callback(btcValue);
+
+      testStreamManager.clearAllChannels();
+
+      expect(unsubscribeController).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenLastCalledWith(undefined);
+      expect(testStreamManager.availableToTrade.getSnapshot()).toBeNull();
+      expect(subscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps a mounted subscriber unknown after an account clear until the restored stream delivers', () => {
+      // Arrange
+      const unsubscribeController = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => unsubscribeController);
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const callback = jest.fn();
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback,
+        throttleMs: 0,
+      });
+      lastControllerSubscription(subscribe).callback(btcValue);
+
+      // Act: the connection manager clears on account switch, then restores
+      testStreamManager.availableToTrade.clearCache();
+      testStreamManager.availableToTrade.reconnect();
+      const valueWhileHeld =
+        callback.mock.calls[callback.mock.calls.length - 1][0];
+      const nextAccountValue = { ...btcValue, long: '1.00', short: '2.00' };
+      lastControllerSubscription(subscribe).callback(nextAccountValue);
+
+      // Assert
+      expect(unsubscribeController).toHaveBeenCalledTimes(1);
+      expect(subscribe).toHaveBeenCalledTimes(2);
+      expect(valueWhileHeld).toBeUndefined();
+      expect(callback).toHaveBeenLastCalledWith(nextAccountValue);
+    });
+
+    it('reports a stream failure to subscribers and drops the cached value', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const onError = jest.fn();
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: jest.fn(),
+        onError,
+      });
+      lastControllerSubscription(subscribe).callback(btcValue);
+      const failure = new Error('closed');
+
+      lastControllerSubscription(subscribe).onError(failure);
+
+      expect(onError).toHaveBeenCalledWith(failure);
+      expect(testStreamManager.availableToTrade.getSnapshot()).toBeNull();
+    });
+
+    it('moves the stream to the market still subscribed when one unsubscribes', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+      const unsubscribeEth =
+        testStreamManager.availableToTrade.subscribeToMarket({
+          symbol: 'ETH',
+          callback: jest.fn(),
+        });
+
+      unsubscribeEth();
+
+      expect(lastControllerSubscription(subscribe).symbol).toBe('BTC');
+    });
+
+    it('drops a value queued before a stream failure', () => {
+      // Arrange
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const callback = jest.fn();
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback,
+        onError: () => callback(undefined),
+        throttleMs: 1000,
+      });
+      const controller = lastControllerSubscription(subscribe);
+      controller.callback(btcValue);
+      controller.callback({ ...btcValue, long: '7.00' });
+
+      // Act
+      controller.onError(new Error('closed'));
+      jest.advanceTimersByTime(1000);
+
+      // Assert
+      expect(callback).toHaveBeenLastCalledWith(undefined);
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ long: '7.00' }),
+      );
+    });
+
+    it('gives a later subscriber the recovered value without the old failure', () => {
+      // Arrange
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+      const controller = lastControllerSubscription(subscribe);
+      controller.onError(new Error('closed'));
+      controller.callback(btcValue);
+      const late = jest.fn();
+      const lateOnError = jest.fn();
+
+      // Act
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: late,
+        onError: lateOnError,
+      });
+
+      // Assert
+      expect(late).toHaveBeenCalledWith(btcValue);
+      expect(lateOnError).not.toHaveBeenCalled();
+      expect(testStreamManager.availableToTrade.getError()).toBeNull();
+    });
+
+    it('does not report one market failure to a subscriber of another market', () => {
+      // Arrange
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+      lastControllerSubscription(subscribe).onError(new Error('closed'));
+      const ethOnError = jest.fn();
+
+      // Act
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'ETH',
+        callback: jest.fn(),
+        onError: ethOnError,
+      });
+
+      // Assert
+      expect(ethOnError).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
@@ -7236,7 +7682,8 @@ describe('PerpsStreamManager › multi-venue (TAT-4407)', () => {
       const byVenue = Object.fromEntries(updated.map((p) => [p.providerId, p]));
       // Only the edited venue's position shows the optimistic TP/SL.
       expect(byVenue.lighter.takeProfitPrice).toBe('55000');
-      expect(byVenue.lighter.takeProfitCount).toBe(1);
+      // The trigger count stays the controller's until the next stream push.
+      expect(byVenue.lighter.takeProfitCount).toBe(0);
       expect(byVenue.hyperliquid.takeProfitPrice).toBeNull();
       expect(byVenue.hyperliquid.takeProfitCount).toBe(0);
     });

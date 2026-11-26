@@ -65,7 +65,7 @@ export function usePerpsEstimatedSlippage({
   // tick cheap (one VWAP walk).
   const { orderBook, dataSymbol, error } = usePerpsLiveOrderBook({
     symbol,
-    providerId,
+    ...(providerId && { providerId }),
     enabled: enabled && Boolean(symbol),
     levels: PERFORMANCE_CONFIG.SlippageEstimateBookLevels,
     throttleMs: PERFORMANCE_CONFIG.SlippageEstimateThrottleMs,

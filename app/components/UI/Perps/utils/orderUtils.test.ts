@@ -15,8 +15,6 @@ import {
   getOrderDirection,
   willFlipPosition,
   determineMakerStatus,
-  isPriceOutsideDeviationBand,
-  getPriceDeviationBand,
   resolveOracleReferencePrice,
   calculateLimitPriceForPercentage,
   getOrderPriceRowVisibility,
@@ -217,6 +215,7 @@ describe('orderUtils', () => {
         side: 'sell',
         orderType: 'market',
         detailedOrderType: 'Stop Market',
+        triggerOrderType: 'stop_market',
         size: '1',
         originalSize: '1',
         price: '45000',
@@ -238,6 +237,7 @@ describe('orderUtils', () => {
         side: 'sell',
         orderType: 'limit',
         detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit',
         size: '1',
         originalSize: '1',
         price: '55000',
@@ -264,6 +264,7 @@ describe('orderUtils', () => {
           side,
           orderType: 'market',
           detailedOrderType: 'Stop Market',
+          triggerOrderType: 'stop_market',
           size: '1',
           originalSize: '1',
           price: '2800',
@@ -280,6 +281,54 @@ describe('orderUtils', () => {
         expect(result).toBe(expectedLabel);
       },
     );
+
+    it.each([
+      ['scale', 'Scale long'],
+      ['chase', 'Chase long'],
+      ['twap', 'TWAP long'],
+    ] as const)(
+      'labels a %s order with its Core order type',
+      (orderType, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType,
+          size: '1',
+          originalSize: '1',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: false,
+          isTrigger: false,
+        };
+
+        expect(formatOrderLabel(order)).toBe(expectedLabel);
+      },
+    );
+
+    it('labels a trigger from triggerOrderType without venue prose', () => {
+      const order: Order = {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'sell',
+        orderType: 'limit',
+        triggerOrderType: 'take_profit_limit',
+        size: '1',
+        originalSize: '1',
+        price: '55000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        reduceOnly: true,
+        isTrigger: true,
+      };
+
+      expect(formatOrderLabel(order)).toBe('Take limit close long');
+    });
 
     it('formats a legacy trigger without reduce-only as a closing order', () => {
       const order: Order = {
@@ -305,19 +354,20 @@ describe('orderUtils', () => {
 
   describe('formatOrderTypeLabel', () => {
     it.each([
-      ['Stop Limit', 'limit', 'Stop limit'],
-      ['Stop Market', 'market', 'Stop market'],
-      ['Take Profit Limit', 'limit', 'Take limit'],
-      ['Take Profit Market', 'market', 'Take market'],
+      ['Stop Limit', 'stop_limit', 'limit', 'Stop limit'],
+      ['Stop Market', 'stop_market', 'market', 'Stop market'],
+      ['Take Profit Limit', 'take_profit_limit', 'limit', 'Take limit'],
+      ['Take Profit Market', 'take_profit_market', 'market', 'Take market'],
     ] as const)(
       'maps provider type %s to the selected order type label',
-      (detailedOrderType, orderType, expectedLabel) => {
+      (detailedOrderType, triggerOrderType, orderType, expectedLabel) => {
         const order: Order = {
           orderId: '1',
           symbol: 'BTC',
           side: 'buy',
           orderType,
           detailedOrderType,
+          triggerOrderType,
           size: '1',
           originalSize: '1',
           price: '50000',
@@ -1633,69 +1683,6 @@ describe('orderUtils', () => {
 
         expect(result).toBe(false);
       });
-    });
-  });
-
-  describe('isPriceOutsideDeviationBand', () => {
-    const maxDeviation = 0.95;
-
-    it('returns false when the price is within the band', () => {
-      // 3100 is ~3.3% from the 3000 reference, well within the band
-      expect(isPriceOutsideDeviationBand(3100, 3000, maxDeviation)).toBe(false);
-    });
-
-    it('returns false for a high price still within the ratio band', () => {
-      // 30000 is 10x the 3000 reference; the reference is 10% of the price,
-      // above the 5% floor, so it is allowed
-      expect(isPriceOutsideDeviationBand(30000, 3000, maxDeviation)).toBe(
-        false,
-      );
-    });
-
-    it('returns true when the price is far above the band', () => {
-      expect(isPriceOutsideDeviationBand(999999999, 3000, maxDeviation)).toBe(
-        true,
-      );
-    });
-
-    it('returns true when the price is far below the band', () => {
-      // 100 is ~3.3% of the 3000 reference, below the 5% floor
-      expect(isPriceOutsideDeviationBand(100, 3000, maxDeviation)).toBe(true);
-    });
-
-    it('is symmetric with respect to the two prices', () => {
-      expect(isPriceOutsideDeviationBand(3000, 999999999, maxDeviation)).toBe(
-        true,
-      );
-    });
-
-    it.each([
-      ['zero reference price', 1000, 0],
-      ['negative reference price', 1000, -5],
-      ['zero price', 0, 3000],
-      ['negative price', -5, 3000],
-      ['NaN price', Number.NaN, 3000],
-    ])(
-      'returns false for %s (incomplete/invalid data)',
-      (_label, price, ref) => {
-        expect(isPriceOutsideDeviationBand(price, ref, maxDeviation)).toBe(
-          false,
-        );
-      },
-    );
-  });
-
-  describe('getPriceDeviationBand', () => {
-    it('returns the inclusive ratio band around a usable reference', () => {
-      const band = getPriceDeviationBand(2000, 0.95);
-
-      expect(band?.min).toBeCloseTo(100);
-      expect(band?.max).toBeCloseTo(40000);
-    });
-
-    it('returns undefined when the reference is not usable', () => {
-      expect(getPriceDeviationBand(0, 0.95)).toBeUndefined();
-      expect(getPriceDeviationBand(2000, 1)).toBeUndefined();
     });
   });
 });

@@ -165,6 +165,15 @@ describe('PerpsOrderView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Hyperliquid reports its $10 order minimum through order capabilities.
+    jest
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale', 'chase'],
+        orderLimits: { sizeDecimals: 5, minOrderNotionalUsd: 10 },
+      });
     jest
       .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
       .mockReset()
@@ -352,6 +361,38 @@ describe('PerpsOrderView', () => {
       expect(
         screen.queryByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('shows the fee placeholder instead of $0 when the fee quote fails', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockRejectedValue(new Error('fee quote failed'));
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('control'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(calculateFees).toHaveBeenCalled();
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+        ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+      });
     });
 
     it("requests the opposite side as a limit execution (not this market order's own type) and renders both rates for treatment", async () => {
@@ -1875,7 +1916,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
-    // The isolated formula does not describe an order against a cross position.
+    // Without a projection there is no estimate, never the isolated formula.
     expect(
       await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
@@ -1916,6 +1957,71 @@ describe('PerpsOrderView', () => {
     ).not.toBeOnTheScreen();
     await waitForDeferredOrderData();
   });
+
+  it.each([
+    [
+      'the projected price',
+      { available: true, value: 1836 },
+      '$1,836',
+      'cross_liquidation_price',
+    ],
+    [
+      'N/A when the account covers the position',
+      { available: false, reason: 'covered_by_account' },
+      'N/A',
+      'cross_no_liquidation_price',
+    ],
+  ] as const)(
+    'shows %s for an order on an open cross position',
+    async (_label, liquidationPrice, expected, tooltip) => {
+      jest
+        .mocked(Engine.context.PerpsController.previewPositionModify)
+        .mockResolvedValue({
+          status: 'open',
+          kind: 'increase',
+          current: {
+            margin: { available: true, value: 400 },
+            liquidationPrice: { available: false },
+          },
+          resulting: {
+            direction: 'long',
+            size: 2,
+            entryPrice: 2000,
+            leverage: 10,
+            margin: { available: true, value: 300 },
+            liquidationPrice,
+          },
+        });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        crossMarginEnabled: true,
+        initialParams: existingCrossOrderParams,
+        streamOverrides: existingCrossPositionStream,
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(
+            PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+          ),
+        ).toHaveTextContent(expected),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+      ).toHaveTextContent(strings(`perps.tooltips.${tooltip}.content`));
+      jest
+        .mocked(Engine.context.PerpsController.previewPositionModify)
+        .mockResolvedValue({ status: 'none' });
+    },
+  );
 
   it('keeps the isolated liquidation price out of a lite cross order', async () => {
     const { stream } = renderPerpsOrderView({

@@ -11,11 +11,13 @@ import {
 } from '@metamask/design-system-react-native';
 import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { formatFundingPayment } from '../../../../UI/Perps/utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
@@ -35,10 +37,9 @@ import { ActivityDetailsPerpsHero } from './ActivityDetailsPerpsHero';
 import { ActivityDetailsPerpsMetadata } from './ActivityDetailsPerpsMetadata';
 import { ActivityDetailsPerpsStepTimeline } from './ActivityDetailsPerpsStepTimeline';
 import {
+  formatPerpsFiat,
   formatPerpsOrderFee,
-  formatPositiveFiat,
   formatPerpsTransactionDate,
-  formatSignedPerpsFiat,
   getPerpsFundsCtaLabel,
   getPerpsPositionSize,
   getPerpsPriceValue,
@@ -166,7 +167,7 @@ function TradeDetails({
         <ActivityDetailSection>
           <ActivityDetailRow
             label={strings('perps.transactions.position.fees')}
-            value={fill?.fee ? formatPositiveFiat(fill.fee) : undefined}
+            value={fill?.fee ? formatPerpsFiat(fill.fee) : undefined}
             testID={ActivityDetailsSelectorsIDs.FEES_ROW}
           />
           {shouldShowPerpsPnl(fill) ? (
@@ -229,7 +230,7 @@ function OrderDetails({
   );
   const totalFeeValue =
     isFeeLoading || hasFeeError || totalFee === undefined
-      ? '—'
+      ? PERPS_CONSTANTS.FallbackDataDisplay
       : formatPerpsOrderFee(totalFee);
   const orderType = order ? resolvePerpsTransactionOrderType(order) : undefined;
   const { showTriggerPrice, showLimitPrice } =
@@ -354,7 +355,7 @@ function FundingDetails({
                       : TextColor.TextDefault
                   }
                 >
-                  {formatSignedPerpsFiat(funding.feeNumber, isPositive)}
+                  {formatFundingPayment(funding.feeNumber)}
                 </Text>
               ) : undefined
             }

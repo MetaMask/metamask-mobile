@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import {
   type AccountState,
+  type PerpsProviderType,
   type AccountAggregateMetadata,
 } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
@@ -11,6 +12,8 @@ import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccou
 export interface UsePerpsLiveAccountOptions {
   /** Whether to subscribe to account updates. */
   enabled?: boolean;
+  /** Venue-local account; omit for the portfolio-wide snapshot. */
+  providerId?: PerpsProviderType;
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */
   throttleMs?: number;
 }
@@ -44,7 +47,7 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
-  const { enabled = true, throttleMs = 1000 } = options;
+  const { enabled = true, throttleMs = 1000, providerId } = options;
   const streamManager = usePerpsStream();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelAccount = streamManager.account.getSnapshot();
@@ -101,9 +104,19 @@ export function usePerpsLiveAccount(
   }, [enabled, selectedAddress, streamManager, throttleMs]);
 
   const identityMatches = accountAddress === selectedAddress;
+  const venue = providerId ? account?.providerStates?.[providerId] : undefined;
+  const scopedAccount =
+    providerId && account?.providerStates
+      ? venue?.status === 'available'
+        ? venue.state
+        : null
+      : providerId && account?.providerId && account.providerId !== providerId
+        ? null
+        : account;
   return {
-    account: identityMatches ? account : null,
-    isInitialLoading: !identityMatches || isInitialLoading,
+    account: identityMatches ? scopedAccount : null,
+    isInitialLoading:
+      !identityMatches || isInitialLoading || venue?.status === 'pending',
     deliveryRevision,
     aggregate: identityMatches ? aggregate : null,
   };

@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useRef } from 'react';
 import {
-  type PerpsProviderType,
   DECIMAL_PRECISION_CONFIG,
+  isPriceOutsideDeviationBand,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -13,6 +14,7 @@ import {
 } from '../constants/perpsConfig';
 import { usePerpsLivePrices, usePerpsTopOfBook } from './stream';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { usePerpsProvider } from './usePerpsProvider';
 import {
   formatLimitPriceInput,
   formatWithSignificantDigits,
@@ -20,7 +22,6 @@ import {
 import { getLimitPriceDirectionWarning } from '../utils/limitPriceFarFromMarket';
 import {
   calculateLimitPriceForPercentage,
-  isPriceOutsideDeviationBand,
   resolveOracleReferencePrice,
 } from '../utils/orderUtils';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
@@ -44,7 +45,6 @@ export interface PerpsLimitPricePresetTestIDs {
 
 export interface UsePerpsLimitPriceInputParams {
   asset: string;
-  providerId?: PerpsProviderType;
   currentPrice: number;
   /** Direction of the order being placed, i.e. the opposite of a closing position. */
   direction: 'long' | 'short';
@@ -52,12 +52,14 @@ export interface UsePerpsLimitPriceInputParams {
   setLimitPrice: (price: string) => void;
   testIDs: PerpsLimitPricePresetTestIDs;
   /**
-   * Used for direction-warning copy. The 95% venue band applies to every limit
-   * price, opening or closing.
+   * Used for direction-warning copy. The venue's deviation band applies to
+   * every limit price, opening or closing.
    */
   isClosingPosition?: boolean;
   /** Unsubscribes from live price and book data while a modal is hidden. */
   enabled?: boolean;
+  /** Venue whose prices and deviation limit apply; omitted uses the active route. */
+  providerId?: PerpsProviderType;
 }
 
 export interface UsePerpsLimitPriceInputResult {
@@ -85,7 +87,6 @@ export interface UsePerpsLimitPriceInputResult {
  */
 export function usePerpsLimitPriceInput({
   asset,
-  providerId,
   currentPrice: passedCurrentPrice,
   direction,
   limitPrice,
@@ -93,6 +94,7 @@ export function usePerpsLimitPriceInput({
   testIDs,
   isClosingPosition = false,
   enabled = true,
+  providerId,
 }: UsePerpsLimitPriceInputParams): UsePerpsLimitPriceInputResult {
   const { track } = usePerpsEventTracking();
   const inputMethodRef = useRef<string | null>(null);
@@ -111,6 +113,14 @@ export function usePerpsLimitPriceInput({
     currentPriceData?.oraclePrice,
     currentPrice,
   );
+
+  const { orderCapabilities } = usePerpsProvider(
+    enabled ? { symbol: asset, providerId } : undefined,
+  );
+  const maxOraclePriceDeviation =
+    orderCapabilities?.status === 'ready'
+      ? orderCapabilities.orderLimits?.maxOraclePriceDeviation
+      : undefined;
 
   const topOfBook = usePerpsTopOfBook({
     symbol: enabled ? asset : '',
@@ -227,15 +237,19 @@ export function usePerpsLimitPriceInput({
     [limitPrice],
   );
 
-  const exceedsMaxDeviation = useMemo(
+  const deviationError = useMemo(
     () =>
+      maxOraclePriceDeviation !== undefined &&
       isPriceOutsideDeviationBand(
         Number.parseFloat(limitPrice.replace(/[$,]/g, '')),
         referencePrice,
-        LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-      ),
-    [limitPrice, referencePrice],
+        maxOraclePriceDeviation,
+      )
+        ? getLimitPriceTooFarMessage(referencePrice, maxOraclePriceDeviation)
+        : undefined,
+    [limitPrice, maxOraclePriceDeviation, referencePrice],
   );
+  const exceedsMaxDeviation = deviationError !== undefined;
 
   const directionWarning = useMemo(
     () =>
@@ -248,9 +262,7 @@ export function usePerpsLimitPriceInput({
     [currentPrice, direction, isClosingPosition, limitPrice],
   );
 
-  const error = exceedsMaxDeviation
-    ? getLimitPriceTooFarMessage(referencePrice)
-    : directionWarning;
+  const error = deviationError ?? directionWarning;
 
   const trackInputMethod = useCallback(() => {
     if (!inputMethodRef.current) {

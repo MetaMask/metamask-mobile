@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { OrdinaryOrderType } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type OrdinaryOrderType,
+} from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsOrderTransactionView from './PerpsOrderTransactionView';
 import {
@@ -211,6 +214,18 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('100%')).toBeTruthy();
   });
 
+  it('renders the placeholder, not $0, when the order size is unknown', () => {
+    const { order: _order, ...transactionWithoutOrder } = mockTransaction;
+    mockUseRoute.mockReturnValue({
+      params: { transaction: transactionWithoutOrder },
+    });
+
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
+
+    expect(getByText(PERPS_CONSTANTS.FallbackPriceDisplay)).toBeTruthy();
+    expect(queryByText('$0')).toBeNull();
+  });
+
   it('provides connection and stream contexts without an external wrapper', () => {
     render(<PerpsOrderTransactionView />);
 
@@ -248,7 +263,7 @@ describe('PerpsOrderTransactionView', () => {
 
     const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    expect(getByText('—')).toBeTruthy();
+    expect(getByText(PERPS_CONSTANTS.FallbackDataDisplay)).toBeTruthy();
     expect(queryByText('$0')).toBeNull();
   });
 
@@ -261,7 +276,7 @@ describe('PerpsOrderTransactionView', () => {
 
     const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    expect(getByText('—')).toBeTruthy();
+    expect(getByText(PERPS_CONSTANTS.FallbackDataDisplay)).toBeTruthy();
     expect(queryByText('$0')).toBeNull();
   });
 

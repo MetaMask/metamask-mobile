@@ -297,7 +297,10 @@ const OrderSummary = ({
         keyLabel={strings('perps.pro_order_form.est_liquidation')}
         value={liquidationPrice}
         keyTextProps={summaryKeyTextProps}
-        valueTextProps={summaryBeforeAfterValueTextProps}
+        valueTextProps={{
+          ...summaryBeforeAfterValueTextProps,
+          testID: ids.SUMMARY_LIQUIDATION_VALUE,
+        }}
         twClassName={summaryBeforeAfterRowClassName}
         style={summaryRowStyle}
         testID={ids.SUMMARY_LIQUIDATION}

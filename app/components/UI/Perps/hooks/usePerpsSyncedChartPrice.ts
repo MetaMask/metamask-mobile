@@ -3,11 +3,13 @@ import {
   CandlePeriod,
   TimeDuration,
   type CandleData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
 export interface UsePerpsSyncedChartPriceParams {
   symbol: string;
+  providerId?: PerpsProviderType;
   interval: CandlePeriod;
   isAdvancedChartEnabled: boolean;
   marketContextKey?: string;
@@ -39,6 +41,7 @@ export interface UsePerpsSyncedChartPriceResult {
  */
 export function usePerpsSyncedChartPrice({
   symbol,
+  providerId,
   interval,
   isAdvancedChartEnabled,
   marketContextKey = '',
@@ -52,6 +55,7 @@ export function usePerpsSyncedChartPrice({
     deliveryRevision: priceDeliveryRevision = 0,
   } = usePerpsLiveCandles({
     symbol,
+    ...(providerId && { providerId }),
     interval,
     duration: TimeDuration.YearToDate,
     throttleMs: 1000,

@@ -6,8 +6,10 @@ import {
   type OrderBookConnectionStatus,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
-import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
+import {
+  getAggregatedOrderBookConnection,
+  isServerAggregatedOrderBookRoute,
+} from '../../services/aggregatedOrderBookConnection';
 
 // Re-export types from controllers/types for backwards compatibility
 export {
@@ -107,12 +109,12 @@ export function usePerpsLiveOrderBook(
     channel = 'orderBook',
   } = options;
 
-  // The server-aggregated socket only speaks Hyperliquid. Another venue's
-  // ladder comes from its own routed book through the controller.
   const usesAggregatedSocket =
     channel === 'orderBookAggregated' &&
-    (!providerId || providerId === PROVIDER_CONFIG.AggregatedOrderBookProvider);
+    isServerAggregatedOrderBookRoute(providerId);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
+  const [dataRoute, setDataRoute] = useState<string>();
+  const route = JSON.stringify([symbol, providerId, resetKey]);
   const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -175,6 +177,7 @@ export function usePerpsLiveOrderBook(
 
     setOrderBook(null);
     setDataSymbol(null);
+    setDataRoute(route);
     setIsLoading(true);
     setError(null);
     setConnectionStatus(usesAggregatedSocket ? 'connecting' : 'connected');
@@ -281,6 +284,7 @@ export function usePerpsLiveOrderBook(
   }, [
     symbol,
     providerId,
+    route,
     levels,
     nSigFigs,
     mantissa,
@@ -296,14 +300,19 @@ export function usePerpsLiveOrderBook(
 
   return useMemo(
     () => ({
-      orderBook,
-      dataSymbol,
-      isLoading,
-      error,
+      orderBook: dataRoute === route ? orderBook : null,
+      dataSymbol: dataRoute === route ? dataSymbol : null,
+      isLoading:
+        enabled && Boolean(symbol) && (dataRoute !== route || isLoading),
+      error: dataRoute === route ? error : null,
       connectionStatus: usesAggregatedSocket ? connectionStatus : 'connected',
       reconnect,
     }),
     [
+      dataRoute,
+      route,
+      symbol,
+      enabled,
       orderBook,
       dataSymbol,
       isLoading,

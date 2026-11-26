@@ -8,6 +8,7 @@ import type {
 } from '@metamask/perps-controller';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
+import { useRetryOnPriceTick } from './useRetryOnPriceTick';
 
 const IDLE_PREVIEW: PositionModifyPreviewResult = { status: 'none' };
 
@@ -18,7 +19,7 @@ export interface UsePerpsPositionModifyPreviewParams {
   size: string;
   /** Expected fill or resting limit price. */
   price: string;
-  /** Isolated leverage applied to the whole resulting position. */
+  /** Leverage applied to the whole resulting position. */
   leverage: number;
   reduceOnly: boolean;
   /** Estimated trading fees in USD; deducted on increases and flips. */
@@ -29,6 +30,10 @@ export interface UsePerpsPositionModifyPreviewParams {
    * Use for multi-fill order types (Scale/TWAP) that this preview models poorly.
    */
   enabled?: boolean;
+  /** Streamed account figures a Cross projection depends on. */
+  accountKey?: string;
+  /** Moves with every price update; retries a Cross projection without a price. */
+  priceTick?: number;
 }
 
 export interface UsePerpsPositionModifyPreviewOptions {
@@ -37,7 +42,7 @@ export interface UsePerpsPositionModifyPreviewOptions {
 
 /**
  * Projects the position that would remain after a proposed order via
- * `PerpsController.previewPositionModify` (HyperLiquid isolated math).
+ * `PerpsController.previewPositionModify`, isolated or Cross.
  *
  * Margin and liquidation availability are independent on the result. Use
  * `resulting.direction` (not the order direction) when validating TP/SL
@@ -76,14 +81,16 @@ export const usePerpsPositionModifyPreview = (
     feeAmountUsd,
     providerId,
     enabled = true,
+    accountKey,
+    priceTick,
   } = params;
 
   const positionRef = useRef(position);
   positionRef.current = position;
 
   // Streamed Position objects get a new identity on every tick. Key on the
-  // fields that actually change isolated resize math so PnL-only updates do
-  // not cancel in-flight previews.
+  // fields that actually change the resize math so PnL-only updates do not
+  // cancel in-flight previews. A Cross projection reads the account instead.
   const positionKey = position
     ? [
         position.symbol,
@@ -96,6 +103,16 @@ export const usePerpsPositionModifyPreview = (
         position.providerId ?? '',
       ].join('|')
     : '';
+
+  const isCross = position?.leverage.type === 'cross';
+  const crossAccountKey = isCross ? accountKey : undefined;
+  const isCrossPriceMissing =
+    isCross &&
+    enabled &&
+    preview.status === 'open' &&
+    !preview.resulting.liquidationPrice.available &&
+    preview.resulting.liquidationPrice.reason === 'missing_inputs';
+  const attempt = useRetryOnPriceTick(isCrossPriceMissing, priceTick);
 
   const requestParams = useMemo((): PositionModifyPreviewParams | null => {
     const currentPosition = positionRef.current;
@@ -176,12 +193,12 @@ export const usePerpsPositionModifyPreview = (
 
   const previewTarget =
     enabled && position
-      ? `${providerId ?? position.providerId ?? ''}:${position.symbol}`
+      ? `${providerId ?? position.providerId ?? ''}:${position.symbol}:${position.leverage.type}`
       : null;
 
   useEffect(() => {
-    // A different position invalidates the retained preview, so the next
-    // request counts as a first load again. Order/price changes do not.
+    // A different position or margin mode invalidates the retained preview, so
+    // the next request counts as a first load again. Order/price changes do not.
     setPreview(IDLE_PREVIEW);
     setHasSettledPreview(false);
   }, [previewTarget]);
@@ -199,7 +216,7 @@ export const usePerpsPositionModifyPreview = (
       setError(null);
     }
 
-    runPreview(requestParams, generation);
+    void runPreview(requestParams, generation);
 
     return () => {
       runPreview.cancel();
@@ -207,7 +224,9 @@ export const usePerpsPositionModifyPreview = (
         requestGeneration.current += 1;
       }
     };
-  }, [requestParams, runPreview]);
+    // A Cross projection is requested again when the account moves or a retry
+    // is due; neither is a parameter of the call.
+  }, [requestParams, runPreview, crossAccountKey, attempt]);
 
   return {
     preview,

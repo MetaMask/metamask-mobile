@@ -41,7 +41,9 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  getBatchOperationStatus,
   type ClosePositionsResult,
+  type WithBatchOperationStatus,
   type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
@@ -162,8 +164,14 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
 
   // Handle success callback from hook
   const handleSuccess = useCallback(
-    (result: ClosePositionsResult) => {
-      if (result.success && result.successCount > 0) {
+    (
+      result:
+        | ClosePositionsResult
+        | WithBatchOperationStatus<ClosePositionsResult>,
+    ) => {
+      const status =
+        'status' in result ? result.status : getBatchOperationStatus(result);
+      if (status === 'all') {
         showSuccessToast(
           strings('perps.close_all_modal.success_title'),
           strings('perps.close_all_modal.success_message', {
@@ -176,20 +184,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             onExternalClose?.();
           });
         }
-      } else if (result.successCount > 0 && result.failureCount > 0) {
+      } else if (status === 'partial') {
         showSuccessToast(
-          strings('perps.close_all_modal.success_title'),
           strings('perps.close_all_modal.partial_success', {
             successCount: result.successCount,
             totalCount: result.successCount + result.failureCount,
           }),
         );
-        // Close sheet after partial success when using external ref
-        if (externalSheetRef && result.successCount > 0) {
-          sheetRef.current?.onCloseBottomSheet(() => {
-            onExternalClose?.();
-          });
-        }
       }
     },
     [showSuccessToast, externalSheetRef, sheetRef, onExternalClose],

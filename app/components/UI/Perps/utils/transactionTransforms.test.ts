@@ -2,6 +2,8 @@ import { strings } from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
+  buildFillSizeByOrderKey,
+  getProviderOrderKey,
   transformFillsToTransactions,
   transformOrdersToTransactions,
   transformFundingToTransactions,
@@ -198,7 +200,7 @@ describe('transactionTransforms', () => {
 
         expect(transaction.fill).toMatchObject({
           fee: '0',
-          amount: '-$0.00',
+          amount: '$0.00',
           amountNumber: 0,
           isPositive: false,
         });
@@ -1310,6 +1312,26 @@ describe('transactionTransforms', () => {
       expect(result[0].fill?.fillType).toBe(FillType.TakeProfit);
     });
 
+    it('classifies a fill from its Core orderType without venue prose', () => {
+      const tpFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '55000',
+        pnl: '500',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        orderType: 'take_profit',
+      };
+
+      const result = transformFillsToTransactions([tpFill]);
+
+      expect(result[0].fill?.fillType).toBe(FillType.TakeProfit);
+    });
+
     it('should correctly identify stop loss fills', () => {
       const slFill: OrderFill = {
         orderId: '123',
@@ -1929,6 +1951,21 @@ describe('transactionTransforms', () => {
       timestamp: 1640995200000,
     };
 
+    it('labels a trigger order from triggerOrderType without venue prose', () => {
+      const result = transformOrdersToTransactions([
+        {
+          ...mockOrder,
+          side: 'sell',
+          triggerOrderType: 'take_profit_limit',
+          isTrigger: true,
+          reduceOnly: true,
+          triggerPrice: '55000',
+        },
+      ]);
+
+      expect(result[0].title).toBe('Take limit close long');
+    });
+
     const orderTypeCases = [
       {
         orderType: 'market',
@@ -2332,7 +2369,10 @@ describe('transactionTransforms', () => {
         };
 
         const fillSizeByOrderId = new Map<string, BigNumber>();
-        fillSizeByOrderId.set('order-with-fills', BigNumber('0.3'));
+        fillSizeByOrderId.set(
+          getProviderOrderKey({ orderId: 'order-with-fills' }),
+          BigNumber('0.3'),
+        );
 
         // Act
         const result = transformOrdersToTransactions(
@@ -2378,7 +2418,10 @@ describe('transactionTransforms', () => {
         };
 
         const fillSizeByOrderId = new Map<string, BigNumber>();
-        fillSizeByOrderId.set('fully-filled', BigNumber('2'));
+        fillSizeByOrderId.set(
+          getProviderOrderKey({ orderId: 'fully-filled' }),
+          BigNumber('2'),
+        );
 
         // Act
         const result = transformOrdersToTransactions(
@@ -2401,7 +2444,10 @@ describe('transactionTransforms', () => {
         };
 
         const fillSizeByOrderId = new Map<string, BigNumber>();
-        fillSizeByOrderId.set('partial-canceled', BigNumber('7'));
+        fillSizeByOrderId.set(
+          getProviderOrderKey({ orderId: 'partial-canceled' }),
+          BigNumber('7'),
+        );
 
         // Act
         const result = transformOrdersToTransactions(
@@ -2424,7 +2470,10 @@ describe('transactionTransforms', () => {
         };
 
         const fillSizeByOrderId = new Map<string, BigNumber>();
-        fillSizeByOrderId.set('fractional', BigNumber('1'));
+        fillSizeByOrderId.set(
+          getProviderOrderKey({ orderId: 'fractional' }),
+          BigNumber('1'),
+        );
 
         // Act
         const result = transformOrdersToTransactions(
@@ -2535,6 +2584,41 @@ describe('transactionTransforms', () => {
     });
   });
 
+  describe('buildFillSizeByOrderKey', () => {
+    const fill: OrderFill = {
+      orderId: '7',
+      symbol: 'ETH',
+      side: 'buy',
+      size: '2',
+      price: '3000',
+      direction: 'Open Long',
+      fee: '0.1',
+      feeToken: 'USDC',
+      timestamp: 1700000000000,
+    };
+
+    it('sums fills per provider-scoped order id', () => {
+      const sizes = buildFillSizeByOrderKey([
+        { ...fill, providerId: 'hyperliquid' },
+        { ...fill, providerId: 'lighter' },
+        { ...fill, providerId: 'lighter', size: '3' },
+      ]);
+
+      expect(
+        sizes.get(getProviderOrderKey({ ...fill, providerId: 'hyperliquid' })),
+      ).toEqual(new BigNumber(2));
+      expect(
+        sizes.get(getProviderOrderKey({ ...fill, providerId: 'lighter' })),
+      ).toEqual(new BigNumber(5));
+    });
+
+    it('leaves an order with a fill of unknown size without a total', () => {
+      const sizes = buildFillSizeByOrderKey([fill, { ...fill, size: '' }]);
+
+      expect(sizes.has(getProviderOrderKey(fill))).toBe(false);
+    });
+  });
+
   describe('transformFundingToTransactions', () => {
     const mockFunding = {
       symbol: 'ETH',
@@ -2559,7 +2643,7 @@ describe('transactionTransforms', () => {
           isPositive: true,
           fee: '+$5.25',
           feeNumber: 5.25,
-          rate: '0.01%',
+          rate: '0.0100%',
         },
       });
     });
@@ -2578,7 +2662,7 @@ describe('transactionTransforms', () => {
 
       expect(result[0].title).toBe('Paid funding fee');
       expect(result[0].fundingAmount.isPositive).toBe(false);
-      expect(result[0].fundingAmount.fee).toBe('-$3.5');
+      expect(result[0].fundingAmount.fee).toBe('-$3.50');
       expect(result[0].fundingAmount.feeNumber).toBe(-3.5);
     });
 
@@ -2664,7 +2748,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'USDC',
         depositWithdrawal: {
-          amount: '+$1000.00',
+          amount: '+$1,000.00',
           amountNumber: 1000,
           isPositive: true,
           asset: 'USDC',
@@ -2844,7 +2928,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'USDC',
         depositWithdrawal: {
-          amount: '+$1000.00',
+          amount: '+$1,000.00',
           amountNumber: 1000,
           isPositive: true,
           asset: 'USDC',
