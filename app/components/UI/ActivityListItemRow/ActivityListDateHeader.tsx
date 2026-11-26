@@ -32,3 +32,5 @@ export const ActivityListDateHeader = ({
 };
 
 export default ActivityListDateHeader;
+
+// related-jest scope probe: narrow leaf change
