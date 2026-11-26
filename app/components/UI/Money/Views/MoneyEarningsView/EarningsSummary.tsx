@@ -96,7 +96,7 @@ const EarningsSummary = (props: EarningsSummaryProps): React.ReactElement => {
             variant: TextVariant.BodyMd,
             testID: MoneyEarningsViewTestIds.SUMMARY_ROW_VALUE(index),
           }}
-          twClassName="p-0"
+          className="p-0"
           testID={MoneyEarningsViewTestIds.SUMMARY_ROW(index)}
         />
       ))}
@@ -104,7 +104,7 @@ const EarningsSummary = (props: EarningsSummaryProps): React.ReactElement => {
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         testID={MoneyEarningsViewTestIds.SUMMARY_NOTE}
-        twClassName="pt-2 pb-1"
+        className="pb-1 pt-2"
       >
         {strings('money.earnings.payouts_disclaimer')}
       </Text>

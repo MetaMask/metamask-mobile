@@ -130,7 +130,7 @@ const EarningsChart = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             accessibilityRole="alert"
           >
             {strings('money.earnings.error')}
@@ -157,7 +157,7 @@ const EarningsChart = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('money.earnings.empty')}
           </Text>
