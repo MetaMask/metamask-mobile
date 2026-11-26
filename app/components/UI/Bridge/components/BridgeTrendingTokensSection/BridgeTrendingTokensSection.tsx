@@ -145,17 +145,17 @@ const BridgeTrendingTokensSection = ({
   return (
     <>
       <Box
-        twClassName="mt-4 px-4 pb-4"
+        className="mt-4 px-4 pb-4"
         testID={BridgeTrendingTokensSectionTestIds.SECTION}
       >
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
-          twClassName="mt-1 mb-3"
+          className="mt-1 mb-3"
         >
           {strings('trending.trending_tokens')}
         </Text>
-        <Box twClassName="-mx-4 mb-3">
+        <Box className="-mx-4 mb-3">
           <FilterBar
             priceChangeButtonText={priceChangeButtonText}
             onPriceChangePress={() => setActiveBottomSheet('price_change')}

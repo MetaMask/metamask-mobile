@@ -248,7 +248,7 @@ function SwapsLimitOrderActivityPage() {
       style={tw.style('flex-1 bg-default')}
       testID={SwapsLimitOrderActivityPageSelectorsIDs.SCREEN}
     >
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}

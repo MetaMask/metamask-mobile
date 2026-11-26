@@ -33,11 +33,24 @@ export function OrdersEmptyState({
   );
 
   return (
-    <Box alignItems={BoxAlignItems.Center} twClassName="grow pt-12">
+    <Box alignItems={BoxAlignItems.Center} className="grow pt-12">
       <TabEmptyState
         testID={testID}
         icon={
           <Image
+            source={emptyStateIcon}
+            resizeMode="contain"
+            style={tw.style('h-[72px] w-[72px]')}
+            accessible={false}
+          />
+        }
+        description={description}
+        actionButtonText={actionButtonText}
+        onAction={onAction}
+        actionButtonProps={
+          actionButtonTestID ? { testID: actionButtonTestID } : undefined
+        }
+      /><Image
             source={emptyStateIcon}
             resizeMode="contain"
             style={tw.style('h-[72px] w-[72px]')}

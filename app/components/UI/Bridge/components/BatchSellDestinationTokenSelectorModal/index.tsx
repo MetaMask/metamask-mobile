@@ -149,7 +149,7 @@ export function BatchSellDestinationTokenSelectorModal() {
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="min-w-0 flex-1"
+                className="min-w-0 flex-1"
               >
                 <Text
                   variant={TextVariant.BodyMd}

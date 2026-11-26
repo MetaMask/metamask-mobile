@@ -78,11 +78,27 @@ export const TokenWarningBanner = () => {
       testID={SwapsBannersSelectorsIDs.TOKEN_WARNING}
     >
       <BannerBase
-        twClassName={
+        className={
           isMalicious ? ERROR_BANNER_TW_CLASSNAME : WARNING_BANNER_TW_CLASSNAME
         }
         startAccessory={
           <Icon
+            name={securityConfig.iconName}
+            color={securityConfig.iconColor}
+            size={IconSize.Lg}
+          />
+        }
+        description={
+          isMalicious
+            ? strings('bridge.token_warning_malicious_banner', {
+                token: destToken?.symbol,
+              })
+            : strings('bridge.token_warning_suspicious_banner', {
+                token: destToken?.symbol,
+              })
+        }
+        onClose={dismiss}
+      /><Icon
             name={securityConfig.iconName}
             color={securityConfig.iconColor}
             size={IconSize.Lg}

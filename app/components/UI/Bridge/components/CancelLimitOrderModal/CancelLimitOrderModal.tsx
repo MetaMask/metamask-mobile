@@ -72,7 +72,7 @@ export const CancelLimitOrderModal = ({
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={CancelLimitOrderModalSelectorsIDs.DESCRIPTION}
         >
           {strings('bridge.limit.cancel_order_confirmation')}

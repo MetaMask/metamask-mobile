@@ -331,9 +331,9 @@ function OrdersTabs<TOpen, THistory>({
   const activeIndex = selectedTab === OrdersTabKey.History ? 1 : 0;
 
   return (
-    <Box testID={OrdersTabsSelectorsIDs.CONTAINER} twClassName="grow">
+    <Box testID={OrdersTabsSelectorsIDs.CONTAINER} className="grow">
       <Box gap={2}>
-        <Box twClassName="border-t-[1px] border-muted" />
+        <Box className="border-t-[1px] border-muted" />
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}
@@ -348,7 +348,7 @@ function OrdersTabs<TOpen, THistory>({
           testID={OrdersTabsSelectorsIDs.TABS_BAR}
         />
       </Box>
-      <Box twClassName="mx-4 grow gap-4 py-4">
+      <Box className="mx-4 grow gap-4 py-4">
         <OrdersNetworkFilter
           chainIds={
             selectedTab === OrdersTabKey.History

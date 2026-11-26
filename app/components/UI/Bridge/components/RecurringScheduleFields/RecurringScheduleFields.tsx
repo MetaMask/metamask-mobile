@@ -83,7 +83,7 @@ function RecurringNumberCard({
       testID={testID}
       gap={2}
       padding={3}
-      twClassName="min-w-px flex-1 rounded-2xl bg-muted"
+      className="min-w-px flex-1 rounded-2xl bg-muted"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}

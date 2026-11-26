@@ -31,18 +31,18 @@ export function BatchSellEmptyState({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={3}
-      twClassName="flex-1 px-4 py-4"
+      className="flex-1 px-4 py-4"
     >
       <Image
         source={emptyStateDefiLight}
         resizeMode="contain"
         style={tw.style('h-[72px] w-[72px]')}
       />
-      <Box alignItems={BoxAlignItems.Center} gap={3} twClassName="px-4">
+      <Box alignItems={BoxAlignItems.Center} gap={3} className="px-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="w-[240px] text-center"
+          className="w-[240px] text-center"
         >
           {strings('bridge.batch_sell_empty_state_description')}
         </Text>
@@ -50,7 +50,7 @@ export function BatchSellEmptyState({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           onPress={onExploreTokensPress}
-          twClassName="self-center"
+          className="self-center"
           testID={BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON}
         >
           {strings('bridge.explore_tokens')}

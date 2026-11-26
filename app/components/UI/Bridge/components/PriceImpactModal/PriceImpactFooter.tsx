@@ -25,7 +25,7 @@ export function PriceImpactFooter({
   if (type === PriceImpactModalType.Execution) {
     return (
       <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={2}>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
@@ -37,7 +37,7 @@ export function PriceImpactFooter({
             {strings('bridge.proceed')}
           </Button>
         </Box>
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

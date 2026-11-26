@@ -83,7 +83,7 @@ export const OpenLimitOrderDetailsModal = ({
           label={strings('bridge.limit.trigger_condition')}
           testID={OpenLimitOrderDetailsModalSelectorsIDs.TRIGGER_CONDITION}
         >
-          <Box alignItems={BoxAlignItems.End} twClassName="shrink">
+          <Box alignItems={BoxAlignItems.End} className="shrink">
             <TokenAmountValue
               amount={triggerPrice}
               prefix={
@@ -96,7 +96,7 @@ export const OpenLimitOrderDetailsModal = ({
               <Text
                 variant={TextVariant.BodySm}
                 color={triggerComparisonColor}
-                twClassName="text-right"
+                className="text-right"
                 testID={
                   OpenLimitOrderDetailsModalSelectorsIDs.TRIGGER_COMPARISON
                 }

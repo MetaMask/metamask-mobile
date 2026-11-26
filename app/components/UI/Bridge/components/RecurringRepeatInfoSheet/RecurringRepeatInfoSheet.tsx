@@ -43,7 +43,7 @@ const RecurringRepeatInfoSheet = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={RecurringRepeatInfoSheetSelectorsIDs.BODY}
         >
           {strings('bridge.recurring.repeat_info_body')}
