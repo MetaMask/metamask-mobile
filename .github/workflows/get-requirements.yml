@@ -23,6 +23,12 @@ on:
       changed_cv_test_files:
         description: 'Space-separated list of changed component view test file paths (*.view.test.tsx) only — never the full changed-file list. The component-view-flakiness-detection job uses this to re-run modified CV tests N times for flakiness detection on PRs targeting main.'
         value: ${{ jobs.detect-changes.outputs.changed_cv_test_files }}
+      jest_related_only:
+        description: 'Whether the unit, component-view and integration Jest jobs should run only the tests related to the changed files (jest --findRelatedTests). True only for pull requests that change no Jest config, setup file, mock, fixture, test utility, dependency manifest or .github file and whose changed source file list is usable. False means the full sharded suite runs (merge queue, push, schedule, manual runs, and every pull request that does not qualify).'
+        value: ${{ jobs.detect-changes.outputs.jest_related_only }}
+      jest_related_files:
+        description: 'Newline-separated list of changed source files (deleted files excluded) to pass to jest --findRelatedTests. Empty unless jest_related_only is true.'
+        value: ${{ jobs.detect-changes.outputs.jest_related_files }}
       block_merge_for_e2e_readiness:
         description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
         value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
@@ -57,6 +63,8 @@ jobs:
       ios_e2e_needed: ${{ steps.set-e2e-outputs.outputs.ios_final }}
       changed_spec_files: ${{ steps.set-e2e-outputs.outputs.changed_spec_files }}
       changed_cv_test_files: ${{ steps.cv-test-files.outputs.changed_cv_test_files }}
+      jest_related_only: ${{ steps.jest-scope.outputs.jest_related_only || 'false' }}
+      jest_related_files: ${{ steps.jest-scope.outputs.jest_related_files }}
       block_merge_for_e2e_readiness: ${{ steps.set-e2e-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-e2e-outputs.outputs.run_smart_e2e_selection }}
       run_smart_e2e_contracts: ${{ steps.filter.outputs.smart_e2e_contracts }}
@@ -166,6 +174,73 @@ jobs:
         with:
           filters: .github/rules/filter-rules.yml
           list-files: shell
+
+      # Decide whether the Jest jobs can run only the tests related to the files a
+      # pull request changes. Anything that is not a plain pull request, or that
+      # Jest cannot follow through the import graph (see jest_full_run_triggers in
+      # filter-rules.yml), keeps the full sharded suite. The file list ends up in
+      # command-line arguments of the Jest shards, so it is capped and validated
+      # here; a list that is too long or has an unusual path falls back to the full
+      # suite. Deleted files are dropped because Jest cannot resolve them.
+      # Put [full-jest] in the head commit message to force the full suite.
+      - name: Resolve Jest test scope
+        id: jest-scope
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          JEST_FULL_RUN_TRIGGERS_COUNT: ${{ steps.filter.outputs.jest_full_run_triggers_count }}
+          JEST_RELATED_CANDIDATES_COUNT: ${{ steps.filter.outputs.jest_related_candidates_count }}
+          JEST_RELATED_CANDIDATES_LIST: ${{ steps.filter.outputs.jest_related_candidates_count <= 300 && steps.filter.outputs.jest_related_candidates_files || '' }}
+        run: |
+          set -f
+          MAX_FILES=300
+          related=false
+          reason=""
+          files=()
+
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
+            reason="${GITHUB_EVENT_NAME} runs always use the full suite"
+          elif git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[full-jest]'; then
+            reason="[full-jest] tag in the head commit message"
+          elif [[ "${JEST_FULL_RUN_TRIGGERS_COUNT:-0}" -gt 0 ]]; then
+            reason="${JEST_FULL_RUN_TRIGGERS_COUNT} changed file(s) can affect every test (Jest config, setup, mocks, fixtures, test utilities, dependencies or .github)"
+          elif [[ "${JEST_RELATED_CANDIDATES_COUNT:-0}" -eq 0 ]]; then
+            reason="no changed file that Jest can follow"
+          elif [[ "${JEST_RELATED_CANDIDATES_COUNT}" -gt "$MAX_FILES" ]]; then
+            reason="${JEST_RELATED_CANDIDATES_COUNT} changed source files (cap ${MAX_FILES})"
+          else
+            for file in $JEST_RELATED_CANDIDATES_LIST; do
+              if [[ ! "$file" =~ ^[A-Za-z0-9_./@+-]+$ ]]; then
+                files=()
+                reason="unsafe path '${file}'"
+                break
+              fi
+              [ -f "$file" ] && files+=("$file")
+            done
+            if [[ -z "$reason" ]]; then
+              if [[ "${#files[@]}" -eq 0 ]]; then
+                reason="every changed source file was deleted"
+              else
+                related=true
+                reason="${#files[@]} changed source file(s)"
+              fi
+            fi
+          fi
+
+          echo "-> jest_related_only=${related} (${reason})"
+          echo "jest_related_only=${related}" >> "$GITHUB_OUTPUT"
+          if [[ "$related" == "true" ]]; then
+            {
+              echo "jest_related_files<<JEST_RELATED_FILES_EOF"
+              printf '%s\n' "${files[@]}"
+              echo "JEST_RELATED_FILES_EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "### Jest test scope"
+            echo "- Mode: $([[ "$related" == "true" ]] && echo 'related tests only (jest --findRelatedTests)' || echo 'full sharded suite')"
+            echo "- Reason: ${reason}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Changed component view test files for flakiness detection. Mirrors
       # changed_spec_files: PRs targeting main only, emitted as a heredoc so a
