@@ -133,15 +133,37 @@ jest.mock('../../../hooks/useFollowToggle', () => ({
   }),
 }));
 
+type RunNavigation = (navigate: () => void) => void;
+
+const mockFollowSetupOptions = jest.fn();
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
-  useFollowWithNotificationSetup: () => ({
-    followWithSetup: (_isFollowing: boolean, perform: () => void) => perform(),
-  }),
+  useFollowWithNotificationSetup: (
+    options: unknown,
+  ): {
+    followWithSetup: (isFollowing: boolean, perform: () => void) => void;
+  } => {
+    mockFollowSetupOptions(options);
+    return {
+      followWithSetup: (_isFollowing: boolean, perform: () => void): void =>
+        perform(),
+    };
+  },
 }));
 
+// A blocked gate opens onboarding through the caller's `runNavigation`.
 jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
-  useRequireSocialProfileOnboarding: () => ({
-    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  useRequireSocialProfileOnboarding: ({
+    runNavigation,
+  }: { runNavigation?: RunNavigation } = {}): {
+    ensureSocialProfileOnboarding: () => boolean;
+  } => ({
+    ensureSocialProfileOnboarding: (): boolean => {
+      const canContinue = mockEnsureSocialProfileOnboarding();
+      if (!canContinue) {
+        runNavigation?.(() => mockNavigate('SocialProfileOnboardingView'));
+      }
+      return canContinue;
+    },
   }),
 }));
 
@@ -158,8 +180,18 @@ jest.mock('../navigation/socialTraderDeeplink', () => ({
 }));
 
 jest.mock('../terms/useSocialTermsGate', () => ({
-  useSocialTermsGate: () => ({
-    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
+  useSocialTermsGate: ({
+    runNavigation,
+  }: { runNavigation?: RunNavigation } = {}): {
+    ensureSocialTermsAccepted: (onAccepted?: () => void) => boolean;
+  } => ({
+    ensureSocialTermsAccepted: (onAccepted?: () => void): boolean => {
+      const canContinue = mockEnsureSocialTermsAccepted(onAccepted);
+      if (!canContinue) {
+        runNavigation?.(() => mockNavigate('SocialProfileOnboardingView'));
+      }
+      return canContinue;
+    },
   }),
 }));
 
@@ -1572,6 +1604,47 @@ describe('PositionDetailsSheet', () => {
       act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
 
       expect(mockOpenPerpsOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the sheet before opening onboarding for a blocked copy trade', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+      expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('closes the sheet before opening onboarding when the terms are not accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+    });
+
+    it('closes the sheet before Follow opens onboarding', () => {
+      render(<PositionDetailsSheet />);
+      const next = jest.fn();
+
+      mockFollowSetupOptions.mock.lastCall?.[0].runNavigation(next);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledTimes(1);
     });
 
     it('skips copy trade when there is no linked social wallet', () => {
