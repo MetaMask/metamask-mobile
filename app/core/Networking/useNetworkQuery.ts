@@ -38,12 +38,13 @@ async function getJson<QueryFnData>(
 }
 
 /**
- * Aborts the request after the device's hung threshold, the same one the
- * latency signal uses, and fails with `NetworkTimeoutError` even if the
- * native request ignores the abort, so a stall still reaches retry and the
- * error state. Query cancellation aborts the request too.
+ * One attempt; `retry` decides whether another follows. Aborts the request
+ * after the device's hung threshold, the same one the latency signal uses,
+ * and fails with `NetworkTimeoutError` even if the native request ignores the
+ * abort, so a stall still reaches retry and the error state. Query
+ * cancellation aborts the request too.
  */
-async function request<QueryFnData>(
+async function runAttempt<QueryFnData>(
   url: string,
   parse: (body: unknown) => QueryFnData,
   querySignal: AbortSignal,
@@ -119,7 +120,7 @@ export function useNetworkQuery<
   return useQuery({
     ...options,
     queryFn: async ({ signal }): Promise<QueryFnData> =>
-      request(url, parse, signal),
+      runAttempt(url, parse, signal),
     gcTime,
     retry: shouldRetry,
     refetchInterval: () => resolvePollInterval(refetchInterval),
