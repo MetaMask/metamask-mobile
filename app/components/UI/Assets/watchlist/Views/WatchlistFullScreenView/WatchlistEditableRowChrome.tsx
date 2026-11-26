@@ -1,10 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import {
-  Pressable,
-  View,
-  type AccessibilityActionEvent,
-  type AccessibilityActionInfo,
-} from 'react-native';
+import React from 'react';
+import { Pressable, View } from 'react-native';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -13,11 +8,9 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { useReorderableDrag } from 'react-native-reorderable-list';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { fireImpact, ImpactMoment } from '../../../../../../util/haptics';
-import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import { useWatchlistRowReorder } from './useWatchlistRowReorder';
 import styleSheet from './WatchlistFullScreenView.styles';
 
 interface WatchlistEditableRowChromeProps {
@@ -44,35 +37,8 @@ const WatchlistEditableRowChrome = ({
   children,
 }: WatchlistEditableRowChromeProps): React.JSX.Element => {
   const { styles } = useStyles(styleSheet, {});
-  const drag = useReorderableDrag();
-
-  const handleLongPress = useCallback(() => {
-    fireImpact(ImpactMoment.SliderGrip);
-    drag();
-  }, [drag]);
-
-  const accessibilityActions = useMemo<AccessibilityActionInfo[]>(
-    () => [
-      ...(onMoveUp
-        ? [{ name: 'moveUp', label: strings('token_watchlist.move_up') }]
-        : []),
-      ...(onMoveDown
-        ? [{ name: 'moveDown', label: strings('token_watchlist.move_down') }]
-        : []),
-    ],
-    [onMoveDown, onMoveUp],
-  );
-
-  const handleAccessibilityAction = useCallback(
-    (event: AccessibilityActionEvent) => {
-      if (event.nativeEvent.actionName === 'moveUp') {
-        onMoveUp?.();
-      } else if (event.nativeEvent.actionName === 'moveDown') {
-        onMoveDown?.();
-      }
-    },
-    [onMoveDown, onMoveUp],
-  );
+  const { handleLongPress, accessibilityActions, handleAccessibilityAction } =
+    useWatchlistRowReorder({ enabled: isEditMode, onMoveUp, onMoveDown });
 
   const rowBody = (
     <>

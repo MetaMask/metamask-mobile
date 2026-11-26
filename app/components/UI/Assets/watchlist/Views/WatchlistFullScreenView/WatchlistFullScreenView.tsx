@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import Animated, {
   FadeIn,
@@ -66,6 +66,7 @@ import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags'
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useUnifiedWatchlist } from '../../../../Watchlist/hooks/useUnifiedWatchlist';
+import { useUnifiedWatchlistPerpsHandlers } from '../../../../Watchlist/hooks/useUnifiedWatchlistPerpsHandlers';
 import { useOptimisticPerpsWatchlist } from '../../../../Watchlist/hooks/useOptimisticPerpsWatchlist';
 import type {
   UnifiedWatchlistItem,
@@ -79,8 +80,6 @@ import {
   selectWatchlistSuggestions,
 } from '../../../../Watchlist/utils';
 import WatchlistErrorRow from '../../../../Watchlist/WatchlistErrorRow';
-import { usePerpsNavigation } from '../../../../Perps/hooks/usePerpsNavigation';
-import { usePerpsWatchlistActions } from '../../../../Perps/hooks/usePerpsWatchlistActions';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   PerpsStreamProvider,
@@ -417,7 +416,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     tokenMembershipAssetIds,
     perpsMembershipSymbols,
     tokenCount,
-    perpsCount,
     orderError,
     isInitialLoading,
     isOrderReady,
@@ -430,11 +428,16 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const addTokenMutation = useTokenWatchlistAddItemMutation();
   const removeTokenMutation = useTokenWatchlistRemoveItemMutation();
   const analytics = useAnalytics();
-  const { addToWatchlist: addPerpToWatchlist, removeFromWatchlist } =
-    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
-      showToasts: false,
-    });
-  const { navigateToMarketDetails } = usePerpsNavigation();
+  const {
+    addPerpToWatchlist,
+    removePerpFromWatchlist,
+    handlePerpPress,
+    retryHandler: retryLoadHandler,
+  } = useUnifiedWatchlistPerpsHandlers({
+    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+    canRefresh,
+    refresh,
+  });
 
   const [activeFilter, setActiveFilter] = useState<WatchlistFilter>('all');
   const [isDragging, setIsDragging] = useState(false);
@@ -464,7 +467,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     persistedPerps: perps.items,
     perpsMembershipSymbols,
     addPerpToWatchlist,
-    removePerpFromWatchlist: removeFromWatchlist,
+    removePerpFromWatchlist,
     onPerpAdded: handlePerpAdded,
   });
 
@@ -482,6 +485,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           : (tokens.error ?? perps.error)),
   );
 
+  const displayedPerpsCount = watchlistedPerpSymbols.length;
   const watchedItemCount = displayOrderedItems.length;
   const hasWatchlist = watchedItemCount > 0;
   const remainingSuggestedCount = Math.max(
@@ -597,13 +601,16 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           .addProperties({
             filter,
             token_count: tokenCount,
-            perps_count: perpsCount,
+            perps_count: displayedPerpsCount,
           })
           .build(),
       );
     },
-    [analytics, perpsCount, tokenCount],
+    [analytics, displayedPerpsCount, tokenCount],
   );
+
+  const latestOrderedItemsRef = useRef(displayOrderedItems);
+  latestOrderedItemsRef.current = displayOrderedItems;
 
   const isReorderEnabled =
     activeFilter === 'all' &&
@@ -617,10 +624,15 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       if (!isReorderEnabled) {
         return;
       }
-      const nextItems = reorderWatchlistItems(orderedItems, from, to);
+      const nextItems = reorderWatchlistItems(
+        latestOrderedItemsRef.current,
+        from,
+        to,
+      );
+      latestOrderedItemsRef.current = nextItems;
       persistOrder(nextItems.map((item) => item.key)).catch(() => undefined);
     },
-    [isReorderEnabled, orderedItems, persistOrder],
+    [isReorderEnabled, persistOrder],
   );
 
   const renderItem = useCallback(
@@ -633,19 +645,12 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
         <WatchlistReorderableRow
           item={item}
           position={index}
+          itemCount={visibleItems.length}
           isDragEnabled={isReorderEnabled}
           canUseLivePerpsPrices={canUseLivePerpsPrices}
+          onPerpPress={handlePerpPress}
           onRemoveFromWatchlist={handleRemoveFromWatchlist}
-          onMoveUp={
-            isReorderEnabled && index > 0
-              ? () => handleReorder({ from: index, to: index - 1 })
-              : undefined
-          }
-          onMoveDown={
-            isReorderEnabled && index < visibleItems.length - 1
-              ? () => handleReorder({ from: index, to: index + 1 })
-              : undefined
-          }
+          onReorder={handleReorder}
         />
       </Animated.View>
     ),
@@ -653,6 +658,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       canUseLivePerpsPrices,
       enterAnimation,
       exitAnimation,
+      handlePerpPress,
       handleRemoveFromWatchlist,
       handleReorder,
       isReorderEnabled,
@@ -679,12 +685,8 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           onAddPress={handleAddToken}
           tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
           rowTwClassName="px-4"
-          onPerpPress={(market) =>
-            navigateToMarketDetails(
-              market,
-              PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-            )
-          }
+          headerTwClassName="mb-1 px-4 pt-2"
+          onPerpPress={handlePerpPress}
           onAddPerpPress={handleAddPerp}
           canUseLivePerpsPrices={canUseLivePerpsPrices}
           enableMotion={canUseMotion}
@@ -697,10 +699,10 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     canUseMotion,
     handleAddPerp,
     handleAddToken,
+    handlePerpPress,
     hasSuggestions,
     hasWatchlist,
     layoutAnimation,
-    navigateToMarketDetails,
     visibleSuggestions,
   ]);
 
@@ -736,12 +738,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     ),
     [activeFilter, handleFilterChange],
   );
-
-  const retryLoadHandler = canRefresh
-    ? (): void => {
-        refresh().catch(() => undefined);
-      }
-    : undefined;
 
   const renderContent = (): React.ReactNode => {
     if (!hasItems && hasActiveError && !hasSuggestions) {
@@ -804,7 +800,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   return (
     <WatchlistFullScreenShell
       tokenCount={tokenCount}
-      perpsCount={perpsCount}
+      perpsCount={displayedPerpsCount}
       isUnified
       activeFilter={activeFilter}
       canUseLivePerpsPrices={canUseLivePerpsPrices}

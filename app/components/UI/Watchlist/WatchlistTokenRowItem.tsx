@@ -85,7 +85,11 @@ const WatchlistTokenRowItem = ({
     [caipChainId],
   );
 
-  const priceChange = Number(token.priceChangePct?.h24);
+  const rawPriceChange = token.priceChangePct?.h24;
+  const priceChange =
+    rawPriceChange != null && rawPriceChange !== ''
+      ? Number(rawPriceChange)
+      : Number.NaN;
   const hasPriceChange = Number.isFinite(priceChange);
   const subvalue =
     Number(token.price) === 0

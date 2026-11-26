@@ -1,75 +1,57 @@
-import React, { useCallback, useMemo } from 'react';
-import {
-  View,
-  type AccessibilityActionEvent,
-  type AccessibilityActionInfo,
-} from 'react-native';
-import { useReorderableDrag } from 'react-native-reorderable-list';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
+import type { ReorderableListReorderEvent } from 'react-native-reorderable-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsMarketRowItem from '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
-import { usePerpsNavigation } from '../../../../Perps/hooks/usePerpsNavigation';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import WatchlistTokenRowItem from '../../../../Watchlist/WatchlistTokenRowItem';
 import WatchlistUnavailablePerpRow from '../../../../Watchlist/WatchlistUnavailablePerpRow';
 import type { UnifiedWatchlistItem } from '../../../../Watchlist/types';
-import { fireImpact, ImpactMoment } from '../../../../../../util/haptics';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
-import { strings } from '../../../../../../../locales/i18n';
+import { useWatchlistRowReorder } from './useWatchlistRowReorder';
 
 interface WatchlistReorderableRowProps {
   item: UnifiedWatchlistItem;
   position: number;
+  itemCount: number;
   isDragEnabled: boolean;
   canUseLivePerpsPrices: boolean;
+  onPerpPress: (market: PerpsMarketData) => void;
   onRemoveFromWatchlist: (item: UnifiedWatchlistItem) => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
+  onReorder: (event: ReorderableListReorderEvent) => void;
 }
 
 const WatchlistReorderableRow = ({
   item,
   position,
+  itemCount,
   isDragEnabled,
   canUseLivePerpsPrices,
+  onPerpPress,
   onRemoveFromWatchlist,
-  onMoveUp,
-  onMoveDown,
+  onReorder,
 }: WatchlistReorderableRowProps): React.JSX.Element => {
   const tw = useTailwind();
-  const { navigateToMarketDetails } = usePerpsNavigation();
-  const drag = useReorderableDrag();
 
-  const handleLongPress = useCallback(() => {
-    if (!isDragEnabled) {
-      return;
-    }
+  const handleRemove = useCallback(() => {
+    onRemoveFromWatchlist(item);
+  }, [item, onRemoveFromWatchlist]);
 
-    fireImpact(ImpactMoment.SliderGrip);
-    drag();
-  }, [drag, isDragEnabled]);
+  const handleMoveUp = useCallback(() => {
+    onReorder({ from: position, to: position - 1 });
+  }, [onReorder, position]);
 
-  const accessibilityActions = useMemo<AccessibilityActionInfo[]>(
-    () => [
-      ...(onMoveUp
-        ? [{ name: 'moveUp', label: strings('token_watchlist.move_up') }]
-        : []),
-      ...(onMoveDown
-        ? [{ name: 'moveDown', label: strings('token_watchlist.move_down') }]
-        : []),
-    ],
-    [onMoveDown, onMoveUp],
-  );
+  const handleMoveDown = useCallback(() => {
+    onReorder({ from: position, to: position + 1 });
+  }, [onReorder, position]);
 
-  const handleAccessibilityAction = useCallback(
-    (event: AccessibilityActionEvent) => {
-      if (event.nativeEvent.actionName === 'moveUp') {
-        onMoveUp?.();
-      } else if (event.nativeEvent.actionName === 'moveDown') {
-        onMoveDown?.();
-      }
-    },
-    [onMoveDown, onMoveUp],
-  );
+  const { handleLongPress, accessibilityActions, handleAccessibilityAction } =
+    useWatchlistRowReorder({
+      enabled: isDragEnabled,
+      onMoveUp: isDragEnabled && position > 0 ? handleMoveUp : undefined,
+      onMoveDown:
+        isDragEnabled && position < itemCount - 1 ? handleMoveDown : undefined,
+    });
 
   const rowContent =
     item.kind === 'token' ? (
@@ -77,7 +59,7 @@ const WatchlistReorderableRow = ({
         token={item.token}
         position={position}
         onLongPress={isDragEnabled ? handleLongPress : undefined}
-        onWatchlistPress={() => onRemoveFromWatchlist(item)}
+        onWatchlistPress={handleRemove}
         isWatchlisted
         showTypeTag
         twClassName="px-4"
@@ -93,22 +75,17 @@ const WatchlistReorderableRow = ({
         twClassName="px-4"
         enableLivePrices={canUseLivePerpsPrices}
         onLongPress={isDragEnabled ? handleLongPress : undefined}
-        onWatchlistPress={() => onRemoveFromWatchlist(item)}
+        onWatchlistPress={handleRemove}
         isWatchlisted
         accessibilityActions={accessibilityActions}
         onAccessibilityAction={handleAccessibilityAction}
-        onPress={(market) =>
-          navigateToMarketDetails(
-            market,
-            PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-          )
-        }
+        onPress={onPerpPress}
       />
     ) : (
       <WatchlistUnavailablePerpRow
         item={item}
         onLongPress={isDragEnabled ? handleLongPress : undefined}
-        onRemove={() => onRemoveFromWatchlist(item)}
+        onRemove={handleRemove}
         showTypeTag
         twClassName="px-4 py-2 min-h-0"
         accessibilityActions={accessibilityActions}

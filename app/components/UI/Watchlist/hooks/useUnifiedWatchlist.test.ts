@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from '../../Perps/hooks';
+import { selectPerpsWatchlistMarkets } from '../../Perps/selectors/perpsController';
+import {
+  selectIsUnifiedWatchlistActive,
+  selectTokenWatchlistEnabled,
+} from '../../Assets/selectors/featureFlags';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTokenWatchlistQuery } from '../../Assets/watchlist/hooks/useTokenWatchlistQuery';
@@ -10,10 +15,6 @@ import { useWatchlistOrder } from './useWatchlistOrder';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../Perps/selectors/featureFlags', () => ({
-  selectPerpsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../Perps/hooks', () => ({
@@ -26,7 +27,7 @@ jest.mock('../../Perps/selectors/perpsController', () => ({
 
 jest.mock('../../Assets/selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(),
-  selectUnifiedWatchlistEnabled: jest.fn(),
+  selectIsUnifiedWatchlistActive: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useNetworkTier', () => ({
@@ -74,14 +75,33 @@ const mockPerpsMarkets = (
   ...overrides,
 });
 
+const mockSelectorValues = ({
+  tokenWatchlistEnabled = true,
+  unifiedWatchlistActive = true,
+  perpsWatchlistMarkets = ['BTC'],
+}: {
+  tokenWatchlistEnabled?: boolean;
+  unifiedWatchlistActive?: boolean;
+  perpsWatchlistMarkets?: string[];
+} = {}) => {
+  mockedUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectTokenWatchlistEnabled) {
+      return tokenWatchlistEnabled;
+    }
+    if (selector === selectIsUnifiedWatchlistActive) {
+      return unifiedWatchlistActive;
+    }
+    if (selector === selectPerpsWatchlistMarkets) {
+      return perpsWatchlistMarkets;
+    }
+    return undefined;
+  });
+};
+
 describe('useUnifiedWatchlist', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseSelector
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(['BTC']);
+    mockSelectorValues();
     mockedUseNetworkTier.mockReturnValue('WIFI');
     mockedGetHardwareTier.mockReturnValue('HIGH');
     mockedUseTokenWatchlistMembershipQuery.mockReturnValue({
@@ -172,18 +192,13 @@ describe('useUnifiedWatchlist', () => {
   });
 
   it('disables presentation-order ownership in token-only mode', () => {
-    mockedUseSelector
-      .mockReset()
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false)
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(['BTC']);
+    mockSelectorValues({ unifiedWatchlistActive: false });
 
     renderHook(() => useUnifiedWatchlist());
 
     expect(mockedUseWatchlistOrder).toHaveBeenLastCalledWith(
       expect.any(Array),
-      { enabled: false },
+      expect.objectContaining({ enabled: false }),
     );
   });
 

@@ -88,7 +88,12 @@ interface WatchlistSearchContentBodyProps extends WatchlistSearchContentProps {
   debouncedQuery: string;
   canFetchRemoteSearch: boolean;
   perps: Pick<UsePerpsFeedResult, 'data' | 'isLoading' | 'error' | 'refetch'>;
+  onPerpPress?: (market: PerpsMarketData) => void;
+  onAddPerp?: (market: PerpsMarketData) => void;
+  onRemovePerp?: (market: PerpsMarketData) => void;
 }
+
+const getSearchItemType = (item: WatchlistSearchItem) => item.kind;
 
 const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
   onDismiss,
@@ -99,6 +104,9 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
   debouncedQuery,
   canFetchRemoteSearch,
   perps,
+  onPerpPress,
+  onAddPerp,
+  onRemovePerp,
 }) => {
   const insets = useSafeAreaInsets();
   const topInsetPadding = insets.top + (Platform.OS === 'android' ? 16 : 0);
@@ -112,22 +120,20 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
     query: debouncedQuery,
     enabled: canFetchRemoteSearch && activeFilter !== 'perps',
   });
-  const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
-    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-    { showToasts: false },
-  );
-  const { navigateToMarketDetails } = usePerpsNavigation();
 
   const isFeedLoading =
     isDebouncing ||
     (activeFilter !== 'perps' && isLoading) ||
     (activeFilter !== 'tokens' && perps.isLoading);
   const hasActiveQuery = debouncedQuery.trim().length > 0;
+  const showSectionHeaders = activeFilter === 'all';
   const listData = useMemo<WatchlistSearchItem[]>(() => {
     const items: WatchlistSearchItem[] = [];
 
     if (activeFilter !== 'perps' && data.length > 0) {
-      items.push({ kind: 'header', key: 'header:tokens', domain: 'tokens' });
+      if (showSectionHeaders) {
+        items.push({ kind: 'header', key: 'header:tokens', domain: 'tokens' });
+      }
       items.push(
         ...data.map((token, index) => ({
           kind: 'token' as const,
@@ -143,7 +149,9 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
       (activeFilter === 'perps' || hasActiveQuery) &&
       perps.data.length > 0
     ) {
-      items.push({ kind: 'header', key: 'header:perps', domain: 'perps' });
+      if (showSectionHeaders) {
+        items.push({ kind: 'header', key: 'header:perps', domain: 'perps' });
+      }
       items.push(
         ...perps.data.map(({ market, isWatchlisted }, index) => ({
           kind: 'perp' as const,
@@ -156,14 +164,14 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
     }
 
     return items;
-  }, [activeFilter, data, hasActiveQuery, perps.data]);
+  }, [activeFilter, data, hasActiveQuery, perps.data, showSectionHeaders]);
   const resultCount = listData.filter((item) => item.kind !== 'header').length;
   const hasActivePerpsError =
     activeFilter !== 'tokens' &&
     (activeFilter === 'perps' || hasActiveQuery) &&
     !perps.isLoading &&
     Boolean(perps.error);
-  const hasOfflineSearch = hasActiveQuery && !canFetchRemoteSearch;
+  const hasOfflineSearch = !canFetchRemoteSearch;
   const showEmptyResults =
     hasActiveQuery &&
     !isFeedLoading &&
@@ -234,38 +242,16 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
       return (
         <PerpsMarketRowItem
           market={item.market}
-          onPress={(market) =>
-            navigateToMarketDetails(
-              market,
-              PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-            )
-          }
+          onPress={onPerpPress}
           compact
           enableLivePrices={canUseLivePerpsPrices}
           isWatchlisted={item.isWatchlisted}
-          onAddPress={
-            item.isWatchlisted
-              ? undefined
-              : (market) => {
-                  addToWatchlist(market.symbol).catch(() => undefined);
-                }
-          }
-          onWatchlistPress={
-            item.isWatchlisted
-              ? (market) => {
-                  removeFromWatchlist(market.symbol).catch(() => undefined);
-                }
-              : undefined
-          }
+          onAddPress={item.isWatchlisted ? undefined : onAddPerp}
+          onWatchlistPress={item.isWatchlisted ? onRemovePerp : undefined}
         />
       );
     },
-    [
-      addToWatchlist,
-      canUseLivePerpsPrices,
-      navigateToMarketDetails,
-      removeFromWatchlist,
-    ],
+    [canUseLivePerpsPrices, onAddPerp, onPerpPress, onRemovePerp],
   );
 
   const keyExtractor = useCallback((item: WatchlistSearchItem) => item.key, []);
@@ -282,7 +268,9 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
   );
 
   const showSkeletonOverlay =
-    isFeedLoading || (listData.length > 0 && !isListReady);
+    isDebouncing ||
+    (isFeedLoading && resultCount === 0) ||
+    (listData.length > 0 && !isListReady);
 
   const skeletonOverlay = useMemo(
     () =>
@@ -407,6 +395,7 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
           data={listData}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          getItemType={getSearchItemType}
           contentContainerStyle={styles.listContentContainer}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
@@ -425,7 +414,10 @@ const WatchlistSearchContentBody: React.FC<WatchlistSearchContentBodyProps> = ({
 };
 
 interface WatchlistSearchContentWithPerpsProps
-  extends Omit<WatchlistSearchContentBodyProps, 'perps'> {
+  extends Omit<
+    WatchlistSearchContentBodyProps,
+    'perps' | 'onPerpPress' | 'onAddPerp' | 'onRemovePerp'
+  > {
   activeFilter: WatchlistFilter;
 }
 
@@ -439,8 +431,45 @@ const WatchlistSearchContentWithPerps: React.FC<
         props.debouncedQuery.trim().length === 0) ||
       !props.canFetchRemoteSearch,
   });
+  const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
+    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+    { showToasts: false },
+  );
+  const { navigateToMarketDetails } = usePerpsNavigation();
 
-  return <WatchlistSearchContentBody {...props} perps={perps} />;
+  const handlePerpPress = useCallback(
+    (market: PerpsMarketData) => {
+      navigateToMarketDetails(
+        market,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+      );
+    },
+    [navigateToMarketDetails],
+  );
+
+  const handleAddPerp = useCallback(
+    (market: PerpsMarketData) => {
+      addToWatchlist(market.symbol).catch(() => undefined);
+    },
+    [addToWatchlist],
+  );
+
+  const handleRemovePerp = useCallback(
+    (market: PerpsMarketData) => {
+      removeFromWatchlist(market.symbol).catch(() => undefined);
+    },
+    [removeFromWatchlist],
+  );
+
+  return (
+    <WatchlistSearchContentBody
+      {...props}
+      perps={perps}
+      onPerpPress={handlePerpPress}
+      onAddPerp={handleAddPerp}
+      onRemovePerp={handleRemovePerp}
+    />
+  );
 };
 
 const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({

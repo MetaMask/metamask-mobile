@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -48,6 +48,13 @@ interface UseWatchlistOrderResult {
 
 interface UseWatchlistOrderOptions {
   enabled: boolean;
+  /**
+   * Authoritative set of currently watchlisted item keys (including items whose
+   * metadata has not hydrated yet). When provided, keys outside this set are
+   * pruned from persisted order so re-adding a removed item always places it at
+   * the bottom instead of flashing in its old slot.
+   */
+  memberKeys?: ReadonlySet<string>;
 }
 
 const areOrdersEqual = (
@@ -60,7 +67,7 @@ const areOrdersEqual = (
 
 export const useWatchlistOrder = (
   availableItems: readonly UnifiedWatchlistItem[],
-  { enabled }: UseWatchlistOrderOptions,
+  { enabled, memberKeys }: UseWatchlistOrderOptions,
 ): UseWatchlistOrderResult => {
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const queueKey = getOrderQueueKey(accountGroupId);
@@ -102,7 +109,10 @@ export const useWatchlistOrder = (
       const nextOrder = Array.from(new Set(keys));
       const availableKeys = new Set(availableItems.map((item) => item.key));
       const preservedHydrationKeys = (orderQuery.data ?? []).filter(
-        (key) => !availableKeys.has(key) && !nextOrder.includes(key),
+        (key) =>
+          !availableKeys.has(key) &&
+          !nextOrder.includes(key) &&
+          (memberKeys === undefined || memberKeys.has(key)),
       );
       const orderToPersist = [...nextOrder, ...preservedHydrationKeys];
       queryClient.setQueryData(queryKey, orderToPersist);
@@ -128,12 +138,45 @@ export const useWatchlistOrder = (
       accountGroupId,
       availableItems,
       canPersistOrder,
+      memberKeys,
       orderQuery.data,
       queryClient,
       queryKey,
       queueKey,
     ],
   );
+
+  useEffect(() => {
+    if (
+      !canPersistOrder ||
+      memberKeys === undefined ||
+      orderQuery.data === undefined
+    ) {
+      return;
+    }
+
+    const prunedOrder = orderQuery.data.filter((key) => memberKeys.has(key));
+    if (prunedOrder.length === orderQuery.data.length) {
+      return;
+    }
+
+    queryClient.setQueryData(queryKey, prunedOrder);
+    enqueueOrderWrite(accountGroupId, async () =>
+      writeWatchlistOrder(accountGroupId, prunedOrder),
+    )
+      .then(() => {
+        lastPersistedOrders.set(queueKey, prunedOrder);
+      })
+      .catch(() => undefined);
+  }, [
+    accountGroupId,
+    canPersistOrder,
+    memberKeys,
+    orderQuery.data,
+    queryClient,
+    queryKey,
+    queueKey,
+  ]);
   const appendOrderKey = useCallback(
     async (key: string) => {
       const currentOrder =
@@ -175,8 +218,18 @@ export const useWatchlistOrder = (
     if (isUsingFallback) {
       return fallbackKeys;
     }
-    return reconcileWatchlistItemOrder(orderQuery.data, availableItems);
-  }, [availableItems, fallbackKeys, isUsingFallback, orderQuery.data]);
+    const activePersistedOrder =
+      memberKeys === undefined
+        ? orderQuery.data
+        : orderQuery.data.filter((key) => memberKeys.has(key));
+    return reconcileWatchlistItemOrder(activePersistedOrder, availableItems);
+  }, [
+    availableItems,
+    fallbackKeys,
+    isUsingFallback,
+    memberKeys,
+    orderQuery.data,
+  ]);
   const itemsByKey = useMemo(
     () => new Map(availableItems.map((item) => [item.key, item])),
     [availableItems],

@@ -23,6 +23,8 @@ import {
   createUnavailableWatchlistPerp,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  getPerpsWatchlistKey,
+  getTokenWatchlistKey,
 } from '../utils';
 import { useWatchlistOrder } from './useWatchlistOrder';
 
@@ -111,6 +113,30 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     });
   }, [isPerpsEnabled, isPerpsMetadataTerminal, markets, watchlistSymbols]);
 
+  const memberKeys = useMemo(() => {
+    if (
+      isTokenWatchlistEnabled &&
+      (isTokenMembershipLoading ||
+        tokenMembershipError !== null ||
+        tokenMembershipBlob === undefined)
+    ) {
+      return undefined;
+    }
+
+    return new Set([
+      ...tokenMembershipAssetIds.map(getTokenWatchlistKey),
+      ...(isPerpsEnabled ? watchlistSymbols.map(getPerpsWatchlistKey) : []),
+    ]);
+  }, [
+    isPerpsEnabled,
+    isTokenMembershipLoading,
+    isTokenWatchlistEnabled,
+    tokenMembershipAssetIds,
+    tokenMembershipBlob,
+    tokenMembershipError,
+    watchlistSymbols,
+  ]);
+
   const availableItems = useMemo(
     () => buildWatchlistItems(tokens, perps),
     [perps, tokens],
@@ -125,6 +151,7 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     appendOrderKey,
   } = useWatchlistOrder(availableItems, {
     enabled: isPerpsEnabled,
+    memberKeys,
   });
 
   const suggestedPerps = useMemo(() => {

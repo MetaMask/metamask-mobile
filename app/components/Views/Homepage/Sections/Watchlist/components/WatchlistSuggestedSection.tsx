@@ -26,6 +26,7 @@ interface WatchlistSuggestedSectionProps {
   onAddPress: (token: WatchlistTokenWithBalance) => void;
   tokenDetailsSource?: TokenDetailsSource;
   rowTwClassName?: string;
+  headerTwClassName?: string;
   onPerpPress?: (market: PerpsMarketData) => void;
   onAddPerpPress?: (market: PerpsMarketData) => void;
   canUseLivePerpsPrices?: boolean;
@@ -40,6 +41,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   onAddPress,
   tokenDetailsSource = TokenDetailsSource.WatchlistHomepage,
   rowTwClassName = '-mx-4 w-auto px-4',
+  headerTwClassName = 'mb-1',
   onPerpPress,
   onAddPerpPress,
   canUseLivePerpsPrices = false,
@@ -60,7 +62,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName={rowTwClassName === 'px-4' ? 'mb-1 px-4 pt-2' : 'mb-1'}
+          twClassName={headerTwClassName}
           testID="watchlist-suggested-header"
         >
           {strings('token_watchlist.suggested')}

@@ -80,8 +80,32 @@ jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
 }));
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
+  useTokenWatchlistAddItemMutation: () => ({
+    mutate: jest.fn(),
+  }),
+  useTokenWatchlistRemoveItemMutation: () => ({
+    mutate: jest.fn(),
+  }),
   useTokenWatchlistUpdateListMutation: () => ({
     mutate: mockUpdateListMutate,
+  }),
+}));
+
+jest.mock('../../hooks/useSuggestedWatchlistItemsQuery', () => ({
+  useSuggestedWatchlistItemsQuery: () => ({
+    data: [],
+    isLoading: false,
+  }),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: () => ({
+        build: () => ({}),
+      }),
+    }),
   }),
 }));
 
@@ -147,7 +171,10 @@ jest.mock('react-native-reorderable-list', () => {
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
   Reanimated.default.call = () => undefined;
-  return Reanimated;
+  return {
+    ...Reanimated,
+    useReducedMotion: () => false,
+  };
 });
 
 jest.mock('../../components/WatchlistEmptyCTA', () => {
@@ -267,9 +294,12 @@ describe('WatchlistFullScreenView', () => {
 
     expect(mockUseTrackWatchlistPageViewed).toHaveBeenCalledWith({
       tokenCount: 0,
+      perpsCount: 0,
       isEmpty: true,
       isLoading: false,
       source: 'watchlist_homepage',
+      activeTab: 'tokens',
+      isUnified: false,
     });
   });
 
@@ -283,9 +313,12 @@ describe('WatchlistFullScreenView', () => {
 
     expect(mockUseTrackWatchlistPageViewed).toHaveBeenCalledWith({
       tokenCount: 2,
+      perpsCount: 0,
       isEmpty: false,
       isLoading: false,
       source: 'watchlist_homepage',
+      activeTab: 'tokens',
+      isUnified: false,
     });
   });
 
@@ -1077,7 +1110,7 @@ describe('WatchlistFullScreenView', () => {
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     });
 
-    it('composes overlapping reorder events from latest draft state', async () => {
+    it('composes overlapping reorder events from latest order state', async () => {
       const mockPersistOrder = jest.fn().mockResolvedValue(undefined);
       const items = [
         createPerpItem('BTC'),
@@ -1105,11 +1138,7 @@ describe('WatchlistFullScreenView', () => {
         refresh: jest.fn().mockResolvedValue(undefined),
       });
 
-      const { getByTestId } = render(<WatchlistFullScreenView />);
-
-      fireEvent.press(
-        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-      );
+      render(<WatchlistFullScreenView />);
 
       // Dispatch two back-to-back reorders inside the same batch before re-render:
       // [BTC, ETH, SOL] -> move 0->2 => [ETH, SOL, BTC] -> move 0->1 => [SOL, ETH, BTC]
@@ -1118,12 +1147,8 @@ describe('WatchlistFullScreenView', () => {
         capturedOnReorder?.({ from: 0, to: 1 });
       });
 
-      fireEvent.press(
-        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-      );
-
       await waitFor(() => {
-        expect(mockPersistOrder).toHaveBeenCalledWith([
+        expect(mockPersistOrder).toHaveBeenLastCalledWith([
           'perp:sol',
           'perp:eth',
           'perp:btc',

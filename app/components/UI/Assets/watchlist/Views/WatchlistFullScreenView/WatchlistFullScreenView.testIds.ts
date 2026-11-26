@@ -17,6 +17,3 @@ export enum WatchlistFullScreenViewSelectorsIDs {
   DRAG_HANDLE = 'watchlist-fullscreen-drag-handle',
   UNWATCH_STAR = 'watchlist-fullscreen-unwatch-star',
 }
-
-export const getEditablePerpRowTestId = (symbol: string): string =>
-  `watchlist-fullscreen-editable-perp-${symbol}`;

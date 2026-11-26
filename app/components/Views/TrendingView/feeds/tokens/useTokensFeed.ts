@@ -70,7 +70,7 @@ export const useTokensFeed = ({
   } = useTrendingSearch({
     searchQuery: query,
     enableDebounce: false,
-    ...(enabled ? {} : { enabled: false }),
+    enabled,
     ...(performance ? { performance } : {}),
     sortBy,
     filterLowQuality: true,

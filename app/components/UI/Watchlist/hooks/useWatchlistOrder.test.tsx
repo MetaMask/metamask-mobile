@@ -340,4 +340,56 @@ describe('useWatchlistOrder', () => {
       durableOrder,
     );
   });
+
+  it('prunes removed member keys so re-adding an item places it at the bottom immediately', async () => {
+    const tokenA = createToken('token:a');
+    const tokenB = createToken('token:b');
+    const tokenC = createToken('token:c');
+    mockedReadWatchlistOrder.mockResolvedValue([
+      tokenA.key,
+      tokenB.key,
+      tokenC.key,
+    ]);
+    const { wrapper } = createWrapper();
+    const { result, rerender } = renderHook(
+      ({
+        items,
+        memberKeys,
+      }: {
+        items: UnifiedWatchlistToken[];
+        memberKeys: ReadonlySet<string>;
+      }) => useWatchlistOrder(items, { enabled: true, memberKeys }),
+      {
+        initialProps: {
+          items: [tokenA, tokenB, tokenC],
+          memberKeys: new Set([tokenA.key, tokenB.key, tokenC.key]),
+        },
+        wrapper,
+      },
+    );
+
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+    expect(result.current.orderedItems).toEqual([tokenA, tokenB, tokenC]);
+
+    // Remove tokenA from membership
+    rerender({
+      items: [tokenB, tokenC],
+      memberKeys: new Set([tokenB.key, tokenC.key]),
+    });
+
+    await waitFor(() =>
+      expect(mockedWriteWatchlistOrder).toHaveBeenCalledWith('group-1', [
+        tokenB.key,
+        tokenC.key,
+      ]),
+    );
+
+    // Re-add tokenA — even before appendOrderKey runs, it must appear at the bottom
+    rerender({
+      items: [tokenA, tokenB, tokenC],
+      memberKeys: new Set([tokenA.key, tokenB.key, tokenC.key]),
+    });
+
+    expect(result.current.orderedItems).toEqual([tokenB, tokenC, tokenA]);
+  });
 });

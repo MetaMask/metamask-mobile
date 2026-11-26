@@ -86,20 +86,7 @@ export const useSearchRequest = (options: {
   performanceRef.current = performance;
 
   const searchTokensRequest = useCallback(async () => {
-    if (!enabled) {
-      requestIdRef.current += 1;
-      isLoadingMoreRef.current = false;
-      setResults([]);
-      setError(null);
-      setIsFetching(false);
-      setEndCursor(undefined);
-      setHasNextPage(false);
-      setIsLoadingMore(false);
-      setTotalCount(undefined);
-      return;
-    }
-
-    if (!debouncedQuery) {
+    if (!enabled || !debouncedQuery) {
       requestIdRef.current += 1;
       isLoadingMoreRef.current = false;
       setResults([]);
@@ -223,7 +210,7 @@ export const useSearchRequest = (options: {
   useEffect(() => {
     prevDebouncedQuery.current = debouncedQuery;
   });
-  const isEnabling = enabled && !prevEnabled.current;
+  const isEnabling = enabled && !prevEnabled.current && Boolean(debouncedQuery);
   useEffect(() => {
     prevEnabled.current = enabled;
   }, [enabled]);

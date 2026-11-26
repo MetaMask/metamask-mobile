@@ -309,12 +309,16 @@ export const useTrendingRequest = (
 
   // Track if initial load has completed successfully
   useEffect(() => {
+    if (!enabled) {
+      initialLoadCompleteRef.current = false;
+      return;
+    }
     if (!isLoading && !initialLoadCompleteRef.current) {
       if (results.length > 0 || !error) {
         initialLoadCompleteRef.current = true;
       }
     }
-  }, [isLoading, results.length, error]);
+  }, [enabled, isLoading, results.length, error]);
 
   // Refresh interval effect
   useEffect(() => {

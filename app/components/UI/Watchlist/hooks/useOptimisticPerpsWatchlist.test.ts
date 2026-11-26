@@ -107,4 +107,54 @@ describe('useOptimisticPerpsWatchlist', () => {
       'perp:eth',
     ]);
   });
+
+  it('ignores stale failures from superseded mutations on the same symbol', async () => {
+    let resolveFirstAdd: ((value: boolean) => void) | undefined;
+    let resolveSecondAdd: ((value: boolean) => void) | undefined;
+    const addPerpToWatchlist = jest
+      .fn()
+      .mockImplementationOnce(
+        async () =>
+          new Promise<boolean>((resolve) => {
+            resolveFirstAdd = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        async () =>
+          new Promise<boolean>((resolve) => {
+            resolveSecondAdd = resolve;
+          }),
+      );
+    const removePerpFromWatchlist = jest.fn().mockResolvedValue(true);
+
+    const { result } = renderHook(() =>
+      useOptimisticPerpsWatchlist({
+        orderedItems: [createUnifiedWatchlistPerp(ETH_MARKET)],
+        persistedPerps: [createUnifiedWatchlistPerp(ETH_MARKET)],
+        perpsMembershipSymbols: ['ETH'],
+        addPerpToWatchlist,
+        removePerpFromWatchlist,
+      }),
+    );
+
+    act(() => {
+      result.current.addPerp(SOL_MARKET);
+      result.current.removePerp('SOL');
+      result.current.addPerp(SOL_MARKET);
+    });
+
+    await act(async () => {
+      resolveFirstAdd?.(false);
+    });
+
+    expect(result.current.displayOrderedItems.map((item) => item.key)).toEqual([
+      'perp:eth',
+      'perp:sol',
+    ]);
+    expect(result.current.hasPendingPerpMutations).toBe(true);
+
+    await act(async () => {
+      resolveSecondAdd?.(true);
+    });
+  });
 });
