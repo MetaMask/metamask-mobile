@@ -193,6 +193,23 @@ describe('PerpsProOrderBookPanel', () => {
     expect(channels).toContain('orderBookAggregated');
   });
 
+  it('subscribes both order-book channels to the market venue', () => {
+    renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        providerId="lighter"
+        marketPrice={50000}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const venues = mockUsePerpsLiveOrderBook.mock.calls.map(
+      (call) => call[0].providerId,
+    );
+    expect(venues.length).toBeGreaterThan(0);
+    expect(venues.every((venue) => venue === 'lighter')).toBe(true);
+  });
+
   it('renders ask and bid ladder rows with a spread', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,

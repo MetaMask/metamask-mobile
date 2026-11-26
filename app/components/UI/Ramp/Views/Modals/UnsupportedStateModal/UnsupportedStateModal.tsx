@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Button,
   ButtonBaseSize,
@@ -25,6 +24,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface UnsupportedStateModalParams {
   stateCode?: string;
@@ -39,6 +41,7 @@ export const createUnsupportedStateModalNavigationDetails =
   );
 
 function UnsupportedStateModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { userRegion } = useRampsUserRegion();
@@ -83,11 +86,11 @@ function UnsupportedStateModal() {
       goBack={navigation.goBack}
       isInteractable={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>
           {strings('deposit.unsupported_state_modal.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>

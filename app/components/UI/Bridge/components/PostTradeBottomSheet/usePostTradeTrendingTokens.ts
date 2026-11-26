@@ -17,6 +17,7 @@ import {
   SortDirection,
 } from '../../../Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
+import { filterRiskyTokens } from '../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
 
 export const POST_TRADE_TRENDING_TOKENS_LIMIT = 20;
 
@@ -33,10 +34,11 @@ const getSortedTrendingTokens = async (chainId: CaipChainId) => {
     minVolume24hUsd: getMinVolume24hForChains(chainIds),
     minMarketCap: 0,
     excludeLabels: ['stable_coin', 'blue_chip'],
+    includeTokenSecurityData: true,
   });
 
   return sortTrendingTokens(
-    tokens,
+    filterRiskyTokens(tokens),
     PriceChangeOption.MarketCap,
     SortDirection.Descending,
   );

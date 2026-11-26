@@ -1,8 +1,8 @@
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import type { GaslessFeeAsset } from '../../utils/getGaslessFeeAsset';
+import type { NetworkFeeAsset } from '../../utils/getNetworkFeeAsset';
 
 export interface QuoteDetailsCardProps {
   hasInsufficientBalance: boolean;
   location: MetaMetricsSwapsEventSource;
-  gaslessFeeAsset?: GaslessFeeAsset;
+  networkFeeAsset?: NetworkFeeAsset;
 }

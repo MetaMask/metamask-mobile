@@ -35,13 +35,13 @@ interface DeleteMetaMetricsDataProps {
  *   And user goes into settings / security & privacy
  *   And no deletion request has been done before
  *   And "Delete Metametrics data" section text is "This will delete historical
- *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
+ *     MetaMetrics data associated with your wallet.[...] View the Privacy Notice."
  *
  *   When user touches the "delete metametrics" button
  *   And approves deletion
  *
  *   Then "Delete Metametrics data" section text changes to "You initiated this action on [current date].
- *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
+ *     This process can take up to 60 days. View the Privacy Notice."
  *   And "delete metametrics" button is now disabled
  *   And user still continues to be tracked or not depending on opt-out statusbut
  *   And the tracking strategy is not changed by the deletion action
@@ -55,7 +55,7 @@ interface DeleteMetaMetricsDataProps {
  *   And users scrolls down to the delete metametrics section
  *
  *   Then "Delete Metametrics data" section text is "This will delete historical
- *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
+ *     MetaMetrics data associated with your wallet.[...] View the Privacy Notice."
  *   And user can click the "delete metametrics" button again
  *   (button availability is driven by metricsOptin state — opted-in means data is being tracked)
  *
@@ -68,7 +68,7 @@ interface DeleteMetaMetricsDataProps {
  *   And users scrolls down to the delete metametrics section
  *
  *   Then "Delete Metametrics data" section text is "You initiated this action on [current date].
- *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
+ *     This process can take up to 60 days. View the Privacy Notice."
  *   And "delete metametrics" button is disabled
  *   And user can NOT click the "delete metametrics" button again until data deletion task is finished
  *   (button state is driven by metricsOptin — opted-out means no new data to delete)

@@ -17,10 +17,10 @@ import { PredictHomeTestIds } from '../PredictHome.testIds';
 import { Carousel, type CarouselPagination } from './Carousel';
 import { CarouselPaginationDots } from './CarouselPaginationDots';
 
-// The design's card row: 340x220pt cards, 8pt apart.
+// The design's card row: 340pt wide, 12pt apart; 268pt fits 3-way featured cards without clipping.
 const CARD_WIDTH = 340;
-const CARD_HEIGHT = 220;
-const CARD_GAP = 8;
+const CARD_HEIGHT = 268;
+const CARD_GAP = 12;
 
 interface HomeTrendingSectionProps {
   events: readonly PredictEvent[];
@@ -41,7 +41,7 @@ const TrendingCardSkeleton = () => (
   <Skeleton
     width={CARD_WIDTH}
     height={CARD_HEIGHT}
-    twClassName="rounded-2xl"
+    twClassName="rounded-[20px]"
     testID={PredictHomeTestIds.HOME_TRENDING_SKELETON}
   />
 );
@@ -122,6 +122,7 @@ export const HomeTrendingSection = ({
         Skeleton={TrendingCardSkeleton}
         idPrefix={PredictHomeTestIds.HOME_TRENDING}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
         gap={CARD_GAP}
         renderFooter={renderFooter}
         testID={PredictHomeTestIds.HOME_TRENDING_CAROUSEL}

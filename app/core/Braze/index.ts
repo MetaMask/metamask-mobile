@@ -208,25 +208,18 @@ export function logBrazeBannerImpression(
  * triggers.
  *
  * The SDK `logBannerClick` call always fires; `logCustomEvent` is skipped when
- * `properties` is null (no `campaign_name`). Set `flushImmediately` from the
- * campaign's `flush_immediately` property when the event must reach Braze
- * before the next batch (for example, to trigger a full-screen in-app
- * message); otherwise the event rides the next scheduled flush.
+ * `properties` is null (no `campaign_name`). The `Banner Select` event rides
+ * Braze's next scheduled data batch; it is not flushed immediately.
  */
 export function logBrazeBannerClick(
   placementId: string,
   properties: { [key: string]: unknown } | null,
-  flushImmediately = false,
 ): void {
   try {
     Braze.logBannerClick(placementId, null);
 
     if (properties) {
       Braze.logCustomEvent(BANNER_EVENT_SELECT, properties);
-
-      if (flushImmediately) {
-        Braze.requestImmediateDataFlush();
-      }
     }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner click');

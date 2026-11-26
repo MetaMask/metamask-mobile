@@ -1,5 +1,3 @@
-import type { SocialShellTab } from '../types';
-
 /**
  * Asset-class filter for the unified Filters sheet. Extends the V0
  * `SocialTypeFilter` with `predictions` (per TSA-1115 designs).
@@ -83,11 +81,6 @@ export interface SocialShellTabFilterState {
   applied: SocialShellFilters;
   draft: SocialShellFilters;
 }
-
-export type SocialShellFilterState = Record<
-  SocialShellTab,
-  SocialShellTabFilterState
->;
 
 /**
  * API-ready params derived from a tab's `applied` filters. The fields are

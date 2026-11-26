@@ -39,7 +39,7 @@ import {
   configurePredictNextCatalog,
   resetPredictNextCatalog,
 } from '../../../../../tests/component-view/fixtures/predictNext';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictConfig } from '../config/predictConfig';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { PredictNextRoutes } from '../navigation/routes';
@@ -328,8 +328,8 @@ describeForPlatforms('Explore prediction sections', () => {
           home: 'Steelers',
           awayScore: '17',
           homeScore: '21',
-          awayQuote: /^PAC\s*· 41¢$/,
-          homeQuote: /^STE\s*· 59¢$/,
+          awayQuote: '41%',
+          homeQuote: '59%',
         },
       );
       expect(
@@ -534,7 +534,7 @@ describeForPlatforms('Explore prediction sections', () => {
         view.getByTestId(PredictHomeTestIds.event('kalshi', games[0].id)),
       );
       expect(card.getByText('28')).toBeOnTheScreen();
-      expect(card.getByText('Q4 · 01:12')).toBeOnTheScreen();
+      expect(card.getByText('Q4 01:12')).toBeOnTheScreen();
     });
 
     it('holds no live watches while the device is offline', async () => {

@@ -32,7 +32,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockHasAcceptedSocialTerms = jest.fn(() => true);
-const mockEnsureSocialTermsAccepted = jest.fn((_navigate: unknown) => false);
+const mockEnsureSocialTermsAccepted = jest.fn((_navigate?: unknown) => true);
 jest.mock(
   '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
   () => ({
@@ -44,6 +44,15 @@ jest.mock(
 
 jest.mock('./holders/useTokenHolders', () => ({
   useTokenHolders: jest.fn(),
+}));
+
+jest.mock('../../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
+  useMyProfile: () => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
 }));
 
 // Paging follows the page's ScrollView, which a test renderer never scrolls.
@@ -113,6 +122,9 @@ describe('TokenDetailsHoldersTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasAcceptedSocialTerms.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockImplementation(() =>
+      mockHasAcceptedSocialTerms(),
+    );
     mockSelectEnabled.mockReturnValue(true);
     mockState();
   });
@@ -288,28 +300,23 @@ describe('TokenDetailsHoldersTab', () => {
   });
 
   describe('social onboarding', () => {
-    it('opens Social terms / onboarding when a row is tapped before onboarding', () => {
+    it('opens the holder profile without accepted Social terms', () => {
       mockHasAcceptedSocialTerms.mockReturnValue(false);
-      mockState({ rows: [toRow(0), toRow(1)] });
+      mockState({ rows: [toRow(1)] });
 
       renderTab();
-      const rows = screen.getAllByTestId(TokenHolderRowSelectorsIDs.PRESS);
-      fireEvent.press(rows[1]);
+      fireEvent.press(screen.getByTestId(TokenHolderRowSelectorsIDs.PRESS));
 
-      expect(rows).toHaveLength(2);
-      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledTimes(1);
-      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
-    });
-
-    it('keeps rows inert once the user has onboarded', () => {
-      mockState({ rows: [toRow(0)] });
-
-      renderTab();
-
-      expect(
-        screen.getByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(screen.queryByTestId(TokenHolderRowSelectorsIDs.PRESS)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'SocialV1ProfileView',
+        expect.objectContaining({
+          traderId: '2b1c8e44-55a9-4a0e-9f8d-7c2e4b6a1f02',
+          traderName: 'degenmachine',
+          traderAddress: '0x3f5ce5fbfe3e9af3971dd833d26ba9b5c936f0be',
+          source: 'trader_feed',
+        }),
+        {},
+      );
       expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
     });
   });

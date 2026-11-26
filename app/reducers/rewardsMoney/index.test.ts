@@ -1,4 +1,5 @@
 import { Action } from '@reduxjs/toolkit';
+import { earnRatesFixture } from '../../../tests/component-view/presets/rewardsMoney';
 import type {
   ClaimDto,
   EarningsSummaryDto,
@@ -7,6 +8,7 @@ import type {
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
   clearPendingReferralCode,
+  releaseAnsweredReferralCode,
   resetRewardsMoneyState,
   setPendingReferralCode,
   setReferralLinkPending,
@@ -43,14 +45,14 @@ const mockReferralMe: ReferralMeDto = {
   },
   referral_code_status: 'ACTIVE',
   referred_by: null,
-  earn_rates: {
-    cashback_rate_bps: null,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
+  earn_rates: earnRatesFixture({
     revshare_rate_bps: 1000,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
-  },
+    revshare_by_product: {
+      perps: { rate_bps: 1000, source: 'DEFAULT' },
+      swaps: { rate_bps: 1000, source: 'DEFAULT' },
+      predict: null,
+    },
+  }),
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
   excluded_regions: [],
@@ -601,6 +603,39 @@ describe('rewardsMoneyReducer', () => {
       );
 
       const state = rewardsMoneyReducer(answered, clearPendingReferralCode());
+
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('lets a released code be stored again', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const released = rewardsMoneyReducer(
+        answered,
+        releaseAnsweredReferralCode('KOL1'),
+      );
+      const state = rewardsMoneyReducer(
+        released,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(released.answeredReferralCode).toBeNull();
+      expect(state.pendingReferralCode).toBe('KOL1');
+    });
+
+    it('keeps a different answered code when releasing', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        releaseAnsweredReferralCode('KOL2'),
+      );
 
       expect(state.answeredReferralCode).toBe('KOL1');
     });

@@ -27,6 +27,7 @@ import {
   type PredictTradeStatusValue,
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { reportPredictError } from '../../utils/predictErrorHandler';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
@@ -159,6 +160,7 @@ import {
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
+import type { PolyBoltCredentials } from './polyboltCryptoFeed';
 import {
   getPolymarketProtocolForMarketVersion,
   getProtocolWithdrawTokenAddress,
@@ -328,6 +330,32 @@ const isTransientPriceHistoryError = (error: Error): boolean =>
   );
 
 /**
+ * Polymarket's names for the Chainlink TWAP variants of its 1h and daily crypto
+ * windows. `hourly` and `daily` are the Binance variants: they return the
+ * Binance open even when the TWAP parameters are set. The other windows use one
+ * name for both.
+ */
+const TWAP_CRYPTO_PRICE_VARIANTS: Record<string, string> = {
+  hourly: 'onehour',
+  daily: 'oneday',
+};
+
+/**
+ * The `variant` to send to Polymarket's crypto price endpoints.
+ *
+ * @param variant - Variant derived from the series recurrence.
+ * @param referenceWindow - TWAP lookback window; undefined for a spot market.
+ * @returns The variant that matches the market's price source.
+ */
+const resolveCryptoPriceVariant = (
+  variant: string,
+  referenceWindow: number | undefined,
+): string =>
+  referenceWindow === undefined
+    ? variant
+    : (TWAP_CRYPTO_PRICE_VARIANTS[variant] ?? variant);
+
+/**
  * TTL for cached account states. Deployed wallets are stable, so a longer TTL
  * is safe; a "not deployed" result is expected to change (e.g. right after a
  * first deposit) and must expire quickly so a transient RPC failure or race
@@ -369,6 +397,11 @@ export class PolymarketProvider implements PredictProvider {
   #marketVersionsByOutcomeTokenId: Map<string, Promise<string>> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
+  /**
+   * CLOB credentials the crypto price feed last authenticated with, kept so a
+   * Chainlink key that arrives or rotates later can reach PolyBolt.
+   */
+  #cryptoFeedClobCredentials: ApiKeyCreds | undefined;
   #optimisticPositionUpdatesByAddress = new Map<
     string,
     Map<string, OptimisticPositionUpdate>
@@ -1303,10 +1336,7 @@ export class PolymarketProvider implements PredictProvider {
           errorContext,
         );
       } else {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          errorContext,
-        );
+        reportPredictError(error, errorContext);
       }
 
       throw error;
@@ -1644,9 +1674,9 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoPriceHistory(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]> {
-    const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
-      params;
+    const { symbol, eventStartTime, endDate, twapWindowSeconds } = params;
     const referenceWindow = resolveReferencePriceWindow(twapWindowSeconds);
+    const variant = resolveCryptoPriceVariant(params.variant, referenceWindow);
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1738,7 +1768,7 @@ export class PolymarketProvider implements PredictProvider {
       const queryParams = new URLSearchParams({
         symbol: params.symbol,
         eventStartTime: params.eventStartTime,
-        variant: params.variant,
+        variant: resolveCryptoPriceVariant(params.variant, referenceWindow),
         endDate: params.endDate,
       });
       if (referenceWindow !== undefined) {
@@ -1846,8 +1876,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting prices via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      reportPredictError(
+        error,
         this.getErrorContext('getPrices', {
           queriesCount: queries.length,
         }),
@@ -4065,9 +4095,10 @@ export class PolymarketProvider implements PredictProvider {
           return;
         }
 
+        this.#cryptoFeedClobCredentials = credentials;
         websocketManager.useCryptoFeed({
           mode: 'polybolt',
-          credentials,
+          credentials: this.#withChainlinkApiKey(credentials),
         });
         unsubscribe = options
           ? websocketManager.subscribeToCryptoPrices(symbols, callback, options)
@@ -4082,6 +4113,32 @@ export class PolymarketProvider implements PredictProvider {
     return () => {
       cancelled = true;
       unsubscribe();
+    };
+  }
+
+  /**
+   * Hands the crypto price feed the current Chainlink key from remote flags.
+   * Call it when the flags change: PolyBolt reads the key only from a
+   * connection's first auth frame, so a key that arrives or rotates opens a
+   * new connection. An unchanged key does nothing.
+   */
+  public refreshCryptoPriceFeedCredentials(): void {
+    if (!this.#cryptoFeedClobCredentials) {
+      return;
+    }
+
+    WebSocketManager.getInstance().updateCryptoFeedCredentials(
+      this.#withChainlinkApiKey(this.#cryptoFeedClobCredentials),
+    );
+  }
+
+  #withChainlinkApiKey(credentials: ApiKeyCreds): PolyBoltCredentials {
+    const { chainlinkApiKey } = this.#getFeatureFlags();
+    return {
+      apiKey: credentials.apiKey,
+      secret: credentials.secret,
+      passphrase: credentials.passphrase,
+      ...(chainlinkApiKey && { chainlinkApiKey }),
     };
   }
 

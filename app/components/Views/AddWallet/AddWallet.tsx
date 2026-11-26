@@ -2,10 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -29,7 +26,6 @@ import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { AddWalletTestIds } from './AddWallet.testIds';
 
 interface ActionConfig {
@@ -43,11 +39,6 @@ interface ActionConfig {
 
 const AddWallet = () => {
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
@@ -126,8 +117,8 @@ const AddWallet = () => {
       style={tw.style('flex-1 bg-default')}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         onBack={handleBack}
         backButtonProps={{
@@ -135,11 +126,7 @@ const AddWallet = () => {
           testID: AddWalletTestIds.BACK_BUTTON,
         }}
       />
-      <Box
-        testID={AddWalletTestIds.SCREEN}
-        twClassName="flex-1 pt-3"
-        style={{ marginTop: headerInset }}
-      >
+      <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 pt-3">
         <TitleStandard
           twClassName="mb-2 px-4"
           title={strings('multichain_accounts.add_wallet')}

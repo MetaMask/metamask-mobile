@@ -11,6 +11,7 @@ import {
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import { getLighterUsdcDepositAmountCalls } from '../../temp-lighter/lighter-usdc-deposit';
 
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
@@ -43,6 +44,26 @@ export async function getTransactionPayAmountCalls(
     } catch (error) {
       throw prefixError(error, DEPOSIT_ERROR_PREFIX);
     }
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsLighterDeposit,
+      TransactionType.perpsLighterDepositAndOrder,
+    ])
+  ) {
+    return getLighterUsdcDepositAmountCalls(transactionMeta, amountHuman);
+  }
+
+  // A Lighter withdraw is quoted from its required asset, which holds the
+  // amount. The nested transfer is only a placeholder, so there are no calls to
+  // re-encode and only the required asset amount is committed by the caller.
+  // Without this, the generic single-call update rewrites the transfer only and
+  // the required asset stays at the amount it had when Lighter was selected.
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.perpsLighterWithdraw])
+  ) {
+    return [];
   }
 
   if (

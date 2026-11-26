@@ -1,28 +1,23 @@
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToSocialV1Profile } from './navigateToSocialV1Profile';
 
-import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
-
-jest.mock('../terms/socialTermsAcceptance', () => ({
-  ensureSocialTermsAccepted: jest.fn(() => true),
-}));
-
 const mockNavigate = jest.fn();
 const navigation = { navigate: mockNavigate };
 
 describe('navigateToSocialV1Profile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(true);
   });
 
-  it('does not open the profile when the Social terms are not accepted', () => {
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
-
+  it('opens the trader profile without asking for the Social terms', () => {
     navigateToSocialV1Profile(navigation, { traderId: 'trader-1' });
 
-    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      expect.objectContaining({ traderId: 'trader-1' }),
+      {},
+    );
   });
 
   it('opens the V1 profile without params for the signed-in viewer', () => {

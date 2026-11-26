@@ -7,7 +7,6 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -24,6 +23,9 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -43,6 +45,7 @@ const styles = StyleSheet.create({
 });
 
 function ProcessingInfoModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
@@ -98,7 +101,9 @@ function ProcessingInfoModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,

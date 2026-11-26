@@ -23,6 +23,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxFlexWrap,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -34,6 +36,7 @@ import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDisc
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
 import RebateBanner from '../../../../shared/RebateBanner';
 import { SWAPS_REBATE_BANNER_TEST_ID } from '../../../components/SwapsRebateBanner';
+import { useTheme } from '../../../../../../util/theme/index.ts';
 
 interface Props {
   location: MetaMetricsSwapsEventSource;
@@ -47,6 +50,7 @@ export const BridgeMarketViewFooter = ({
   rebatePercent,
 }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -59,6 +63,8 @@ export const BridgeMarketViewFooter = ({
   const isRewardsTierBadge =
     discountBadge?.type === DiscountType.VIP ||
     discountBadge?.type === DiscountType.SUBSCRIPTION;
+
+  const isFreeBadge = discountBadge?.type === DiscountType.FREE;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -108,7 +114,7 @@ export const BridgeMarketViewFooter = ({
             gap={2}
             testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
           >
-            {discountBadge ? (
+            {discountBadge && !isFreeBadge ? (
               isRewardsTierBadge ? (
                 <MembershipVipBadge
                   hasProEntitlement={
@@ -125,6 +131,7 @@ export const BridgeMarketViewFooter = ({
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}
+                  twClassName={isFreeBadge ? 'line-through' : ''}
                 >
                   {infoText}
                 </Text>
@@ -148,6 +155,15 @@ export const BridgeMarketViewFooter = ({
                   {infoSuffix}
                 </Text>
               )}
+
+              {discountBadge && isFreeBadge ? (
+                <Tag
+                  severity={TagSeverity.Success}
+                  testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER_FREE_BADGE}
+                >
+                  {discountBadge.label}
+                </Tag>
+              ) : null}
             </Box>
           </Box>
         </Box>

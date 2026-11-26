@@ -1,11 +1,23 @@
 import { renderHook } from '@testing-library/react-native';
-import { StackActions } from '@react-navigation/native';
+import {
+  CommonActions,
+  StackActions,
+  StackRouter,
+  type NavigationAction,
+  type ParamListBase,
+  type PartialState,
+  type RouterConfigOptions,
+  type StackNavigationState,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   canOpenPersistedVbaDetails,
+  exitVbaOnboardingToMoneyHome,
   navigateToVbaOnboardingDestination,
+  openAsOnlyOnboardingRoute,
+  openCompletedVbaAccount,
   openVbaAccountSetup,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -425,7 +437,27 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
-  it('opens identity verification when KYC status is retry after the provider flow was submitted', async () => {
+  it('opens the retry page when KYC status is retry after the provider flow was submitted', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'retry' as const,
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'PUSH' }),
+    );
+  });
+
+  it('re-enters identity verification from the retry page after the provider flow was submitted', async () => {
     const retrySnapshot = {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -438,17 +470,13 @@ describe('useOpenVbaOnboarding', () => {
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
-    await result.current();
+    await result.current({ retryRejectedKyc: true });
 
-    expectResetTo({
-      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-      params: {
-        snapshot: {
-          ...retrySnapshot,
-          vendorTermsAcceptedLocally: true,
-        },
-      },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+        snapshot: { ...retrySnapshot, vendorTermsAcceptedLocally: true },
+      }),
+    );
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
@@ -737,7 +765,7 @@ describe('useOpenVbaOnboarding', () => {
     expect(rootDispatch).not.toHaveBeenCalled();
   });
 
-  it('keeps only the active caller and destination on first entry', () => {
+  it('keeps the screens under the caller on first entry', () => {
     const dispatch = jest.fn();
     const parentNavigate = jest.fn();
     const childNavigate = jest.fn();
@@ -768,8 +796,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { key: 'settings-1', name: 'Settings' },
             { key: 'home-1', name: 'Home' },
             {
               name: Routes.RAMP.VBA_ONBOARDING,
@@ -830,8 +859,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { name: 'Settings' },
             { name: 'Wallet' },
             {
               key: 'vba-1',
@@ -890,6 +920,264 @@ describe('useOpenVbaOnboarding', () => {
   });
 });
 
+describe('opening a bank account from card home', () => {
+  const cardHomeState = (): {
+    index: number;
+    routeNames: string[];
+    routes: { key: string; name: string }[];
+  } => ({
+    index: 1,
+    routeNames: [
+      'Home',
+      Routes.CARD.ROOT,
+      Routes.RAMP.VBA_ONBOARDING,
+      Routes.RAMP.VBA_DETAILS,
+    ],
+    routes: [
+      { key: 'home-1', name: 'Home' },
+      { key: 'card-1', name: Routes.CARD.ROOT },
+    ],
+  });
+
+  it('keeps wallet home under card home when the account details open', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openCompletedVbaAccount(navigationFromCardHome);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it('keeps wallet home under card home when onboarding opens', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openAsOnlyOnboardingRoute(
+      navigationFromCardHome,
+      VbaOnboardingRoutes.LOADING,
+    );
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.LOADING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+  });
+});
+
+const MAIN_STACK_ROUTE_NAMES = [
+  Routes.HOME_TABS,
+  Routes.CARD.ROOT,
+  Routes.RAMP.VBA_ONBOARDING,
+  Routes.RAMP.VBA_DETAILS,
+];
+
+const mainStackRouterConfig: RouterConfigOptions = {
+  routeNames: MAIN_STACK_ROUTE_NAMES,
+  routeParamList: {},
+  routeGetIdList: {},
+};
+
+const accountCreateErrorParams = { variant: 'details' as const };
+
+/**
+ * Applies VBA routing actions through the real stack router, including the
+ * rehydrate step React Navigation runs when `RESET` returns a stale state.
+ */
+type MainStackState = StackNavigationState<ParamListBase>;
+type MainStackAction = Parameters<
+  ReturnType<typeof StackRouter>['getStateForAction']
+>[1];
+
+const createMainStack = (): {
+  navigation: AppNavigationProp;
+  read: () => MainStackState;
+} => {
+  const router = StackRouter({});
+  let state: MainStackState = router.getInitialState(mainStackRouterConfig);
+
+  const apply = (action: NavigationAction): void => {
+    const next = router.getStateForAction(
+      state,
+      action as MainStackAction,
+      mainStackRouterConfig,
+    );
+    if (!next) {
+      throw new Error(`Stack router rejected ${action.type}`);
+    }
+    state =
+      next.stale === false
+        ? (next as MainStackState)
+        : router.getRehydratedState(
+            next as PartialState<MainStackState>,
+            mainStackRouterConfig,
+          );
+  };
+
+  return {
+    navigation: {
+      navigate: (
+        name: string,
+        params?: object,
+        options?: { pop?: boolean; merge?: boolean },
+      ) => {
+        apply(CommonActions.navigate(name, params, options));
+      },
+      dispatch: (action: NavigationAction) => {
+        apply(action);
+      },
+      getState: () => state,
+      getParent: () => undefined,
+    } as unknown as AppNavigationProp,
+    read: () => state,
+  };
+};
+
+const routeNamesOf = (state: StackNavigationState<ParamListBase>): string[] =>
+  state.routes.map((route) => route.name);
+
+const assertUniqueRouteKeys = (
+  state: StackNavigationState<ParamListBase>,
+): void => {
+  const keys = state.routes.map((route) => route.key);
+  expect(new Set(keys).size).toBe(keys.length);
+};
+
+describe('leaving onboarding for Money home', () => {
+  it('returns to the original Home after repeated onboarding exits', () => {
+    const stack = createMainStack();
+    const homeKey = stack.read().routes[0]?.key;
+
+    openAsOnlyOnboardingRoute(
+      stack.navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      accountCreateErrorParams,
+    );
+    const opened = stack.read();
+    const firstOnboardingKey = opened.routes[1]?.key;
+
+    expect(routeNamesOf(opened)).toEqual([
+      Routes.HOME_TABS,
+      Routes.RAMP.VBA_ONBOARDING,
+    ]);
+    assertUniqueRouteKeys(opened);
+
+    exitVbaOnboardingToMoneyHome(stack.navigation);
+    const exited = stack.read();
+
+    expect(routeNamesOf(exited)).toEqual([Routes.HOME_TABS]);
+    expect(exited.routes[0]?.key).toBe(homeKey);
+
+    openAsOnlyOnboardingRoute(
+      stack.navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      accountCreateErrorParams,
+    );
+    const reopened = stack.read();
+
+    expect(routeNamesOf(reopened)).toEqual([
+      Routes.HOME_TABS,
+      Routes.RAMP.VBA_ONBOARDING,
+    ]);
+    expect(reopened.routes[0]?.key).toBe(homeKey);
+    expect(reopened.routes[1]?.key).not.toBe(firstOnboardingKey);
+    assertUniqueRouteKeys(reopened);
+
+    exitVbaOnboardingToMoneyHome(stack.navigation);
+    const exitedAgain = stack.read();
+
+    expect(routeNamesOf(exitedAgain)).toEqual([Routes.HOME_TABS]);
+    expect(exitedAgain.routes).toHaveLength(1);
+    expect(exitedAgain.routes[0]?.key).toBe(homeKey);
+    assertUniqueRouteKeys(exitedAgain);
+  });
+
+  it('keeps the onboarding route key when the destination is replaced in place', () => {
+    const stack = createMainStack();
+
+    openAsOnlyOnboardingRoute(stack.navigation, VbaOnboardingRoutes.LOADING);
+    const onboardingKey = stack.read().routes[1]?.key;
+
+    openAsOnlyOnboardingRoute(
+      stack.navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      accountCreateErrorParams,
+    );
+
+    const state = stack.read();
+
+    expect(routeNamesOf(state)).toEqual([
+      Routes.HOME_TABS,
+      Routes.RAMP.VBA_ONBOARDING,
+    ]);
+    expect(state.routes[1]?.key).toBe(onboardingKey);
+    assertUniqueRouteKeys(state);
+  });
+
+  it('assigns a new onboarding key when an earlier one stays under the caller', () => {
+    const stack = createMainStack();
+
+    openAsOnlyOnboardingRoute(
+      stack.navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      accountCreateErrorParams,
+    );
+    const firstOnboardingKey = stack.read().routes[1]?.key;
+    stack.navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+
+    openAsOnlyOnboardingRoute(
+      stack.navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      accountCreateErrorParams,
+    );
+
+    const state = stack.read();
+    const onboardingKeys = state.routes
+      .filter((route) => route.name === Routes.RAMP.VBA_ONBOARDING)
+      .map((route) => route.key);
+
+    expect(onboardingKeys).toHaveLength(2);
+    expect(onboardingKeys[0]).toBe(firstOnboardingKey);
+    expect(onboardingKeys[1]).not.toBe(firstOnboardingKey);
+    assertUniqueRouteKeys(state);
+  });
+});
+
 describe('resolveVbaOnboarding', () => {
   const devGlobal = globalThis as { __DEV__?: boolean };
 
@@ -926,6 +1214,7 @@ describe('resolveVbaOnboarding', () => {
   it.each([
     ['rejected', 'not_started', 'kycRejected'],
     ['retry', 'not_started', 'kycRejected'],
+    ['retry', 'submitted', 'kycRejected'],
     ['pending', 'submitted', 'kycPending'],
   ] as const)(
     'keeps the %s KYC destination for an existing autoramp',
@@ -1563,6 +1852,25 @@ describe('openVbaAccountSetup', () => {
 
   it('opens account details from inside onboarding when Choose Currency is off', () => {
     openVbaAccountSetup(onboardingNavigation, false);
+
+    expect(onboardingDispatch).not.toHaveBeenCalled();
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
+
+  it('skips Choose Currency and opens account details when the market has one currency', () => {
+    openVbaAccountSetup(rootNavigation, true, 'EUR');
+
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
+
+  it('skips Choose Currency from inside onboarding when the market has one currency', () => {
+    openVbaAccountSetup(onboardingNavigation, true, 'EUR');
 
     expect(onboardingDispatch).not.toHaveBeenCalled();
     expect(lastRootResetRoutes()).toEqual([

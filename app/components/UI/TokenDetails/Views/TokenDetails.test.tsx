@@ -25,8 +25,6 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
-import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
-
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
@@ -291,7 +289,6 @@ jest.mock('../components/ShareTokenBottomSheet', () => {
   };
 });
 
-let mockLastUseAmbientColorProp: boolean | undefined;
 let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
 let mockLatestOnBuy: (() => void) | undefined;
 let mockLatestOnSend: (() => Promise<void> | void) | undefined;
@@ -333,7 +330,6 @@ jest.mock('../components/AssetOverviewContent', () => {
     onSend,
     onMarketInsightsDisclaimerPress,
     token,
-    useAmbientColor,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
@@ -348,7 +344,6 @@ jest.mock('../components/AssetOverviewContent', () => {
     onSend?: () => Promise<void> | void;
     onMarketInsightsDisclaimerPress?: () => void;
     token?: { address?: string; chainId?: string; symbol?: string };
-    useAmbientColor?: boolean;
   }) => {
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     // Capture the latest handlers in a deps-less effect (runs every render, no
@@ -361,7 +356,6 @@ jest.mock('../components/AssetOverviewContent', () => {
         onMarketInsightsDisclaimerPress;
     });
     ReactLib.useEffect(() => {
-      mockLastUseAmbientColorProp = useAmbientColor;
       mockLatestPriceDirectionChange = onPriceDirectionChange;
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
       mockLatestPerpsResolver = onPerpsMarketResolved;
@@ -379,7 +373,6 @@ jest.mock('../components/AssetOverviewContent', () => {
       onMarketInsightsDisplayResolved,
       onPerpsMarketResolved,
       onPriceDirectionChange,
-      useAmbientColor,
       insightsTokenKey,
     ]);
 
@@ -407,11 +400,15 @@ jest.mock('../../Transactions', () => ({
   },
 }));
 
+const mockMultichainTransactionsView = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
   () => ({
     __esModule: true,
-    default: () => null,
+    default: (props: Record<string, unknown>) =>
+      mockMultichainTransactionsView(props),
   }),
 );
 
@@ -479,20 +476,11 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
-const defaultUseABTestImpl = (key: string) => {
-  if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
-    return {
-      variant: { useAmbientPriceColor: false },
-      variantName: 'control',
-      isActive: false,
-    };
-  }
-  return {
-    variant: { swapLabelKey: 'asset_overview.swap' },
-    variantName: 'control',
-    isActive: false,
-  };
-};
+const defaultUseABTestImpl = (_key: string) => ({
+  variant: { swapLabelKey: 'asset_overview.swap' },
+  variantName: 'control',
+  isActive: false,
+});
 const mockUseABTest = jest.fn(defaultUseABTestImpl);
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => mockUseABTest(...(args as [string])),
@@ -566,7 +554,6 @@ describe('TokenDetails', () => {
     mockAutoResolvePerps = true;
     mockLatestMarketInsightsResolver = undefined;
     mockLatestPerpsResolver = undefined;
-    mockLastUseAmbientColorProp = undefined;
     mockLatestPriceDirectionChange = undefined;
     mockLatestOnBuy = undefined;
     mockLatestOnSend = undefined;
@@ -687,6 +674,65 @@ describe('TokenDetails', () => {
       // position line waits for the position to resolve.
       expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
+
+    // The dialog's KeyboardAvoidingView forwards onLayout after an await.
+    const layoutFooter = async (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+      height: number,
+    ) => {
+      await act(async () => {
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          persist: jest.fn(),
+          nativeEvent: { layout: { x: 0, y: 0, width: 390, height } },
+        });
+      });
+    };
+
+    it('reserves the floating footer height at the end of the activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$7.92',
+          pnl: { amount: '+$0.10', percentage: '+1.28%', isProfit: true },
+        },
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(mockTransactions).toHaveBeenLastCalledWith(
+          expect.objectContaining({ contentBottomInset: 137 }),
+        ),
+      );
+    });
+
+    it('reserves the floating footer height at the end of the non-EVM activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(mockMultichainTransactionsView).toHaveBeenLastCalledWith(
+          expect.objectContaining({ contentBottomInset: 137 }),
+        ),
+      );
+    });
+
+    it('keeps the default list padding when the footer sits in the page flow', () => {
+      applySelectorsWithMemeFlag(false);
+
+      render(<TokenDetails />);
+
+      expect(mockTransactions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contentBottomInset: undefined }),
+      );
     });
   });
 
@@ -1115,55 +1161,10 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('Ambient price color A/B test', () => {
-    const enableAmbientColor = () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
-          return {
-            variant: { useAmbientPriceColor: true },
-            variantName: 'treatment',
-            isActive: true,
-          };
-        }
-        return {
-          variant: { swapLabelKey: 'asset_overview.swap' },
-          variantName: 'control',
-          isActive: false,
-        };
-      });
-    };
+  it('always shows sticky footer regardless of chart direction', () => {
+    const { queryByTestId } = render(<TokenDetails />);
 
-    it('does not pass useAmbientColor in control variant', () => {
-      render(<TokenDetails />);
-
-      expect(mockLastUseAmbientColorProp).toBeFalsy();
-    });
-
-    it('passes useAmbientColor=true in treatment variant', () => {
-      enableAmbientColor();
-
-      render(<TokenDetails />);
-
-      expect(mockLastUseAmbientColorProp).toBe(true);
-    });
-
-    it('does not pass iconColor or useAmbientColor to the inline header', () => {
-      enableAmbientColor();
-
-      render(<TokenDetails />);
-
-      const headerProps = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0];
-      expect(headerProps).not.toHaveProperty('iconColor');
-      expect(headerProps).not.toHaveProperty('useAmbientColor');
-    });
-
-    it('always shows sticky footer regardless of chart direction', () => {
-      enableAmbientColor();
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
-    });
+    expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
   });
 
   describe('price alert button', () => {

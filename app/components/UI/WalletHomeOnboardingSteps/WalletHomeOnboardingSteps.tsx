@@ -54,7 +54,6 @@ import {
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_DOWN_OUT_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
-  WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
   WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
   walletHomeOnboardingChecklistSlideDownExitDistancePx,
@@ -79,6 +78,7 @@ import {
   walletHomeOnboardingTitleForStep,
 } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
+import { consumeWalletHomeOnboardingFundFlowCompletion } from './walletHomeOnboardingFundFlow';
 
 const SLIDE_DISTANCE = Dimensions.get('window').width;
 
@@ -99,24 +99,29 @@ export interface WalletHomeOnboardingStepsProps {
   onTradePrimaryPress?: () => void;
   /** Notifications step: invoked when user taps Primary (before advancing). Skip does not call this. */
   onNotificationsPrimaryPress?: () => void;
-  /** Fund step: opens buy / on-ramp; advance runs only once {@link canAdvanceFundStepAfterBalance} is true. */
-  onFundPrimaryPress?: () => void;
+  /** Fund step: opens buy / on-ramp and advances after the completed flow returns. */
+  onFundPrimaryPress?: (onLaunchFailure: () => void) => void;
+  /**
+   * Fund step: opens the receiving address list. Navigation only — never advances the step.
+   * The Receive button renders next to Add funds only when this is set.
+   */
+  onReceivePress?: () => void;
   /**
    * True when aggregated balance is settled and positive (on-ramp complete, incoming transfer, etc.).
-   * Required for deferred fund-step advance after returning from buy flow.
+   * Enables passive fund-step advance when funds arrive without leaving the wallet.
    */
   canAdvanceFundStepAfterBalance?: boolean;
 }
 
 /**
  * Multi-step onboarding flow for newly onboarded users with zero aggregated balance.
- * Primary on trade/notifications with navigation callbacks defers advance until the user
- * returns to the wallet, briefly holds on the completed step, then runs outro + transition.
+ * Primary on trade/notifications/fund with navigation callbacks defers advance until the user
+ * returns to the wallet. Fund requires a completed buy-flow marker; trade and notifications
+ * advance after returning. Both paths briefly hold on the completed step, then run outro + slide.
  * Skip advances immediately (no navigation).
- * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; advance to trade uses
- * the same outro + slide as other steps only after {@link canAdvanceFundStepAfterBalance} becomes true
- * (or immediately when that is already true after return). Incoming funds without leaving the wallet
- * also advance when the balance gate becomes true.
+ * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; reaching the final
+ * order details screen with an accepted order marks the flow complete, however the user leaves it.
+ * Incoming funds without leaving the wallet still advance when the balance gate becomes true.
  */
 const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   testID = WalletHomeOnboardingStepsSelectors.CONTAINER,
@@ -126,6 +131,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
   onFundPrimaryPress,
+  onReceivePress,
   canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
@@ -151,14 +157,20 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const { includeNotificationsStep, steps: visibleSteps } =
     useWalletHomeOnboardingVisibleSteps();
   const totalSteps = visibleSteps.length;
+  /**
+   * A completed Fund return can advance the checklist before balance selectors finish loading.
+   * Keep the loading shell for all other onboarding paths.
+   */
+  const [isOptimisticFundReturn, setIsOptimisticFundReturn] = useState(false);
+  const isBalanceShellVisible = isAwaitingBalance && !isOptimisticFundReturn;
 
   useWalletHomeOnboardingChecklistHomeViewed({
-    isAwaitingBalance,
+    isAwaitingBalance: isBalanceShellVisible,
     stepIndex,
     isFocused,
     steps: visibleSteps,
   });
-  const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
+  const displayStepIndex = isBalanceShellVisible ? 0 : stepIndex;
   /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
   const visualStepIndexForProgress = walletHomeOnboardingCappedVisualStepIndex(
     displayStepIndex,
@@ -188,10 +200,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const outroHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  /** Primary opened trade / notifications screen — advance only after user returns and a short hold. */
+  /** Primary opened a navigation flow — advance only after the user returns and a short hold. */
   const deferAdvanceUntilReturnRef = useRef(false);
-  /** Primary opened fund / on-ramp — same defer semantics; advance only when balance gate passes. */
+  /** Fund primary opened Buy — advance only after its completed flow returns. */
   const deferFromFundStepRef = useRef(false);
+  /** Preserves a completed Fund return across effect cleanup/re-execution during the hold. */
+  const fundReturnAuthorizedRef = useRef(false);
   const sawBlurWhileDeferredRef = useRef(false);
   const resumeHoldAfterReturnTimerRef = useRef<ReturnType<
     typeof setTimeout
@@ -200,9 +214,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const fundBalanceAutoAdvanceTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
-  const canAdvanceFundStepAfterBalanceRef = useRef(
-    canAdvanceFundStepAfterBalance,
-  );
 
   /**
    * After returning from trade / notifications (deferred advance), skip replaying the checklist
@@ -230,27 +241,22 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     useState(false);
   const stepIndexRef = useRef(stepIndex);
   const isLastStepRef = useRef(stepIndex >= totalSteps - 1);
+  const isOptimisticFundReturnRef = useRef(isOptimisticFundReturn);
+  isOptimisticFundReturnRef.current = isOptimisticFundReturn;
   /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
   const currentStepKindRef = useRef<WalletHomeOnboardingStepKind>(
     visibleSteps[visualStepIndexForProgress].kind,
   );
   useEffect(() => {
-    canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
     stepIndexRef.current = stepIndex;
     isLastStepRef.current = stepIndex >= totalSteps - 1;
-    const displayIdx = isAwaitingBalance ? 0 : stepIndex;
+    const displayIdx = isBalanceShellVisible ? 0 : stepIndex;
     const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(
       displayIdx,
       totalSteps,
     );
     currentStepKindRef.current = visibleSteps[cappedVisual].kind;
-  }, [
-    canAdvanceFundStepAfterBalance,
-    isAwaitingBalance,
-    stepIndex,
-    totalSteps,
-    visibleSteps,
-  ]);
+  }, [isBalanceShellVisible, stepIndex, totalSteps, visibleSteps]);
 
   useEffect(
     () => () => {
@@ -275,9 +281,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
     if (suspendRiveForCurtain) {
-      checklistRiveRef.current?.pause();
+      checklistRiveRef.current?.pause().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to pause checklist Rive for curtain',
+        );
+      });
     } else if (prevSuspendRiveForCurtainRef.current) {
-      checklistRiveRef.current?.play();
+      checklistRiveRef.current?.play().catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to resume checklist Rive after curtain',
+        );
+      });
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
   }, [suspendRiveForCurtain, checklistRiveRef]);
@@ -338,7 +354,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     if (
       !skipIntroAfterDeferredNavReturn ||
       hasTestOverrides ||
-      isAwaitingBalance
+      isBalanceShellVisible
     ) {
       return;
     }
@@ -354,7 +370,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         // fallback — so always fire the trigger and let the catch below absorb a miss.
         // TODO(#33825): Re-export v07 with Main on every artboard.
         rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
-        rive.play();
+        rive.play().catch((playError: unknown) => {
+          Logger.error(
+            playError as Error,
+            'WalletHomeOnboardingSteps: failed to play checklist Rive at main after deferred nav',
+          );
+        });
       } catch (error) {
         Logger.error(
           error as Error,
@@ -367,7 +388,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn, checklistRiveRef]);
+  }, [
+    isBalanceShellVisible,
+    skipIntroAfterDeferredNavReturn,
+    checklistRiveRef,
+  ]);
 
   const currentStep = visibleSteps[visualStepIndexForProgress];
 
@@ -396,154 +421,176 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     setSkipIntroAfterDeferredNavReturn(false);
   }, []);
 
-  const goNextOrComplete = useCallback(() => {
-    if (isAwaitingBalance) {
-      return;
-    }
-    if (advanceLockRef.current) {
-      return;
-    }
-
-    const fromIndex = stepIndexRef.current;
-    const fromIsLast = isLastStepRef.current;
-
-    if (hasTestOverrides) {
-      if (fromIsLast) {
-        dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
-      } else {
-        dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
+  const goNextOrComplete = useCallback(
+    (options?: { bypassBalance?: boolean }): boolean => {
+      if (
+        isAwaitingBalance &&
+        !options?.bypassBalance &&
+        !isOptimisticFundReturnRef.current
+      ) {
+        return false;
       }
-      return;
-    }
+      if (advanceLockRef.current) {
+        return false;
+      }
 
-    advanceLockRef.current = true;
-    setIsStepTransitioning(true);
+      const fromIndex = stepIndexRef.current;
+      const fromIsLast = isLastStepRef.current;
 
-    const runSlideOutThenCommit = () => {
-      if (fromIsLast) {
-        if (onCoordinatedFlowExit) {
-          Animated.timing(checklistFadeOpacity, {
-            toValue: 0,
+      if (hasTestOverrides) {
+        if (fromIsLast) {
+          dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+        } else {
+          dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
+        }
+        return true;
+      }
+
+      advanceLockRef.current = true;
+      setIsStepTransitioning(true);
+
+      const runSlideOutThenCommit = () => {
+        if (fromIsLast) {
+          if (onCoordinatedFlowExit) {
+            Animated.timing(checklistFadeOpacity, {
+              toValue: 0,
+              duration: hasTestOverrides
+                ? 0
+                : WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }).start(({ finished }) => {
+              if (!finished) {
+                checklistFadeOpacity.setValue(1);
+                finishAdvance();
+                return;
+              }
+              onCoordinatedFlowExit()
+                .then(() => finishAdvance())
+                .catch(() => finishAdvance());
+            });
+            return;
+          }
+          Animated.timing(slideY, {
+            toValue: walletHomeOnboardingChecklistSlideDownExitDistancePx(
+              Dimensions.get('window').height,
+            ),
             duration: hasTestOverrides
               ? 0
-              : WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
-            easing: Easing.out(Easing.cubic),
+              : WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_DOWN_OUT_MS,
+            easing: Easing.in(Easing.cubic),
             useNativeDriver: true,
           }).start(({ finished }) => {
             if (!finished) {
-              checklistFadeOpacity.setValue(1);
+              slideY.setValue(0);
               finishAdvance();
               return;
             }
-            onCoordinatedFlowExit()
-              .then(() => finishAdvance())
-              .catch(() => finishAdvance());
+            dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+            finishAdvance();
           });
           return;
         }
-        Animated.timing(slideY, {
-          toValue: walletHomeOnboardingChecklistSlideDownExitDistancePx(
-            Dimensions.get('window').height,
-          ),
-          duration: hasTestOverrides
-            ? 0
-            : WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_DOWN_OUT_MS,
+
+        Animated.timing(slideX, {
+          toValue: -SLIDE_DISTANCE,
+          duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
         }).start(({ finished }) => {
           if (!finished) {
-            slideY.setValue(0);
+            slideX.setValue(0);
             finishAdvance();
             return;
           }
-          dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
-          finishAdvance();
-        });
-        return;
-      }
-
-      Animated.timing(slideX, {
-        toValue: -SLIDE_DISTANCE,
-        duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }).start(({ finished }) => {
-        if (!finished) {
-          slideX.setValue(0);
-          finishAdvance();
-          return;
-        }
-        dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
-        slideX.setValue(SLIDE_DISTANCE);
-        requestAnimationFrame(() => {
-          Animated.timing(slideX, {
-            toValue: 0,
-            duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }).start(() => {
-            finishAdvance();
+          dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
+          slideX.setValue(SLIDE_DISTANCE);
+          requestAnimationFrame(() => {
+            Animated.timing(slideX, {
+              toValue: 0,
+              duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_IN_MS,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }).start(() => {
+              finishAdvance();
+            });
           });
         });
-      });
-    };
-
-    const scheduleOutroHoldThenSlide = () => {
-      // Always run checklist Rive outro before leaving the step (including last step with
-      // coordinated Wallet fade — previously outro was skipped and hold was 0, so returning
-      // from notification settings showed intro replay then no outro).
-      const rive = checklistRiveRef.current;
-      if (rive) {
-        try {
-          rive.triggerInput(
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-          );
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
-          );
-        }
-      }
-
-      if (outroHoldTimeoutRef.current !== null) {
-        clearTimeout(outroHoldTimeoutRef.current);
-      }
-      const outroHoldMs = WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS;
-      outroHoldTimeoutRef.current = setTimeout(() => {
-        outroHoldTimeoutRef.current = null;
-        runSlideOutThenCommit();
-      }, outroHoldMs);
-    };
-
-    if (fromIsLast) {
-      onProgressFillCompleteRef.current = (finished) => {
-        if (!finished) {
-          finishAdvance();
-          return;
-        }
-        scheduleOutroHoldThenSlide();
       };
-      animateWalletHomeOnboardingProgressRatio(progressRatio, 1, {
-        instant: hasTestOverrides,
-        onComplete: handleProgressFillComplete,
-      });
-      return;
-    }
 
-    scheduleOutroHoldThenSlide();
-  }, [
-    dispatch,
-    finishAdvance,
-    handleProgressFillComplete,
-    isAwaitingBalance,
-    onCoordinatedFlowExit,
-    progressRatio,
-    slideX,
-    slideY,
-    checklistFadeOpacity,
-    checklistRiveRef,
-  ]);
+      const scheduleOutroHoldThenSlide = () => {
+        // Always run checklist Rive outro before leaving the step (including last step with
+        // coordinated Wallet fade — previously outro was skipped and hold was 0, so returning
+        // from notification settings showed intro replay then no outro).
+        const rive = checklistRiveRef.current;
+        if (rive) {
+          try {
+            rive.triggerInput(
+              WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+            );
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
+            );
+          }
+        }
+
+        if (outroHoldTimeoutRef.current !== null) {
+          clearTimeout(outroHoldTimeoutRef.current);
+        }
+        const outroHoldMs = WALLET_HOME_ONBOARDING_CHECKLIST_OUTRO_HOLD_MS;
+        outroHoldTimeoutRef.current = setTimeout(() => {
+          outroHoldTimeoutRef.current = null;
+          runSlideOutThenCommit();
+        }, outroHoldMs);
+      };
+
+      if (fromIsLast) {
+        onProgressFillCompleteRef.current = (finished) => {
+          if (!finished) {
+            finishAdvance();
+            return;
+          }
+          scheduleOutroHoldThenSlide();
+        };
+        animateWalletHomeOnboardingProgressRatio(progressRatio, 1, {
+          instant: hasTestOverrides,
+          onComplete: handleProgressFillComplete,
+        });
+        return true;
+      }
+
+      scheduleOutroHoldThenSlide();
+      return true;
+    },
+    [
+      dispatch,
+      finishAdvance,
+      handleProgressFillComplete,
+      isAwaitingBalance,
+      onCoordinatedFlowExit,
+      progressRatio,
+      slideX,
+      slideY,
+      checklistFadeOpacity,
+      checklistRiveRef,
+    ],
+  );
+
+  const resetDeferredNavigation = useCallback(() => {
+    if (resumeHoldAfterReturnTimerRef.current !== null) {
+      clearTimeout(resumeHoldAfterReturnTimerRef.current);
+      resumeHoldAfterReturnTimerRef.current = null;
+    }
+    deferAdvanceUntilReturnRef.current = false;
+    deferFromFundStepRef.current = false;
+    fundReturnAuthorizedRef.current = false;
+    setIsOptimisticFundReturn(false);
+    sawBlurWhileDeferredRef.current = false;
+    setSkipIntroAfterDeferredNavReturn(false);
+    setIsAwaitingDeferredNavResumeHold(false);
+  }, []);
 
   useLayoutEffect(() => {
     if (hasTestOverrides) {
@@ -583,30 +630,15 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
 
-    if (
-      deferFromFundStepRef.current &&
-      canAdvanceFundStepAfterBalance !== true
-    ) {
-      const graceTimer = setTimeout(
-        () => {
-          if (
-            deferFromFundStepRef.current &&
-            canAdvanceFundStepAfterBalanceRef.current !== true
-          ) {
-            deferAdvanceUntilReturnRef.current = false;
-            deferFromFundStepRef.current = false;
-            sawBlurWhileDeferredRef.current = false;
-            setSkipIntroAfterDeferredNavReturn(false);
-            setIsAwaitingDeferredNavResumeHold(false);
-          }
-        },
-        hasTestOverrides
-          ? 0
-          : WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS,
-      );
-      return () => {
-        clearTimeout(graceTimer);
-      };
+    if (deferFromFundStepRef.current) {
+      if (!fundReturnAuthorizedRef.current) {
+        if (!consumeWalletHomeOnboardingFundFlowCompletion()) {
+          resetDeferredNavigation();
+          return;
+        }
+        fundReturnAuthorizedRef.current = true;
+        setIsOptimisticFundReturn(true);
+      }
     }
 
     setIsAwaitingDeferredNavResumeHold(true);
@@ -614,13 +646,15 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     const holdMs = hasTestOverrides
       ? 0
       : WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS;
+    const isFundReturn = deferFromFundStepRef.current;
     resumeHoldAfterReturnTimerRef.current = setTimeout(() => {
       resumeHoldAfterReturnTimerRef.current = null;
       deferAdvanceUntilReturnRef.current = false;
       deferFromFundStepRef.current = false;
+      fundReturnAuthorizedRef.current = false;
       sawBlurWhileDeferredRef.current = false;
       setIsAwaitingDeferredNavResumeHold(false);
-      goNextOrComplete();
+      goNextOrComplete({ bypassBalance: isFundReturn });
     }, holdMs);
 
     return () => {
@@ -630,7 +664,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       }
       setIsAwaitingDeferredNavResumeHold(false);
     };
-  }, [canAdvanceFundStepAfterBalance, goNextOrComplete, isFocused]);
+  }, [goNextOrComplete, isFocused, resetDeferredNavigation]);
 
   /**
    * Fund step: user received funds (or already had positive aggregate) without an active
@@ -640,7 +674,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     if (hasTestOverrides) {
       return;
     }
-    if (!isFocused || isAwaitingBalance || stepIndex !== 0) {
+    if (
+      !isFocused ||
+      isBalanceShellVisible ||
+      isOptimisticFundReturn ||
+      stepIndex !== 0
+    ) {
       return;
     }
     if (canAdvanceFundStepAfterBalance !== true) {
@@ -673,8 +712,9 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   }, [
     canAdvanceFundStepAfterBalance,
     goNextOrComplete,
-    isAwaitingBalance,
+    isBalanceShellVisible,
     isFocused,
+    isOptimisticFundReturn,
     stepIndex,
   ]);
 
@@ -694,6 +734,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       deferFromFundStepRef.current = fundOpensOnramp;
       sawBlurWhileDeferredRef.current = false;
       setIsAwaitingDeferredNavResumeHold(true);
+    } else {
+      deferFromFundStepRef.current = false;
     }
 
     if (kind === 'trade' && onTradePrimaryPress) {
@@ -701,7 +743,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     } else if (kind === 'notifications' && onNotificationsPrimaryPress) {
       onNotificationsPrimaryPress();
     } else if (kind === 'fund' && onFundPrimaryPress) {
-      onFundPrimaryPress();
+      onFundPrimaryPress(
+        shouldDeferAdvanceUntilReturn
+          ? resetDeferredNavigation
+          : () => undefined,
+      );
     }
 
     if (shouldDeferAdvanceUntilReturn) {
@@ -713,6 +759,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     onFundPrimaryPress,
     onNotificationsPrimaryPress,
     onTradePrimaryPress,
+    resetDeferredNavigation,
   ]);
 
   const progressLabel = useMemo(
@@ -730,6 +777,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
   const primaryTestID = `${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
   const stepHero = WALLET_HOME_ONBOARDING_STEP_HERO[currentStep.kind];
+  /**
+   * Receive takes the secondary slot next to Add funds on the fund step. It follows the
+   * same disabled states as Add funds (balance shell, transitions), so the layout does not
+   * shift once the balance resolves.
+   */
+  const fundStepReceivePress =
+    currentStep.kind === 'fund' ? onReceivePress : undefined;
 
   const heroContainerClassName =
     'relative h-52 w-full rounded-2xl overflow-hidden';
@@ -763,7 +817,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
-          {!isAwaitingBalance && !hasTestOverrides && checklistRiveFile ? (
+          {!isBalanceShellVisible && !hasTestOverrides && checklistRiveFile ? (
             <RiveView
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               hybridRef={setChecklistHybridRef}
@@ -808,14 +862,15 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Column} gap={3} twClassName="w-full">
-        {currentStep.buttonLayout === 'full_width_primary' ? (
+        {currentStep.buttonLayout === 'full_width_primary' &&
+        !fundStepReceivePress ? (
           <Button
             size={ButtonSize.Lg}
             onPress={handlePrimaryPress}
             isFullWidth
             isDisabled={
               isStepTransitioning ||
-              isAwaitingBalance ||
+              isBalanceShellVisible ||
               isAwaitingDeferredNavResumeHold
             }
             testID={primaryTestID}
@@ -829,34 +884,55 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             gap={3}
             twClassName="w-full"
           >
-            <ButtonGlass
-              isGlass={isGlass}
-              size={ButtonSize.Lg}
-              onPress={goNextOrComplete}
-              twClassName="min-w-0 flex-1"
-              containerStyle={tw.style('min-w-0 flex-1')}
-              isDisabled={
-                isStepTransitioning ||
-                isAwaitingBalance ||
-                isAwaitingDeferredNavResumeHold
-              }
-              testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
+            {/*
+              Equal slots own the 50/50 split. The glass wrapper and the plain button differ
+              in padding and node type, so sizing the buttons directly made the row unequal
+              in glass mode and reflow when glass resolved after the first frame.
+            */}
+            <View
+              style={tw.style('flex-1 min-w-0')}
+              testID={`${testID}-${WalletHomeOnboardingStepsSelectors.SECONDARY_BUTTON_SLOT}`}
             >
-              {strings('wallet.home_onboarding_steps.skip')}
-            </ButtonGlass>
-            <Button
-              size={ButtonSize.Lg}
-              onPress={handlePrimaryPress}
-              twClassName="min-w-0 flex-1"
-              isDisabled={
-                isStepTransitioning ||
-                isAwaitingBalance ||
-                isAwaitingDeferredNavResumeHold
-              }
-              testID={primaryTestID}
+              <ButtonGlass
+                isGlass={isGlass}
+                size={ButtonSize.Lg}
+                onPress={fundStepReceivePress ?? (() => goNextOrComplete())}
+                isFullWidth
+                containerStyle={tw.style('w-full')}
+                isDisabled={
+                  isStepTransitioning ||
+                  isBalanceShellVisible ||
+                  isAwaitingDeferredNavResumeHold
+                }
+                testID={
+                  fundStepReceivePress
+                    ? WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON
+                    : WalletHomeOnboardingStepsSelectors.SKIP_BUTTON
+                }
+              >
+                {fundStepReceivePress
+                  ? strings('asset_overview.receive_button')
+                  : strings('wallet.home_onboarding_steps.skip')}
+              </ButtonGlass>
+            </View>
+            <View
+              style={tw.style('flex-1 min-w-0')}
+              testID={`${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON_SLOT}`}
             >
-              {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
-            </Button>
+              <Button
+                size={ButtonSize.Lg}
+                onPress={handlePrimaryPress}
+                isFullWidth
+                isDisabled={
+                  isStepTransitioning ||
+                  isBalanceShellVisible ||
+                  isAwaitingDeferredNavResumeHold
+                }
+                testID={primaryTestID}
+              >
+                {walletHomeOnboardingPrimaryLabelForStep(currentStep.kind)}
+              </Button>
+            </View>
           </Box>
         )}
       </Box>

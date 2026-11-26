@@ -367,7 +367,6 @@ describe('RewardsController', () => {
       getSeasonStatus: jest.fn(),
       getReferralDetails: jest.fn(),
       optIn: jest.fn(),
-      validateBonusCode: jest.fn(),
       claimReward: jest.fn(),
       login: jest.fn(),
       getBenefits: jest.fn(),
@@ -9951,275 +9950,6 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('validateBonusCode', () => {
-    const mockSubscriptionId = 'test-subscription-123';
-
-    it('returns false when feature flag is disabled', async () => {
-      // Arrange
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      // Act
-      const result = await disabledController.validateBonusCode(
-        'BNS123',
-        mockSubscriptionId,
-      );
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:validateBonusCode',
-        expect.anything(),
-        expect.anything(),
-      );
-    });
-
-    it('returns false for empty or whitespace-only codes', async () => {
-      // Act & Assert
-      expect(await controller.validateBonusCode('', mockSubscriptionId)).toBe(
-        false,
-      );
-      expect(
-        await controller.validateBonusCode('   ', mockSubscriptionId),
-      ).toBe(false);
-      expect(
-        await controller.validateBonusCode('\t\n', mockSubscriptionId),
-      ).toBe(false);
-    });
-
-    it('returns false for codes shorter than 4 characters', async () => {
-      // Act & Assert
-      expect(await controller.validateBonusCode('AB', mockSubscriptionId)).toBe(
-        false,
-      );
-      expect(
-        await controller.validateBonusCode('ABC', mockSubscriptionId),
-      ).toBe(false);
-    });
-
-    it('returns false for codes longer than 16 characters', async () => {
-      // Act & Assert
-      expect(
-        await controller.validateBonusCode(
-          'ABCDEFGHIJKLMNOPQ',
-          mockSubscriptionId,
-        ),
-      ).toBe(false);
-    });
-
-    it('accepts codes with any alphanumeric characters', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateBonusCode') {
-          return Promise.resolve({ valid: true });
-        }
-        return Promise.resolve();
-      });
-
-      expect(
-        await controller.validateBonusCode('AIOU', mockSubscriptionId),
-      ).toBe(true);
-      expect(
-        await controller.validateBonusCode('LION', mockSubscriptionId),
-      ).toBe(true);
-    });
-
-    it('returns false for codes with non-alphanumeric characters', async () => {
-      // Act & Assert
-      expect(
-        await controller.validateBonusCode('AB-C!', mockSubscriptionId),
-      ).toBe(false);
-      expect(
-        await controller.validateBonusCode('CODE@123', mockSubscriptionId),
-      ).toBe(false);
-      expect(
-        await controller.validateBonusCode('A B C D', mockSubscriptionId),
-      ).toBe(false);
-    });
-
-    it('returns true for valid bonus codes from service', async () => {
-      // Arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateBonusCode') {
-          return Promise.resolve({ valid: true });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.validateBonusCode(
-        'BNS234',
-        mockSubscriptionId,
-      );
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateBonusCode',
-        'BNS234',
-        mockSubscriptionId,
-      );
-    });
-
-    it('returns false for invalid bonus codes from service', async () => {
-      // Arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateBonusCode') {
-          return Promise.resolve({ valid: false });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.validateBonusCode(
-        'XYZ567',
-        mockSubscriptionId,
-      );
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateBonusCode',
-        'XYZ567',
-        mockSubscriptionId,
-      );
-    });
-
-    it('handles service errors and throw error', async () => {
-      // Arrange
-      mockMessenger.call.mockRejectedValue(new Error('Service error'));
-
-      // Act & Assert
-      await expect(
-        controller.validateBonusCode('BNS123', mockSubscriptionId),
-      ).rejects.toThrow('Service error');
-    });
-  });
-
-  describe('applyBonusCode', () => {
-    const mockSubscriptionId = 'test-subscription-123';
-    const mockBonusCode = 'BNS123';
-
-    it('throws error when feature flag is disabled', async () => {
-      // Arrange
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      // Act & Assert
-      await expect(
-        disabledController.applyBonusCode(mockBonusCode, mockSubscriptionId),
-      ).rejects.toThrow('Rewards are not enabled');
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:applyBonusCode',
-        expect.anything(),
-        expect.anything(),
-      );
-    });
-
-    it('successfully applies bonus code and invalidates points events cache', async () => {
-      // Arrange
-      const compositeKey = `current:${mockSubscriptionId}`;
-      const typedPointsEventsKey = `${compositeKey}:BONUS_CODE`;
-      const initialState = getRewardsControllerDefaultState();
-
-      initialState.pointsEvents[compositeKey] = {
-        results: [],
-        has_more: false,
-        cursor: null,
-        lastFetched: Date.now(),
-      };
-      initialState.pointsEvents[typedPointsEventsKey] = {
-        results: [],
-        has_more: false,
-        cursor: null,
-        lastFetched: Date.now(),
-      };
-      initialState.subscriptionBenefits[mockSubscriptionId] = {
-        benefits: [],
-        limit: 10,
-        lastFetched: Date.now(),
-      } as SubscriptionBenefitsState;
-      initialState.vipDashboard[mockSubscriptionId] = {
-        lastFetched: Date.now(),
-      } as VipDashboardState;
-      initialState.vipPerpsFees[mockSubscriptionId] = {
-        hyperliquidBuilderFeeBips: '4',
-        lastFetched: Date.now(),
-      } as VipPerpsFeesState;
-      initialState.offDeviceSubscriptionAccounts[mockSubscriptionId] = {
-        accounts: ['eip155:1:0x123'],
-        lastFetched: Date.now(),
-      } as OffDeviceSubscriptionAccountsState;
-
-      const testController = new RewardsController({
-        messenger: mockMessenger,
-        state: initialState,
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:applyBonusCode') {
-          return Promise.resolve();
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      await testController.applyBonusCode(mockBonusCode, mockSubscriptionId);
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:applyBonusCode',
-        { bonusCode: mockBonusCode },
-        mockSubscriptionId,
-      );
-      expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
-      expect(
-        testController.state.pointsEvents[typedPointsEventsKey],
-      ).toBeUndefined();
-      expect(
-        testController.state.subscriptionBenefits[mockSubscriptionId],
-      ).toBeDefined();
-      expect(
-        testController.state.vipDashboard[mockSubscriptionId],
-      ).toBeDefined();
-      expect(
-        testController.state.vipPerpsFees[mockSubscriptionId],
-      ).toBeDefined();
-      expect(
-        testController.state.offDeviceSubscriptionAccounts[mockSubscriptionId],
-      ).toBeDefined();
-    });
-
-    it('throws error when service fails', async () => {
-      // Arrange
-      mockMessenger.call.mockRejectedValue(new Error('Invalid bonus code'));
-
-      // Act & Assert
-      await expect(
-        controller.applyBonusCode(mockBonusCode, mockSubscriptionId),
-      ).rejects.toThrow('Invalid bonus code');
-    });
-
-    it('throws error on network failure', async () => {
-      // Arrange
-      mockMessenger.call.mockRejectedValue(new Error('Network error'));
-
-      // Act & Assert
-      await expect(
-        controller.applyBonusCode(mockBonusCode, mockSubscriptionId),
-      ).rejects.toThrow('Network error');
-    });
-  });
-
   describe('calculateTierStatus', () => {
     it('returns null immediately when current tier ID is not found in season tiers', () => {
       // Arrange
@@ -11533,157 +11263,6 @@ describe('RewardsController', () => {
 
       // Verify that removeSubscriptionToken was called
       expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
-    });
-  });
-
-  describe('getGeoRewardsMetadata', () => {
-    it('returns default metadata when rewards feature is disabled', async () => {
-      // Arrange
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      // Act
-      const result = await disabledController.getGeoRewardsMetadata();
-
-      // Assert
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      });
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).not.toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-    });
-
-    it('returns cached geo location when available', async () => {
-      // Arrange
-      const mockCachedGeoData = {
-        geoLocation: 'US-NY',
-        optinAllowedForGeo: true,
-      };
-
-      // First call to populate cache
-      mockMessenger.call.mockResolvedValueOnce('US-NY');
-      const firstResult = await controller.getGeoRewardsMetadata();
-
-      // Clear messenger call mock to verify no additional calls are made
-      jest.clearAllMocks();
-
-      // Act - Second call should use cache
-      const secondResult = await controller.getGeoRewardsMetadata();
-
-      // Assert - Verify cached data is returned
-      expect(secondResult).toEqual(mockCachedGeoData);
-      expect(secondResult).toEqual(firstResult); // Should be the same as first call
-
-      // Assert - Verify no additional API calls were made
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Assert - Verify fetching log message was not called on cached access
-      expect(mockLogger.log).not.toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-    });
-
-    it('successfully fetch geo location for allowed region', async () => {
-      // Arrange
-      const mockGeoLocation = 'US-CA';
-      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Geo rewards metadata retrieved',
-        {
-          geoLocation: mockGeoLocation,
-          optinAllowedForGeo: true,
-        },
-      );
-      expect(result).toEqual({
-        geoLocation: mockGeoLocation,
-        optinAllowedForGeo: true,
-      });
-    });
-
-    it('handles blocked regions correctly', async () => {
-      // Arrange
-      const mockGeoLocation = 'UK-ENG'; // UK is in DEFAULT_BLOCKED_REGIONS
-      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(result).toEqual({
-        geoLocation: mockGeoLocation,
-        optinAllowedForGeo: false,
-      });
-    });
-
-    it('handles geo location service errors with fallback', async () => {
-      // Arrange
-      const geoServiceError = new Error('Geo service unavailable');
-      mockMessenger.call.mockRejectedValueOnce(geoServiceError);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get geo rewards metadata:',
-        geoServiceError.message,
-      );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
-    });
-
-    it('handles non-Error objects in catch block', async () => {
-      // Arrange
-      const nonErrorObject = 'String error';
-      mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get geo rewards metadata:',
-        String(nonErrorObject),
-      );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
     });
   });
 
@@ -21232,6 +20811,24 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockStatus);
     });
 
+    it('forwards a profile username to the data service', async () => {
+      const ctrl = new RewardsController({
+        messenger: optInToCampaignMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId, 'ada');
+
+      expect(optInToCampaignMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        mockCampaignId,
+        'ada',
+      );
+    });
+
     it('logs when opting in', async () => {
       const ctrl = new RewardsController({
         messenger: optInToCampaignMessenger,
@@ -21406,6 +21003,35 @@ describe('RewardsController', () => {
         campaignId: campaignA,
         subscriptionId: mockSubscriptionId,
       });
+    });
+
+    it('forwards one profile username to every campaign opt-in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+        'ada',
+      );
+
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+        'ada',
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+        'ada',
+      );
     });
 
     it('re-seeds participant status cache so post-batch refetches hit cache', async () => {

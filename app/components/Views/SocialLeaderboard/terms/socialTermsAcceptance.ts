@@ -14,6 +14,9 @@ export const SOCIAL_TERMS_VERSION = 'v1';
 // made this session must not depend on reading it back from storage.
 let hasAcceptedThisSession = false;
 
+// Each gate call replaces it, so a later Accept never runs an older entry.
+let pendingEntry: (() => void) | undefined;
+
 /**
  * Whether the user accepted the current Social terms version on this device.
  * Synchronous (MMKV) so navigation helpers can branch before navigating.
@@ -99,29 +102,53 @@ export const resetSocialTermsAcceptance = (): Promise<void> => {
 
 type SocialTermsNavigate = Pick<AppNavigationProp, 'navigate'>['navigate'];
 
+const navigateNow = (navigateToOnboarding: () => void): void => {
+  navigateToOnboarding();
+};
+
+/**
+ * Returns the Social entry the last gate call held back and forgets it. The
+ * terms-only screen runs it after Accept so the user lands where they tapped.
+ */
+export const takePendingSocialEntry = (): (() => void) | undefined => {
+  const entry = pendingEntry;
+  pendingEntry = undefined;
+  return entry;
+};
+
 /**
  * Gate for every Social entry point and interaction. When the terms are not
  * accepted it opens profile onboarding, where they are accepted, and returns
  * `false` so the caller skips the original action.
  *
  * @param navigate - The caller's navigate function (React or deeplink).
+ * @param onAccepted - Reopens the caller's destination once the terms-only
+ * screen is accepted.
+ * @param runNavigation - Runs the onboarding navigation. A bottom sheet passes
+ * one that closes the sheet first, so onboarding opens full screen. Defaults to
+ * navigating immediately.
  * @returns `true` when the caller may continue.
  */
 export const ensureSocialTermsAccepted = (
   navigate: SocialTermsNavigate,
+  onAccepted?: () => void,
+  runNavigation: (navigateToOnboarding: () => void) => void = navigateNow,
 ): boolean => {
   recordSocialTermsAcceptanceForExistingProfile();
   if (hasAcceptedSocialTerms()) {
     return true;
   }
-  try {
-    if (hasLoadedSocialProfile()) {
-      navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
-    } else {
+  pendingEntry = onAccepted;
+  runNavigation(() => {
+    try {
+      if (hasLoadedSocialProfile()) {
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
+      } else {
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      }
+    } catch {
       navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
     }
-  } catch {
-    navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-  }
+  });
   return false;
 };

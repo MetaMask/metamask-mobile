@@ -1,18 +1,30 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useFollowWithNotificationSetup } from './useFollowWithNotificationSetup';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 
-const mockEnsureSocialTermsAccepted = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
+  () => true,
+);
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+const mockTermsGateOptions = jest.fn();
+const mockProfileGateOptions = jest.fn();
 jest.mock('../terms/useSocialTermsGate', () => ({
-  useSocialTermsGate: () => ({
-    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
-  }),
+  useSocialTermsGate: (
+    options: unknown,
+  ): { ensureSocialTermsAccepted: typeof mockEnsureSocialTermsAccepted } => {
+    mockTermsGateOptions(options);
+    return { ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted };
+  },
 }));
 jest.mock('./useRequireSocialProfileOnboarding', () => ({
-  useRequireSocialProfileOnboarding: () => ({
-    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
-  }),
+  useRequireSocialProfileOnboarding: (
+    options: unknown,
+  ): {
+    ensureSocialProfileOnboarding: typeof mockEnsureSocialProfileOnboarding;
+  } => {
+    mockProfileGateOptions(options);
+    return { ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding };
+  },
 }));
 jest.mock('./useOpenTradingSignalsSetup');
 
@@ -35,6 +47,22 @@ describe('useFollowWithNotificationSetup', () => {
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
   });
 
+  it('passes runNavigation to both gates', () => {
+    setGate(false);
+    const runNavigation = jest.fn();
+
+    renderHook(() =>
+      useFollowWithNotificationSetup({
+        requireSocialTerms: true,
+        requireSocialProfile: true,
+        runNavigation,
+      }),
+    );
+
+    expect(mockTermsGateOptions).toHaveBeenLastCalledWith({ runNavigation });
+    expect(mockProfileGateOptions).toHaveBeenLastCalledWith({ runNavigation });
+  });
+
   it('skips the follow and setup when the Social terms are not accepted', async () => {
     mockEnsureSocialTermsAccepted.mockReturnValue(false);
     const openSetupIfNeeded = setGate(true);
@@ -47,6 +75,21 @@ describe('useFollowWithNotificationSetup', () => {
 
     expect(performFollow).not.toHaveBeenCalled();
     expect(openSetupIfNeeded).not.toHaveBeenCalled();
+  });
+
+  it('follows once the Social terms are accepted', async () => {
+    mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+    const openSetupIfNeeded = setGate(true);
+    const performFollow = jest.fn();
+    const { result } = renderHook(() =>
+      useFollowWithNotificationSetup({ requireSocialTerms: true }),
+    );
+    await result.current.followWithSetup(false, performFollow);
+
+    mockEnsureSocialTermsAccepted.mock.calls[0][0]?.();
+
+    await waitFor(() => expect(openSetupIfNeeded).toHaveBeenCalledTimes(1));
+    expect(performFollow).toHaveBeenCalledTimes(1);
   });
 
   it('skips the follow and setup when there is no linked social wallet', async () => {

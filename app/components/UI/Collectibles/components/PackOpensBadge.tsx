@@ -1,0 +1,67 @@
+import React from 'react';
+import {
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
+import { getFormatters, useFormatters } from '../../../hooks/useFormatters';
+import { collectiblesTestIds } from '../Collectibles.testIds';
+import { View } from '../../primitives/View';
+import { CapsuleGlass } from '../../primitives/CapsuleGlass';
+
+const flameThreshold = 20_000;
+
+export function getOpensLabel(openedCount: number) {
+  return strings(
+    openedCount >= flameThreshold
+      ? 'collectibles.home.opens_trending'
+      : 'collectibles.home.opens',
+    {
+      count: openedCount,
+      formattedCount: getFormatters().formatNumber(openedCount),
+    },
+  );
+}
+
+interface Props {
+  code: string;
+  openedCount: number;
+  className?: string;
+  isAccessible?: boolean;
+}
+
+export function PackOpensBadge({
+  code,
+  openedCount,
+  className,
+  isAccessible = true,
+}: Props) {
+  const { formatNumber } = useFormatters();
+  const formattedCount = formatNumber(openedCount);
+  const isTrending = openedCount >= flameThreshold;
+
+  return (
+    <View
+      className={className}
+      accessible={isAccessible}
+      accessibilityLabel={isAccessible ? getOpensLabel(openedCount) : undefined}
+    >
+      <CapsuleGlass className="h-6 gap-1 px-2">
+        {isTrending && (
+          <Icon
+            name={IconName.Fire}
+            size={IconSize.Xs}
+            testID={collectiblesTestIds.flame(code)}
+          />
+        )}
+        <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+          {formattedCount}
+        </Text>
+      </CapsuleGlass>
+    </View>
+  );
+}

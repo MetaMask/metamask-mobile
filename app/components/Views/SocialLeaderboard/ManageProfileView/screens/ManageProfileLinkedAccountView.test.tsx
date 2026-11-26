@@ -1,6 +1,8 @@
+import type { Profile } from '@metamask/profile-controller';
+import type { CaipAccountId } from '@metamask/utils';
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -9,6 +11,7 @@ import {
   internalAccount2,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { createMockAccountGroup } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { renderShortAddress } from '../../../../../util/address';
 import type { LinkableSocialAccount } from '../../hooks/useLinkableSocialAccounts';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
@@ -42,13 +45,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     AvatarAccount: () => null,
-    Checkbox: ({ isSelected }: { isSelected: boolean }) => {
-      const { View } = jest.requireActual('react-native');
-      const { createElement } = jest.requireActual('react');
-      return createElement(View, {
-        testID: isSelected ? 'radio-checked' : 'radio-unchecked',
-      });
-    },
   };
 });
 
@@ -61,6 +57,13 @@ const state = {
   },
 };
 
+const mainGroup = createMockAccountGroup('entropy:wallet1/0', 'Main Wallet', [
+  internalAccount1.id,
+]);
+const tradingGroup = createMockAccountGroup('entropy:wallet1/1', 'Trading', [
+  internalAccount2.id,
+]);
+
 const linkableAccounts: LinkableSocialAccount[] = [
   {
     id: internalAccount1.id,
@@ -71,6 +74,8 @@ const linkableAccounts: LinkableSocialAccount[] = [
       `eip155:1:${internalAccount1.address}`,
       `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
     ],
+    accountGroup: mainGroup,
+    walletTitle: 'Wallet 1',
   },
   {
     id: internalAccount2.id,
@@ -78,8 +83,24 @@ const linkableAccounts: LinkableSocialAccount[] = [
     address: internalAccount2.address,
     balanceLabel: '',
     linkedAddresses: [`eip155:1:${internalAccount2.address}`],
+    accountGroup: tradingGroup,
+    walletTitle: 'Wallet 1',
   },
 ];
+
+const BACKED_PROFILE: Profile = {
+  profileId: 'profile-1',
+  username: 'wen',
+  displayName: 'Wen',
+  bio: '',
+  linkedAddresses: [],
+  avatarUrl: '',
+  tradingPrivacy: 'public',
+  connectedToX: false,
+  verified: false,
+  createdAt: '',
+  updatedAt: '',
+};
 
 const controllerResult = (
   overrides: Partial<UseProfileControllerResult> = {},
@@ -94,8 +115,18 @@ const controllerResult = (
   disconnectX: jest.fn(),
   getXAuthorizationUrl: jest.fn(),
   checkUsernameAvailability: jest.fn(),
+  checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
   ...overrides,
 });
+
+const backedController = (
+  overrides: Partial<UseProfileControllerResult> = {},
+): UseProfileControllerResult =>
+  controllerResult({
+    isControllerBacked: true,
+    profile: BACKED_PROFILE,
+    ...overrides,
+  });
 
 const getRow = (accountId: string) =>
   screen.getByTestId(
@@ -109,23 +140,23 @@ describe('ManageProfileLinkedAccountView', () => {
     mockUseLinkableSocialAccounts.mockReturnValue(linkableAccounts);
   });
 
-  it('shows account names and balances instead of addresses', () => {
+  it('shows account names instead of addresses', () => {
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
     const firstRow = getRow(internalAccount1.id);
     const secondRow = getRow(internalAccount2.id);
 
-    expect(firstRow).toHaveTextContent('Main Wallet$1,234.56');
+    expect(firstRow).toHaveTextContent('Main Wallet');
     expect(secondRow).toHaveTextContent('Trading');
     expect(firstRow).not.toHaveTextContent(
       renderShortAddress(internalAccount1.address),
     );
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
   });
 
   it('selects the linked account even when its Solana address is stored first', () => {
     mockUseProfileController.mockReturnValue(
-      controllerResult({
-        isControllerBacked: true,
+      backedController({
         linkedAddresses: [
           `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
           `eip155:1:${internalAccount2.address}`,
@@ -135,12 +166,14 @@ describe('ManageProfileLinkedAccountView', () => {
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
-    expect(
-      within(getRow(internalAccount2.id)).getByTestId('radio-checked'),
-    ).toBeOnTheScreen();
-    expect(
-      within(getRow(internalAccount1.id)).getByTestId('radio-unchecked'),
-    ).toBeOnTheScreen();
+    expect(getRow(internalAccount2.id)).toHaveProp('accessibilityState', {
+      disabled: false,
+      selected: true,
+    });
+    expect(getRow(internalAccount1.id)).toHaveProp('accessibilityState', {
+      disabled: false,
+      selected: false,
+    });
   });
 
   it('does not update the profile when not controller backed', () => {
@@ -159,7 +192,7 @@ describe('ManageProfileLinkedAccountView', () => {
   it('updates the profile with every address in the selected account', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     mockUseProfileController.mockReturnValue(
-      controllerResult({ isControllerBacked: true, updateProfile }),
+      backedController({ updateProfile }),
     );
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
@@ -174,6 +207,70 @@ describe('ManageProfileLinkedAccountView', () => {
         `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
       ],
     });
+  });
+
+  it('does not update the profile without a controller-backed profile', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    mockUseProfileController.mockReturnValue(
+      backedController({ profile: undefined, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount1.id));
+    });
+
+    expect(updateProfile).not.toHaveBeenCalled();
+  });
+
+  it('submits the current linked addresses for the pressed account id', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const accounts = linkableAccounts.map((account) => ({
+      ...account,
+      linkedAddresses: [...account.linkedAddresses],
+    }));
+    mockUseLinkableSocialAccounts.mockImplementation(() => accounts);
+    mockUseProfileController.mockReturnValue(
+      backedController({ updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+    const nextLinkedAddresses: CaipAccountId[] = [
+      `eip155:1:${internalAccount1.address}` as CaipAccountId,
+      `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}` as CaipAccountId,
+      'eip155:1:0xabc' as CaipAccountId,
+    ];
+    accounts[0] = {
+      ...accounts[0],
+      linkedAddresses: nextLinkedAddresses,
+    };
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount1.id));
+    });
+
+    expect(updateProfile).toHaveBeenCalledWith({
+      linked_addresses: nextLinkedAddresses,
+    });
+  });
+
+  it('does not update the profile when the pressed account is no longer eligible', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const accounts = linkableAccounts.map((account) => ({ ...account }));
+    mockUseLinkableSocialAccounts.mockImplementation(() => accounts);
+    mockUseProfileController.mockReturnValue(
+      backedController({ updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+    accounts.splice(0, 1);
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount1.id));
+    });
+
+    expect(updateProfile).not.toHaveBeenCalled();
   });
 
   it('explains and announces the 30-day limit when the server refuses the change', async () => {
@@ -191,7 +288,7 @@ describe('ManageProfileLinkedAccountView', () => {
         ),
       );
     mockUseProfileController.mockReturnValue(
-      controllerResult({ isControllerBacked: true, updateProfile }),
+      backedController({ updateProfile }),
     );
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
@@ -229,7 +326,7 @@ describe('ManageProfileLinkedAccountView', () => {
         ),
       );
     mockUseProfileController.mockReturnValue(
-      controllerResult({ isControllerBacked: true, updateProfile }),
+      backedController({ updateProfile }),
     );
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
@@ -258,7 +355,7 @@ describe('ManageProfileLinkedAccountView', () => {
       .fn()
       .mockRejectedValue(new Error('Network request failed'));
     mockUseProfileController.mockReturnValue(
-      controllerResult({ isControllerBacked: true, updateProfile }),
+      backedController({ updateProfile }),
     );
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });

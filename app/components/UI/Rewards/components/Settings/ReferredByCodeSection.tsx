@@ -18,6 +18,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { InviteTermsLink } from '../InviteTermsLink';
 import type { RootState } from '../../../../../reducers';
 import {
   selectMoneyReferralAllowedForGeo,
@@ -26,14 +27,15 @@ import {
 } from '../../../../../reducers/rewardsMoney/selectors';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
 } from '../../utils/moneyReferralCode';
+import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
+
 /** Alphanumeric upper-case only, capped at the Money code max length. */
 const normalizeInviteCodeInput = (value: string) =>
   value
@@ -63,7 +65,6 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { profileId } = useReferralMe();
-  useGeoRewardsMetadata({ enabled: true });
   const settingsReferralAvailable = useSelector(
     selectSettingsReferralAvailable,
   );
@@ -172,6 +173,8 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   const description = hasStoredCode
     ? (localizedText?.settingsReferralLinkedDescription ?? '')
     : (localizedText?.settingsReferralNotLinkedDescription ?? '');
+  const termsLink = resolveInviteTermsLink(localizedText);
+
   const renderStatusIcon = () => {
     if (hasStoredCode) {
       return null;
@@ -206,6 +209,15 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
           </Text>
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
             {description}
+            {description.length > 0 && termsLink ? (
+              <>
+                {' '}
+                <InviteTermsLink
+                  link={termsLink}
+                  testID={REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK}
+                />
+              </>
+            ) : null}
           </Text>
         </Box>
 

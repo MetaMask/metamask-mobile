@@ -32,6 +32,7 @@ describe('ManageProfileTradingActivityView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
   });
 
@@ -90,6 +91,7 @@ describe('ManageProfileTradingActivityView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
 
     renderWithProvider(<ManageProfileTradingActivityView />);
@@ -153,6 +155,7 @@ describe('ManageProfileTradingActivityView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
 
     renderWithProvider(<ManageProfileTradingActivityView />);

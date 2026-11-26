@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import type { AnyAction, Dispatch } from 'redux';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
@@ -36,7 +36,6 @@ import {
 import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
-  HeaderStandard,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
@@ -79,6 +78,8 @@ import {
   RAMP_V2_SCREEN_ID,
   type RampV2ScreenId,
 } from '../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CheckoutParams {
   url: string;
@@ -200,6 +201,7 @@ interface CheckoutProps {
 const Checkout = ({
   performanceScreenId = RAMP_V2_SCREEN_ID.CHECKOUT,
 }: CheckoutProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // Must match redirectUrl from getRampCallbackBaseUrl() on quote fetch
   // (including Dev → on-ramp.dev-api), not Aggregator/sdk's content host.
   const callbackBaseUrl = getRampCallbackBaseUrl();
@@ -903,7 +905,9 @@ const Checkout = ({
   );
 
   const sharedHeader = (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isFloating={false}
+      isGlass={isGlassHeader}
       onClose={handleClosePress}
       closeButtonProps={{
         testID: CHECKOUT_TEST_IDS.CLOSE_BUTTON,

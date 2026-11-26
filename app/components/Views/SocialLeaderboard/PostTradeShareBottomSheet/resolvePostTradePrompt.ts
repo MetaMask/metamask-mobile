@@ -32,8 +32,8 @@ export interface ResolvePostTradePromptInput {
 
 /**
  * Decides which post-trade prompt a Quick Buy swap or a Perps market order
- * gets. Social V1 copy-trades do not go through this; they always show the
- * share sheet.
+ * gets. Social V1 copy-trades do not go through this; they show the share
+ * sheet whenever the linked account is selected (`useCanShareCopyTrade`).
  */
 export const resolvePostTradePrompt = ({
   product,

@@ -142,7 +142,7 @@ const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
  * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
  * A commission group has no time of day, so this never invents one.
- * @example 'today', '1d ago', '2w ago', '3mo ago', '1y ago'
+ * @example 'Today', '1d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeDay = (
   day: string,
@@ -166,7 +166,7 @@ export const formatRewardsRelativeDay = (
   const diffDays = Math.round((todayUtc - dayUtc) / DAY_MS);
 
   if (diffDays <= 0) {
-    return 'today';
+    return strings('rewards.today');
   }
   return formatDaysAgo(diffDays);
 };
@@ -236,51 +236,6 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   const minuteString = minutes > 0 ? `${minutes}m` : '';
 
   return `${dayString}${hourString}${minuteString}`?.trim();
-};
-
-/** `{count}` templates from referral `localized_text`, one per unit and plural. */
-export interface DurationTemplates {
-  day: string | undefined;
-  days: string | undefined;
-  hour: string | undefined;
-  hours: string | undefined;
-}
-
-/**
- * Largest whole unit still ahead of now: days, otherwise hours.
- * Missing, invalid, or past ends are null so the caller hides the line.
- * The phrase is the matching `{count}` template with the number filled in.
- */
-export const formatDuration = (
-  endIso: string | null | undefined,
-  templates: DurationTemplates,
-  nowMs: number = Date.now(),
-): string | null => {
-  if (!endIso) {
-    return null;
-  }
-  const endMs = new Date(endIso).getTime();
-  if (Number.isNaN(endMs) || endMs <= nowMs) {
-    return null;
-  }
-  const remainingMs = endMs - nowMs;
-  const unit = remainingMs >= DAY_MS ? 'day' : 'hour';
-  const value =
-    unit === 'day'
-      ? Math.floor(remainingMs / DAY_MS)
-      : Math.max(1, Math.floor(remainingMs / HOUR_MS));
-  const template =
-    unit === 'day'
-      ? value === 1
-        ? templates.day
-        : templates.days
-      : value === 1
-        ? templates.hour
-        : templates.hours;
-  if (!template?.includes('{count}')) {
-    return null;
-  }
-  return template.replaceAll('{count}', String(value));
 };
 
 /**

@@ -3,13 +3,13 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
-import type { ScrollHandlerProcessed } from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
-import { selectFollowingProfileIds } from '../../../../selectors/socialController';
+import type {
+  ScrollHandlerProcessed,
+  SharedValue,
+} from 'react-native-reanimated';
 import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import SocialFeed, {
@@ -46,6 +46,8 @@ export interface LiveViewProps {
   onClearFilters?: () => void;
   /** Filters committed in the Live filter sheet. */
   appliedFilters?: SocialShellFilters;
+  contentTopInset?: number;
+  pendingPostsTopOffset?: number | SharedValue<number>;
   onCopyTrade?: SocialFeedProps['onCopyTrade'];
 }
 
@@ -58,11 +60,12 @@ const LiveView: React.FC<LiveViewProps> = ({
   isFilterActive = false,
   onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
+  contentTopInset,
+  pendingPostsTopOffset,
   onCopyTrade,
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('social_live');
-  const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
   useEffect(() => {
@@ -82,14 +85,9 @@ const LiveView: React.FC<LiveViewProps> = ({
     [],
   );
 
-  const followingProfileIdSet = useMemo(
-    () => new Set(followingProfileIds),
-    [followingProfileIds],
-  );
   const filterPost = useCallback(
-    (post: SocialV1FeedPost) =>
-      matchesLivePost(post, appliedFilters, followingProfileIdSet),
-    [appliedFilters, followingProfileIdSet],
+    (post: SocialV1FeedPost) => matchesLivePost(post, appliedFilters),
+    [appliedFilters],
   );
 
   const previousFiltersRef = useRef(appliedFilters);
@@ -160,11 +158,13 @@ const LiveView: React.FC<LiveViewProps> = ({
         emptyState={liveEmpty}
         renderHeader={renderHeader}
         onScroll={onScroll}
+        contentTopInset={contentTopInset}
+        refreshProgressViewOffset={contentTopInset}
+        pendingPostsTopOffset={pendingPostsTopOffset}
         pageRef={feedPageRef}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
-        requireSocialProfile
         testID={LiveViewSelectorsIDs.CONTAINER}
         scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
       />

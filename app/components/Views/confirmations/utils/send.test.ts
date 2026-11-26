@@ -44,7 +44,7 @@ jest.mock('../../../../lib/ppom/ppom-util', () => ({
 }));
 
 describe('handleSendPageNavigation', () => {
-  it('navigates to send redesign page', () => {
+  it('navigates to send page', () => {
     const mockNavigate = jest.fn();
     handleSendPageNavigation(mockNavigate, {
       location: InitSendLocation.WalletActions,

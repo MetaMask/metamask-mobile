@@ -10,6 +10,7 @@ import {
 import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
 import {
   selectPerpsProvider,
+  selectPerpsOrderProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,
@@ -104,6 +105,45 @@ describe('PerpsController Selectors', () => {
       expect(result1).toBe('provider1');
       expect(result2).toBe('provider2');
       expect(result1).not.toBe(result2);
+    });
+  });
+
+  describe('selectPerpsOrderProvider', () => {
+    it('returns the live effective provider once the controller resolved it', () => {
+      const mockState = createMockState({
+        activeProvider: 'aggregated',
+        defaultProvider: 'hyperliquid',
+        effectiveProvider: 'lighter',
+      });
+
+      expect(selectPerpsOrderProvider(mockState)).toBe('lighter');
+    });
+
+    it('returns the saved default in aggregated mode before a venue resolves', () => {
+      const mockState = createMockState({
+        activeProvider: 'aggregated',
+        defaultProvider: 'lighter',
+        effectiveProvider: null,
+      });
+
+      expect(selectPerpsOrderProvider(mockState)).toBe('lighter');
+    });
+
+    it('returns the direct venue before a venue resolves', () => {
+      const mockState = createMockState({
+        activeProvider: 'lighter',
+        effectiveProvider: null,
+      });
+
+      expect(selectPerpsOrderProvider(mockState)).toBe('lighter');
+    });
+
+    it('returns null without PerpsController state', () => {
+      const mockState = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+
+      expect(selectPerpsOrderProvider(mockState)).toBeNull();
     });
   });
 

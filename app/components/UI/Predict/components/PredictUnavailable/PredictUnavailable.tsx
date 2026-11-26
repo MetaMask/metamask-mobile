@@ -12,7 +12,6 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { InteractionManager, TouchableOpacity } from 'react-native';
@@ -26,6 +25,9 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { PREDICT_UNAVAILABLE_TEST_IDS } from './PredictUnavailable.testIds';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 
 interface PredictUnavailableProps {
   onDismiss?: () => void;
@@ -41,6 +43,7 @@ const PredictUnavailable = forwardRef<
   PredictUnavailableProps
 >(({ onDismiss }, ref) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -117,7 +120,9 @@ const PredictUnavailable = forwardRef<
       isInteractable
       onClose={handleSheetClosed}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         testID="header"
         title={strings('predict.unavailable.title')}
         onClose={handleClose}

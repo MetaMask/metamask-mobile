@@ -154,6 +154,25 @@ const DEFAULT_NETWORK_CLIENT = {
   },
 };
 
+// Byte-exact error.message from Sentry event 21edcb35 (NSURLErrorCannotConnectToHost).
+const NSURL_CANNOT_CONNECT_ERROR_MESSAGE = `Error Domain=NSURLErrorDomain Code=-1004 "Could not connect to the server." UserInfo={_kCFStreamErrorCodeKey=61, NSUnderlyingError=0x11e72e040 {Error Domain=kCFErrorDomainCFNetwork Code=-1004 "(null)" UserInfo={_NSURLErrorNWPathKey=satisfied (Path is satisfied), interface: en0[802.11], ipv4, dns, uses wifi, LQM: good, _kCFStreamErrorCodeKey=61, _kCFStreamErrorDomainKey=1}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+    "LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>"
+), NSLocalizedDescription=Could not connect to the server., NSErrorFailingURLStringKey=**, NSErrorFailingURLKey=**, _kCFStreamErrorDomainKey=1}
+`;
+
+const NSURL_ERROR_TIMED_OUT = -1001;
+const NSURL_ERROR_SECURE_CONNECTION_FAILED = -1200;
+const TIMED_OUT_DESCRIPTION = 'The request timed out.';
+const SECURE_CONNECTION_FAILED_DESCRIPTION =
+  'An SSL error has occurred and a secure connection to the server cannot be made.';
+
+function nsurlErrorMessage(code: number, description: string): string {
+  return NSURL_CANNOT_CONNECT_ERROR_MESSAGE.replaceAll(
+    'Code=-1004',
+    `Code=${code}`,
+  ).replaceAll('Could not connect to the server.', description);
+}
+
 // Mock react-native-device-info for version gating
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('99.0.0'),
@@ -181,6 +200,7 @@ jest.mock('@metamask/controller-utils', () => {
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
+    isEnabled: jest.fn(() => true),
   },
 }));
 
@@ -380,6 +400,7 @@ describe('PredictController', () => {
       beforeSignClaim: jest.fn(),
       publishClaim: jest.fn(),
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
+      refreshCryptoPriceFeedCredentials: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     mockPolymarketProvider.getAccountState.mockResolvedValue({
@@ -541,6 +562,15 @@ describe('PredictController', () => {
         jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
+    rootMessenger.registerInitialEventPayload({
+      eventType: 'RemoteFeatureFlagController:stateChange',
+      getPayload: () => [
+        (mocks.getRemoteFeatureFlagState?.() ??
+          DEFAULT_REMOTE_FEATURE_FLAG_STATE) as never,
+        [],
+      ],
+    });
+
     rootMessenger.registerActionHandler(
       'SubscriptionController:getBenefits',
       mocks.getBenefits ??
@@ -696,6 +726,81 @@ describe('PredictController', () => {
 
       expect(typeof constructorArgs.getFeatureFlags).toBe('function');
       expect(() => constructorArgs.getFeatureFlags?.()).not.toThrow();
+    });
+
+    it('hands the crypto price feed a new Chainlink key only when predictCryptoPriceFeed changes', () => {
+      withController(({ messenger }) => {
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: {
+              ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+              predictLiveSports: {
+                enabled: true,
+                leagues: [],
+              },
+            },
+            cacheTimestamp: 1,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        const updatedFlags = {
+          ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+          predictLiveSports: {
+            enabled: true,
+            leagues: [],
+          },
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            chainlinkApiKey: 'test-chainlink-key',
+          },
+        };
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: updatedFlags,
+            cacheTimestamp: 2,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            remoteFeatureFlags: {
+              ...updatedFlags,
+              predictWithAnyToken: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+            cacheTimestamp: 3,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('subscribes to transaction events in constructor', () => {
@@ -3679,6 +3784,50 @@ describe('PredictController', () => {
         });
       } finally {
         logSpy.mockRestore();
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('reports an iOS secure-connection failure to Sentry', async () => {
+      const networkError = new Error(
+        nsurlErrorMessage(
+          NSURL_ERROR_SECURE_CONNECTION_FAILED,
+          SECURE_CONNECTION_FAILED_DESCRIPTION,
+        ),
+      );
+      mockPolymarketProvider.isEligible.mockRejectedValue(networkError);
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(errorSpy).toHaveBeenCalled();
+        });
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('reports a geoblock HTTP 500 to Sentry', async () => {
+      mockPolymarketProvider.isEligible.mockRejectedValue(
+        new Error('Polymarket geoblock check failed with status 500'),
+      );
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(errorSpy).toHaveBeenCalled();
+        });
+      } finally {
         errorSpy.mockRestore();
       }
     });
@@ -11604,7 +11753,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sets withdraw transaction status to error when gas estimation fails', async () => {
+    it('fails the withdraw before signing when gas estimation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
@@ -11623,12 +11772,11 @@ describe('PredictController', () => {
               amount: 0,
             };
           });
-
-          const result = await controller.beforeSign({
-            transactionMeta: mockTransactionMeta as any,
-          });
-
-          expect(result).toBeUndefined();
+          await expect(
+            controller.beforeSign({
+              transactionMeta: mockTransactionMeta as any,
+            }),
+          ).rejects.toThrow('Gas estimation failed');
           expect(controller.state.withdrawTransaction?.status).toBe(
             PredictWithdrawStatus.ERROR,
           );
@@ -12283,6 +12431,48 @@ describe('PredictController', () => {
           error: `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
         }),
       );
+    });
+
+    it('does not report an iOS timeout to Sentry when cache invalidation fails', async () => {
+      const networkError = new Error(
+        nsurlErrorMessage(NSURL_ERROR_TIMED_OUT, TIMED_OUT_DESCRIPTION),
+      );
+      const mockCheckForLatestBlock = jest.fn().mockRejectedValue(networkError);
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await Promise.resolve();
+            errorSpy.mockClear();
+
+            await (
+              controller as unknown as {
+                invalidateQueryCache: (chainId: number) => Promise<void>;
+              }
+            ).invalidateQueryCache(137);
+
+            expect(errorSpy).not.toHaveBeenCalled();
+          },
+          {
+            mocks: {
+              findNetworkClientIdByChainId: jest
+                .fn()
+                .mockReturnValue('polygon-mainnet'),
+              getNetworkClientById: mockGetNetworkClientById,
+            },
+          },
+        );
+      } finally {
+        errorSpy.mockRestore();
+      }
     });
   });
 

@@ -58,6 +58,8 @@ describe('PerpsOrderContext', () => {
     setMaxPossibleAmountOverride: jest.fn(),
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
   };
 
   beforeEach(() => {

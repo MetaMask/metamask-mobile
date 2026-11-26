@@ -1,7 +1,42 @@
 import { renderHook } from '@testing-library/react-native';
 import type { BridgeToken } from '../../Bridge/types';
-import { type AccountState } from '@metamask/perps-controller';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+
+let mockHyperliquidAvailable: string | null = '1000.50';
+let mockHyperliquidSides: { long: string; short: string } | null = null;
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      subscribeToAvailableToTrade: jest.fn(
+        (params: {
+          symbol: string;
+          callback: (update: {
+            providerId: 'hyperliquid';
+            symbol: string;
+            long: string;
+            short: string;
+          }) => void;
+        }) => {
+          if (mockHyperliquidAvailable != null) {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: mockHyperliquidSides?.long ?? mockHyperliquidAvailable,
+              short: mockHyperliquidSides?.short ?? mockHyperliquidAvailable,
+            });
+          }
+          return jest.fn();
+        },
+      ),
+    },
+  },
+}));
+
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
+}));
 
 // Mock all dependencies
 jest.mock('react-redux', () => ({
@@ -9,7 +44,6 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('../../Bridge/hooks/useTokensWithBalance');
 jest.mock('./index');
-jest.mock('./stream');
 jest.mock('../../../../selectors/networkController');
 
 // Mock i18n
@@ -37,8 +71,6 @@ const mockUseSelector = jest.requireMock('react-redux').useSelector;
 const mockUseTokensWithBalance = jest.requireMock(
   '../../Bridge/hooks/useTokensWithBalance',
 );
-const mockUsePerpsLiveAccount =
-  jest.requireMock('./stream').usePerpsLiveAccount;
 const mockUsePerpsNetwork = jest.requireMock('./index').usePerpsNetwork;
 
 describe('usePerpsPaymentTokens', () => {
@@ -46,15 +78,6 @@ describe('usePerpsPaymentTokens', () => {
     '0x1': { chainId: '0x1', name: 'Ethereum', ticker: 'ETH' },
     '0xa4b1': { chainId: '0xa4b1', name: 'Arbitrum', ticker: 'ETH' },
     '0x89': { chainId: '0x89', name: 'Polygon', ticker: 'MATIC' },
-  };
-
-  const mockAccountState: AccountState = {
-    spendableBalance: '1000.50',
-    withdrawableBalance: '1000.50',
-    marginUsed: '300.25',
-    unrealizedPnl: '50.25',
-    returnOnEquity: '0',
-    totalBalance: '10000',
   };
 
   const mockTokensWithBalance: BridgeToken[] = [
@@ -99,23 +122,21 @@ describe('usePerpsPaymentTokens', () => {
     mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
       mockTokensWithBalance,
     );
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: mockAccountState,
-      isInitialLoading: false,
-    });
+    mockHyperliquidAvailable = '1000.50';
+    mockHyperliquidSides = null;
     mockUsePerpsNetwork.mockReturnValue('mainnet');
   });
 
   describe('Basic functionality', () => {
     it('returns payment tokens array', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       expect(Array.isArray(result.current)).toBe(true);
       expect(result.current.length).toBeGreaterThan(0);
     });
 
     it('includes Hyperliquid USDC as first token', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const firstToken = result.current[0];
       expect(firstToken.symbol).toBe('USDC');
@@ -124,7 +145,7 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('calculates Hyperliquid USDC balance correctly', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('1000500000');
@@ -136,7 +157,7 @@ describe('usePerpsPaymentTokens', () => {
     it('uses testnet chain ID when on testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.chainId).toBe('0x1ee7');
@@ -145,7 +166,7 @@ describe('usePerpsPaymentTokens', () => {
     it('uses mainnet chain ID when on mainnet', () => {
       mockUsePerpsNetwork.mockReturnValue('mainnet');
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.chainId).toBe('0x3e7');
@@ -155,7 +176,7 @@ describe('usePerpsPaymentTokens', () => {
       mockUseSelector.mockClear();
       mockUseSelector.mockReturnValueOnce(null); // selectNetworkConfigurations
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       expect(result.current[0].symbol).toBe('USDC');
     });
@@ -165,7 +186,7 @@ describe('usePerpsPaymentTokens', () => {
     it('shows all tokens regardless of balance on mainnet', () => {
       mockUsePerpsNetwork.mockReturnValue('mainnet');
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const tokenSymbols = result.current.map((token) => token.symbol);
       expect(tokenSymbols).toContain('USDC');
@@ -176,7 +197,7 @@ describe('usePerpsPaymentTokens', () => {
     it('shows all tokens regardless of balance on testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const tokenSymbols = result.current.map((token) => token.symbol);
       expect(tokenSymbols).toContain('USDC');
@@ -203,7 +224,7 @@ describe('usePerpsPaymentTokens', () => {
         tokensWithHyperliquid,
       );
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const nonHyperliquidTokens = result.current.slice(1);
       const tokenSymbols = nonHyperliquidTokens.map((token) => token.symbol);
@@ -213,7 +234,7 @@ describe('usePerpsPaymentTokens', () => {
 
   describe('Token sorting priority', () => {
     it('sorts USDC tokens before others', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const otherTokens = result.current.slice(1);
       const usdcIndex = otherTokens.findIndex(
@@ -243,7 +264,7 @@ describe('usePerpsPaymentTokens', () => {
         extraTokens,
       );
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const otherTokens = result.current.slice(1);
       const usdcTokens = otherTokens.filter((token) => token.symbol === 'USDC');
@@ -262,14 +283,14 @@ describe('usePerpsPaymentTokens', () => {
 
   describe('Token icons', () => {
     it('sets USDC_TOKEN_ICON_URL as image for Hyperliquid USDC', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.image).toContain('tokenIcons');
     });
 
     it('passes through image from useTokensWithBalance for other tokens', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const ethToken = result.current.find((t) => t.symbol === 'ETH');
       expect(ethToken?.image).toBe('https://example.com/eth.png');
@@ -278,62 +299,56 @@ describe('usePerpsPaymentTokens', () => {
 
   describe('Edge cases', () => {
     it('handles zero Hyperliquid balance', () => {
-      const zeroBalanceAccountState = {
-        ...mockAccountState,
-        spendableBalance: '0',
-        withdrawableBalance: '0',
-      };
+      mockHyperliquidAvailable = '0';
 
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: zeroBalanceAccountState,
-        isInitialLoading: false,
-      });
-
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('0');
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
     });
 
-    it('uses spendableBalance for Unified Account users', () => {
-      // Unified Account / Portfolio Margin: collateral lives in spot. The
-      // provider folds free spot USDC into spendableBalance via
-      // addSpotBalanceToAccountState, so the Pay-with sheet sees the unified
-      // total without branching on mode.
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          ...mockAccountState,
-          spendableBalance: '2500.00',
-          withdrawableBalance: '2500.00',
-        },
-        isInitialLoading: false,
-      });
+    it('uses the venue available to trade for the market', () => {
+      mockHyperliquidAvailable = '2500.00';
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('2500000000');
       expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
     });
 
-    it('handles null account state', () => {
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: null,
-        isInitialLoading: false,
-      });
+    it('omits the balance, instead of showing $0, until the venue reports available to trade', () => {
+      mockHyperliquidAvailable = null;
 
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.symbol).toBe('USDC');
+      expect(hyperliquidUsdc.balance).toBeUndefined();
+      expect(hyperliquidUsdc.balanceFiat).toBeUndefined();
+    });
+
+    it('omits the balance when no market is known', () => {
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
       const hyperliquidUsdc = result.current[0];
-      expect(hyperliquidUsdc.balance).toBe('0');
-      expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
+      expect(hyperliquidUsdc.balance).toBeUndefined();
+      expect(hyperliquidUsdc.balanceFiat).toBeUndefined();
+    });
+
+    it('uses the larger side of available to trade', () => {
+      mockHyperliquidSides = { long: '100', short: '300' };
+
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
+
+      expect(result.current[0].balanceFiat).toBe('$300.00');
     });
 
     it('handles empty tokens with balance', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue([]);
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('USDC');
@@ -355,7 +370,7 @@ describe('usePerpsPaymentTokens', () => {
         tokensWithMalformedFiat,
       );
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       // Should include Hyperliquid USDC + 2 tokens with malformed fiat (with fallback values)
       expect(result.current).toHaveLength(3);
@@ -376,7 +391,7 @@ describe('usePerpsPaymentTokens', () => {
 
   describe('Required fields validation', () => {
     it('ensures all returned tokens have required fields', () => {
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       result.current.forEach((token) => {
         expect(token).toHaveProperty('symbol');
@@ -411,7 +426,7 @@ describe('usePerpsPaymentTokens', () => {
         tokensWithMissingFields as BridgeToken[],
       );
 
-      const { result } = renderHook(() => usePerpsPaymentTokens());
+      const { result } = renderHook(() => usePerpsPaymentTokens('BTC'));
 
       const incompleteToken = result.current.find(
         (token) => token.symbol === 'INC',

@@ -10,6 +10,7 @@ import {
   hydrateSocialTermsAcceptance,
   recordSocialTermsAcceptanceForExistingProfile,
   resetSocialTermsAcceptance,
+  takePendingSocialEntry,
 } from './socialTermsAcceptance';
 
 jest.mock('../../../../store/storage-wrapper', () => ({
@@ -30,6 +31,7 @@ const mockRemoveItem = jest.mocked(StorageWrapper.removeItem);
 describe('socialTermsAcceptance', () => {
   beforeEach(async () => {
     await resetSocialTermsAcceptance();
+    takePendingSocialEntry();
     jest.clearAllMocks();
   });
 
@@ -132,6 +134,19 @@ describe('socialTermsAcceptance', () => {
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
     });
 
+    it('opens profile onboarding through runNavigation when one is given', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
+      const runNavigation = jest.fn();
+
+      expect(
+        ensureSocialTermsAccepted(navigate, undefined, runNavigation),
+      ).toBe(false);
+      expect(navigate).not.toHaveBeenCalled();
+      runNavigation.mock.calls[0][0]();
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    });
+
     it('records the current version and skips the sheet when a profile exists and nothing is stored', () => {
       mockGetItemSync.mockReturnValue(null);
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -174,6 +189,33 @@ describe('socialTermsAcceptance', () => {
         termsOnly: true,
       });
       expect(mockSetItem).not.toHaveBeenCalled();
+    });
+
+    it('holds the blocked entry until it is taken, then forgets it', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const openEntry = jest.fn();
+
+      ensureSocialTermsAccepted(jest.fn(), openEntry);
+
+      expect(takePendingSocialEntry()).toBe(openEntry);
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('replaces an older blocked entry on the next gate call', () => {
+      mockGetItemSync.mockReturnValue(null);
+
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      ensureSocialTermsAccepted(jest.fn());
+
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('holds nothing when the terms are already accepted', () => {
+      mockGetItemSync.mockReturnValue(SOCIAL_TERMS_VERSION);
+
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+
+      expect(takePendingSocialEntry()).toBeUndefined();
     });
   });
 

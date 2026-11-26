@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type {
   LayoutChangeEvent,
   NativeScrollEvent,
@@ -25,6 +25,8 @@ interface SectionLayout {
 }
 
 interface UseVisibleSectionsOptions<TKey extends string> {
+  /** The sections, in display order. They may change between renders: a
+   * new key counts as visible until it is measured. */
   keys: readonly TKey[];
   /** Vertical scroll offset of the ScrollView, driven on the UI thread. */
   scrollY: SharedValue<number>;
@@ -74,9 +76,16 @@ export const useVisibleSections = <TKey extends string>({
   keys,
   scrollY,
 }: UseVisibleSectionsOptions<TKey>): UseVisibleSectionsResult<TKey> => {
-  const [visibleKeys, setVisibleKeys] = useState<readonly TKey[]>(keys);
-  const keysRef = useRef(keys);
-  keysRef.current = keys;
+  // The measured sections that lie outside the viewport. Tracking the hidden
+  // ones, not the visible ones, lets `keys` change without a recompute: a key
+  // never measured is visible.
+  const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<TKey>>(
+    () => new Set(),
+  );
+  const visibleKeys = useMemo(
+    () => keys.filter((key) => !hiddenKeys.has(key)),
+    [keys, hiddenKeys],
+  );
   const layoutsRef = useRef(new Map<TKey, SectionLayout>());
   const sectionHandlersRef = useRef(
     new Map<TKey, (event: LayoutChangeEvent) => void>(),
@@ -93,17 +102,20 @@ export const useVisibleSections = <TKey extends string>({
     const viewportHeight = viewportHeightRef.current;
     const top = offsetRef.current;
     const contentY = contentYRef.current;
-    const next = keysRef.current.filter((key) => {
-      const layout = layoutsRef.current.get(key);
-      if (viewportHeight === undefined || !layout) {
-        return true;
-      }
-      const sectionTop = contentY + layout.y;
-      return (
-        sectionTop < top + viewportHeight && sectionTop + layout.height > top
-      );
-    });
-    setVisibleKeys((current) => (sameKeys(current, next) ? current : next));
+    const next: TKey[] = [];
+    if (viewportHeight !== undefined) {
+      layoutsRef.current.forEach((layout, key) => {
+        const sectionTop = contentY + layout.y;
+        const isVisible =
+          sectionTop < top + viewportHeight && sectionTop + layout.height > top;
+        if (!isVisible) {
+          next.push(key);
+        }
+      });
+    }
+    setHiddenKeys((current) =>
+      sameKeys([...current], next) ? current : new Set(next),
+    );
   }, []);
 
   const onViewportLayout = useCallback(

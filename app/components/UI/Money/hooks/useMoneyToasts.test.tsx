@@ -96,6 +96,7 @@ describe('useMoneyToasts', () => {
       expect(result.current.MoneyToastOptions.deposit.inProgress).toBeDefined();
       expect(result.current.MoneyToastOptions.deposit.success).toBeDefined();
       expect(result.current.MoneyToastOptions.deposit.failed).toBeDefined();
+      expect(result.current.MoneyToastOptions.deposit.declined).toBeDefined();
 
       expect(result.current.MoneyToastOptions.withdraw).toBeDefined();
       expect(
@@ -129,6 +130,20 @@ describe('useMoneyToasts', () => {
       expect(toastOptions.title).toBe('Converting crypto');
       expect(toastOptions.description).toBe('This may take a few minutes.');
     });
+
+    it.each(['addUsdc', 'addUsdt'] as const)(
+      'uses the conversion toast when intent is %s',
+      (intent) => {
+        const { result } = renderHook(() => useMoneyToasts());
+
+        expect(
+          result.current.MoneyToastOptions.deposit.inProgress({ intent }).title,
+        ).toBe('Converting crypto');
+        expect(
+          result.current.MoneyToastOptions.deposit.success({ intent }).title,
+        ).toBe('Conversion complete');
+      },
+    );
 
     it('inProgress title is "Adding funds" when intent is addMusd', () => {
       const { result } = renderHook(() => useMoneyToasts());
@@ -222,6 +237,19 @@ describe('useMoneyToasts', () => {
 
       expect(toastOptions.title).toBe('Deposit failed');
       expect(toastOptions.description).toBe('Unable to add funds. Try again.');
+    });
+
+    it('declined uses the card decline copy and Danger severity', () => {
+      const { result } = renderHook(() => useMoneyToasts());
+
+      const toastOptions = result.current.MoneyToastOptions.deposit.declined();
+
+      expect(toastOptions.severity).toBe(ToastSeverity.Danger);
+      expect(toastOptions.hapticsType).toBe(NotificationMoment.Error);
+      expect(toastOptions.title).toBe('Card payment declined');
+      expect(toastOptions.description).toBe(
+        'Your card payment was declined. Try again or choose a different payment method.',
+      );
     });
   });
 

@@ -4,12 +4,6 @@ import NavigationService from '../../../../NavigationService';
 import ReactQueryService from '../../../../ReactQueryService';
 import { handleSocialPostUrl } from '../handleSocialPostUrl';
 import { navigateToSocialV1Profile } from '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
-import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
-
-jest.mock(
-  '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
-  () => ({ ensureSocialTermsAccepted: jest.fn(() => true) }),
-);
 
 jest.mock(
   '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile',
@@ -85,7 +79,6 @@ describe('handleSocialPostUrl', () => {
     jest.clearAllMocks();
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(true);
     resolveBothFetches();
   });
 
@@ -107,9 +100,60 @@ describe('handleSocialPostUrl', () => {
         pnl30d: 1200,
         tradeCount30d: 30,
         followerCount: 7,
+        verified: false,
       },
     });
     expect(mockNavigateToProfile).not.toHaveBeenCalled();
+  });
+
+  it('fetches the author in parallel with the post', () => {
+    mockQuery.mockReturnValue(new Promise(() => undefined));
+
+    handleSocialPostUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+
+    expect(mockQuery).toHaveBeenCalledWith({
+      queryKey: [
+        'SocialService:fetchTraderProfile',
+        { addressOrId: 'trader-1' },
+      ],
+    });
+  });
+
+  it('attributes the post to its real owner when the link trader does not own it', async () => {
+    const ownedPosition = {
+      ...POSITION,
+      profileId: 'owner-1',
+    };
+    mockQuery.mockImplementation(async ({ queryKey }) => {
+      if (queryKey[0] === 'SocialService:fetchPositionById') {
+        return ownedPosition;
+      }
+      return queryKey[1].addressOrId === 'owner-1'
+        ? {
+            ...PROFILE_RESPONSE,
+            profile: {
+              profileId: 'owner-1',
+              address: '0xowner',
+              name: 'bob',
+              imageUrl: null,
+            },
+          }
+        : PROFILE_RESPONSE;
+    });
+
+    handleSocialPostUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+    await flushAsync();
+    await flushAsync();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'position-1',
+      position: ownedPosition,
+      author: expect.objectContaining({ id: 'owner-1', username: 'bob' }),
+    });
   });
 
   it('falls back to the profile when the post is hidden or removed', async () => {
@@ -201,18 +245,5 @@ describe('handleSocialPostUrl', () => {
     await flushAsync();
 
     expect(mockAddProperties).not.toHaveBeenCalled();
-  });
-
-  it('does not open the post when the Social terms are not accepted', async () => {
-    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
-
-    handleSocialPostUrl({
-      actionPath: '?positionId=position-1&traderId=trader-1',
-    });
-    await flushAsync();
-
-    expect(mockQuery).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockNavigateToProfile).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,212 @@
+import React from 'react';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
+import PerpsExchangeFilterSheet, {
+  PerpsExchangeFilterSheetSelectorsIDs,
+  type PerpsExchangeFilterSheetProps,
+} from './PerpsExchangeFilterSheet';
+import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const translations: Record<string, string> = {
+      'navigation.close': 'Close',
+      'perps.selection_sheet.save': 'Save',
+      'perps.exchange_filter.title': 'Filter by exchange',
+      'perps.exchange_filter.tagline_lighter': 'Lower fee, higher leverage',
+      'perps.exchange_filter.tagline_hyperliquid':
+        'Higher volume, lower slippage',
+    };
+    return translations[key] || key;
+  }),
+}));
+
+const OPTION_PREFIX = PerpsExchangeFilterSheetSelectorsIDs.OPTION;
+const LIGHTER = `${OPTION_PREFIX}-lighter`;
+const HYPERLIQUID = `${OPTION_PREFIX}-hyperliquid`;
+const SAVE = PerpsExchangeFilterSheetSelectorsIDs.SAVE_BUTTON;
+const CLOSE = PerpsExchangeFilterSheetSelectorsIDs.CLOSE_BUTTON;
+
+describe('PerpsExchangeFilterSheet', () => {
+  const mockOnSave = jest.fn();
+  const mockOnClose = jest.fn();
+
+  const renderSheet = (
+    overrides: Partial<PerpsExchangeFilterSheetProps> = {},
+  ): ReturnType<typeof render> =>
+    render(
+      <PerpsExchangeFilterSheet
+        selectedProviderIds={['lighter', 'hyperliquid']}
+        onSave={mockOnSave}
+        onClose={mockOnClose}
+        {...overrides}
+      />,
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the title and both exchanges, Lighter first, never aggregated', () => {
+    renderSheet();
+
+    expect(screen.getByText('Filter by exchange')).toBeOnTheScreen();
+    expect(screen.getByText('Lighter')).toBeOnTheScreen();
+    expect(screen.getByText('HyperLiquid')).toBeOnTheScreen();
+    expect(screen.queryByText('All Providers')).toBeNull();
+
+    const container = screen.getByTestId(
+      PerpsExchangeFilterSheetSelectorsIDs.CONTAINER,
+    );
+    const rows = within(container).getAllByRole('checkbox', {
+      // Each row is a checkbox; its inner Checkbox control is also focusable,
+      // so select the rows by their accessibility label.
+      name: /Lighter|HyperLiquid/,
+    });
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveProp('testID', LIGHTER);
+    expect(rows[1]).toHaveProp('testID', HYPERLIQUID);
+  });
+
+  it('renders the tagline for each exchange and keeps the logo decorative', () => {
+    renderSheet();
+
+    expect(screen.getByText('Lower fee, higher leverage')).toBeOnTheScreen();
+    expect(screen.getByText('Higher volume, lower slippage')).toBeOnTheScreen();
+    // The logos render but are decorative (the row announces the exchange
+    // name), so they are hidden from the accessibility tree. They are only
+    // findable when hidden elements are included.
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    // Default queries skip hidden elements, so they are absent there.
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeNull();
+  });
+
+  it('opens with both exchanges checked and Save enabled', () => {
+    renderSheet();
+
+    expect(screen.getByTestId(LIGHTER)).toBeChecked();
+    expect(screen.getByTestId(HYPERLIQUID)).toBeChecked();
+    expect(screen.getByTestId(SAVE)).toBeEnabled();
+  });
+
+  it('checks only the initially selected exchange', () => {
+    renderSheet({ selectedProviderIds: ['lighter'] });
+
+    expect(screen.getByTestId(LIGHTER)).toBeChecked();
+    expect(screen.getByTestId(HYPERLIQUID)).not.toBeChecked();
+    expect(screen.getByTestId(SAVE)).toBeEnabled();
+  });
+
+  it('disables Save when nothing is checked and pressing it does not call onSave', () => {
+    renderSheet();
+
+    fireEvent.press(screen.getByTestId(LIGHTER));
+    fireEvent.press(screen.getByTestId(HYPERLIQUID));
+
+    expect(screen.getByTestId(LIGHTER)).not.toBeChecked();
+    expect(screen.getByTestId(HYPERLIQUID)).not.toBeChecked();
+    expect(screen.getByTestId(SAVE)).toBeDisabled();
+
+    fireEvent.press(screen.getByTestId(SAVE));
+    expect(mockOnSave).not.toHaveBeenCalled();
+  });
+
+  it('keeps the change local until Save is pressed', () => {
+    renderSheet();
+
+    fireEvent.press(screen.getByTestId(LIGHTER));
+
+    expect(mockOnSave).not.toHaveBeenCalled();
+  });
+
+  it('calls onSave with the new selection in display order, then onClose once', () => {
+    renderSheet();
+
+    fireEvent.press(screen.getByTestId(LIGHTER));
+    fireEvent.press(screen.getByTestId(SAVE));
+
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
+    expect(mockOnSave).toHaveBeenCalledWith(['hyperliquid']);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onSave with both ids in display order when both are checked', () => {
+    renderSheet({ selectedProviderIds: ['hyperliquid'] });
+
+    fireEvent.press(screen.getByTestId(LIGHTER));
+    fireEvent.press(screen.getByTestId(SAVE));
+
+    expect(mockOnSave).toHaveBeenCalledWith(['lighter', 'hyperliquid']);
+  });
+
+  it('discards the change and calls onClose once when the X is pressed', () => {
+    renderSheet();
+
+    fireEvent.press(screen.getByTestId(LIGHTER));
+    fireEvent.press(screen.getByTestId(CLOSE));
+
+    expect(mockOnSave).not.toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the logo decorative so the row name is the only announcement', () => {
+    renderSheet();
+
+    const lighterRow = screen.getByTestId(LIGHTER);
+    // The row announces the exchange name once; the inner logo must not add a
+    // second stop with the same name.
+    expect(lighterRow).toHaveProp('accessibilityLabel', 'Lighter');
+    expect(screen.queryByRole('image')).toBeNull();
+    expect(screen.queryByTestId(`${LIGHTER}-logo`)).toBeNull();
+  });
+
+  it('announces each row name and checked state, updating on toggle', () => {
+    renderSheet({ selectedProviderIds: ['lighter'] });
+
+    const lighter = screen.getByTestId(LIGHTER);
+    expect(lighter).toHaveProp('accessibilityRole', 'checkbox');
+    expect(lighter).toHaveProp('accessibilityLabel', 'Lighter');
+    expect(lighter).toHaveProp('accessibilityState', { checked: true });
+    expect(screen.getByTestId(HYPERLIQUID)).toHaveProp('accessibilityState', {
+      checked: false,
+    });
+
+    fireEvent.press(lighter);
+
+    expect(screen.getByTestId(LIGHTER)).toHaveProp('accessibilityState', {
+      checked: false,
+    });
+  });
+
+  it('resets the draft to the incoming selection when remounted', () => {
+    const { unmount } = renderSheet();
+
+    // Change the draft, then dismiss and remount with a different selection.
+    fireEvent.press(screen.getByTestId(LIGHTER));
+    unmount();
+    renderSheet({ selectedProviderIds: ['hyperliquid'] });
+
+    expect(screen.getByTestId(LIGHTER)).not.toBeChecked();
+    expect(screen.getByTestId(HYPERLIQUID)).toBeChecked();
+  });
+});

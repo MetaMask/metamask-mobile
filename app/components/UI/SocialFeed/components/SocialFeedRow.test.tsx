@@ -147,12 +147,12 @@ describe('areSocialFeedRowPropsEqual', () => {
     expect(motionEqual).toBe(false);
   });
 
-  it('rerenders when the copy-trade profile gate changes', () => {
-    const previous = rowProps();
+  it('rerenders when gif visibility changes', () => {
+    const previous = rowProps({ gifVisible: true });
 
     const equal = areSocialFeedRowPropsEqual(previous, {
       ...previous,
-      requireSocialProfile: true,
+      gifVisible: false,
     });
 
     expect(equal).toBe(false);

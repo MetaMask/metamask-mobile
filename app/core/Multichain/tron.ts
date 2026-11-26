@@ -14,18 +14,56 @@ export interface SnapAmountValidationResult {
 }
 
 /**
+ * Asks the account's Tron Snap for the maximum amount that can be sent.
+ *
+ * The maximum leaves enough TRX for the network fees and, when the recipient
+ * is unknown or inactive, the account activation reserve. Passing the
+ * recipient when it is already known gives a tighter quote.
+ *
+ * @param fromAccount - The Snap-managed Tron account sending the funds.
+ * @param params - The transfer to quote.
+ * @param params.accountId - The internal account id of the sender.
+ * @param params.assetId - The CAIP-19 asset id being sent.
+ * @param params.toAddress - The destination address, when known.
+ * @returns The maximum amount to send, in display units.
+ */
+export async function getTronMaxSendableAmount(
+  fromAccount: InternalAccount,
+  params: {
+    accountId: string;
+    assetId: CaipAssetType;
+    toAddress?: string;
+  },
+): Promise<{ amount: string }> {
+  return (await handleSnapRequest(Engine.controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'getMaxSendableAmount',
+      params,
+    },
+  })) as { amount: string };
+}
+
+/**
  * Asks the account's Tron Snap to validate a transfer before it is sent.
  *
  * Tron fees depend on the destination (energy and bandwidth), so `toAddress`
  * is passed along with the amount so the Snap can check that the account can
  * cover both the value and the resources needed for that specific transfer.
  *
+ * When `toAddress` is omitted, the Snap probes to the Tron zero address and
+ * returns a conservative fee estimate (including account activation reserve
+ * for native TRX). This is useful for balance-only validation before the
+ * destination is known (e.g., on the amount input screen).
+ *
  * @param fromAccount - The Snap-managed Tron account sending the funds.
  * @param params - The transfer to validate.
  * @param params.accountId - The internal account id of the sender.
  * @param params.assetId - The CAIP-19 asset id being sent.
  * @param params.value - The amount to send, in display units.
- * @param params.toAddress - The destination address.
+ * @param params.toAddress - The destination address (optional for balance-only validation).
  * @returns The Snap validation result, or undefined if the Snap returned nothing.
  */
 export async function validateTronTransferAmount(
@@ -34,7 +72,7 @@ export async function validateTronTransferAmount(
     accountId: string;
     assetId: CaipAssetType;
     value: string;
-    toAddress: string;
+    toAddress?: string;
   },
 ): Promise<SnapAmountValidationResult | undefined> {
   return (await handleSnapRequest(Engine.controllerMessenger, {

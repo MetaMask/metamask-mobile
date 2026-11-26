@@ -110,6 +110,7 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        listTransactions: jest.fn().mockResolvedValue({ items: [] }),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
           phone: '+441234567890',
@@ -226,6 +227,15 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
         getSessionProfile: jest.fn().mockResolvedValue(undefined),
+        // Real MFA kit (`useMfa` → AuthenticationController). Defaults match a
+        // profile with no credential and no verification session.
+        refreshEnrolledCredentials: jest.fn().mockResolvedValue([]),
+        beginCredentialEnrollment: jest.fn(),
+        completeCredentialEnrollment: jest.fn(),
+        beginCredentialVerification: jest.fn(),
+        completeCredentialVerification: jest.fn(),
+        getVerificationToken: jest.fn().mockReturnValue(null),
+        clearVerificationSession: jest.fn(),
       },
       ProfileController: {
         state: {
@@ -282,6 +292,9 @@ jest.mock('../../app/core/Engine', () => {
         fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
         disconnectX: jest.fn().mockResolvedValue(undefined),
       },
+      ProfileService: {
+        checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+      },
       GeolocationController: {
         state: {
           location: 'US',
@@ -301,16 +314,36 @@ jest.mock('../../app/core/Engine', () => {
         // Null is a first-time user; tests that resume a session override this.
         getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
         startSession: jest.fn().mockResolvedValue(undefined),
+        reset: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
         // Fired, fire-and-forget, once the vendor-terms screen's initial
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
+        // Identity verification records session consents, then launches SumSub.
+        fetchSessionDisclaimers: jest.fn().mockResolvedValue({
+          idOS: [],
+          kycProvider: [],
+        }),
+        recordSessionDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Presents SumSub. Continue on the KYC retry home card must not call it.
+        launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
+        refreshSessionStatus: jest.fn(),
+        deleteEncryptedStorage: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
           accessToken: undefined,
         },
+        // OAuthService.getValidAccessToken() (marketing opt-in sync and other
+        // auth-server calls) reads the token through this method. CV tests
+        // seed `state.accessToken` (SEEDLESS_CV_ACCESS_TOKEN) the same way
+        // they sync Redux backgroundState.
+        getAccessToken: jest.fn(async function (this: {
+          state?: { accessToken?: string };
+        }) {
+          return this?.state?.accessToken;
+        }),
       },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
@@ -363,6 +396,7 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
         setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
+        selectProviderForAsset: jest.fn().mockReturnValue(null),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -464,6 +498,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
+        submitIntent: jest.fn().mockResolvedValue({ success: true }),
+        state: { txHistory: {} },
+      },
+      MoneyAccountController: {
+        getMoneyAccount: jest.fn().mockReturnValue(undefined),
       },
       PredictMarketDataService: {},
       PredictLiveDataService: {},
@@ -583,6 +622,25 @@ jest.mock('../../app/core/Engine', () => {
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToAvailableToTrade: jest.fn(
+          (params: {
+            symbol: string;
+            callback: (update: {
+              providerId: string;
+              symbol: string;
+              long: string;
+              short: string;
+            }) => void;
+          }) => {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: '100000',
+              short: '100000',
+            });
+            return () => undefined;
+          },
+        ),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
@@ -641,6 +699,10 @@ jest.mock('../../app/core/Engine', () => {
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        estimateCrossLiquidation: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'provider',
+        }),
         calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
         updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),
@@ -674,6 +736,7 @@ jest.mock('../../app/core/Engine', () => {
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
         saveOrderBookGrouping: jest.fn(),
+        saveMarginMode: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
             assetId: 'usdc-mainnet',
@@ -695,11 +758,13 @@ jest.mock('../../app/core/Engine', () => {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
       call: jest.fn((action: string, ...args: unknown[]) => {
+        if (action === 'MoneyAccountApiDataService:fetchVaults') {
+          return Promise.resolve({
+            vaults: [{ vault_key: 'standard', current_apy: '0.042' }],
+          });
+        }
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
-        if (action === 'MoneyAccountBalanceService:getVaultApy') {
-          return Promise.resolve({ apy: '0.042' });
-        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'

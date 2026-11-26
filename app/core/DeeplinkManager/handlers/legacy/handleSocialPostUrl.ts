@@ -2,17 +2,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../NavigationService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
-import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
 } from './socialNotificationDeeplink';
-import {
-  fetchSocialPosition,
-  resolveSocialPositionAuthor,
-} from './socialPositionSheetDeeplink';
-
-const LOG_PREFIX = '[handleSocialPostUrl]';
+import { resolveSharedSocialPosition } from './socialPositionSheetDeeplink';
 
 interface HandleSocialPostUrlParams {
   actionPath: string;
@@ -30,17 +24,17 @@ const openCopiedPost = async (
   positionId: string,
   traderId: string,
 ): Promise<void> => {
-  const position = await fetchSocialPosition(positionId, LOG_PREFIX);
+  const shared = await resolveSharedSocialPosition(positionId, traderId);
 
-  if (!position) {
+  if (!shared) {
     navigateToOwnProfile();
     return;
   }
 
   NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
     positionId,
-    position,
-    author: await resolveSocialPositionAuthor(traderId, LOG_PREFIX),
+    position: shared.position,
+    author: shared.author,
   });
 };
 
@@ -81,10 +75,6 @@ export const handleSocialPostUrl = ({
       notificationTemplateVariant,
       deduplicationId,
     });
-
-    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
-      return;
-    }
 
     if (!positionId || !traderId) {
       DevLogger.log(
