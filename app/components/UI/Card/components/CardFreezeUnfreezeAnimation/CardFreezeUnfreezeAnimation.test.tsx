@@ -225,29 +225,31 @@ describe('CardFreezeUnfreezeAnimation', () => {
     });
   });
 
-  it('keeps an unfrozen card on the static art until a trigger plays', async () => {
-    const { getByTestId, rerender } = render(animationElement(false));
-    const container = getByTestId('freeze-animation');
+  it('opens an unfrozen card on the static art without mounting Rive', async () => {
+    const { getByTestId, queryByTestId } = render(animationElement(false));
     // Let awaitViewReady and both layout frames run.
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(container.findAllByType(Image)).toHaveLength(1);
-    expect(
-      StyleSheet.flatten([findRiveOverlayWrapper(container)?.props.style])
-        ?.opacity,
-    ).toBe(0);
+    expect(queryByTestId('mock-rive-view')).not.toBeOnTheScreen();
+    expect(getByTestId('freeze-animation').findAllByType(Image)).toHaveLength(
+      1,
+    );
+  });
+
+  it('mounts Rive and plays the freeze once an unfrozen card is frozen', async () => {
+    const { getByTestId, rerender } = render(animationElement(false));
 
     rerender(animationElement(true));
 
+    expect(getByTestId('mock-rive-view')).toBeOnTheScreen();
     await waitFor(() => {
-      expect(container.findAllByType(Image)).toHaveLength(0);
+      expect(getByTestId('freeze-animation').findAllByType(Image)).toHaveLength(
+        0,
+      );
     });
-    expect(
-      StyleSheet.flatten([findRiveOverlayWrapper(container)?.props.style])
-        ?.opacity,
-    ).toBeUndefined();
+    expect(mockTrigger).toHaveBeenCalledWith('freeze');
   });
 
   it.each([false, true])(
@@ -390,7 +392,7 @@ describe('CardFreezeUnfreezeAnimation', () => {
   });
 
   it('sizes the artboard so its card face spans the card width, centred on it', () => {
-    const { getByTestId } = render(animationElement(false));
+    const { getByTestId } = render(animationElement(true));
 
     const props = mockLastRiveViewProps.current;
     expect(props).toBeDefined();
