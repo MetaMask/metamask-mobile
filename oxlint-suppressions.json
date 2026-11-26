@@ -15040,11 +15040,8 @@
     }
   },
   "app/components/Views/ChoosePassword/ChoosePassword.view.test.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
-      "count": 3
+      "count": 2
     }
   },
   "app/components/Views/ChoosePassword/index.test.tsx": {
@@ -17088,13 +17085,7 @@
     }
   },
   "app/components/Views/Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection.view.test.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -22038,9 +22029,6 @@
   "app/core/OAuthService/OAuthService.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 4
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 2
     },
     "typescript/prefer-readonly": {
       "count": 7
