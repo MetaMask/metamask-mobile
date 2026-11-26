@@ -6,6 +6,7 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../../../../Engine';
+import { isPremiumDepositCandidate } from '../../../../../components/UI/Money/utils/moneyAccountPremiumDeposit';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './money-account-override';
@@ -64,6 +65,13 @@ jest.mock(
   '../../../../../components/Views/confirmations/utils/transaction-pay',
   () => ({
     replaceAccountInNestedTransactions: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../../components/UI/Money/utils/moneyAccountPremiumDeposit',
+  () => ({
+    isPremiumDepositCandidate: jest.fn(),
   }),
 );
 
@@ -129,6 +137,20 @@ describe('money-account-override', () => {
   });
 
   describe('handleUnapprovedTransactionAddedForMoneyAccount', () => {
+    it('sets non-atomic funding for a premium membership top-up', () => {
+      jest.mocked(isPremiumDepositCandidate).mockReturnValueOnce(true);
+      const transaction = buildTransactionMeta({
+        chainId: '0x8f',
+        type: TransactionType.membershipSubscription,
+      });
+      const config: { atomic?: boolean } = {};
+
+      handleUnapprovedTransactionAddedForMoneyAccount(transaction);
+      setTransactionConfigMock.mock.calls[0][1](config);
+
+      expect(config.atomic).toBe(false);
+    });
+
     it.each([
       TransactionType.moneyAccountDeposit,
       MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,

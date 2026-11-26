@@ -40,6 +40,10 @@ export const TELLER_ABI = [
   'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
 ];
 
+const PREMIUM_TELLER_ABI = [
+  'function deposit((address depositAsset, uint256 depositAmount, uint256 minimumMint) params, address to, address referralAddress, (uint256 deadline, bytes signature) compliance) payable returns (uint256 shares)',
+];
+
 const ACCOUNTANT_ABI = ['function getRate() view returns (uint256 rate)'];
 
 const ERC20_ABI = [
@@ -61,6 +65,12 @@ export function applySlippage(value: bigint): bigint {
 }
 
 // -- Shared types ----------------------------------------------------------
+
+export interface MoneyAccountPremiumDepositAuthorization {
+  recipient: Hex;
+  signature: Hex;
+  deadline: number;
+}
 
 export interface MoneyAccountTxParams {
   params: {
@@ -125,7 +135,19 @@ function buildDepositData(
   musdAddress: string,
   amount: bigint,
   minimumMint: bigint,
+  premiumAuthorization?: MoneyAccountPremiumDepositAuthorization,
 ): Hex {
+  if (premiumAuthorization) {
+    const { recipient, deadline, signature } = premiumAuthorization;
+    const iface = new ethers.utils.Interface(PREMIUM_TELLER_ABI);
+    return iface.encodeFunctionData('deposit', [
+      [musdAddress, amount.toString(), minimumMint.toString()],
+      recipient,
+      AppConstants.ZERO_ADDRESS,
+      [deadline, signature],
+    ]) as Hex;
+  }
+
   const iface = new ethers.utils.Interface(TELLER_ABI);
   return iface.encodeFunctionData('deposit', [
     musdAddress,
@@ -175,7 +197,7 @@ export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
  * 1. Calls `previewDeposit` on the lens contract to get expected vault shares.
  * 2. Applies a 0.2% slippage tolerance to derive `minimumMint`.
  * 3. Encodes ERC-20 `approve(boringVault, amount)` on the mUSD token.
- * 4. Encodes `deposit(mUSD, amount, minimumMint, 0x0)` on the teller contract.
+ * 4. Encodes the teller deposit, including the compliance signature for premium deposits.
  */
 export async function buildMoneyAccountDepositBatch({
   amount,
@@ -186,6 +208,7 @@ export async function buildMoneyAccountDepositBatch({
   lensAddress,
   provider,
   initialiseWithoutData = false,
+  premiumAuthorization,
 }: {
   amount: bigint;
   chainId: Hex;
@@ -195,6 +218,7 @@ export async function buildMoneyAccountDepositBatch({
   lensAddress: string;
   provider: ethers.providers.Provider;
   initialiseWithoutData?: boolean;
+  premiumAuthorization?: MoneyAccountPremiumDepositAuthorization;
 }): Promise<MoneyAccountDepositBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
@@ -218,7 +242,7 @@ export async function buildMoneyAccountDepositBatch({
     : buildApproveData(boringVault, amount);
   const depositData = initialiseWithoutData
     ? undefined
-    : buildDepositData(musdAddress, amount, minimumMint);
+    : buildDepositData(musdAddress, amount, minimumMint, premiumAuthorization);
 
   return {
     approveTx: {

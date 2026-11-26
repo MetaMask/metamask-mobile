@@ -8,6 +8,7 @@ import {
   getSendBundleSupportedChains,
   getSentinelNetworkFlags,
   getSentinelSigners,
+  getVaultWhitelistSignature,
   isSendBundleSupported,
   setSentinelApiMessenger,
 } from './sentinel-api';
@@ -96,6 +97,36 @@ describe('Sentinel API', () => {
       await expect(getSentinelNetworkFlags(CHAIN_ID_MAINNET)).rejects.toThrow(
         'Sentinel: Messenger not initialized',
       );
+    });
+  });
+
+  describe('getVaultWhitelistSignature', () => {
+    it('passes the same Money Account address for sender and recipient', async () => {
+      const address = SIGNERS_MOCK[0];
+      const response = {
+        eligible: true,
+        deadline: 1800000000,
+        signature: '0x1234',
+      };
+      const call = jest.fn().mockResolvedValue(response);
+      setSentinelApiMessenger({ call });
+
+      const result = await getVaultWhitelistSignature(
+        '0x8f',
+        address,
+        '1000000',
+      );
+
+      expect(call).toHaveBeenCalledWith(
+        'SentinelApiService:getVaultWhitelistSignature',
+        {
+          chainId: '0x8f',
+          sender: address,
+          recipient: address,
+          amount: '1000000',
+        },
+      );
+      expect(result).toEqual(response);
     });
   });
 

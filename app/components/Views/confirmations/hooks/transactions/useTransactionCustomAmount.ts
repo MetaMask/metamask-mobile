@@ -49,6 +49,7 @@ import {
   MIN_FIAT_AMOUNT,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
+import { isPremiumDepositCandidate } from '../../../../UI/Money/utils/moneyAccountPremiumDeposit';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 import { useFirstDepositAmountClamp } from './useFirstDepositAmountClamp';
@@ -133,6 +134,10 @@ export function useTransactionCustomAmount({
   const relayFixedSpreadConfig = useSelector(selectRelayFixedSpread);
   const isAtomicMaxEnabled = useSelector((state: RootState) =>
     selectRelayAtomicMaxEnabled(state, transactionMeta),
+  );
+  const isPremiumDeposit = useSelector(
+    (state: RootState) =>
+      isMoneyAccountDeposit && isPremiumDepositCandidate(state, chainId),
   );
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
@@ -329,27 +334,42 @@ export function useTransactionCustomAmount({
         config.isMaxAmount = value;
 
         if (isMoneyAccountDeposit) {
-          // Only hint atomic when Core enables it. Route configuration is
-          // predictive; Core verifies the subsidy and re-quotes if needed.
-          config.atomic = value && !shouldHintAtomicMax ? false : undefined;
+          // Premium authorization needs the settled amount. For other deposits,
+          // Core verifies the subsidy before using an atomic max route.
+          config.atomic =
+            isPremiumDeposit || (value && !shouldHintAtomicMax)
+              ? false
+              : undefined;
         }
       });
     },
-    [isMoneyAccountDeposit, transactionId, shouldHintAtomicMax],
+    [
+      isMoneyAccountDeposit,
+      isPremiumDeposit,
+      transactionId,
+      shouldHintAtomicMax,
+    ],
   );
 
   useEffect(() => {
-    if (!isMoneyAccountDeposit || !isMaxAmount) {
+    if (!isMoneyAccountDeposit || (!isMaxAmount && !isPremiumDeposit)) {
       return;
     }
 
     Engine.context.TransactionPayController.setTransactionConfig(
       transactionId,
       (config) => {
-        config.atomic = shouldHintAtomicMax ? undefined : false;
+        config.atomic =
+          isPremiumDeposit || !shouldHintAtomicMax ? false : undefined;
       },
     );
-  }, [shouldHintAtomicMax, isMaxAmount, isMoneyAccountDeposit, transactionId]);
+  }, [
+    shouldHintAtomicMax,
+    isMaxAmount,
+    isMoneyAccountDeposit,
+    isPremiumDeposit,
+    transactionId,
+  ]);
 
   const updatePendingAmount = useCallback(
     (value: string) => {
