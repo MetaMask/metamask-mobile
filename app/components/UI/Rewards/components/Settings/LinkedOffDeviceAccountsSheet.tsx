@@ -117,7 +117,7 @@ const LinkedOffDeviceAccountsSheet: React.FC<
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="py-3 gap-3"
+          className="py-3 gap-3"
         >
           {/* Network icon */}
           <Avatar
@@ -128,11 +128,11 @@ const LinkedOffDeviceAccountsSheet: React.FC<
           />
 
           {/* Chain name + shortened address */}
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {chainName}
             </Text>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text variant={TextVariant.BodySm} className="text-alternative">
               {formatAddress(item.address, 'short')}
             </Text>
           </Box>
@@ -159,12 +159,12 @@ const LinkedOffDeviceAccountsSheet: React.FC<
         onClose={onClose}
       />
 
-      <Box twClassName="px-4 gap-4">
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+      <Box className="px-4 gap-4">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {strings('rewards.settings.off_device_accounts_sheet_description')}{' '}
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-primary-default"
+            className="text-primary-default"
             onPress={handleContactSupport}
           >
             {strings('rewards.settings.off_device_accounts_sheet_let_us_know')}

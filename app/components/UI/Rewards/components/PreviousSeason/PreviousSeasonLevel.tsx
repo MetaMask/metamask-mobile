@@ -43,11 +43,11 @@ const PreviousSeasonLevel: React.FC = () => {
         />
       </Box>
 
-      <Box twClassName="flex-col">
-        <Text variant={TextVariant.HeadingSm} twClassName="text-default">
+      <Box className="flex-col">
+        <Text variant={TextVariant.HeadingSm} className="text-default">
           {currentTier.levelNumber}
         </Text>
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {currentTier.name}
         </Text>
       </Box>

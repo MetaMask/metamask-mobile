@@ -85,7 +85,7 @@ const TaxFormContactUsSheet: React.FC = () => {
       >
         {params.title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="gap-4 px-4">
+      <Box className="gap-4 px-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}

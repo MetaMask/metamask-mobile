@@ -31,7 +31,7 @@ export const RewardsDiscountBadge: React.FC<{
   const tw = useTailwind();
 
   return (
-    <Box twClassName="h-[24px] items-center" testID={testID}>
+    <Box className="h-[24px] items-center" testID={testID}>
       <LinearGradient
         useAngle
         angle={169}
@@ -40,8 +40,8 @@ export const RewardsDiscountBadge: React.FC<{
         colors={borderColors}
         style={tw.style('flex-1 w-full h-full rounded-[4px] p-[1px]')}
       >
-        <Box twClassName="rounded-[4px] bg-default">
-          <Box twClassName="filter blur-sm max-w-min w-min flex flex-row rounded-sm whitespace-nowrap px-2 py-0 gap-1 bg-warning-default bg-opacity-10 items-center">
+        <Box className="rounded-[4px] bg-default">
+          <Box className="filter blur-sm max-w-min w-min flex flex-row rounded-sm whitespace-nowrap px-2 py-0 gap-1 bg-warning-default bg-opacity-10 items-center">
             {startIcon}
             <Text
               variant={TextVariant.BodyXs}

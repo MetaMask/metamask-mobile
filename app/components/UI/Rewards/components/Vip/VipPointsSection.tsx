@@ -70,7 +70,7 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
 
   return (
     <Box
-      twClassName="gap-3 px-4"
+      className="gap-3 px-4"
       testID={VIP_POINTS_SECTION_TEST_IDS.CONTAINER}
     >
       <Text
@@ -83,9 +83,9 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
+        className="gap-3"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
             {subtitle}
           </Text>

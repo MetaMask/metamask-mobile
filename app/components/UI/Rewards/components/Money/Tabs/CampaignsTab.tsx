@@ -12,7 +12,7 @@ const CampaignsTab: React.FC = () => {
   useTrackRewardsPageView({ page_type: 'campaigns_overview' });
 
   return (
-    <Box twClassName="p-4" testID={CAMPAIGNS_TAB_TEST_IDS.CONTAINER}>
+    <Box className="p-4" testID={CAMPAIGNS_TAB_TEST_IDS.CONTAINER}>
       <CampaignsList />
     </Box>
   );

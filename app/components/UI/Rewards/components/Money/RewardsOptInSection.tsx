@@ -122,10 +122,10 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
 
   return (
     <Card
-      twClassName="mx-4 items-center gap-4 py-6"
+      className="mx-4 items-center gap-4 py-6"
       testID={REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER}
     >
-      <Box twClassName="items-center gap-3">
+      <Box className="items-center gap-3">
         {/* The avatar takes the card's own surface, so only the star shows. */}
         <AvatarIcon
           iconName={IconName.Star}
@@ -135,10 +135,10 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           importantForAccessibility="no"
           testID={REWARDS_OPT_IN_SECTION_TEST_IDS.ICON}
         />
-        <Box twClassName="gap-1">
+        <Box className="gap-1">
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-center"
+            className="text-center"
             accessibilityRole="header"
           >
             {title}
@@ -146,14 +146,14 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {description}
           </Text>
         </Box>
       </Box>
       {/* Same width as the action in the Rewards tab empty states. */}
-      <Box twClassName="w-full max-w-64">
+      <Box className="w-full max-w-64">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -176,7 +176,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {footnote}
         </Text>

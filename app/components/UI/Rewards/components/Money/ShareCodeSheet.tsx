@@ -319,12 +319,12 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
             >
               {copy.title}
             </BottomSheetHeaderGlass>
-            <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+            <Box alignItems={BoxAlignItems.Center} className="px-4 pb-6">
               {resolvedShareUrl ? (
                 // The graphic carries no information a screen reader can use;
                 // the copy action does.
                 <Box
-                  twClassName="rounded-xl border border-muted bg-default p-3"
+                  className="rounded-xl border border-muted bg-default p-3"
                   importantForAccessibility="no-hide-descendants"
                   accessibilityElementsHidden
                 >
@@ -339,7 +339,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   justifyContent={BoxJustifyContent.Center}
-                  twClassName="mt-6 w-full gap-4"
+                  className="mt-6 w-full gap-4"
                 >
                   {actions.map((action) => (
                     <Pressable
@@ -357,7 +357,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
                       */}
                       <Box
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2"
+                        className="gap-2"
                         importantForAccessibility="no-hide-descendants"
                         accessibilityElementsHidden
                         testID={`${action.testID}-content`}
@@ -365,7 +365,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
                         <Box
                           alignItems={BoxAlignItems.Center}
                           justifyContent={BoxJustifyContent.Center}
-                          twClassName="h-12 w-12 rounded-full bg-muted"
+                          className="h-12 w-12 rounded-full bg-muted"
                         >
                           <Icon
                             name={action.icon}

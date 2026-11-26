@@ -35,7 +35,7 @@ const PreviousSeasonBalance: React.FC = () => {
       isLoading={seasonLoading && !seasonId}
       loadingHeight={106}
     >
-      <Box twClassName="justify-center">
+      <Box className="justify-center">
         <MetamaskRewardsPointsAlternativeImage
           name="MetamaskRewardsPointsAlternative"
           height={24}
@@ -44,11 +44,11 @@ const PreviousSeasonBalance: React.FC = () => {
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Column}>
-        <Text variant={TextVariant.HeadingSm} twClassName="text-default">
+        <Text variant={TextVariant.HeadingSm} className="text-default">
           {formatNumber(balanceTotal)}
         </Text>
 
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+        <Text variant={TextVariant.BodyMd} className="text-alternative">
           {!balanceTotal || balanceTotal > 1
             ? strings(
                 'rewards.previous_season_summary.points_earned',
