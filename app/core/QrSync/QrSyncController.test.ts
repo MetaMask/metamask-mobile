@@ -35,7 +35,7 @@ jest.mock('@metamask/account-tree-controller', () => {
     ...actual,
     AccountTreeSnapshot: {
       ...actual.AccountTreeSnapshot,
-      deserialize: jest.fn(async (payload: unknown) => {
+      deserialize: jest.fn((payload: unknown) => {
         const typedPayload = payload as {
           version?: number;
           wallets?: {
@@ -61,7 +61,7 @@ jest.mock('@metamask/account-tree-controller', () => {
           ...typedPayload,
           wallets: metadataStrippedWallets,
         };
-        return {
+        const snapshot = {
           ...(payload as object),
           stripSecrets: jest.fn().mockReturnValue({
             ...secretsStripped,
@@ -74,6 +74,7 @@ jest.mock('@metamask/account-tree-controller', () => {
           filterWallets: jest.fn().mockReturnThis(),
           serialize: jest.fn().mockReturnValue(payload),
         };
+        return Promise.resolve(snapshot);
       }),
     },
   };
