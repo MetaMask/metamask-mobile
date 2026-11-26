@@ -21,7 +21,8 @@ import {
 } from '../../../constants/urls';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
-import { Alert, InteractionManager } from 'react-native';
+import { Alert } from 'react-native';
+import NotificationManager from '../../../core/NotificationManager';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -156,19 +157,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
     isEnabled: jest.fn().mockReturnValue(true),
   },
 }));
-
-const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
-  cb();
-  return {
-    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
-    done: (onfulfilled: () => void, onrejected: () => void) =>
-      Promise.resolve().then(onfulfilled, onrejected),
-    cancel: jest.fn(),
-  };
-});
-jest
-  .spyOn(InteractionManager, 'runAfterInteractions')
-  .mockImplementation(mockRunAfterInteractions);
 
 jest.mock('../../../core/Vault', () => {
   const actual = jest.requireActual('../../../core/Vault');
@@ -894,7 +882,12 @@ describe('ResetPassword', () => {
         );
       });
 
-      expect(mockRunAfterInteractions).toHaveBeenCalled();
+      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
+        status: 'success',
+        duration: 5000,
+        title: strings('reset_password.password_updated'),
+        description: strings('reset_password.successfully_changed'),
+      });
     });
 
     it('disables back button during loading state', async () => {

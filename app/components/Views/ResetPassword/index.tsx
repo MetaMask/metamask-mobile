@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
-  InteractionManager,
   TouchableOpacity,
   TextInput,
 } from 'react-native';
@@ -339,13 +338,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
 
       setLoading(false);
       navigation.navigate(Routes.SETTINGS.SECURITY_SETTINGS);
-      InteractionManager.runAfterInteractions(() => {
-        NotificationManager.showSimpleNotification({
-          status: 'success',
-          duration: 5000,
-          title: strings('reset_password.password_updated'),
-          description: strings('reset_password.successfully_changed'),
-        });
+      NotificationManager.showSimpleNotification({
+        status: 'success',
+        duration: 5000,
+        title: strings('reset_password.password_updated'),
+        description: strings('reset_password.successfully_changed'),
       });
     } catch (err) {
       const castError = err as Error;
@@ -431,7 +428,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     if (!pwd) {
       return;
     }
-    reauthenticate(pwd);
+    reauthenticate(pwd).catch((error) => {
+      Logger.error(error as Error);
+    });
   }, [reauthenticate]);
 
   const isError = useCallback(
@@ -808,7 +807,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       if (isSeedlessOnboardingLoginFlow) {
                         handleConfirmAction();
                       } else {
-                        onPressCreate();
+                        onPressCreate().catch((error) => {
+                          Logger.error(error as Error);
+                        });
                       }
                     }}
                     testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}

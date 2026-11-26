@@ -16534,12 +16534,12 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 13
+      "count": 11
     }
   },
   "app/components/Views/ResetPassword/index.tsx": {
     "typescript/no-floating-promises": {
-      "count": 3
+      "count": 1
     },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
