@@ -77,8 +77,10 @@ export const PredictHomeTestIds = {
   /** The yes Outcome price of one Market on a multi-row or featured card. */
   marketOutcome: (eventId: string, marketId: string) =>
     `predict-next-outcome-${eventId}-${marketId}-yes`,
-  gameQuote: (eventId: string, selection: 'away' | 'home') =>
+  gameQuote: (eventId: string, selection: 'away' | 'draw' | 'home') =>
     `predict-next-game-quote-${eventId}-${selection}`,
+  gameTeam: (eventId: string, selection: 'away' | 'draw' | 'home') =>
+    `predict-next-game-team-${eventId}-${selection}`,
   image: (eventId: string) => `predict-next-event-image-${eventId}`,
   category: (eventId: string) => `predict-next-event-category-${eventId}`,
   volume: (eventId: string) => `predict-next-event-volume-${eventId}`,

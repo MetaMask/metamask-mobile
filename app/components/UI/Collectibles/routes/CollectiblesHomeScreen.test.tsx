@@ -14,6 +14,10 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockParams }),
 }));
 
+jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
+  useEpicHuntPacks: () => ({ data: [], isPending: true }),
+}));
+
 describe('CollectiblesHomeScreen', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
