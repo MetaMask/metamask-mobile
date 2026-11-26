@@ -34,8 +34,6 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 
-const ORIGINAL_CONFIRMATION_ENV =
-  process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED;
 const ORIGINAL_PROVIDER_ENV = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
 function ControlledRow() {
@@ -71,6 +69,16 @@ function renderRow(
       engine: {
         backgroundState: {
           ...backgroundState,
+          PerpsController: {
+            ...backgroundState.PerpsController,
+            perpsBalances: {
+              lighter: {
+                totalBalance: '12.349',
+                unrealizedPnl: '0',
+                lastUpdated: 1,
+              },
+            },
+          },
           RemoteFeatureFlagController: {
             ...backgroundState.RemoteFeatureFlagController,
             remoteFeatureFlags,
@@ -83,7 +91,6 @@ function renderRow(
 
 describe('PerpsWithdrawFromRow', () => {
   beforeEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'true';
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
     mockUsePerpsLiveAccount.mockReturnValue({
       account: { totalBalance: '50.389' },
@@ -92,8 +99,6 @@ describe('PerpsWithdrawFromRow', () => {
   });
 
   afterEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED =
-      ORIGINAL_CONFIRMATION_ENV;
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = ORIGINAL_PROVIDER_ENV;
   });
 
@@ -136,7 +141,7 @@ describe('PerpsWithdrawFromRow', () => {
     expect(
       getByText(
         strings('confirm.perps_withdraw_from.available', {
-          amount: 'XXX.XX',
+          amount: '$12.34',
         }),
       ),
     ).toBeOnTheScreen();
@@ -150,23 +155,15 @@ describe('PerpsWithdrawFromRow', () => {
       getByText(strings('confirm.perps_withdraw_from.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('(XXX.XX)', { includeHiddenElements: true }),
+      getByText('($12.34)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.from')}, ${strings(
           'confirm.perps_withdraw_from.lighter',
-        )}, XXX.XX`,
+        )}, $12.34`,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders nothing when the confirmation env is off', () => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'false';
-
-    const { queryByTestId } = renderRow();
-
-    expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
   });
 
   it('renders nothing when the provider env is off', () => {

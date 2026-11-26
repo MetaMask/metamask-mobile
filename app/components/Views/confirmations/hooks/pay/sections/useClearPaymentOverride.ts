@@ -4,6 +4,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -11,7 +12,6 @@ import {
   selectPaymentOverrideByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
-import { LIGHTER_PAYMENT_OVERRIDE } from '../../../temp-lighter/perps-lighter-transactions';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 /**
@@ -44,7 +44,7 @@ export function useClearPaymentOverride() {
     if (
       transactionId &&
       paymentOverride &&
-      paymentOverride !== LIGHTER_PAYMENT_OVERRIDE
+      paymentOverride !== PaymentOverride.PerpsLighter
     ) {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,

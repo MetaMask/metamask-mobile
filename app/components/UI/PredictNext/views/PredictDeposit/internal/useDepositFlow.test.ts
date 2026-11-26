@@ -267,4 +267,88 @@ describe('useDepositFlow', () => {
       ).not.toHaveBeenCalled();
     });
   });
+
+  describe('double tap on confirm', () => {
+    it('sends one transfer and one report when start is called twice while in flight', async () => {
+      const deposit = makeDeposit();
+      const reportedDeposit = makeDeposit({ status: 'processing' });
+      let resolvePrepare!: (value: PredictDepositOperation) => void;
+      const prepareGate = new Promise<PredictDepositOperation>((resolve) => {
+        resolvePrepare = resolve;
+      });
+      jest.mocked(Engine.controllerMessenger.call).mockImplementation((async (
+        action: string,
+      ) => {
+        if (action === 'PredictFundingService:prepareDeposit') {
+          return await prepareGate;
+        }
+        if (action === 'PredictFundingService:reportDepositTransfer') {
+          return reportedDeposit;
+        }
+        return undefined;
+      }) as never);
+      jest
+        .mocked(Engine.context.TransactionController.addTransaction)
+        .mockImplementation(async (txParams, options) => {
+          const meta = makeTx({
+            id: 'tx-double-tap',
+            status: TransactionStatus.submitted,
+            hash: TX_HASH,
+            requestId: options?.requestId,
+            txParams,
+          });
+          Engine.context.TransactionController.state.transactions = [meta];
+          return {
+            result: Promise.resolve(TX_HASH),
+            transactionMeta: meta,
+          };
+        });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useDepositFlow({
+            venueId: VENUE_ID,
+            environment: {
+              network: BASE_DEPOSIT_NETWORK,
+              transferMode: 'wallet',
+            },
+            fundingWallet: FUNDING_WALLET,
+            addressPollIntervalMs: 1000,
+          }),
+        { state: TEST_STATE },
+      );
+
+      let firstOutcome: unknown;
+      let secondOutcome: unknown;
+      await act(async () => {
+        const first = result.current.start(AMOUNT);
+        const second = result.current.start(AMOUNT);
+        resolvePrepare(deposit);
+        [firstOutcome, secondOutcome] = await Promise.all([first, second]);
+      });
+
+      expect(secondOutcome).toBeUndefined();
+      expect(firstOutcome).toStrictEqual({
+        kind: 'submitted',
+        deposit: reportedDeposit,
+        reported: true,
+      });
+      const messengerCalls = jest.mocked(Engine.controllerMessenger.call).mock
+        .calls;
+      expect(
+        messengerCalls.filter(
+          ([action]) => action === 'PredictFundingService:prepareDeposit',
+        ),
+      ).toHaveLength(1);
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        messengerCalls.filter(
+          ([action]) =>
+            action === 'PredictFundingService:reportDepositTransfer',
+        ),
+      ).toHaveLength(1);
+    });
+  });
 });

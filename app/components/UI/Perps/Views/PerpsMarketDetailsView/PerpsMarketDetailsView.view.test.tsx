@@ -40,7 +40,9 @@ import {
 import {
   createPerpsControllerStateHarness,
   getModifyActionLabels,
+  withLighterBuildEnabled,
 } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
@@ -80,6 +82,7 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
+  PerpsTradeOnSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 import {
@@ -147,6 +150,109 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       ),
     ).toBeOnTheScreen();
+  });
+
+  describe('funding path from venue available to trade', () => {
+    const zeroWithdrawableAccount = createFundedAccountForViews('0');
+
+    it('offers long and short instead of Add funds when available to trade covers the order but withdrawable is zero', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: { long: '250', short: '0' },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not offer Add funds while available to trade is still loading', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: null,
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('offers Add funds once available to trade is confirmed zero', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        streamOverrides: {
+          positions: [],
+          account: zeroWithdrawableAccount,
+          availableToTrade: { long: '0', short: '0' },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Trade on sheet', () => {
+    withLighterBuildEnabled();
+
+    it('stays closed when a second venue returns after the selector disappears', async () => {
+      const hyperliquidMarket = createEthMarketForViews({
+        providerId: 'hyperliquid',
+      });
+      const lighterMarket = createEthMarketForViews({ providerId: 'lighter' });
+      const scenario = perpsTwoExchangeState('sameMarketOnBoth');
+      const { stream } = renderPerpsMarketDetailsView({
+        ...scenario,
+        initialParams: { market: hyperliquidMarket },
+        streamOverrides: {
+          ...scenario.streamOverrides,
+          positions: [],
+          marketData: [hyperliquidMarket, lighterMarket],
+        },
+      });
+
+      await screen.findByTestId(PerpsTradeOnSelectorsIDs.ROW);
+      fireEvent.press(screen.getByTestId(PerpsTradeOnSelectorsIDs.ROW));
+      expect(
+        screen.getByTestId(PerpsTradeOnSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        stream.emitMarketData([hyperliquidMarket]);
+      });
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.ROW)).toBeNull();
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.SHEET)).toBeNull();
+
+      act(() => {
+        stream.emitMarketData([hyperliquidMarket, lighterMarket]);
+      });
+      expect(
+        await screen.findByTestId(PerpsTradeOnSelectorsIDs.ROW),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(PerpsTradeOnSelectorsIDs.SHEET)).toBeNull();
+    });
   });
 
   it('removes long and short when the market hits its open interest cap', async () => {
