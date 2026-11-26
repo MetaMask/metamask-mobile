@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { StatusBar } from 'react-native';
+import { Linking, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,10 @@ import { CardScreens, withCardProvider } from '../../util/metrics';
 import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { useImmersveKycOutcome } from '../../hooks/useImmersveKycOutcome';
+import { describeImmersveKycFinal } from '../../util/immersveKycReasons';
+import { IMMERSVE_SUPPORT_EMAIL } from '../../constants';
+import { useCardIntercomSupport } from '../../Views/CardHome/hooks/useCardIntercomSupport';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -40,6 +44,16 @@ const KYCFailed = () => {
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
+  const isImmersve = activeProviderId === CardProviderIds.Immersve;
+  const { reasons } = useParams<{ reasons?: string[] }>();
+  const openIntercomSupport = useCardIntercomSupport();
+  const contactSupport = useCallback(() => {
+    if (openIntercomSupport) {
+      openIntercomSupport();
+      return;
+    }
+    Linking.openURL(`mailto:${IMMERSVE_SUPPORT_EMAIL}`).catch(() => undefined);
+  }, [openIntercomSupport]);
   const hasTrackedView = useRef(false);
 
   useEffect(() => {
@@ -67,14 +81,14 @@ const KYCFailed = () => {
   const navigateToHome = useCallback(() => {
     // The screen is the explanation. Signing out stops a later Link card
     // from treating this Immersve session as ready. Baanx keeps its session.
-    if (activeProviderId === CardProviderIds.Immersve) {
+    if (isImmersve) {
       notifyKycRejected(
-        { type: 'rejected', canRetry: false, reasons: [] },
+        { type: 'rejected', reasons },
         { source: 'kyc_failed', toast: false },
       ).catch(() => undefined);
     }
     exitCardFlow();
-  }, [activeProviderId, exitCardFlow, notifyKycRejected]);
+  }, [isImmersve, reasons, exitCardFlow, notifyKycRejected]);
 
   return (
     <SafeAreaView
@@ -91,7 +105,15 @@ const KYCFailed = () => {
         }}
         includesTopInset
       />
-      <KYCFailedContent onClose={navigateToHome} />
+      <KYCFailedContent
+        onClose={navigateToHome}
+        {...(isImmersve
+          ? {
+              ...describeImmersveKycFinal(reasons),
+              onContactSupport: contactSupport,
+            }
+          : {})}
+      />
     </SafeAreaView>
   );
 };

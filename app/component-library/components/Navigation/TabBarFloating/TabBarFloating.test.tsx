@@ -368,9 +368,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET_VIEW,
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('emits tabPress to the tapped tab so its screen can react to a re-tap', () => {

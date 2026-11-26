@@ -181,6 +181,7 @@ const DEFAULT_PERPS_FEED = {
     makeFeedItem(makeMarket('EURUSD', 'forex')),
   ],
   isLoading: false,
+  error: null,
   defaultSortOptionId: 'priceChange' as const,
   refetch: jest.fn(),
 };
