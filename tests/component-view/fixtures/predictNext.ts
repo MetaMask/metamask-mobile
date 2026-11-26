@@ -1400,7 +1400,9 @@ export const expectPredictNextGameCard = (
     scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
   ).toHaveTextContent(homeQuote);
   if (competition) {
-    expect(scoped.getByText(competition)).toBeOnTheScreen();
+    expect(
+      scoped.getByTestId(`predict-next-game-status-${eventId}`),
+    ).toHaveTextContent(new RegExp(escapeRegExp(competition)));
   }
   if (volume) {
     expect(scoped.getByText(volume)).toBeOnTheScreen();

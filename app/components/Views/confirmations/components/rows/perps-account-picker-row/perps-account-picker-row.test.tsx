@@ -324,4 +324,47 @@ describe('PerpsAccountPickerRow', () => {
 
     expect(queryByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeNull();
   });
+
+  it('carries incremented mm_pay_recipient_mm_account_switch_count onto the replacement transaction', async () => {
+    jest.mocked(addTransaction).mockResolvedValue({
+      transactionMeta: {
+        id: 'tx-2',
+        txParams: { from: '0xdef', value: '0x1' },
+      },
+    } as never);
+
+    const { getByTestId, store } = renderWithProvider(
+      <PerpsAccountPickerRow />,
+      {
+        state: {
+          ...STATE_MOCK,
+          confirmationMetrics: {
+            metricsById: {
+              'tx-1': {
+                properties: {
+                  mm_pay_recipient_mm_account_switch_count: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsAccountPickerSelectorsIDs.ROW));
+    fireEvent.press(
+      getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
+    );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).toHaveBeenCalledWith('tx-1', expect.anything());
+    });
+
+    expect(
+      store.getState().confirmationMetrics.metricsById['tx-2']?.properties
+        ?.mm_pay_recipient_mm_account_switch_count,
+    ).toBe(2);
+  });
 });

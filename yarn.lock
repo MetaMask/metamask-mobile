@@ -9830,11 +9830,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/client-mcp-core@npm:^0.14.0":
-  version: 0.14.0
-  resolution: "@metamask/client-mcp-core@npm:0.14.0"
+"@metamask/client-mcp-core@npm:^0.15.0":
+  version: 0.15.0
+  resolution: "@metamask/client-mcp-core@npm:0.15.0"
   dependencies:
-    "@metamask/device-mcp": "npm:^0.8.0"
+    "@metamask/device-mcp": "npm:^0.9.0"
     cosmiconfig: "npm:^9.0.0"
     express: "npm:^5.2.1"
     zod: "npm:^4.4.3"
@@ -9843,7 +9843,7 @@ __metadata:
     playwright: ^1.49.0
   bin:
     mm: ./dist/cli/mm.cjs
-  checksum: 10/be053d57b4992111568bf169dd41deb19a48f8fb35b395c1049c8d77197ff9ed3cfdabaf17321b8892b74691478d1db22c1a1b3a7f490ac6d3eafd2bd64972b2
+  checksum: 10/d1200be23e574c98d75c5389336fbf0028f272a7aa18aad67eeaccc220375959587a827d5583c2b952dbb0a6044c2d17e81a41cd32c0563638a44410fe5210cd
   languageName: node
   linkType: hard
 
@@ -10068,15 +10068,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/device-mcp@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "@metamask/device-mcp@npm:0.8.0"
+"@metamask/device-mcp@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@metamask/device-mcp@npm:0.9.0"
   dependencies:
     "@modelcontextprotocol/sdk": "npm:^1.32.0"
     zod: "npm:^4.6.6"
   bin:
     device-mcp: ./dist/cli/device-mcp.mjs
-  checksum: 10/92e0321ec1edfd9c686ce786ee29b87cb35f0af8e14d5ea90d355d9db18a50bb325a32e7042cade447ae61c8d540c8556481c6f5f0eadc343501173f9affb186
+  checksum: 10/edffb339e331a1b2f7ad175ca24d277dfc08e75d4f7e7dcf14a1c72ab0abb659783e4025b72934386af135d0b9cbaabaa2ba2962336f0b646b29a29d51b5bdf5
   languageName: node
   linkType: hard
 
@@ -11391,9 +11391,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^26.0.0":
-  version: 26.1.0
-  resolution: "@metamask/perps-controller@npm:26.1.0"
+"@metamask/perps-controller@npm:^26.2.0":
+  version: 26.2.0
+  resolution: "@metamask/perps-controller@npm:26.2.0"
   dependencies:
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11405,7 +11405,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.3.0"
     uuid: "npm:^14.0.3"
-  checksum: 10/d346e68a3847cb0c6cd26713ccddc0055708669b85732b9e18573c2b17dba5f20b934ff784a865b0ab1b62328b3a28e9f9aa5b1738019b7d6f77315c66282b35
+  checksum: 10/9bfd88879961e5f972e5c48e3a36ae05b9a585c8f01cbc7c7732bdef0fd687fca85f8c601fcb51fc26b2c98ef8e50b0abb6f5f7d45449108226e3abc3e2187ea
   languageName: node
   linkType: hard
 
@@ -11598,7 +11598,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^30.1.0":
+"@metamask/ramps-controller@npm:30.1.0":
   version: 30.1.0
   resolution: "@metamask/ramps-controller@npm:30.1.0"
   dependencies:
@@ -11631,6 +11631,24 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
   checksum: 10/5de10eb662f82ca924a81a2cc4db717e5bc7968cac38c5a1ec98b21c91dcb80ee0af94915d5ba0d2c9887d9adea0fc5364b9d8ddc1989b74b94a39712b36f617
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A30.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-30.1.0-35a790070c.patch":
+  version: 30.1.0
+  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A30.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-30.1.0-35a790070c.patch::version=30.1.0&hash=1d4c2c"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/base-data-service": "npm:^2.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.2"
+    bignumber.js: "npm:^9.1.2"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/a83cecd553c4993ffe50a03fdbb49721f9a4e966818247bf41e2b2792a7bd59548a14cc87e04e7055e1a30fbfbda79a5f69fd6bcdefde30b14fc34d30e24068b
   languageName: node
   linkType: hard
 
@@ -12140,9 +12158,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@metamask/snaps-sdk@npm:13.0.0"
+"@metamask/snaps-sdk@npm:^13.0.1":
+  version: 13.0.1
+  resolution: "@metamask/snaps-sdk@npm:13.0.1"
   dependencies:
     "@metamask/key-tree": "npm:^11.0.0"
     "@metamask/messenger": "npm:^3.0.0"
@@ -12151,13 +12169,13 @@ __metadata:
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.2"
     luxon: "npm:^3.5.0"
-  checksum: 10/c87bf9ca99ca7682eb00b52a787d06cb43461d90842253c289f7ad090ed276b86fac28259a07a0331004174b466f891a3b2219cc9e073a50cc6762ebce1bb1fa
+  checksum: 10/6d8d10c2a25fa13c7de3be44ae3375fd33297bfb44ee3833262df5c22ab8a1cfe2a356b3de5437bf10b0a191233c503cc81696ed00e943ec008f6ebf95859d84
   languageName: node
   linkType: hard
 
-"@metamask/snaps-utils@npm:^12.1.2, @metamask/snaps-utils@npm:^12.1.3, @metamask/snaps-utils@npm:^12.2.0, @metamask/snaps-utils@npm:^12.2.1, @metamask/snaps-utils@npm:^12.6.2":
-  version: 12.6.2
-  resolution: "@metamask/snaps-utils@npm:12.6.2"
+"@metamask/snaps-utils@npm:^12.1.2, @metamask/snaps-utils@npm:^12.1.3, @metamask/snaps-utils@npm:^12.2.0, @metamask/snaps-utils@npm:^12.2.1, @metamask/snaps-utils@npm:^12.6.2, @metamask/snaps-utils@npm:^12.6.3":
+  version: 12.6.3
+  resolution: "@metamask/snaps-utils@npm:12.6.3"
   dependencies:
     "@babel/core": "npm:^7.23.2"
     "@babel/types": "npm:^7.23.0"
@@ -12168,7 +12186,7 @@ __metadata:
     "@metamask/rpc-errors": "npm:^7.0.3"
     "@metamask/slip44": "npm:^4.5.0"
     "@metamask/snaps-registry": "npm:^4.0.0"
-    "@metamask/snaps-sdk": "npm:^13.0.0"
+    "@metamask/snaps-sdk": "npm:^13.0.1"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.2"
     "@scure/base": "npm:^1.1.1"
@@ -12183,7 +12201,7 @@ __metadata:
     semver: "npm:^7.5.4"
     ses: "npm:^2.3.0"
     validate-npm-package-name: "npm:^5.0.0"
-  checksum: 10/309e8c0ad2d1a1bed982b37dd7a2e2d3a66057584ca8385ecb5d1d90a217c7d08a2f3db2cd569415a003256959d09837e3ca9aafff348b1a7a2af3af0e5504a8
+  checksum: 10/911a669fd04872da7a3a015e7e9b2a5fa416a951a5f1290e488445b9278dfcc3d3c0f109d08219840827ef2e28852cd8ceb306299168099bf3285d56bbf50c83
   languageName: node
   linkType: hard
 
@@ -38345,7 +38363,7 @@ __metadata:
     "@metamask/chomp-api-service": "npm:^7.1.0"
     "@metamask/claims-controller": "npm:^1.1.0"
     "@metamask/client-controller": "npm:^2.0.0"
-    "@metamask/client-mcp-core": "npm:^0.14.0"
+    "@metamask/client-mcp-core": "npm:^0.15.0"
     "@metamask/client-utils": "npm:^3.4.0"
     "@metamask/compliance-controller": "npm:3.0.0"
     "@metamask/config-registry-controller": "npm:^6.0.0"
@@ -38358,7 +38376,7 @@ __metadata:
     "@metamask/design-system-react-native": "npm:^0.58.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.14.0"
     "@metamask/design-tokens": "npm:^13.0.0"
-    "@metamask/device-mcp": "npm:^0.8.0"
+    "@metamask/device-mcp": "npm:^0.9.0"
     "@metamask/earn-controller": "npm:^13.1.0"
     "@metamask/eip-5792-middleware": "npm:^4.1.1"
     "@metamask/eip1193-permission-middleware": "npm:^3.0.0"
@@ -38421,7 +38439,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.3"
     "@metamask/object-multiplex": "npm:^2.1.0"
     "@metamask/permission-controller": "npm:^14.1.0"
-    "@metamask/perps-controller": "npm:^26.0.0"
+    "@metamask/perps-controller": "npm:^26.2.0"
     "@metamask/phishing-controller": "npm:^18.3.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -38431,7 +38449,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^5.3.0"
     "@metamask/profile-sync-controller": "npm:^36.1.2"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^30.1.0"
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A30.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-30.1.0-35a790070c.patch"
     "@metamask/react-data-query": "npm:^2.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
@@ -38456,8 +38474,8 @@ __metadata:
     "@metamask/snaps-controllers": "npm:^23.0.1"
     "@metamask/snaps-execution-environments": "npm:^11.3.4"
     "@metamask/snaps-rpc-methods": "npm:^19.0.0"
-    "@metamask/snaps-sdk": "npm:^13.0.0"
-    "@metamask/snaps-utils": "npm:^12.6.2"
+    "@metamask/snaps-sdk": "npm:^13.0.1"
+    "@metamask/snaps-utils": "npm:^12.6.3"
     "@metamask/social-controllers": "npm:^3.24.0"
     "@metamask/solana-wallet-snap": "npm:^7.3.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
