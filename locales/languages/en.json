@@ -4156,6 +4156,7 @@
       "odds": "Odds",
       "contracts_row": "Contracts",
       "fees": "Fees",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability.",
       "you_will_receive": "You'll receive",
       "you_will_receive_value": "{{amount}} ({{price}} avg)",
       "estimated_payout": "Est. payout",
