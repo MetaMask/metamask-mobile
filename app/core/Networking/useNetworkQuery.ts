@@ -53,16 +53,30 @@ export function useNetworkQuery<
   refetchInterval,
   ...options
 }: NetworkQueryOptions<QueryFnData, Data, Key>): UseQueryResult<Data, Error> {
-  // Unknown hardware keeps the app's 24 h default.
-  const [gcTime] = useState(() => GC_TIME[getHardwareTier() ?? 'HIGH']);
+  const [gcTime] = useState(resolveGcTime);
 
   return useQuery({
     ...options,
     gcTime,
-    retry: (failureCount) => failureCount < (isSlowConnection() ? 1 : 2),
-    refetchInterval: () =>
-      refetchInterval === undefined
-        ? false
-        : refetchInterval * (isSlowConnection() ? 3 : 1),
+    retry: shouldRetry,
+    refetchInterval: () => resolvePollInterval(refetchInterval),
   });
+}
+
+function resolveGcTime(): number {
+  const hardwareTier = getHardwareTier();
+  // Unknown hardware keeps the app's 24 h default.
+  if (hardwareTier === null) return GC_TIME.HIGH;
+  return GC_TIME[hardwareTier];
+}
+
+function shouldRetry(failureCount: number): boolean {
+  if (isSlowConnection()) return failureCount < 1;
+  return failureCount < 2;
+}
+
+function resolvePollInterval(interval: number | undefined): number | false {
+  if (interval === undefined) return false;
+  if (isSlowConnection()) return interval * 3;
+  return interval;
 }
