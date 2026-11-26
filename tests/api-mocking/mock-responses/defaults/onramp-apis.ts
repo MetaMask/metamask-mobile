@@ -9,6 +9,7 @@ import { RAMPS_PROVIDERS_RESPONSE } from '../ramps/responses/ramps-providers-res
 import { RAMPS_PAYMENTS_V2_RESPONSE } from '../ramps/responses/ramps-payments-response.ts';
 import { createGeolocationResponse } from '../ramps/responses/ramps-geolocation.ts';
 import { rampUrl } from '../ramps/ramps-hosts.ts';
+import type { RampsCountriesV2Response } from '../../api-response-types';
 
 /**
  * Mock data for on-ramp API endpoints used in E2E testing.
@@ -57,7 +58,7 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
         String.raw`/v2/regions/countries\?.*$`,
       ),
       responseCode: 200,
-      response: [],
+      response: [] satisfies RampsCountriesV2Response,
     },
     {
       urlEndpoint: rampUrl(

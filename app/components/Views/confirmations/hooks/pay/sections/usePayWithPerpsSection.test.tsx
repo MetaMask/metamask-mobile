@@ -236,7 +236,7 @@ describe('usePayWithPerpsSection', () => {
     expect(onRejectMock).toHaveBeenCalledTimes(1);
     expect(depositWithConfirmationMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith(
-      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
       { showPerpsHeader: true },
     );
   });

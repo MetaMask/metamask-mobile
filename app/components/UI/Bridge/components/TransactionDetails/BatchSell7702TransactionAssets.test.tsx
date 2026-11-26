@@ -6,7 +6,7 @@ import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets
 import { initialState } from '../../_mocks_/initialState';
 
 function createBatchSellHistoryItems(): BridgeHistoryItem[] {
-  const batchId = '0xbatch123';
+  const batchId = '0xbatch123' as const;
 
   return [
     {
@@ -85,7 +85,7 @@ function createBatchSellHistoryItems(): BridgeHistoryItem[] {
       startTime: Date.now(),
       estimatedProcessingTimeInSeconds: 0,
     },
-  ] as BridgeHistoryItem[];
+  ] as unknown as BridgeHistoryItem[];
 }
 
 describe('BatchSell7702TransactionAssets', () => {

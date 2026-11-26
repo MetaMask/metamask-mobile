@@ -66,7 +66,7 @@ describe('usePerpsLimitPriceInput', () => {
       track: mockTrack,
     } as unknown as ReturnType<typeof usePerpsEventTracking>);
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '3000', markPrice: '3000' },
+      BTC: { price: '3000', markPrice: '3000', oraclePrice: '3000' },
     } as unknown as ReturnType<typeof usePerpsLivePrices>);
     mockUsePerpsTopOfBook.mockReturnValue({
       bestBid: '2999',
@@ -82,6 +82,15 @@ describe('usePerpsLimitPriceInput', () => {
         expect.objectContaining({ symbols: ['BTC'] }),
       );
       expect(mockUsePerpsTopOfBook).toHaveBeenCalledWith({ symbol: 'BTC' });
+    });
+
+    it('reads top of book from the requested venue', () => {
+      renderLimitPriceInput({ enabled: true, providerId: 'lighter' });
+
+      expect(mockUsePerpsTopOfBook).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        providerId: 'lighter',
+      });
     });
 
     it('drops both subscriptions while disabled', () => {
@@ -216,6 +225,19 @@ describe('usePerpsLimitPriceInput', () => {
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
       expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
+    });
+
+    it('measures the deviation band from the oracle price, not the mark price', () => {
+      // With a 3000 mark, 500 is inside the band (min 150). With a 20000 oracle it
+      // is outside (min 1000).
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '3000', markPrice: '3000', oraclePrice: '20000' },
+      } as unknown as ReturnType<typeof usePerpsLivePrices>);
+
+      const { result } = renderLimitPriceInput({ limitPrice: '500' });
+
+      expect(result.current.exceedsMaxDeviation).toBe(true);
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(20000));
     });
 
     it('blocks an opening price outside the venue deviation band', () => {

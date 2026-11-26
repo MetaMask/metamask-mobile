@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -9,11 +8,10 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
 import { selectProfileControllerProfile } from '../../../../../selectors/profileController';
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
-import { navigateToSocialTab } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import { getCampaignStatus } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
@@ -66,7 +64,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
   isFeatureGeoRestricted,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
-  const navigation = useNavigation<AppNavigationProp>();
+  const { openComposer } = useOpenSocialPostComposer();
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const hasSocialProfile = Boolean(
     useSelector(selectProfileControllerProfile)?.profileId,
@@ -132,7 +130,7 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
           onPress={() => {
             if (isGeoLoading) return;
             if (opensSocialOnboarding) {
-              navigateToSocialTab(navigation.navigate);
+              openComposer();
               return;
             }
             onJoinPress?.();

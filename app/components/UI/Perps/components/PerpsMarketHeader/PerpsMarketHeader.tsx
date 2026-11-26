@@ -112,14 +112,14 @@ const PerpsMarketHeaderCompactPrice = ({
 }: {
   symbol: string;
   currentPrice: number;
-  percentChange24h?: number;
+  percentChange24h?: number | null;
   testIDPrice?: string;
   testIDChange?: string;
 }) => (
   <LivePriceHeader
     symbol={symbol}
     currentPrice={currentPrice}
-    percentChange24h={percentChange24h}
+    percentChange24h={percentChange24h ?? null}
     testIDPrice={testIDPrice}
     testIDChange={testIDChange}
   />
@@ -147,6 +147,7 @@ const PerpsMarketHeader = ({
   onModeChange,
   enableHaptics = false,
   enableModeHaptics = false,
+  providerId,
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
@@ -225,6 +226,7 @@ const PerpsMarketHeader = ({
   }));
 
   const livePrices = usePerpsLivePrices({
+    providerId: market.providerId,
     symbols: [market.symbol],
     throttleMs: 1000,
   });
@@ -250,7 +252,7 @@ const PerpsMarketHeader = ({
         <PerpsMarketHeaderCompactPrice
           symbol={market.symbol}
           currentPrice={currentPrice}
-          percentChange24h={percentChange24h}
+          percentChange24h={percentChange24h ?? null}
           testIDPrice=""
           testIDChange=""
         />
@@ -265,7 +267,7 @@ const PerpsMarketHeader = ({
         <PerpsMarketHeaderCompactPrice
           symbol={market.symbol}
           currentPrice={currentPrice}
-          percentChange24h={percentChange24h}
+          percentChange24h={percentChange24h ?? null}
           testIDPrice={testIDs.headerPrice}
           testIDChange={testIDs.headerPriceChange}
         />
@@ -408,6 +410,7 @@ const PerpsMarketHeader = ({
             symbol={market.symbol}
             name={market.name}
             maxLeverage={market.maxLeverage}
+            providerId={providerId}
             size={32}
             gap={2}
             onPress={onIdentityPress ? handleIdentityPress : undefined}

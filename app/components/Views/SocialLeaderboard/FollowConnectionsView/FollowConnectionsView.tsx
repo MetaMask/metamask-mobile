@@ -292,6 +292,7 @@ const FollowConnectionsView: React.FC = () => {
           username={item.username}
           address={item.address}
           avatarUri={item.avatarUri}
+          isVerified={item.verified}
           isFollowing={isFollowing(item.id, !isTraderList)}
           onFollowPress={
             isSelf ? undefined : () => handleFollowingFollowPress(item)
@@ -319,6 +320,7 @@ const FollowConnectionsView: React.FC = () => {
           username={item.username}
           address={item.address}
           avatarUri={item.avatarUri}
+          isVerified={item.verified}
           isFollowing={isFollowing(item.id)}
           onFollowPress={
             isSelf ? undefined : () => handleFollowerFollowPress(item)

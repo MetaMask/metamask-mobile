@@ -1,8 +1,9 @@
 /**
  * A test fixture in the Kalshi catalog wire shape: discovery Feeds, the
  * Politics topic Feeds (Trump, Congress, Iran), the Categories Sports and
- * Politics, and the Feed Screens. It mirrors what the Predict API serves
- * (`venue-catalogs.ts` in va-mmcx-predict-api, PRED-1525), except `withdraw`. No production code reads it; Kalshi's adapter serves the Predict
+ * Politics, the Feed Screens and Home's sections. It mirrors what the Predict
+ * API serves (`venue-catalogs.ts` in va-mmcx-predict-api, PRED-1525 and
+ * PRED-1527), except `withdraw`. No production code reads it; Kalshi's adapter serves the Predict
  * API catalog, which alone decides which actions a deployment supports.
  * Tests that need a catalog use this shape instead of inventing one. Withdraw
  * is listed here only so fixtures can exercise the UI path; it is not a claim
@@ -10,6 +11,7 @@
  */
 export const KALSHI_STATIC_VENUE_CATALOG = {
   venueId: 'kalshi',
+  environment: 'production',
   actions: ['buy', 'sell', 'deposit', 'withdraw'],
   feeds: {
     sports: 'sports-football-nfl-games',
@@ -61,4 +63,28 @@ export const KALSHI_STATIC_VENUE_CATALOG = {
       ],
     },
   ],
+  home: {
+    sections: [
+      {
+        kind: 'trending',
+        sources: ['nfl-games', 'college-football-games'],
+        screen: 'sports',
+      },
+      {
+        kind: 'games-row',
+        id: 'sports',
+        title: 'Sports',
+        feed: 'nfl-games',
+        screen: 'sports-football-nfl',
+      },
+      { kind: 'categories' },
+      {
+        kind: 'feed-preview',
+        id: 'politics',
+        title: 'Politics',
+        feed: 'politics-trump',
+        screen: 'politics',
+      },
+    ],
+  },
 } as const;

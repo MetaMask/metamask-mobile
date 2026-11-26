@@ -54,6 +54,7 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
 let mockRouteParams: {
   showNotificationsBanner?: boolean;
   initialTab?: SocialShellTab;
+  source?: string;
 } = {};
 
 jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
@@ -210,6 +211,13 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
     ),
   };
 });
+
+// The Following tab reads the lock state. The default test store has no
+// keyring slice, so this matches its locked default and skips the prefetch.
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
+  selectIsUnlocked: () => false,
+}));
 
 jest.mock('./feed/components/PopularTradersCarousel', () => {
   const ReactActual = jest.requireActual('react') as typeof import('react');
@@ -441,9 +449,17 @@ jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
 }));
 
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
+  useRequireSocialProfileOnboarding: () => ({
+    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  }),
+}));
+
 describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockUseScreenTransitionComplete.mockReturnValue(true);
     mockRouteParams = {};
     mockIsFocused = true;
@@ -795,7 +811,6 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
-        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
         contentTopInset: expect.any(Number),
         pendingPostsTopOffset: expect.objectContaining({
@@ -864,11 +879,11 @@ describe('SocialV1View', () => {
     expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the account mask icon when no profile exists', () => {
+  it('shows the anonymous profile placeholder when no profile exists', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ANON_AVATAR),
     ).toBeOnTheScreen();
   });
 
@@ -879,6 +894,16 @@ describe('SocialV1View', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens profile onboarding instead of My Profile without a linked social wallet', () => {
+    mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
   });
 
   it('opens the post composer from the plus button', () => {
@@ -900,6 +925,29 @@ describe('SocialV1View', () => {
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the composer with the source the Social screen was opened from', () => {
+    mockRouteParams = { source: 'home_banner' };
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: 'home_banner',
+    });
+  });
+
+  it('opens the composer without a source when the screen has none', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'social_feed',
+      analyticsSource: undefined,
+    });
   });
 
   it('opens Rewards from the gift button', () => {
@@ -1319,7 +1367,6 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
-        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'following' }),
       }),
     );
@@ -1355,7 +1402,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ANON_AVATAR),
     ).toBeNull();
   });
 

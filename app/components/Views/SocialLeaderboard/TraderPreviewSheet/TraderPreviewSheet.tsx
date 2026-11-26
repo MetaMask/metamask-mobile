@@ -23,6 +23,7 @@ import {
   ButtonSize,
   FontWeight,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -38,6 +39,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { clearPendingReferralCode } from '../../../../reducers/rewardsMoney';
 import { useParams } from '../../../../util/navigation/navUtils';
 import giftImage from '../../../../images/socialV1/gift.png';
+import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
@@ -52,6 +54,7 @@ import type { InviteTermsLink as InviteTermsLinkValue } from '../../../UI/Reward
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import { traderProfileResponseToMySocialProfile } from '../MyProfileView/utils/traderProfileResponseToMySocialProfile';
 import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
+import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import {
   getPendingSocialPreviewTarget,
   setPendingSocialPreviewTarget,
@@ -307,6 +310,7 @@ const ReferralCodeRow = ({
  */
 const TraderPreviewSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
@@ -418,10 +422,13 @@ const TraderPreviewSheet = () => {
     }
     sheetRef.current?.onCloseBottomSheet(() => {
       // Opens onboarding, or the terms alone for an existing profile.
-      ensureSocialTermsAccepted(navigation.navigate);
+      if (ensureSocialTermsAccepted(navigation.navigate)) {
+        ensureSocialProfileOnboarding();
+      }
     });
   }, [
     dispatch,
+    ensureSocialProfileOnboarding,
     navigation,
     offeredReferralCode,
     referralOffer.pendingReferralCode,
@@ -488,15 +495,28 @@ const TraderPreviewSheet = () => {
 
           <Box alignItems={BoxAlignItems.Center} gap={1} twClassName="w-full">
             {profile ? (
-              <Text
-                variant={TextVariant.HeadingLg}
-                twClassName="text-center"
-                numberOfLines={1}
-                accessibilityRole="header"
-                testID={TraderPreviewSheetSelectorsIDs.HANDLE}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+                twClassName="max-w-full"
               >
-                @{profile.handle}
-              </Text>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  twClassName="text-center shrink"
+                  numberOfLines={1}
+                  accessibilityRole="header"
+                  testID={TraderPreviewSheetSelectorsIDs.HANDLE}
+                >
+                  @{profile.handle}
+                </Text>
+                {profile.verified ? (
+                  <ProfileVerifiedBadge
+                    size={IconSize.Md}
+                    testID={TraderPreviewSheetSelectorsIDs.VERIFIED_BADGE}
+                  />
+                ) : null}
+              </Box>
             ) : (
               <Skeleton
                 hideChildren

@@ -25,13 +25,15 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+const mockUsePerpsLiveAccount = jest.fn();
+jest.mock('../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: () => mockUsePerpsLiveAccount(),
+}));
 
 const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 
-const ORIGINAL_CONFIRMATION_ENV =
-  process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED;
 const ORIGINAL_PROVIDER_ENV = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
 function ControlledRow() {
@@ -72,6 +74,16 @@ function renderRow(
       engine: {
         backgroundState: {
           ...backgroundState,
+          PerpsController: {
+            ...backgroundState.PerpsController,
+            perpsBalances: {
+              lighter: {
+                totalBalance: '12.349',
+                unrealizedPnl: '0',
+                lastUpdated: 1,
+              },
+            },
+          },
           RemoteFeatureFlagController: {
             ...backgroundState.RemoteFeatureFlagController,
             remoteFeatureFlags,
@@ -84,13 +96,14 @@ function renderRow(
 
 describe('PerpsReceiveToRow', () => {
   beforeEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'true';
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: { totalBalance: '50.389' },
+      isInitialLoading: false,
+    });
   });
 
   afterEach(() => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED =
-      ORIGINAL_CONFIRMATION_ENV;
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = ORIGINAL_PROVIDER_ENV;
   });
 
@@ -103,7 +116,7 @@ describe('PerpsReceiveToRow', () => {
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
           'confirm.perps_receive_to.hyperliquid',
-        )}, $4,892.06`,
+        )}, $50.38`,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -111,7 +124,7 @@ describe('PerpsReceiveToRow', () => {
     ).toBeOnTheScreen();
     // The visual balance line is accessibility-hidden so VoiceOver does not repeat it.
     expect(
-      getByText('($4,892.06)', { includeHiddenElements: true }),
+      getByText('($50.38)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PerpsReceiveToSelectorsIDs.ROW));
@@ -125,12 +138,12 @@ describe('PerpsReceiveToRow', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: '$4,892.06' }),
+        strings('confirm.perps_receive_to.available', { amount: '$50.38' }),
       ),
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: '$4,718.18' }),
+        strings('confirm.perps_receive_to.available', { amount: '$12.34' }),
       ),
     ).toBeOnTheScreen();
 
@@ -143,23 +156,15 @@ describe('PerpsReceiveToRow', () => {
       getByText(strings('confirm.perps_receive_to.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('($4,718.18)', { includeHiddenElements: true }),
+      getByText('($12.34)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
           'confirm.perps_receive_to.lighter',
-        )}, $4,718.18`,
+        )}, $12.34`,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders nothing when the confirmation env is off', () => {
-    process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'false';
-
-    const { queryByTestId } = renderRow();
-
-    expect(queryByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeNull();
   });
 
   it('renders nothing when the provider env is off', () => {
@@ -187,6 +192,20 @@ describe('PerpsReceiveToRow', () => {
 
   it('renders nothing when the transaction is not a perps deposit', () => {
     const { queryByTestId } = renderRow(true, TransactionType.simpleSend);
+
+    expect(queryByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeNull();
+  });
+
+  it('renders nothing on a money account deposit without PerpsStreamProvider', () => {
+    const { usePerpsLiveAccount } = jest.requireActual(
+      '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount',
+    );
+    mockUsePerpsLiveAccount.mockImplementation(usePerpsLiveAccount);
+
+    const { queryByTestId } = renderRow(
+      true,
+      TransactionType.moneyAccountDeposit,
+    );
 
     expect(queryByTestId(PerpsReceiveToSelectorsIDs.ROW)).toBeNull();
   });

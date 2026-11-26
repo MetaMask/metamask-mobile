@@ -35,7 +35,7 @@ import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import {
@@ -45,13 +45,13 @@ import {
 } from '../../../Money/constants/moneyEvents';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
-import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 let mockMoneyEntryContext: MoneyEntryContext = {
   accessBlockReason: undefined,
-  isOnboardingRedirectNeeded: false,
+  isSplashRedirectNeeded: false,
 };
 const mockNavigateToMoneyDeposit = jest.fn();
 const mockLoggerError = jest.fn();
@@ -158,7 +158,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
 }));
 
 jest.mock('../../../Money/hooks/useMoneyDepositNavigation', () => ({
-  useMoneyCtaDepositNavigation: jest.fn(),
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../../Money/hooks/useMoneyAnalytics', () => ({
@@ -388,13 +388,13 @@ describe('EarnSectionListView', () => {
     privacyMode = false;
     mockMoneyEntryContext = {
       accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
+      isSplashRedirectNeeded: false,
     };
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsMoneyAccountVisible) {
         return isMoneyAccountVisible;
       }
-      if (selector === selectMoneyCtaEntryContext) {
+      if (selector === selectMoneyEntryContext) {
         return mockMoneyEntryContext;
       }
       if (selector === selectPrivacyMode) {
@@ -417,19 +417,15 @@ describe('EarnSectionListView', () => {
         track?.({
           redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
             ? 'money_splash'
-            : mockMoneyEntryContext.isOnboardingRedirectNeeded
-              ? 'money_onboarding'
-              : 'money_deposit',
+            : 'money_deposit',
           button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
             ? 'go_to_money_splash'
-            : mockMoneyEntryContext.isOnboardingRedirectNeeded
-              ? 'go_to_money_onboarding'
-              : 'add_money',
+            : 'add_money',
         });
         return options;
       },
     );
-    jest.mocked(useMoneyCtaDepositNavigation).mockReturnValue({
+    jest.mocked(useMoneyDepositNavigation).mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
   });
@@ -796,7 +792,6 @@ describe('EarnSectionListView', () => {
   it('routes the Money account row to the splash for unseen first-time users', () => {
     mockMoneyEntryContext = {
       accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: false,
       isSplashRedirectNeeded: true,
     };
 
@@ -866,14 +861,14 @@ describe('EarnSectionListView', () => {
     );
   });
 
-  it('redirects to Money onboarding without initiating a deposit', async () => {
+  it('redirects to Money splash without initiating a deposit', async () => {
     const [moneyAsset] = createMoneyAssets(1);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: [moneyAsset] }),
     );
     mockMoneyEntryContext = {
       accessBlockReason: undefined,
-      isOnboardingRedirectNeeded: true,
+      isSplashRedirectNeeded: true,
     };
 
     render(<EarnSectionListView />);
@@ -893,7 +888,7 @@ describe('EarnSectionListView', () => {
       track: expect.any(Function),
     });
     expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
-      expect.objectContaining({ redirect_target: 'money_onboarding' }),
+      expect.objectContaining({ redirect_target: 'money_splash' }),
     );
   });
 

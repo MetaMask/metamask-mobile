@@ -409,6 +409,28 @@ describe('MoneyBalanceSummary', () => {
       expect(mockBalancePress).toHaveBeenCalledTimes(1);
     });
 
+    it.each([
+      [false, 'money.balance_hide_hint'],
+      [true, 'money.balance_show_hint'],
+    ])(
+      'announces the balance as a privacy button (privacyMode %s)',
+      (privacyMode, hintKey) => {
+        const { getByRole } = render(
+          <MoneyBalanceSummary
+            apy={4}
+            displayState={balanceState('$123.45')}
+            privacyMode={privacyMode}
+            onBalancePress={jest.fn()}
+          />,
+        );
+
+        expect(getByRole('button')).toHaveProp(
+          'accessibilityHint',
+          strings(hintKey),
+        );
+      },
+    );
+
     it('does not render a pressable balance when onBalancePress is not provided', () => {
       const { queryByTestId } = render(
         <MoneyBalanceSummary apy={4} displayState={balanceState('$123.45')} />,
