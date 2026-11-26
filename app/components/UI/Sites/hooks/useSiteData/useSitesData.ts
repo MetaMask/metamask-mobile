@@ -1,26 +1,17 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import {
+  array,
+  boolean,
+  create,
+  optional,
+  string,
+  type,
+} from '@metamask/superstruct';
+import { useNetworkQuery } from '../../../../../core/Networking/useNetworkQuery';
+import { NetworkCache } from '../../../../../core/Networking/types';
 import Logger from '../../../../../util/Logger';
 import { prefixUrlWithProtocol } from '../../../../../util/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
-
-interface ApiDappResponse {
-  id: string;
-  name: string;
-  website: string;
-  logoSrc?: string;
-  tag?: string;
-  featured?: boolean;
-  partnership?: boolean;
-  description?: string;
-  tagline?: string;
-  categories?: string[];
-  networks?: string[];
-  image?: string;
-}
-
-interface ApiSitesResponse {
-  dapps: ApiDappResponse[];
-}
 
 interface UseSitesDataResult {
   sites: SiteData[];
@@ -29,21 +20,23 @@ interface UseSitesDataResult {
   refetch: () => void;
 }
 
-// Module-level cache so fetched sites persist across mounts
-let cachedSites: SiteData[] | null = null;
-
-/**
- * Clears the in-memory sites cache.
- * Primarily exposed for testing purposes.
- */
-export const clearSitesCache = (): void => {
-  cachedSites = null;
-};
-
 // Assets team is now hosting the explore-sites endpoint on the NFT API (Temporarily)
-const NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io/';
-const DEFAULT_SITES_LIMIT = 100;
+const SITES_URL = 'https://nft.api.cx.metamask.io/explore/sites?limit=100';
 const PORTFOLIO_HOSTNAME = 'portfolio.metamask.io';
+const SITES_QUERY_KEY = ['explore-sites'];
+
+// Only the fields the app reads; `type` ignores the rest of each dapp.
+const SitesResponseSchema = type({
+  dapps: array(
+    type({
+      id: string(),
+      name: string(),
+      website: string(),
+      logoSrc: optional(string()),
+      featured: optional(boolean()),
+    }),
+  ),
+});
 
 /**
  * Hardcoded Portfolio site entry to ensure it's always included
@@ -59,6 +52,9 @@ const PORTFOLIO_SITE: SiteData = {
   featured: true,
   logoNeedsPadding: true,
 };
+
+const NO_SITES: SiteData[] = [];
+const FALLBACK_SITES: SiteData[] = [PORTFOLIO_SITE];
 
 /**
  * Returns just the hostname (no www., no path) — used for curated site cards
@@ -125,75 +121,58 @@ const mergePortfolioSite = (sites: SiteData[]): SiteData[] => {
   return [PORTFOLIO_SITE, ...sites];
 };
 
+/** Throws on a body that does not match the schema; the hook does not retry it. */
+const parseSites = (body: unknown): SiteData[] => {
+  const { dapps } = create(body, SitesResponseSchema);
+  const sites = dapps.map((dapp) => ({
+    id: dapp.id,
+    name: dapp.name,
+    url: dapp.website,
+    displayUrl: extractDisplayUrl(dapp.website),
+    logoUrl: dapp.logoSrc,
+    featured: dapp.featured,
+  }));
+  return mergePortfolioSite(sites);
+};
+
 /**
- * Hook to fetch and cache sites data from the NFT API.
- * Results are cached in memory; subsequent mounts return cached data instantly.
- * Use `refetch` to bypass the cache and fetch fresh data.
+ * Before the first response: nothing while loading (the skeleton shows), and
+ * Portfolio alone when offline or after the last retry fails. Once a response
+ * arrives, its sites stay even if a later refetch fails.
+ */
+const resolveSites = (
+  data: SiteData[] | undefined,
+  isLoading: boolean,
+): SiteData[] => {
+  if (data) return data;
+  if (isLoading) return NO_SITES;
+  return FALLBACK_SITES;
+};
+
+/**
+ * Sites from the NFT API, shared by every screen through the query cache.
+ * `useNetworkQuery` makes the request: it times out, retries, pauses offline
+ * and sizes the cache for the device. This hook only names the URL, validates
+ * the body and decides what to show.
  * @param searchQuery - Optional search query to filter sites locally
  * @returns Sites data, loading state, error, and refetch function
  */
 export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
-  const [allSites, setAllSites] = useState<SiteData[]>(cachedSites ?? []);
-  const [isLoading, setIsLoading] = useState(!cachedSites);
-  const [error, setError] = useState<Error | null>(null);
+  const { data, isLoading, error, refetch } = useNetworkQuery({
+    queryKey: SITES_QUERY_KEY,
+    url: SITES_URL,
+    parse: parseSites,
+    // A curated list: one request per session, plus pull-to-refresh.
+    staleTime: Infinity,
+    // Public list: a restart within minutes shows it without a request.
+    cache: NetworkCache.SHORT,
+  });
+  const allSites = resolveSites(data, isLoading);
 
-  const fetchSites = useCallback(async () => {
-    try {
-      if (cachedSites) {
-        setAllSites(cachedSites);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      // Use current timestamp
-      const timestamp = Date.now();
-      const url = `${NFT_API_BASE_URL}explore/sites?limit=${DEFAULT_SITES_LIMIT}&ts=${timestamp}`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch sites: ${response.statusText}`);
-      }
-
-      const data = (await response.json()) as ApiSitesResponse;
-
-      // Transform API response to SiteData format
-      const transformedSites: SiteData[] = data.dapps.map((dapp) => ({
-        id: dapp.id,
-        name: dapp.name,
-        url: dapp.website,
-        displayUrl: extractDisplayUrl(dapp.website),
-        logoUrl: dapp.logoSrc,
-        featured: dapp.featured,
-      }));
-
-      // Ensure Portfolio is always included in the list
-      const sitesWithPortfolio = mergePortfolioSite(transformedSites);
-
-      // Update module-level cache
-      cachedSites = sitesWithPortfolio;
-      setAllSites(sitesWithPortfolio);
-    } catch (err) {
-      const fetchError = err instanceof Error ? err : new Error(String(err));
-      Logger.error(fetchError, '[useSitesData] Error fetching sites');
-      setError(fetchError);
-      // On error, still show Portfolio as a fallback
-      setAllSites([PORTFOLIO_SITE]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
+  // Logs once the retries are spent, not on every failed attempt.
   useEffect(() => {
-    fetchSites();
-  }, [fetchSites]);
-
-  // refetch always bypasses the cache
-  const refetch = useCallback(() => {
-    clearSitesCache();
-    fetchSites();
-  }, [fetchSites]);
+    if (error) Logger.error(error, '[useSitesData] Error fetching sites');
+  }, [error]);
 
   // Filter sites locally based on search query
   const sites = useMemo(() => {
@@ -203,5 +182,10 @@ export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
       : allSites;
   }, [allSites, searchQuery]);
 
-  return { sites, isLoading, error, refetch };
+  // Callers do not await: the query state carries the result.
+  const refetchSites = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  return { sites, isLoading, error, refetch: refetchSites };
 };

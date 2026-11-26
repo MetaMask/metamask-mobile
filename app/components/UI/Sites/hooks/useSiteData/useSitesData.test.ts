@@ -1,20 +1,47 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import React from 'react';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import {
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+} from '@tanstack/react-query';
 import {
   useSitesData,
-  clearSitesCache,
   matchesSiteQuery,
   extractFullDisplayUrl,
 } from './useSitesData';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 import Logger from '../../../../../util/Logger';
+import {
+  getHardwareTier,
+  getNetworkTierSnapshot,
+} from '../../../../../util/deviceCapability';
+import {
+  getLatencySnapshot,
+  getLatencyThresholds,
+} from '../../../../../util/deviceCapability/latencyStore';
+import {
+  HttpError,
+  InvalidResponseError,
+  NetworkTimeoutError,
+} from '../../../../../core/Networking/errors';
 
-// Mock dependencies
 jest.mock('../../../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
 }));
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(),
+  getNetworkTierSnapshot: jest.fn(),
+}));
+jest.mock('../../../../../util/deviceCapability/latencyStore', () => ({
+  getLatencySnapshot: jest.fn(),
+  getLatencyThresholds: jest.fn(),
+}));
 
 global.fetch = jest.fn();
+
+const HUNG_MS = 8_000;
 
 const EXPECTED_PORTFOLIO_SITE = {
   id: 'metamask-portfolio',
@@ -27,51 +54,90 @@ const EXPECTED_PORTFOLIO_SITE = {
   logoNeedsPadding: true,
 };
 
-describe('useSitesData', () => {
-  const mockApiResponse = {
-    dapps: [
-      {
-        id: '1',
-        name: 'MetaMask',
-        website: 'https://www.metamask.io',
-        logoSrc: 'https://example.com/metamask.png',
-        featured: true,
-      },
-      {
-        id: '2',
-        name: 'OpenSea',
-        website: 'https://opensea.io',
-        logoSrc: 'https://example.com/opensea.png',
-        featured: false,
-      },
-    ],
-  };
+const mockApiResponse = {
+  dapps: [
+    {
+      id: '1',
+      name: 'MetaMask',
+      website: 'https://www.metamask.io',
+      logoSrc: 'https://example.com/metamask.png',
+      featured: true,
+    },
+    {
+      id: '2',
+      name: 'OpenSea',
+      website: 'https://opensea.io',
+      logoSrc: 'https://example.com/opensea.png',
+      featured: false,
+    },
+  ],
+};
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (fetch as jest.Mock).mockClear();
-    clearSitesCache();
+let client: QueryClient;
+const wrapper = ({ children }: React.PropsWithChildren): React.JSX.Element =>
+  React.createElement(QueryClientProvider, { client }, children);
+
+function renderUseSitesData(
+  searchQuery?: string,
+): ReturnType<typeof renderHook<ReturnType<typeof useSitesData>, unknown>> {
+  return renderHook(() => useSitesData(searchQuery), { wrapper });
+}
+
+function respondWith(body: unknown): void {
+  jest.mocked(fetch).mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => body,
+  } as Response);
+}
+
+function givenConnection(
+  network: ReturnType<typeof getNetworkTierSnapshot>,
+): void {
+  jest.mocked(getNetworkTierSnapshot).mockReturnValue(network);
+}
+
+// Never settles, even when aborted: a request stalled below fetch.
+function stallRequests(): AbortSignal[] {
+  const signals: AbortSignal[] = [];
+  jest.mocked(fetch).mockImplementation(async (_url, init) => {
+    if (init?.signal) signals.push(init.signal);
+    return new Promise<Response>(() => undefined);
   });
+  return signals;
+}
 
-  describe('Successful Data Fetching', () => {
-    it('should fetch and transform sites data successfully', async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockApiResponse,
-      });
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.useFakeTimers();
+  // Same staleTime as the app's ReactQueryService.
+  client = new QueryClient({
+    defaultOptions: { queries: { staleTime: 5 * 60_000 } },
+  });
+  jest.mocked(getHardwareTier).mockReturnValue('HIGH');
+  givenConnection('WIFI');
+  jest.mocked(getLatencySnapshot).mockReturnValue('OK');
+  jest
+    .mocked(getLatencyThresholds)
+    .mockReturnValue({ hungMs: HUNG_MS, slowMs: 2_500 });
+});
 
-      const { result } = renderHook(() => useSitesData());
+afterEach(() => {
+  client.clear();
+  onlineManager.setOnline(true);
+  jest.useRealTimers();
+});
+
+describe('useSitesData', () => {
+  describe('loading', () => {
+    it('shows no sites while the first request runs, then the API sites after Portfolio', async () => {
+      respondWith(mockApiResponse);
+
+      const { result } = renderUseSitesData();
 
       expect(result.current.isLoading).toBe(true);
       expect(result.current.sites).toEqual([]);
-      expect(result.current.error).toBeNull();
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Portfolio is prepended to the list
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.sites).toHaveLength(3);
       expect(result.current.sites[0]).toEqual(EXPECTED_PORTFOLIO_SITE);
       expect(result.current.sites[1]).toEqual({
@@ -85,254 +151,281 @@ describe('useSitesData', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should use the default limit of 100', async () => {
-      const mockDateNow = 1234567890;
-      jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
+    it('requests 100 sites from the NFT API', async () => {
+      respondWith({ dapps: [] });
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ dapps: [] }),
-      });
+      renderUseSitesData();
 
-      renderHook(() => useSitesData());
-
-      await waitFor(() => {
+      await waitFor(() =>
         expect(fetch).toHaveBeenCalledWith(
-          `https://nft.api.cx.metamask.io/explore/sites?limit=100&ts=${mockDateNow}`,
+          'https://nft.api.cx.metamask.io/explore/sites?limit=100',
+          expect.anything(),
+        ),
+      );
+    });
+  });
+
+  describe('caching', () => {
+    it('serves the next screen from the cache without a new request', async () => {
+      respondWith(mockApiResponse);
+      const first = renderUseSitesData();
+      await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+      first.unmount();
+      // Past the app's 5 min staleTime, within the 24 h HIGH cache.
+      act(() => jest.advanceTimersByTime(60 * 60_000));
+
+      const { result } = renderUseSitesData();
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.sites).toHaveLength(3);
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetch bypasses the cache', async () => {
+      respondWith(mockApiResponse);
+      const { result } = renderUseSitesData();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => result.current.refetch());
+
+      await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    });
+
+    it('keeps the cached sites when a refetch fails', async () => {
+      respondWith(mockApiResponse);
+      const { result } = renderUseSitesData();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      jest.mocked(fetch).mockRejectedValue(new TypeError('Network error'));
+
+      act(() => result.current.refetch());
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+
+      expect(result.current.error).toBeInstanceOf(TypeError);
+      expect(result.current.sites).toHaveLength(3);
+    });
+  });
+
+  describe('retries', () => {
+    it.each([
+      ['WIFI', 3],
+      ['SLOW_CELLULAR', 2],
+    ] as const)(
+      'on %s tries %i times, then shows Portfolio alone and logs once',
+      async (network, attempts) => {
+        givenConnection(network);
+        const networkError = new TypeError('Network error');
+        jest.mocked(fetch).mockRejectedValue(networkError);
+
+        const { result } = renderUseSitesData();
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(10_000);
+        });
+
+        expect(fetch).toHaveBeenCalledTimes(attempts);
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toBe(networkError);
+        expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
+        expect(Logger.error).toHaveBeenCalledTimes(1);
+        expect(Logger.error).toHaveBeenCalledWith(
+          networkError,
+          '[useSitesData] Error fetching sites',
         );
+      },
+    );
+
+    it('recovers when a retry succeeds', async () => {
+      jest
+        .mocked(fetch)
+        .mockRejectedValueOnce(new TypeError('Network error'))
+        .mockResolvedValue({
+          ok: true,
+          status: 200,
+          json: async () => mockApiResponse,
+        } as Response);
+
+      const { result } = renderUseSitesData();
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
       });
 
-      jest.restoreAllMocks();
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(result.current.sites).toHaveLength(3);
+      expect(result.current.error).toBeNull();
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
-    it('should strip www from display URL', async () => {
-      const response = {
-        dapps: [
-          {
-            id: '1',
-            name: 'Test',
-            website: 'https://www.example.com',
-          },
-        ],
-      };
+    it.each([
+      [503, 3],
+      [404, 1],
+    ])(
+      'on HTTP %i tries %i times, then shows Portfolio alone',
+      async (status, attempts) => {
+        jest.mocked(fetch).mockResolvedValue({ ok: false, status } as Response);
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => response,
+        const { result } = renderUseSitesData();
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(10_000);
+        });
+
+        expect(fetch).toHaveBeenCalledTimes(attempts);
+        expect(result.current.error).toEqual(new HttpError(status));
+        expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
+      },
+    );
+
+    it.each([
+      ['no dapps list', { sites: [] }],
+      ['a dapp without a website', { dapps: [{ id: '1', name: 'No URL' }] }],
+    ])(
+      'rejects a body with %s once, and shows Portfolio alone',
+      async (_, body) => {
+        respondWith(body);
+
+        const { result } = renderUseSitesData();
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(result.current.error).toBeInstanceOf(InvalidResponseError);
+        expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
+      },
+    );
+  });
+
+  describe('timeouts', () => {
+    it('aborts a stalled request at the hung threshold and retries it', async () => {
+      const signals = stallRequests();
+
+      renderUseSitesData();
+      await waitFor(() => expect(signals).toHaveLength(1));
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(HUNG_MS);
       });
 
-      const { result } = renderHook(() => useSitesData());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      expect(signals[0].aborted).toBe(true);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1_000);
       });
-
-      // Portfolio is first, so check second site
-      expect(result.current.sites[1].displayUrl).toBe('example.com');
+      expect(fetch).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle sites without optional fields', async () => {
-      const minimalResponse = {
-        dapps: [
-          {
-            id: '1',
-            name: 'Test Site',
-            website: 'https://test.com',
-          },
-        ],
-      };
+    it('leaves loading and shows Portfolio after the first timeout on slow cellular', async () => {
+      givenConnection('SLOW_CELLULAR');
+      stallRequests();
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => minimalResponse,
+      const { result } = renderUseSitesData();
+      expect(result.current.isLoading).toBe(true);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(HUNG_MS + 1);
       });
 
-      const { result } = renderHook(() => useSitesData());
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeInstanceOf(NetworkTimeoutError);
+      expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
+    });
+  });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+  describe('offline', () => {
+    it('does not request while offline, shows Portfolio, and loads when back online', async () => {
+      onlineManager.setOnline(false);
+      respondWith(mockApiResponse);
+
+      const { result } = renderUseSitesData();
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
       });
 
-      // Portfolio is first, so check second site
+      expect(fetch).not.toHaveBeenCalled();
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
+
+      act(() => onlineManager.setOnline(true));
+
+      await waitFor(() => expect(result.current.sites).toHaveLength(3));
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the cached sites while offline', async () => {
+      respondWith(mockApiResponse);
+      const { result } = renderUseSitesData();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => onlineManager.setOnline(false));
+      // Offline, the refetch pauses instead of failing.
+      act(() => result.current.refetch());
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.error).toBeNull();
+      expect(result.current.sites).toHaveLength(3);
+    });
+  });
+
+  describe('mapping', () => {
+    it('strips www from the display URL and keeps sites without optional fields', async () => {
+      respondWith({
+        dapps: [{ id: '1', name: 'Test', website: 'https://www.example.com' }],
+      });
+
+      const { result } = renderUseSitesData();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
       expect(result.current.sites[1]).toEqual({
         id: '1',
-        name: 'Test Site',
-        url: 'https://test.com',
-        displayUrl: 'test.com',
+        name: 'Test',
+        url: 'https://www.example.com',
+        displayUrl: 'example.com',
         logoUrl: undefined,
         featured: undefined,
       });
     });
 
-    it('should not duplicate Portfolio when API already returns it', async () => {
-      const responseWithPortfolio = {
+    it('keeps the raw website for invalid URLs and the hostname for URLs with paths', async () => {
+      respondWith({
+        dapps: [
+          { id: '1', name: 'Bad', website: 'not-a-valid-url' },
+          { id: '2', name: 'Path', website: 'https://example.com/a/b' },
+        ],
+      });
+
+      const { result } = renderUseSitesData();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.sites[1].displayUrl).toBe('not-a-valid-url');
+      expect(result.current.sites[2].displayUrl).toBe('example.com');
+    });
+
+    it('does not duplicate Portfolio when the API already returns it', async () => {
+      respondWith({
         dapps: [
           {
             id: 'api-portfolio',
             name: 'Portfolio',
             website: 'https://portfolio.metamask.io',
-            logoSrc: 'https://api-logo.png',
-            featured: true,
           },
-          {
-            id: '2',
-            name: 'Other Site',
-            website: 'https://other.com',
-          },
+          { id: '2', name: 'Other Site', website: 'https://other.com' },
         ],
-      };
-
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => responseWithPortfolio,
       });
 
-      const { result } = renderHook(() => useSitesData());
+      const { result } = renderUseSitesData();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Should not duplicate - only 2 sites
       expect(result.current.sites).toHaveLength(2);
-      // Should keep API's version of Portfolio
       expect(result.current.sites[0].id).toBe('api-portfolio');
     });
-  });
 
-  describe('Error Handling', () => {
-    it('should handle network errors and show Portfolio as fallback', async () => {
-      const networkError = new Error('Network error');
-      (fetch as jest.Mock).mockRejectedValueOnce(networkError);
+    it('filters the sites by the search query', async () => {
+      respondWith(mockApiResponse);
 
-      const { result } = renderHook(() => useSitesData());
+      const { result } = renderUseSitesData('opensea');
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Portfolio should be shown as fallback on error
-      expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
-      expect(result.current.error).toEqual(networkError);
-      expect(Logger.error).toHaveBeenCalledWith(
-        networkError,
-        '[useSitesData] Error fetching sites',
-      );
-    });
-
-    it('should handle HTTP error responses and show Portfolio as fallback', async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        statusText: 'Not Found',
-      });
-
-      const { result } = renderHook(() => useSitesData());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Portfolio should be shown as fallback on error
-      expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);
-      expect(result.current.error).toBeTruthy();
-      expect(result.current.error?.message).toContain('Failed to fetch sites');
-    });
-
-    it('should handle non-Error throw values', async () => {
-      (fetch as jest.Mock).mockRejectedValueOnce('String error');
-
-      const { result } = renderHook(() => useSitesData());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.error).toBeTruthy();
-      expect(result.current.error?.message).toBe('String error');
-    });
-  });
-
-  describe('URL Extraction', () => {
-    it('should handle invalid URLs gracefully', async () => {
-      const response = {
-        dapps: [
-          {
-            id: '1',
-            name: 'Test',
-            website: 'not-a-valid-url',
-          },
-        ],
-      };
-
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => response,
-      });
-
-      const { result } = renderHook(() => useSitesData());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Portfolio is first, so check second site for URL extraction
-      expect(result.current.sites[1].displayUrl).toBe('not-a-valid-url');
-    });
-
-    it('should extract hostname from URLs with paths', async () => {
-      const response = {
-        dapps: [
-          {
-            id: '1',
-            name: 'Test',
-            website: 'https://example.com/path/to/page',
-          },
-        ],
-      };
-
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => response,
-      });
-
-      const { result } = renderHook(() => useSitesData());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Portfolio is first, so check second site
-      expect(result.current.sites[1].displayUrl).toBe('example.com');
-    });
-  });
-
-  describe('Hook Lifecycle', () => {
-    it('should include timestamp to prevent caching', async () => {
-      const mockDateNow = 9999999999;
-      jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
-
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ dapps: [] }),
-      });
-
-      renderHook(() => useSitesData());
-
-      await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining(`ts=${mockDateNow}`),
-        );
-      });
-
-      jest.restoreAllMocks();
+      expect(result.current.sites.map((site) => site.id)).toEqual(['2']);
     });
   });
 });
