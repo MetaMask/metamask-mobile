@@ -1517,6 +1517,15 @@ describe('Onboarding', () => {
             capturedAt,
           },
         },
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AnalyticsController: {
+              optedInToMarketing: true,
+              marketingConsentDecisionMade: true,
+            },
+          },
+        },
       };
 
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
@@ -1581,6 +1590,15 @@ describe('Onboarding', () => {
             utm_medium: 'email',
             attribution_id: 'slc-apple-1',
             capturedAt,
+          },
+        },
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AnalyticsController: {
+              optedInToMarketing: true,
+              marketingConsentDecisionMade: true,
+            },
           },
         },
       };
