@@ -11,6 +11,13 @@ import {
   type NetInfoState,
 } from '@react-native-community/netinfo';
 
+import { httpClient } from './Networking';
+
+jest.mock('./Networking/killSwitch', () => ({
+  isTierPolicyEnabled: () => false,
+}));
+jest.mock('./backendBearerToken', () => ({ getBackendBearerToken: jest.fn() }));
+
 jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(),
 }));
@@ -141,6 +148,27 @@ describe('NitroFetchSetup', () => {
         'https://example.com',
         undefined,
       );
+    });
+
+    it('keeps startup prefetch and latency sampling through the networking client', async () => {
+      const originalNow = performance.now;
+      let now = 0;
+      performance.now = () => now;
+      mockNitroFetch.mockImplementationOnce(async () => {
+        now = 10;
+        return new Response(null, { status: 200 });
+      });
+      try {
+        await httpClient.get(FEATURE_FLAGS_PREFIX);
+
+        const [, init] = mockNitroFetch.mock.calls[0];
+        expect(new Headers(init?.headers).get('prefetchKey')).toBe(
+          'feature-flags',
+        );
+        expect(mockRecordFetchSample).toHaveBeenCalledWith(10);
+      } finally {
+        performance.now = originalNow;
+      }
     });
 
     describe('normalizeBodyForNitroFetch — Uint8Array/ArrayBuffer body coercion', () => {

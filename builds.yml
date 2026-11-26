@@ -50,6 +50,7 @@ _public_envs: &public_envs # Production hosts plus build flags
   <<: *api_prod
   TAP_AND_PAY_SDK_REPO_SSH: 'git@github.com:MetaMask/tap-and-pay-sdk.git'
   # Build flags (production defaults)
+  MM_NETWORKING_TIER_POLICIES_ENABLED: 'false'
   RAMP_DEV_BUILD: 'false'
   # Empty by default: the Bridge API base URL is derived from METAMASK_ENVIRONMENT.
   # Set only to point a build at a custom Bridge API deployment.
