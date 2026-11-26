@@ -231,6 +231,8 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
   addButton: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-add-button`,
+  removeButton: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-remove-button`,
 };
 
 // ========================================

@@ -1123,5 +1123,32 @@ describe('PerpsMarketRowItem', () => {
       expect(mockOnAddPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress).not.toHaveBeenCalled();
     });
+
+    it('renders removeButton instead of addButton when isWatchlisted is true', () => {
+      const mockOnPress = jest.fn();
+      const mockOnWatchlistPress = jest.fn();
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          isWatchlisted
+          onPress={mockOnPress}
+          onWatchlistPress={mockOnWatchlistPress}
+        />,
+      );
+
+      expect(
+        screen.queryByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      ).toBeNull();
+      const removeButton = screen.getByTestId(
+        getPerpsMarketRowItemSelector.removeButton('BTC'),
+      );
+      expect(removeButton).toBeOnTheScreen();
+
+      fireEvent.press(removeButton);
+
+      expect(mockOnWatchlistPress).toHaveBeenCalledTimes(1);
+      expect(mockOnWatchlistPress.mock.calls[0][0].symbol).toBe('BTC');
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
   });
 });

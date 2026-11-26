@@ -252,9 +252,13 @@ const PerpsMarketRowItem = ({
                 ? strings('token_watchlist.remove_from_watchlist')
                 : strings('perps.market_details.add_to_watchlist')
             }
-            testID={getPerpsMarketRowItemSelector.addButton(
-              displayMarket.symbol,
-            )}
+            testID={
+              isWatchlisted
+                ? getPerpsMarketRowItemSelector.removeButton(
+                    displayMarket.symbol,
+                  )
+                : getPerpsMarketRowItemSelector.addButton(displayMarket.symbol)
+            }
           />
         ) : undefined
       }
