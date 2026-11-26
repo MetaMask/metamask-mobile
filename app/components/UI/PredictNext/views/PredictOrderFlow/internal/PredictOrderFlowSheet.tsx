@@ -16,10 +16,7 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -62,6 +59,7 @@ import {
 
 import { OrderApproval } from './OrderApproval';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
+import { formatOdds } from './OrderDetailsRows';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
@@ -654,6 +652,8 @@ export const PredictOrderFlowSheet = ({
   const displayedPrice = isQuoting
     ? contextPrice
     : (preview?.averagePrice ?? contextPrice);
+  const buyOdds =
+    intent.action === 'buy' ? formatOdds(displayedPrice) : undefined;
   const toWinLabel = formatUsd(
     preview?.action === 'buy' ? preview.potentialPayout : '0.00',
   );
@@ -862,29 +862,21 @@ export const PredictOrderFlowSheet = ({
               {intent.eventTitle}
             </Text>
             {intent.action === 'buy' ? (
-              <Box
-                twClassName="min-w-0 flex-row items-center gap-1"
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.SuccessDefault}
+                numberOfLines={1}
+                ellipsizeMode="tail"
                 testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  twClassName="shrink"
-                >
-                  {intent.outcomeLabel}
-                </Text>
-                {/* Decorative until product decides what switching the
-                 * outcome does; not a control. */}
-                <Icon
-                  name={IconName.SwapHorizontal}
-                  size={IconSize.Sm}
-                  color={IconColor.SuccessDefault}
-                  testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
-                />
-              </Box>
+                {buyOdds
+                  ? strings('predict_next.order_preview.outcome_at_odds', {
+                      outcome: intent.outcomeLabel,
+                      odds: buyOdds,
+                    })
+                  : intent.outcomeLabel}
+              </Text>
             ) : (
               <Box
                 twClassName="min-w-0 flex-row items-center"

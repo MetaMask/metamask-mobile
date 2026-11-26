@@ -8,7 +8,6 @@ export const PredictOrderFlowTestIds = {
   SHEET: 'predict-order-flow-sheet',
   VENUE_CHANGED: 'predict-order-flow-venue-changed',
   OUTCOME_LABEL: 'predict-order-flow-outcome-label',
-  OUTCOME_SWAP_ICON: 'predict-order-flow-outcome-swap-icon',
   TO_WIN: 'predict-order-flow-to-win',
   AMOUNT_INPUT: AMOUNT_ENTRY.DISPLAY,
   KEYPAD: AMOUNT_ENTRY.KEYPAD,

@@ -15,11 +15,14 @@ import { formatUsd } from '../../../utils/formatUsd';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 /** A price in [0, 1] as odds, with formatCents' rounding: '0.53' → '53%',
- * '0.4651' → '46.5%'. */
-const formatOdds = (price: PredictDecimal): string => {
+ * '0.4651' → '46.5%'. Returns undefined when no finite price is present. */
+export const formatOdds = (price?: PredictDecimal): string | undefined => {
+  if (price === undefined) {
+    return undefined;
+  }
   const percent = new BigNumber(price).times(100);
-  if (percent.isNaN()) {
-    return '0%';
+  if (!percent.isFinite()) {
+    return undefined;
   }
   const rounded = percent.decimalPlaces(1);
   return `${rounded.toFixed(rounded.isInteger() ? 0 : 1)}%`;
@@ -80,7 +83,7 @@ export const OrderDetailsRows = ({
   <Box testID={PredictOrderFlowTestIds.DETAILS}>
     <DetailsRow
       label={strings('predict_next.order_preview.odds')}
-      value={formatOdds(preview.averagePrice)}
+      value={formatOdds(preview.averagePrice) ?? '0%'}
       testID={PredictOrderFlowTestIds.DETAILS_ODDS}
     />
     <DetailsRow
