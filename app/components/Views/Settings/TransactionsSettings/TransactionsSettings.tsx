@@ -13,28 +13,28 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import type { AppNavigationProp } from '#app/core/NavigationService/types';
-import Engine from '#app/core/Engine';
-import { MetaMetricsEvents } from '#app/core/Analytics';
-import AppConstants from '#app/core/AppConstants';
-import { SIMULATION_DETALS_ARTICLE_URL } from '#app/constants/urls';
-import HeaderStandardGlass from '#app/component-library/components-temp/HeaderStandardGlass';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Engine from '../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AppConstants from '../../../../core/AppConstants';
+import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
-} from '#app/component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '#app/component-library/components/Texts/Text';
-import { setShowHexData } from '#app/actions/settings';
+} from '../../../../component-library/components/Buttons/Button';
+import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text';
+import { setShowHexData } from '../../../../actions/settings';
 import {
   selectSmartTransactionsOptInStatus,
   selectUseTransactionSimulations,
-} from '#app/selectors/preferencesController';
-import { selectIsBasicFunctionalityConsolidationEnabled } from '#app/selectors/featureFlagController/basicFunctionalityConsolidation';
-import { selectGlassHeadersEnabled } from '#app/selectors/featureFlagController/glassHeaders';
-import type { RootState } from '#app/reducers';
-import { analytics } from '#app/util/analytics/analytics';
-import { AnalyticsEventBuilder } from '#app/util/analytics/AnalyticsEventBuilder';
-import { trackExternalLinkClicked } from '#app/util/analytics/externalLinkTracking';
+} from '../../../../selectors/preferencesController';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import type { RootState } from '../../../../reducers';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 
 import { strings } from '../../../../../locales/i18n';
 

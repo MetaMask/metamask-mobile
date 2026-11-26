@@ -15,25 +15,25 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import type { AppNavigationProp } from '#app/core/NavigationService/types';
-import { MAINNET } from '#app/constants/network';
-import Routes from '#app/constants/navigation/Routes';
-import ActionModal from '#app/components/UI/ActionModal';
-import BasicFunctionalityComponent from '#app/components/UI/BasicFunctionality/BasicFunctionality';
-import SwitchLoadingModal from '#app/components/UI/Notification/SwitchLoadingModal';
-import HeaderStandardGlass from '#app/component-library/components-temp/HeaderStandardGlass';
-import { clearHistory } from '#app/actions/browser';
-import { selectProviderType } from '#app/selectors/networkController';
-import { selectIsMetamaskNotificationsEnabled } from '#app/selectors/notifications';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { MAINNET } from '../../../../constants/network';
+import Routes from '../../../../constants/navigation/Routes';
+import ActionModal from '../../../UI/ActionModal';
+import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { clearHistory } from '../../../../actions/browser';
+import { selectProviderType } from '../../../../selectors/networkController';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import {
   selectIsBasicFunctionalityConsolidationEnabled,
   selectIsSocialLoginBasicFunctionalityLocked,
-} from '#app/selectors/featureFlagController/basicFunctionalityConsolidation';
-import { selectGlassHeadersEnabled } from '#app/selectors/featureFlagController/glassHeaders';
-import type { RootState } from '#app/reducers';
-import { useParams } from '#app/util/navigation/navUtils';
-import { useDisableNotifications } from '#app/util/notifications/hooks/useNotifications';
-import { useAnalytics } from '#app/components/hooks/useAnalytics/useAnalytics';
+} from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import type { RootState } from '../../../../reducers';
+import { useParams } from '../../../../util/navigation/navUtils';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 import { strings } from '../../../../../locales/i18n';
 
