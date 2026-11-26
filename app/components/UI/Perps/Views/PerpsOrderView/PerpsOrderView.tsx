@@ -949,13 +949,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isPayAmountStale = useIsTransactionPayAmountStale();
   const isPaySubmitReady = useIsTransactionPaySubmitReady();
   const depositFeeUsd = useMemo(() => {
-    if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
+    // A Money Account funds the order without a bridge, so pay-token quote
+    // fees never apply to it.
+    if (!hasCustomTokenSelected || isMoneyAccountSelected || !payTotals?.fees) {
+      return 0;
+    }
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
       .plus(sourceNetwork?.estimate?.usd ?? 0)
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
-  }, [hasCustomTokenSelected, payTotals]);
+  }, [hasCustomTokenSelected, isMoneyAccountSelected, payTotals]);
 
   const combinedFees = useMemo(
     () => estimatedFees + depositFeeUsd,
