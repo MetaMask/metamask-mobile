@@ -47,8 +47,19 @@ export interface UnifiedWatchlistResult {
   canUseMotion: boolean;
   canRefresh: boolean;
   canFetchSuggestions: boolean;
+  /**
+   * Raw persisted token membership asset IDs, including entries whose metadata
+   * did not hydrate. Used for order pruning and suggestion deduplication.
+   */
   tokenMembershipAssetIds: string[];
   perpsMembershipSymbols: string[];
+  /**
+   * Count of hydrated, visible watchlist tokens (`tokens.items.length`) rather
+   * than raw `tokenMembershipAssetIds.length`. Stored blobs can legitimately
+   * retain stale or delisted asset IDs with no API metadata; those unhydrated
+   * entries are omitted without surfacing a coverage error so callers,
+   * suggestion budgets, and analytics match rendered token rows.
+   */
   tokenCount: number;
   perpsCount: number;
   isInitialLoading: boolean;
