@@ -750,6 +750,23 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     if (
       !hasItems &&
       !hasSuggestions &&
+      isSuggestedTokenLoading &&
+      activeFilter !== 'perps'
+    ) {
+      return (
+        <View style={tw.style('flex-1 px-4')}>
+          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+            <TrendingTokensSkeleton
+              key={`watchlist-suggested-skeleton-${index}`}
+            />
+          ))}
+        </View>
+      );
+    }
+
+    if (
+      !hasItems &&
+      !hasSuggestions &&
       (activeFilter === 'perps' || (activeFilter === 'tokens' && hasWatchlist))
     ) {
       const emptyTitleKey =
@@ -772,18 +789,6 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
             {strings(emptyDescriptionKey)}
           </Text>
         </Box>
-      );
-    }
-
-    if (!hasItems && !hasSuggestions && isSuggestedTokenLoading) {
-      return (
-        <View style={tw.style('flex-1 px-4')}>
-          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
-            <TrendingTokensSkeleton
-              key={`watchlist-suggested-skeleton-${index}`}
-            />
-          ))}
-        </View>
       );
     }
 

@@ -31,6 +31,8 @@ import {
 } from '@testing-library/react-native';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { WatchlistSearchContentTestIds } from './WatchlistSearchContent.testIds';
+import { WatchlistEmptyCTATestIds } from '../../components/WatchlistEmptyCTA/WatchlistEmptyCTA.testIds';
+import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistSearchRowItemTestIds } from '../../components/WatchlistSearchRowItem/WatchlistSearchRowItem.testIds';
 import { WatchlistStarButtonTestIds } from '../../components/WatchlistStarButton.testIds';
 import {
@@ -333,6 +335,48 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     expect(
       queryByTestId(getRowTestId(mockWatchlistAssetIds[0])),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the filtered empty state on the Tokens tab when only Perps are watched', async () => {
+    setupWatchlistStorageMock([]);
+    setupWatchlistTokenApiMock([]);
+
+    const perpsMarkets = [
+      createEthMarketForViews(),
+      {
+        ...createEthMarketForViews(),
+        symbol: 'BTC',
+        name: 'Bitcoin Perpetual',
+      },
+      {
+        ...createEthMarketForViews(),
+        symbol: 'SOL',
+        name: 'Solana Perpetual',
+      },
+    ];
+
+    const { findByTestId, findByText, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        deterministicFiat: true,
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['ETH', 'BTC', 'SOL'],
+        streamOverrides: {
+          marketData: perpsMarkets,
+        },
+      });
+
+    await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH'));
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_TOKENS),
+    );
+
+    expect(
+      await findByText(strings('token_watchlist.no_tokens_found')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistEmptyCTATestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('adds a token from search results and persists the update to storage', async () => {
