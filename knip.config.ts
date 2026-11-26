@@ -111,6 +111,11 @@ const config: KnipConfig = {
     'app/core/InpageBridgeWeb3.js',
     'scripts/inpage-bridge/dist/**',
     'android/app/src/main/assets/**',
+    // Native platform trees. Knip has no JS/TS graph to follow inside them,
+    // and third-party SDKs (e.g. branch-ios-sdk) may not be checked out in
+    // CI (submodules not initialised), causing local/CI drift in the report.
+    'ios/**',
+    'android/**',
     // Local runtime, coverage and visual-testing artifacts.
     'coverage/**',
     'test-artifacts/**',

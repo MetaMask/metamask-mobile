@@ -80,7 +80,6 @@
     "files|app/features/SampleFeature/components/hooks/useSampleNetwork/index.ts",
     "files|app/selectors/featureFlagController/tokenSearchDiscovery/index.ts",
     "files|app/selectors/types.ts",
-    "files|ios/branch-ios-sdk/Examples/WebViewExample/Resources/Web.bundle/AboutTheApp/style.css",
     "dependencies|package.json|@react-native/babel-preset",
     "dependencies|package.json|@react-native/typescript-config",
     "dependencies|package.json|@sentry/react",
