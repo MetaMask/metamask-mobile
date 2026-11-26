@@ -879,11 +879,11 @@ describe('SocialV1View', () => {
     expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the account mask icon when no profile exists', () => {
+  it('shows the anonymous profile placeholder when no profile exists', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ANON_AVATAR),
     ).toBeOnTheScreen();
   });
 
@@ -1402,7 +1402,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ANON_AVATAR),
     ).toBeNull();
   });
 
