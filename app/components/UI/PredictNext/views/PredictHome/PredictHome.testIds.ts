@@ -22,6 +22,7 @@ export const PredictHomeTestIds = {
   BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   DEPOSIT_STATUS: 'predict-next-home-deposit-status',
   ACTIONS: 'predict-next-home-portfolio-actions',
+  DIVIDER: 'predict-next-home-divider',
   POSITIONS: 'predict-next-home-positions',
   ADD_FUNDS: 'predict-next-home-add-funds',
   WITHDRAW: 'predict-next-home-withdraw',
@@ -50,10 +51,11 @@ export const PredictHomeTestIds = {
   SECTIONS_RETRY: 'predict-next-home-sections-retry',
   SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
   CATEGORIES: 'predict-next-home-categories',
-  CATEGORIES_HEADER: 'predict-next-home-categories-header',
   CATEGORIES_LIST: 'predict-next-home-categories-list',
   categoryChip: (categoryId: string) =>
     `predict-next-home-category-${categoryId}`,
+  categoryChipIcon: (categoryId: string) =>
+    `predict-next-home-category-icon-${categoryId}`,
   /** A Feed preview section, by its catalog section ID. */
   section: (sectionId: string) => `predict-next-home-section-${sectionId}`,
   sectionHeader: (sectionId: string) =>

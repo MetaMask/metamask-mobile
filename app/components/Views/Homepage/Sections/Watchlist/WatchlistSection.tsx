@@ -33,7 +33,7 @@ import {
   WatchlistAnalytics,
 } from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
 import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
-import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
+import { toWatchlistDisplayTokens } from './utils/toWatchlistDisplayTokens';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -48,6 +48,7 @@ import { useUnifiedWatchlist } from '../../../../UI/Watchlist/hooks/useUnifiedWa
 import { useUnifiedWatchlistPerpsHandlers } from '../../../../UI/Watchlist/hooks/useUnifiedWatchlistPerpsHandlers';
 import WatchlistUnavailablePerpRow from '../../../../UI/Watchlist/WatchlistUnavailablePerpRow';
 import WatchlistErrorRow from '../../../../UI/Watchlist/WatchlistErrorRow';
+import WatchlistTokenRowItem from '../../../../UI/Watchlist/WatchlistTokenRowItem';
 import PerpsMarketRowItem from '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
 import {
   PERPS_EVENT_VALUE,
@@ -241,12 +242,7 @@ const LegacyWatchlistSection = forwardRef<
   const handleAddPress = useTrackAndAddWatchlistToken();
 
   const displayTokens = useMemo(
-    () =>
-      (data ?? [])
-        .slice()
-        .reverse()
-        .slice(0, MAX_ITEMS_DISPLAYED)
-        .map(mapWatchlistTokenToTrendingAsset),
+    () => toWatchlistDisplayTokens(data ?? [], MAX_ITEMS_DISPLAYED),
     [data],
   );
 
@@ -410,10 +406,11 @@ const MixedWatchlistSection = forwardRef<
           if (item.kind === 'token') {
             return (
               <WatchlistAnimatedRow key={item.key} enableMotion={canUseMotion}>
-                <TrendingTokenRowItem
+                <WatchlistTokenRowItem
                   token={item.token}
                   position={index}
                   tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+                  showTypeTag
                   twClassName="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
@@ -428,6 +425,7 @@ const MixedWatchlistSection = forwardRef<
                   onRemove={() => {
                     removeFromWatchlist(item.symbol).catch(() => undefined);
                   }}
+                  showTypeTag
                   twClassName="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
@@ -440,6 +438,7 @@ const MixedWatchlistSection = forwardRef<
                 market={item.market}
                 compact
                 showBadge={false}
+                showTypeTag
                 enableLivePrices={canUseLivePerpsPrices}
                 twClassName="-mx-4 w-auto px-4"
                 onPress={handlePerpPress}
@@ -459,6 +458,7 @@ const MixedWatchlistSection = forwardRef<
             }}
             canUseLivePerpsPrices={canUseLivePerpsPrices}
             enableMotion={canUseMotion}
+            showTypeTag
           />
         ) : null}
       </>

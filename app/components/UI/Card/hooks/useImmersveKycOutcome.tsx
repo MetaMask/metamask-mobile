@@ -23,7 +23,7 @@ import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { cardQueries } from '../queries';
-import { describeImmersveKycRejection } from '../util/immersveKycReasons';
+import { describeImmersveKycFinal } from '../util/immersveKycReasons';
 import { CardActions, withCardProvider } from '../util/metrics';
 import type { ImmersveNextAction } from '../util/immersvePrerequisites';
 
@@ -42,7 +42,7 @@ type RejectedAction = Extract<ImmersveNextAction, { type: 'rejected' }>;
  */
 let permanentRejectionLogout: Promise<void> | null = null;
 
-const runPermanentRejectionLogout = (
+const runPermanentRejectionLogout = async (
   run: () => Promise<void>,
 ): Promise<void> => {
   if (permanentRejectionLogout) {
@@ -79,7 +79,7 @@ const showOutcomeToast = (
 };
 
 /**
- * Shared KYC result messaging. A permanent rejection also ends the Immersve
+ * Shared final KYC result messaging. A rejection also ends the Immersve
  * session, so Link card cannot continue against a failed identity check.
  */
 export function useImmersveKycOutcome() {
@@ -106,10 +106,24 @@ export function useImmersveKycOutcome() {
     dispatch(setPendingMoneyAccountCardLink(null));
   }, [dispatch, queryClient]);
 
+  const signOutOnce = useCallback(
+    async () => runPermanentRejectionLogout(signOutOfRejectedKyc),
+    [signOutOfRejectedKyc],
+  );
+
+  /**
+   * `signOut: false` only tracks (and toasts). The caller then owns the
+   * sign-out, e.g. once the user leaves a screen with a support link that
+   * needs the session's provider user id.
+   */
   const notifyKycRejected = useCallback(
-    (
+    async (
       action: RejectedAction,
-      options: { source: ImmersveKycRejectionSource; toast?: boolean },
+      options: {
+        source: ImmersveKycRejectionSource;
+        toast?: boolean;
+        signOut?: boolean;
+      },
     ): Promise<void> => {
       const run = async () => {
         trackEvent(
@@ -117,7 +131,7 @@ export function useImmersveKycOutcome() {
             .addProperties(
               withCardProvider(activeProviderId, {
                 action: CardActions.KYC_REJECTED,
-                can_retry: action.canRetry,
+                can_retry: false,
                 reason_codes: (action.reasons ?? []).join(','),
                 source: options.source,
               }),
@@ -127,26 +141,19 @@ export function useImmersveKycOutcome() {
 
         if (options.toast !== false) {
           showOutcomeToast(toastRef, {
-            title: action.canRetry
-              ? strings('card.card_onboarding.kyc_rejected.retry_title')
-              : strings('card.card_onboarding.kyc_failed.title'),
-            description: describeImmersveKycRejection(
-              action.reasons,
-              action.canRetry,
-            ),
+            ...describeImmersveKycFinal(action.reasons),
             iconName: IconName.Error,
           });
         }
 
-        if (!action.canRetry) {
+        if (options.signOut !== false) {
           await signOutOfRejectedKyc();
         }
       };
 
-      if (!action.canRetry) {
-        return runPermanentRejectionLogout(run);
-      }
-      return run();
+      return options.signOut === false
+        ? run()
+        : runPermanentRejectionLogout(run);
     },
     [
       activeProviderId,
@@ -165,5 +172,9 @@ export function useImmersveKycOutcome() {
     });
   }, [toastRef]);
 
-  return { notifyKycRejected, notifyKycInReview };
+  return {
+    notifyKycRejected,
+    notifyKycInReview,
+    signOutOfRejectedKyc: signOutOnce,
+  };
 }

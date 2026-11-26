@@ -10,6 +10,8 @@ interface WatchlistEditableRowProps {
   position: number;
   isEditMode: boolean;
   onRemoveFromDraft?: (assetId: string) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 const WatchlistEditableRow = ({
@@ -17,6 +19,8 @@ const WatchlistEditableRow = ({
   position,
   isEditMode,
   onRemoveFromDraft,
+  onMoveUp,
+  onMoveDown,
 }: WatchlistEditableRowProps): React.JSX.Element => {
   const handleUnwatch = useCallback(() => {
     onRemoveFromDraft?.(String(token.assetId));
@@ -26,6 +30,8 @@ const WatchlistEditableRow = ({
     <WatchlistEditableRowChrome
       isEditMode={isEditMode}
       onRemove={handleUnwatch}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
       rowTestID={WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW}
     >
       <TrendingTokenRowItem

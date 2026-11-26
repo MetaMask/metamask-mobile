@@ -9,6 +9,7 @@ import {
   formatRecurringOrderDate,
   formatRecurringPriceRange,
   formatRecurringTokenAmount,
+  getRecurringOrderDuplicateSourceAmount,
   getRecurringOrderMinAmountUsd,
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
@@ -29,6 +30,28 @@ describe('getRecurringOrderMinAmountUsd', () => {
 
     expect(result).toBe(expected);
   });
+});
+
+describe('getRecurringOrderDuplicateSourceAmount', () => {
+  it('converts the per-swap source amount out of minimal units', () => {
+    const result = getRecurringOrderDuplicateSourceAmount(
+      MOCK_RECURRING_OPEN_ORDER,
+    );
+
+    expect(result).toBe('0.0015');
+  });
+
+  it.each(['0', 'not-a-number'])(
+    'returns undefined for source amount %s',
+    (amount) => {
+      const result = getRecurringOrderDuplicateSourceAmount({
+        ...MOCK_RECURRING_OPEN_ORDER,
+        src: { ...MOCK_RECURRING_OPEN_ORDER.src, amount },
+      });
+
+      expect(result).toBeUndefined();
+    },
+  );
 });
 
 describe('recurring order formatting', () => {

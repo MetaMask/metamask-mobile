@@ -23,8 +23,15 @@ import { PerpsOrderSizeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 import { MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
 import { useMinimumOrderAmount } from '../../hooks/useMinimumOrderAmount';
+import {
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from '../../hooks/stream/usePerpsLiveAvailableToTrade';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import {
+  getIncrementalMarginInsufficientBalanceError,
+  getOpenOrderMarginBalance,
+} from '../../utils/openOrderMarginValidation';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -46,6 +53,8 @@ interface PerpsOrderSizeBottomSheetProps {
   /** When false, market szDecimals/leverage inputs are still loading — hold
    * confirm and skip margin checks that would use misleading fallbacks. */
   isMarketDataReady?: boolean;
+  /** Side of the resting order. Available to trade is reported per side. */
+  direction: 'long' | 'short';
 }
 
 /**
@@ -84,20 +93,37 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   leverage = PERPS_CONSTANTS.DefaultMaxLeverage,
   reduceOnly = false,
   isMarketDataReady = true,
+  direction,
 }) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [orderSize, setOrderSize] = useState(initialOrderSize || '');
   const displaySymbol = getPerpsDisplaySymbol(asset);
   const { minimumOrderAmount } = useMinimumOrderAmount({ asset });
-  // Only subscribe while the sheet is open; balance is only needed to warn
-  // when an edited size would require more margin than is available.
-  const { account, isInitialLoading: isAccountLoading } = usePerpsLiveAccount({
+  // Only subscribe while the sheet is open; the venue figure is only needed
+  // to warn when an edited size would require more margin than is available.
+  const {
+    availableToTrade,
+    isInitialLoading: isAvailableToTradeLoading,
+    isUnavailable: isAvailableToTradeStreamFailed,
+  } = usePerpsLiveAvailableToTrade({
+    symbol: asset,
     enabled: isVisible,
   });
-  // Treat a still-loading / missing account like unloaded market data — hold
-  // confirm rather than coercing null → 0 and skipping the margin check.
-  const isAccountReady = !isAccountLoading && account !== null;
-  const spendableBalance = Number.parseFloat(account?.spendableBalance ?? '0');
+  // If the venue stream fails, fall back to the account spendable balance so
+  // an open order can still be resized.
+  const { account } = usePerpsLiveAccount({
+    enabled: isVisible && isAvailableToTradeStreamFailed,
+  });
+  const marginBalance = getOpenOrderMarginBalance({
+    venueAvailableToTrade: readAvailableToTradeUsd(availableToTrade, direction),
+    isAvailableToTradeStreamFailed,
+    accountSpendableBalance: account?.spendableBalance,
+  });
+  // Hold confirm until a figure is known. A missing value is unknown, not
+  // zero, so the margin check must not run against a coerced 0.
+  const isAccountReady =
+    !isAvailableToTradeLoading && marginBalance !== undefined;
+  const spendableBalance = marginBalance ?? 0;
   const isInputReady = isMarketDataReady && isAccountReady;
 
   useEffect(() => {
@@ -311,6 +337,7 @@ export default memo(PerpsOrderSizeBottomSheet, (prevProps, nextProps) => {
     prevProps.szDecimals === nextProps.szDecimals &&
     prevProps.leverage === nextProps.leverage &&
     prevProps.reduceOnly === nextProps.reduceOnly &&
+    prevProps.direction === nextProps.direction &&
     prevProps.isMarketDataReady === nextProps.isMarketDataReady &&
     prevProps.onConfirm === nextProps.onConfirm &&
     prevProps.onClose === nextProps.onClose
