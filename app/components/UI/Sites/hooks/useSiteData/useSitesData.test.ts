@@ -310,17 +310,17 @@ describe('useSitesData', () => {
       expect(fetch).toHaveBeenCalledTimes(2);
     });
 
-    it('leaves loading with NetworkTimeoutError and Portfolio once every attempt timed out', async () => {
+    it('leaves loading and shows Portfolio after the first timeout on slow cellular', async () => {
       givenConnection('SLOW_CELLULAR');
       stallRequests();
 
       const { result } = renderUseSitesData();
       expect(result.current.isLoading).toBe(true);
       await act(async () => {
-        await jest.advanceTimersByTimeAsync(3 * HUNG_MS);
+        await jest.advanceTimersByTimeAsync(HUNG_MS + 1);
       });
 
-      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenCalledTimes(1);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeInstanceOf(NetworkTimeoutError);
       expect(result.current.sites).toEqual([EXPECTED_PORTFOLIO_SITE]);

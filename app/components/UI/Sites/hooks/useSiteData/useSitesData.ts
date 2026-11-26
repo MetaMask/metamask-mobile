@@ -8,6 +8,7 @@ import {
   type,
 } from '@metamask/superstruct';
 import { useNetworkQuery } from '../../../../../core/Networking/useNetworkQuery';
+import { NetworkCache } from '../../../../../core/Networking/types';
 import Logger from '../../../../../util/Logger';
 import { prefixUrlWithProtocol } from '../../../../../util/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
@@ -163,6 +164,8 @@ export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
     parse: parseSites,
     // A curated list: one request per session, plus pull-to-refresh.
     staleTime: Infinity,
+    // Public list: a restart within minutes shows it without a request.
+    cache: NetworkCache.SHORT,
   });
   const allSites = resolveSites(data, isLoading);
 
