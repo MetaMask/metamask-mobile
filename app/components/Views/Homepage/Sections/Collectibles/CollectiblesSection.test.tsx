@@ -7,6 +7,7 @@ import { mockHomePacks } from '../../../../UI/Collectibles/mocks/homePacks';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
+import { getFormatters } from '#app/components/hooks/useFormatters';
 import { homepageSectionTitleTestId } from '#app/components/Views/Homepage/Homepage.testIds';
 import { HomeSectionNames } from '#app/components/Views/Homepage/hooks/useHomeViewedEvent';
 import { CollectiblesSection } from './CollectiblesSection';
@@ -99,7 +100,11 @@ describe('CollectiblesSection', () => {
       screen.getByTestId(collectiblesTestIds.tile(firstPack.code)),
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
-    expect(screen.getByText(String(firstPack.priceLabel))).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        getFormatters().formatCurrency(firstPack.priceUsd, 'USD'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('opens the collectibles landing screen from the header', async () => {

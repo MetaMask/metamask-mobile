@@ -6,6 +6,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { useFormatters } from '../../../hooks/useFormatters';
 import type { HomePack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export function PackTile({ pack, width = packTileWidth }: Props) {
+  const { formatCurrency } = useFormatters();
+
   const buySheetLink = useLinkProps<CollectiblesParamList>({
     screen: collectiblesRoutes.buySheet,
     params: { packCode: pack.code },
@@ -55,7 +58,7 @@ export function PackTile({ pack, width = packTileWidth }: Props) {
           testID={collectiblesTestIds.buyButton(pack.code)}
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {pack.priceLabel}
+            {formatCurrency(pack.priceUsd, 'USD')}
           </Text>
         </Pressable>
       </View>

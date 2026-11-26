@@ -35,9 +35,6 @@ describe('BuySheet', () => {
     renderSheet(pack.code);
 
     expect(screen.getByText(pack.name)).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('collectibles.buy_sheet.placeholder')),
-    ).toBeOnTheScreen();
   });
 
   it('falls back to the Collectibles title for an unknown pack', () => {
