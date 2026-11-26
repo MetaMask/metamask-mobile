@@ -44,7 +44,12 @@ function TransactionsSettings() {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const analyticsHook = useAnalytics();
+  const trackEvent = (...args: Parameters<typeof analyticsHook.trackEvent>) =>
+    analyticsHook.trackEvent(...args);
+  const createEventBuilder = (
+    ...args: Parameters<typeof analyticsHook.createEventBuilder>
+  ) => analyticsHook.createEventBuilder(...args);
 
   const smartTransactionsOptInStatus = useSelector(
     selectSmartTransactionsOptInStatus,

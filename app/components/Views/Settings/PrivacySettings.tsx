@@ -59,7 +59,8 @@ interface Params {
 
 function PrivacySettings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
-  const { isEnabled } = useAnalytics();
+  const analytics = useAnalytics();
+  const isEnabled = () => analytics.isEnabled();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<Params>();

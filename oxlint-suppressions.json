@@ -154,11 +154,6 @@
       "count": 1
     }
   },
-  "app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.styles.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/component-library/components-temp/MultichainAccounts/test-utils.ts": {
     "typescript/prefer-reduce-type-parameter": {
       "count": 3
@@ -16422,9 +16417,6 @@
     }
   },
   "app/components/Views/Pna25BottomSheet/Pna25BottomSheet.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/unbound-method": {
       "count": 2
     }
@@ -17119,11 +17111,6 @@
       "count": 1
     }
   },
-  "app/components/Views/Settings/PrivacySettings.tsx": {
-    "typescript/unbound-method": {
-      "count": 1
-    }
-  },
   "app/components/Views/Settings/SecuritySettings/Sections/BlockaidSettings.tsx": {
     "typescript/no-floating-promises": {
       "count": 1
@@ -17241,19 +17228,8 @@
     }
   },
   "app/components/Views/Settings/SecuritySettings/SecuritySettings.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
-    },
-    "typescript/unbound-method": {
-      "count": 1
-    }
-  },
-  "app/components/Views/Settings/TransactionsSettings.tsx": {
-    "typescript/unbound-method": {
-      "count": 2
     }
   },
   "app/components/Views/Settings/index.test.tsx": {
@@ -20274,11 +20250,6 @@
       "count": 2
     }
   },
-  "app/components/hooks/useArcDefaultTokens/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/hooks/useAsyncResult.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -20293,9 +20264,6 @@
     }
   },
   "app/components/hooks/useBasicFunctionalityConsolidation.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     },
