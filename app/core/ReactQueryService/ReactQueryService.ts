@@ -1,6 +1,8 @@
 import { AppState, type NativeEventSubscription } from 'react-native';
 import {
   QueryClient,
+  QueryCache,
+  MutationCache,
   focusManager,
   onlineManager,
 } from '@tanstack/react-query';
@@ -15,6 +17,17 @@ import Engine from '../Engine/Engine';
 import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
 import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
+import {
+  getNetworkTierSnapshot,
+  subscribeNetworkTierSnapshot,
+} from '../../util/deviceCapability/networkTierSnapshot';
+import { subscribeDeviceCapabilityOverride } from '../../util/deviceCapability/override';
+import {
+  isTierPolicyEnabled,
+  subscribeTierPolicyEnabled,
+} from '../Networking/killSwitch';
+import { reportNetworkFailure } from '../Networking/errorReporting';
+import { OfflineError } from '../Networking/errors';
 
 type ActionType = MessengerActions<RootMessenger>['type'];
 type EventType = MessengerEvents<RootMessenger>['type'];
@@ -43,7 +56,27 @@ export class ReactQueryService {
 
   constructor() {
     this.queryClient = createUIQueryClient(DATA_SERVICES, adapter, {
+      queryCache: new QueryCache({
+        onError: (error, query) =>
+          reportNetworkFailure(
+            error,
+            query.meta,
+            query.state.fetchFailureCount,
+          ),
+      }),
+      mutationCache: new MutationCache({
+        onMutate: () => {
+          if (!onlineManager.isOnline()) throw new OfflineError();
+        },
+        onError: (error, _variables, _context, mutation) =>
+          reportNetworkFailure(
+            error,
+            mutation.meta,
+            mutation.state.failureCount + 1,
+          ),
+      }),
       defaultOptions: {
+        mutations: { retry: false, networkMode: 'always' },
         queries: {
           // Mobile users often trigger re-renders or navigate back/forth frequently.
           staleTime: 1000 * 60 * 5, // 5 minutes
@@ -79,17 +112,33 @@ export class ReactQueryService {
    * always online in React Native environments.
    */
   #subscribeToOnlineState(): void {
-    let unsubscribeNetInfo: (() => void) | undefined;
-
     onlineManager.setEventListener((setOnline) => {
-      unsubscribeNetInfo?.();
-      unsubscribeNetInfo = addNetInfoEventListener((state: NetInfoState) => {
-        setOnline(!!state.isConnected);
-      });
-      return unsubscribeNetInfo;
+      let connected: boolean | undefined;
+      const update = () => {
+        if (isTierPolicyEnabled()) {
+          setOnline(getNetworkTierSnapshot() !== 'NONE');
+        } else if (connected !== undefined) {
+          setOnline(connected);
+        }
+      };
+      const unsubscribers = [
+        addNetInfoEventListener((state: NetInfoState) => {
+          connected = !!state.isConnected;
+          update();
+        }),
+        subscribeNetworkTierSnapshot(update),
+        subscribeDeviceCapabilityOverride(update),
+        subscribeTierPolicyEnabled(update),
+      ];
+      update();
+      const unsubscribe = () => {
+        if (this.#netInfoUnsubscribe !== unsubscribe) return;
+        this.#netInfoUnsubscribe = undefined;
+        unsubscribers.forEach((stop) => stop());
+      };
+      this.#netInfoUnsubscribe = unsubscribe;
+      return unsubscribe;
     });
-
-    this.#netInfoUnsubscribe = () => unsubscribeNetInfo?.();
   }
 
   destroy(): void {

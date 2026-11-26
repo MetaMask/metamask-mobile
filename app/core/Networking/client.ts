@@ -159,7 +159,7 @@ function withMethod(method: Method) {
 
 /**
  * The app's HTTP client. One attempt over the instrumented `global.fetch`:
- * retries, caching and polling belong to TanStack Query.
+ * retries, caching and polling belong to `useNetworkQuery`.
  */
 export const httpClient = {
   get: withMethod('GET'),
