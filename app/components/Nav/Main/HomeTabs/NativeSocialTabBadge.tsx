@@ -92,7 +92,7 @@ const NativeSocialTabBadge = ({
       accessible={false}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      twClassName="absolute"
+      className="absolute"
       style={{
         left,
         top,

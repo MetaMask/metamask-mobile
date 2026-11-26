@@ -131,7 +131,7 @@ const SubscriptionDeveloperOptionsSection = () => {
       {isJsonVisible && (
         <Text
           variant={TextVariant.BodySm}
-          twClassName="font-mono"
+          className="font-mono"
           style={styles.desc}
           selectable
           testID={SUBSCRIPTION_DEV_TEST_IDS.JSON}

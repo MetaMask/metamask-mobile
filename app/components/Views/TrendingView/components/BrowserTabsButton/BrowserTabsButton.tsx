@@ -60,7 +60,7 @@ const BrowserTabsButton: React.FC<BrowserTabsButtonProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="h-12 gap-1 rounded-full border border-border-muted bg-muted px-3"
+          className="h-12 gap-1 rounded-full border border-border-muted bg-muted px-3"
         >
           {content}
         </Box>

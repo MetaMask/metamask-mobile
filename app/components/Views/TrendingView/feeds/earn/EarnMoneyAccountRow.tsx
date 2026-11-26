@@ -125,6 +125,21 @@ const EarnMoneyAccountRow = ({
       valueProps={{
         numberOfLines: 1,
       }}
+      className="py-2 min-h-0"
+    /><MoneyBalanceIcon width={40} height={40} name="money-balance" />}
+      title={strings('earn_module.money_account')}
+      titleEndAccessory={item.balanceRaw === '0' ? <EarnNewTag /> : undefined}
+      titleProps={{
+        numberOfLines: 1,
+      }}
+      description={renderBalanceText()}
+      descriptionProps={{
+        numberOfLines: 1,
+      }}
+      value={getRateText()}
+      valueProps={{
+        numberOfLines: 1,
+      }}
       twClassName="py-2 min-h-0"
     />
   );

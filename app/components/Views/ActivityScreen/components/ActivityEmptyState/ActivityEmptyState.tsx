@@ -120,11 +120,15 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   return (
     <Box
       testID={ActivityScreenSelectorsIDs.LIST}
-      twClassName="flex-1 items-center justify-center pb-32"
+      className="flex-1 items-center justify-center pb-32"
     >
       <TabEmptyState
         testID={ActivityScreenSelectorsIDs.EMPTY_STATE}
         icon={<Icon name="activity-empty" width={72} height={78} />}
+        description={strings(emptyState.descriptionKey)}
+        actionButtonText={strings(emptyState.actionLabelKey)}
+        onAction={handleAction}
+      /><Icon name="activity-empty" width={72} height={78} />}
         description={strings(emptyState.descriptionKey)}
         actionButtonText={strings(emptyState.actionLabelKey)}
         onAction={handleAction}

@@ -221,7 +221,7 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
 
     return (
       <ExploreActiveTabProvider activeTab={activeTab}>
-        <Box twClassName="flex-1" testID="explore-tabs">
+        <Box className="flex-1" testID="explore-tabs">
           <TabView
             navigationState={navigationState}
             renderScene={renderScene}
@@ -325,9 +325,9 @@ export const ExploreFeed: React.FC = () => {
         testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
       />
 
-      <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-4 mb-2 flex-row items-center gap-2 px-4">
-          <Box twClassName="flex-1">
+      <Box className="gap-4 flex-1">
+        <Box className="mt-4 mb-2 flex-row items-center gap-2 px-4">
+          <Box className="flex-1">
             <ExploreSearchBar
               type="button"
               onPress={handleSearchPress}
@@ -348,7 +348,7 @@ export const ExploreFeed: React.FC = () => {
               testID="trending-view-browser-button"
             >
               {browserTabsCount > 0 ? (
-                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                <Box className="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
                   <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
                 </Box>
               ) : (

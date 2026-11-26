@@ -56,25 +56,25 @@ export function ActivityFeeTokenValue({
   networkImageSource?: ImageSourcePropType;
 }) {
   return (
-    <Box twClassName="flex-row items-center justify-end gap-2 shrink">
+    <Box className="flex-row items-center justify-end gap-2 shrink">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="shrink"
+        className="shrink"
         numberOfLines={1}
         ellipsizeMode="tail"
       >
         {value}
       </Text>
       {symbol ? (
-        <Box twClassName="flex-row items-center gap-1 shrink">
+        <Box className="flex-row items-center gap-1 shrink">
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
             style={styles.tokenAvatarWrapper}
             badge={
               networkImageSource ? (
                 <Box
-                  twClassName="overflow-hidden border border-background-default bg-default"
+                  className="overflow-hidden border border-background-default bg-default"
                   style={styles.networkBadge}
                   testID="fee-network-badge"
                 >
@@ -96,7 +96,7 @@ export function ActivityFeeTokenValue({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="ml-1 shrink"
+            className="ml-1 shrink"
             numberOfLines={1}
             ellipsizeMode="tail"
           >

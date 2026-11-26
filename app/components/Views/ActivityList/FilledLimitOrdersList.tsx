@@ -69,7 +69,7 @@ const renderItem = ({ item }: { item: FilledLimitOrderListItem }) => {
 
   return (
     <Box
-      twClassName="px-4 py-2"
+      className="px-4 py-2"
       testID={activityListLimitOrderRowTestId(item.order.id)}
     >
       <LimitOrderTabRow order={item.order} />

@@ -270,12 +270,12 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     : strings('trending.sort_by');
 
   const stickyHeader = (
-    <Box twClassName="bg-default" testID={`${testIdPrefix}-sticky-header`}>
+    <Box className="bg-default" testID={`${testIdPrefix}-sticky-header`}>
       <FilterButtonGroup
         value={effectiveActiveKey}
         onChange={handleSelectPill}
         variant={FilterButtonVariant.Primary}
-        twClassName="px-4 pt-4 pb-2"
+        className="px-4 pt-4 pb-2"
         testID={`${testIdPrefix}-pills`}
       >
         {visiblePills.map(({ key, labelKey, iconName }) =>
@@ -287,7 +287,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
               accessibilityLabel={strings(labelKey)}
               testID={`${testIdPrefix}-pill-${key}`}
               contentWrapperProps={{ gap: 0 }}
-              twClassName="px-2"
+              className="px-2"
             >
               {null}
             </FilterButton>
@@ -304,7 +304,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
       </FilterButtonGroup>
       {isSortable && (
         <Box
-          twClassName="flex-row items-center justify-between py-1.5 pl-4 pr-1"
+          className="flex-row items-center justify-between py-1.5 pl-4 pr-1"
           testID={`${testIdPrefix}-sort-row`}
         >
           <Text
@@ -342,6 +342,16 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
                 color={IconColor.IconAlternative}
               />
             }
+          /><Icon
+                name={
+                  sort?.direction === SortDirection.Ascending
+                    ? IconName.Arrow2Up
+                    : IconName.Arrow2Down
+                }
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            }
           />
         </Box>
       )}
@@ -352,7 +362,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     item.type === 'sticky' ? (
       stickyHeader
     ) : (
-      <Box twClassName="px-4">{renderTokenRow(item.token, item.index)}</Box>
+      <Box className="px-4">{renderTokenRow(item.token, item.index)}</Box>
     );
 
   const keyExtractor = useCallback(
@@ -387,7 +397,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   let listFooter: React.ReactElement | null = null;
   if (isListLoading) {
     listFooter = (
-      <Box twClassName="px-4" testID="explore-card-list">
+      <Box className="px-4" testID="explore-card-list">
         {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
           <TrendingTokensSkeleton key={`${idPrefix}-skeleton-${i}`} />
         ))}

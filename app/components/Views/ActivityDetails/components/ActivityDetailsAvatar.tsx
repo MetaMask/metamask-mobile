@@ -74,7 +74,7 @@ export function ActivityDetailsAvatar({
       </Box>
     ) : (
       <Box
-        twClassName="flex-row"
+        className="flex-row"
         testID={ActivityDetailsSelectorsIDs.AMOUNT_AVATAR_DUAL}
       >
         <AvatarToken
@@ -82,7 +82,7 @@ export function ActivityDetailsAvatar({
           src={imageSources[0]}
           size={size}
         />
-        <Box twClassName="-ml-2">
+        <Box className="-ml-2">
           <AvatarToken
             name={tokens[1].symbol}
             src={imageSources[1]}

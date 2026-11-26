@@ -131,7 +131,7 @@ const NetworksManagementView = () => {
         includesTopInset
       />
 
-      <Box twClassName="px-4 py-2">
+      <Box className="px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -150,7 +150,7 @@ const NetworksManagementView = () => {
         {/* Empty state */}
         {hasNoResults && (
           <Box
-            twClassName="flex-1 items-center justify-center py-8"
+            className="flex-1 items-center justify-center py-8"
             testID={NetworksManagementViewSelectorsIDs.EMPTY_STATE}
           >
             <Text
@@ -165,7 +165,7 @@ const NetworksManagementView = () => {
         {/* Enabled Networks section */}
         {enabledNetworks.length > 0 && (
           <>
-            <Box twClassName="flex-row items-center justify-between px-4 my-4">
+            <Box className="flex-row items-center justify-between px-4 my-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -181,7 +181,7 @@ const NetworksManagementView = () => {
         {/* Additional Networks section */}
         {availableNetworks.length > 0 && (
           <>
-            <Box twClassName="flex-row items-center justify-between px-4 my-4">
+            <Box className="flex-row items-center justify-between px-4 my-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -203,7 +203,7 @@ const NetworksManagementView = () => {
         {/* Test Networks section */}
         {testNetworks.length > 0 && (
           <>
-            <Box twClassName="flex-row items-center justify-between px-4 my-4">
+            <Box className="flex-row items-center justify-between px-4 my-4">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -218,7 +218,7 @@ const NetworksManagementView = () => {
       </ScrollView>
 
       {/* Sticky footer — Add network button */}
-      <Box twClassName="py-1 px-4">
+      <Box className="py-1 px-4">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}

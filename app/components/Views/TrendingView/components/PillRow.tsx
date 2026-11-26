@@ -43,7 +43,7 @@ const PillRow: React.FC<PillRowProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           {pills.map((pill) => {
             const isSelected = activeKey === pill.key;

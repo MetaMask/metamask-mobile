@@ -44,7 +44,7 @@ export function RampOrderIdValue({
   }
 
   return (
-    <Box twClassName="flex-row items-center gap-1 rounded-lg bg-muted py-1 pl-3 pr-1">
+    <Box className="flex-row items-center gap-1 rounded-lg bg-muted py-1 pl-3 pr-1">
       <Text variant={TextVariant.BodyMd}>
         {formatShortRampOrderId(orderId)}
       </Text>
@@ -101,7 +101,7 @@ export function RampStatusWithProviderLink({
     : strings('ramps_order_details.view_order');
 
   return (
-    <Box twClassName="items-end gap-1">
+    <Box className="items-end gap-1">
       <ActivityDetailsStatus status={status} />
       {showProviderLink ? (
         <Pressable
@@ -109,7 +109,7 @@ export function RampStatusWithProviderLink({
           testID="ramp-provider-order-link"
           accessibilityRole="link"
         >
-          <Box twClassName="flex-row items-center gap-1">
+          <Box className="flex-row items-center gap-1">
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -141,11 +141,11 @@ export function RampStatusDescription({
   }
 
   return (
-    <Box twClassName="w-full" testID="ramp-status-description">
+    <Box className="w-full" testID="ramp-status-description">
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {description}
       </Text>
@@ -167,7 +167,7 @@ export function RampDetailsHeroView({
 }>) {
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      className="flex-row items-center gap-3"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
       <ActivityDetailsAvatar
@@ -178,7 +178,7 @@ export function RampDetailsHeroView({
       />
       <Text
         variant={TextVariant.DisplayMd}
-        twClassName="shrink"
+        className="shrink"
         color={isSell ? TextColor.TextDefault : TextColor.SuccessDefault}
       >
         {amountLabel}

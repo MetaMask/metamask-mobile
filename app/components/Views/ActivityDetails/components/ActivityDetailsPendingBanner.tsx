@@ -65,17 +65,17 @@ export function ActivityDetailsPendingBanner({
 
   return (
     <Box
-      twClassName="rounded-2xl bg-muted p-4 mb-4 gap-3"
+      className="rounded-2xl bg-muted p-4 mb-4 gap-3"
       testID={ActivityDetailsSelectorsIDs.PENDING_BANNER}
     >
-      <Box twClassName="flex-row items-center gap-2">
+      <Box className="flex-row items-center gap-2">
         <PendingSpinner size={IconSize.Sm} color={IconColor.IconDefault} />
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('activity_details.transaction_pending')}
         </Text>
       </Box>
 
-      <Box twClassName="flex-row items-center justify-between">
+      <Box className="flex-row items-center justify-between">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('activity_details.likely_to_confirm_in')}
         </Text>
@@ -85,12 +85,12 @@ export function ActivityDetailsPendingBanner({
       </Box>
 
       {showSpeedUpCancel ? (
-        <Box twClassName="flex-row gap-3">
+        <Box className="flex-row gap-3">
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isDanger
-            twClassName="flex-1"
+            className="flex-1"
             onPress={() => onCancelAction(true, tx)}
             testID={ActivityDetailsSelectorsIDs.PENDING_CANCEL_BUTTON}
           >
@@ -100,7 +100,7 @@ export function ActivityDetailsPendingBanner({
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              twClassName="flex-1"
+              className="flex-1"
               onPress={() => onSpeedUpAction(true, tx)}
               testID={ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON}
             >
@@ -111,12 +111,12 @@ export function ActivityDetailsPendingBanner({
       ) : null}
 
       {showQRSign ? (
-        <Box twClassName="flex-row gap-3">
+        <Box className="flex-row gap-3">
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isDanger
-            twClassName="flex-1"
+            className="flex-1"
             onPress={() => cancelUnsignedQRTransaction(tx)}
             testID={ActivityDetailsSelectorsIDs.PENDING_QR_CANCEL_BUTTON}
           >
@@ -125,7 +125,7 @@ export function ActivityDetailsPendingBanner({
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            twClassName="flex-1"
+            className="flex-1"
             onPress={() => signQRTransaction(tx)}
             testID={ActivityDetailsSelectorsIDs.PENDING_QR_SIGN_BUTTON}
           >
@@ -138,7 +138,7 @@ export function ActivityDetailsPendingBanner({
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          twClassName="w-full"
+          className="w-full"
           onPress={() => signLedgerTransaction({ id: tx.id })}
           testID={ActivityDetailsSelectorsIDs.PENDING_LEDGER_SIGN_BUTTON}
         >

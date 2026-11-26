@@ -112,7 +112,7 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
         color={TextColor.TextDefault}
         numberOfLines={1}
         fontWeight={FontWeight.Medium}
-        twClassName="pt-2"
+        className="pt-2"
       >
         {site.name}
       </Text>

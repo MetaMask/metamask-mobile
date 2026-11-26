@@ -94,7 +94,7 @@ export function FilterOptionSheet<T extends string>({
       <BottomSheetHeaderGlass isGlass={isGlassHeader}>
         {title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="pb-2">
+      <Box className="pb-2">
         {options.map((option) => {
           const isSelected = option === selected;
           return (

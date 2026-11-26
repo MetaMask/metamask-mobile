@@ -960,7 +960,7 @@ const HomeTabs = () => {
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
         <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <NativeTab.Navigator
               initialRouteName={Routes.WALLET.HOME}
               screenOptions={{

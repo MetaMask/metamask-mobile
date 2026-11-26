@@ -132,13 +132,19 @@ const ProtectYourWallet = ({
                 </TextButton>
               ) : null
             }
+            className="mt-4"
+          /><TextButton variant={TextVariant.BodySm} onPress={toggleHint}>
+                  {strings('app_settings.view_hint')}
+                </TextButton>
+              ) : null
+            }
             twClassName="mt-4"
           />
         ) : (
           <BannerAlert
             severity={BannerAlertSeverity.Danger}
             title={strings('app_settings.seedphrase_not_backed_up')}
-            twClassName="mt-4"
+            className="mt-4"
           />
         ))}
 
@@ -171,7 +177,7 @@ const ProtectYourWallet = ({
           title={strings('app_settings.banner_social_login_enabled', {
             authConnection: capitalize(authConnection),
           })}
-          twClassName="mt-4"
+          className="mt-4"
         />
       )}
       {oauthFlow && (

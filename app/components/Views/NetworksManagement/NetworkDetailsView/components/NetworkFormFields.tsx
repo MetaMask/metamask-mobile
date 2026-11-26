@@ -29,15 +29,15 @@ const ChainIdWarning: React.FC<{
 }> = ({ warningChainId, goToNetworkEdit }) => {
   if (warningChainId === strings('app_settings.unMatched_chain_name')) {
     return (
-      <Box twClassName="gap-1">
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+      <Box className="gap-1">
+        <Text variant={TextVariant.BodySm} className="text-error-default">
           {warningChainId}
         </Text>
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text variant={TextVariant.BodySm} className="text-error-default">
           {strings('app_settings.find_the_right_one')}{' '}
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-info-default"
+            className="text-info-default"
             onPress={openChainList}
           >
             chainid.network{' '}
@@ -57,11 +57,11 @@ const ChainIdWarning: React.FC<{
     strings('app_settings.chain_id_associated_with_another_network')
   ) {
     return (
-      <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+      <Text variant={TextVariant.BodySm} className="text-error-default">
         {strings('app_settings.chain_id_associated_with_another_network')}{' '}
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-info-default"
+          className="text-info-default"
           onPress={goToNetworkEdit}
         >
           {strings('app_settings.edit_original_network')}
@@ -71,7 +71,7 @@ const ChainIdWarning: React.FC<{
   }
 
   return (
-    <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+    <Text variant={TextVariant.BodySm} className="text-error-default">
       {warningChainId}
     </Text>
   );
@@ -83,18 +83,18 @@ const SymbolWarning: React.FC<{
   autoFillSymbolField: (ticker: string) => void;
 }> = ({ warningSymbol, validatedSymbol, autoFillSymbolField }) => (
   <Box>
-    <Text variant={TextVariant.BodySm} twClassName="text-warning-default">
+    <Text variant={TextVariant.BodySm} className="text-warning-default">
       {strings('wallet.suggested_token_symbol')}{' '}
       <Text
         variant={TextVariant.BodySm}
-        twClassName="text-info-default"
+        className="text-info-default"
         onPress={() => autoFillSymbolField(warningSymbol)}
       >
         {warningSymbol}
       </Text>
     </Text>
     {validatedSymbol && (
-      <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+      <Text variant={TextVariant.BodySm} className="text-text-alternative">
         {strings('wallet.chain_list_returned_different_ticker_symbol')}
       </Text>
     )}
@@ -140,7 +140,7 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
   }, [onValidateName, onNameBlur]);
 
   return (
-    <Box twClassName="gap-1">
+    <Box className="gap-1">
       <Label>{strings('app_settings.network_name_label')}</Label>
       <TextField
         autoCapitalize="none"
@@ -160,25 +160,25 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
       {warningName ? (
         <Box>
           {isRequiredNameWarning ? (
-            <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            <Text variant={TextVariant.BodySm} className="text-error-default">
               {warningName}
             </Text>
           ) : (
             <>
               <Text
                 variant={TextVariant.BodySm}
-                twClassName="text-warning-default"
+                className="text-warning-default"
               >
                 {strings('wallet.incorrect_network_name_warning')}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
-                twClassName="text-warning-default"
+                className="text-warning-default"
               >
                 {strings('wallet.suggested_name')}{' '}
                 <Text
                   variant={TextVariant.BodySm}
-                  twClassName="text-info-default"
+                  className="text-info-default"
                   onPress={() => autoFillNameField(warningName)}
                 >
                   {warningName}
@@ -246,7 +246,7 @@ const NetworkChainSymbolFields: React.FC<NetworkChainSymbolFieldsProps> = ({
   return (
     <>
       {/* Chain ID */}
-      <Box twClassName="gap-1">
+      <Box className="gap-1">
         <Label>{strings('app_settings.network_chain_id_label')}</Label>
         <TextField
           ref={inputChainId}
@@ -274,7 +274,7 @@ const NetworkChainSymbolFields: React.FC<NetworkChainSymbolFieldsProps> = ({
       </Box>
 
       {/* Symbol */}
-      <Box twClassName="gap-1">
+      <Box className="gap-1">
         <Label>{strings('app_settings.network_symbol_label')}</Label>
         <TextField
           ref={inputSymbol}

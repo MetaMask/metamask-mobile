@@ -49,7 +49,7 @@ export function ActivityDetailsWebviewButton({
     <Button
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      twClassName="w-full"
+      className="w-full"
       onPress={() => openWebview({ title, url })}
       testID={testID}
     >
@@ -77,7 +77,7 @@ export function ActivityDetailsBlockExplorerButton({
     <Button
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      twClassName="w-full"
+      className="w-full"
       onPress={() => openWebview(link)}
       testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
     >
@@ -133,7 +133,7 @@ export function ActivityDetailsBridgeExplorerButtons({
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        twClassName="w-full"
+        className="w-full"
         onPress={openExplorerSheet}
         testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
       >
@@ -148,7 +148,7 @@ export function ActivityDetailsBridgeExplorerButtons({
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        twClassName="w-full"
+        className="w-full"
         onPress={() => openWebview(link)}
         testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
       >
@@ -163,7 +163,7 @@ export function ActivityDetailsBridgeExplorerButtons({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          twClassName="w-full"
+          className="w-full"
           onPress={() => openWebview(sourceLink)}
           testID={`${ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}-source`}
         >
@@ -174,7 +174,7 @@ export function ActivityDetailsBridgeExplorerButtons({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          twClassName="w-full"
+          className="w-full"
           onPress={() => openWebview(destLink)}
           testID={`${ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}-dest`}
         >
@@ -202,7 +202,7 @@ export function ActivityDetailsDoItAgainButton({
     <Button
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
-      twClassName="w-full"
+      className="w-full"
       onPress={onPress}
       testID={ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON}
     >

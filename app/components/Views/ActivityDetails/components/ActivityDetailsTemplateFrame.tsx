@@ -27,7 +27,7 @@ export function ActivityDetailsTemplateFrame({
   heroDividerTestID?: string;
 }) {
   return (
-    <Box twClassName="flex-1 gap-2">
+    <Box className="flex-1 gap-2">
       {hero}
       {hero ? (
         <SectionDivider
@@ -42,7 +42,7 @@ export function ActivityDetailsTemplateFrame({
           {details}
         </>
       ) : null}
-      <Box twClassName="mt-auto pt-4">
+      <Box className="mt-auto pt-4">
         <ActivityDetailsFooter>{footer}</ActivityDetailsFooter>
       </Box>
     </Box>

@@ -90,7 +90,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
     () =>
       showTopTraders ? (
         <>
-          <Box twClassName="pb-1">
+          <Box className="pb-1">
             <TopTradersSection
               source="explore_crypto"
               prefetchProfiles={prefetchTraderProfiles}

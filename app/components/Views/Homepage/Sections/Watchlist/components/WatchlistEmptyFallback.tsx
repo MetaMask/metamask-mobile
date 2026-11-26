@@ -37,14 +37,14 @@ const WatchlistEmptyFallback: React.FC = () => {
       <Text
         variant={TextVariant.HeadingSm}
         color={TextColor.TextDefault}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('token_watchlist.home_empty_title')}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        className="text-center"
       >
         {strings('token_watchlist.home_empty_subtitle')}
       </Text>

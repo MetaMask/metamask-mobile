@@ -148,7 +148,7 @@ const PerpsMarketTileCardContent: React.FC<PerpsMarketTileCardContentProps> = ({
             )}
           </View>
 
-          <Box twClassName="flex-1 min-w-0">
+          <Box className="flex-1 min-w-0">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -159,7 +159,7 @@ const PerpsMarketTileCardContent: React.FC<PerpsMarketTileCardContentProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
-                twClassName="shrink"
+                className="shrink"
               >
                 {getPerpsDisplaySymbol(market.symbol)}
               </Text>
@@ -177,7 +177,7 @@ const PerpsMarketTileCardContent: React.FC<PerpsMarketTileCardContentProps> = ({
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
-                twClassName="shrink"
+                className="shrink"
                 testID={homepagePerpsMarketTileCardPriceTestId(
                   testID,
                   market.symbol,
