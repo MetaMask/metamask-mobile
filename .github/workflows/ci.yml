@@ -1184,8 +1184,12 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      - run: |
+          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
+          # shellcheck disable=SC2086
+          yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent $JEST_COVERAGE_ARGS --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
+          JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
           NODE_OPTIONS: --max_old_space_size=12288
       - name: Rename coverage report and extract test count for this shard
         shell: bash
@@ -1342,7 +1346,11 @@ jobs:
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
-      - run: yarn test:validate-coverage
+      # Global thresholds need whole-app coverage. Pull requests collect coverage
+      # for changed files only, so the thresholds are enforced on main.
+      - name: Validate global coverage thresholds
+        if: ${{ github.event_name != 'pull_request' }}
+        run: yarn test:validate-coverage
       - name: Upload lcov.info (artifact stores)
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
@@ -1484,11 +1492,15 @@ jobs:
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
+          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
+          # shellcheck disable=SC2086
           yarn test:view:ci \
             --shard=${{ matrix.shard }}/6 \
+            $JEST_COVERAGE_ARGS \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
+          JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
@@ -1654,11 +1666,15 @@ jobs:
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
+          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
+          # shellcheck disable=SC2086
           yarn test:integration:ci \
             --shard=${{ matrix.shard }}/2 \
+            $JEST_COVERAGE_ARGS \
             --json \
             --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
         env:
+          JEST_COVERAGE_ARGS: ${{ needs.get_requirements.outputs.jest_coverage_args }}
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && format('--max-old-space-size={0}', matrix.heap_mb) || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
