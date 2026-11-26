@@ -517,27 +517,6 @@ const RewardsDashboard: React.FC = () => {
                     }}
                     onAction={openComposerPress}
                     testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
-                  /><AvatarIcon
-                        iconName={IconName.People}
-                        size={AvatarIconSize.Xl}
-                        severity={AvatarIconSeverity.Neutral}
-                        iconProps={{ color: IconColor.IconDefault }}
-                      />
-                    }
-                    description={copyTradingText.copyTradingEmptyDescription}
-                    descriptionProps={{
-                      variant: TextVariant.BodyMd,
-                      color: TextColor.TextAlternative,
-                    }}
-                    actionButtonText={copyTradingText.copyTradingEmptyAction}
-                    actionButtonProps={{
-                      variant: ButtonVariant.Primary,
-                      size: ButtonSize.Lg,
-                      twClassName: 'mt-3 self-stretch',
-                      testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
-                    }}
-                    onAction={openComposerPress}
-                    testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
                   />
                 </Box>
               </Box>

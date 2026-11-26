@@ -87,9 +87,6 @@ const CampaignsPreview: React.FC = () => {
             <ActivityIndicator size="small" color={colors.primary.default} />
           ) : undefined
         }
-      /><ActivityIndicator size="small" color={colors.primary.default} />
-          ) : undefined
-        }
       />
       {/* paddingTop matches the Home tab, where sections pair SectionHeader
           with a pt-3 content box. */}

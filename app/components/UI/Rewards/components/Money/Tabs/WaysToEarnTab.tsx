@@ -285,35 +285,6 @@ const HistorySection: React.FC<{
           }}
           onAction={onEmptyAction}
           testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_EMPTY}
-        /><AvatarIcon
-              iconName={copyTradingOnly ? IconName.People : IconName.Activity}
-              size={AvatarIconSize.Xl}
-              severity={AvatarIconSeverity.Neutral}
-              iconProps={{ color: IconColor.IconDefault }}
-            />
-          }
-          description={
-            copyTradingOnly
-              ? localizedText.copyTradingEmptyDescription
-              : localizedText.tradingActivityEmptyDescription
-          }
-          descriptionProps={{
-            variant: TextVariant.BodyMd,
-            color: TextColor.TextAlternative,
-          }}
-          actionButtonText={
-            copyTradingOnly
-              ? localizedText.copyTradingEmptyAction
-              : localizedText.tradingActivityEmptyAction
-          }
-          actionButtonProps={{
-            variant: ButtonVariant.Primary,
-            size: ButtonSize.Lg,
-            twClassName: 'mt-3 self-stretch',
-            testID: `${WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_EMPTY}-action`,
-          }}
-          onAction={onEmptyAction}
-          testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_EMPTY}
         />
       </Box>
     );

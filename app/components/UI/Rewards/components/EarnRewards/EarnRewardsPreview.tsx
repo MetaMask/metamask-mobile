@@ -230,9 +230,6 @@ const EarnRewardsPreview: React.FC = () => {
             <ActivityIndicator size="small" color={colors.primary.default} />
           ) : undefined
         }
-      /><ActivityIndicator size="small" color={colors.primary.default} />
-          ) : undefined
-        }
       />
       {/* paddingTop matches CampaignsPreview / BenefitsPreview, where
           sections pair SectionHeader with a pt-3 content box. */}

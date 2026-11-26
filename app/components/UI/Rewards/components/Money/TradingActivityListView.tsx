@@ -190,31 +190,6 @@ function TradingActivityListView<T extends { id: string }>({
               }
             : {})}
           testID={TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}
-        /><AvatarIcon
-              iconName={emptyIconName}
-              size={AvatarIconSize.Xl}
-              severity={AvatarIconSeverity.Neutral}
-              iconProps={{ color: IconColor.IconDefault }}
-            />
-          }
-          description={emptyDescription}
-          descriptionProps={{
-            variant: TextVariant.BodyMd,
-            color: TextColor.TextAlternative,
-          }}
-          {...(emptyActionLabel && emptyOnAction
-            ? {
-                actionButtonText: emptyActionLabel,
-                actionButtonProps: {
-                  variant: ButtonVariant.Primary,
-                  size: ButtonSize.Lg,
-                  twClassName: 'mt-3 self-stretch',
-                  testID: `${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`,
-                },
-                onAction: emptyOnAction,
-              }
-            : {})}
-          testID={TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}
         />
       </Box>
     );

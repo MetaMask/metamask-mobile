@@ -635,7 +635,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TITLE_SECTION}>
           <TitleSubpage
             startAccessory={
-              <Box className="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+              <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
                 {selectedMarket.image ? (
                   <Image
                     source={{ uri: selectedMarket.image }}
@@ -643,7 +643,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                     contentFit="cover"
                   />
                 ) : (
-                  <Box className="w-full h-full bg-muted" />
+                  <Box twClassName="w-full h-full bg-muted" />
                 )}
               </Box>
             }
@@ -651,22 +651,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             bottomLabel={twapWindowSeconds ? undefined : subtitle}
             bottomAccessory={bottomAccessory}
             className="px-4 pt-1 pb-3"
-          /><Box className="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-                {selectedMarket.image ? (
-                  <Image
-                    source={{ uri: selectedMarket.image }}
-                    style={tw.style('w-full h-full')}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <Box className="w-full h-full bg-muted" />
-                )}
-              </Box>
-            }
-            title={title}
-            bottomLabel={twapWindowSeconds ? undefined : subtitle}
-            bottomAccessory={bottomAccessory}
-            twClassName="px-4 pt-1 pb-3"
           />
         </Box>
 

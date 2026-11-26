@@ -280,20 +280,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     }
                     onPress={() => handleBuy(outcome, outcome.tokens[0])}
                     style={styles.buttonYes}
-                  /><Text
-                        variant={
-                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
-                        }
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.SuccessDefault}
-                        numberOfLines={1}
-                        ellipsizeMode="clip"
-                      >
-                        {truncateLabel(outcomeLabels[0])}
-                      </Text>
-                    }
-                    onPress={() => handleBuy(outcome, outcome.tokens[0])}
-                    style={styles.buttonYes}
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
@@ -301,20 +287,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     width={ButtonWidthTypes.Full}
                     label={
                       <Text
-                        variant={
-                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
-                        }
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.ErrorDefault}
-                        numberOfLines={1}
-                        ellipsizeMode="clip"
-                      >
-                        {truncateLabel(outcomeLabels[1])}
-                      </Text>
-                    }
-                    onPress={() => handleBuy(outcome, outcome.tokens[1])}
-                    style={styles.buttonNo}
-                  /><Text
                         variant={
                           isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }

@@ -281,16 +281,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
-          /><Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
-                style={tw.style('font-medium')}
-                color={TextColor.SuccessDefault}
-              >
-                {outcome.tokens[0].title}
-              </Text>
-            }
-            onPress={() => handleBuy(outcome.tokens[0])}
-            style={styles.buttonYes}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -298,16 +288,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
-                style={tw.style('font-medium')}
-                color={TextColor.ErrorDefault}
-              >
-                {outcome.tokens[1].title}
-              </Text>
-            }
-            onPress={() => handleBuy(outcome.tokens[1])}
-            style={styles.buttonNo}
-          /><Text
                 variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.ErrorDefault}

@@ -165,36 +165,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 },
               }),
             }}
-          /><Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  gap={1}
-                >
-                  {accountOptedIn ? (
-                    <RewardsAnimations
-                      value={estimatedPoints ?? 0}
-                      state={
-                        isRewardsLoading
-                          ? RewardAnimationState.Loading
-                          : hasRewardsError
-                            ? RewardAnimationState.ErrorState
-                            : RewardAnimationState.Idle
-                      }
-                    />
-                  ) : rewardsAccountScope ? (
-                    <AddRewardsAccount account={rewardsAccountScope} />
-                  ) : null}
-                </Box>
-              ),
-              ...(hasRewardsError && {
-                tooltip: {
-                  title: strings('predict.fee_summary.points_error'),
-                  content: strings('predict.fee_summary.points_error_content'),
-                  iconName: IconNameLegacy.Info,
-                },
-              }),
-            }}
           />
         )}
       </Box>

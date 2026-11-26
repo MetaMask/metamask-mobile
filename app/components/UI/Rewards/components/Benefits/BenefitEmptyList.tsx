@@ -32,18 +32,6 @@ const BenefitEmptyList = () => (
         variant: TextVariant.BodyMd,
         color: TextColor.TextAlternative,
       }}
-    /><AvatarIcon
-          iconName={IconName.Gift}
-          size={AvatarIconSize.Xl}
-          severity={AvatarIconSeverity.Neutral}
-          iconProps={{ color: IconColor.IconDefault }}
-        />
-      }
-      description={strings('rewards.benefits.empty-list')}
-      descriptionProps={{
-        variant: TextVariant.BodyMd,
-        color: TextColor.TextAlternative,
-      }}
     />
   </Box>
 );

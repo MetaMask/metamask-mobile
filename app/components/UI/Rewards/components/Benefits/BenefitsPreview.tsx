@@ -102,26 +102,6 @@ const BenefitsPreview = () => {
           name={IconName.ArrowRight}
           size={IconSize.Md}
           color={IconColor.IconAlternative}
-          className="shrink-0"
-        />
-      }
-      // The growing end accessory takes the remaining row width so the count
-      // tag sits flush against the right edge instead of next to the title.
-      endAccessory={
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.End}
-          className="grow"
-        >
-          {benefitsCountBadge}
-        </Box>
-      }
-      isInteractive
-      onPress={handleNavigateToBenefitsFullView}
-    /><Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
           twClassName="shrink-0"
         />
       }
@@ -131,7 +111,7 @@ const BenefitsPreview = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.End}
-          className="grow"
+          twClassName="grow"
         >
           {benefitsCountBadge}
         </Box>
