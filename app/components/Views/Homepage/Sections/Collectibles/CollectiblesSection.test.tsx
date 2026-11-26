@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from '@metamask/design-system-react-native';
@@ -33,15 +33,15 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
 
 const Stack = createNativeStackNavigator();
 
+function HomeScreen() {
+  return <CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />;
+}
+
 function CollectiblesStub() {
   return <Text>collectibles landing</Text>;
 }
 
-function render(ui: ReactElement) {
-  function HomeScreen() {
-    return ui;
-  }
-
+function renderSection() {
   return renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} />
@@ -65,7 +65,7 @@ describe('CollectiblesSection', () => {
 
   it('shows skeletons while loading', () => {
     mockQuery = { ...mockQuery, data: undefined, isPending: true };
-    render(<CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderSection();
     expect(screen.getByTestId(collectiblesTestIds.skeleton)).toBeOnTheScreen();
   });
 
@@ -74,7 +74,7 @@ describe('CollectiblesSection', () => {
     ['the query fails', { data: undefined, isError: true }],
   ])('shows the empty placeholder when %s', (_, state) => {
     mockQuery = { ...mockQuery, ...state };
-    render(<CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderSection();
     expect(screen.getByTestId(collectiblesTestIds.empty)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('collectibles.home.empty')),
@@ -86,14 +86,14 @@ describe('CollectiblesSection', () => {
 
   it('keeps cached packs when a refetch fails', () => {
     mockQuery = { ...mockQuery, isError: true };
-    render(<CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderSection();
     expect(
       screen.getByTestId(collectiblesTestIds.tile(mockHomePacks[0].code)),
     ).toBeOnTheScreen();
   });
 
   it('renders the mock packs', () => {
-    render(<CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderSection();
     const [firstPack] = mockHomePacks;
     expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     expect(
@@ -108,7 +108,7 @@ describe('CollectiblesSection', () => {
   });
 
   it('opens the collectibles landing screen from the header', async () => {
-    render(<CollectiblesSection sectionIndex={0} totalSectionsLoaded={1} />);
+    renderSection();
 
     fireEvent.press(
       screen.getByTestId(

@@ -1,6 +1,6 @@
-import React, { type ReactElement } from 'react';
+import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import renderWithProvider from '#app/util/test/renderWithProvider';
+import render from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import type { EpicHuntPack } from '#app/components/UI/Collectibles/types/packs';
@@ -20,10 +20,6 @@ const pack: EpicHuntPack = {
   priceUsd: 25,
   pullsOverAverage: -68,
 };
-
-function render(ui: ReactElement) {
-  return renderWithProvider(ui);
-}
 
 describe('EpicHuntSection', () => {
   beforeEach(() => {

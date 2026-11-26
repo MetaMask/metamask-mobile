@@ -1,6 +1,6 @@
-import React, { type ReactElement } from 'react';
+import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import renderWithProvider from '#app/util/test/renderWithProvider';
+import render from '#app/util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { getFormatters } from '#app/components/hooks/useFormatters';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
@@ -17,10 +17,6 @@ jest.mock('#app/components/UI/Collectibles/hooks/useHomePacks', () => ({
 
 const [pack] = mockHomePacks;
 const { formatCurrency } = getFormatters();
-
-function render(ui: ReactElement) {
-  return renderWithProvider(ui);
-}
 
 describe('BuySheetView', () => {
   it('shows the price of one pack as the amount', () => {
