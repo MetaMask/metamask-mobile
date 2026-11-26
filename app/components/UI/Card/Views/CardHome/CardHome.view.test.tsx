@@ -18,10 +18,8 @@ import {
 } from '../../../../../../tests/component-view/render';
 import { CardHomeSelectors } from './CardHome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import Cashback from '../Cashback/Cashback';
 import ChooseYourCard from '../ChooseYourCard/ChooseYourCard';
 import CardAuthentication from '../CardAuthentication/CardAuthentication';
-import { CashbackSelectors } from '../Cashback/Cashback.testIds';
 import { ChooseYourCardSelectors } from '../ChooseYourCard/ChooseYourCard.testIds';
 import { CardAuthenticationSelectors } from '../CardAuthentication/CardAuthentication.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -425,22 +423,13 @@ describe('CardHome', () => {
         ).toBeOnTheScreen();
       });
 
-      it('opens Cashback screen showing balance and withdrawal button when Cashback button is pressed', async () => {
-        const { getByTestId, findByTestId } = renderCardHomeView({
-          extraRoutes: [{ name: Routes.CARD.CASHBACK, Component: Cashback }],
-        });
-
-        fireEvent.press(getByTestId(CardHomeSelectors.CASHBACK_ITEM));
+      it('shows the cashback panel instead of the mUSD Back row', () => {
+        const { getByTestId, queryByTestId } = renderCardHomeView();
 
         expect(
-          await findByTestId(CashbackSelectors.CONTAINER),
+          getByTestId(CardHomeSelectors.CASHBACK_PANEL_SLOT),
         ).toBeOnTheScreen();
-        expect(
-          await findByTestId(CashbackSelectors.BALANCE_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          await findByTestId(CashbackSelectors.WITHDRAW_BUTTON),
-        ).toBeOnTheScreen();
+        expect(queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
       });
 
       it('opens Choose Your Card screen showing card carousel and upgrade button when Order Metal Card button is pressed', async () => {

@@ -124,6 +124,14 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
+import CardCashbackPanel from '../../components/CashbackPanel/CardCashbackPanel';
+import CashbackCoinRain from '../../components/CashbackPanel/CashbackCoinRain';
+import { CASHBACK_PAYOUT_INCREMENT } from '../../components/CashbackPanel/CashbackPanel.utils';
+import {
+  IS_CASHBACK_AUTO_PAYOUT_PROTOTYPE_ENABLED,
+  setCashbackAutoPayoutPrototype,
+  useCashbackAutoPayoutPrototype,
+} from '../../util/cashbackAutoPayoutPrototype';
 import CardHomeLoadingSkeleton from './components/CardHomeLoadingSkeleton';
 import CardHomeRecentActivity from './components/CardHomeRecentActivity';
 import { useCardRecentTransactions } from '../../hooks/useCardRecentTransactions';
@@ -164,6 +172,8 @@ interface CardHomeRouteParams {
   fromCardOnboarding?: boolean;
   /** Opened from the KYC timeout or pending notification while still in review. */
   fromKycPending?: boolean;
+  /** Opened from a "cashback paid out" push: plays the payout celebration. */
+  cashbackPayoutAmount?: string;
 }
 
 /** Local tabs under the action button row (active and frozen states only). */
@@ -872,6 +882,36 @@ const CardHome = () => {
     enabled: showRecentActivity && isFocused,
   });
 
+  // Baanx cashback lives on Card home as a panel (claim in place). Immersve
+  // keeps its own mUSD Back row until its claim flow moves here too.
+  const showCashbackPanel =
+    isAuthenticated &&
+    !isLoading &&
+    !isBlocked &&
+    !isUkMigrationForced &&
+    !hasSetupActions &&
+    !hasAlertOnlyState &&
+    !isImmersve &&
+    capabilities?.supportsCashback === true &&
+    data?.account?.verificationStatus === 'VERIFIED';
+  const isCashbackAutoPayoutOn = useCashbackAutoPayoutPrototype();
+  // Cashback payout coin rain covers the whole view, so the screen owns it.
+  const [coinRainKey, setCoinRainKey] = useState<number | null>(null);
+  const coinRainDoneRef = useRef<(() => void) | null>(null);
+  const handleCashbackCelebrate = useCallback((onDone: () => void) => {
+    coinRainDoneRef.current = onDone;
+    setCoinRainKey(Date.now());
+  }, []);
+  const handleCoinRainComplete = useCallback(() => {
+    const onDone = coinRainDoneRef.current;
+    coinRainDoneRef.current = null;
+    setCoinRainKey(null);
+    onDone?.();
+  }, []);
+  const handleCashbackPushHandled = useCallback(() => {
+    navigation.setParams({ cashbackPayoutAmount: undefined } as never);
+  }, [navigation]);
+
   // Callers that open Card Home directly still leave when logged out.
   // Signed-out KYC review is the only layout this screen renders without a session.
   if (!isAuthenticated && !isSignedOutKycPending) {
@@ -1056,6 +1096,7 @@ const CardHome = () => {
                 onInfoPress={handleOpenCreditBalanceTooltip}
                 infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
                 isUnavailable={primaryToken?.isUnavailable}
+                animateBalance={showCashbackPanel}
               />
             )}
 
@@ -1226,6 +1267,16 @@ const CardHome = () => {
               />
             )}
 
+            {showCashbackPanel && (
+              <Box testID={CardHomeSelectors.CASHBACK_PANEL_SLOT}>
+                <CardCashbackPanel
+                  pushPayoutAmount={route.params?.cashbackPayoutAmount}
+                  onPushPayoutHandled={handleCashbackPushHandled}
+                  onCelebrate={handleCashbackCelebrate}
+                />
+              </Box>
+            )}
+
             {showHomeSegments && (
               <Box twClassName="px-4 mt-4 mb-4">
                 <SegmentedControl
@@ -1330,6 +1381,23 @@ const CardHome = () => {
                   account={data?.account}
                   capabilities={capabilities}
                   providerId={activeProviderId}
+                  showCashbackAutoPayout={
+                    IS_CASHBACK_AUTO_PAYOUT_PROTOTYPE_ENABLED &&
+                    showCashbackPanel
+                  }
+                  isCashbackAutoPayoutOn={isCashbackAutoPayoutOn}
+                  onToggleCashbackAutoPayout={setCashbackAutoPayoutPrototype}
+                  cashbackPayoutIncrementLabel={formatWithThreshold(
+                    CASHBACK_PAYOUT_INCREMENT,
+                    0.01,
+                    'en-US',
+                    {
+                      style: 'currency',
+                      currency: 'USD',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    },
+                  )}
                   isSpendingLimitActive={isSpendingLimitActive}
                   isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
                   isAuthenticated={isAuthenticated}
@@ -1421,6 +1489,12 @@ const CardHome = () => {
           </>
         )}
       </ScrollView>
+      {coinRainKey !== null ? (
+        <CashbackCoinRain
+          key={coinRainKey}
+          onComplete={handleCoinRainComplete}
+        />
+      ) : null}
     </Box>
   );
 };

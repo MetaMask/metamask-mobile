@@ -1,6 +1,10 @@
 import React from 'react';
 import { Image, Platform, StyleSheet, Switch } from 'react-native';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName,
+  Switch as DSSwitch,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ManageCardListItem from '../../../components/ManageCardListItem';
 import applePayMark from '../../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
@@ -34,20 +38,19 @@ function cashbackRateLabel(
   return '1';
 }
 
+/**
+ * The mUSD Back row is only for Immersve now. Baanx cards show the Card home
+ * cashback panel instead, which claims in place (no menu diving).
+ */
 function showCashbackRow(
   isFullySetUp: boolean,
   hideManageOptions: boolean,
   providerId: string | null | undefined,
-  supportsCashback: boolean | undefined,
-  verificationStatus: string | null | undefined,
 ): boolean {
   if (!isFullySetUp || hideManageOptions) {
     return false;
   }
-  if (providerId === 'immersve') {
-    return true;
-  }
-  return supportsCashback === true && verificationStatus === 'VERIFIED';
+  return providerId === 'immersve';
 }
 
 interface ManageCardOptionsProps {
@@ -90,6 +93,12 @@ interface ManageCardOptionsProps {
    */
   hiddenQuickActionRows?: CardHomeActionVisibility;
   onCashback: () => void;
+  /** PROTOTYPE: shows the local-only cashback auto payout toggle. */
+  showCashbackAutoPayout?: boolean;
+  isCashbackAutoPayoutOn?: boolean;
+  onToggleCashbackAutoPayout?: (value: boolean) => void;
+  /** Payout increment for the auto payout description, e.g. "$5". */
+  cashbackPayoutIncrementLabel?: string;
   providerId?: string | null;
   onTravel: () => void;
   onTransactionHistory?: () => void;
@@ -137,6 +146,10 @@ const ManageCardOptions = ({
   hasPriorityTokenBalance,
   hiddenQuickActionRows,
   onCashback,
+  showCashbackAutoPayout = false,
+  isCashbackAutoPayoutOn = false,
+  onToggleCashbackAutoPayout,
+  cashbackPayoutIncrementLabel = '',
   providerId,
   onTravel,
   onTransactionHistory,
@@ -237,8 +250,6 @@ const ManageCardOptions = ({
           Boolean(isFullySetUp),
           hideManageOptions,
           providerId,
-          capabilities?.supportsCashback,
-          account?.verificationStatus,
         ) && (
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.cashback', {
@@ -252,6 +263,26 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.CASHBACK_ITEM}
           />
         )}
+        {showCashbackAutoPayout &&
+          !hideManageOptions &&
+          onToggleCashbackAutoPayout && (
+            <ManageCardListItem
+              title={strings('card.card_home.cashback_panel.auto_payout_title')}
+              description={strings(
+                'card.card_home.cashback_panel.auto_payout_description',
+                { target: cashbackPayoutIncrementLabel },
+              )}
+              rightElement={
+                <DSSwitch
+                  isOn={isCashbackAutoPayoutOn}
+                  onValueChange={onToggleCashbackAutoPayout}
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_TOGGLE}
+                />
+              }
+              testID={CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM}
+            />
+          )}
         {!hiddenQuickActionRows?.details &&
           isAuthenticated &&
           !isLoading &&

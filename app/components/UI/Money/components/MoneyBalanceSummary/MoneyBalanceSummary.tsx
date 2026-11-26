@@ -19,6 +19,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../DottedUnderline';
 import TextShimmer from '../TextShimmer';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { MoneyVaultStatus } from '../../utils/moneyVaultState';
@@ -47,6 +48,11 @@ interface MoneyBalanceSummaryProps {
    */
   onBalancePress?: () => void;
   /**
+   * Rolls the balance digits when the value changes (e.g. a payout landing).
+   * Off by default; privacy mode always shows the static hidden text.
+   */
+  animateBalance?: boolean;
+  /**
    * Set by the pushed Money screen, which moves the title out of the header
    * and into a `TitleHub` here so it can collapse on scroll. The Money tab
    * leaves this unset and keeps its title in the header.
@@ -70,6 +76,7 @@ const MoneyBalanceSummary = ({
   apy,
   onApyInfoPress,
   privacyMode = false,
+  animateBalance = false,
   onBalancePress,
   showTitle = false,
   isPremium = false,
@@ -174,6 +181,16 @@ const MoneyBalanceSummary = ({
   const renderBalanceSlot = () => {
     switch (displayState.kind) {
       case 'balance':
+        if (animateBalance && !privacyMode) {
+          return wrapPressable(
+            <AnimatedBalanceText
+              isLoading={false}
+              loadingValue={displayState.value}
+              value={displayState.value}
+              testID={MoneyBalanceSummaryTestIds.BALANCE}
+            />,
+          );
+        }
         return wrapPressable(
           <SensitiveText
             variant={TextVariant.AmountDisplayLg}

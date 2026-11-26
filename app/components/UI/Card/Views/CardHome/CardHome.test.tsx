@@ -729,6 +729,15 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CardEntryPoint } from '../../util/metrics';
 import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 
+// The cashback panel has its own tests; keep Card home tests off its queries.
+jest.mock('../../components/CashbackPanel/CardCashbackPanel', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-card-cashback-panel" />,
+  };
+});
+
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
   .setActiveNetwork as jest.MockedFunction<
@@ -7185,12 +7194,12 @@ describe('CardHome Component', () => {
     });
   });
 
-  describe('Cashback List Item', () => {
+  describe('Cashback panel', () => {
     beforeEach(() => {
       mockGetCapabilities.mockReturnValue({ supportsCashback: true });
     });
 
-    it('displays cashback item for authenticated international user with VERIFIED KYC', () => {
+    it('shows the cashback panel for an authenticated international user with VERIFIED KYC', () => {
       // Given: authenticated international user with verified KYC
       setupMockSelectors({
         isAuthenticated: true,
@@ -7207,13 +7216,13 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cashback item is visible
+      // Then: cashback panel is visible
       expect(
-        screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM),
+        screen.getByTestId(CardHomeSelectors.CASHBACK_PANEL_SLOT),
       ).toBeOnTheScreen();
     });
 
-    it('hides cashback item for US users', () => {
+    it('hides the cashback panel for US users', () => {
       // Given: authenticated US user with verified KYC
       mockGetCapabilities.mockReturnValue({ supportsCashback: false });
       setupMockSelectors({
@@ -7231,13 +7240,13 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cashback item is not rendered
+      // Then: cashback panel is not rendered
       expect(
-        screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+        screen.queryByTestId(CardHomeSelectors.CASHBACK_PANEL_SLOT),
       ).not.toBeOnTheScreen();
     });
 
-    it('hides cashback item when KYC is not verified', () => {
+    it('hides the cashback panel when KYC is not verified', () => {
       // Given: authenticated international user with pending KYC
       setupMockSelectors({
         isAuthenticated: true,
@@ -7254,97 +7263,37 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cashback item is not rendered
+      // Then: cashback panel is not rendered
       expect(
-        screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+        screen.queryByTestId(CardHomeSelectors.CASHBACK_PANEL_SLOT),
       ).not.toBeOnTheScreen();
     });
 
-    it('shows standard cashback title for virtual card', () => {
-      // Given: authenticated international user with virtual card
-      setupMockSelectors({
-        isAuthenticated: true,
-        userLocation: 'international',
-      });
-      setupLoadCardDataMock({
-        isAuthenticated: true,
+    it.each([CardType.VIRTUAL, CardType.METAL])(
+      'does not show the mUSD Back row for a %s card (the panel replaces it)',
+      (type) => {
+        setupMockSelectors({
+          isAuthenticated: true,
+          userLocation: 'international',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
 
-        cardDetails: { type: CardType.VIRTUAL },
-        isLoading: false,
-        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      });
+          cardDetails: { type },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
 
-      // When: component renders
-      render();
+        render();
 
-      // Then: standard 1% title is shown
-      expect(screen.getByText('1% mUSD Back')).toBeOnTheScreen();
-    });
-
-    it('shows metal cashback title for metal card', () => {
-      // Given: authenticated international user with metal card
-      setupMockSelectors({
-        isAuthenticated: true,
-        userLocation: 'international',
-      });
-      setupLoadCardDataMock({
-        isAuthenticated: true,
-
-        cardDetails: { type: CardType.METAL },
-        isLoading: false,
-        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      });
-
-      // When: component renders
-      render();
-
-      // Then: metal 3% title is shown
-      expect(screen.getByText('3% mUSD Back')).toBeOnTheScreen();
-    });
-
-    it('navigates to cashback screen on press', () => {
-      // Given: authenticated international user with verified KYC
-      setupMockSelectors({
-        isAuthenticated: true,
-        userLocation: 'international',
-      });
-      setupLoadCardDataMock({
-        isAuthenticated: true,
-
-        cardDetails: { type: CardType.VIRTUAL },
-        isLoading: false,
-        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      });
-
-      // When: user taps cashback item
-      render();
-      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
-
-      // Then: navigates to cashback route
-      expect(mockNavigate).toHaveBeenCalled();
-    });
-
-    it('tracks analytics event on press', () => {
-      // Given: authenticated international user with verified KYC
-      setupMockSelectors({
-        isAuthenticated: true,
-        userLocation: 'international',
-      });
-      setupLoadCardDataMock({
-        isAuthenticated: true,
-
-        cardDetails: { type: CardType.VIRTUAL },
-        isLoading: false,
-        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      });
-
-      // When: user taps cashback item
-      render();
-      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
-
-      // Then: tracks cashback button event
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
+        expect(
+          screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(CardHomeSelectors.CASHBACK_PANEL_SLOT),
+        ).toBeOnTheScreen();
+      },
+    );
   });
 
   describe('Enable Card - ChooseYourCard Redirect', () => {

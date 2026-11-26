@@ -11,6 +11,11 @@ import {
 import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 
+export interface CardHomeDeeplinkParams {
+  /** Paid-out cashback amount from a push; plays the payout celebration. */
+  cashbackPayoutAmount?: string;
+}
+
 /**
  * Card home deeplink handler
  *
@@ -34,8 +39,12 @@ import { selectInternalAccounts } from '../../../../selectors/accountsController
  * Supported URL formats:
  * - https://link.metamask.io/card-home
  * - https://metamask.app.link/card-home
+ *
+ * `cardHomeParams` are passed to Card Home when the user is signed in (e.g.
+ * `cashbackPayoutAmount` from a "cashback paid out" push plays the payout
+ * celebration).
  */
-export const handleCardHome = () => {
+export const handleCardHome = (cardHomeParams?: CardHomeDeeplinkParams) => {
   DevLogger.log('[handleCardHome] Starting card home deeplink handling');
 
   try {
@@ -49,7 +58,8 @@ export const handleCardHome = () => {
           ? '[handleCardHome] Navigating to Card Home'
           : '[handleCardHome] Navigating to Card login',
       );
-      const openCard = () => navigateToCardEntry(isAuthenticated);
+      const openCard = () =>
+        navigateToCardEntry(isAuthenticated, cardHomeParams);
       if (!isAuthenticated && hasCard) {
         switchToLinkedCardAccount().then(openCard, openCard);
       } else {
@@ -103,12 +113,18 @@ export const handleCardHome = () => {
   }
 };
 
-function navigateToCardEntry(isAuthenticated: boolean): void {
+function navigateToCardEntry(
+  isAuthenticated: boolean,
+  cardHomeParams?: CardHomeDeeplinkParams,
+): void {
   setTimeout(() => {
     NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: {
         screen: isAuthenticated ? Routes.CARD.HOME : Routes.CARD.AUTHENTICATION,
+        ...(isAuthenticated && cardHomeParams
+          ? { params: cardHomeParams }
+          : {}),
       },
     });
   }, 500);

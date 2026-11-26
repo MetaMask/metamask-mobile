@@ -80,6 +80,9 @@ const renderComponent = (
     providerId?: string;
     account?: { verificationStatus: string | null };
     hiddenQuickActionRows?: CardHomeActionVisibility;
+    showCashbackAutoPayout?: boolean;
+    isCashbackAutoPayoutOn?: boolean;
+    onToggleCashbackAutoPayout?: (value: boolean) => void;
   } = {},
 ) =>
   render(
@@ -121,6 +124,10 @@ const renderComponent = (
       hiddenQuickActionRows={overrides.hiddenQuickActionRows}
       onCashback={jest.fn()}
       providerId={overrides.providerId}
+      showCashbackAutoPayout={overrides.showCashbackAutoPayout}
+      isCashbackAutoPayoutOn={overrides.isCashbackAutoPayoutOn}
+      onToggleCashbackAutoPayout={overrides.onToggleCashbackAutoPayout}
+      cashbackPayoutIncrementLabel="$5"
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
       showTransactionHistoryDuringSetup={
@@ -644,33 +651,13 @@ describe('ManageCardOptions transaction history gating', () => {
     expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
   });
 
-  it('shows 1% for a verified virtual card', () => {
+  it('shows 3% mUSD Back for Immersve', () => {
     const { getByTestId } = renderComponent(
       buildCapabilities({
-        supportsCashback: true,
+        supportsCashback: false,
         supportsFundingLimits: false,
       }),
-      { providerId: 'baanx', account: { verificationStatus: 'VERIFIED' } },
-    );
-
-    expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toHaveTextContent(
-      strings('card.card_home.manage_card_options.cashback', {
-        cashbackPercentage: '1',
-      }),
-    );
-  });
-
-  it('shows 3% for a metal card', () => {
-    const { getByTestId } = renderComponent(
-      buildCapabilities({
-        supportsCashback: true,
-        supportsFundingLimits: false,
-      }),
-      {
-        providerId: 'baanx',
-        card: { ...CARD, type: CardType.METAL },
-        account: { verificationStatus: 'VERIFIED' },
-      },
+      { providerId: 'immersve', account: { verificationStatus: null } },
     );
 
     expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toHaveTextContent(
@@ -679,6 +666,28 @@ describe('ManageCardOptions transaction history gating', () => {
       }),
     );
   });
+
+  it.each([
+    ['virtual', CardType.VIRTUAL],
+    ['metal', CardType.METAL],
+  ])(
+    'hides the mUSD Back row for a verified Baanx %s card (the Card home panel replaces it)',
+    (_label, type) => {
+      const { queryByTestId } = renderComponent(
+        buildCapabilities({
+          supportsCashback: true,
+          supportsFundingLimits: false,
+        }),
+        {
+          providerId: 'baanx',
+          card: { ...CARD, type },
+          account: { verificationStatus: 'VERIFIED' },
+        },
+      );
+
+      expect(queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
+    },
+  );
 
   it('hides cashback for an unverified Baanx account', () => {
     const { queryByTestId } = renderComponent(
@@ -690,5 +699,40 @@ describe('ManageCardOptions transaction history gating', () => {
     );
 
     expect(queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
+  });
+});
+
+describe('ManageCardOptions cashback auto payout (prototype)', () => {
+  it('shows the auto payout row with the payout increment when enabled', () => {
+    const { getByTestId } = renderComponent(buildCapabilities({}), {
+      showCashbackAutoPayout: true,
+      onToggleCashbackAutoPayout: jest.fn(),
+    });
+
+    const row = getByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM);
+    expect(row).toHaveTextContent(
+      strings('card.card_home.cashback_panel.auto_payout_title'),
+    );
+  });
+
+  it('hides the auto payout row when the prototype is off', () => {
+    const { queryByTestId } = renderComponent(buildCapabilities({}), {
+      showCashbackAutoPayout: false,
+      onToggleCashbackAutoPayout: jest.fn(),
+    });
+
+    expect(
+      queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
+    ).toBeNull();
+  });
+
+  it('hides the auto payout row when no toggle handler is provided', () => {
+    const { queryByTestId } = renderComponent(buildCapabilities({}), {
+      showCashbackAutoPayout: true,
+    });
+
+    expect(
+      queryByTestId(CardHomeSelectors.CASHBACK_AUTO_PAYOUT_ITEM),
+    ).toBeNull();
   });
 });
