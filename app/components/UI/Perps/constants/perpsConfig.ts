@@ -84,7 +84,7 @@ export const isTokenTrustworthyForPerps = (asset: Partial<TokenI>): boolean => {
 // controller-layer consumers.
 
 /**
- * Redesigned confirmations screen header configuration (Perps)
+ * Confirmations screen header configuration (Perps)
  * Controls whether the Perps header is shown when navigating to the confirmation screen
  */
 export const CONFIRMATION_HEADER_CONFIG = {

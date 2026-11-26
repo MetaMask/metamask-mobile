@@ -234,6 +234,10 @@ describe('useMoneyTransactionStatus', () => {
     ReturnType<MoneyToastOptionsConfig['deposit']['failed']>,
     Parameters<MoneyToastOptionsConfig['deposit']['failed']>
   >(() => baseFailedToast);
+  const depositDeclinedFn = jest.fn<
+    ReturnType<MoneyToastOptionsConfig['deposit']['declined']>,
+    Parameters<MoneyToastOptionsConfig['deposit']['declined']>
+  >(() => baseFailedToast);
   const withdrawInProgressFn = jest.fn<
     ReturnType<MoneyToastOptionsConfig['withdraw']['inProgress']>,
     Parameters<MoneyToastOptionsConfig['withdraw']['inProgress']>
@@ -264,6 +268,7 @@ describe('useMoneyTransactionStatus', () => {
       inProgress: depositInProgressFn,
       success: depositSuccessFn,
       failed: depositFailedFn,
+      declined: depositDeclinedFn,
     },
     withdraw: {
       inProgress: withdrawInProgressFn,
@@ -776,6 +781,45 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
       expect(withdrawFailedFn).not.toHaveBeenCalled();
+    });
+
+    it('shows the declined toast for a terminal fiat order failure', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          metamaskPay: { strategy: 'fiat' },
+          error: {
+            name: 'Error',
+            message: 'MetaMask Pay: Fiat: Fiat order failed',
+          },
+        }),
+      });
+
+      expect(depositDeclinedFn).toHaveBeenCalledTimes(1);
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalled();
+    });
+
+    it('keeps the generic toast for a failed fiat deposit with another error', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          metamaskPay: { strategy: 'fiat' },
+          error: {
+            name: 'Error',
+            message: 'MetaMask Pay: Fiat: Fiat order polling timed out',
+          },
+        }),
+      });
+
+      expect(depositDeclinedFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
     });
 
     it.each([

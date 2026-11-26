@@ -297,6 +297,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
 
 export const PerpsHomeViewSelectorsIDs = {
   AVAILABLE_BALANCE_BUTTON: 'perps-home-available-balance-button',
+  AVAILABLE_BALANCE_CHEVRON: 'perps-home-available-balance-chevron',
   CROSS_MARGIN_RATIO_BANNER: 'perps-home-cross-margin-ratio-banner',
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',

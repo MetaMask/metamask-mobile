@@ -2963,6 +2963,10 @@ describe('Perps home cross margin risk', () => {
       strings('perps.crossMarginRatio.description', { ratio: '61%' }),
     );
 
+    expect(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON),
+    ).toBeOnTheScreen();
+
     fireEvent.press(
       screen.getByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
     );
@@ -3115,6 +3119,9 @@ describe('Perps home cross margin risk', () => {
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON),
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
