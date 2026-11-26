@@ -8,6 +8,7 @@ jest.mock('../../../framework/logger.ts', () => ({
 }));
 
 import {
+  API_COUNT_ATTRIBUTES,
   publishApiCallsSummaryToSentry,
   publishPerformanceScenarioToSentry,
 } from './PerformanceSentryPublisher';
@@ -906,6 +907,102 @@ describe('PerformanceSentryPublisher', () => {
         (span: { op: string }) => span.op === 'e2e.performance.network',
       );
       expect(networkSpan.data['api.hosts.count']).toBe(30);
+    });
+
+    describe('unitless counts', () => {
+      const getNetworkSpans = (payload: {
+        spans: { op: string; data: Record<string, unknown> }[];
+      }) =>
+        payload.spans.filter((span) =>
+          span.op.startsWith('e2e.performance.network'),
+        );
+
+      it('sends every count attribute as a plain integer', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        const countKeys = Object.values(API_COUNT_ATTRIBUTES);
+        const sentCounts = getNetworkSpans(payload).flatMap((span) =>
+          countKeys
+            .filter((key) => key in span.data)
+            .map((key) => [key, span.data[key]] as const),
+        );
+
+        expect(sentCounts.map(([key]) => key).sort()).toEqual(
+          [
+            'api.requests.total',
+            'api.requests.unique',
+            'api.requests.duplicates',
+            'api.requests.failed',
+            'api.hosts.count',
+            'api.host.requests',
+            'api.host.requests',
+            'api.endpoint.requests',
+            'api.endpoint.requests',
+            'api.endpoint.failed',
+            'api.endpoint.failed',
+          ].sort(),
+        );
+        for (const [key, value] of sentCounts) {
+          expect({ key, isInteger: Number.isInteger(value) }).toEqual({
+            key,
+            isInteger: true,
+          });
+        }
+      });
+
+      it('serializes counts as bare JSON integers without a unit or typed wrapper', async () => {
+        await publish(capturedSummary);
+
+        const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+        const rawPayload = String(requestInit?.body).split('\n')[2];
+
+        expect(rawPayload).toContain('"api.requests.total":12,');
+        expect(rawPayload).toContain('"api.endpoint.requests":4,');
+        expect(rawPayload).toContain('"api.host.requests":9,');
+        expect(rawPayload).not.toMatch(/"api\.[a-z.]*requests[a-z.]*":\s*\{/u);
+      });
+
+      it('never puts a unit on span data', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        for (const span of getNetworkSpans(payload)) {
+          expect(
+            Object.keys(span.data).filter((key) => /unit/iu.test(key)),
+          ).toEqual([]);
+        }
+      });
+
+      it('uses unit none for every measurement', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        expect(
+          Object.values<{ unit: string }>(payload.measurements).map(
+            ({ unit }) => unit,
+          ),
+        ).toEqual(['none', 'none', 'none', 'none']);
+      });
+
+      it('keeps api attribute names free of duration-like tokens', async () => {
+        const { payload } = await publish(capturedSummary);
+
+        const apiKeys = getNetworkSpans(payload).flatMap((span) =>
+          Object.keys(span.data).filter((key) => key.startsWith('api.')),
+        );
+
+        expect(apiKeys.length).toBeGreaterThan(0);
+        expect(
+          apiKeys.filter((key) =>
+            /duration|time|latency|(^|[._])ms($|[._])|elapsed|delay/iu.test(
+              key,
+            ),
+          ),
+        ).toEqual([]);
+        expect(
+          Object.keys(payload.measurements).filter((key) =>
+            /duration|time|latency|(^|_)ms($|_)/iu.test(key),
+          ),
+        ).toEqual([]);
+      });
     });
 
     it('sends zero requests as a real count', async () => {

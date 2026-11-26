@@ -637,6 +637,25 @@ const NETWORK_SPAN_OP = 'e2e.performance.network';
 const NETWORK_HOST_SPAN_OP = 'e2e.performance.network.host';
 const NETWORK_ENDPOINT_SPAN_OP = 'e2e.performance.network.endpoint';
 const MAX_HOST_SPANS = 20;
+
+/**
+ * Span `data` keys that hold request counts. They are sent as plain JSON
+ * integers: Relay turns numeric transaction span `data` into unitless
+ * `integer` attributes, and `data` cannot carry a unit or a typed
+ * `{ type, value, unit }` object (nested objects are stringified). Names
+ * avoid duration-like tokens (`duration`, `time`, `latency`, `_ms`) that
+ * Sentry's UI could map to a time unit.
+ */
+export const API_COUNT_ATTRIBUTES = {
+  total: 'api.requests.total',
+  unique: 'api.requests.unique',
+  duplicates: 'api.requests.duplicates',
+  failed: 'api.requests.failed',
+  hostsCount: 'api.hosts.count',
+  hostRequests: 'api.host.requests',
+  endpointRequests: 'api.endpoint.requests',
+  endpointFailed: 'api.endpoint.failed',
+} as const;
 const MAX_CAPTURE_ERROR_LENGTH = 200;
 
 interface PublishApiCallsSummaryOptions extends ScenarioIdentityOptions {
@@ -717,11 +736,11 @@ export async function publishApiCallsSummaryToSentry(
     spans.push(
       createSpan(NETWORK_SPAN_OP, 'API requests', {
         'api.capture.status': 'captured',
-        'api.requests.total': summary.total,
-        'api.requests.unique': summary.unique,
-        'api.requests.duplicates': summary.duplicates,
-        'api.requests.failed': summary.failed,
-        'api.hosts.count': hosts.length,
+        [API_COUNT_ATTRIBUTES.total]: summary.total,
+        [API_COUNT_ATTRIBUTES.unique]: summary.unique,
+        [API_COUNT_ATTRIBUTES.duplicates]: summary.duplicates,
+        [API_COUNT_ATTRIBUTES.failed]: summary.failed,
+        [API_COUNT_ATTRIBUTES.hostsCount]: hosts.length,
       }),
     );
 
@@ -729,7 +748,7 @@ export async function publishApiCallsSummaryToSentry(
       spans.push(
         createSpan(NETWORK_HOST_SPAN_OP, host, {
           'api.host': host,
-          'api.host.requests': count,
+          [API_COUNT_ATTRIBUTES.hostRequests]: count,
         }),
       );
     }
@@ -740,8 +759,8 @@ export async function publishApiCallsSummaryToSentry(
         createSpan(NETWORK_ENDPOINT_SPAN_OP, endpointKey, {
           'api.method': endpoint.method,
           'api.endpoint': endpoint.url,
-          'api.endpoint.requests': endpoint.count,
-          'api.endpoint.failed': endpoint.failed,
+          [API_COUNT_ATTRIBUTES.endpointRequests]: endpoint.count,
+          [API_COUNT_ATTRIBUTES.endpointFailed]: endpoint.failed,
         }),
       );
     }
