@@ -17,7 +17,7 @@ inputs:
     required: false
     default: '^$'
   jest-job-regex:
-    description: Regex matching Jest jobs (and their dependency prep) whose skipped result is allowed, but only when get-requirements reports skip_jest_tests=true (docs-only pull request). Failed or cancelled jobs still fail.
+    description: Regex matching Jest-related jobs whose skipped result is allowed, but only when get-requirements reports skip_jest_tests=true (docs-only pull request). The Jest test jobs themselves do not skip on docs-only PRs; they exit successfully, so they pass as normal successes. Failed or cancelled jobs still fail.
     required: false
     default: '^$'
   event-name:
@@ -148,7 +148,7 @@ runs:
               elif [[ "$job_name" =~ $FLAKINESS_JOB_REGEX ]]; then
                 add_summary_row "$job_name" "$result" "pass" "skipped flakiness-detection job is allowed (no relevant test files changed)"
               elif [[ "$skip_jest_tests" == "true" && "$job_name" =~ $JEST_JOB_REGEX ]]; then
-                add_summary_row "$job_name" "$result" "pass" "skipped Jest job is allowed (docs-only changes)"
+                add_summary_row "$job_name" "$result" "pass" "skipped coverage-merge job is allowed (docs-only changes)"
               elif [[ "$EVENT_NAME" == "merge_group" ]]; then
                 add_summary_row "$job_name" "$result" "pass" "merge queue skip is allowed"
               elif [[ "$IS_FORK" == "true" ]]; then
