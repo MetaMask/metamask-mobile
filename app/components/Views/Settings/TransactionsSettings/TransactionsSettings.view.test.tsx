@@ -1,16 +1,19 @@
-import '../../../../tests/component-view/mocks';
+import '../../../../../tests/component-view/mocks';
 import { Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
+
+import AppConstants from '#app/core/AppConstants';
+import Engine from '#app/core/Engine';
+
 import {
   renderTransactionsSettings,
   renderTransactionsSettingsWithBackRoute,
   SETTINGS_LAUNCHER_LABEL,
-} from '../../../../tests/component-view/renderers/settings';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
+} from '../../../../../tests/component-view/renderers/settings';
+import { describeForPlatforms } from '../../../../../tests/component-view/platform';
+import { strings } from '../../../../../locales/i18n';
+
 import { TransactionsViewSelectorsIDs } from './TransactionsSettings.testIds';
 
 const getSwitchValue = (switchElement: ReactTestInstance) =>

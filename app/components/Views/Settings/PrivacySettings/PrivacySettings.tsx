@@ -2,24 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, View, InteractionManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { MAINNET } from '../../../../constants/network';
-import ActionModal from '../../../UI/ActionModal';
-import { clearHistory } from '../../../../actions/browser';
-import { strings } from '../../../../../locales/i18n';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  ClearCookiesSection,
-  DeleteMetaMetricsData,
-  DeleteWalletData,
-  ClearPrivacy,
-  SupportConsentPreferenceSection,
-  DeleteIdentityData,
-} from '../SecuritySettings/Sections';
-import { selectProviderType } from '../../../../selectors/networkController';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { useParams } from '../../../../util/navigation/navUtils';
 import {
   Button,
   ButtonVariant,
@@ -30,24 +13,44 @@ import {
   TextVariant,
   Box,
 } from '@metamask/design-system-react-native';
-import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
-import Routes from '../../../../constants/navigation/Routes';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+import type { AppNavigationProp } from '#app/core/NavigationService/types';
+import { MAINNET } from '#app/constants/network';
+import Routes from '#app/constants/navigation/Routes';
+import ActionModal from '#app/components/UI/ActionModal';
+import BasicFunctionalityComponent from '#app/components/UI/BasicFunctionality/BasicFunctionality';
+import SwitchLoadingModal from '#app/components/UI/Notification/SwitchLoadingModal';
+import HeaderStandardGlass from '#app/component-library/components-temp/HeaderStandardGlass';
+import { clearHistory } from '#app/actions/browser';
+import { selectProviderType } from '#app/selectors/networkController';
+import { selectIsMetamaskNotificationsEnabled } from '#app/selectors/notifications';
+import {
+  selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsSocialLoginBasicFunctionalityLocked,
+} from '#app/selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectGlassHeadersEnabled } from '#app/selectors/featureFlagController/glassHeaders';
+import type { RootState } from '#app/reducers';
+import { useParams } from '#app/util/navigation/navUtils';
+import { useDisableNotifications } from '#app/util/notifications/hooks/useNotifications';
+import { useAnalytics } from '#app/components/hooks/useAnalytics/useAnalytics';
+
+import { strings } from '../../../../../locales/i18n';
+
+import {
+  ClearCookiesSection,
+  DeleteMetaMetricsData,
+  DeleteWalletData,
+  ClearPrivacy,
+  SupportConsentPreferenceSection,
+  DeleteIdentityData,
+} from '../SecuritySettings/Sections';
 import MetaMetricsAndDataCollectionSection from '../SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import TopTradersSection from '../SecuritySettings/Sections/TopTradersSection';
-import { RootState } from '../../../../reducers';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
-import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import NetworkDetailsCheckSettings from '../NetworkDetailsCheckSettings';
 import DisplayNFTMediaSettings from '../DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../IPFSGatewaySettings';
-import {
-  selectIsBasicFunctionalityConsolidationEnabled,
-  selectIsSocialLoginBasicFunctionalityLocked,
-} from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
-import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const CLEAR_BROWSER_HISTORY_SECTION = 'clear-browser-history-section';
 
@@ -198,7 +201,7 @@ function PrivacySettings() {
         onConfirmPress={clearBrowserHistory}
       >
         <Box className="flex-1 items-center justify-center p-5">
-          <Text variant={TextVariant.HeadingMd} className="text-center mb-5">
+          <Text variant={TextVariant.HeadingMd} className="mb-5 text-center">
             {strings('app_settings.clear_browser_history_modal_title')}
           </Text>
           <Text variant={TextVariant.BodyMd} className="text-center">
@@ -233,7 +236,7 @@ function PrivacySettings() {
         contentContainerStyle={tw`grow pb-12 pt-4`}
         ref={scrollViewRef}
       >
-        <Box className="pb-28 px-4">
+        <Box className="px-4 pb-28">
           <Text variant={TextVariant.HeadingMd} className="mb-4">
             {strings('app_settings.privacy_heading')}
           </Text>
@@ -251,7 +254,7 @@ function PrivacySettings() {
             <>
               <Text
                 variant={TextVariant.HeadingMd}
-                className="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
+                className="-mx-4 mt-10 border-t border-muted px-4 pt-9"
               >
                 {strings('app_settings.network_provider')}
               </Text>
@@ -262,7 +265,7 @@ function PrivacySettings() {
             <>
               <Text
                 variant={TextVariant.HeadingMd}
-                className="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
+                className="-mx-4 mt-10 border-t border-muted px-4 pt-9"
               >
                 {strings('app_settings.token_nft_ens_subheading')}
               </Text>
@@ -273,7 +276,7 @@ function PrivacySettings() {
           <IPFSGatewaySettings />
           <Text
             variant={TextVariant.HeadingMd}
-            className="mt-10 -mx-4 px-4 pt-9 border-t border-muted"
+            className="-mx-4 mt-10 border-t border-muted px-4 pt-9"
           >
             {strings('app_settings.analytics_subheading')}
           </Text>

@@ -3,14 +3,7 @@ import { Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Engine from '../../../../core/Engine';
-import { setShowHexData } from '../../../../actions/settings';
-import { strings } from '../../../../../locales/i18n';
-import {
-  selectSmartTransactionsOptInStatus,
-  selectUseTransactionSimulations,
-} from '../../../../selectors/preferencesController';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useNavigation } from '@react-navigation/native';
 import {
   FontWeight,
   Text,
@@ -18,27 +11,35 @@ import {
   TextVariant,
   Box,
 } from '@metamask/design-system-react-native';
-import { analytics } from '../../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import AppConstants from '../../../../../app/core/AppConstants';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { SettingsToggleRow } from '../../components/SettingsToggleRow';
-import { TransactionsViewSelectorsIDs } from './TransactionsSettings.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
-import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
-import { useNavigation } from '@react-navigation/native';
 
-import type { RootState } from '#app/reducers';
-
-import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
-import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
+import type { AppNavigationProp } from '#app/core/NavigationService/types';
+import Engine from '#app/core/Engine';
+import { MetaMetricsEvents } from '#app/core/Analytics';
+import AppConstants from '#app/core/AppConstants';
+import { SIMULATION_DETALS_ARTICLE_URL } from '#app/constants/urls';
+import HeaderStandardGlass from '#app/component-library/components-temp/HeaderStandardGlass';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text';
+} from '#app/component-library/components/Buttons/Button';
+import { TextVariant as LibraryTextVariant } from '#app/component-library/components/Texts/Text';
+import { setShowHexData } from '#app/actions/settings';
+import {
+  selectSmartTransactionsOptInStatus,
+  selectUseTransactionSimulations,
+} from '#app/selectors/preferencesController';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '#app/selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectGlassHeadersEnabled } from '#app/selectors/featureFlagController/glassHeaders';
+import type { RootState } from '#app/reducers';
+import { analytics } from '#app/util/analytics/analytics';
+import { AnalyticsEventBuilder } from '#app/util/analytics/AnalyticsEventBuilder';
+import { trackExternalLinkClicked } from '#app/util/analytics/externalLinkTracking';
+
+import { strings } from '../../../../../locales/i18n';
+
+import { SettingsToggleRow } from '../components/SettingsToggleRow';
+import { TransactionsViewSelectorsIDs } from './TransactionsSettings.testIds';
 import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
 
 function TransactionsSettings() {
