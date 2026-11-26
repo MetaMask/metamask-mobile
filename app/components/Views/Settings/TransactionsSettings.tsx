@@ -18,6 +18,7 @@ import {
   TextVariant,
   Box,
 } from '@metamask/design-system-react-native';
+import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../../app/core/AppConstants';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -30,7 +31,6 @@ import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagControl
 import { useNavigation } from '@react-navigation/native';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../constants/urls';
 import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
@@ -43,7 +43,6 @@ function TransactionsSettings() {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const analytics = useAnalytics();
 
   const smartTransactionsOptInStatus = useSelector(
     selectSmartTransactionsOptInStatus,
@@ -123,8 +122,8 @@ function TransactionsSettings() {
             onPress={() => {
               void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               trackExternalLinkClicked(
-                (event) => analytics.trackEvent(event),
-                (event) => analytics.createEventBuilder(event),
+                analytics.trackEvent,
+                AnalyticsEventBuilder.createEventBuilder,
                 {
                   location: 'app_settings',
                   text: strings('app_settings.simulation_details_learn_more'),
@@ -206,8 +205,8 @@ function TransactionsSettings() {
                       onPress={() => {
                         void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
                         trackExternalLinkClicked(
-                          (event) => analytics.trackEvent(event),
-                          (event) => analytics.createEventBuilder(event),
+                          analytics.trackEvent,
+                          AnalyticsEventBuilder.createEventBuilder,
                           {
                             location: 'app_settings',
                             text: strings(
