@@ -52,7 +52,7 @@ const DetailRow: React.FC<DetailRowProps> = ({
     testID={testID}
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
-    twClassName={twClassName ? `py-1 ${twClassName}` : 'py-1'}
+    className={twClassName ? `py-1 ${twClassName}` : 'py-1'}
   >
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {label}
@@ -75,7 +75,7 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
   onShare,
   testID = 'token-details-trader-position-pnl-expanded-details',
 }) => (
-  <Box testID={testID} twClassName="gap-3">
+  <Box testID={testID} className="gap-3">
     {onShare ? (
       <Button
         testID={`${testID}-share`}
@@ -86,7 +86,7 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
           'asset_overview.position_pnl.share_to_feed',
         )}
         onPress={onShare}
-        twClassName="w-full rounded-full bg-muted"
+        className="w-full rounded-full bg-muted"
       >
         {strings('asset_overview.position_pnl.share_to_feed')}
       </Button>
@@ -98,7 +98,7 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
       // parent `gap-3` / header margin, the rule gets ~20px above and below.
       <SectionDivider marginVertical={2} testID={`${testID}-divider`} />
     )}
-    <Box twClassName="gap-1">
+    <Box className="gap-1">
       <DetailRow
         testID={`${testID}-average-cost`}
         label={strings('asset_overview.position_pnl.average_cost')}

@@ -574,7 +574,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       testID="money-asset-overview-footer-cta"
       variant={ButtonVariant.Primary}
       style={styles.moneyDepositButton}
-      twClassName={successBg}
+      className={successBg}
       textProps={SUCCESS_TEXT_PROPS}
       isLoading={moneyDepositCta?.isLoading}
       onPress={() => {
@@ -597,7 +597,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         color={TextColor.SuccessInverse}
         numberOfLines={1}
         adjustsFontSizeToFit
-        twClassName="text-center"
+        className="text-center"
       >
         {moneyDepositCta?.label}
       </Text>
@@ -649,7 +649,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             style={styles.iconButton}
-            twClassName={
+            className={
               swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
             textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
@@ -688,7 +688,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             style={styles.iconButton}
-            twClassName={
+            className={
               buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
             textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
@@ -718,7 +718,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               isTokenDetailsV1 ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             style={styles.iconButton}
-            twClassName={
+            className={
               isTokenDetailsV1
                 ? 'bg-error-default'
                 : `bg-transparent ${successBorder}`
@@ -734,7 +734,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             testID="token-details-footer-quick-buy"
             variant={ButtonVariant.Primary}
             style={styles.iconButton}
-            twClassName={successBg}
+            className={successBg}
             textProps={SUCCESS_TEXT_PROPS}
             onPress={() => handleOpenQuickBuy('buy')}
           >
@@ -772,7 +772,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="mt-2 text-center"
+          className="mt-2 text-center"
         >
           {strings('money.asset_overview.cta.current_apy_disclaimer')}
         </Text>
@@ -792,9 +792,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           {isTraderPositionExpanded && (
             <Box
               testID="token-details-trader-position-pnl-handle"
-              twClassName="absolute inset-x-0 top-1 z-10 items-center"
+              className="absolute inset-x-0 top-1 z-10 items-center"
             >
-              <Box twClassName="h-1 w-10 rounded-sm bg-border-muted" />
+              <Box className="h-1 w-10 rounded-sm bg-border-muted" />
             </Box>
           )}
           {positionContent}

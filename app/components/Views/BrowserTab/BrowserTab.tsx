@@ -1870,7 +1870,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              className="gap-2"
             >
               {!isUrlBarFocused && (
                 <ButtonIcon
@@ -1880,7 +1880,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   testID="browser-tab-close-button"
                 />
               )}
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <BrowserUrlBar
                   ref={urlBarRef}
                   connectionType={connectionType}

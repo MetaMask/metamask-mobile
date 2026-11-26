@@ -410,11 +410,11 @@ const AddCustomToken = ({
   // --- Render ---
 
   return (
-    <Box twClassName="flex-1 bg-default px-4">
+    <Box className="flex-1 bg-default px-4">
       <KeyboardAwareScrollView extraScrollHeight={20}>
         {/* Banner */}
         {isTokenDetectionSupported ? (
-          <Box twClassName="mt-5">
+          <Box className="mt-5">
             <Banner
               variant={BannerVariant.Alert}
               severity={BannerAlertSeverity.Warning}
@@ -463,7 +463,7 @@ const AddCustomToken = ({
         )}
 
         {/* Address */}
-        <Box twClassName="pt-4">
+        <Box className="pt-4">
           <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
             {strings('asset_details.address')}
           </Text>
@@ -489,7 +489,7 @@ const AddCustomToken = ({
             </Text>
           ) : null}
           {isLoading ? (
-            <Box twClassName="mt-4 items-center">
+            <Box className="mt-4 items-center">
               <ActivityIndicator size="small" color={colors.primary.default} />
             </Box>
           ) : null}
@@ -497,7 +497,7 @@ const AddCustomToken = ({
 
         {/* Symbol */}
         {showSecondaryFields ? (
-          <Box twClassName="pt-4 px-4">
+          <Box className="pt-4 px-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('token.token_symbol')}
             </Text>
@@ -535,7 +535,7 @@ const AddCustomToken = ({
 
         {/* Decimals */}
         {showSecondaryFields ? (
-          <Box twClassName="pt-4 px-4">
+          <Box className="pt-4 px-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('token.token_decimal')}
             </Text>

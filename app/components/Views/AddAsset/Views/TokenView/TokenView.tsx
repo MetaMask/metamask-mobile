@@ -69,15 +69,15 @@ const TokenView = ({
   }, []);
 
   return (
-    <Box twClassName="flex-1">
+    <Box className="flex-1">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="px-4 pt-2"
+        className="px-4 pt-2"
         testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
       >
-        <Box twClassName="h-12 flex-1">
+        <Box className="h-12 flex-1">
           {isSearchActive ? (
             <ExploreSearchBar
               type="interactive"
@@ -96,7 +96,7 @@ const TokenView = ({
         </Box>
       </Box>
 
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-3">
+      <Box flexDirection={BoxFlexDirection.Row} className="px-4 py-3">
         <SelectButton
           testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
           variant={SelectButtonVariant.Primary}
@@ -105,6 +105,16 @@ const TokenView = ({
           startAccessory={
             selectedNetwork ? (
               <AvatarNetwork
+                src={getNetworkImageSource({ chainId: selectedNetwork })}
+                size={AvatarNetworkSize.Xs}
+                name={selectedNetworkName}
+              />
+            ) : undefined
+          }
+          textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
+          className="shrink-0"
+          onPress={openNetworkSelector}
+        /><AvatarNetwork
                 src={getNetworkImageSource({ chainId: selectedNetwork })}
                 size={AvatarNetworkSize.Xs}
                 name={selectedNetworkName}
@@ -129,6 +139,19 @@ const TokenView = ({
             title={strings('add_asset.hidden_tokens')}
             startAccessory={
               <Icon name={IconName.EyeSlash} size={IconSize.Md} />
+            }
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            }
+            accessoryGap={3}
+            onPress={() => navigation.navigate(Routes.WALLET.HIDDEN_TOKENS)}
+            accessibilityRole="button"
+            testID={ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON}
+          /><Icon name={IconName.EyeSlash} size={IconSize.Md} />
             }
             endAccessory={
               <Icon

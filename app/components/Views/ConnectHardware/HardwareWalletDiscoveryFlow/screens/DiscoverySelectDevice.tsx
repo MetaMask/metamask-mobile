@@ -92,12 +92,12 @@ const DiscoverySelectDeviceScreen: React.FC<
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="px-4 py-4"
+                className="px-4 py-4"
               >
                 <Box
                   alignItems={BoxAlignItems.Center}
                   justifyContent={BoxJustifyContent.Center}
-                  twClassName="mr-4 h-10 w-10 rounded-xl bg-default"
+                  className="mr-4 h-10 w-10 rounded-xl bg-default"
                 >
                   <Icon
                     name={config.deviceIcon}
@@ -105,7 +105,7 @@ const DiscoverySelectDeviceScreen: React.FC<
                     color={IconColor.IconDefault}
                   />
                 </Box>
-                <Text variant={TextVariant.BodyMd} twClassName="flex-1">
+                <Text variant={TextVariant.BodyMd} className="flex-1">
                   {hwDevice.name}
                 </Text>
                 {isSelected && (
@@ -122,7 +122,7 @@ const DiscoverySelectDeviceScreen: React.FC<
         })}
       </View>
 
-      <Box twClassName="px-4 pt-4">
+      <Box className="px-4 pt-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

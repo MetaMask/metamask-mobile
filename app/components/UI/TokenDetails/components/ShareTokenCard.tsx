@@ -78,7 +78,7 @@ const StatTile = ({ label, value, testID }: ShareTokenStatTile) => {
 
   return (
     <Box
-      twClassName="flex-1 rounded-[10px] px-2 py-2.5 min-h-16 justify-between"
+      className="flex-1 rounded-[10px] px-2 py-2.5 min-h-16 justify-between"
       style={tw.style({ backgroundColor: TILE_BG })}
       testID={testID}
     >
@@ -95,7 +95,7 @@ const StatTile = ({ label, value, testID }: ShareTokenStatTile) => {
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.75}
-        twClassName="mt-1"
+        className="mt-1"
         style={tw.style({ color: VALUE_TEXT })}
       >
         {value ?? '—'}
@@ -111,12 +111,12 @@ const QrTile = ({ shareUrl }: { shareUrl: string }) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="flex-1 rounded-[10px] px-1.5 py-2 min-h-16 gap-1"
+      className="flex-1 rounded-[10px] px-1.5 py-2 min-h-16 gap-1"
       style={tw.style({ backgroundColor: TILE_BG })}
       testID="share-token-qr-tile"
     >
       <Box
-        twClassName="rounded overflow-hidden p-0.5 shrink-0"
+        className="rounded overflow-hidden p-0.5 shrink-0"
         style={tw.style({ backgroundColor: QR_BACKGROUND })}
       >
         <QRCode
@@ -126,7 +126,7 @@ const QrTile = ({ shareUrl }: { shareUrl: string }) => {
           color="black"
         />
       </Box>
-      <Box twClassName="flex-1 min-w-0 justify-center">
+      <Box className="flex-1 min-w-0 justify-center">
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Bold}
@@ -184,7 +184,7 @@ const ShareTokenCard = ({
 
   return (
     <Box
-      twClassName="rounded-2xl border px-3.5 pt-3.5 pb-3"
+      className="rounded-2xl border px-3.5 pt-3.5 pb-3"
       style={tw.style({
         backgroundColor: CARD_BG,
         borderColor: accentColor,
@@ -200,12 +200,12 @@ const ShareTokenCard = ({
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Start}
-        twClassName="mb-3"
+        className="mb-3"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 mr-2"
+          className="flex-1 mr-2"
         >
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
@@ -221,7 +221,7 @@ const ShareTokenCard = ({
           >
             <AssetLogo asset={token} />
           </BadgeWrapper>
-          <Box twClassName="flex-1 ml-2.5">
+          <Box className="flex-1 ml-2.5">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
@@ -234,7 +234,7 @@ const ShareTokenCard = ({
               variant={TextVariant.BodyXs}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
-              twClassName="uppercase mt-0.5"
+              className="uppercase mt-0.5"
               style={tw.style({ color: LABEL_TEXT })}
             >
               {token.symbol}
@@ -242,7 +242,7 @@ const ShareTokenCard = ({
           </Box>
         </Box>
 
-        <Box twClassName="items-end min-w-[88px]">
+        <Box className="items-end min-w-[88px]">
           <Text
             variant={TextVariant.HeadingSm}
             fontWeight={FontWeight.Bold}
@@ -253,7 +253,7 @@ const ShareTokenCard = ({
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            twClassName="text-right mt-0.5"
+            className="text-right mt-0.5"
             style={tw.style({ color: LABEL_TEXT })}
           >
             {strings('share_token.change_24h')}
@@ -265,7 +265,7 @@ const ShareTokenCard = ({
         <Box
           key={`share-token-grid-row-${rowIndex}`}
           flexDirection={BoxFlexDirection.Row}
-          twClassName="gap-2 mb-2"
+          className="gap-2 mb-2"
         >
           {row}
         </Box>
@@ -275,7 +275,7 @@ const ShareTokenCard = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="mt-4"
+        className="mt-4"
       >
         <Box>
           <Text

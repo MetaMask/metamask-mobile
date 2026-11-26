@@ -29,7 +29,7 @@ export function StepDot({
   return (
     <Box
       testID={testID}
-      twClassName={`w-2 h-2 rounded-full ${DOT_CLASS_BY_STATUS[status]}`}
+      className={`w-2 h-2 rounded-full ${DOT_CLASS_BY_STATUS[status]}`}
     />
   );
 }
@@ -43,9 +43,9 @@ const CONNECTOR_DOT_COUNT = 6;
  */
 export function StepConnector({ testID }: { testID?: string }) {
   return (
-    <Box testID={testID} twClassName="items-center -mt-0.5 gap-0.5">
+    <Box testID={testID} className="items-center -mt-0.5 gap-0.5">
       {Array.from({ length: CONNECTOR_DOT_COUNT }).map((_, index) => (
-        <Box key={index} twClassName="w-1 h-1 rounded-full bg-border-muted" />
+        <Box key={index} className="w-1 h-1 rounded-full bg-border-muted" />
       ))}
     </Box>
   );

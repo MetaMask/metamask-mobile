@@ -126,7 +126,7 @@ const TurnOffRememberMeModal = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="justify-center py-8"
+                  className="justify-center py-8"
                 >
                   <ActivityIndicator
                     size="small"
