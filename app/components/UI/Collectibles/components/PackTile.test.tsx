@@ -9,7 +9,7 @@ import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
 import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
 import { PackTile } from '#app/components/UI/Collectibles/components/PackTile';
 import type { HomePack } from '#app/components/UI/Collectibles/types/packs';
-import { Text } from '#app/components/UI/primitives/Text';
+import { Text } from '@metamask/design-system-react-native';
 
 const Stack = createNativeStackNavigator();
 const [pack] = mockHomePacks;

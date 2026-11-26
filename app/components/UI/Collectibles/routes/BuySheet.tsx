@@ -7,13 +7,13 @@ import {
 import {
   BottomSheet,
   BottomSheetHeader,
+  Text,
   TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
-import { Text } from '../../primitives/Text';
 import { useHomePacks } from '../hooks/useHomePacks';
 import { collectiblesRoutes, type BuySheetParams } from '../routeNames';
 import { collectiblesTestIds } from '../Collectibles.testIds';
