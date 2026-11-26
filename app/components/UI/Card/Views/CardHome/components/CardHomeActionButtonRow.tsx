@@ -111,7 +111,7 @@ const CardHomeActionButtonRow = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName={`px-4 ${isTightTop ? 'pt-2' : 'pt-4'} pb-2 gap-2`}
+      className={`px-4 ${isTightTop ? 'pt-2' : 'pt-4'} pb-2 gap-2`}
       testID={CardHomeSelectors.ACTION_BUTTON_ROW}
     >
       {add ? (

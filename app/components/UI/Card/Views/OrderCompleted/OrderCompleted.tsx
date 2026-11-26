@@ -90,7 +90,7 @@ const OrderCompleted: React.FC = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={OrderCompletedSelectors.SUBTITLE}
           >
             {strings('card.order_completed.subtitle')}
@@ -98,7 +98,7 @@ const OrderCompleted: React.FC = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={OrderCompletedSelectors.DESCRIPTION}
           >
             {strings('card.order_completed.description')}

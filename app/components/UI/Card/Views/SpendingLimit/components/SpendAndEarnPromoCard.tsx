@@ -117,8 +117,8 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
       activeOpacity={0.85}
       style={tw.style('mb-6')}
     >
-      <Box twClassName="p-4 rounded-2xl bg-background-muted gap-3">
-        <Box twClassName="gap-1">
+      <Box className="p-4 rounded-2xl bg-background-muted gap-3">
+        <Box className="gap-1">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
             {strings('card.card_spending_limit.spend_and_earn_title')}
           </Text>
@@ -155,7 +155,7 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
             </Text>
           )}
         </Box>
-        <Box twClassName="self-start">
+        <Box className="self-start">
           <ShimmerOverlay
             borderRadius={PRIMARY_BUTTON_RADIUS}
             colors={BUTTON_SHIMMER_COLORS}

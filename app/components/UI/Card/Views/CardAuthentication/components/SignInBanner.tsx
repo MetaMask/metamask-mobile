@@ -88,11 +88,11 @@ const SignInBanner = ({
       testID={CardAuthenticationSelectors.BANNER}
     >
       {(banner === 'account_missing' || banner === 'no_card') && (
-        <Box twClassName="items-start">
+        <Box className="items-start">
           <TextButton
             variant={TextVariant.BodyMd}
             onPress={onChooseAccount}
-            twClassName="py-2"
+            className="py-2"
           >
             {strings(
               banner === 'account_missing'
@@ -104,7 +104,7 @@ const SignInBanner = ({
             <TextButton
               variant={TextVariant.BodyMd}
               onPress={onImportSrp}
-              twClassName="py-2"
+              className="py-2"
             >
               {strings(
                 'card.card_authentication.banner_account_missing_import',
@@ -117,7 +117,7 @@ const SignInBanner = ({
         <TextButton
           variant={TextVariant.BodyMd}
           onPress={onMovedAction}
-          twClassName="py-2"
+          className="py-2"
         >
           {strings('card.card_authentication.banner_moved_action')}
         </TextButton>

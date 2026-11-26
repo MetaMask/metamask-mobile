@@ -77,7 +77,7 @@ const CardTransactionDetailsContent = ({
 
   return (
     <Box
-      twClassName="flex-1 bg-background-default"
+      className="flex-1 bg-background-default"
       testID={CardTransactionDetailsTestIds.CONTAINER}
     >
       <HeaderStandardGlass
@@ -94,11 +94,11 @@ const CardTransactionDetailsContent = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-8')}
       >
-        <Box twClassName="px-4">
-          <Box twClassName="gap-3">
-            <Box twClassName="gap-1">
+        <Box className="px-4">
+          <Box className="gap-3">
+            <Box className="gap-1">
               <Text color={TextColor.TextAlternative}>{heroCopy}</Text>
-              <Box twClassName="flex-row items-center gap-3">
+              <Box className="flex-row items-center gap-3">
                 {heroToken.isMoneyAccount ? (
                   <MoneyBalanceIcon
                     width={32}
@@ -163,7 +163,7 @@ const CardTransactionDetailsContent = ({
               <TransactionDetailsRow
                 label={strings('transaction.transaction_id')}
               >
-                <Box twClassName="flex-row items-center gap-1.5">
+                <Box className="flex-row items-center gap-1.5">
                   <Text color={TextColor.TextAlternative}>{transactionId}</Text>
                   <CopyButton
                     copyText={transactionId}
@@ -184,7 +184,7 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {declineReason ? (
-              <Box twClassName="gap-1">
+              <Box className="gap-1">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -199,7 +199,7 @@ const CardTransactionDetailsContent = ({
             {footer}
 
             {onViewOnExplorer ? (
-              <Box twClassName="w-full pt-2">
+              <Box className="w-full pt-2">
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
@@ -214,7 +214,7 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {onReportPress ? (
-              <Box twClassName="w-full items-center pt-2">
+              <Box className="w-full items-center pt-2">
                 <TextButton
                   onPress={onReportPress}
                   testID={CardTransactionDetailsTestIds.REPORT_BUTTON}

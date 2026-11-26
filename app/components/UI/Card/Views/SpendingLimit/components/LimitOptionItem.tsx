@@ -36,24 +36,28 @@ const LimitOptionItem: React.FC<LimitOptionItemProps> = ({
   onInputChange,
   testID,
 }) => (
-  <Box twClassName="py-3">
+  <Box className="py-3">
     <RadioButton
       isChecked={isSelected}
       onPress={onPress}
       testID={testID}
       label={
-        <Text variant={TextVariant.BodyMd} twClassName="font-medium">
+        <Text variant={TextVariant.BodyMd} className="font-medium">
+          {title}
+        </Text>
+      }
+    /><Text variant={TextVariant.BodyMd} className="font-medium">
           {title}
         </Text>
       }
     />
-    <Text variant={TextVariant.BodySm} twClassName="text-alternative mt-1 ml-8">
+    <Text variant={TextVariant.BodySm} className="text-alternative mt-1 ml-8">
       {description}
     </Text>
 
     {/* Input field for spending limit */}
     {showInput && isSelected && (
-      <Box twClassName="mt-3">
+      <Box className="mt-3">
         <TextField
           value={inputValue}
           onChangeText={onInputChange}

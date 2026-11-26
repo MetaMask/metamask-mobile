@@ -65,7 +65,7 @@ const SignInEmailFields = ({
   const resendLocked = resendCooldown > 0 || isRequestingCode;
 
   return (
-    <Box twClassName="gap-4">
+    <Box className="gap-4">
       {showBack && onBack && (
         <TouchableOpacity
           onPress={onBack}
@@ -181,6 +181,31 @@ const SignInEmailFields = ({
               ),
               testID: CardAuthenticationSelectors.PASSWORD_FIELD,
             }}
+          /><ButtonIcon
+                iconName={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
+                size={ButtonIconSize.Md}
+                onPress={onTogglePasswordVisibility}
+                accessibilityLabel={strings(
+                  isPasswordVisible
+                    ? 'card.card_authentication.hide_password'
+                    : 'card.card_authentication.show_password',
+                )}
+                testID={CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE}
+              />
+            }
+            inputProps={{
+              autoCapitalize: 'none',
+              autoComplete: 'password',
+              numberOfLines: 1,
+              maxLength: 255,
+              returnKeyType: 'done',
+              onSubmitEditing,
+              secureTextEntry: !isPasswordVisible,
+              accessibilityLabel: strings(
+                'card.card_authentication.password_label',
+              ),
+              testID: CardAuthenticationSelectors.PASSWORD_FIELD,
+            }}
           />
           {isForgotPasswordEnabled && (
             <TouchableOpacity
@@ -191,7 +216,7 @@ const SignInEmailFields = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                twClassName="text-default"
+                className="text-default"
               >
                 {strings('card.card_authentication.forgot_password_button')}
               </Text>

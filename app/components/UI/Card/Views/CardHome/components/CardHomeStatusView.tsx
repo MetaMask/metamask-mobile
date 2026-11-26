@@ -156,7 +156,7 @@ const CardHomeStatusView = ({
   }, [cascadeState]);
 
   return (
-    <Box twClassName="flex-1" testID={testID}>
+    <Box className="flex-1" testID={testID}>
       <ScrollView
         testID={CardHomeStatusViewSelectors.SCROLL_VIEW}
         contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
@@ -182,7 +182,7 @@ const CardHomeStatusView = ({
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
                 testID={CardHomeStatusViewSelectors.DESCRIPTION}
               >
                 {description}
@@ -197,7 +197,7 @@ const CardHomeStatusView = ({
         {/* The card art fills the space between the copy and the footer, so
         it sits centred in the middle of the screen below the copy. */}
         <Box
-          twClassName="flex-1"
+          className="flex-1"
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
           testID={CardHomeStatusViewSelectors.ASSET}
@@ -212,7 +212,7 @@ const CardHomeStatusView = ({
         pointerEvents={isButtonInteractive ? 'auto' : 'none'}
         testID={CardHomeStatusViewSelectors.FOOTER}
       >
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+        <Box className="gap-2 px-4 pb-2 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

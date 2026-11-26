@@ -64,14 +64,14 @@ const ApplePayUsageSheet = () => {
       >
         <Text
           variant={TextVariant.HeadingSm}
-          twClassName="text-center"
+          className="text-center"
           testID={ApplePayUsageSheetSelectors.TITLE}
         >
           {strings('card.apple_pay_usage.title')}
         </Text>
       </BottomSheetHeaderGlass>
-      <Box twClassName="items-center px-4 pb-4">
-        <Box twClassName="mt-2 w-full">
+      <Box className="items-center px-4 pb-4">
+        <Box className="mt-2 w-full">
           <ApplePayHandGraphic
             testID={ApplePayUsageSheetSelectors.GRAPHIC}
             imageTestID={ApplePayUsageSheetSelectors.HAND}
@@ -79,19 +79,19 @@ const ApplePayUsageSheet = () => {
         </Box>
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="mt-4 text-center text-text-alternative"
+          className="mt-4 text-center text-text-alternative"
           testID={ApplePayUsageSheetSelectors.INSTRUCTIONS}
         >
           {strings('card.apple_pay_usage.instructions')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="mt-3 text-center text-text-alternative"
+          className="mt-3 text-center text-text-alternative"
           testID={ApplePayUsageSheetSelectors.MARKS_COPY}
         >
           {strings('card.apple_pay_usage.marks')}
         </Text>
-        <Box twClassName="mt-4">
+        <Box className="mt-4">
           <Image
             source={isDark ? marksDark : marksLight}
             resizeMode="contain"
@@ -109,13 +109,13 @@ const ApplePayUsageSheet = () => {
         </Box>
         <TextButton
           variant={TextVariant.BodySm}
-          twClassName="mt-6"
+          className="mt-6"
           onPress={handleLearnMore}
           testID={ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON}
         >
           {strings('card.apple_pay_usage.learn_more')}
         </TextButton>
-        <Box twClassName="mt-4 w-full">
+        <Box className="mt-4 w-full">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

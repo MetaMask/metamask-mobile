@@ -75,7 +75,7 @@ const SpendingLimitOptionsSheet: React.FC = () => {
         </Text>
       </BottomSheetHeader>
 
-      <Box twClassName="px-4 pb-2">
+      <Box className="px-4 pb-2">
         <LimitOptionItem
           title={strings('card.card_spending_limit.full_access_title')}
           description={strings(
@@ -100,7 +100,7 @@ const SpendingLimitOptionsSheet: React.FC = () => {
         />
       </Box>
 
-      <Box twClassName="px-4 pb-6">
+      <Box className="px-4 pb-6">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

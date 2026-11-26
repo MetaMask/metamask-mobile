@@ -45,7 +45,7 @@ const CountrySelectField = ({
     >
       {isLoading && !selectedCountry ? (
         <Box
-          twClassName="flex-row items-center justify-center h-12 rounded-xl border border-solid border-muted bg-muted"
+          className="flex-row items-center justify-center h-12 rounded-xl border border-solid border-muted bg-muted"
           testID={loadingTestID}
         >
           <Spinner spinnerIconProps={{ size: IconSize.Sm }} />

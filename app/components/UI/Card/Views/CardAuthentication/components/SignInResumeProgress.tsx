@@ -23,10 +23,10 @@ const SignInResumeProgress = ({ stage }: SignInResumeProgressProps) => {
 
   return (
     <Box
-      twClassName="gap-2.5 px-4 py-3 rounded-xl bg-muted"
+      className="gap-2.5 px-4 py-3 rounded-xl bg-muted"
       testID={CardAuthenticationSelectors.RESUME_PROGRESS}
     >
-      <Box twClassName="flex-row items-center gap-2.5">
+      <Box className="flex-row items-center gap-2.5">
         <Icon
           name={identityVerified ? IconName.Confirmation : IconName.Info}
           size={IconSize.Md}
@@ -40,7 +40,7 @@ const SignInResumeProgress = ({ stage }: SignInResumeProgressProps) => {
           )}
         </Text>
       </Box>
-      <Box twClassName="flex-row items-center gap-2.5">
+      <Box className="flex-row items-center gap-2.5">
         <Icon
           name={IconName.Info}
           size={IconSize.Md}

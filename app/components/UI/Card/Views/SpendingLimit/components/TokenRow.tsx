@@ -31,7 +31,7 @@ export interface TokenRowProps {
 }
 
 const RowLabel = () => (
-  <Text variant={TextVariant.BodyMd} twClassName="flex-1 text-text-alternative">
+  <Text variant={TextVariant.BodyMd} className="flex-1 text-text-alternative">
     {strings('card.card_spending_limit.token_label')}
   </Text>
 );
@@ -60,7 +60,7 @@ const RegularTokenChip = ({
     : undefined;
 
   return (
-    <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+    <Box className="flex-row items-center gap-2 shrink min-w-0">
       {selectedToken && tokenIconUrl && (
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
@@ -75,7 +75,7 @@ const RegularTokenChip = ({
       )}
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-text-default font-medium self-center shrink"
+        className="text-text-default font-medium self-center shrink"
         numberOfLines={1}
       >
         {tokenLabel}
@@ -102,7 +102,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
       activeOpacity={0.7}
       testID={SpendingLimitSelectors.TOKEN_ROW}
     >
-      <Box twClassName="flex-row items-center p-4">
+      <Box className="flex-row items-center p-4">
         <RowLabel />
         <RegularTokenChip
           selectedToken={selectedToken}

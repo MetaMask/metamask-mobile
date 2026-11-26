@@ -102,7 +102,7 @@ const AssetSelectionRow: React.FC<AssetSelectionRowProps> = ({
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="mt-1"
+          className="mt-1"
           numberOfLines={1}
         >
           {truncateAddress(item.walletAddress, 6)}
@@ -129,7 +129,7 @@ const AssetSelectionRow: React.FC<AssetSelectionRowProps> = ({
       showSelectedIcon={false}
       onPress={handlePress}
       testID={`asset-select-item-${displaySymbol}-${item.caipChainId}`}
-      twClassName={isPriority ? 'border-l-4 border-primary-default' : undefined}
+      className={isPriority ? 'border-l-4 border-primary-default' : undefined}
     />
   );
 };

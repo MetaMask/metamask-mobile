@@ -172,7 +172,7 @@ const DigitalWalletInstructionsSheet = () => {
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Regular}
-              twClassName="text-alternative"
+              className="text-alternative"
               testID={DigitalWalletInstructionsSheetSelectors.DESCRIPTION}
             >
               {strings('card.digital_wallet_instructions.description')}
@@ -223,16 +223,16 @@ const DigitalWalletInstructionsSheet = () => {
               return (
                 <Box
                   key={`${walletType}-${stepNumber}`}
-                  twClassName="flex-row items-start gap-3"
+                  className="flex-row items-start gap-3"
                   testID={DigitalWalletInstructionsSheetSelectors.step(
                     stepNumber,
                   )}
                 >
-                  <Box twClassName="w-6 h-6 rounded-full bg-icon-default items-center justify-center">
+                  <Box className="w-6 h-6 rounded-full bg-icon-default items-center justify-center">
                     <Text
                       variant={TextVariant.BodySm}
                       fontWeight={FontWeight.Medium}
-                      twClassName="text-background-default"
+                      className="text-background-default"
                     >
                       {stepNumber}
                     </Text>
@@ -240,7 +240,7 @@ const DigitalWalletInstructionsSheet = () => {
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
-                    twClassName="flex-1"
+                    className="flex-1"
                   >
                     {step}
                   </Text>

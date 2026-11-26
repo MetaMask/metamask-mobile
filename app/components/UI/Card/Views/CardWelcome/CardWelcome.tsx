@@ -154,7 +154,7 @@ const CardWelcome = () => {
     <MarketingMoment
       testID="card-gtm-modal-container"
       theme={Theme.Light}
-      background={<Box twClassName="h-full w-full bg-accent04-light" />}
+      background={<Box className="h-full w-full bg-accent04-light" />}
       title={strings('card.card_onboarding.title')}
       description={strings('card.card_onboarding.description')}
       titleProps={{

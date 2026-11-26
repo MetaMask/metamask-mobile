@@ -339,7 +339,7 @@ const ContactDetails = () => {
     if (isLoading) {
       return (
         <Box
-          twClassName="flex-1 items-center justify-center"
+          className="flex-1 items-center justify-center"
           testID={ContactDetailsSelectors.LOADING}
         >
           <Spinner />
@@ -350,10 +350,10 @@ const ContactDetails = () => {
     if (hasLoadError) {
       return (
         <Box
-          twClassName="flex-1 items-center justify-center gap-4 px-4"
+          className="flex-1 items-center justify-center gap-4 px-4"
           testID={ContactDetailsSelectors.LOAD_ERROR}
         >
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          <Text variant={TextVariant.BodyMd} className="text-center">
             {strings('card.contact_details.load_error')}
           </Text>
           <Button
@@ -415,8 +415,8 @@ const ContactDetails = () => {
             </Box>
             <Box gap={1}>
               <Label>{strings('card.contact_details.phone_label')}</Label>
-              <Box twClassName="flex-row items-center gap-2">
-                <Box twClassName="w-26">
+              <Box className="flex-row items-center gap-2">
+                <Box className="w-26">
                   <SelectField
                     value={`${phoneRegion?.emoji ?? ''} +${phoneRegion?.areaCode ?? ''}`}
                     onPress={handlePhoneRegionSelect}
@@ -424,7 +424,7 @@ const ContactDetails = () => {
                     testID={ContactDetailsSelectors.PHONE_AREA_CODE_SELECT}
                   />
                 </Box>
-                <Box twClassName="flex-1">
+                <Box className="flex-1">
                   <TextField
                     value={phoneNumber}
                     onChangeText={handlePhoneNumberChange}

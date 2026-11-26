@@ -171,7 +171,7 @@ const CardVerifiedContent = ({
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
                 testID={CompleteSelectors.DESCRIPTION}
               >
                 {description}
@@ -186,7 +186,7 @@ const CardVerifiedContent = ({
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.End}
-              twClassName="mb-5 w-full"
+              className="mb-5 w-full"
               testID={CompleteSelectors.IMAGE}
             >
               <CompleteCheckAnimation
@@ -203,7 +203,7 @@ const CardVerifiedContent = ({
         pointerEvents={isButtonInteractive ? 'auto' : 'none'}
         testID={CompleteSelectors.FOOTER}
       >
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+        <Box className="gap-2 px-4 pb-2 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
