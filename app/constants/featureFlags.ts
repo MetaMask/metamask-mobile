@@ -28,6 +28,7 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
  */
 export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
+}
 
 /**
  * Build-time gate for the Collectibles development fallback. A valid remote
