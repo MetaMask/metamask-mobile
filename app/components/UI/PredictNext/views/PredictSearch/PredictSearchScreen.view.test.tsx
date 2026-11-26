@@ -50,6 +50,10 @@ const typeQuery = (
 describe('PredictSearchScreen', () => {
   beforeEach(() => {
     configurePredictNextFeeds();
+    // searchCalls() reads the shared Engine messenger's call history, which
+    // configurePredictNextFeeds does not clear; a previous test's search
+    // calls would otherwise leak into this test's call-count assertions.
+    messengerCall.mockClear();
   });
 
   it('opens from the Home header search button', async () => {
