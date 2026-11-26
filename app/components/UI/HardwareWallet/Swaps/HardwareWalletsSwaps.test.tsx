@@ -359,6 +359,22 @@ function getBridgeStatus(store: any) {
   return store.getState().bridge.hardwareWalletsSwaps.status;
 }
 
+/** Renders the screen, waits for the mount submit, then dispatches a rejection. */
+async function renderAndReject(): Promise<{
+  getByTestId: (id: string) => unknown;
+  store: any;
+}> {
+  const { getByTestId, store } = renderScreen({});
+  await waitFor(() => {
+    expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+  });
+  await act(async () => dispatchRejection(store));
+  await waitFor(() => {
+    expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Rejected);
+  });
+  return { getByTestId, store };
+}
+
 async function flushPromises() {
   await act(async () => {
     await Promise.resolve();
@@ -932,28 +948,14 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('re-checks blind signing before resubmitting on try again', async () => {
-      const { getByTestId, store } = renderScreen({});
-
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-      });
-
-      dispatchRejection(store);
-      await waitFor(() => {
-        expect(getBridgeStatus(store)).toBe(
-          HardwareWalletsSwapsStatus.Rejected,
-        );
-      });
-
+      const { getByTestId } = await renderAndReject();
       mockEnsureDeviceReady.mockClear();
       mockSubmitBridgeTx.mockClear();
-
       await act(async () => {
         fireEvent.press(
           getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
         );
       });
-
       await waitFor(() => {
         expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-device-id', {
           requireBlindSigning: true,
@@ -965,28 +967,14 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('does not resubmit on try again when blind signing check fails', async () => {
-      const { getByTestId, store } = renderScreen({});
-
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-      });
-
-      dispatchRejection(store);
-      await waitFor(() => {
-        expect(getBridgeStatus(store)).toBe(
-          HardwareWalletsSwapsStatus.Rejected,
-        );
-      });
-
+      const { getByTestId, store } = await renderAndReject();
       mockEnsureDeviceReady.mockResolvedValue(false);
       mockSubmitBridgeTx.mockClear();
-
       await act(async () => {
         fireEvent.press(
           getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
         );
       });
-
       await waitFor(() => {
         expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
       });

@@ -78,7 +78,7 @@ export const useConfirmActions = () => {
     }
 
     if (isSignatureReq && approvalRequest?.id) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
+      void captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
     }
   }, [

@@ -37,7 +37,7 @@ interface UseDeviceConnectionFlowOptions {
    * gate internal error surfacing: late errors after the flow closed must
    * not re-open the error bottom sheet over the app.
    */
-  flowActiveRef: React.MutableRefObject<boolean>;
+  flowActiveRef: React.RefObject<boolean>;
 }
 
 interface UseDeviceConnectionFlowResult {
@@ -91,7 +91,7 @@ export const useDeviceConnectionFlow = ({
   const resolveOrCreateAdapter = useCallback(
     (targetType: HardwareWalletType): HardwareWalletAdapter => {
       const existing = refs.adapterRef.current;
-      if (existing && existing.walletType === targetType) {
+      if (existing?.walletType === targetType) {
         return existing;
       }
 

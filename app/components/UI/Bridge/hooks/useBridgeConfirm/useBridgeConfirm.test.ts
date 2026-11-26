@@ -159,7 +159,7 @@ describe('useBridgeConfirm', () => {
       variant: {},
       variantName: 'treatment',
       isActive: true,
-    } as ReturnType<typeof useABTest>);
+    });
   });
 
   it('returns a function', () => {

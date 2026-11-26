@@ -502,7 +502,9 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           eth.getAppConfiguration(),
           LEDGER_OPERATION_TIMEOUT_MS,
           'Device unresponsive during blind signing check',
-          () => this.#closeTransport(),
+          async () => {
+            await this.#closeTransport();
+          },
         );
         // Ledger's hw-app-eth getAppConfiguration derives this from response[0] & 0x01:
         // 1 means arbitrary data/blind signing is enabled, 0 means it is disabled.

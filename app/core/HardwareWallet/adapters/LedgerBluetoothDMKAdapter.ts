@@ -657,7 +657,9 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         getLedgerDmkAppConfiguration(),
         LEDGER_OPERATION_TIMEOUT_MS,
         'Device unresponsive during blind signing check',
-        () => this.#closeSession(),
+        async () => {
+          await this.#closeSession();
+        },
       );
       // Ledger's getAppConfiguration maps flag 0x01 to arbitraryDataEnabled:
       // 1 means blind signing is enabled, 0 means it is disabled.
