@@ -112,8 +112,6 @@ jest.mock(
     __esModule: true,
     default: ({ children }: { children: React.ReactNode }) => children,
     createFeedItemEntryScheduler: () => () => 0,
-    FEED_ROW_LAYOUT_TRANSITION: undefined,
-    FEED_ROW_LAYOUT_TRANSITION_LOW: undefined,
   }),
 );
 

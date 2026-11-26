@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  BtcAccountType,
-  SolAccountType,
-  XlmAccountType,
-} from '@metamask/keyring-api';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
@@ -22,11 +17,6 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import { isMonadMainnetChainId } from '../../../../util/networks';
-import {
-  getKeyringByAddress,
-  isHardwareAccount,
-  isSnapAccount,
-} from '../../../../util/address';
 import type {
   ClaimRouteSlug,
   ClaimVoucherDto,
@@ -46,78 +36,28 @@ import {
   claimFailureReason,
   claimOutcomeIsPartial,
   claimRoutesForSummary,
+  claimWaitCaption,
+  routesSignableOnDevice,
   selectClaimRoutes,
   claimToastKey,
   claimToastText,
   claimTypeForRoute,
   isClaimsPausedRefusal,
   isTaxDeterminationRefusal,
+  bitcoinAccountForEarningAddress,
+  canSignEarningAddress,
   evmAddressFromEarningAddress,
-  bitcoinAddressFromEarningAddress,
-  solanaAddressFromEarningAddress,
-  stellarAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
   signBitcoinClaimMessage,
   signSolanaClaimMessage,
   signStellarClaimMessage,
+  solanaAccountForEarningAddress,
+  stellarAccountForEarningAddress,
   submitClaimVoucher,
   type ClaimRouteOutcome,
 } from '../utils/claimEarnings';
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
-
-/** A mainnet `bc1q` or `bc1p` account this phone can BIP-322 sign. */
-function bitcoinAccountForEarningAddress(earningAddress: string) {
-  const bitcoin = bitcoinAddressFromEarningAddress(earningAddress);
-  if (!bitcoin) {
-    return null;
-  }
-  const account =
-    Engine.context.AccountsController.getAccountByAddress(bitcoin);
-  if (!account || account.address.toLowerCase() !== bitcoin) {
-    return null;
-  }
-  const typeMatches =
-    (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
-    (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
-  return typeMatches ? { account, bitcoin } : null;
-}
-
-/** A Solana account on this phone. The address is compared with its case. */
-function solanaAccountForEarningAddress(earningAddress: string) {
-  const address = solanaAddressFromEarningAddress(earningAddress);
-  if (!address) {
-    return null;
-  }
-  const account =
-    Engine.context.AccountsController.getAccountByAddress(address);
-  if (
-    !account ||
-    account.address !== address ||
-    account.type !== SolAccountType.DataAccount
-  ) {
-    return null;
-  }
-  return { account, address };
-}
-
-/** A Stellar account on this phone. A lowercase `G` address is not a match. */
-function stellarAccountForEarningAddress(earningAddress: string) {
-  const address = stellarAddressFromEarningAddress(earningAddress);
-  if (!address) {
-    return null;
-  }
-  const account =
-    Engine.context.AccountsController.getAccountByAddress(address);
-  if (
-    !account ||
-    account.address !== address ||
-    account.type !== XlmAccountType.Account
-  ) {
-    return null;
-  }
-  return { account, address };
-}
 
 function branchClaimKey(
   branch:
@@ -219,6 +159,11 @@ export function useClaimEarnings(
   isClaiming: boolean;
   /** True until a refusal's `Retry-After` elapses. Claim stays disabled. */
   isClaimWaiting: boolean;
+  /**
+   * The wait sentence for the time still left, or null when Claim is not
+   * waiting. `{minutes}` counts down while the tab stays open.
+   */
+  claimWaitCaption: string | null;
 } {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
@@ -235,6 +180,9 @@ export function useClaimEarnings(
   const claimLockRef = useRef(claimLock);
   claimLockRef.current = claimLock;
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
+  // The render-time `moneyAccount` can be stale after an await, so a retry
+  // reads the store directly.
+  const store = useStore<RootState>();
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -291,6 +239,36 @@ export function useClaimEarnings(
     return () => clearTimeout(timer);
   }, [waitUntil, dispatch, profileId]);
 
+  // Moves the caption to the next minute while the user stays on the tab.
+  // Reset when a wait starts so a tab that has been open does not count
+  // minutes from when it mounted.
+  const [captionNow, setCaptionNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (waitUntil === null) {
+      return undefined;
+    }
+    setCaptionNow(Date.now());
+    return undefined;
+  }, [waitUntil]);
+  useEffect(() => {
+    if (waitUntil === null) {
+      return undefined;
+    }
+    const remainingMs = waitUntil - Date.now();
+    if (remainingMs <= 0) {
+      return undefined;
+    }
+    const intoMinute = remainingMs % 60_000;
+    const delay = intoMinute === 0 ? 60_000 : intoMinute;
+    const timer = setTimeout(() => setCaptionNow(Date.now()), delay);
+    return () => clearTimeout(timer);
+  }, [waitUntil, captionNow]);
+
+  const claimWaitCaptionText =
+    waitUntil !== null && localizedText
+      ? claimWaitCaption(localizedText, waitUntil, captionNow)
+      : null;
+
   const { followTradeClaimOpen, revShareClaimOpen } =
     useClaimMechanisms(profileId);
   const claim = useCallback(
@@ -301,9 +279,13 @@ export function useClaimEarnings(
         followTradeClaimOpen,
         revShareClaimOpen,
       );
-      const routes = selectClaimRoutes(
-        claimRoutesForSummary(summary, routeOptions),
-        options,
+      const routes = routesSignableOnDevice(
+        summary,
+        selectClaimRoutes(
+          claimRoutesForSummary(summary, routeOptions),
+          options,
+        ),
+        canSignEarningAddress,
       );
       if (
         !localizedText ||
@@ -393,20 +375,7 @@ export function useClaimEarnings(
               route,
               body,
             ),
-          canSignEarningAddress: (earningAddress) => {
-            if (
-              bitcoinAccountForEarningAddress(earningAddress) ||
-              solanaAccountForEarningAddress(earningAddress) ||
-              stellarAccountForEarningAddress(earningAddress)
-            ) {
-              return true;
-            }
-            const from = evmAddressFromEarningAddress(earningAddress);
-            if (!from || !getKeyringByAddress(from)) {
-              return false;
-            }
-            return !isHardwareAccount(from) && !isSnapAccount(from);
-          },
+          canSignEarningAddress,
           signMessage: async (message, earningAddress) => {
             const bitcoin = bitcoinAccountForEarningAddress(earningAddress);
             if (bitcoin) {
@@ -445,11 +414,16 @@ export function useClaimEarnings(
               throw new Error('SIGN_FAILED');
             }
           },
-          submitVoucher: async (voucher: ClaimVoucherDto) => {
+          getMoneyAccountAddress: () =>
+            selectPrimaryMoneyAccount(store.getState())?.address,
+          submitVoucher: async (
+            voucher: ClaimVoucherDto,
+            voucherMoneyAccountAddress: string,
+          ) => {
             await submitClaimVoucher({
               voucher,
               vaultConfig,
-              moneyAccountAddress,
+              moneyAccountAddress: voucherMoneyAccountAddress,
               onBatchSubmitted: (batchId) => {
                 submittedBatchId = batchId;
               },
@@ -580,6 +554,7 @@ export function useClaimEarnings(
       followTradeClaimOpen,
       revShareClaimOpen,
       moneyAccount?.address,
+      store,
       vaultConfig,
       isSponsorshipEnabled,
       onOpened,
@@ -599,5 +574,6 @@ export function useClaimEarnings(
     claim,
     isClaiming: isClaiming || claimLock != null,
     isClaimWaiting: waitUntil !== null && waitUntil > Date.now(),
+    claimWaitCaption: claimWaitCaptionText,
   };
 }

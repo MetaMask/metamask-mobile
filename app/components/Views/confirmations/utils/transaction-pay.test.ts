@@ -27,7 +27,6 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
-  TransactionPaymentToken,
   PaymentOverride,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -37,6 +36,7 @@ import type {
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import { buildPaymentTokenMock, evmAssetId } from '../__mocks__/pay-token.mock';
 
 jest.mock('../../../../util/transaction-controller', () => ({
   updateAtomicBatchData: jest.fn(),
@@ -70,6 +70,7 @@ const TOKEN_MOCK = {
   address: NATIVE_TOKEN_ADDRESS,
   balance: '1.23',
   balanceInSelectedCurrency: '$1.23',
+  caipAssetId: evmAssetId(NATIVE_TOKEN_ADDRESS, CHAIN_ID_MOCK),
   chainId: CHAIN_ID_MOCK,
   decimals: 18,
   name: 'Native Token 1',
@@ -80,6 +81,10 @@ const TOKEN_MOCK = {
 const ERC20_TOKEN_MOCK = {
   ...TOKEN_MOCK,
   address: '0x1234567890abcdef1234567890abcdef12345678',
+  caipAssetId: evmAssetId(
+    '0x1234567890abcdef1234567890abcdef12345678',
+    CHAIN_ID_MOCK,
+  ),
   name: 'Test Token',
   symbol: 'TST',
   balance: '2.34',
@@ -273,10 +278,10 @@ describe('Transaction Pay Utils', () => {
 
       const result = getAvailableTokens({
         tokens: [tokenWithZeroBalance] as AssetType[],
-        payToken: {
-          address: TOKEN_MOCK.address as Hex,
+        payToken: buildPaymentTokenMock({
+          address: TOKEN_MOCK.address,
           chainId: TOKEN_MOCK.chainId as Hex,
-        } as TransactionPaymentToken,
+        }),
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
@@ -372,10 +377,7 @@ describe('Transaction Pay Utils', () => {
     describe('disabled', () => {
       it('keeps token enabled when native balance is zero', () => {
         const result = getAvailableTokens({
-          tokens: [
-            ERC20_TOKEN_MOCK,
-            { ...TOKEN_MOCK, balance: '0' } as AssetType,
-          ],
+          tokens: [ERC20_TOKEN_MOCK, { ...TOKEN_MOCK, balance: '0' }],
         });
 
         expect(result).toHaveLength(1);
@@ -408,10 +410,10 @@ describe('Transaction Pay Utils', () => {
       it('clears isSelected on all tokens when fiat payment is active', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
-          payToken: {
-            address: TOKEN_MOCK.address as Hex,
+          payToken: buildPaymentTokenMock({
+            address: TOKEN_MOCK.address,
             chainId: TOKEN_MOCK.chainId as Hex,
-          } as TransactionPaymentToken,
+          }),
           fiatPayment: { selectedPaymentMethodId: 'pm-card' },
         });
 
@@ -422,10 +424,10 @@ describe('Transaction Pay Utils', () => {
       it('preserves isSelected when fiat payment has no selected method', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
-          payToken: {
-            address: TOKEN_MOCK.address as Hex,
+          payToken: buildPaymentTokenMock({
+            address: TOKEN_MOCK.address,
             chainId: TOKEN_MOCK.chainId as Hex,
-          } as TransactionPaymentToken,
+          }),
           fiatPayment: {},
         });
 
@@ -527,10 +529,7 @@ describe('Transaction Pay Utils', () => {
         };
 
         const result = getAvailableTokens({
-          tokens: [
-            ERC20_TOKEN_MOCK,
-            { ...TOKEN_MOCK, balance: '0' } as AssetType,
-          ],
+          tokens: [ERC20_TOKEN_MOCK, { ...TOKEN_MOCK, balance: '0' }],
           blockedTokens,
         });
 
@@ -641,7 +640,7 @@ describe('Transaction Pay Utils', () => {
     const loggerErrorMock = jest.mocked(Logger.error);
 
     beforeEach(() => {
-      updateAtomicBatchDataMock.mockResolvedValue('0x' as Hex);
+      updateAtomicBatchDataMock.mockResolvedValue('0x');
     });
 
     it('replaces the old address word in nested transaction data', () => {
@@ -698,7 +697,7 @@ describe('Transaction Pay Utils', () => {
       replaceAccountInNestedTransactions({
         transactionId: TRANSACTION_ID,
         nestedTransactions: [
-          { data: '0xdeadbeef' as Hex },
+          { data: '0xdeadbeef' },
           { data: `${SELECTOR}${OLD_WORD}` as Hex },
           { data: undefined },
         ],
@@ -756,7 +755,7 @@ describe('Transaction Pay Utils', () => {
     it('skips nested transactions whose data does not contain the old word', () => {
       replaceAccountInNestedTransactions({
         transactionId: TRANSACTION_ID,
-        nestedTransactions: [{ data: '0xdeadbeef' as Hex }],
+        nestedTransactions: [{ data: '0xdeadbeef' }],
         oldAddress: OLD_ADDRESS,
         newAddress: NEW_ADDRESS,
       });
@@ -935,7 +934,7 @@ describe('Transaction Pay Utils', () => {
 
     function runConfigCallback(): Record<string, unknown> {
       const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+      setTransactionConfigMock.mock.calls[0][1](config);
       return config;
     }
 
@@ -1070,7 +1069,7 @@ describe('Transaction Pay Utils', () => {
         string,
         unknown
       >;
-      updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
+      updateFiatPaymentMock.mock.calls[0][0].callback(fp);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
     });

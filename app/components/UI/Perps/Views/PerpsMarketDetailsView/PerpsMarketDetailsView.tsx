@@ -61,6 +61,7 @@ import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -360,6 +361,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<AppNavigationProp>();
+
+  // Hold the heavy sections out of the opening transition.
+  const isDeferredReady = useScreenTransitionComplete();
   const { sharePosition, findSocialPosition } = usePerpsSharePosition();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
@@ -389,6 +393,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const needsMarketsForRelated =
     isRelatedMarketsEnabled && hasRelatedMarketsCategory(routeMarket);
   const { markets } = usePerpsMarkets({
+    fullCatalog: true,
     skipInitialFetch: !needsEnrichment && !needsMarketsForRelated,
   });
   const market = useMemo(() => {
@@ -660,6 +665,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Subscribe to live prices for current position price (allMids baseline, ~2 s)
   const livePrices = usePerpsLivePrices({
+    providerId: market?.providerId,
     symbols: market?.symbol ? [market.symbol] : [],
     throttleMs: 1000,
   });
@@ -668,12 +674,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // Prefer focused price on this detail screen; fall back to the allMids
   // baseline so the display is never blank on first render.
   const focusedPrice = usePerpsLiveFocusedPrice({
+    providerId: market?.providerId,
     symbol: market?.symbol ?? '',
     enabled: Boolean(market?.symbol),
   });
 
   // Get current price for the symbol
-  // Use mark price (oracle price) for stop loss calculations to reduce manipulation risk
+  // Use the venue mark price for stop loss calculations: HyperLiquid triggers
+  // TP/SL on mark, and it resists manipulation better than the mid
   // Falls back to mid price if mark price unavailable
   const currentPrice = useMemo(() => {
     if (!market?.symbol) return 0;
@@ -691,7 +699,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   usePerpsConnection();
 
   // Check if market is at open interest cap
-  const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
+  const { isAtCap: isAtOICap } = usePerpsOICap(
+    market?.symbol,
+    market?.providerId,
+  );
 
   // Check if trading is halted due to price deviation
   const {
@@ -1858,9 +1869,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     () => [
       {
         key: 'stats',
-        visible: true,
+        visible: isDeferredReady,
         content: (
           <PerpsMarketStatisticsCard
+            providerId={market?.providerId}
             symbol={market?.symbol || ''}
             marketStats={marketStats}
             onTooltipPress={handleTooltipPress}
@@ -1896,14 +1908,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       },
       {
         key: 'recent-trades',
-        visible: Boolean(market?.symbol),
+        visible: Boolean(market?.symbol) && isDeferredReady,
         content: market?.symbol ? (
           <PerpsMarketTradesList symbol={market.symbol} />
         ) : null,
       },
       {
         key: 'more',
-        visible: moreItems.length > 0,
+        visible: moreItems.length > 0 && isDeferredReady,
         content: (
           <PerpsMoreSection
             items={moreItems}
@@ -1922,6 +1934,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       moreItems,
       hasAboutDescription,
       handleAboutLayout,
+      isDeferredReady,
     ],
   );
 
@@ -2103,6 +2116,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         />
       )}
       <PerpsMarketSummary
+        providerId={market?.providerId}
         symbol={market.symbol}
         currentPrice={syncedChartCurrentPrice}
         testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY}
@@ -2239,38 +2253,40 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         <Box twClassName="mb-4">{marketInsightsCard}</Box>
       ) : null}
 
-      {isPerpsSocialEnabled ? (
-        <>
-          <PerpsHomeSectionList sections={positionSections} />
-          <PerpsMarketSocialTabs
-            symbol={market.symbol}
-            onOverviewLayout={handleAboutContainerLayout}
-            onOverviewVisibilityChange={setAboutTrackingEnabled}
-            onTabChange={setActiveSocialTab}
-            footer={isFeedScroller ? riskDisclaimer : undefined}
-            overview={
-              <PerpsHomeSectionList
-                sections={[
-                  {
-                    key: 'market-insights',
-                    visible: shouldShowPerpsMarketInsightsSection,
-                    content: (
-                      <Box twClassName="pt-3 pb-6">{marketInsightsCard}</Box>
-                    ),
-                  },
-                  ...overviewSections,
-                ]}
-                hideLeadingDivider
-              />
-            }
-          />
-        </>
-      ) : (
-        <>
-          <PerpsHomeSectionList sections={preMarketInsightsSections} />
-          <PerpsHomeSectionList sections={postMarketInsightsSections} />
-        </>
-      )}
+      {isDeferredReady ? (
+        isPerpsSocialEnabled ? (
+          <>
+            <PerpsHomeSectionList sections={positionSections} />
+            <PerpsMarketSocialTabs
+              symbol={market.symbol}
+              onOverviewLayout={handleAboutContainerLayout}
+              onOverviewVisibilityChange={setAboutTrackingEnabled}
+              onTabChange={setActiveSocialTab}
+              footer={isFeedScroller ? riskDisclaimer : undefined}
+              overview={
+                <PerpsHomeSectionList
+                  sections={[
+                    {
+                      key: 'market-insights',
+                      visible: shouldShowPerpsMarketInsightsSection,
+                      content: (
+                        <Box twClassName="pt-3 pb-6">{marketInsightsCard}</Box>
+                      ),
+                    },
+                    ...overviewSections,
+                  ]}
+                  hideLeadingDivider
+                />
+              }
+            />
+          </>
+        ) : (
+          <>
+            <PerpsHomeSectionList sections={preMarketInsightsSections} />
+            <PerpsHomeSectionList sections={postMarketInsightsSections} />
+          </>
+        )
+      ) : null}
 
       {isFeedScroller ? null : riskDisclaimer}
     </>

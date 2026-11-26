@@ -12,6 +12,7 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 export const useDisplayCurrencyValue = (
   amount?: string,
   token?: BridgeToken,
+  tokenFiatRate?: number,
 ) => {
   const evmMultiChainMarketData = useSelector(selectTokenMarketData);
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -31,6 +32,7 @@ export const useDisplayCurrencyValue = (
     evmMultiChainCurrencyRates,
     currentCurrency,
     nonEvmMultichainAssetRates,
+    tokenFiatRate,
   });
 
   return currencyValue;

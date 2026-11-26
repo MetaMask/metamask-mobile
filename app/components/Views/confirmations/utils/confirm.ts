@@ -7,7 +7,7 @@ import {
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import {
   SIGNATURE_APPROVAL_TYPES,
-  REDESIGNED_TRANSACTION_TYPES,
+  CONFIRMATION_TRANSACTION_TYPES,
 } from '../constants/confirmations';
 
 export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
@@ -42,7 +42,7 @@ export function isStakingConfirmation(requestType: string) {
  * - Batch transactions: Used for EIP-7702 account delegation
  *
  * Returns false (does not navigate) when:
- * - The approval type is not a redesigned confirmation type
+ * - The approval type is not a supported confirmation transaction type
  * - The transaction is a swap-related transaction (swap, swapAndSend, swapApproval)
  * - The confirmation should be displayed full-screen (handled by dedicated UI)
  *
@@ -93,7 +93,7 @@ export function shouldNavigateConfirmationModal(
     // Valid transaction types use modal
     if (
       transactionMetadata &&
-      REDESIGNED_TRANSACTION_TYPES.includes(
+      CONFIRMATION_TRANSACTION_TYPES.includes(
         transactionMetadata.type as TransactionType,
       )
     ) {

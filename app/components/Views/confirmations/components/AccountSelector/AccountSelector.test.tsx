@@ -263,7 +263,7 @@ describe('AccountSelector', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onAccountSelected with correct address when account is selected', () => {
+  it('calls onAccountSelected with the selected internal account', () => {
     const { getByTestId } = render(
       <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
@@ -271,7 +271,9 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
     fireEvent.press(getByTestId('account-group-group-1'));
 
-    expect(mockOnAccountSelected).toHaveBeenCalledWith('0xAccount1Address');
+    expect(mockOnAccountSelected).toHaveBeenCalledWith(
+      mockInternalAccountsById['account-1'],
+    );
   });
 
   it('closes modal after selecting an account', () => {

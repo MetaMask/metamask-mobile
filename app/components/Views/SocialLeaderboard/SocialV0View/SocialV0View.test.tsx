@@ -214,9 +214,17 @@ jest.mock('../FeedView/components/FeedSpotBuyAction', () => {
   };
 });
 
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
 describe('SocialV0View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     mockHasSpotItem = true;
     mockDeferBuyActionRef = false;
     mockAttachBuyActionRef = null;
@@ -238,6 +246,26 @@ describe('SocialV0View', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
+  });
+
+  it('holds both pages back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    renderWithProvider(<SocialV0View />);
+
+    expect(screen.getByTestId(SocialV0ViewSelectorsIDs.TABS)).toBeOnTheScreen();
+    expect(screen.queryByTestId('mock-top-traders')).toBeNull();
+    expect(screen.queryByTestId('mock-feed')).toBeNull();
+  });
+
+  it('does not hold the pages back on a tab root, which has no transition', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+    mockRouteName = Routes.SOCIAL.TAB;
+
+    renderWithProvider(<SocialV0View />);
+
+    expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
+    mockRouteName = 'SocialV0View';
   });
 
   describe('safe area layout', () => {

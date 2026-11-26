@@ -8,7 +8,7 @@ import ppomUtil from '../../../../lib/ppom/ppom-util';
 
 import {
   addTransactionForDeeplink,
-  isDeeplinkRedesignedConfirmationCompatible,
+  isDeeplinkConfirmationCompatible,
   validateWithPPOM,
   type DeeplinkRequest,
 } from './deeplink';
@@ -64,14 +64,10 @@ jest.mock('uuid', () => ({
   v4: jest.fn(),
 }));
 
-describe('isDeeplinkRedesignedConfirmationCompatible', () => {
+describe('isDeeplinkConfirmationCompatible', () => {
   it('returns false for approve and true for transfer', () => {
-    expect(
-      isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.TRANSFER),
-    ).toBe(true);
-    expect(
-      isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.APPROVE),
-    ).toBe(false);
+    expect(isDeeplinkConfirmationCompatible(ETH_ACTIONS.TRANSFER)).toBe(true);
+    expect(isDeeplinkConfirmationCompatible(ETH_ACTIONS.APPROVE)).toBe(false);
   });
 });
 

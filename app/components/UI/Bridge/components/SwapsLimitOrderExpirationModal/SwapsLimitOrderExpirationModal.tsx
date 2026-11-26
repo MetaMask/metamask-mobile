@@ -17,6 +17,7 @@ import type { SwapsLimitOrderExpirationModalProps } from './types';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { playSelection } from '../../../../../util/haptics';
 
 const SwapsLimitOrderExpirationModal: React.FC<
   SwapsLimitOrderExpirationModalProps
@@ -47,6 +48,9 @@ const SwapsLimitOrderExpirationModal: React.FC<
 
   const handleSelect = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
+      if (minutes !== selectedMinutes) {
+        playSelection().catch(() => undefined);
+      }
       onSelect(minutes);
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
@@ -57,7 +61,7 @@ const SwapsLimitOrderExpirationModal: React.FC<
         SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS,
       );
     },
-    [closeSheet, onSelect],
+    [closeSheet, onSelect, selectedMinutes],
   );
 
   return (

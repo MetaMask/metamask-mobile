@@ -101,6 +101,16 @@ describe('usePerpsEstimatedSlippage', () => {
     expect(result.current.estimatedSlippageBps).toBeNull();
   });
 
+  it('walks the requested venue book', () => {
+    renderHook(() =>
+      usePerpsEstimatedSlippage({ ...options, providerId: 'lighter' }),
+    );
+
+    expect(usePerpsLiveOrderBook).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 'lighter' }),
+    );
+  });
+
   it('disables the order-book subscription for limit orders', () => {
     const { result } = renderHook(() =>
       usePerpsEstimatedSlippage({ ...options, enabled: false }),

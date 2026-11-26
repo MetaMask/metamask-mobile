@@ -47,6 +47,7 @@ import {
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../../components/Views/confirmations/constants/confirmations';
 import { getPostQuoteTransactionType } from '../../../components/Views/confirmations/utils/transaction';
+import { isBridgeDepositTx } from '../../bridge/money-operations';
 
 const STX_GET_FEES_ERROR_METRIC_NAME = 'stx_get_fees_error';
 
@@ -269,6 +270,8 @@ function validateRequiredQuote(
     PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   );
 
+  const isBridgeDepositTransaction = isBridgeDepositTx(transactionMeta);
+
   const postQuoteType = getPostQuoteTransactionType(transactionMeta);
 
   const isPostQuoteWithdraw =
@@ -296,7 +299,7 @@ function validateRequiredQuote(
     return;
   }
 
-  if (isPayTokenRequiredType) {
+  if (isPayTokenRequiredType || isBridgeDepositTransaction) {
     if (isPayTokenSubmitReady(data)) {
       return;
     }

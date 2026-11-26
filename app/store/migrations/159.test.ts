@@ -149,50 +149,18 @@ describe(`Migration ${migrationVersion}: Strip deprecated asset controller state
     );
   });
 
-  it('deletes the persisted file of each of the 8 deprecated controllers, keeping TokensController', async () => {
-    await migrate(buildValidState());
-
-    expect(mockedRemoveItem.mock.calls.map(([key]) => key).sort()).toEqual(
-      [
-        'AccountTrackerController',
-        'CurrencyRateController',
-        'TokenBalancesController',
-        'TokenRatesController',
-        'TokenDetectionController',
-        'MultichainAssetsController',
-        'MultichainAssetsRatesController',
-        'MultichainBalancesController',
-      ]
-        .map((name) => `persist:${name}`)
-        .sort(),
-    );
-    expect(mockedRemoveItem).not.toHaveBeenCalledWith(
-      'persist:TokensController',
-    );
-  });
-
-  it('captures a failed file removal without aborting the migration', async () => {
-    mockedRemoveItem.mockImplementation(async (key: string) => {
-      if (key === 'persist:CurrencyRateController') {
-        throw new Error('disk error');
-      }
-    });
+  it('leaves persisted controller files in place while stripping background state', async () => {
     const state = buildValidState({
-      CurrencyRateController: { currentCurrency: 'usd' },
+      CurrencyRateController: { currentCurrency: 'eur' },
     });
 
     const result = (await migrate(state)) as TestState;
 
-    expect(mockedRemoveItem).toHaveBeenCalledTimes(8);
-    expect(mockedCaptureException).toHaveBeenCalledTimes(1);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining('CurrencyRateController'),
-      }),
-    );
     expect(result.engine.backgroundState).toStrictEqual({
       AssetsController: { preserved: true },
     });
+    expect(mockedRemoveItem).not.toHaveBeenCalled();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
   it('does not delete files when ensureValidState fails', async () => {

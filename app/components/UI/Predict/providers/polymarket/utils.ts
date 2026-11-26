@@ -986,14 +986,21 @@ const getPredictMarketStatus = (
   return PredictMarketStatus.OPEN;
 };
 
-const parseEventPriceToBeat = (
-  event: PolymarketApiEvent,
-): number | undefined => {
-  const priceToBeat = Number(event.eventMetadata?.priceToBeat);
-  return Number.isFinite(priceToBeat) && priceToBeat > 0
-    ? priceToBeat
-    : undefined;
+const toPositivePrice = (raw: unknown): number | undefined => {
+  const price = Number(raw);
+  return Number.isFinite(price) && price > 0 ? price : undefined;
 };
+
+/**
+ * Gamma exposes the target price under two names and which one is populated
+ * depends on the endpoint. `GET /events/:id` (the details screen) returns only
+ * `pendingPriceToBeat` for a window that is live, while the list endpoints
+ * (`/events`, `/events/keyset`) also return `priceToBeat`. Both carry the same
+ * value, so either is a valid source.
+ */
+const parseEventPriceToBeat = (event: PolymarketApiEvent): number | undefined =>
+  toPositivePrice(event.eventMetadata?.priceToBeat) ??
+  toPositivePrice(event.eventMetadata?.pendingPriceToBeat);
 
 const RESOLUTION_SOURCE_HOST = /^https?:\/\/([^/?#:]+)/iu;
 
@@ -1280,6 +1287,7 @@ export const parsePolymarketEvents = (
       const priceToBeat = parseEventPriceToBeat(event);
       const twapWindowSeconds = parseTwapWindowSeconds(markets);
       const cryptoPriceProvider = parseCryptoPriceProvider(event, markets);
+      const startTime = event.startTime ?? event.markets?.[0]?.eventStartTime;
 
       const parsedMarket = {
         id: event.id,
@@ -1293,6 +1301,7 @@ export const parsePolymarketEvents = (
           : PredictMarketStatus.OPEN,
         active: event.active,
         recurrence: getRecurrence(event.series),
+        ...(startTime && { startTime }),
         endDate: event.endDate,
         category,
         tags: tags.map((t) => t.slug),
