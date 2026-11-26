@@ -276,7 +276,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
           url,
         },
       );
-      Linking.openURL(url);
+      void Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Order Details Screen',
         text: 'Etherscan Transaction',
@@ -288,7 +288,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
 
   const handleProviderLinkPress = useCallback(
     (url: string) => {
-      Linking.openURL(url);
+      void Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Order Details Screen',
         text: 'Provider Order Tracking',
