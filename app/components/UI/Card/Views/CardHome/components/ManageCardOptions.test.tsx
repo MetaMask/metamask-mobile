@@ -205,7 +205,7 @@ describe('ManageCardOptions funding-limit gating', () => {
     expect(onManageSpendingLimit).not.toHaveBeenCalled();
   });
 
-  it('hides spending limit amounts in privacy mode', () => {
+  describe('spending limit amounts', () => {
     const amountProps = {
       isSpendingLimitActive: false,
       showLimitedSpendingAmounts: true,
@@ -214,23 +214,30 @@ describe('ManageCardOptions funding-limit gating', () => {
       spendingLimitSymbol: 'USDC',
       spendingLimitOnly: true,
     };
-    const amounts = strings(
-      'card.card_home.manage_card_options.manage_spending_limit_description_remaining',
-      { remaining: '40', total: '100', symbol: 'USDC' },
-    );
+    const amounts = () =>
+      strings(
+        'card.card_home.manage_card_options.manage_spending_limit_description_remaining',
+        { remaining: '40', total: '100', symbol: 'USDC' },
+      );
 
-    const shown = renderComponent(
-      buildCapabilities({ supportsFundingLimits: true }),
-      amountProps,
-    );
-    expect(shown.getByText(amounts)).toBeOnTheScreen();
+    it('shows the amounts outside privacy mode', () => {
+      const { getByText } = renderComponent(
+        buildCapabilities({ supportsFundingLimits: true }),
+        amountProps,
+      );
 
-    const hidden = renderComponent(
-      buildCapabilities({ supportsFundingLimits: true }),
-      { ...amountProps, privacyMode: true },
-    );
-    expect(hidden.queryByText(amounts)).toBeNull();
-    expect(hidden.getByText('••••••')).toBeOnTheScreen();
+      expect(getByText(amounts())).toBeOnTheScreen();
+    });
+
+    it('masks the amounts in privacy mode', () => {
+      const { getByText, queryByText } = renderComponent(
+        buildCapabilities({ supportsFundingLimits: true }),
+        { ...amountProps, privacyMode: true },
+      );
+
+      expect(queryByText(amounts())).toBeNull();
+      expect(getByText('••••••')).toBeOnTheScreen();
+    });
   });
 
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {

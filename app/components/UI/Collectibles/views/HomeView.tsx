@@ -7,7 +7,7 @@ import TabViewBar, {
 } from '../../../../component-library/components-temp/Tabs/TabViewBar/TabViewBar';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { PopularView } from './PopularView';
-import { PacksView } from './PacksView';
+import { PackListingsView } from './PackListingsView';
 import { CollectionView } from './CollectionView';
 import { MarketplaceView } from './MarketplaceView';
 import { collectiblesTabs, type CollectiblesTab } from '../routeNames';
@@ -24,7 +24,7 @@ const routes: TabViewRoute[] = collectiblesTabs.map((tab) => ({
 
 const scenes: Record<CollectiblesTab, () => React.JSX.Element> = {
   popular: PopularView,
-  packs: PacksView,
+  packs: PackListingsView,
   collection: CollectionView,
   marketplace: MarketplaceView,
 };

@@ -542,6 +542,9 @@ const CardHome = () => {
     if (
       !isFocused ||
       isAuthenticated ||
+      // Redux trails the controller by one batch, so a login that just
+      // navigated here can still read signed out.
+      Engine.context.CardController.state.isAuthenticated ||
       isSignedOutKycPending ||
       lastUnauthenticatedReason === 'onboarding_token_revoked'
     ) {

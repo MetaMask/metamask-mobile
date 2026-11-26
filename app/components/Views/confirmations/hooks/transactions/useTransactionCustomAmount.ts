@@ -34,7 +34,10 @@ import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   getDepositPrefillAmountInputType,
   MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
@@ -73,9 +76,11 @@ export function useTransactionCustomAmount({
     transactionMeta,
     MONEY_ACCOUNT_DEPOSIT_TYPES,
   );
-  const isAddMusdFlow =
+  const isFullBalanceDepositFlow =
     isMoneyAccountDeposit &&
-    getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+    isFullBalanceDepositIntent(
+      getMoneyAccountDepositIntent(transactionMeta?.batchId),
+    );
 
   const isMembershipSubscription = hasTransactionType(transactionMeta, [
     TransactionType.membershipSubscription,
@@ -94,7 +99,9 @@ export function useTransactionCustomAmount({
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
-  const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
+  const [isPrefillPending, setIsPrefillPending] = useState(
+    isFullBalanceDepositFlow,
+  );
   const hasPrefilled = useRef(false);
   const userHasEditedRef = useRef(false);
   // Dispatching the metric per keystroke triggers a store-wide selector sweep;
@@ -550,7 +557,7 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     if (
-      isAddMusdFlow &&
+      isFullBalanceDepositFlow &&
       !isMembershipSubscription &&
       balanceUsd &&
       balanceUsd > 0 &&
@@ -569,7 +576,7 @@ export function useTransactionCustomAmount({
       setIsPrefillPending(false);
     }
   }, [
-    isAddMusdFlow,
+    isFullBalanceDepositFlow,
     isMembershipSubscription,
     balanceUsd,
     setConfirmationMetric,

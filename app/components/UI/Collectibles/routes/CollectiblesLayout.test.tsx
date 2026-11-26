@@ -12,6 +12,10 @@ import {
 } from '#app/components/UI/Collectibles/routeNames';
 import { CollectiblesLayout } from './CollectiblesLayout';
 
+jest.mock('#app/components/UI/Collectibles/hooks/usePacksCatalog', () => ({
+  usePacksCatalog: () => ({ packs: [], categories: [], isPending: true }),
+}));
+
 interface MockPagerProps {
   children?: React.ReactNode;
   onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
@@ -35,7 +39,7 @@ const Stack = createNativeStackNavigator();
 
 const tabs = [
   [strings('collectibles.tabs.popular'), collectiblesTestIds.popularView],
-  [strings('collectibles.tabs.packs'), collectiblesTestIds.packsView],
+  [strings('collectibles.tabs.packs'), collectiblesTestIds.packsSkeleton],
   [strings('collectibles.tabs.collection'), collectiblesTestIds.collectionView],
   [
     strings('collectibles.tabs.marketplace'),

@@ -35,6 +35,7 @@ import {
 } from '../../__mocks__/pay-token.mock';
 
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
+  ...jest.requireActual('../../../../UI/Money/utils/moneyAccountDepositIntent'),
   getMoneyAccountDepositIntent: jest.fn(),
 }));
 
@@ -285,19 +286,39 @@ describe('useDepositPrefillAmount', () => {
       });
     });
 
-    it('does not enable amount prefill for addMusd when kill-switch/A/B are off', () => {
-      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
-      setupMocks({
-        depositIntent: 'addMusd',
-        prefilledAmountDefault: { enabled: false },
-        prefilledAmountOverrides: {},
-      });
+    it.each(['addMusd', 'addUsdc', 'addUsdt'] as const)(
+      'does not enable amount prefill for %s when kill-switch/A/B are off',
+      (depositIntent) => {
+        mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+        setupMocks({
+          depositIntent,
+          prefilledAmountDefault: { enabled: false },
+          prefilledAmountOverrides: {},
+        });
 
-      const { result } = runHook();
+        const { result } = runHook();
 
-      // addMusd amount autofill is owned by useTransactionCustomAmount at 100%.
-      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
-    });
+        // Full-balance amount autofill is owned by useTransactionCustomAmount.
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
+
+    it.each(['addMusd', 'addUsdc', 'addUsdt'] as const)(
+      'does not enable A/B amount prefill for %s without an explicit amount',
+      (depositIntent) => {
+        mockDepositPrefillAbVariant(
+          MoneyAccountDepositPrefillVariant.Treatment,
+        );
+        setupMocks({
+          depositIntent,
+          prefilledAmountOverrides: { moneyAccountDeposit: { enabled: true } },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
 
     it('returns disabled for card intent even when treatment and flag enabled', () => {
       setupMocks({ depositIntent: 'card' });

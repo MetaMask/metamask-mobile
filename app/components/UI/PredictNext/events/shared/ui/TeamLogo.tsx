@@ -10,6 +10,7 @@ import { Image as ExpoImage } from 'expo-image';
 import type { PredictTeam } from '../../../types';
 
 export type TeamLogoSize =
+  | 'xs'
   | 'small'
   | 'medium'
   | 'large'
@@ -17,6 +18,7 @@ export type TeamLogoSize =
   | 'xlarge';
 
 const SIZE_CLASS_NAMES: Record<TeamLogoSize, string> = {
+  xs: 'h-7 w-7',
   small: 'h-8 w-8',
   medium: 'h-10 w-10',
   large: 'h-12 w-12',
@@ -35,6 +37,7 @@ const FALLBACK_TEXT: Record<
   TeamLogoSize,
   { variant: TextVariant; fontWeight: FontWeight }
 > = {
+  xs: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
   small: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
   medium: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
   large: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
