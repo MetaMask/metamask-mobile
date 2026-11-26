@@ -23,7 +23,10 @@ import {
 } from '../auth/venueSigningProfiles';
 import { RemoteVenueProfileClient } from '../auth/RemoteVenueProfileClient';
 import { contentDigest } from '../auth/signing/deviceRequestSigner';
-import { sendSigned } from '../adapters/remote/signedVenueCall';
+import {
+  sendSigned,
+  VenueProfilePreviewExpiredError,
+} from '../adapters/remote/signedVenueCall';
 import { TemplateError } from '../auth/signing/profileTemplates';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -556,7 +559,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
     ).resolves.toBeDefined();
   });
 
-  it('returns the original order refusal when a refresh replaces its previewed profile', async () => {
+  it('rejects a confirmed preview when a refresh replaces its profile', async () => {
     const { getSigningProfile, fetchProfile } =
       installRefreshableVenueProfileFixture();
     const { service } = createService();
@@ -583,18 +586,19 @@ describe('PredictDeviceAuthService.signOperation', () => {
       return response;
     });
 
-    const returned = await sendSigned(
-      {
-        signOperation: service.signOperation.bind(service),
-        invalidateSigningSession: service.invalidateA2t.bind(service),
-      },
-      'order.place',
-      { ...input, profile: preview?.profile },
-      send,
-      (reply) => reply,
-    );
+    await expect(
+      sendSigned(
+        {
+          signOperation: service.signOperation.bind(service),
+          invalidateSigningSession: service.invalidateA2t.bind(service),
+        },
+        'order.place',
+        { ...input, profile: preview?.profile },
+        send,
+        (reply) => reply,
+      ),
+    ).rejects.toBeInstanceOf(VenueProfilePreviewExpiredError);
 
-    expect(returned).toBe(response);
     expect(send).toHaveBeenCalledTimes(1);
     expect(mockSignDeviceKey).toHaveBeenCalledTimes(1);
     expect(fetchProfile).toHaveBeenCalledWith(
