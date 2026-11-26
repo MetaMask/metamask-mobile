@@ -137,5 +137,28 @@ ios_or_ignorable:
   - 'ios/**'
   - *e2e_ignorable
 
+# JEST DOCS-ONLY DETECTION
+# Used to skip the unit, component-view and integration Jest jobs on pull
+# requests whose changes are all documentation. Deliberately stricter than
+# e2e_ignorable: test files, snapshots, configs, .github changes and assets
+# can all affect Jest results, so they never count as docs here.
+# Skip only when jest_skippable_docs matches every changed file AND
+# jest_markdown_inputs matches none of them.
+jest_skippable_docs:
+  - '**/*.{md,mdx}'
+  - 'docs/pr-screenshots/**'
+
+# Markdown that is read by tests or tooling and so can break Jest when edited.
+# Conservative: any markdown under these paths keeps Jest running.
+jest_markdown_inputs:
+  - '.github/**'
+  - '.ai-pr-analyzer/**'
+  - '.agents/**'
+  - '.claude/**'
+  - '.cursor/**'
+  - 'scripts/**'
+  - 'tests/**'
+  - 'app/components/UI/PredictNext/docs/**'
+
 all_changes:
   - '**'

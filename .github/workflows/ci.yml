@@ -1104,7 +1104,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && needs.get_requirements.outputs.skip_jest_tests != 'true' }}
     needs:
       - get_requirements
     steps:
@@ -1150,7 +1150,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && needs.get_requirements.outputs.skip_jest_tests != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1450,7 +1450,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && needs.get_requirements.outputs.skip_jest_tests != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1611,7 +1611,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && needs.get_requirements.outputs.skip_jest_tests != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -2257,6 +2257,7 @@ jobs:
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
           e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           flakiness-job-regex: '^(component-view-flakiness-detection)$'
+          jest-job-regex: '^(prepare-ci-js-deps|unit-tests|component-view-tests|merge-unit-and-component-view-tests)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
