@@ -435,7 +435,7 @@
     "@metamask/profile-controller": "^3.1.0",
     "@metamask/profile-metrics-controller": "patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch",
     "@metamask/profile-sync-controller": "^36.1.2",
-    "@metamask/ramps-controller": "^30.1.0",
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A30.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-30.1.0-35a790070c.patch",
     "@metamask/react-data-query": "^2.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
