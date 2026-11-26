@@ -1,4 +1,4 @@
-import { isCancelledError, onlineManager } from '@tanstack/react-query';
+import { CancelledError, onlineManager } from '@tanstack/react-query';
 import Logger from '../../util/Logger';
 import { getNetworkConditions } from '../../util/deviceCapability/conditions';
 import { HttpError, OfflineError } from './errors';
@@ -25,7 +25,7 @@ export function reportNetworkFailure(
       ? error.status
       : undefined;
   if (
-    isCancelledError(error) ||
+    error instanceof CancelledError ||
     error instanceof OfflineError ||
     !onlineManager.isOnline() ||
     (error instanceof Error && error.name === 'AbortError') ||

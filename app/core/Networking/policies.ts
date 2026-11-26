@@ -1,5 +1,5 @@
 import { calculateRetryDelay } from '@metamask/core-backend';
-import { isCancelledError } from '@tanstack/react-query';
+import { CancelledError } from '@tanstack/react-query';
 import { StructError } from '@metamask/superstruct';
 import type { NetworkConditions } from '../../util/deviceCapability/conditions';
 import { LATENCY_THRESHOLDS } from '../../util/deviceCapability/thresholds';
@@ -71,7 +71,7 @@ export function resolvePoll(
 /** Identifies failures that must not be retried, including generated API errors. */
 export function isRetryableError(error: unknown): boolean {
   if (
-    isCancelledError(error) ||
+    error instanceof CancelledError ||
     error instanceof OfflineError ||
     error instanceof ParseError ||
     error instanceof StructError ||
