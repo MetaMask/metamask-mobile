@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   useQuery,
-  type QueryFunction,
   type QueryKey,
   type UseQueryOptions,
   type UseQueryResult,
@@ -24,8 +23,13 @@ export type NetworkQueryOptions<
   UseQueryOptions<QueryFnData, Error, Data, Key>,
   'queryFn' | 'retry' | 'gcTime' | 'refetchInterval'
 > & {
-  /** Pass `signal` to `fetch` so a timeout or cancellation stops the request. */
-  queryFn: QueryFunction<QueryFnData, Key>;
+  /**
+   * URL to GET. The hook makes the request; callers never call `fetch`.
+   * Put every value that changes the URL in `queryKey`.
+   */
+  url: string;
+  /** Turns the untrusted JSON body into the query data. Throw to fail. */
+  parse: (body: unknown) => QueryFnData;
   /** Poll interval in ms on a good connection. Tripled on a slow one. */
   refetchInterval?: number;
 };
@@ -40,6 +44,9 @@ const GC_TIME: Record<HardwareTier | 'UNKNOWN', number> = {
   UNKNOWN: 24 * 60 * MINUTE,
 };
 
+// Client errors that can succeed on a later attempt.
+const RETRYABLE_CLIENT_STATUSES = [408, 429];
+
 export class NetworkTimeoutError extends Error {
   constructor() {
     super('Network request timed out');
@@ -47,32 +54,69 @@ export class NetworkTimeoutError extends Error {
   }
 }
 
+/** A response outside 2xx. Carries the status only, never the URL. */
+export class HttpError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(`HTTP ${status}`);
+    this.name = 'HttpError';
+    this.status = status;
+  }
+}
+
+/** The body was not JSON, or `parse` rejected it. Not retried. */
+export class InvalidResponseError extends Error {
+  constructor(cause: unknown) {
+    super('Invalid response body', { cause });
+    this.name = 'InvalidResponseError';
+  }
+}
+
+async function getJson<QueryFnData>(
+  url: string,
+  parse: (body: unknown) => QueryFnData,
+  signal: AbortSignal,
+): Promise<QueryFnData> {
+  // The query cache is the only cache, so a refetch always reaches the server.
+  const response = await fetch(url, { signal, cache: 'no-cache' });
+  if (!response.ok) throw new HttpError(response.status);
+  try {
+    return parse(await response.json());
+  } catch (error) {
+    throw new InvalidResponseError(error);
+  }
+}
+
 /**
- * Times out after the device's hung threshold, the same one the latency
- * signal uses. Fails with `NetworkTimeoutError` even when the fetcher ignores
- * the abort, so a stalled request still reaches retry and the error state.
+ * Aborts the request after the device's hung threshold, the same one the
+ * latency signal uses, and fails with `NetworkTimeoutError` even if the
+ * native request ignores the abort, so a stall still reaches retry and the
+ * error state. Query cancellation aborts the request too.
  */
-function withTimeout<QueryFnData, Key extends QueryKey>(
-  queryFn: QueryFunction<QueryFnData, Key>,
-): QueryFunction<QueryFnData, Key> {
-  return async (context) => {
-    const controller = new AbortController();
-    // TanStack makes one signal per fetch, so the listener does not outlive it.
-    context.signal.addEventListener('abort', () => controller.abort());
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timedOut = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => {
-        controller.abort();
-        reject(new NetworkTimeoutError());
-      }, getLatencyThresholds().hungMs);
-    });
-    try {
-      const request = queryFn({ ...context, signal: controller.signal });
-      return await Promise.race([request, timedOut]);
-    } finally {
-      clearTimeout(timer);
-    }
-  };
+async function request<QueryFnData>(
+  url: string,
+  parse: (body: unknown) => QueryFnData,
+  querySignal: AbortSignal,
+): Promise<QueryFnData> {
+  const controller = new AbortController();
+  // TanStack makes one signal per fetch, so the listener does not outlive it.
+  querySignal.addEventListener('abort', () => controller.abort());
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new NetworkTimeoutError());
+    }, getLatencyThresholds().hungMs);
+  });
+  try {
+    return await Promise.race([
+      getJson(url, parse, controller.signal),
+      timedOut,
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function isSlowConnection(): boolean {
@@ -82,7 +126,15 @@ function isSlowConnection(): boolean {
   );
 }
 
-function shouldRetry(failureCount: number): boolean {
+function isRetryable(error: Error): boolean {
+  if (error instanceof InvalidResponseError) return false;
+  if (!(error instanceof HttpError)) return true;
+  if (error.status >= 500) return true;
+  return RETRYABLE_CLIENT_STATUSES.includes(error.status);
+}
+
+function shouldRetry(failureCount: number, error: Error): boolean {
+  if (!isRetryable(error)) return false;
   if (isSlowConnection()) return failureCount < 1;
   return failureCount < 2;
 }
@@ -94,9 +146,11 @@ function resolvePollInterval(interval: number | undefined): number | false {
 }
 
 /**
- * `useQuery` that adapts to the device and connection: every attempt times
- * out (8 s to 30 s by hardware tier), one retry instead of two and slower
- * polling on a slow connection, a shorter cache on devices with less memory.
+ * The app's read hook: it GETs `url`, validates the body with `parse` and
+ * caches the result. Every attempt times out (8 s to 30 s by hardware tier);
+ * client errors and invalid bodies are not retried; a slow connection gets one retry instead of
+ * two and slower polling; devices with less memory keep a shorter cache.
+ * Offline, the query pauses and runs when the connection returns.
  * Retry and polling read the connection when they run, so the query does not
  * re-render when the connection changes.
  */
@@ -105,7 +159,8 @@ export function useNetworkQuery<
   Data = QueryFnData,
   Key extends QueryKey = QueryKey,
 >({
-  queryFn,
+  url,
+  parse,
   refetchInterval,
   ...options
 }: NetworkQueryOptions<QueryFnData, Data, Key>): UseQueryResult<Data, Error> {
@@ -114,7 +169,8 @@ export function useNetworkQuery<
 
   return useQuery({
     ...options,
-    queryFn: withTimeout(queryFn),
+    queryFn: async ({ signal }): Promise<QueryFnData> =>
+      request(url, parse, signal),
     gcTime,
     retry: shouldRetry,
     refetchInterval: () => resolvePollInterval(refetchInterval),
