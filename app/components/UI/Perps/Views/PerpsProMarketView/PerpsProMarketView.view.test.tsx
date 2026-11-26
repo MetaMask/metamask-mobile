@@ -3645,7 +3645,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
 
       validateOrder.mockReturnValue(pendingValidation);
-      await new Promise<void>((resolve) => setTimeout(resolve, 1100));
       emitEthPrice(stream);
 
       await waitFor(() => {

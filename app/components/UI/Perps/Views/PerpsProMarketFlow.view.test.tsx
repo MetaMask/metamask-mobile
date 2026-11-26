@@ -157,6 +157,16 @@ const flushAsyncSideEffects = async (delayMs = 50) => {
 };
 
 describeForPlatforms('Perps Pro Market Flow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Tests below swap the placeOrder implementation (fill delivered on the
+    // next macrotask); re-establish the framework default so later cases
+    // never inherit an earlier swap.
+    (Engine.context.PerpsController.placeOrder as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({ success: true, orderId: 'component-view-order' });
+  });
+
   afterEach(async () => {
     // Wake CUF waiters / clear pending spans so stream timers do not outlive
     // the Jest environment and race toast/haptic teardown.
