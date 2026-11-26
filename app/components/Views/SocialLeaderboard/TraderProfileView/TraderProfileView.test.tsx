@@ -44,10 +44,10 @@ const mockSocialFeedProps = jest.fn();
 
 jest.mock('../terms/socialTermsAcceptance');
 
-let mockIsSocialV1Enabled = false;
+let mockHasSocialV1Access = false;
 jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
   ...jest.requireActual('../../../../selectors/featureFlagController/socialV1'),
-  selectIsSocialV1Enabled: () => mockIsSocialV1Enabled,
+  selectHasSocialV1Access: () => mockHasSocialV1Access,
 }));
 
 const mockFollowSetupOptions = jest.fn();
@@ -519,7 +519,7 @@ describe('TraderProfileView', () => {
     mockRefreshPosts.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
     mockToggleFollow.mockResolvedValue(undefined);
-    mockIsSocialV1Enabled = false;
+    mockHasSocialV1Access = false;
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -686,7 +686,7 @@ describe('TraderProfileView', () => {
   });
 
   it('asks for the Social terms and a social profile before following in Social V1', () => {
-    mockIsSocialV1Enabled = true;
+    mockHasSocialV1Access = true;
 
     renderWithProvider(<TraderProfileView />);
 
