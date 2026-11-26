@@ -1025,6 +1025,30 @@ describe('useMoneyActivityItems', () => {
     expect(loadMore).not.toHaveBeenCalled();
   });
 
+  it('keeps fetching past a caller-provided page cap while the list is empty', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [],
+        hasMore: true,
+        pageCount: 1,
+        loadMore,
+      }),
+    );
+
+    renderHook(() =>
+      useMoneyActivityItems({
+        fill: {
+          bucket: MoneyActivityFilter.All,
+          count: 5,
+          maxPages: 1,
+        },
+      }),
+    );
+
+    expect(loadMore).toHaveBeenCalled();
+  });
+
   it('exposes valuation settling without hiding populated activity', () => {
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({

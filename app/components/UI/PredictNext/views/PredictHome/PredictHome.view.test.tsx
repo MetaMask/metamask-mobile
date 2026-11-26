@@ -1780,13 +1780,11 @@ describe('PredictHome', () => {
         .getAllByRole('button')
         .map((chip) => chip.props.testID);
 
-    it('shows the header and the catalog Categories as chips, in catalog order', async () => {
+    it('shows the catalog Categories as chips without a header, in catalog order', async () => {
       const view = renderPredictNext();
 
       const categories = await view.findByTestId(PredictHomeTestIds.CATEGORIES);
-      expect(
-        within(categories).getByTestId(PredictHomeTestIds.CATEGORIES_HEADER),
-      ).toHaveTextContent('Categories');
+      expect(within(categories).queryByRole('header')).not.toBeOnTheScreen();
       expect(chipIds(view)).toEqual([
         PredictHomeTestIds.categoryChip('sports'),
         PredictHomeTestIds.categoryChip('politics'),
@@ -1795,8 +1793,14 @@ describe('PredictHome', () => {
         view.getByTestId(PredictHomeTestIds.categoryChip('sports')),
       ).toHaveTextContent('Sports');
       expect(
+        view.getByTestId(PredictHomeTestIds.categoryChipIcon('sports')),
+      ).toBeOnTheScreen();
+      expect(
         view.getByTestId(PredictHomeTestIds.categoryChip('politics')),
       ).toHaveTextContent('Politics');
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChipIcon('politics')),
+      ).toBeOnTheScreen();
     });
 
     it('follows the order the catalog gives', async () => {

@@ -92,6 +92,14 @@ describe('addressListViewedTracking', () => {
     });
   });
 
+  describe('AddressListViewedSource', () => {
+    it('includes the onboarding checklist source', () => {
+      expect(AddressListViewedSource.ONBOARDING_CHECKLIST).toBe(
+        'onboarding_checklist',
+      );
+    });
+  });
+
   describe('trackAddressListViewed', () => {
     it('creates event with ADDRESS_LIST_VIEWED', () => {
       trackAddressListViewed(
