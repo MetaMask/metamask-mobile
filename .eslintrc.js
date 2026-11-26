@@ -1137,5 +1137,13 @@ module.exports = {
     'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: [
+    'app/util/termsOfUse/termsOfUseContent.ts',
+    // ESLint's eslintrc default ignores `.*`. The plugin tests live under
+    // .yarn/plugins, and the lint globs name that path on purpose.
+    '!.yarn',
+    '!.yarn/plugins',
+    '!.yarn/plugins/**',
+    '!.yarn/plugins/**/*.test.ts',
+  ],
 };
