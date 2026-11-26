@@ -213,6 +213,7 @@ export const useMoneyMfa = () => {
   }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
+    // Turning this off needs a passkey or TOTP; email alone can't.
     try {
       await verifyOrEnroll({
         methods: MONEY_MFA_METHODS,
