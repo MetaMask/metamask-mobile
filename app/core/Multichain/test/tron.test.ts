@@ -90,6 +90,29 @@ describe('validateTronTransferAmount', () => {
       validateTronTransferAmount(mockAccount, params),
     ).rejects.toThrow('Snap crashed');
   });
+
+  it('calls the Snap without toAddress for balance-only validation', async () => {
+    mockHandleSnapRequest.mockResolvedValueOnce({ valid: true, errors: [] });
+
+    const paramsWithoutTo = {
+      accountId: 'tron-account-id',
+      assetId:
+        'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t' as CaipAssetType,
+      value: '10',
+    };
+
+    await validateTronTransferAmount(mockAccount, paramsWithoutTo);
+
+    expect(mockHandleSnapRequest).toHaveBeenCalledWith(
+      Engine.controllerMessenger,
+      {
+        snapId: SNAP_ID,
+        origin: 'metamask',
+        handler: HandlerType.OnClientRequest,
+        request: { method: 'onAmountInput', params: paramsWithoutTo },
+      },
+    );
+  });
 });
 
 describe('getTronMaxSendableAmount', () => {

@@ -622,6 +622,25 @@ jest.mock('../../app/core/Engine', () => {
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToAvailableToTrade: jest.fn(
+          (params: {
+            symbol: string;
+            callback: (update: {
+              providerId: string;
+              symbol: string;
+              long: string;
+              short: string;
+            }) => void;
+          }) => {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: '100000',
+              short: '100000',
+            });
+            return () => undefined;
+          },
+        ),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
@@ -680,6 +699,10 @@ jest.mock('../../app/core/Engine', () => {
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        estimateCrossLiquidation: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'provider',
+        }),
         calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
         updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),

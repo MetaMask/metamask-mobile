@@ -7655,7 +7655,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 4
     }
   },
   "app/components/UI/Perps/hooks/usePerpsPositionForAsset.ts": {
@@ -10181,9 +10181,6 @@
     }
   },
   "app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     },
@@ -20130,11 +20127,6 @@
       "count": 2
     }
   },
-  "app/components/hooks/useArcDefaultTokens/index.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/hooks/useAsyncResult.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -22755,11 +22747,6 @@
     },
     "typescript/restrict-template-expressions": {
       "count": 1
-    }
-  },
-  "app/core/XAuthService/XAuthService.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 4
     }
   },
   "app/core/XAuthService/XAuthService.ts": {

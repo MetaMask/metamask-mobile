@@ -436,6 +436,25 @@ export function buildPerpsIntegrationHarness(
     subscribeToOrderBook: jest.fn().mockReturnValue(jest.fn()),
     subscribeToTwapOrders: jest.fn().mockReturnValue(jest.fn()),
     subscribeToOICaps: jest.fn().mockReturnValue(jest.fn()),
+    // The order form waits on this stream before it enables place order.
+    // Both sides match the harness account's $10,000 spendable balance.
+    subscribeToActiveAssetData: jest.fn(
+      (
+        params: Parameters<
+          HyperLiquidSubscriptionService['subscribeToActiveAssetData']
+        >[0],
+      ) => {
+        params.callback({
+          user: DEFAULT_USER_ADDRESS,
+          coin: params.symbol,
+          leverage: { type: 'cross', value: 5 },
+          maxTradeSzs: ['0', '10000'] as [string, string],
+          availableToTrade: ['10000', '10000'] as [string, string],
+          markPx: '50000',
+        });
+        return jest.fn();
+      },
+    ),
     clearAll: jest.fn(),
     restoreSubscriptions: jest.fn().mockResolvedValue(undefined),
     updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
