@@ -4,6 +4,8 @@ import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
 import {
+  formatSignedUsd,
+  formatSignedUsdWithThreshold,
   moneyFormatFiat,
   moneyFormatUsd,
   moneySafeTokenFiatCurrency,
@@ -163,6 +165,36 @@ describe('moneyFormatFiat', () => {
       mockFormatWithThreshold.mockReturnValue('$1,234.56');
 
       expect(moneyFormatUsd(new BigNumber(1234.56))).toBe('$1,234.56');
+    });
+  });
+
+  describe('formatSignedUsd', () => {
+    it('preserves sub-cent values by default', () => {
+      const result = formatSignedUsd(0.001);
+
+      expect(result).toBe('+$0.001');
+    });
+
+    it('collapses sub-cent values when precision is disabled', () => {
+      mockFormatWithThreshold.mockReturnValue('$0.00');
+
+      const result = formatSignedUsd(0.001, { preserveSubCent: false });
+
+      expect(result).toBe('+$0.00');
+    });
+
+    it('formats negative sub-cent values without a negative sign when precision is disabled', () => {
+      mockFormatWithThreshold.mockReturnValue('$0.00');
+
+      const result = formatSignedUsd(-0.001, { preserveSubCent: false });
+
+      expect(result).toBe('$0.00');
+    });
+
+    it('formats positive sub-cent values as a signed less-than-cent amount', () => {
+      const result = formatSignedUsdWithThreshold(0.001);
+
+      expect(result).toBe('+<$0.01');
     });
   });
 

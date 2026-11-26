@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "Sao chép {{field}}",
       "copied_label": "Đã sao chép {{field}}",
-      "copy_all_button": "Sao chép tất cả thông tin",
-      "copied_all_label": "Đã sao chép thông tin ngân hàng",
       "button": "Hoàn tất",
       "waiting_for_details": "Thông tin tài khoản của bạn sẽ sớm xuất hiện tại đây.",
       "loading_details": "Đang tải thông tin tài khoản",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "tại",
-        "market_cap_suffix": "Vốn hóa thị trường",
-        "size_at_price": "{{size}} ở mức {{price}}",
-        "size_at_market_cap": "{{size}} tại {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Vốn hóa thị trường"
       },
       "trader_stats": {
         "pnl_30d": "Lãi/Lỗ {{pnl}} (30 ngày)",
@@ -1995,22 +1991,6 @@
         "4": "T5",
         "5": "T6",
         "6": "T7"
-      },
-      "tooltip": {
-        "label": "{{action}} ở giá {{price}}",
-        "bought": "Đã mua",
-        "sold": "Đã bán",
-        "perps_closed": "Đã đóng",
-        "perps_long_opened": "Đã mở vị thế mua khống",
-        "perps_long_added": "Đã tăng vị thế mua khống",
-        "perps_long_reduced": "Đã giảm vị thế mua khống",
-        "perps_short_opened": "Đã mở vị thế bán khống",
-        "perps_short_added": "Đã tăng vị thế bán khống",
-        "perps_short_reduced": "Đã mua lại",
-        "spot_opened": "Đã mua",
-        "spot_added": "Đã mua thêm",
-        "spot_reduced": "Đã bán một phần",
-        "spot_closed": "Đã bán hết"
       }
     },
     "trader_position": {
@@ -5482,19 +5462,6 @@
     "accounts": "tài khoản",
     "show_accounts": "Hiển thị",
     "hide_accounts": "Ẩn",
-    "labels": {
-      "bitcoin_testnet_account_name": "Tài khoản Mạng thử nghiệm Bitcoin",
-      "bitcoin_account_name": "Tài khoản Bitcoin",
-      "bitcoin_signet_account_name": "Tài khoản Bitcoin Signet",
-      "bitcoin_regtest_account_name": "Tài khoản Bitcoin Regtest",
-      "solana_devnet_account_name": "Tài khoản Solana Devnet",
-      "solana_testnet_account_name": "Tài khoản Mạng thử nghiệm Solana",
-      "solana_account_name": "Tài khoản Solana",
-      "tron_account_name": "Tài khoản Tron",
-      "tron_nile_account_name": "Tài khoản Tron Nile",
-      "tron_shasta_account_name": "Tài khoản Tron Shasta",
-      "stellar_account_name": "Tài khoản Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Tạo tài khoản {{clientType}} thất bại"
     },
@@ -7181,7 +7148,6 @@
     "gas_education_3": "MetaMask không thu lợi nhuận từ phí gas.",
     "gas_education_4": "Phí gas biến động dựa trên lưu lượng mạng và mức độ phức tạp của giao dịch.",
     "gas_education_learn_more": "Tìm hiểu thêm về phí gas",
-    "confusable_title": "Kiểm tra địa chỉ người nhận",
     "confusable_msg": "Chúng tôi đã phát hiện thấy một ký tự nhầm lẫn trong tên ENS. Hãy kiểm tra tên ENS để tránh nguy cơ bị lừa đảo.",
     "similar_to": "tương tự như",
     "contains_zero_width": "chứa ký tự có chiều rộng bằng không",
@@ -7199,8 +7165,7 @@
     "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm",
     "invalid_recipient": "Người nhận không hợp lệ",
     "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ",
-    "swap_tokens": "Hoán đổi token",
-    "fromWithColon": "Từ:"
+    "swap_tokens": "Hoán đổi token"
   },
   "custom_gas": {
     "total": "Tổng",
@@ -7478,8 +7443,6 @@
     "hash_copied_to_clipboard": "Đã sao chép mã băm giao dịch vào bộ nhớ đệm",
     "address_copied_to_clipboard": "Đã sao chép địa chỉ vào bộ nhớ đệm",
     "transaction_error": "Lỗi giao dịch",
-    "address_to_placeholder": "Tìm kiếm, địa chỉ công khai (0x) hoặc ENS",
-    "address_from_balance": "Số dư:",
     "status": "Trạng thái",
     "date": "Ngày",
     "nonce": "Nonce",
@@ -7560,11 +7523,8 @@
     "delete_contact": "Xóa người liên hệ",
     "delete": "Xóa",
     "cancel": "Hủy",
-    "add_to_address_book": "Thêm vào sổ địa chỉ",
-    "enter_an_alias": "Nhập bí danh",
     "add_this_address": "Thêm địa chỉ này vào sổ địa chỉ của bạn",
     "next": "Tiếp",
-    "enter_an_alias_placeholder": "ví dụ: Vitalik B.",
     "add_contact_title": "Thêm người liên hệ",
     "add_contact": "Thêm người liên hệ",
     "edit_contact_title": "Chỉnh sửa người liên hệ",
@@ -8991,19 +8951,7 @@
     "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
   "whats_new": {
-    "title": "Xem tính năng mới",
-    "remove_gns_new_ui_update": {
-      "title": "Cập nhật giao diện người dùng mới",
-      "introduction": "Chúng tôi đã cập nhật để cải thiện trải nghiệm ứng dụng.",
-      "descriptions": {
-        "description_1": "Trình đơn chọn mạng đã chuyển vào phần tài sản",
-        "description_2": "Hoán đổi và Cầu nối trong một quy trình đơn giản",
-        "description_3": "Trải nghiệm gửi được tối ưu hóa",
-        "description_4": "Giao diện tài khoản mới mẻ"
-      },
-      "more_information": "Giờ đây bạn có thể tập trung vào token và hoạt động của mình, thay vì các mạng đằng sau.",
-      "got_it": "Đã hiểu"
-    }
+    "title": "Xem tính năng mới"
   },
   "invalid_network": {
     "title": "ID chuỗi của mạng tùy chỉnh \n {{network}} \n cần được nhập lại.",
@@ -9314,28 +9262,13 @@
     "nickname": "biệt danh"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Những điều cần lưu ý",
     "testnet_network": "mạng thử nghiệm {{type}}",
-    "first_description": "Token gốc trên mạng này là {{ticker}}. Đây là token được dùng để trả phí mạng.",
-    "second_description": "Nếu bạn cố gắng gửi tài sản trực tiếp từ mạng này sang mạng khác, điều này có thể khiến tài sản bị mất vĩnh viễn. Nhớ sử dụng cầu nối.",
-    "third_description": "Các token có thể không tự động hiển thị trong ví của bạn.",
-    "private_network": "Mạng này chưa được xác định và có thể sử dụng một token đặc biệt để trả phí mạng.",
     "unknown_network": "Mạng chưa xác định",
-    "switched_network": "Bạn đã chuyển sang",
-    "learn_more": "Tìm hiểu thêm",
     "add_token": "Nhấn vào đây để thêm token thủ công",
-    "add_token_manually": "Thêm thủ công.",
     "got_it": "Đã hiểu",
     "error_title": "Đã xảy ra sự cố",
     "error_message": "Đã xảy ra lỗi khi tải thông tin mạng. Hãy thử lại sau.",
-    "private_network_third_description": "Nhập tên cho mạng này để dễ nhận dạng.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Bật phát hiện token tự động",
-    "token_detection_mainnet_title": "Đã bật tính năng phát hiện token nên các token sẽ tự động hiển thị trong ví của bạn.",
-    "token_detection_mainnet_link": "Bạn cũng có thể thêm token theo cách thủ công.",
-    "or": "hoặc",
-    "non_evm_first_description": "Tài sản gốc trong mạng này là {{ticker}}. Nó được sử dụng để trả phí giao dịch.",
-    "non_evm_second_description": "Bạn sẽ mất tài sản nếu cố gắng gửi tài sản từ hoặc đến một mạng khác."
+    "private_network_third_description": "Nhập tên cho mạng này để dễ nhận dạng."
   },
   "download_files": {
     "error": "Không thể tải tập tin đính kèm xuống.",
@@ -9914,7 +9847,7 @@
       "eyebrow": "MetaMask Tài chính",
       "title": "Sinh lời, giao dịch và chi tiêu từ cùng một số dư",
       "body_prefix": "MetaMask Tài chính là tài khoản đồng ổn định có mức sinh lời lên đến ",
-      "body_suffix": "— tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
+      "body_suffix": "- tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
       "body_no_apy": "MetaMask Tài chính là tài khoản đồng ổn định tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
       "benefit_convert_title": "Chuyển đổi sang MetaMask USD theo tỷ lệ 1:1",
       "benefit_convert_body": "Số tiền bạn nạp được chuyển đổi sang MetaMask USD theo tỷ lệ 1:1, hoàn toàn miễn phí.",

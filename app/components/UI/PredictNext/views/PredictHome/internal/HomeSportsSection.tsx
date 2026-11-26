@@ -6,7 +6,6 @@ import {
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../../locales/i18n';
 import { PredictEventCard } from '../../../events/cards';
 import type {
   PredictEvent,
@@ -21,11 +20,15 @@ const CARD_HEIGHT = 134;
 const SKELETON_COUNT = 3;
 
 interface HomeSportsSectionProps {
+  /** The catalog's section ID; the row's test IDs use it. */
+  id: string;
+  title: string;
   /** Game Events; each renders as a small game card. */
   events: readonly PredictEvent[];
   isLoading: boolean;
-  /** Opens the Feed Screen behind the row. */
-  onOpen: () => void;
+  /** Opens the Feed Screen behind the row. Without it the header is not
+   * pressable and shows no chevron. */
+  onOpen?: () => void;
   onOpenEvent: (event: PredictEvent) => void;
   onOrder?: (
     event: PredictEvent,
@@ -37,13 +40,15 @@ interface HomeSportsSectionProps {
 }
 
 /**
- * Home's Sports row: a "Sports" header with a chevron, then a free-scrolling
- * row of small game cards 12pt apart, with no snapping and no pagination. The
+ * A Home games row, such as Sports: a titled header that opens the row's Feed
+ * Screen when there is one, then a free-scrolling row of small game cards 12pt apart, with no snapping and no pagination. The
  * row spans the screen edge to edge, so the first card starts 16pt in; the
  * header keeps its own 16pt padding. Skeleton cards of the same size stand in
  * while loading, and nothing renders once loaded without an Event.
  */
 export const HomeSportsSection = ({
+  id,
+  title,
   events,
   isLoading,
   onOpen,
@@ -52,27 +57,28 @@ export const HomeSportsSection = ({
   onLayout,
 }: HomeSportsSectionProps) => {
   const tw = useTailwind();
+  const testIds = PredictHomeTestIds.gamesRow(id);
 
   if (!isLoading && events.length === 0) {
     return null;
   }
 
   return (
-    <Box
-      testID={PredictHomeTestIds.HOME_SPORTS}
-      twClassName="-mx-4 gap-4"
-      onLayout={onLayout}
-    >
+    <Box testID={testIds.ROW} twClassName="-mx-4 gap-4" onLayout={onLayout}>
       <SectionHeader
-        testID={PredictHomeTestIds.HOME_SPORTS_HEADER}
-        title={strings('predict_next.home_feed.sports')}
-        isInteractive
-        onPress={onOpen}
-        endIconProps={{ testID: PredictHomeTestIds.HOME_SPORTS_CHEVRON }}
+        testID={testIds.HEADER}
+        title={title}
         twClassName="py-0"
+        {...(onOpen
+          ? {
+              isInteractive: true,
+              onPress: onOpen,
+              endIconProps: { testID: testIds.CHEVRON },
+            }
+          : {})}
       />
       <ScrollView
-        testID={PredictHomeTestIds.HOME_SPORTS_ROW}
+        testID={testIds.LIST}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={tw.style('px-4 gap-3')}
@@ -84,7 +90,7 @@ export const HomeSportsSection = ({
                 width={CARD_WIDTH}
                 height={CARD_HEIGHT}
                 twClassName="rounded-2xl"
-                testID={PredictHomeTestIds.HOME_SPORTS_SKELETON}
+                testID={testIds.SKELETON}
               />
             ))
           : events.map((event) => (

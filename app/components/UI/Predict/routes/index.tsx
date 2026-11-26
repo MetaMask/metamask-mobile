@@ -80,7 +80,7 @@ const PredictModalStack = () => {
         component={PredictActivityDetail}
       />
       <ModalStack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
         component={Confirm}
         options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
       />
@@ -135,7 +135,7 @@ const PredictScreenStack = () => {
         />
 
         <Stack.Screen
-          name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+          name={Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS}
           component={Confirm}
           options={emptyNavHeaderOptions}
         />

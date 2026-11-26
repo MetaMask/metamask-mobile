@@ -6,9 +6,10 @@ import {
   selectSlippage,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
+  AdvancedOrderMetricsEventName,
   getQuotesReceivedProperties,
   QuoteWarning,
   UnifiedSwapBridgeEventName,
@@ -23,6 +24,8 @@ import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
  * Location is automatically injected by the bridge controller via setLocation().
  */
 export const useBridgeQuoteEvents = ({
+  enabled,
+  eventName,
   hasInsufficientBalance,
   hasInsufficientNativeReserveError,
   hasNoQuotesAvailable,
@@ -34,6 +37,10 @@ export const useBridgeQuoteEvents = ({
   hasDestAssetRequireActivate,
   hasUsableQuote,
 }: {
+  enabled: boolean;
+  eventName:
+    | UnifiedSwapBridgeEventName.QuotesReceived
+    | AdvancedOrderMetricsEventName.QuotesReceived;
   hasInsufficientBalance: boolean;
   hasInsufficientNativeReserveError: boolean;
   hasNoQuotesAvailable: boolean;
@@ -48,6 +55,7 @@ export const useBridgeQuoteEvents = ({
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
   );
+  const lastObservedRefreshCountRef = useRef(0);
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
@@ -97,9 +105,13 @@ export const useBridgeQuoteEvents = ({
 
   // Emit QuotesReceived event each time quotes are fetched successfully
   useEffect(() => {
-    if (!isLoading && quotesRefreshCount > 0 && !quoteFetchError) {
+    const hasNewQuoteRefresh =
+      quotesRefreshCount > lastObservedRefreshCountRef.current;
+    lastObservedRefreshCountRef.current = quotesRefreshCount;
+
+    if (enabled && hasNewQuoteRefresh && !isLoading && !quoteFetchError) {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.QuotesReceived,
+        eventName,
         getQuotesReceivedProperties(
           activeQuote,
           warnings,
@@ -117,25 +129,47 @@ export const useBridgeQuoteEvents = ({
               unifiedSwapBridgeContext.token_symbol_source || undefined,
             token_symbol_destination:
               unifiedSwapBridgeContext.token_symbol_destination || undefined,
+            operation: unifiedSwapBridgeContext.operation,
           },
         ),
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotesRefreshCount]);
+  }, [
+    activeQuote,
+    enabled,
+    eventName,
+    fromTokenBalanceInUsd,
+    hasSufficientGasForQuote,
+    isLoading,
+    isSubmitDisabled,
+    quoteFetchError,
+    quotesRefreshCount,
+    recommendedQuote,
+    slippage,
+    unifiedSwapBridgeContext.custom_slippage,
+    unifiedSwapBridgeContext.operation,
+    unifiedSwapBridgeContext.token_symbol_destination,
+    unifiedSwapBridgeContext.token_symbol_source,
+    unifiedSwapBridgeContext.usd_amount_source,
+    warnings,
+  ]);
 
   // End the trace as soon as the first usable quote becomes available,
   // including while the controller is still streaming additional quotes.
   useEffect(() => {
-    if (firstUsableQuoteRequestId) {
+    if (enabled && firstUsableQuoteRequestId) {
       swapQuoteFetchTrace.finish('success');
     }
-  }, [firstUsableQuoteRequestId]);
+  }, [enabled, firstUsableQuoteRequestId]);
 
   // The stream's complete event drives the empty-state UI before close updates
   // loading status and refresh count. Finish on that same explicit signal.
   useEffect(() => {
-    if (!quoteFetchError && quoteStreamComplete?.hasQuotes === false) {
+    if (
+      enabled &&
+      !quoteFetchError &&
+      quoteStreamComplete?.hasQuotes === false
+    ) {
       swapQuoteFetchTrace.finish(
         'no_quotes',
         undefined,
@@ -143,14 +177,15 @@ export const useBridgeQuoteEvents = ({
       );
     }
   }, [
+    enabled,
     quoteFetchError,
     quoteStreamComplete?.hasQuotes,
     quoteStreamComplete?.reason,
   ]);
 
   useEffect(() => {
-    if (quoteFetchError) {
+    if (enabled && quoteFetchError) {
       swapQuoteFetchTrace.finish('error');
     }
-  }, [quoteFetchError]);
+  }, [enabled, quoteFetchError]);
 };

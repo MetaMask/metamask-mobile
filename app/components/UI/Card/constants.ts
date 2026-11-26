@@ -100,13 +100,8 @@ export const caipChainIdToNetwork = Object.fromEntries(
   ]),
 ) as Record<CaipChainId, CardNetwork>;
 
-export const SOLANA_CAIP_CHAIN_ID = cardNetworkInfos.solana.caipChainId;
-
 export const isEvmChain = (chainId: CaipChainId | undefined): boolean =>
   chainId?.startsWith('eip155:') ?? false;
-
-export const isSolanaChain = (chainId: CaipChainId | undefined): boolean =>
-  chainId === SOLANA_CAIP_CHAIN_ID;
 
 /**
  * Tokens that don't support the spending limit progress bar feature.

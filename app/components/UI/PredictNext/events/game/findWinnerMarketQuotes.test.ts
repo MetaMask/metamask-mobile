@@ -1,3 +1,4 @@
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -32,7 +33,7 @@ const createMarket = (
   question: id,
   status: 'active',
   outcomes,
-  ...(group ? { group } : {}),
+  ...(group ? { group } : fullGameMoneylineMetadata()),
 });
 
 const createEvent = (markets: readonly PredictMarket[]): PredictEvent => ({
@@ -51,20 +52,6 @@ const spreadGroup: PredictMarketGroup = {
 };
 
 describe('findWinnerMarketQuotes', () => {
-  it('returns unique ungrouped home and away quotes', () => {
-    const awayYes = createOutcome('away-yes', 'yes', 'away');
-    const homeYes = createOutcome('home-yes', 'yes', 'home');
-    const event = createEvent([
-      createMarket('away', [awayYes, createOutcome('away-no', 'no')]),
-      createMarket('home', [homeYes, createOutcome('home-no', 'no')]),
-    ]);
-
-    expect(findWinnerMarketQuotes(event)).toEqual({
-      away: { market: event.markets[0], outcome: awayYes },
-      home: { market: event.markets[1], outcome: homeYes },
-    });
-  });
-
   it('includes a unique draw quote when present', () => {
     const awayYes = createOutcome('away-yes', 'yes', 'away');
     const homeYes = createOutcome('home-yes', 'yes', 'home');

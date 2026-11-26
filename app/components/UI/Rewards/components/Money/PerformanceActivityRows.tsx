@@ -117,10 +117,10 @@ function rebateTitle(
     return localizedText.rebatePredictions;
   }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
-    return localizedText.rebatePerpsVolume;
+    return localizedText.rebatePerps;
   }
   if (item.earning_origin_type === 'SWAPS_FEE_CASHBACK') {
-    return localizedText.rebateSwapsVolume;
+    return localizedText.rebateSwaps;
   }
   return localizedText.rebateSwaps;
 }
@@ -173,7 +173,7 @@ export const PerformanceRebateRow: React.FC<{
         iconName={rebateIconName(item)}
         size={AvatarIconSize.Md}
         severity={AvatarIconSeverity.Neutral}
-        iconProps={{ color: IconColor.IconDefault }}
+        iconProps={{ color: IconColor.IconAlternative }}
       />
       <Box twClassName="flex-1">
         <Text

@@ -313,6 +313,37 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('starts TTC demand when cached traders become visible', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    const { rerender } = renderWithProvider(
+      <TopTradersSection {...defaultProps} />,
+    );
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: false,
+      }),
+    );
+
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
+    rerender(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+      }),
+    );
+  });
+
   it('fetches immediately outside the homepage even though the viewport hook never reports visible', () => {
     mockUseSectionViewportVisible.mockReturnValue({
       isVisible: false,
@@ -422,8 +453,97 @@ describe('TopTradersSection', () => {
 
     expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
       expect.objectContaining({
+        contentReady: false,
+        demandStarted: false,
         enabled: true,
         isLoading: false,
+      }),
+    );
+  });
+
+  it('starts TTC with an active leaderboard fetch', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      isFetching: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = false;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: false,
+        demandStarted: true,
+        isLoading: true,
+      }),
+    );
+  });
+
+  it('completes TTC for a settled empty leaderboard response', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+        isLoading: false,
+      }),
+    );
+  });
+
+  it('completes TTC when the leaderboard error state renders', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: 'leaderboard unavailable',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        contentStateForTrace: 'error',
+        enabled: true,
+      }),
+    );
+  });
+
+  it('keeps cached trader rows out of the error content state', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: 'leaderboard refresh failed',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        contentStateForTrace: undefined,
       }),
     );
   });
@@ -648,6 +768,40 @@ describe('TopTradersSection', () => {
     expect(mockToggleFollow).toHaveBeenCalledWith(
       'trader-1',
       expect.objectContaining({ source: 'explore_perps' }),
+    );
+  });
+
+  it('uses the explore_crypto source for view all, profile and follow', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(
+      <TopTradersSection {...defaultProps} source="explore_crypto" />,
+    );
+
+    fireEvent.press(screen.getByText('Top traders'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE,
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-1',
+      expect.objectContaining({ source: 'explore_crypto' }),
     );
   });
 

@@ -60,15 +60,12 @@ export const useSendActions = () => {
           to: toAddress as Hex,
           value: normalizeAmount(value),
         });
-        navigation.navigate(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          {
-            params: {
-              maxValueMode,
-            },
-            loader: ConfirmationLoader.Transfer,
+        navigation.navigate(Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS, {
+          params: {
+            maxValueMode,
           },
-        );
+          loader: ConfirmationLoader.Transfer,
+        });
       } else {
         // The metrics context defaults chainIdCaip to an empty string, which
         // never falls through `??`. Use `||` so an unresolved context value

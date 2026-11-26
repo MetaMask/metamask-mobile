@@ -7,6 +7,7 @@ import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import Engine from '../../../../../core/Engine';
+import { playSelection } from '../../../../../util/haptics';
 
 const QUICK_PICK_ACTIONS = [25, 50, 75, 'MAX'] as const;
 const QUICK_PICK_ACTIONS_WITHOUT_MAX = [25, 50, 75, 90] as const;
@@ -54,6 +55,7 @@ export const GaslessQuickPickOptions = ({
         .multipliedBy(percentage / 100)
         .decimalPlaces(token?.decimals ?? 18, BigNumber.ROUND_DOWN);
 
+      playSelection().catch(() => undefined);
       onAmountSelect(amount.toString());
 
       const preset = `${percentage}%`;

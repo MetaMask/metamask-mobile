@@ -40,6 +40,7 @@ export const STX_DISABLED_DEFAULT = false;
 export interface PreferredToken {
   address: string;
   chainId: string;
+  name?: string;
   successRate: number;
 }
 
@@ -334,6 +335,14 @@ export function getPreferredTokensForTransactionType(
     return preferredTokens.overrides[transactionType];
   }
   return preferredTokens.default;
+}
+
+/** Resolves only the transaction-type override, without the default fallback. */
+export function getPreferredTokenOverride(
+  preferredTokens: PreferredTokensConfig,
+  transactionType: string,
+): PreferredToken[] {
+  return preferredTokens.overrides[transactionType] ?? [];
 }
 
 /**

@@ -1,4 +1,5 @@
 import I18n from '../../../../../../../locales/i18n';
+import { fullGameMoneylineMetadata } from '../../../contracts/v1/fixtures/fullGameMoneyline';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -32,6 +33,7 @@ const createMarket = (
   id: id as PredictEntityId,
   question: id,
   status,
+  ...fullGameMoneylineMetadata(),
   outcomes: [
     createOutcome(`${id}-yes`, selection, askPrice),
     createOutcome(`${id}-no`),
@@ -157,6 +159,7 @@ describe('createGameCardProjection', () => {
         id: 'away' as PredictEntityId,
         question: 'away',
         status: 'active',
+        ...fullGameMoneylineMetadata(),
         outcomes: [awayYes, awayNo],
       },
       createMarket('home', 'home', '0.53'),

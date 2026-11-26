@@ -2,25 +2,24 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import ClaimableRewardsCard, { claimButtonState } from './ClaimableRewardsCard';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
-jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
-  selectIsSocialV1Enabled: jest.fn(() => false),
-}));
-
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
+  availableToClaimSubtext: 'mUSD paid into your Money account',
   balance: 'Balance',
+  balanceSubtext: 'mUSD in total earnings',
   held: 'Held',
+  heldSubtext:
+    'mUSD available to claim once tax determination is cleared and hold is removed',
   pending: 'Pending',
+  pendingSubtext:
+    'mUSD available to claim once pending is cleared and {minimum} is met',
   mUSD: 'mUSD',
   claim: 'Claim',
   paused: 'Paused',
   claimed: 'Claimed',
-  last7Days: 'Last 7 days',
-  totalEarningsLabel: 'Total earnings',
 } as unknown as ReferralLocalizedText;
 
 const renderCard = (
@@ -34,9 +33,7 @@ const renderCard = (
       claimed={claimed}
       claimableAmount="$1.00"
       recordedAmount="$4.00"
-      last7Amount="$0.25"
       isSummaryLoading={false}
-      isLast7Loading={false}
     />,
   );
 
@@ -94,10 +91,6 @@ describe('claimButtonState', () => {
 });
 
 describe('ClaimableRewardsCard', () => {
-  beforeEach(() => {
-    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
-  });
-
   it('renders Claim when a route clears $1', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -106,9 +99,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
       />,
     );
@@ -129,9 +120,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isClaiming
       />,
@@ -150,9 +139,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isClaimWaiting
       />,
@@ -166,10 +153,157 @@ describe('ClaimableRewardsCard', () => {
     );
   });
 
+  it('shows the remaining wait under the disabled Claim button', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        isSummaryLoading={false}
+        canClaim
+        isClaimWaiting
+        claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByText("You can't claim just yet. Try again in 12 minutes."),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the remaining wait, not the earned-elsewhere caption, when both apply', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        isSummaryLoading={false}
+        canClaim
+        isClaimWaiting
+        claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_WAIT),
+    ).toHaveTextContent("You can't claim just yet. Try again in 12 minutes.");
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).not.toHaveBeenCalled();
+  });
+
+  it('keeps Claim enabled when some earnings are on accounts this phone can sign', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        isSummaryLoading={false}
+        canClaim
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(getByText('Claim')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeDisabled();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toHaveTextContent(
+      'Some earnings belong to accounts not on this device. Import the wallet to claim.',
+    );
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Claim when every earning address is unsignable on this phone', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        isSummaryLoading={false}
+        canClaim
+        claimBlockedOnDevice
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(getByText('Claim')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).not.toHaveBeenCalled();
+  });
+
+  it('keeps Claim pressable when earnings are unsignable and income is held for tax', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        held="1000000"
+        heldAmount="$1.00"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        isSummaryLoading={false}
+        canClaim
+        taxHeld
+        claimBlockedOnDevice
+        earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeDisabled();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
   it('renders a disabled Claimed button when only claimed is positive', () => {
     const { getByTestId, getByText, queryByTestId } = renderCard('0', '50');
 
-    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(getByText('Balance')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$4.00');
@@ -191,13 +325,11 @@ describe('ClaimableRewardsCard', () => {
         claimableAmount="$0.00"
         pendingAmount="$0.40"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
       />,
     );
 
-    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$0.40');
@@ -221,13 +353,11 @@ describe('ClaimableRewardsCard', () => {
         claimableAmount="$0.00"
         pendingAmount="$0.40"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
       />,
     );
 
-    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
     ).toBeNull();
@@ -250,14 +380,12 @@ describe('ClaimableRewardsCard', () => {
         claimableAmount="$0.00"
         pendingAmount="$0.40"
         recordedAmount="$2.40"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onClaim={onClaim}
       />,
     );
 
-    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -293,14 +421,12 @@ describe('ClaimableRewardsCard', () => {
         held="100000000"
         claimableAmount="$0.00"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onPaused={onPaused}
       />,
     );
 
-    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(getByText('Balance')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$132.00');
@@ -330,14 +456,12 @@ describe('ClaimableRewardsCard', () => {
         taxHeld
         claimableAmount="$0.00"
         recordedAmount="$2.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onClaim={onClaim}
       />,
     );
 
-    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -368,14 +492,12 @@ describe('ClaimableRewardsCard', () => {
         taxHeld
         claimableAmount="$0.00"
         recordedAmount="$0.25"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onClaim={onClaim}
       />,
     );
 
-    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$0.12');
@@ -398,13 +520,11 @@ describe('ClaimableRewardsCard', () => {
         canClaim
         claimableAmount="$1.00"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
       />,
     );
 
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$1.00');
@@ -432,9 +552,7 @@ describe('ClaimableRewardsCard', () => {
         canClaim
         claimableAmount="$1.00"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onBalanceBreakdown={onBalanceBreakdown}
       />,
     );
@@ -445,83 +563,156 @@ describe('ClaimableRewardsCard', () => {
     expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the claimable amount row for a referrer while Social V1 is off', () => {
-    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
-    const { getByTestId, getByText, queryByTestId, queryByText } =
-      renderWithProvider(
-        <ClaimableRewardsCard
-          localizedText={LOCALIZED_TEXT}
-          claimable="1000000"
-          claimed="0"
-          claimableAmount="$1.00"
-          recordedAmount="$4.00"
-          last7Amount="$0.25"
-          isSummaryLoading={false}
-          isLast7Loading={false}
-          canClaim
-          isReferrer
-        />,
-      );
-
-    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
-    expect(queryByText('Available to claim • mUSD')).toBeNull();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
-    ).toHaveTextContent('$0.25');
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
-    ).toHaveTextContent('$4.00');
-    expect(getByText('Last 7 days')).toBeOnTheScreen();
-    expect(getByText('Total earnings')).toBeOnTheScreen();
-  });
-
-  it('shows the claimable amount row for a referrer while Social V1 is on', () => {
-    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(true);
-    const { getByTestId, getByText } = renderWithProvider(
-      <ClaimableRewardsCard
-        localizedText={LOCALIZED_TEXT}
-        claimable="1000000"
-        claimed="0"
-        claimableAmount="$1.00"
-        recordedAmount="$4.00"
-        last7Amount="$0.25"
-        isSummaryLoading={false}
-        isLast7Loading={false}
-        canClaim
-        isReferrer
-      />,
-    );
-
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toHaveTextContent('$1.00');
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the claimable amount row in the referrer skeleton', () => {
+  it('renders only the claimable skeleton while the summary loads', () => {
     const { getByTestId, getByText, queryByText } = renderWithProvider(
       <ClaimableRewardsCard
         localizedText={LOCALIZED_TEXT}
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount={null}
         isSummaryLoading
-        isLast7Loading
-        isReferrer
       />,
     );
 
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
     ).toBeOnTheScreen();
-    expect(queryByText('Available to claim • mUSD')).toBeNull();
-    expect(getByText('Last 7 days')).toBeOnTheScreen();
-    expect(getByText('Total earnings')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(queryByText('Last 7 days')).toBeNull();
+    expect(queryByText('Total earnings')).toBeNull();
+  });
+
+  it('does not show the last 7 days or total earnings row', () => {
+    const { queryByText } = renderCard('1000000', '0');
+
+    expect(queryByText('Last 7 days')).toBeNull();
+    expect(queryByText('Total earnings')).toBeNull();
+  });
+});
+
+describe('ClaimableRewardsCard subtext', () => {
+  const baseProps = {
+    localizedText: LOCALIZED_TEXT,
+    claimableAmount: '$0.00',
+    recordedAmount: '$4.00',
+    isSummaryLoading: false,
+  };
+
+  it('renders the label as the heading with no currency suffix', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        claimable="1000000"
+        canClaim
+        claimableAmount="$1.00"
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(queryByText('Available to claim \u2022 mUSD')).toBeNull();
+  });
+
+  it('shows the available subtext under the amount', () => {
+    const { getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        claimable="1000000"
+        canClaim
+        claimableAmount="$1.00"
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent('mUSD paid into your Money account');
+  });
+
+  it('renders the card without subtext when the payload predates the subtext keys', () => {
+    const {
+      availableToClaimSubtext: _available,
+      heldSubtext: _held,
+      pendingSubtext: _pending,
+      balanceSubtext: _balance,
+      ...withoutSubtext
+    } = LOCALIZED_TEXT;
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        localizedText={withoutSubtext as ReferralLocalizedText}
+        claimable="1000000"
+        canClaim
+        claimableAmount="$1.00"
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(getByText('$1.00')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent('');
+  });
+
+  it('shows the held subtext when the headline is held', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        held="100000000"
+        heldAmount="$100.00"
+        taxHeld
+      />,
+    );
+
+    expect(getByText('Held')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent(
+      'mUSD available to claim once tax determination is cleared and hold is removed',
+    );
+  });
+
+  it('fills the pending minimum with the formatted claim minimum', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        pending="400000"
+        pendingAmount="$0.40"
+        minimumAmount="$1.00"
+      />,
+    );
+
+    expect(getByText('Pending')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent(
+      'mUSD available to claim once pending is cleared and $1.00 is met',
+    );
+  });
+
+  it('fills the pending minimum with the word minimum when it is unknown', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        pending="400000"
+        pendingAmount="$0.40"
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent(
+      'mUSD available to claim once pending is cleared and minimum is met',
+    );
+    expect(queryByText(/\{minimum\}/)).toBeNull();
+  });
+
+  it('shows the balance subtext when the headline is balance', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard {...baseProps} />,
+    );
+
+    expect(getByText('Balance')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent('mUSD in total earnings');
   });
 });
