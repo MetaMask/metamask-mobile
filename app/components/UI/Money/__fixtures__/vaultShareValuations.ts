@@ -134,3 +134,5 @@ export function valuationResponseForActivities(
 export function hashAt(index: number): Hex {
   return `0x${index.toString(16).padStart(64, '0')}`;
 }
+
+// related-jest scope probe: fixture change
