@@ -12382,9 +12382,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^74.4.0":
-  version: 74.4.0
-  resolution: "@metamask/transaction-controller@npm:74.4.0"
+"@metamask/transaction-controller@npm:^74.4.1":
+  version: 74.4.1
+  resolution: "@metamask/transaction-controller@npm:74.4.1"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/rlp": "npm:^5.0.2"
@@ -12418,7 +12418,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/7999cc437afa6e28e8a79a8deba674fe5a3ac960edcf2e7435799b429dd233ab21c48f51dad316fe9dd52be3fd6eb56d36a43c8ab945c14040bef467b22f2d45
+  checksum: 10/8b5f0ba004f2bf2d6797946b115ed6c253a38315ada0623d8fc37692a4d45b1c8b7024c289d5fe5fa5d0e716b5e2ce79ccdcdbbd822f68fe64b32da4952f3a2a
   languageName: node
   linkType: hard
 
@@ -38472,7 +38472,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/tooling-insight": "npm:^1.0.1"
-    "@metamask/transaction-controller": "npm:^74.4.0"
+    "@metamask/transaction-controller": "npm:^74.4.1"
     "@metamask/transaction-pay-controller": "npm:^33.1.1"
     "@metamask/tron-wallet-snap": "npm:^4.5.0"
     "@metamask/utils": "npm:^12.0.2"
