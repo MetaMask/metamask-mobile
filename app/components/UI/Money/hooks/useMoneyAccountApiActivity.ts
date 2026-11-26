@@ -304,7 +304,7 @@ export function useMoneyAccountApiActivity({
   // the failed request in a loop. Recovery is via the explicit `refetch`.
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 

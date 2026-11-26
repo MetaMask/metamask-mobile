@@ -35,7 +35,6 @@ import {
   type CardHomeDataErrorReason,
   type CardRedeemWithdrawal,
   type CardRedeemWithdrawalError,
-  type CardCashbackClaim,
   type CardAccountLookupCacheEntry,
   type CardRedeemWithdrawalErrorReason,
   type CardLink,
@@ -545,7 +544,7 @@ export class CardController extends BaseController<
                 (group) => group.accounts ?? [],
               ),
             )
-            .sort()
+            .sort((left, right) => left.localeCompare(right))
             .join(','),
         ].join('|'),
     );

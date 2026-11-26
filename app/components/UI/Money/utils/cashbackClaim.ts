@@ -43,10 +43,7 @@ export function isSettlingCashbackActivity(
     if (item.kind !== 'cashback') {
       return false;
     }
-    if (
-      claim.txHash &&
-      item.hash.toLowerCase() === claim.txHash.toLowerCase()
-    ) {
+    if (item.hash.toLowerCase() === claim.txHash?.toLowerCase()) {
       return true;
     }
     if (item.time < claim.submittedAt - CASHBACK_CLAIM_TIME_TOLERANCE_MS) {

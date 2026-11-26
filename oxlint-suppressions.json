@@ -3378,9 +3378,6 @@
     }
   },
   "app/components/UI/Card/hooks/useRedeemableWallet.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/promise-function-async": {
       "count": 4
     }
@@ -5400,9 +5397,6 @@
     }
   },
   "app/components/UI/Money/hooks/useMoneyAccountApiActivity.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -21631,13 +21625,7 @@
     "typescript/no-floating-promises": {
       "count": 7
     },
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
-    "typescript/promise-function-async": {
       "count": 4
     },
     "typescript/unbound-method": {
@@ -24644,7 +24632,7 @@
       "count": 3
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 1
     }
   },
   "app/util/transactions/index.test.ts": {

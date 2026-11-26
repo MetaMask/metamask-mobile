@@ -96,7 +96,7 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      void queryClient.invalidateQueries({ queryKey: queries.allKey });
     },
   });
 
@@ -144,7 +144,7 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   // Invalidate wallet cache when controller reports success (covers unmount case).
   useEffect(() => {
     if (modeWithdrawal?.status === 'success') {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      void queryClient.invalidateQueries({ queryKey: queries.allKey });
     }
   }, [modeWithdrawal?.status, queries.allKey, queryClient]);
 
