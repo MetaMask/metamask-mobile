@@ -4,6 +4,7 @@ import {
   ContentVariant,
   FontWeight,
   ListItem,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -17,21 +18,53 @@ import {
 } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
-interface EarningsSummaryProps {
-  points: EarningsPoint[];
-  locale: string;
-  rangeStart: string;
-  rangeEndExclusive: string;
-}
+type EarningsSummaryProps =
+  | {
+      isLoading: true;
+      points?: never;
+      locale?: never;
+      rangeStart?: never;
+      rangeEndExclusive?: never;
+    }
+  | {
+      isLoading?: false;
+      points: EarningsPoint[];
+      locale: string;
+      rangeStart: string;
+      rangeEndExclusive: string;
+    };
 
 type AvailableEarningsPoint = EarningsPoint & { amountUsd: number };
 
-const EarningsSummary = ({
-  points,
-  locale,
-  rangeStart,
-  rangeEndExclusive,
-}: EarningsSummaryProps): React.ReactElement => {
+const SUMMARY_SKELETON_ROW_COUNT = 5;
+
+const EarningsSummary = (props: EarningsSummaryProps): React.ReactElement => {
+  if (props.isLoading) {
+    return (
+      <Box testID={MoneyEarningsViewTestIds.SUMMARY}>
+        {Array.from({ length: SUMMARY_SKELETON_ROW_COUNT }, (_, index) => (
+          <Box
+            key={`summary-skeleton-${index}`}
+            twClassName="flex-row items-center justify-between py-2"
+            testID={MoneyEarningsViewTestIds.SUMMARY_ROW_SKELETON(index)}
+          >
+            <Skeleton height={20} width={96} />
+            <Skeleton height={20} width={72} />
+          </Box>
+        ))}
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={MoneyEarningsViewTestIds.SUMMARY_NOTE}
+          className="pb-1 pt-6"
+        >
+          {strings('money.earnings.payouts_disclaimer')}
+        </Text>
+      </Box>
+    );
+  }
+
+  const { points, locale, rangeStart, rangeEndExclusive } = props;
   const includeYear = isCrossYearRange(rangeStart, rangeEndExclusive);
   const rows = points
     .filter((point): point is AvailableEarningsPoint =>
