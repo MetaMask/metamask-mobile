@@ -3664,8 +3664,8 @@
     },
     "exchange_filter": {
       "title": "Filter by exchange",
-      "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage",
+      "tagline_lighter": "Lower fee, higher leverage",
+      "tagline_hyperliquid": "Higher volume, lower slippage",
       "trigger": "{{count}} exchange",
       "trigger_plural": "{{count}} exchanges"
     },
@@ -3898,6 +3898,14 @@
     },
     "price_alerts": {
       "open": "Open price alerts"
+    },
+    "trade_on": {
+      "title": "Trade on",
+      "label": "Trade on",
+      "subtitle": "Select an exchange for this order. To set a default for all orders, go to settings.",
+      "accessibility_label": "Trade on {{venue}}",
+      "max_leverage": "max",
+      "default_tag": "Default"
     }
   },
   "market_insights": {
@@ -4044,7 +4052,17 @@
       "game_quote_price": "· {{price}}",
       "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
       "game_quote_price_accessibility_label": "{{team}}, {{price}}",
-      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable",
+      "card_volume_label": "${{volume}} vol.",
+      "game_draw_label": "Draw",
+      "game_status": {
+        "scheduled": "Scheduled",
+        "delayed": "Delayed",
+        "suspended": "Suspended",
+        "postponed": "Postponed",
+        "final": "Final",
+        "canceled": "Canceled"
+      }
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
@@ -5500,6 +5518,19 @@
     },
     "marketplace": {
       "coming_soon": "Coming soon"
+    },
+    "packs": {
+      "all": "All",
+      "categories": "Pack categories",
+      "all_prices": "All prices",
+      "lowest_price": "Lowest price",
+      "filter_sort": "{{filter}} · {{sort}}",
+      "filter": "Filter packs",
+      "sort": "Sort packs",
+      "open_price": "Open · {{price}}",
+      "open_pack_price": "Open {{name}}, {{price}}",
+      "tile_label": "{{name}}, {{opens}}",
+      "empty": "No packs available right now"
     }
   },
   "collectible": {
@@ -5604,19 +5635,6 @@
     "accounts": "accounts",
     "show_accounts": "Show",
     "hide_accounts": "Hide",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "bitcoin_signet_account_name": "Bitcoin Signet Account",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account",
-      "stellar_account_name": "Stellar Account"
-    },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
     },
@@ -7303,7 +7321,6 @@
     "gas_education_3": "MetaMask does not profit from gas fees.",
     "gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexity.",
     "gas_education_learn_more": "Learn more about gas fees",
-    "confusable_title": "Check the recipient address",
     "confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
     "similar_to": "is similar to",
     "contains_zero_width": "contains zero width character",
@@ -7321,8 +7338,7 @@
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid",
-    "swap_tokens": "Swap tokens",
-    "fromWithColon": "From:"
+    "swap_tokens": "Swap tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -7600,8 +7616,6 @@
     "hash_copied_to_clipboard": "Transaction hash copied to clipboard",
     "address_copied_to_clipboard": "Address copied to clipboard",
     "transaction_error": "Transaction error",
-    "address_to_placeholder": "Search, public address (0x), or ENS",
-    "address_from_balance": "Balance:",
     "status": "Status",
     "date": "Date",
     "nonce": "Nonce",
@@ -7621,6 +7635,8 @@
     "network_fee_tooltip": "Amount paid to process the transaction on network.",
     "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
     "paid_by_metamask": "Paid by MetaMask",
+    "paid_by_sponsor": "Paid by {{sponsor}}",
+    "network_fee_info_content_sponsored_by": "This network fee is paid by {{sponsor}}, so you can transact without {{nativeToken}} in your account.",
     "confirm_gas_fee_token_metamask_fee": "Includes {{metamaskFeeFiat}} fee",
     "smart_account_upgrade": "Switch to smart account",
     "smart_account_downgrade": "Switch to standard account",
@@ -7682,11 +7698,8 @@
     "delete_contact": "Delete contact",
     "delete": "Delete",
     "cancel": "Cancel",
-    "add_to_address_book": "Add to address book",
-    "enter_an_alias": "Enter an alias",
     "add_this_address": "Add this address to your address book",
     "next": "Next",
-    "enter_an_alias_placeholder": "e.g. Vitalik B.",
     "add_contact_title": "Add contact",
     "add_contact": "Add contact",
     "edit_contact_title": "Edit contact",
@@ -9114,19 +9127,7 @@
     "contact_support": "Contact support"
   },
   "whats_new": {
-    "title": "What's new",
-    "remove_gns_new_ui_update": {
-      "title": "New UI update",
-      "introduction": "We've made updates to improve the app experience.",
-      "descriptions": {
-        "description_1": "Network dropdown moved to your assets",
-        "description_2": "Swap and Bridge in one simple flow",
-        "description_3": "Streamlined send experience",
-        "description_4": "A fresh account view"
-      },
-      "more_information": "Now you can focus on your tokens and activity, not the networks behind them.",
-      "got_it": "Got it"
-    }
+    "title": "What's new"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n {{network}} \n has to be re-entered.",
@@ -9437,28 +9438,13 @@
     "nickname": "nickname"
   },
   "network_information": {
-    "things_to_keep_in_mind": "Things to keep in mind",
     "testnet_network": "{{type}} testnet",
-    "first_description": "The native token on this network is {{ticker}}. It is the token used for network fees.",
-    "second_description": "If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge.",
-    "third_description": "Your tokens may not automatically show up in your wallet.",
-    "private_network": "This network is unknown and may use a special token for network fees.",
     "unknown_network": "Unknown network",
-    "switched_network": "You have switched to",
-    "learn_more": "Learn more",
     "add_token": "Click here to manually add the tokens",
-    "add_token_manually": "Add them manually.",
     "got_it": "Got it",
     "error_title": "Something went wrong",
     "error_message": "There was an error loading the network information. Try again later.",
-    "private_network_third_description": "Enter a name for this network to make it easy to identify.",
-    "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Enable auto token detection",
-    "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
-    "token_detection_mainnet_link": "You can also add tokens manually.",
-    "or": "or",
-    "non_evm_first_description": "The native asset on this network is {{ticker}}. It is used for transaction fees.",
-    "non_evm_second_description": "You will lose your assets if you try to send them from or to another network."
+    "private_network_third_description": "Enter a name for this network to make it easy to identify."
   },
   "download_files": {
     "error": "Failed to download attachment.",
@@ -10309,6 +10295,8 @@
       "deposit_failed_title_card": "Deposit failed",
       "deposit_failed_body_convert": "Unable to convert. Try again.",
       "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
+      "deposit_declined_title_card": "Card payment declined",
+      "deposit_declined_body_card": "Your card payment was declined. Try again or choose a different payment method.",
       "withdraw_failed_title": "Transfer failed",
       "withdraw_failed_body": "Unable to transfer funds. Try again.",
       "send_in_progress_title": "Sending funds",
@@ -10455,7 +10443,7 @@
       "faq_a1": "An account that earns up to {{percentage}}% variable APY. You add funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_a1_no_apy": "An account that earns variable APY. You add funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money account safe?",
-"faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Who controls my MetaMask Money account?",
       "faq_a3": "You do. MetaMask is self-custodial, so MetaMask can't access, freeze, or move your funds. That's what sets us apart from banks and custodial crypto platforms. No third party holds your funds. Your Money account is tied to your Secret Recovery Phrase, so back it up and keep it somewhere safe. Importing an account with a Private Key won't restore your Money account. If you lose your Secret Recovery Phrase, you lose access to your Money account funds.",
       "faq_q4": "What are MetaMask Money account fees?",
@@ -10845,6 +10833,7 @@
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
       "provider_fee": "Provider fee",
+      "lighter_fee": "Lighter fee",
       "sending": "Sending"
     },
     "title": {

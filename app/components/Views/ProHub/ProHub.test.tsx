@@ -1,14 +1,21 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { render, fireEvent, within } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import {
+  PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import type { RootState } from '../../../reducers';
 import configureStore from '../../../util/test/configureStore';
 import ProHub from './ProHub';
@@ -37,6 +44,26 @@ import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useM
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
 import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 
+const mockCheckMoneyAccountBalance = jest.fn();
+
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      SubscriptionDelegationService: {
+        checkMoneyAccountBalance: (...args: unknown[]) =>
+          mockCheckMoneyAccountBalance(...args),
+      },
+    },
+  },
+}));
+
+const mockInitiateDeposit = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../UI/Money/hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({ initiateDeposit: mockInitiateDeposit }),
+}));
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 let mockGoBack: jest.Mock;
@@ -46,7 +73,11 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      isFocused: () => true,
+    }),
   };
 });
 
@@ -607,7 +638,27 @@ describe('ProHub', () => {
       ).toBeNull();
     });
 
-    it('opens add money when the overdue alert action is pressed', () => {
+    it('opens a membership top-up for the shortfall when the overdue alert action is pressed', async () => {
+      mockCheckMoneyAccountBalance.mockResolvedValueOnce({
+        hasSufficientBalance: false,
+        balance: '4989989',
+        requiredBalance: '4990000',
+      });
+      const subscription: Subscription = {
+        ...createPlusSubscription(
+          SUBSCRIPTION_STATUSES.pastDue,
+          undefined,
+          RECURRING_INTERVALS.month,
+        ),
+        paymentMethod: {
+          type: PAYMENT_TYPES.byCrypto,
+          crypto: {
+            payerAddress: '0x1111111111111111111111111111111111111111',
+            chainId: '0x1',
+            tokenSymbol: 'mUSD',
+          },
+        },
+      };
       mockUseMembershipBannerModel.mockReturnValue({
         model: {
           statusKind: MembershipStatusKind.Overdue,
@@ -622,7 +673,7 @@ describe('ProHub', () => {
             action: 'addFunds' as const,
           },
         },
-        subscription: undefined,
+        subscription,
       });
 
       const { getByTestId } = renderProHub();
@@ -633,8 +684,12 @@ describe('ProHub', () => {
         ),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      await waitFor(() => {
+        expect(mockInitiateDeposit).toHaveBeenCalledWith({
+          amount: '0.01',
+          transactionType: TransactionType.membershipSubscription,
+          forceBottomSheet: true,
+        });
       });
     });
 

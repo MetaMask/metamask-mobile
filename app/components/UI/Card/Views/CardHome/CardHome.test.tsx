@@ -735,6 +735,7 @@ jest.mock('../../../../../core/Engine', () => ({
         setSelectedAccount: jest.fn(),
       },
       CardController: {
+        state: { isAuthenticated: false },
         validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
         getCapabilities: jest.fn().mockReturnValue(null),
         logout: jest.fn().mockResolvedValue(undefined),
@@ -1824,6 +1825,19 @@ describe('CardHome Component', () => {
       Routes.CARD.AUTHENTICATION,
       { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     );
+  });
+
+  it('stays on Card Home when the controller is signed in before Redux catches up', () => {
+    setupMockSelectors({ isAuthenticated: false, hasCard: true });
+    Engine.context.CardController.state.isAuthenticated = true;
+
+    try {
+      render();
+
+      expect(StackActions.replace).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.CardController.state.isAuthenticated = false;
+    }
   });
 
   it('sends a logged-out user with no card to welcome', () => {

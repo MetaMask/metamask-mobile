@@ -2,6 +2,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import {
   isMusdOnMoneyAccountChain,
@@ -31,6 +32,21 @@ export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
   isMoneyDepositTransaction(transactionMeta);
 
 /**
+ * True when a Money deposit is funded by a fiat on-ramp (e.g. a card). Fiat
+ * order metadata appears only once an order exists, so the pay strategy is
+ * also checked.
+ */
+export const isFiatMoneyDeposit = (
+  transactionMeta: TransactionMeta,
+): boolean => {
+  if (!isMoneyDepositTx(transactionMeta)) {
+    return false;
+  }
+  const { fiat, strategy } = transactionMeta.metamaskPay ?? {};
+  return Boolean(fiat) || strategy === TransactionPayStrategy.Fiat;
+};
+
+/**
  * Derives the funding method of a Money account deposit from the transaction's
  * own payment data, so toast copy matches the flow the user actually took:
  * - fiat on-ramp (Apple Pay / debit / credit) → `card`
@@ -40,7 +56,7 @@ export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
 export const resolveMoneyDepositIntent = (
   transactionMeta: TransactionMeta,
 ): MoneyAccountDepositIntent => {
-  if (transactionMeta.metamaskPay?.fiat) {
+  if (isFiatMoneyDeposit(transactionMeta)) {
     return 'card';
   }
   if (isMusdToken(transactionMeta.metamaskPay?.tokenAddress)) {
