@@ -1155,6 +1155,13 @@ const Wallet = ({
               {strings('wallet.banner.link')}
             </CustomText>
           }
+        /><CustomText
+              color={TextColor.InfoDefault}
+              onPress={turnOnBasicFunctionality}
+            >
+              {strings('wallet.banner.link')}
+            </CustomText>
+          }
         />
       ) : null}
       <NetworkConnectionBannerContent {...networkConnectionBanner} />
@@ -1250,7 +1257,7 @@ const Wallet = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
         >
           <CustomText
             variant={TextVariant.HeadingSm}
@@ -1284,7 +1291,7 @@ const Wallet = ({
       ) : null}
       {compactHeaderAccountName}
       {isSearchHeaderEnabled && inWalletHomePostOnboardingFlow && (
-        <Box paddingTop={4} twClassName="flex-none" />
+        <Box paddingTop={4} className="flex-none" />
       )}
     </>
   ) : (

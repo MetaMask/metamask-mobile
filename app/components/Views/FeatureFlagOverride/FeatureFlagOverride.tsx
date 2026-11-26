@@ -115,7 +115,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     switch (flag.type) {
       case FeatureFlagType.FeatureFlagBooleanWithMinimumVersion:
         return (
-          <Box twClassName="items-end">
+          <Box className="items-end">
             <Switch
               testID={`feature-flag-override-switch-${flag.key}`}
               value={(localValue as MinimumVersionFlagValue).enabled}
@@ -138,10 +138,10 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="text-right max-w-[100px] flex-wrap"
+              className="text-right max-w-[100px] flex-wrap"
             >
               <Box
-                twClassName={`w-2 h-2 rounded-full flex items-center justify-center ${
+                className={`w-2 h-2 rounded-full flex items-center justify-center ${
                   isVersionSupported ? 'bg-success-default' : 'bg-error-default'
                 }`}
               />{' '}
@@ -218,7 +218,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
 
         return (
           <Box
-            twClassName="flex-1 ml-2 justify-center min-w-[160px]"
+            className="flex-1 ml-2 justify-center min-w-[160px]"
             pointerEvents={isOptionsAvailable ? 'auto' : 'none'}
           >
             <SelectOptionSheet
@@ -241,7 +241,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case FeatureFlagType.FeatureFlagString:
       case FeatureFlagType.FeatureFlagNumber:
         return (
-          <Box twClassName="flex-1 ml-2">
+          <Box className="flex-1 ml-2">
             <TextInput
               value={String(localValue)}
               onFocus={() => {
@@ -286,7 +286,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case FeatureFlagType.FeatureFlagObject:
       case FeatureFlagType.FeatureFlagArray:
         return (
-          <Box twClassName="flex-1 mt-2">
+          <Box className="flex-1 mt-2">
             <TextInput
               value={jsonText}
               multiline
@@ -333,7 +333,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.ErrorDefault}
-                twClassName="mt-1"
+                className="mt-1"
               >
                 {jsonError}
               </Text>
@@ -351,18 +351,18 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   };
 
   return (
-    <Box twClassName="p-4 border-b border-border-muted">
+    <Box className="p-4 border-b border-border-muted">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="mb-2"
+        className="mb-2"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-1"
+            className="mb-1"
           >
             <Text variant={TextVariant.BodyMd}>{flag.key}</Text>
           </Box>
@@ -374,12 +374,12 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           {(flag.type === 'object' || flag.type === 'array') &&
             renderValueEditor()}
         </Box>
-        <Box twClassName="ml-4 items-end">
+        <Box className="ml-4 items-end">
           {flag.type !== 'object' &&
             flag.type !== 'array' &&
             renderValueEditor()}
           {flag.isOverridden && (
-            <Box twClassName="ml-2 px-2 py-1 my-2 bg-warning-muted rounded">
+            <Box className="ml-2 px-2 py-1 my-2 bg-warning-muted rounded">
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.WarningDefault}
@@ -391,7 +391,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             {flag.isOverridden && (
               <Button
@@ -519,13 +519,13 @@ const FeatureFlagOverride: React.FC = () => {
         testID="feature-flag-override-header"
         backButtonProps={{ testID: 'feature-flag-override-header-back' }}
       />
-      <Box twClassName="flex-1 bg-background-default">
-        <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
+      <Box className="flex-1 bg-background-default">
+        <Box className="p-4 bg-background-alternative border-b border-border-muted">
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-2"
+            className="mb-2"
           >
             <Text variant={TextVariant.BodyMd}>Feature Flag Statistics</Text>
             {(typeFilter !== 'all' || searchQuery) && (
@@ -539,7 +539,7 @@ const FeatureFlagOverride: React.FC = () => {
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
-            twClassName="flex-wrap gap-2"
+            className="flex-wrap gap-2"
           >
             <Text
               variant={TextVariant.BodySm}
@@ -569,7 +569,7 @@ const FeatureFlagOverride: React.FC = () => {
         </Box>
 
         {/* Search and controls */}
-        <Box twClassName="p-4 border-b border-border-muted">
+        <Box className="p-4 border-b border-border-muted">
           <TextInput
             testID="feature-flag-override-search"
             value={searchQuery}
@@ -586,11 +586,11 @@ const FeatureFlagOverride: React.FC = () => {
             ]}
           />
 
-          <Box twClassName="flex-row justify-between items-start">
+          <Box className="flex-row justify-between items-start">
             {/* Filter Buttons */}
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="gap-2 flex-wrap"
+              className="gap-2 flex-wrap"
             >
               <Button
                 variant={ButtonVariant.Secondary}
@@ -619,11 +619,11 @@ const FeatureFlagOverride: React.FC = () => {
         {/* Feature flags list */}
         <ScrollView style={tw.style('flex-1 bg-background-default')}>
           {filteredFlags.length === 0 ? (
-            <Box twClassName="p-8 items-center">
+            <Box className="p-8 items-center">
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                twClassName="text-center"
+                className="text-center"
               >
                 {searchQuery && typeFilter !== 'all'
                   ? `No ${typeFilter} feature flags match your search.`

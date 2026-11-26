@@ -680,7 +680,7 @@ const NftDetails = () => {
         <View style={styles.buttonSendWrapper}>
           <Button
             variant={ButtonVariant.Primary}
-            twClassName="flex-1"
+            className="flex-1"
             onPress={onSend}
           >
             {strings('transaction.send')}

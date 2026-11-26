@@ -122,7 +122,7 @@ const WalletHeaderInterimActions = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={`gap-2 ${twClassName}`}
+      className={`gap-2 ${twClassName}`}
     >
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}

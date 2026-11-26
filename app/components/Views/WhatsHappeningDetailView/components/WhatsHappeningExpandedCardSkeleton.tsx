@@ -38,7 +38,7 @@ const WhatsHappeningExpandedCardSkeleton: React.FC<
     >
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4"
+        className="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4"
       >
         <WhatsHappeningSkeletonShimmer>
           <View>
