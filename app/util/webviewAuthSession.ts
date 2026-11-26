@@ -92,7 +92,7 @@ export async function openWebviewAuthSession(options: {
     if (signal) {
       onAbort = () => {
         const closeScreen = session.close;
-        finish(undefined);
+        finish();
         closeScreen?.();
       };
       signal.addEventListener('abort', onAbort, { once: true });
