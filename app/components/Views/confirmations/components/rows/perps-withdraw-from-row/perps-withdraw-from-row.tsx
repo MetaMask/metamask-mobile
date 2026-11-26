@@ -126,8 +126,6 @@ const PerpsWithdrawFromSelect: React.FC<PerpsWithdrawFromRowProps> = ({
           valueStartAccessory={
             <SourceAvatar source={source} size={AvatarTokenSize.Sm} />
           }
-        /><SourceAvatar source={source} size={AvatarTokenSize.Sm} />
-          }
         />
         <Text
           variant={TextVariant.BodyMd}
@@ -202,38 +200,6 @@ const PerpsWithdrawFromSelect: React.FC<PerpsWithdrawFromRowProps> = ({
                       isSelected={isSelected}
                       onPress={() => handleSelect(option)}
                       className={`rounded-xl border bg-muted ${
-                        isSelected ? 'border-default' : 'border-transparent'
-                      }`}
-                      testID={`${PerpsWithdrawFromSelectorsIDs.OPTION}-${option}`}
-                      accessibilityRole="radio"
-                      accessibilityState={{ checked: isSelected }}
-                    /><Tag severity={TagSeverity.Neutral}>
-                            {strings('confirm.perps_withdraw_from.default')}
-                          </Tag>
-                        ) : undefined
-                      }
-                      description={strings(
-                        'confirm.perps_withdraw_from.available',
-                        { amount: providerBalance[option] },
-                      )}
-                      startAccessory={<SourceAvatar source={option} />}
-                      endAccessory={
-                        <RadioButton
-                          isChecked={isSelected}
-                          isReadOnly
-                          accessible={false}
-                          accessibilityElementsHidden
-                          importantForAccessibility="no"
-                          touchableOpacityProps={{
-                            accessible: false,
-                            accessibilityElementsHidden: true,
-                            importantForAccessibility: 'no',
-                          }}
-                        />
-                      }
-                      isSelected={isSelected}
-                      onPress={() => handleSelect(option)}
-                      twClassName={`rounded-xl border bg-muted ${
                         isSelected ? 'border-default' : 'border-transparent'
                       }`}
                       testID={`${PerpsWithdrawFromSelectorsIDs.OPTION}-${option}`}

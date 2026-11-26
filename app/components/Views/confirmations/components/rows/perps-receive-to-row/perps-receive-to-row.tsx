@@ -132,11 +132,6 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
               size={AvatarTokenSize.Sm}
             />
           }
-        /><DestinationAvatar
-              destination={destination}
-              size={AvatarTokenSize.Sm}
-            />
-          }
         />
         <Text
           variant={TextVariant.BodyMd}
@@ -213,40 +208,6 @@ const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
                       isSelected={isSelected}
                       onPress={() => handleSelect(option)}
                       className={`rounded-xl border bg-muted ${
-                        isSelected ? 'border-default' : 'border-transparent'
-                      }`}
-                      testID={`${PerpsReceiveToSelectorsIDs.OPTION}-${option}`}
-                      accessibilityRole="radio"
-                      accessibilityState={{ checked: isSelected }}
-                    /><Tag severity={TagSeverity.Neutral}>
-                            {strings('confirm.perps_receive_to.default')}
-                          </Tag>
-                        ) : undefined
-                      }
-                      description={strings(
-                        'confirm.perps_receive_to.available',
-                        { amount: providerBalance[option] },
-                      )}
-                      startAccessory={
-                        <DestinationAvatar destination={option} />
-                      }
-                      endAccessory={
-                        <RadioButton
-                          isChecked={isSelected}
-                          isReadOnly
-                          accessible={false}
-                          accessibilityElementsHidden
-                          importantForAccessibility="no"
-                          touchableOpacityProps={{
-                            accessible: false,
-                            accessibilityElementsHidden: true,
-                            importantForAccessibility: 'no',
-                          }}
-                        />
-                      }
-                      isSelected={isSelected}
-                      onPress={() => handleSelect(option)}
-                      twClassName={`rounded-xl border bg-muted ${
                         isSelected ? 'border-default' : 'border-transparent'
                       }`}
                       testID={`${PerpsReceiveToSelectorsIDs.OPTION}-${option}`}
