@@ -21,7 +21,7 @@ import { useFormatters } from '../../../../hooks/useFormatters';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { useActivityBlockExplorer } from '../../../../Views/ActivityDetails/hooks/useActivityBlockExplorer';
 import {
-  isPlausibleRampTxHash,
+  getRampOrderTransactionHash,
   toFiatOrderCaipChainId,
 } from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
 import Spinner from '../../../AnimatedSpinner';
@@ -32,7 +32,7 @@ import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/ext
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
-import { getOrderAmount } from '../utils';
+import { getOrderAmount, isSellFiatOrder } from '../utils';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -241,14 +241,17 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
     cryptoFee,
     cryptoAmount,
     currency,
-    txHash,
     cryptocurrency,
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
+  const transactionHash = getRampOrderTransactionHash(
+    order,
+    isSellFiatOrder(order) ? 'sell' : 'buy',
+  );
   const explorerLink = useActivityBlockExplorer(
     toFiatOrderCaipChainId(order) ?? undefined,
-    isPlausibleRampTxHash(txHash) ? txHash : undefined,
+    transactionHash,
   );
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
@@ -560,7 +563,9 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
             </ListItem>
           </Row>
           {Boolean(
-            order.state === OrderStatusEnum.Completed && txHash && explorerLink,
+            order.state === OrderStatusEnum.Completed &&
+              transactionHash &&
+              explorerLink,
           ) && (
             <Group>
               <TouchableOpacity

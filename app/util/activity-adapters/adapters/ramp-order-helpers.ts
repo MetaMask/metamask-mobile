@@ -132,8 +132,11 @@ export function getRampOrderTransactionHash(
   order: FiatOrder,
   kind: RampActivityKind,
 ): string | undefined {
-  const txHash = kind === 'sell' ? order.sellTxHash : order.txHash;
-  return isPlausibleRampTxHash(txHash) ? txHash : undefined;
+  // 'sell' prefer the hash of the user's own send (`sellTxHash`) and fall back
+  // to the provider-reported `txHash`. 'buy' only have the provider's.
+  const candidates =
+    kind === 'sell' ? [order.sellTxHash, order.txHash] : [order.txHash];
+  return candidates.find((hash): hash is string => isPlausibleRampTxHash(hash));
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
