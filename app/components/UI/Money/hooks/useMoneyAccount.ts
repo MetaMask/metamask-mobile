@@ -31,6 +31,7 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 import { ensureError } from '../../../../util/errorUtils';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
+import { isFiatOrderDeclineError } from '../../../../util/errorHandling/isFiatOrderDeclineError';
 import useMoneyToasts from './useMoneyToasts';
 import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 import {
@@ -253,11 +254,13 @@ export function useMoneyAccountDeposit() {
               navigation.goBack();
             }
           }
-          showToast(
-            MoneyToastOptions.deposit.failed({ intent: options?.intent }),
-          );
+          if (!isFiatOrderDeclineError(errorObj.message)) {
+            showToast(
+              MoneyToastOptions.deposit.failed({ intent: options?.intent }),
+            );
+            showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
+          }
           Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
-          showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
         }
         // Rethrow so the caller can log the failed initiation.
         throw error;

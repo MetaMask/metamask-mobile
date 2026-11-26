@@ -260,6 +260,7 @@ describe('useMoneyAccountDeposit', () => {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: mockDepositFailed,
+          declined: jest.fn(),
         },
         withdraw: {
           inProgress: jest.fn(),
@@ -790,6 +791,32 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
   });
 
+  it('skips the generic failure toast and dev alert for a declined card', async () => {
+    const declineError = new Error('MetaMask Pay: Fiat: Fiat order failed');
+    mockAddTransactionBatch.mockRejectedValue(declineError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({ intent: 'card' });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(declineError);
+    expect(Logger.error).toHaveBeenCalledWith(
+      declineError,
+      '[Money Account] Deposit setup failed',
+    );
+    expect(mockDepositFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
     const buildError = new Error('deposit batch build failed');
     const onDepositSetupFailure = jest.fn();
@@ -992,6 +1019,7 @@ describe('useMoneyAccountWithdrawal', () => {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: mockDepositFailed,
+          declined: jest.fn(),
         },
         withdraw: {
           inProgress: jest.fn(),
