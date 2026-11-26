@@ -536,7 +536,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
             analytics
               .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
               .addProperties({
-                source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
+                source: WatchlistAnalytics.ADD_SOURCE.FULLSCREEN,
                 asset_id: assetId,
                 asset_type: getWatchlistAssetType(assetId),
                 has_balance: token.isInWallet,
@@ -563,7 +563,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
               analytics
                 .createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
                 .addProperties({
-                  source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+                  source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN,
                   asset_id: item.assetId,
                   asset_type: getWatchlistAssetType(item.assetId),
                 })
@@ -747,17 +747,29 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       );
     }
 
-    if (!hasItems && activeFilter === 'perps' && !hasSuggestions) {
+    if (
+      !hasItems &&
+      !hasSuggestions &&
+      (activeFilter === 'perps' || (activeFilter === 'tokens' && hasWatchlist))
+    ) {
+      const emptyTitleKey =
+        activeFilter === 'perps'
+          ? 'perps.no_favorites_found'
+          : 'token_watchlist.no_tokens_found';
+      const emptyDescriptionKey =
+        activeFilter === 'perps'
+          ? 'perps.no_favorites_description'
+          : 'token_watchlist.no_tokens_description';
       return (
         <Box
           twClassName="flex-1 items-center justify-center px-4"
           testID={WatchlistFullScreenViewSelectorsIDs.MIXED_LIST}
         >
           <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('perps.no_favorites_found')}
+            {strings(emptyTitleKey)}
           </Text>
           <Text twClassName="mt-2 text-center">
-            {strings('perps.no_favorites_description')}
+            {strings(emptyDescriptionKey)}
           </Text>
         </Box>
       );
@@ -811,7 +823,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       filterBar={filterBar}
       showInitialSkeletons={isInitialLoading && !hasItems}
       showEmptyCta={
-        !hasItems &&
+        !hasWatchlist &&
         !hasSuggestions &&
         !hasActiveError &&
         activeFilter !== 'perps' &&

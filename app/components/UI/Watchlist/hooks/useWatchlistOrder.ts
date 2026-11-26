@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useIsMutating, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import type { UnifiedWatchlistItem } from '../types';
@@ -75,6 +75,7 @@ export const useWatchlistOrder = (
     keys: string[];
   }>({ queueKey, keys: [] });
   const queryClient = useQueryClient();
+  const activeMutationCount = useIsMutating();
   const queryKey = useMemo(
     () => [WATCHLIST_ORDER_QUERY_KEY, accountGroupId ?? 'default'],
     [accountGroupId],
@@ -149,7 +150,8 @@ export const useWatchlistOrder = (
     if (
       !canPersistOrder ||
       memberKeys === undefined ||
-      orderQuery.data === undefined
+      orderQuery.data === undefined ||
+      activeMutationCount > 0
     ) {
       return;
     }
@@ -169,6 +171,7 @@ export const useWatchlistOrder = (
       .catch(() => undefined);
   }, [
     accountGroupId,
+    activeMutationCount,
     canPersistOrder,
     memberKeys,
     orderQuery.data,

@@ -1155,5 +1155,44 @@ describe('WatchlistFullScreenView', () => {
         ]);
       });
     });
+
+    it('shows the filtered empty state on the Tokens tab when only Perps are watched', () => {
+      const items = [
+        createPerpItem('BTC'),
+        createPerpItem('ETH'),
+        createPerpItem('SOL'),
+      ];
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items,
+        tokens: { items: [], error: null },
+        perps: { items, error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC', 'ETH', 'SOL'],
+        tokenCount: 0,
+        perpsCount: 3,
+        isInitialLoading: false,
+        isOrderReady: true,
+        orderError: null,
+        persistOrder: jest.fn(),
+        appendOrderKey: jest.fn(),
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const { getByTestId, getByText, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_TOKENS),
+      );
+
+      expect(getByText('No tokens in watchlist')).toBeTruthy();
+      expect(queryByTestId('watchlist-empty-cta')).toBeNull();
+    });
   });
 });
