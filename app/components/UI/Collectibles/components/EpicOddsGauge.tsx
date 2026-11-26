@@ -1,10 +1,13 @@
 import React from 'react';
-import { FontWeight, TextVariant } from '@metamask/design-system-react-native';
+import {
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useFormatters } from '../../../hooks/useFormatters';
 import { collectiblesTestIds } from '../Collectibles.testIds';
 import { CapsuleGlass } from '../../primitives/CapsuleGlass';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
 
 interface Props {

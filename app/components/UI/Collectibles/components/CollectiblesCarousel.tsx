@@ -6,12 +6,12 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
 import type { HomePack } from '../types/packs';
 import { PackTile, packTileWidth } from './PackTile';
