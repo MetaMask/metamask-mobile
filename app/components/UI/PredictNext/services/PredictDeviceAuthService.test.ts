@@ -1067,12 +1067,12 @@ describe('PredictDeviceAuthService revocation races', () => {
     const { resolver, fetchRevoked } = installRefreshableVenueProfileFixture();
     const started = deferred<void>();
     const write = deferred<boolean>();
-    jest
-      .mocked(SecureKeychain.setSecureItem)
-      .mockImplementationOnce(async () => {
+    (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(
+      async () => {
         started.resolve();
         return write.promise;
-      });
+      },
+    );
     const { service } = createService();
     const pending = service.signOperation('order.place', order);
     await started.promise;
