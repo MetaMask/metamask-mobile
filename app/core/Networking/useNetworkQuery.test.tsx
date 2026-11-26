@@ -6,7 +6,7 @@ import {
   getNetworkTierSnapshot,
 } from '../../util/deviceCapability';
 import { getLatencySnapshot } from '../../util/deviceCapability/latencyStore';
-import { useNetworkQuery } from './useNetworkQuery';
+import { NetworkTimeoutError, useNetworkQuery } from './useNetworkQuery';
 
 jest.mock('../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(),
@@ -115,4 +115,70 @@ describe('useNetworkQuery', () => {
       expect(client.getQueryData(queryKey)).toBeUndefined();
     },
   );
+
+  describe('timeout', () => {
+    // Never settles, even when aborted: a request stalled below fetch.
+    function stalledQuery(): {
+      queryFn: jest.Mock;
+      signals: AbortSignal[];
+    } {
+      const signals: AbortSignal[] = [];
+      const queryFn = jest.fn(async ({ signal }: { signal: AbortSignal }) => {
+        signals.push(signal);
+        return new Promise(() => undefined);
+      });
+      return { queryFn, signals };
+    }
+
+    it.each([
+      ['LOW', 30_000],
+      ['MID', 15_000],
+      ['HIGH', 8_000],
+      [null, 15_000],
+    ] as const)(
+      'aborts a request on %s hardware after %i ms',
+      async (hardware, timeoutMs) => {
+        givenDevice(hardware, 'WIFI');
+        const { queryFn, signals } = stalledQuery();
+
+        renderHook(() => useNetworkQuery({ queryKey, queryFn }), { wrapper });
+        await waitFor(() => expect(signals).toHaveLength(1));
+
+        act(() => jest.advanceTimersByTime(timeoutMs - 1));
+        expect(signals[0].aborted).toBe(false);
+        act(() => jest.advanceTimersByTime(1));
+        expect(signals[0].aborted).toBe(true);
+      },
+    );
+
+    it('fails with NetworkTimeoutError when the request ignores the abort', async () => {
+      givenDevice('HIGH', 'SLOW_CELLULAR');
+      const { queryFn } = stalledQuery();
+
+      const { result } = renderHook(
+        () => useNetworkQuery({ queryKey, queryFn, retryDelay: 0 }),
+        { wrapper },
+      );
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2 * 8_000);
+      });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      expect(result.current.error).toBeInstanceOf(NetworkTimeoutError);
+      expect(queryFn).toHaveBeenCalledTimes(2);
+    });
+
+    it('aborts the request when the query is cancelled', async () => {
+      givenDevice('HIGH', 'WIFI');
+      const { queryFn, signals } = stalledQuery();
+
+      renderHook(() => useNetworkQuery({ queryKey, queryFn }), { wrapper });
+      await waitFor(() => expect(signals).toHaveLength(1));
+      await act(async () => {
+        await client.cancelQueries({ queryKey });
+      });
+
+      expect(signals[0].aborted).toBe(true);
+    });
+  });
 });
