@@ -304,6 +304,10 @@ function resolveSentryTarget(): ParsedSentryDsn | null {
   return parsedDsn;
 }
 
+function resolveEnvironment(): string {
+  return getEnvValue(ENV_SENTRY_ENVIRONMENT) || DEFAULT_ENVIRONMENT;
+}
+
 function buildScenarioTags(
   mirroredScenarioAttributes: MirroredScenarioAttributes,
 ): Record<string, string> {
@@ -574,8 +578,7 @@ export async function publishPerformanceScenarioToSentry(
     };
   });
 
-  const environment =
-    getEnvValue(ENV_SENTRY_ENVIRONMENT) || DEFAULT_ENVIRONMENT;
+  const environment = resolveEnvironment();
   const release = getEnvValue(ENV_SENTRY_RELEASE);
 
   const payload = {
@@ -773,8 +776,7 @@ export async function publishApiCallsSummaryToSentry(
     );
   }
 
-  const environment =
-    getEnvValue(ENV_SENTRY_ENVIRONMENT) || DEFAULT_ENVIRONMENT;
+  const environment = resolveEnvironment();
   const release = getEnvValue(ENV_SENTRY_RELEASE);
 
   const payload = {

@@ -954,7 +954,7 @@ describe('PerformanceSentryPublisher', () => {
         await publish(capturedSummary);
 
         const [, requestInit] = fetchMock.mock.calls[0] ?? [];
-        const rawPayload = String(requestInit?.body).split('\n')[2];
+        const rawPayload = (requestInit?.body as string).split('\n')[2];
 
         expect(rawPayload).toContain('"api.requests.total":12,');
         expect(rawPayload).toContain('"api.endpoint.requests":4,');

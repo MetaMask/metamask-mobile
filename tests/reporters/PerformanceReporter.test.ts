@@ -668,16 +668,17 @@ describe('PerformanceReporter', () => {
         sessionOverrides: Record<string, unknown>,
         resultOverrides: Record<string, unknown> = {},
       ) => {
-        reporter.onTestEnd(
-          makeTest() as never,
+        const [test, result] = [
+          makeTest(),
           makeResult({
             attachments: [
               makeSessionAttachment(sessionOverrides),
               makeMetricsAttachment({ timestamp: '2026-07-22T12:00:00.000Z' }),
             ],
             ...resultOverrides,
-          }) as never,
-        );
+          }),
+        ] as unknown as Parameters<PerformanceReporter['onTestEnd']>;
+        reporter.onTestEnd(test, result);
       };
 
       it('publishes the summary even when there is no profiling summary', async () => {

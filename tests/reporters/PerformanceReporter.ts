@@ -721,12 +721,12 @@ class PerformanceReporter {
           metrics: {
             device: metric.device,
             team: metric.team ?? null,
-            total: metric.total || 0,
+            total: metric.total ?? 0,
           },
           testTitle: metric.testName,
-          projectName: metric.projectName || 'unknown',
+          projectName: metric.projectName ?? 'unknown',
           testFilePath: metric.testFilePath,
-          tags: metric.tags || [],
+          tags: metric.tags ?? [],
           status: getSentryTestStatus(metric),
           videoRecordingUrl: metric.videoURL ?? null,
           testEndTimestamp: getSentryTestEndTimestamp(metric),
@@ -738,8 +738,9 @@ class PerformanceReporter {
           );
         }
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         logger.error(
-          `Failed to publish API calls summary to Sentry for "${metric.testName}": ${error}`,
+          `Failed to publish API calls summary to Sentry for "${metric.testName}": ${message}`,
         );
       }
     }
