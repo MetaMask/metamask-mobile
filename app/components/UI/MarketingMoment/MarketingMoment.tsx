@@ -47,7 +47,10 @@ const MarketingMomentContent = ({
   description,
   descriptionProps,
   children,
+  titleWrapperAnimatedViewProps,
+  descriptionWrapperAnimatedViewProps,
   childrenWrapperAnimatedViewProps,
+  actionsWrapperAnimatedViewProps,
   artwork,
   artworkWrapperProps,
   artworkWrapperAnimatedViewProps,
@@ -105,6 +108,7 @@ const MarketingMomentContent = ({
             <Animated.View
               entering={enterDown(0, enterStepMs)}
               style={tw.style('w-full')}
+              {...titleWrapperAnimatedViewProps}
             >
               {typeof title === 'string' ? (
                 <MarketingMomentTitle
@@ -123,7 +127,10 @@ const MarketingMomentContent = ({
             </Animated.View>
           ) : null}
           {description ? (
-            <Animated.View entering={enterDown(1, enterStepMs)}>
+            <Animated.View
+              entering={enterDown(1, enterStepMs)}
+              {...descriptionWrapperAnimatedViewProps}
+            >
               {typeof description === 'string' ? (
                 <Text
                   variant={TextVariant.BodyMd}
@@ -171,7 +178,10 @@ const MarketingMomentContent = ({
         )}
 
         {primaryAction || secondaryAction ? (
-          <Animated.View entering={enterDown(ACTION_ENTER_STEP, enterStepMs)}>
+          <Animated.View
+            entering={enterDown(ACTION_ENTER_STEP, enterStepMs)}
+            {...actionsWrapperAnimatedViewProps}
+          >
             <Box
               flexDirection={BoxFlexDirection.Column}
               gap={2}

@@ -55,6 +55,16 @@ export interface MarketingMomentProps {
    * Optional content under the description, such as tags or attribution.
    */
   children?: ReactNode;
+  /** Props spread onto the animated view that wraps `title`. `entering` replaces the default. */
+  titleWrapperAnimatedViewProps?: Partial<ComponentProps<typeof Animated.View>>;
+  /** Props spread onto the animated view that wraps `description`. `entering` replaces the default. */
+  descriptionWrapperAnimatedViewProps?: Partial<
+    ComponentProps<typeof Animated.View>
+  >;
+  /** Props spread onto the animated view that wraps the actions. `entering` replaces the default. */
+  actionsWrapperAnimatedViewProps?: Partial<
+    ComponentProps<typeof Animated.View>
+  >;
   /**
    * Props spread onto the animated view that wraps `children`.
    */

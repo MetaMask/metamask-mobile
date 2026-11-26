@@ -230,6 +230,18 @@ describe('MarketingMoment', () => {
     expect(getByTestId('marketing-moment-children')).toBeOnTheScreen();
   });
 
+  it('renders the title, description and actions in wrappers that accept animated view props', () => {
+    const { getByTestId } = renderMoment({
+      titleWrapperAnimatedViewProps: { testID: 'title-wrapper' },
+      descriptionWrapperAnimatedViewProps: { testID: 'description-wrapper' },
+      actionsWrapperAnimatedViewProps: { testID: 'actions-wrapper' },
+    });
+
+    expect(getByTestId('title-wrapper')).toBeOnTheScreen();
+    expect(getByTestId('description-wrapper')).toBeOnTheScreen();
+    expect(getByTestId('actions-wrapper')).toBeOnTheScreen();
+  });
+
   it('renders the artwork in a box that accepts props', () => {
     const { getByTestId } = renderMoment({
       artwork: <View testID="marketing-moment-custom-art" />,

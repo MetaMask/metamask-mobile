@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { StatusBar } from 'react-native';
-import { Easing, FadeInDown } from 'react-native-reanimated';
+import { Easing, Keyframe } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { brandColor } from '@metamask/design-tokens';
@@ -25,16 +25,57 @@ import { MoneyMfaIntroViewTestIds } from './MoneyMfaIntroView.testIds';
 
 const GRADIENT_COLORS = [brandColor.lime700, brandColor.lime800];
 
-export const ENTER_STEP_MS = 160;
-// After the title, description and buttons, so the illustration lands last.
-export const ARTWORK_ENTER_DELAY_MS = 4 * ENTER_STEP_MS;
-const ARTWORK_ENTER_DURATION_MS = 750;
+// Title, description, buttons, then the artwork, each fading in as it rises into place.
+const enterUp = ({
+  delayMs,
+  durationMs,
+  offsetY,
+  fromScale = 1,
+}: {
+  delayMs: number;
+  durationMs: number;
+  offsetY: number;
+  fromScale?: number;
+}) =>
+  new Keyframe({
+    0: {
+      opacity: 0,
+      transform: [{ translateY: offsetY }, { scale: fromScale }],
+    },
+    100: {
+      opacity: 1,
+      transform: [{ translateY: 0 }, { scale: 1 }],
+      easing: Easing.out(Easing.cubic),
+    },
+  })
+    .delay(delayMs)
+    .duration(durationMs);
+
+export const ARTWORK_ENTER_DELAY_MS = 680;
 // Matches the slide-in of the 2-step verification screen, so the intro closes once covered.
 export const FLOW_ENTER_MS = 350;
 
-const artworkEntering = FadeInDown.delay(ARTWORK_ENTER_DELAY_MS)
-  .duration(ARTWORK_ENTER_DURATION_MS)
-  .easing(Easing.out(Easing.cubic));
+const titleEntering = enterUp({
+  delayMs: 80,
+  durationMs: 500,
+  offsetY: 20,
+  fromScale: 0.98,
+});
+const descriptionEntering = enterUp({
+  delayMs: 280,
+  durationMs: 500,
+  offsetY: 18,
+});
+const actionsEntering = enterUp({
+  delayMs: 480,
+  durationMs: 500,
+  offsetY: 18,
+});
+const artworkEntering = enterUp({
+  delayMs: ARTWORK_ENTER_DELAY_MS,
+  durationMs: 750,
+  offsetY: 24,
+});
 
 const MoneyMfaIntroView = () => {
   const tw = useTailwind();
@@ -101,7 +142,6 @@ const MoneyMfaIntroView = () => {
       <MarketingMoment
         testID={MoneyMfaIntroViewTestIds.CONTAINER}
         theme={Theme.Dark}
-        enterStepMs={ENTER_STEP_MS}
         background={
           <LinearGradient
             colors={GRADIENT_COLORS}
@@ -123,6 +163,9 @@ const MoneyMfaIntroView = () => {
             playDelayMs={ARTWORK_ENTER_DELAY_MS}
           />
         }
+        titleWrapperAnimatedViewProps={{ entering: titleEntering }}
+        descriptionWrapperAnimatedViewProps={{ entering: descriptionEntering }}
+        actionsWrapperAnimatedViewProps={{ entering: actionsEntering }}
         artworkWrapperAnimatedViewProps={{ entering: artworkEntering }}
         primaryAction={{
           label: strings('money.mfa.intro_continue'),
