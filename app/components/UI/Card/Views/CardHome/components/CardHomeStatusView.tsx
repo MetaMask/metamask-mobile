@@ -267,7 +267,10 @@ export const CARD_HOME_WAITING_COPY: Record<
   },
 };
 
-/** Copy key for a waiting step. A reconcile check keeps the last settled copy. */
+/**
+ * Copy key for a waiting step. A reconcile check keeps the last settled
+ * signed-in copy; the signed-out copy no longer applies once a check runs.
+ */
 export const resolveCardHomeWaitingCopyStep = (
   step: CardHomeWaitingStep,
   lastSettledStep: CardHomeWaitingStep | null,
@@ -275,7 +278,11 @@ export const resolveCardHomeWaitingCopyStep = (
   if (step !== 'immersve-reconciling') {
     return step;
   }
-  if (lastSettledStep && lastSettledStep !== 'immersve-reconciling') {
+  if (
+    lastSettledStep &&
+    lastSettledStep !== 'immersve-reconciling' &&
+    lastSettledStep !== 'signed-out-kyc-pending'
+  ) {
     return lastSettledStep;
   }
   return 'immersve-reconciling';
