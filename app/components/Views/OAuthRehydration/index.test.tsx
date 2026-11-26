@@ -199,18 +199,14 @@ jest.mock('@react-native-community/netinfo', () => ({
 }));
 
 const mockSelectMfaUiKitEnabled = jest.fn().mockReturnValue(false);
-const mockSelectMoneyEnableMfaFlag = jest.fn().mockReturnValue(false);
+const mockSelectMfaRecoveryEnabled = jest.fn().mockReturnValue(false);
 jest.mock('../../../selectors/featureFlagController/mfaUiKit', () => ({
   selectMfaUiKitEnabled: (state: unknown) => mockSelectMfaUiKitEnabled(state),
 }));
-jest.mock('../../UI/Money/selectors/featureFlags', () => {
-  const actual = jest.requireActual('../../UI/Money/selectors/featureFlags');
-  return {
-    ...actual,
-    selectMoneyEnableMfaFlag: (state: unknown) =>
-      mockSelectMoneyEnableMfaFlag(state),
-  };
-});
+jest.mock('../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: (state: unknown) =>
+    mockSelectMfaRecoveryEnabled(state),
+}));
 
 const mockVerifyForSocialLogin = jest.fn();
 const mockListActiveSocialLoginMethods = jest.fn();
@@ -328,7 +324,7 @@ describe('OAuthRehydration', () => {
     });
     mockIsDeletingInProgress.mockReturnValue(false);
     mockSelectMfaUiKitEnabled.mockReturnValue(false);
-    mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+    mockSelectMfaRecoveryEnabled.mockReturnValue(false);
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
@@ -1567,7 +1563,7 @@ describe('OAuthRehydration', () => {
 
     const enableMfaFlags = () => {
       mockSelectMfaUiKitEnabled.mockReturnValue(true);
-      mockSelectMoneyEnableMfaFlag.mockReturnValue(true);
+      mockSelectMfaRecoveryEnabled.mockReturnValue(true);
     };
 
     /** First kit attempt (OS highest factor) cancelled → full-page picker. */
@@ -1854,9 +1850,9 @@ describe('OAuthRehydration', () => {
       );
     });
 
-    it('skips MFA when Money MFA is off even if password is outdated', async () => {
+    it('skips MFA when mfaRecovery is off even if password is outdated', async () => {
       mockSelectMfaUiKitEnabled.mockReturnValue(true);
-      mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+      mockSelectMfaRecoveryEnabled.mockReturnValue(false);
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -1885,6 +1881,42 @@ describe('OAuthRehydration', () => {
         queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
       ).toBeNull();
       expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+    });
+
+    it('keeps legacy unlock for lock/outdated REHYDRATE without oauthLoginSuccess', async () => {
+      enableMfaFlags();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: true,
+          oauthLoginSuccess: false,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+      ).toBeNull();
+      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
     });
 
     it('unlocks with the existing password after picker MFA verify', async () => {

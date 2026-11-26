@@ -99,8 +99,8 @@ import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectMfaRecoveryEnabled } from '../../../selectors/featureFlagController/mfaRecovery';
 import { selectMfaUiKitEnabled } from '../../../selectors/featureFlagController/mfaUiKit';
-import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
@@ -150,15 +150,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
   const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
-  const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
+  const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
   const route =
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
   const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
-  // Locked passkey check, then the existing unlock screen. When recovery is
-  // set up, Unlock applies the typed password as the new one. Gated by the
-  // existing Money MFA remote flag (`isMoneyMfaEnabled`).
-  const canOfferSocialMfaVerify = isMfaUiKitEnabled && isMoneyMfaEnabledFlag;
+  // WalletRecovery MFA verify is only for true social-login rehydration
+  // (`oauthLoginSuccess` from onboarding). App lock / password-outdated /
+  // Login→REHYDRATE handoffs omit that flag and must keep legacy unlock.
+  const canOfferSocialMfaVerify =
+    Boolean(isComingFromOauthOnboarding) &&
+    isMfaUiKitEnabled &&
+    isMfaRecoveryEnabled;
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const analyticsId = useSelector(selectAnalyticsId);
