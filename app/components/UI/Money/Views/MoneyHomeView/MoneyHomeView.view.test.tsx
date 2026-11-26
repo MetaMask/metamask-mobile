@@ -165,6 +165,8 @@ describeForPlatforms('MoneyHomeView 2-step verification', () => {
     Object.assign(Engine.context, {
       MoneyAccountLifecycleController: {
         startMigration: async () => new Promise(() => undefined),
+        refresh: async () => undefined,
+        state: { moneyAccounts: {} },
       },
     });
     act(() => {
