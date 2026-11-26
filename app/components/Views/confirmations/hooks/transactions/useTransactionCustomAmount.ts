@@ -138,6 +138,9 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isLighterWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsLighterWithdraw,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   // Deposit/withdraw amounts are human mUSD and the input is already USD, so
@@ -455,7 +458,11 @@ export function useTransactionCustomAmount({
         },
       });
 
-      if (percentage === 100) {
+      // Pay does not resolve the Lighter balance for Max, and the Lighter
+      // transfer fee is charged on top of the amount sent. So Max is requested
+      // as the entered balance net of the fee (see
+      // `useUpdateTransactionPayAmount`) rather than as `isMaxAmount`.
+      if (percentage === 100 && !isLighterWithdraw) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -466,6 +473,7 @@ export function useTransactionCustomAmount({
     },
     [
       balanceUsd,
+      isLighterWithdraw,
       isMaxAmount,
       isMembershipSubscription,
       setIsMax,
