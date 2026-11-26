@@ -24,4 +24,8 @@ export const NotificationSettingsViewSelectorsIDs = {
   FEATURE_GATE_CLOSE_BUTTON: 'notification-settings-feature-gate-close-button',
   FEATURE_GATE_TURN_ON_BUTTON:
     'notification-settings-feature-gate-turn-on-button',
+  SOCIAL_PUSH_PERMISSION_WARNING:
+    'notification-settings-social-push-permission-warning',
+  SOCIAL_PUSH_PERMISSION_SETTINGS_BUTTON:
+    'notification-settings-social-push-permission-settings-button',
 };

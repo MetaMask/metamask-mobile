@@ -12,12 +12,15 @@
 
 import '../../../../../tests/component-view/mocks';
 import {
+  act,
   fireEvent,
   screen,
   waitFor,
   within,
 } from '@testing-library/react-native';
 import type { FollowingResponse } from '@metamask/social-controllers';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
+import { AppState, Linking, type AppStateStatus } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   clearLeaderboardApiMock,
@@ -80,9 +83,16 @@ const renderSection = () => {
   });
 };
 
-describeForPlatforms('Social AI notification settings', () => {
+describeForPlatforms('Social AI notification settings', ({ os }) => {
+  beforeEach(() => {
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+  });
+
   afterEach(() => {
     clearLeaderboardApiMock();
+    jest.restoreAllMocks();
   });
 
   it('lists every followed trader and the saved trade threshold', async () => {
@@ -123,6 +133,111 @@ describeForPlatforms('Social AI notification settings', () => {
     expect(
       screen.queryByTestId(NotificationPreferencesSelectorsIDs.TRADERS_EMPTY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not show the Settings warning while push permission is promptable', async () => {
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.NOT_DETERMINED,
+    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+
+    renderSection();
+
+    expect(
+      await screen.findByTestId(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(notifee.getNotificationSettings).toHaveBeenCalled();
+    });
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps in-app notifications enabled and opens system settings from the denied-permission warning', async () => {
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.DENIED,
+    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+    const openSettingsSpy = jest
+      .spyOn(Linking, 'openSettings')
+      .mockResolvedValue(undefined);
+
+    renderSection();
+
+    expect(
+      await screen.findByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+
+    fireEvent.press(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_SETTINGS_BUTTON,
+      ),
+    );
+
+    if (os === 'ios') {
+      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+    } else {
+      expect(notifee.openNotificationSettings).toHaveBeenCalledTimes(1);
+    }
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      isSwitchOn(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
+    ).toBe(true);
+  });
+
+  it('hides the warning after push permission is granted and the app resumes', async () => {
+    let appStateListener: ((state: AppStateStatus) => void) | undefined;
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_, listener) => {
+        appStateListener = listener;
+        return { remove: jest.fn() };
+      });
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.DENIED,
+    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+    renderSection();
+    expect(
+      await screen.findByTestId(
+        NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+      ),
+    ).toBeOnTheScreen();
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    } as Awaited<ReturnType<typeof notifee.getNotificationSettings>>);
+
+    await act(async () => {
+      appStateListener?.('active');
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(
+          NotificationSettingsViewSelectorsIDs.SOCIAL_PUSH_PERMISSION_WARNING,
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('persists a lower trade threshold and selects that option', async () => {
