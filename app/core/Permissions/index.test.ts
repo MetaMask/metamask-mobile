@@ -1,4 +1,5 @@
 import Logger from '../../util/Logger';
+import AppConstants from '../AppConstants';
 import TransactionTypes from '../TransactionTypes';
 import Engine from '../Engine';
 import {
@@ -1054,6 +1055,32 @@ describe('Permission Utility Functions', () => {
 
       const result = getPermittedAccounts(TransactionTypes.MMM);
       expect(result).toEqual(['0x123']);
+    });
+
+    it('returns no accounts for the in-app browser placeholder origin', () => {
+      mockGetCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': { accounts: ['eip155:1:0x123'] },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
+      mockIsUnlocked.mockReturnValue(true);
+      (getEthAccounts as jest.Mock).mockReturnValue(['0x123']);
+
+      expect(
+        getPermittedAccounts(AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER),
+      ).toEqual([]);
+      expect(
+        getPermittedAccounts(AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER, {
+          scope: 'eip155:1',
+        }),
+      ).toEqual([]);
+      expect(mockGetCaveat).not.toHaveBeenCalled();
     });
 
     it('should return permitted accounts for external origins when wallet is unlocked', () => {
