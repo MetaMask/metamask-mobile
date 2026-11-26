@@ -23,6 +23,7 @@ import {
   createUnavailableWatchlistPerp,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  getPerpsWatchlistKey,
   getTokenWatchlistKey,
 } from '../utils';
 import { useWatchlistOrder } from './useWatchlistOrder';
@@ -82,25 +83,6 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const tokenMembershipAssetIds = isTokenWatchlistEnabled
     ? (tokenMembershipBlob?.assets ?? EMPTY_ASSET_IDS)
     : EMPTY_ASSET_IDS;
-  const hydratedTokenKeys = useMemo(
-    () => new Set(tokens.map((item) => item.key)),
-    [tokens],
-  );
-  const isTokenMetadataComplete =
-    !isTokenWatchlistEnabled ||
-    (tokenMembershipBlob !== undefined &&
-      (tokenMembershipAssetIds.length === 0 ||
-        (tokenData !== undefined &&
-          tokenMembershipAssetIds.every((assetId) =>
-            hydratedTokenKeys.has(getTokenWatchlistKey(assetId)),
-          ))));
-  const tokenMetadataCoverageError =
-    isTokenWatchlistEnabled &&
-    tokenMembershipBlob !== undefined &&
-    tokenData !== undefined &&
-    !isTokenMetadataComplete
-      ? 'Some watchlist metadata is unavailable'
-      : null;
   const isTokenHydrationUnavailable =
     isTokenWatchlistEnabled &&
     isOffline &&
@@ -131,6 +113,30 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     });
   }, [isPerpsEnabled, isPerpsMetadataTerminal, markets, watchlistSymbols]);
 
+  const memberKeys = useMemo(() => {
+    if (
+      isTokenWatchlistEnabled &&
+      (isTokenMembershipLoading ||
+        tokenMembershipError !== null ||
+        tokenMembershipBlob === undefined)
+    ) {
+      return undefined;
+    }
+
+    return new Set([
+      ...tokenMembershipAssetIds.map(getTokenWatchlistKey),
+      ...(isPerpsEnabled ? watchlistSymbols.map(getPerpsWatchlistKey) : []),
+    ]);
+  }, [
+    isPerpsEnabled,
+    isTokenMembershipLoading,
+    isTokenWatchlistEnabled,
+    tokenMembershipAssetIds,
+    tokenMembershipBlob,
+    tokenMembershipError,
+    watchlistSymbols,
+  ]);
+
   const availableItems = useMemo(
     () => buildWatchlistItems(tokens, perps),
     [perps, tokens],
@@ -145,6 +151,7 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     appendOrderKey,
   } = useWatchlistOrder(availableItems, {
     enabled: isPerpsEnabled,
+    memberKeys,
   });
 
   const suggestedPerps = useMemo(() => {
@@ -187,20 +194,22 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     retryOrder,
   ]);
 
+  const offlineTokenError = isTokenHydrationUnavailable
+    ? 'Watchlist metadata is unavailable offline'
+    : null;
+  const resolvedTokenError = isTokenWatchlistEnabled
+    ? (tokenMembershipError?.message ??
+      tokenError?.message ??
+      offlineTokenError)
+    : null;
+
   return {
     items,
     isOrderReady,
     orderError,
     tokens: {
       items: tokens,
-      error: isTokenWatchlistEnabled
-        ? (tokenMembershipError?.message ??
-          tokenError?.message ??
-          tokenMetadataCoverageError ??
-          (isTokenHydrationUnavailable
-            ? 'Watchlist metadata is unavailable offline'
-            : null))
-        : null,
+      error: resolvedTokenError,
     },
     perps: {
       items: perps,
@@ -214,7 +223,7 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     canFetchSuggestions: !isOffline && hardwareTier !== 'LOW',
     tokenMembershipAssetIds,
     perpsMembershipSymbols: isPerpsEnabled ? watchlistSymbols : EMPTY_SYMBOLS,
-    tokenCount: isTokenWatchlistEnabled ? tokenMembershipAssetIds.length : 0,
+    tokenCount: isTokenWatchlistEnabled ? tokens.length : 0,
     perpsCount: isPerpsEnabled ? watchlistSymbols.length : 0,
     isInitialLoading:
       isRefreshing ||
