@@ -162,6 +162,10 @@ type RenderVbaOptions = NonNullable<Parameters<typeof initialStateVba>[0]> & {
   overrides?: DeepPartial<RootState>;
 };
 
+type RenderVbaMoneyEntryOptions = RenderVbaOptions & {
+  extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+};
+
 const VbaTermsCaller = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
@@ -286,7 +290,10 @@ export const renderVbaDetails = (options: RenderVbaOptions = {}) => {
   return result;
 };
 
-export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
+export const renderVbaMoneyEntry = (
+  options: RenderVbaMoneyEntryOptions = {},
+) => {
+  const { extraRoutes = [], ...stateOptions } = options;
   const result = renderScreenWithRoutes(
     VbaMoneyCaller,
     { name: 'VbaMoneyCaller' },
@@ -304,8 +311,9 @@ export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
         name: Routes.RAMP.VBA_DETAILS,
         Component: VbaDetails as unknown as React.ComponentType,
       },
+      ...extraRoutes,
     ],
-    { state: buildVbaState(options) },
+    { state: buildVbaState(stateOptions) },
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
