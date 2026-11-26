@@ -3230,6 +3230,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
+          showWarning={
+            !isLoadingAccount &&
+            !isAvailableToTradeLoading &&
+            spendableBalance === 0
+          }
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
