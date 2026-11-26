@@ -27,9 +27,6 @@ import { TitleSubpageProps } from './TitleSubpage.types';
  *   startAccessory={<AvatarToken />}
  *   title="Token Name"
  *   bottomLabel="$1,234.56"
- * /><AvatarToken />}
- *   title="Token Name"
- *   bottomLabel="$1,234.56"
  * />
  * ```
  */
