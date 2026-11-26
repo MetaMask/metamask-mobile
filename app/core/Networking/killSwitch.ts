@@ -1,6 +1,6 @@
 import ReduxService from '../redux';
 import {
-  TIER_POLICY_BUILD_DEFAULT,
+  resolveTierPolicyEnabled,
   selectTierPolicyEnabled,
 } from '../../selectors/featureFlagController/networking';
 
@@ -10,6 +10,6 @@ export function isTierPolicyEnabled(): boolean {
     return selectTierPolicyEnabled(ReduxService.store.getState());
   } catch {
     // shortcut: a read before the store exists is logged by ReduxService; add a quiet getter if a pre-store caller appears.
-    return TIER_POLICY_BUILD_DEFAULT;
+    return resolveTierPolicyEnabled();
   }
 }
