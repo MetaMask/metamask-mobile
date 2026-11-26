@@ -207,6 +207,9 @@ describe('webviewAuthSession', () => {
 
       const caughtErrorPromise = promise.catch((caught: unknown) => caught);
 
+      // Flush the deferred animation frame before advancing the mount timeout
+      // so the test does not assume a 0ms requestAnimationFrame delay.
+      jest.runOnlyPendingTimers();
       jest.advanceTimersByTime(WEBVIEW_AUTH_MOUNT_TIMEOUT_MS);
 
       await expect(caughtErrorPromise).resolves.toBeInstanceOf(
