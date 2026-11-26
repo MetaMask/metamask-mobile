@@ -33,10 +33,12 @@ import {
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
 import {
+  isFiatMoneyDeposit,
   isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyWithdraw,
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
+import { getFiatDepositAttemptedAmount } from '../utils/fiatDepositAmount';
 import type { MoneyActivityTransactionMeta } from '../constants/moneyActivity';
 import {
   classifyMoneyActivity,
@@ -270,10 +272,18 @@ export function useMoneyTransactionDisplayInfo(
     }
 
     if (status === 'failed') {
-      primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
-      fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(
-        new BigNumber(0),
-      )}`;
+      const attemptedAmount = isFiatMoneyDeposit(tx)
+        ? getFiatDepositAttemptedAmount(tx)
+        : undefined;
+      if (attemptedAmount) {
+        primaryAmount = '';
+        fiatAmount = moneyFormatUsd(new BigNumber(attemptedAmount));
+      } else {
+        primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
+        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(
+          new BigNumber(0),
+        )}`;
+      }
     }
 
     // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token

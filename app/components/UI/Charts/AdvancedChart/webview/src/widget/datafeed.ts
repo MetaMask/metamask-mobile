@@ -6,13 +6,15 @@
 // pagination/rnBacked.ts when consumers opt into the custom strategy.
 
 import { reportErrorToRN, safeStringify } from '../core/bridge';
+import { isSameResolution } from '../core/resolution';
 import {
+  getCurrentResolution,
   getOhlcvData,
   getOhlcvPagination,
-  getRealtimeCallbacks,
+  getRealtimeListeners,
   getRnBackedPagination,
-  registerRealtimeCallback,
-  unregisterRealtimeCallback,
+  registerRealtimeListener,
+  unregisterRealtimeListener,
 } from '../core/state';
 import type {
   GetBarsCallback,
@@ -227,27 +229,33 @@ export const customDatafeed: TVDatafeed = {
 
   subscribeBars(
     _symbolInfo: SymbolInfo,
-    _resolution: TVResolution,
+    resolution: TVResolution,
     onTick: RealtimeTickCallback,
     listenerGuid: string,
   ) {
-    registerRealtimeCallback(listenerGuid, onTick);
+    registerRealtimeListener(listenerGuid, { resolution, onTick });
   },
 
   unsubscribeBars(listenerGuid: string) {
-    unregisterRealtimeCallback(listenerGuid);
+    unregisterRealtimeListener(listenerGuid);
   },
 };
 
 /**
- * Forward a realtime tick to every TradingView subscribeBars listener.
- * Called from widget/ohlcvIngestion.ts on REALTIME_UPDATE.
+ * Forward a realtime tick to the subscribeBars listeners of the current
+ * resolution. After a resolution switch TradingView keeps the previous
+ * subscription alive for a few seconds; feeding it the new series' bars causes
+ * `putToCacheNewBar: time violation` or caches a wrong bar for a quick switch
+ * back. Called from widget/ohlcvIngestion.ts on REALTIME_UPDATE.
  */
 export function forwardRealtimeTick(tick: TVBar): void {
-  const callbacks = getRealtimeCallbacks();
-  for (const guid of Object.keys(callbacks)) {
+  const currentResolution = getCurrentResolution();
+  for (const listener of Object.values(getRealtimeListeners())) {
+    if (!isSameResolution(listener.resolution, currentResolution)) {
+      continue;
+    }
     try {
-      callbacks[guid](tick);
+      listener.onTick(tick);
     } catch (error) {
       reportErrorToRN(error);
     }

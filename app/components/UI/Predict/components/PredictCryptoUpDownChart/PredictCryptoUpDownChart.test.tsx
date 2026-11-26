@@ -4,7 +4,10 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart, {
   CRYPTO_UP_DOWN_FORMAT_TIME,
   CRYPTO_UP_DOWN_FORMAT_VALUE,
+  METAL_UP_DOWN_FORMAT_VALUE,
   computeBottomPadding,
+  computeRightPadding,
+  getCryptoUpDownFormatValue,
 } from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import {
@@ -118,6 +121,139 @@ describe('PredictCryptoUpDownChart', () => {
     });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
     expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
+  });
+
+  it('formats gold axis and tooltip values in cents', () => {
+    const market = {
+      ...createMockMarket(),
+      slug: 'xau-updown-15m-1794338100',
+      tags: ['finance', 'gold', 'up-or-down'],
+    };
+
+    render(<PredictCryptoUpDownChart market={market} />);
+    fireEvent(
+      screen.getByTestId('predict-crypto-up-down-chart-container'),
+      'layout',
+      { nativeEvent: { layout: { height: 300 } } },
+    );
+
+    expect(screen.getByTestId('mock-liveline-chart').props.formatValue).toBe(
+      METAL_UP_DOWN_FORMAT_VALUE,
+    );
+  });
+
+  it('expands right gutter for gold five-digit labels while keeping silver and crypto at 64px', () => {
+    const goldMarket = {
+      ...createMockMarket(),
+      slug: 'xau-updown-15m-1794338100',
+      tags: ['finance', 'gold', 'up-or-down'],
+    };
+    const silverMarket = {
+      ...createMockMarket(),
+      slug: 'xag-updown-15m-1794338100',
+      tags: ['finance', 'silver', 'up-or-down'],
+    };
+    const btcMarket = createMockMarket();
+
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    const formatMetalValue = new Function('v', METAL_UP_DOWN_FORMAT_VALUE) as (
+      v: number,
+    ) => string;
+
+    // Gold window around $3,662.50 -> "$3,662.50" (9 chars; overflows the old 64px gutter).
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [
+        { time: 1, value: 3662.1 },
+        { time: 2, value: 3662.5 },
+      ],
+      value: 3662.5,
+      loading: false,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+    const { unmount } = render(
+      <PredictCryptoUpDownChart market={goldMarket} />,
+    );
+    fireEvent(
+      screen.getByTestId('predict-crypto-up-down-chart-container'),
+      'layout',
+      { nativeEvent: { layout: { height: 300 } } },
+    );
+    const goldChart = screen.getByTestId('mock-liveline-chart');
+    const goldLabel = formatMetalValue(3662.5);
+    expect(goldLabel).toBe('$3,662.50');
+    // Liveline draws labels at x = w - pad.right + 8 in 11px monospace (~7px/char).
+    expect(goldChart.props.padding.right).toBeGreaterThanOrEqual(
+      8 + goldLabel.length * 7,
+    );
+    expect(goldChart.props.padding.right).toBeGreaterThan(64);
+    unmount();
+
+    // Larger gold price ($12,345.67 -> 10 chars) widens further.
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 12345.67 }],
+      value: 12345.67,
+      loading: false,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+    const { unmount: unmountLargeGold } = render(
+      <PredictCryptoUpDownChart market={goldMarket} />,
+    );
+    fireEvent(
+      screen.getByTestId('predict-crypto-up-down-chart-container'),
+      'layout',
+      { nativeEvent: { layout: { height: 300 } } },
+    );
+    const largeGoldLabel = formatMetalValue(12345.67);
+    expect(largeGoldLabel).toBe('$12,345.67');
+    expect(
+      screen.getByTestId('mock-liveline-chart').props.padding.right,
+    ).toBeGreaterThanOrEqual(8 + largeGoldLabel.length * 7);
+    unmountLargeGold();
+
+    // Silver window around $51.50 keeps the 64px gutter.
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 51.5 }],
+      value: 51.5,
+      loading: false,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+    const { unmount: unmountSilver } = render(
+      <PredictCryptoUpDownChart market={silverMarket} />,
+    );
+    fireEvent(
+      screen.getByTestId('predict-crypto-up-down-chart-container'),
+      'layout',
+      { nativeEvent: { layout: { height: 300 } } },
+    );
+    expect(screen.getByTestId('mock-liveline-chart').props.padding.right).toBe(
+      64,
+    );
+    unmountSilver();
+
+    // Crypto (BTC at $95,000) keeps the 64px gutter.
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 95000 }],
+      value: 95000,
+      loading: false,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+    render(<PredictCryptoUpDownChart market={btcMarket} />);
+    fireEvent(
+      screen.getByTestId('predict-crypto-up-down-chart-container'),
+      'layout',
+      { nativeEvent: { layout: { height: 300 } } },
+    );
+    expect(screen.getByTestId('mock-liveline-chart').props.padding.right).toBe(
+      64,
+    );
   });
 
   it('renders the connection-error state instead of the chart when connectionError is true', () => {
@@ -425,6 +561,51 @@ describe('PredictCryptoUpDownChart', () => {
     });
   });
 
+  describe('METAL_UP_DOWN_FORMAT_VALUE', () => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    const formatValue = new Function('v', METAL_UP_DOWN_FORMAT_VALUE) as (
+      v: number,
+    ) => string;
+
+    it.each([
+      [0, '$0.00'],
+      [51.534, '$51.53'],
+      [51.536, '$51.54'],
+      [999.999, '$1,000.00'],
+      [4029.91, '$4,029.91'],
+      [4030.355, '$4,030.36'],
+      [1234567.891, '$1,234,567.89'],
+      [-4030.36, '-$4,030.36'],
+    ])('formats %p as %p', (input, expected) => {
+      expect(formatValue(input)).toBe(expected);
+    });
+
+    it('tells apart gridlines a 15-minute gold window spans', () => {
+      const labels = [4029.9, 4030, 4030.1, 4030.2, 4030.3, 4030.4].map(
+        formatValue,
+      );
+
+      expect(new Set(labels).size).toBe(labels.length);
+    });
+  });
+
+  describe('getCryptoUpDownFormatValue', () => {
+    it.each(['XAU', 'XAG', 'xau'])('uses cents for %s', (symbol) => {
+      expect(getCryptoUpDownFormatValue(symbol)).toBe(
+        METAL_UP_DOWN_FORMAT_VALUE,
+      );
+    });
+
+    it.each(['BTC', 'ETH', undefined])(
+      'keeps whole dollars for %s',
+      (symbol) => {
+        expect(getCryptoUpDownFormatValue(symbol)).toBe(
+          CRYPTO_UP_DOWN_FORMAT_VALUE,
+        );
+      },
+    );
+  });
+
   describe('CRYPTO_UP_DOWN_FORMAT_TIME', () => {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
     const formatTime = new Function('t', CRYPTO_UP_DOWN_FORMAT_TIME) as (
@@ -470,6 +651,33 @@ describe('PredictCryptoUpDownChart', () => {
     it('never returns less than the minimum padding floor', () => {
       expect(computeBottomPadding(0, 1.0)).toBeGreaterThanOrEqual(64);
       expect(computeBottomPadding(50, 0.5)).toBeGreaterThanOrEqual(64);
+    });
+  });
+
+  describe('computeRightPadding', () => {
+    it('keeps 64px for crypto and silver labels up to 8 characters', () => {
+      expect(computeRightPadding([2500], 'ETH')).toBe(64);
+      expect(computeRightPadding([95000], 'BTC')).toBe(64);
+      expect(computeRightPadding([100000], 'BTC')).toBe(64);
+      expect(computeRightPadding([51.5], 'XAG')).toBe(64);
+      expect(computeRightPadding([999.99], 'XAG')).toBe(64);
+    });
+
+    it('widens the gutter for 4-digit and larger gold labels in cents', () => {
+      const gold4Digits = computeRightPadding([3662.5], 'XAU');
+      const gold5Digits = computeRightPadding([12345.67], 'XAU');
+      const gold6Digits = computeRightPadding([100000], 'XAU');
+
+      expect(gold4Digits).toBeGreaterThan(64);
+      expect(gold4Digits).toBeGreaterThanOrEqual(8 + '$3,662.50'.length * 7);
+      expect(gold5Digits).toBeGreaterThan(gold4Digits);
+      expect(gold5Digits).toBeGreaterThanOrEqual(8 + '$12,345.67'.length * 7);
+      expect(gold6Digits).toBeGreaterThan(gold5Digits);
+    });
+
+    it('ignores non-finite values and keeps the 64px floor when empty', () => {
+      expect(computeRightPadding([], 'XAU')).toBe(64);
+      expect(computeRightPadding([Number.NaN, Infinity], 'XAU')).toBe(64);
     });
   });
 });

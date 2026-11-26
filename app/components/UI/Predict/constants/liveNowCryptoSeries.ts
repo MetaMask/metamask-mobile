@@ -9,6 +9,12 @@ export const ETH_UP_DOWN_5M_SERIES_ID = '10683';
 /** Polymarket Gamma `series_id` for the BTC 15-minute up/down series. */
 export const BTC_UP_DOWN_15M_SERIES_ID = '10192';
 
+/** Polymarket Gamma `series_id` for the Gold (XAU) 15-minute up/down series. */
+export const GOLD_UP_DOWN_15M_SERIES_ID = '12967';
+
+/** Polymarket Gamma `series_id` for the Silver (XAG) 15-minute up/down series. */
+export const SILVER_UP_DOWN_15M_SERIES_ID = '12968';
+
 export const ETH_UP_OR_DOWN_5M_SERIES: PredictSeries = {
   id: ETH_UP_DOWN_5M_SERIES_ID,
   slug: 'eth-up-or-down-5m',
@@ -20,6 +26,20 @@ export const BTC_UP_OR_DOWN_15M_SERIES: PredictSeries = {
   id: BTC_UP_DOWN_15M_SERIES_ID,
   slug: 'btc-up-or-down-15m',
   title: 'BTC Up or Down',
+  recurrence: '15m',
+};
+
+export const GOLD_UP_OR_DOWN_15M_SERIES: PredictSeries = {
+  id: GOLD_UP_DOWN_15M_SERIES_ID,
+  slug: 'gold-up-or-down-15m',
+  title: 'Gold Up or Down 15m',
+  recurrence: '15m',
+};
+
+export const SILVER_UP_OR_DOWN_15M_SERIES: PredictSeries = {
+  id: SILVER_UP_DOWN_15M_SERIES_ID,
+  slug: 'silver-up-or-down-15m',
+  title: 'Silver Up or Down 15m',
   recurrence: '15m',
 };
 

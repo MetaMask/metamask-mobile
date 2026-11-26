@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarIcon,
@@ -24,7 +21,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -101,11 +97,6 @@ const INSTRUCTIONS: {
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
   const [manualQrPayload, setManualQrPayload] = useState('');
@@ -215,12 +206,12 @@ const AddDeviceToWallet = () => {
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         onBack={handleBack}
       />
-      <Box twClassName="flex-1 pt-3" style={{ marginTop: headerInset }}>
+      <Box twClassName="flex-1 pt-3">
         <TitleStandard
           twClassName="mb-2 px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}

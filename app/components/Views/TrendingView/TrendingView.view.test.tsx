@@ -245,7 +245,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW),
       ).toBeOnTheScreen();
-      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
+      expect(getByTestId('section-header-view-all-tokens')).toBeOnTheScreen();
       expect(getByTestId(TRENDING_ETHEREUM_ID)).toBeOnTheScreen();
     });
 
@@ -266,6 +266,36 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(getByText(strings('trending.ecosystems'))).toBeOnTheScreen();
       expect(getByText(strings('trending.popular'))).toBeOnTheScreen();
       expect(queryAllByTestId('site-row-item-Uniswap')).toHaveLength(1);
+    });
+  });
+
+  it('Sites tab Ecosystems carousel shows every network in order, including Stellar and Tron', async () => {
+    const { getByTestId } = renderTrendingViewWithRoutes();
+
+    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.DAPPS, getByTestId);
+
+    await waitFor(() => {
+      const carousel = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_DAPPS_NETWORKS_CAROUSEL,
+      );
+      const tileNames = within(carousel)
+        .getAllByTestId(
+          new RegExp(`^${TrendingViewSelectorsIDs.SITE_RECENTS_TILE_PREFIX}`),
+        )
+        .map((tile) =>
+          String(tile.props.testID).replace(
+            TrendingViewSelectorsIDs.SITE_RECENTS_TILE_PREFIX,
+            '',
+          ),
+        );
+      expect(tileNames).toEqual([
+        'Linea',
+        'Sei',
+        'Monad',
+        'Solana',
+        'Tron',
+        'Stellar',
+      ]);
     });
   });
 

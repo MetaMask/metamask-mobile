@@ -1,6 +1,6 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { BackHandler, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -27,11 +27,13 @@ import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddress
 import useBalance from '../../hooks/useBalance';
 import {
   bigIntToHex,
+  fromTokenMinimalUnitString,
   toTokenMinimalUnit,
 } from '../../../../../../util/number/bigint';
 import { generateTransferData } from '../../../../../../util/transactions';
 import { GasFeeEstimateLevel } from '@metamask/transaction-controller';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { getTronMaxSendableAmount } from '../../../../../../core/Multichain/tron';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
@@ -53,6 +55,11 @@ jest.mock('../../../../../../core/Engine', () => ({
   get context() {
     return mockEngineContext;
   },
+}));
+
+jest.mock('../../../../../../core/Multichain/tron', () => ({
+  ...jest.requireActual('../../../../../../core/Multichain/tron'),
+  getTronMaxSendableAmount: jest.fn(),
 }));
 
 const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
@@ -273,6 +280,18 @@ const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
 const mockSetSelectedFiatCurrencyId = jest.fn();
 
+const mockTronAsset = {
+  ...mockCryptoCurrenciesData[0],
+  network: {
+    ...mockCryptoCurrenciesData[0].network,
+    chainId: 'tron:728126428',
+    chainName: 'Tron',
+    shortName: 'TRX',
+  },
+  symbol: 'TRX',
+  assetId: 'slip44:195',
+};
+
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: mockPaymentMethods[0].id,
   selectedRegion: mockRegionsData[0],
@@ -280,7 +299,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
-  selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
+  selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   setIntent: mockSetIntent,
@@ -327,6 +346,11 @@ jest.mock('../../utils/createUnfundedRecipient', () => ({
 }));
 
 jest.mock('../../hooks/useIntentAmount');
+
+const mockUseOffRampNonEvmEnabled = jest.fn(() => false);
+jest.mock('../../hooks/useOffRampNonEvmEnabled', () =>
+  jest.fn(() => mockUseOffRampNonEvmEnabled()),
+);
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
@@ -1976,6 +2000,160 @@ describe('BuildQuote View', () => {
       tags: {
         rampType: RampType.SELL,
       },
+    });
+  });
+
+  describe('Tron Max quick amount race condition', () => {
+    let savedBalanceBN: bigint | null | undefined;
+    let savedOffRampNonEvmEnabled: boolean;
+
+    beforeEach(() => {
+      // Save state
+      savedBalanceBN = mockUseBalanceValues.balanceBN;
+      savedOffRampNonEvmEnabled = mockUseOffRampNonEvmEnabled();
+
+      mockUseRampSDKValues.rampType = RampType.SELL;
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseRampSDKValues.selectedAsset = mockTronAsset;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(true);
+      // Update balance to use Tron's 8 decimals
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '5.36385',
+        mockTronAsset.decimals,
+      );
+    });
+
+    afterEach(() => {
+      // Restore state
+      mockUseBalanceValues.balanceBN = savedBalanceBN;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(savedOffRampNonEvmEnabled);
+    });
+
+    it('discards Max result when user presses another quick amount during Max request', async () => {
+      let maxResolve!: (value: { amount: string }) => void;
+      const maxPromise = new Promise<{ amount: string }>((resolve) => {
+        maxResolve = resolve;
+      });
+
+      (getTronMaxSendableAmount as jest.Mock).mockReturnValue(maxPromise);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // While Max is resolving, press 75%
+      fireEvent.press(getByRoleButton('75%'));
+
+      // Resolve Max with a value and wait for it to settle
+      await act(async () => {
+        maxResolve({ amount: '1000' });
+        await maxPromise;
+      });
+
+      // Amount should be 75% of balance, not the Max result
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
+      const expected75 = (balanceBN * 75n) / 100n;
+      const expectedAmount = fromTokenMinimalUnitString(
+        expected75.toString(10),
+        mockTronAsset.decimals,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('discards Max result when user inputs keypad value during Max request', async () => {
+      let maxResolve!: (value: { amount: string }) => void;
+      const maxPromise = new Promise<{ amount: string }>((resolve) => {
+        maxResolve = resolve;
+      });
+
+      (getTronMaxSendableAmount as jest.Mock).mockReturnValue(maxPromise);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // While Max is resolving, user types a number
+      fireEvent.press(getByRoleButton('5'));
+
+      // Resolve Max with a different value and wait for it to settle
+      await act(async () => {
+        maxResolve({ amount: '1000' });
+        await maxPromise;
+      });
+
+      // Amount should be the user's input (5), not the Max result
+      // Use exact match to ensure it's the typed value, not the fallback 5.36385
+      await waitFor(() => {
+        expect(getByRoleButton(`5 ${symbol}`)).toBeOnTheScreen();
+      });
+    });
+
+    it('falls back to balance-based calculation when Snap returns undefined', async () => {
+      (getTronMaxSendableAmount as jest.Mock).mockResolvedValue(undefined);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // Amount should be 100% of balance (balance-based fallback)
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
+      const expectedAmount = fromTokenMinimalUnitString(
+        balanceBN.toString(10),
+        mockTronAsset.decimals,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('falls back to balance-based calculation when Snap returns empty result', async () => {
+      (getTronMaxSendableAmount as jest.Mock).mockResolvedValue({});
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // Amount should be 100% of balance (balance-based fallback)
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
+      const expectedAmount = fromTokenMinimalUnitString(
+        balanceBN.toString(10),
+        mockTronAsset.decimals,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
     });
   });
 });

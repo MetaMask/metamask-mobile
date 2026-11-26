@@ -21,10 +21,21 @@ import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
 const selectMainnetPooledStakingVaultApy =
   pooledStakingSelectors.selectVaultApyForChain(ChainId.ETHEREUM);
 
+export interface UseEarnHighestRateOptions {
+  /**
+   * Whether to fetch and calculate Earn rates.
+   */
+  enabled?: boolean;
+}
+
 /**
  * Calculates the highest ready rate across enabled and eligible Earn experiences.
+ *
+ * @param options - Rate calculation options.
  */
-const useEarnHighestRate = () => {
+const useEarnHighestRate = ({
+  enabled = true,
+}: UseEarnHighestRateOptions = {}) => {
   const isEarnEligible = useSelector(pooledStakingSelectors.selectEligibility);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
@@ -37,18 +48,22 @@ const useEarnHighestRate = () => {
   );
 
   const { apyPercent: moneyApyPercent, vaultApyQuery } = useMoneyVaultApy({
-    enabled: isMoneyAccountVisible,
+    enabled: enabled && isMoneyAccountVisible,
   });
   const { markets: lendingMarkets } = useEarnSectionLendingMarkets({
-    enabled: isEarnEligible && isStablecoinLendingEnabled,
+    enabled: enabled && isEarnEligible && isStablecoinLendingEnabled,
   });
   const { apyPercent: trxApyPercent, fetchStatus: trxFetchStatus } =
     useTronStakeApy({
-      fetchOnMount: isEarnEligible && isTrxStakingEnabled,
+      fetchOnMount: enabled && isEarnEligible && isTrxStakingEnabled,
       chainId: ChainId.TRON_MAINNET,
     });
 
   const highestRate = useMemo(() => {
+    if (!enabled) {
+      return undefined;
+    }
+
     const rates: EarnRate[] = [];
 
     if (isMoneyAccountVisible) {
@@ -99,6 +114,7 @@ const useEarnHighestRate = () => {
 
     return getHighestReadyRateEntry(rates, (rate) => rate);
   }, [
+    enabled,
     isEarnEligible,
     isMoneyAccountVisible,
     isPooledStakingEnabled,

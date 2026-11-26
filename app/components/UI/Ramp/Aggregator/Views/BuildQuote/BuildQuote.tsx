@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { AccessibilityInfo, Pressable, View, BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -37,6 +37,11 @@ import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
+import { useTronAmountValidation } from '../../hooks/useTronAmountValidation';
+import { getTronMaxSendableAmount } from '../../../../../../core/Multichain/tron';
+import { CaipAssetType } from '@metamask/snaps-sdk';
+import { RootState } from '../../../../../../reducers';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -144,6 +149,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
+  const maxRequestTokenRef = useRef(0);
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -176,6 +182,8 @@ const BuildQuote = () => {
     selectedAsset?.network?.chainId &&
       isNonEvmChainId(selectedAsset.network.chainId),
   );
+
+  const isTron = selectedAsset?.network?.chainId?.startsWith('tron:') ?? false;
 
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
@@ -392,6 +400,12 @@ const BuildQuote = () => {
         },
   );
 
+  const fromAccount = useSelector((state: RootState) =>
+    selectedAddress
+      ? getMemoizedInternalAccountByAddress(state, selectedAddress)
+      : undefined,
+  );
+
   const sellGasEstimateTransaction = useMemo(() => {
     if (!isSell || isNonEvmAsset || balanceBN == null || balanceBN <= 0n) {
       return undefined;
@@ -495,6 +509,30 @@ const BuildQuote = () => {
 
     return nativeTokenBalanceBN < sellGasFee.gasFeeWei;
   }, [isBuy, isNonEvmAsset, nativeTokenBalanceBN, selectedAsset, sellGasFee]);
+
+  const {
+    isValidating: isTronValidating,
+    validationError: tronValidationError,
+    isDebouncing: isTronDebouncing,
+  } = useTronAmountValidation({
+    enabled: isSell && isTron && isOffRampNonEvmEnabled,
+    amount,
+    assetChainId: selectedAsset?.network?.chainId,
+    assetReference: selectedAsset?.assetId,
+    walletAddress: selectedAddress ?? undefined,
+  });
+
+  const previousTronValidationError = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (
+      tronValidationError &&
+      tronValidationError !== previousTronValidationError.current
+    ) {
+      AccessibilityInfo.announceForAccessibility(tronValidationError);
+    }
+    previousTronValidationError.current = tronValidationError;
+  }, [tronValidationError]);
 
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
@@ -603,6 +641,9 @@ const BuildQuote = () => {
         newValueAsNumber = Number(pressedKey);
       }
 
+      // Invalidate any in-flight Max request when user manually changes amount
+      maxRequestTokenRef.current = 0;
+
       setAmount(newValue);
       setAmountNumber(newValueAsNumber);
 
@@ -617,54 +658,116 @@ const BuildQuote = () => {
     [isSell, selectedAsset?.decimals, isKeyboardFreshlyOpened],
   );
 
+  const fetchTronMaxAmount = useCallback(
+    async (requestToken: number): Promise<bigint | null> => {
+      if (
+        !fromAccount ||
+        !selectedAsset?.network?.chainId ||
+        !selectedAsset?.assetId
+      ) {
+        return null;
+      }
+
+      try {
+        const maxResult = await getTronMaxSendableAmount(fromAccount, {
+          accountId: fromAccount.id,
+          assetId:
+            `${selectedAsset.network.chainId}/${selectedAsset.assetId}` as CaipAssetType,
+        });
+
+        if (maxRequestTokenRef.current !== requestToken) {
+          return null;
+        }
+
+        return maxResult.amount
+          ? toTokenMinimalUnit(maxResult.amount, selectedAsset.decimals ?? 0)
+          : null;
+      } catch {
+        return null;
+      }
+    },
+    [fromAccount, selectedAsset],
+  );
+
+  const calculatePercentageAmount = useCallback(
+    (percentage: number): bigint | undefined => {
+      if (balanceBN === null || balanceBN === undefined) {
+        return undefined;
+      }
+      return (balanceBN * BigInt(percentage)) / 100n;
+    },
+    [balanceBN],
+  );
+
+  const applyNativeAssetMaxSell = useCallback(
+    (amountPercentage: bigint): bigint => {
+      const isNativeAsset = selectedAsset?.address === NATIVE_ADDRESS;
+      const hasMaxSell =
+        maxSellAmount !== null && maxSellAmount < amountPercentage;
+      return isNativeAsset && hasMaxSell
+        ? (maxSellAmount as bigint)
+        : amountPercentage;
+    },
+    [selectedAsset?.address, maxSellAmount],
+  );
+
   const handleQuickAmountPress = useCallback(
-    ({ value }: QuickAmount) => {
+    async ({ value }: QuickAmount) => {
+      maxRequestTokenRef.current = 0;
+
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
-      } else {
-        const isNativeMax =
-          selectedAsset?.address === NATIVE_ADDRESS && value === 1;
-
-        if (isNativeMax && maxSellAmount === null) {
-          return;
-        }
-
-        const percentage = value * 100;
-        const amountPercentage =
-          balanceBN !== null && balanceBN !== undefined
-            ? (balanceBN * BigInt(percentage)) / 100n
-            : undefined;
-
-        if (amountPercentage === undefined) {
-          return;
-        }
-
-        let amountToSet = amountPercentage;
-
-        if (
-          selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount !== null &&
-          maxSellAmount < amountPercentage
-        ) {
-          amountToSet = maxSellAmount;
-        }
-
-        const newAmountString = fromTokenMinimalUnitString(
-          amountToSet.toString(10),
-          selectedAsset?.decimals ?? 18,
-        );
-        setAmountBNMinimalUnit(amountToSet);
-        setAmount(newAmountString);
-        setAmountNumber(Number(newAmountString));
+        return;
       }
+
+      const isNativeMax =
+        selectedAsset?.address === NATIVE_ADDRESS && value === 1;
+
+      if (isNativeMax && maxSellAmount === null) {
+        return;
+      }
+
+      const amountPercentage = calculatePercentageAmount(value * 100);
+      if (amountPercentage === undefined) {
+        return;
+      }
+
+      let amountToSet: bigint;
+
+      const isTronMax = value === 1 && isTron && isOffRampNonEvmEnabled;
+      if (isTronMax) {
+        const requestToken = Date.now();
+        maxRequestTokenRef.current = requestToken;
+        const tronMax = await fetchTronMaxAmount(requestToken);
+
+        if (maxRequestTokenRef.current !== requestToken) {
+          return;
+        }
+
+        amountToSet = tronMax ?? amountPercentage;
+      } else {
+        amountToSet = applyNativeAssetMaxSell(amountPercentage);
+      }
+
+      const newAmountString = fromTokenMinimalUnitString(
+        amountToSet.toString(10),
+        selectedAsset?.decimals ?? 18,
+      );
+      setAmountBNMinimalUnit(amountToSet);
+      setAmount(newAmountString);
+      setAmountNumber(Number(newAmountString));
     },
     [
-      balanceBN,
       isBuy,
+      isTron,
+      isOffRampNonEvmEnabled,
       maxSellAmount,
       selectedAsset?.address,
       selectedAsset?.decimals,
+      calculatePercentageAmount,
+      fetchTronMaxAmount,
+      applyNativeAssetMaxSell,
     ],
   );
 
@@ -739,6 +842,11 @@ const BuildQuote = () => {
       return;
     }
 
+    // Prevent navigation if Tron validation is pending or failed
+    if (isTronValidating || isTronDebouncing || tronValidationError) {
+      return;
+    }
+
     if (selectedAsset && currentFiatCurrency) {
       navigateWithDetails(
         navigation,
@@ -793,6 +901,9 @@ const BuildQuote = () => {
     selectedAsset,
     selectedPaymentMethodId,
     trackEvent,
+    isTronValidating,
+    isTronDebouncing,
+    tronValidationError,
   ]);
 
   const retryMethod = useCallback(() => {
@@ -1191,6 +1302,18 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
+            {tronValidationError && !hasInsufficientBalance && (
+              <Row>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={BuildQuoteSelectors.TRON_VALIDATION_ERROR}
+                  accessibilityRole="alert"
+                >
+                  {tronValidationError}
+                </Text>
+              </Row>
+            )}
             <Row>
               <PaymentMethodSelector
                 loading={
@@ -1229,7 +1352,13 @@ const BuildQuote = () => {
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
               isFullWidth
-              isDisabled={amountNumber <= 0 || isFetching}
+              isDisabled={
+                amountNumber <= 0 ||
+                isFetching ||
+                isTronValidating ||
+                isTronDebouncing ||
+                Boolean(tronValidationError)
+              }
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </Button>
@@ -1257,7 +1386,9 @@ const BuildQuote = () => {
             ) : (
               <QuickAmounts
                 isBuy={isBuy}
-                onAmountPress={handleQuickAmountPress}
+                onAmountPress={(amount) => {
+                  void handleQuickAmountPress(amount);
+                }}
                 amounts={quickAmounts}
               />
             )}

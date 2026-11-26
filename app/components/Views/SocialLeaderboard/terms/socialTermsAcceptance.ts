@@ -102,6 +102,10 @@ export const resetSocialTermsAcceptance = (): Promise<void> => {
 
 type SocialTermsNavigate = Pick<AppNavigationProp, 'navigate'>['navigate'];
 
+const navigateNow = (navigateToOnboarding: () => void): void => {
+  navigateToOnboarding();
+};
+
 /**
  * Returns the Social entry the last gate call held back and forgets it. The
  * terms-only screen runs it after Accept so the user lands where they tapped.
@@ -120,25 +124,31 @@ export const takePendingSocialEntry = (): (() => void) | undefined => {
  * @param navigate - The caller's navigate function (React or deeplink).
  * @param onAccepted - Reopens the caller's destination once the terms-only
  * screen is accepted.
+ * @param runNavigation - Runs the onboarding navigation. A bottom sheet passes
+ * one that closes the sheet first, so onboarding opens full screen. Defaults to
+ * navigating immediately.
  * @returns `true` when the caller may continue.
  */
 export const ensureSocialTermsAccepted = (
   navigate: SocialTermsNavigate,
   onAccepted?: () => void,
+  runNavigation: (navigateToOnboarding: () => void) => void = navigateNow,
 ): boolean => {
   recordSocialTermsAcceptanceForExistingProfile();
   if (hasAcceptedSocialTerms()) {
     return true;
   }
   pendingEntry = onAccepted;
-  try {
-    if (hasLoadedSocialProfile()) {
-      navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
-    } else {
+  runNavigation(() => {
+    try {
+      if (hasLoadedSocialProfile()) {
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
+      } else {
+        navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      }
+    } catch {
       navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
     }
-  } catch {
-    navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-  }
+  });
   return false;
 };

@@ -164,6 +164,8 @@ import migration160 from './160';
 import migration161 from './161';
 import migration162 from './162';
 import migration163 from './163';
+import migration164 from './164';
+import migration165 from './165';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -171,6 +173,26 @@ import { captureException } from '@sentry/react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 import { MIGRATION_ERROR_HAPPENED } from '../../constants/storage';
+
+/**
+ * Controllers removed from the Engine whose `persist:<name>` files are still
+ * inputs to migrations (e.g. 139, 143, 144, 159, 163). They are no longer in
+ * `BACKGROUND_STATE_CHANGE_EVENT_NAMES`, so they would otherwise never be
+ * loaded into `engine.backgroundState` and users upgrading from an older
+ * version would silently lose that data. Never remove an entry while a
+ * migration still reads that controller's state.
+ */
+export const REMOVED_CONTROLLER_NAMES = [
+  'AccountTrackerController',
+  'CurrencyRateController',
+  'MultichainAssetsController',
+  'MultichainAssetsRatesController',
+  'MultichainBalancesController',
+  'TokenBalancesController',
+  'TokenDetectionController',
+  'TokenRatesController',
+  'TokensController',
+] as const;
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -347,12 +369,18 @@ export const migrationList: MigrationsList = {
   161: migration161,
   162: migration162,
   163: migration163,
+  164: migration164,
+  165: migration165,
 };
 
 // Enable both synchronous and asynchronous migrations
 export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
+  // Removed controllers whose files inflate actually read. Cleanup deletes
+  // only this set, so a skipped read (I/O error, bad JSON) is not treated as
+  // "already migrated" and wiped.
+  let loadedRemovedControllerNames = new Set<string>();
 
   type StateWithEngine = Record<string, unknown> & {
     engine?: { backgroundState?: Record<string, unknown> };
@@ -372,7 +400,9 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    */
   const inflateFromControllers = async (state: unknown) => {
     try {
-      const fsState = (await ControllerStorage.getAllPersistedState()) as
+      const fsState = (await ControllerStorage.getAllPersistedState(
+        REMOVED_CONTROLLER_NAMES,
+      )) as
         | {
             backgroundState?: Record<string, unknown>;
           }
@@ -380,6 +410,11 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
 
       const s = state as StateWithEngine;
       const fsControllers = fsState?.backgroundState || {};
+      loadedRemovedControllerNames = new Set(
+        REMOVED_CONTROLLER_NAMES.filter(
+          (controllerName) => controllerName in fsControllers,
+        ),
+      );
 
       if (Object.keys(fsControllers).length === 0) {
         return state;
@@ -471,6 +506,33 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
     }
   };
 
+  /**
+   * Deletes the persisted files of removed controllers whose state was loaded
+   * and then dropped by a migration. Runs only after
+   * `deflateToControllersAndStrip` succeeded, so data a migration carried
+   * over (for example into `AssetsController`) is on disk before its source
+   * is deleted. Files that inflate did not load are left in place: a read
+   * failure must not permanently delete state the next launch could migrate.
+   * Migrations themselves must not delete these files (migration 159 used
+   * to). If the app dies before this step, the files are still there and the
+   * migrations run again on the next launch.
+   *
+   * @param migratedBackgroundState - `engine.backgroundState` after the last migration.
+   */
+  const removeDroppedControllerFiles = async (
+    migratedBackgroundState: Record<string, unknown>,
+  ) => {
+    await Promise.all(
+      REMOVED_CONTROLLER_NAMES.filter(
+        (controllerName) =>
+          loadedRemovedControllerNames.has(controllerName) &&
+          !(controllerName in migratedBackgroundState),
+      ).map(async (controllerName) =>
+        ControllerStorage.removeItem(`persist:${controllerName}`),
+      ),
+    );
+  };
+
   return Object.entries(inputMigrations).reduce(
     (newMigrations, [migrationNumber, migrationFunction]) => {
       const asyncMigration = async (
@@ -492,7 +554,12 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
                 Object.keys(s2.engine.backgroundState).length > 0,
             );
             if (hasControllers) {
-              return await deflateToControllersAndStrip(migratedState);
+              const deflatedState =
+                await deflateToControllersAndStrip(migratedState);
+              await removeDroppedControllerFiles(
+                s2.engine?.backgroundState ?? {},
+              );
+              return deflatedState;
             }
           }
 

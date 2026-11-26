@@ -4,38 +4,8 @@ import {
   formatLimitOrderFiatInputPriceFromTokenAmount,
   formatLimitOrderFiatPrice,
   formatLimitOrderFiatPriceFromTokenAmount,
-  getLimitOrderFiatPriceDecimals,
   roundLimitOrderMarketFiatToInput,
 } from './formatLimitOrderFiatPrice';
-
-describe('getLimitOrderFiatPriceDecimals', () => {
-  it.each([4321.5, 12.34, 1, 1.0001, '2200.5'])(
-    'returns two decimals for a price of %s',
-    (price) => {
-      expect(getLimitOrderFiatPriceDecimals(price)).toBe(2);
-    },
-  );
-
-  it.each([
-    { price: 0.99, expected: 4 },
-    { price: 0.103, expected: 4 },
-    { price: 0.004, expected: 6 },
-    { price: 0.0000039998, expected: 9 },
-    { price: '0.0000042', expected: 9 },
-  ])(
-    'returns $expected decimals for a sub-dollar price of $price',
-    ({ price, expected }) => {
-      expect(getLimitOrderFiatPriceDecimals(price)).toBe(expected);
-    },
-  );
-
-  it.each([undefined, 0, -1, NaN, Infinity])(
-    'returns two decimals for an unusable price of %s',
-    (price) => {
-      expect(getLimitOrderFiatPriceDecimals(price)).toBe(2);
-    },
-  );
-});
 
 describe('formatLimitOrderFiatPrice', () => {
   it('keeps sub-dollar fiat digits instead of rounding to cents', () => {

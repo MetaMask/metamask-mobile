@@ -113,7 +113,6 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
-  requireSocialProfile,
   realtime = false,
   refreshRef,
   onListStateChange,
@@ -177,21 +176,13 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
-        requireSocialTerms
-        requireSocialProfile={requireSocialProfile}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}
         showCopyTrade={post.item.author.id !== viewerProfileId}
       />
     ),
-    [
-      onAuthorPress,
-      onCopyTrade,
-      onPositionPress,
-      requireSocialProfile,
-      viewerProfileId,
-    ],
+    [onAuthorPress, onCopyTrade, onPositionPress, viewerProfileId],
   );
 
   return (

@@ -85,7 +85,7 @@ export async function MONEY_ACCOUNT_WITHDRAW_MOCKS(
 
   await mockMoneyAccountBalance(mockServer, fundedBaseUnits);
   await mockMoneyAccountInterest(mockServer);
-  await mockVedaApy(mockServer);
+  await mockMoneyAccountVaults(mockServer);
   await mockTokenApiMetadata(mockServer);
   await mockMainnetTokenApi(mockServer);
   await mockMonadTokenApi(mockServer);
@@ -546,21 +546,33 @@ async function mockMoneyAccountInterest(mockServer: Mockttp) {
     }));
 }
 
-async function mockVedaApy(mockServer: Mockttp) {
+async function mockMoneyAccountVaults(mockServer: Mockttp) {
   await mockServer
     .forGet('/proxy')
     .asPriority(1001)
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes('api.sevenseas.capital');
+      return url.includes('money.api.cx.metamask.io/v1/vaults');
     })
     .thenCallback(() => ({
       statusCode: 200,
       json: {
-        Response: {
-          apy: 0.04,
-          timestamp: new Date().toISOString(),
-        },
+        vaults: [
+          {
+            chain_id: 143,
+            vault_address: DEV_BORING_VAULT,
+            vault_key: 'standard',
+            name: 'Money Account mUSD Vault',
+            asset_symbol: 'mUSD',
+            asset_decimals: 6,
+            asset_contract_address: MUSD_MONAD,
+            current_apy: '0.04',
+            as_of_block: 0,
+            as_of_timestamp: new Date().toISOString(),
+            data_freshness: 'live',
+            indexer_lag_seconds: 0,
+          },
+        ],
       },
     }));
 }
