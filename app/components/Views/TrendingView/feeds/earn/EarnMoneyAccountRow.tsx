@@ -19,7 +19,7 @@ import { EarnMoneyAccountRowTestIds } from './EarnMoneyAccountRow.testIds';
 interface EarnMoneyAccountRowProps {
   item: EarnMoneyAccountSearchItem;
   onPress: (item: EarnMoneyAccountSearchItem) => void;
-  isOnboardingRedirectNeeded: boolean;
+  isFtueRedirectNeeded: boolean;
   privacyMode?: boolean;
 }
 
@@ -28,13 +28,13 @@ interface EarnMoneyAccountRowProps {
  *
  * @param item - Money account balance and rate data.
  * @param onPress - Callback invoked when the row is pressed.
- * @param isOnboardingRedirectNeeded - Whether pressing should start onboarding.
+ * @param isFtueRedirectNeeded - Whether pressing should show the Money splash.
  * @param privacyMode - Whether the account balance should be masked.
  */
 const EarnMoneyAccountRow = ({
   item,
   onPress,
-  isOnboardingRedirectNeeded,
+  isFtueRedirectNeeded,
   privacyMode = false,
 }: EarnMoneyAccountRowProps) => {
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
@@ -42,7 +42,7 @@ const EarnMoneyAccountRow = ({
   const balanceText =
     item.balanceRaw === '0'
       ? strings(
-          isOnboardingRedirectNeeded
+          isFtueRedirectNeeded
             ? 'earn_module.get_started'
             : 'money.asset_overview.cta.start_earning',
         )

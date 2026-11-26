@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import {
   getPerpsDisplaySymbol,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
@@ -23,6 +24,7 @@ import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/feature
 
 interface PerpsOrderHeaderProps {
   asset: string;
+  providerId?: PerpsProviderType;
   price: number;
   orderType?: OrderType;
   direction?: 'long' | 'short';
@@ -34,6 +36,7 @@ interface PerpsOrderHeaderProps {
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   asset,
+  providerId,
   price,
   orderType,
   direction = 'long',
@@ -63,7 +66,10 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   // until this subscription delivers its first update for the current
   // symbol (including right after an asset change, until the channel
   // resolves the new symbol).
-  const focusedPriceUpdate = usePerpsLiveFocusedPrice({ symbol: asset });
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: asset,
+    providerId,
+  });
 
   const displayPrice = useMemo(() => {
     // Guard against stale PriceUpdate from a prior symbol: the focused-price
@@ -122,12 +128,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const description = useMemo(
     () => (
       <LivePriceHeader
+        providerId={providerId}
         symbol={asset}
         currentPrice={displayPrice}
         percentChange24h={percentChange24h}
       />
     ),
-    [asset, displayPrice, percentChange24h],
+    [asset, providerId, displayPrice, percentChange24h],
   );
 
   const endAccessory = useMemo(() => {

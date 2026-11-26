@@ -2,15 +2,13 @@ import React, { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   AvatarIcon,
-  AvatarIconSeverity,
   AvatarIconSize,
   Box,
+  Button,
   ButtonSize,
   ButtonVariant,
-  IconColor,
+  Card,
   IconName,
-  SectionDivider,
-  TabEmptyState,
   Text,
   TextColor,
   TextVariant,
@@ -30,19 +28,22 @@ export const REWARDS_OPT_IN_SECTION_TEST_IDS = {
 } as const;
 
 export interface RewardsOptInCopy {
-  invitedOptInDescription: string;
-  invitedOptInAction: string;
+  invitedOptInTitle?: string;
+  invitedOptInDescription?: string;
+  invitedOptInAction?: string;
   invitedOptInLegal?: string;
 }
 
 export interface RewardsOptInSectionProps {
   localizedText: RewardsOptInCopy;
-  showDivider?: boolean;
 }
 
+/**
+ * Card that opts the user in to Rewards campaigns and benefits. Shown in
+ * place of that content until they opt in.
+ */
 const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
   localizedText,
-  showDivider = true,
 }) => {
   const accountGroupAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
@@ -106,54 +107,81 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     clearOptinError();
   }, [optinError, showToast, RewardsToastOptions, clearOptinError]);
 
+  const title =
+    localizedText.invitedOptInTitle ??
+    strings('rewards.campaign.opt_in_section_title');
+  const description =
+    localizedText.invitedOptInDescription ??
+    strings('rewards.campaign.opt_in_section_description');
+  const actionLabel =
+    localizedText.invitedOptInAction ?? strings('rewards.campaign.opt_in_cta');
+  const footnote =
+    disabledReason ??
+    localizedText.invitedOptInLegal ??
+    strings('rewards.campaign.opt_in_section_legal');
+
   return (
-    <Box testID={REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER}>
-      {showDivider ? (
-        <SectionDivider marginVertical={0} twClassName="mt-8 mb-8" />
-      ) : null}
-      <TabEmptyState
-        icon={
-          <AvatarIcon
-            iconName={IconName.Gift}
-            size={AvatarIconSize.Xl}
-            severity={AvatarIconSeverity.Neutral}
-            iconProps={{ color: IconColor.IconDefault }}
-            testID={REWARDS_OPT_IN_SECTION_TEST_IDS.ICON}
-          />
-        }
-        description={localizedText.invitedOptInDescription}
-        descriptionProps={{
-          variant: TextVariant.BodyMd,
-          color: TextColor.TextAlternative,
-        }}
-        actionButtonText={localizedText.invitedOptInAction}
-        actionButtonProps={{
-          variant: ButtonVariant.Primary,
-          size: ButtonSize.Lg,
-          twClassName: 'mt-3 self-stretch',
-          accessibilityLabel: localizedText.invitedOptInAction,
-          isLoading: optinLoading || geoNotResolved,
-          isDisabled: optinLoading || geoNotResolved || Boolean(disabledReason),
-          testID: REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION,
-        }}
-        onAction={() => {
-          if (!geoAllowsOptIn || disabledReason || optinLoading) {
-            return;
-          }
-          void optin({ bulkLink: true });
-        }}
-        twClassName="mx-auto px-4"
-      />
-      {disabledReason || localizedText.invitedOptInLegal ? (
+    <Card
+      twClassName="mx-4 items-center gap-4 py-6"
+      testID={REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER}
+    >
+      <Box twClassName="items-center gap-3">
+        {/* The avatar takes the card's own surface, so only the star shows. */}
+        <AvatarIcon
+          iconName={IconName.Star}
+          size={AvatarIconSize.Md}
+          twClassName="bg-section"
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+          testID={REWARDS_OPT_IN_SECTION_TEST_IDS.ICON}
+        />
+        <Box twClassName="gap-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center"
+            accessibilityRole="header"
+          >
+            {title}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {description}
+          </Text>
+        </Box>
+      </Box>
+      {/* Same width as the action in the Rewards tab empty states. */}
+      <Box twClassName="w-full max-w-64">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isLoading={optinLoading || geoNotResolved}
+          isDisabled={optinLoading || geoNotResolved || Boolean(disabledReason)}
+          accessibilityLabel={actionLabel}
+          onPress={() => {
+            if (!geoAllowsOptIn || disabledReason || optinLoading) {
+              return;
+            }
+            void optin({ bulkLink: true });
+          }}
+          testID={REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION}
+        >
+          {actionLabel}
+        </Button>
+      </Box>
+      {footnote ? (
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="px-4 pb-8 pt-6 text-center"
+          twClassName="text-center"
         >
-          {disabledReason ?? localizedText.invitedOptInLegal}
+          {footnote}
         </Text>
       ) : null}
-    </Box>
+    </Card>
   );
 };
 

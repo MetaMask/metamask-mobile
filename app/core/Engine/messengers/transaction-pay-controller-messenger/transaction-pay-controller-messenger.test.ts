@@ -53,6 +53,22 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the AccountTreeController actions used to resolve the source account', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:getAccountContext',
+          'AccountTreeController:getAccountGroupObject',
+        ]),
+      }),
+    );
+  });
+
   it('delegates the AssetsController state action and event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
@@ -81,6 +97,44 @@ describe('getTransactionPayControllerMessenger', () => {
         actions: expect.arrayContaining([
           'RampsController:getOrder',
           'RampsController:getQuoteWithFees',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates the actions and events needed to resume interrupted transactions', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:getState',
+          'KeyringController:getState',
+          'NetworkController:getState',
+          'RampsController:getState',
+          'RemoteFeatureFlagController:getState',
+          'TransactionController:addTransactionBatch',
+          'TransactionController:failTransaction',
+          'TransactionController:finalizeResumedTransaction',
+        ]),
+        events: expect.arrayContaining(['KeyringController:unlock']),
+      }),
+    );
+  });
+
+  it('delegates the PerpsController action that sends a Lighter transfer', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'PerpsController:submitLighterTransfer',
         ]),
       }),
     );

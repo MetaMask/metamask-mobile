@@ -111,7 +111,7 @@ const GasImpactModal = () => {
           selectedAccount?.address as string,
         );
         navigate('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
         });
       } catch (error) {
         console.error(error);

@@ -61,12 +61,6 @@ export const selectMusdConversionEducationSeen = (state: RootState) =>
 export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
   state.user?.musdConversionAssetDetailCtasSeen ?? {};
 
-/**
- * Selects the moneyOnboardingSeen state
- */
-export const selectMoneyOnboardingSeen = (state: RootState) =>
-  state.user?.moneyOnboardingSeen ?? false;
-
 export const selectMoneySplashSeen = (state: RootState) =>
   state.user?.moneySplashSeen ?? false;
 

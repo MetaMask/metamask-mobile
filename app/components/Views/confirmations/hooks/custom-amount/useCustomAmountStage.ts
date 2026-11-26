@@ -29,7 +29,7 @@ export enum CustomAmountStage {
  * (unchanged amount → skip the loading window, no fetch will follow).
  * @param options.hasAccountNoFunds - Whether the account-no-funds alert is active.
  * @param options.hasPrefetchedQuote - Whether the current amount already has a quote.
- * @param options.isAddMusdIntent - Whether this is an add-mUSD deposit.
+ * @param options.isFullBalanceMoneyDeposit - Whether this is a full-balance deposit intent.
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
@@ -41,7 +41,7 @@ export function useCustomAmountStage({
   disablePay,
   hasAccountNoFunds,
   hasPrefetchedQuote = false,
-  isAddMusdIntent,
+  isFullBalanceMoneyDeposit,
   isDepositPrefillEnabled,
   isDepositPrefillLoading,
   skipDepositPrefill,
@@ -50,7 +50,7 @@ export function useCustomAmountStage({
   disablePay: boolean | undefined;
   hasAccountNoFunds: boolean;
   hasPrefetchedQuote?: boolean;
-  isAddMusdIntent: boolean;
+  isFullBalanceMoneyDeposit: boolean;
   isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
   skipDepositPrefill: boolean;
@@ -62,7 +62,8 @@ export function useCustomAmountStage({
   // `null` = derive the stage. Initial override opens the keyboard unless a
   // deposit prefill is expected to resolve first.
   const [stageOverride, setStage] = useState<CustomAmountStage | null>(() =>
-    !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
+    !isFullBalanceMoneyDeposit &&
+    (!isDepositPrefillEnabled || skipDepositPrefill)
       ? CustomAmountStage.AmountInput
       : CustomAmountStage.Loading,
   );

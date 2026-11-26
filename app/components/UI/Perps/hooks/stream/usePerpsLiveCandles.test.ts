@@ -527,10 +527,13 @@ describe('usePerpsLiveCandles', () => {
       await result.current.fetchMoreHistory();
     });
 
+    // TAT-4407: the venue-scoped fetch now threads an explicit providerId
+    // (undefined = default-routed).
     expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
       'BTC',
       CandlePeriod.OneHour,
       TimeDuration.OneDay,
+      undefined,
     );
   });
 

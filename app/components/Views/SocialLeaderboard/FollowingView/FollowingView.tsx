@@ -7,10 +7,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import type {
   ScrollHandlerProcessed,
   SharedValue,
 } from 'react-native-reanimated';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { selectFollowingProfileIds } from '../../../../selectors/socialController';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
@@ -48,6 +53,8 @@ import type { SocialShellFilters } from '../shell/filters/types';
 import FollowingEmptyContent, {
   type FollowingEmptyMode,
 } from './components/FollowingEmptyContent';
+import FollowingSuggestionsPrefetch from './components/FollowingSuggestionsPrefetch';
+import { canPrefetchFollowingSuggestions } from './followingSuggestionsPrefetch';
 
 const { Filter, Interaction, Screen, Tab } = SocialEvent;
 
@@ -169,12 +176,25 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     [],
   );
 
+  const isUnlocked = useSelector(selectIsUnlocked);
+  const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const networkTier = useNetworkTier();
+  const [hardwareTier] = useState(() => getHardwareTier());
+  // While the feed loads, start the follow list and suggestions for a viewer
+  // whose local follow list is empty. The feed's own state still decides what
+  // renders. The device tier decides whether the requests are worth making.
+  const prefetchSuggestions =
+    isActive &&
+    isUnlocked &&
+    !isFilterActive &&
+    followingProfileIds.length === 0 &&
+    canPrefetchFollowingSuggestions(hardwareTier, networkTier);
   const resolveFollows = hasBeenActive && isFeedEmpty && !isFilterActive;
   const {
     traders: followedTraders,
     isLoading: followsLoading,
     error: followsError,
-  } = useFollowedTraders({ enabled: resolveFollows });
+  } = useFollowedTraders({ enabled: resolveFollows || prefetchSuggestions });
   const followsNobody =
     resolveFollows &&
     !followsLoading &&
@@ -292,6 +312,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
 
   return (
     <Box twClassName="flex-1 bg-default">
+      {prefetchSuggestions ? <FollowingSuggestionsPrefetch /> : null}
       {hasBeenActive ? (
         <SocialFeed
           {...FOLLOWING_FEED_QUERY}

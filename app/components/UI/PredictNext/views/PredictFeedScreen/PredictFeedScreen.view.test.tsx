@@ -25,12 +25,13 @@ import {
   NCAA_FEED_SCREEN_ID,
   NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
-  TRENDING_FEED_SCREEN_ID,
+  SPORTS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
+import { fullGameMoneylineMetadata } from '../../contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 
 const makeOutcome = (
@@ -69,6 +70,7 @@ const makeGameMarket = (
   id: id as PredictEntityId,
   question,
   status: 'active',
+  ...fullGameMoneylineMetadata(),
   outcomes: [
     makeOutcome(`${id}-yes`, 'yes', selection),
     makeOutcome(`${id}-no`, 'no'),
@@ -336,7 +338,136 @@ describe('Politics Feed Screen', () => {
   });
 });
 
-describe('Trending Feed Screen', () => {
+describe('Feed Screens from the Venue catalog', () => {
+  const nbaGameEvent = makeGameEvent('nba-game-1');
+
+  beforeEach(() => {
+    messengerCall.mockReset();
+    resetPredictNextCatalog();
+    configureFeeds({
+      'sports-basketball-nba-games': [nbaGameEvent],
+      [NFL_GAMES_FEED_ID]: [gameEvent],
+    });
+  });
+
+  it('shows a screen added only on the server, under its server titles', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      feeds: {
+        ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+        'nba-games': 'sports-basketball-nba-games',
+      },
+      screens: [
+        ...KALSHI_STATIC_VENUE_CATALOG.screens,
+        {
+          id: 'sports-basketball-nba',
+          title: 'Basketball',
+          subtitle: 'NBA',
+          tabs: [{ id: 'games', title: 'Matchups', feed: 'nba-games' }],
+        },
+      ],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: 'sports-basketball-nba',
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event(KALSHI_VENUE_ID, nbaGameEvent.id),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
+        'Basketball',
+      ),
+    ).toBeOnTheScreen();
+    expect(view.getByText('NBA')).toBeOnTheScreen();
+    expect(
+      feedScreenTabLabels(view.getByTestId(PredictFeedScreenTestIds.VIEW)),
+    ).toEqual(['Matchups']);
+  });
+
+  it('shows a tab added only on the server to a screen the app knows', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      feeds: {
+        ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+        'nba-games': 'sports-basketball-nba-games',
+      },
+      screens: KALSHI_STATIC_VENUE_CATALOG.screens.map((screen) =>
+        screen.id === SPORTS_FEED_SCREEN_ID
+          ? {
+              ...screen,
+              tabs: [
+                ...screen.tabs,
+                { id: 'nba', title: 'NBA', feed: 'nba-games' },
+              ],
+            }
+          : screen,
+      ),
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: SPORTS_FEED_SCREEN_ID,
+      selectedTabId: 'nba',
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event(KALSHI_VENUE_ID, nbaGameEvent.id),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      feedScreenTabLabels(view.getByTestId(PredictFeedScreenTestIds.VIEW)),
+    ).toEqual(['NFL', 'NCAAF', 'NBA']);
+    expect(
+      view.getByTestId(PredictFeedScreenTestIds.tab('nba')).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+  });
+
+  it('shows the unavailable state for a screen the server removed, and reads no Feed', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      screens: KALSHI_STATIC_VENUE_CATALOG.screens.filter(
+        ({ id }) => id !== POLITICS_FEED_SCREEN_ID,
+      ),
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: POLITICS_FEED_SCREEN_ID,
+    });
+
+    expect(
+      await view.findByTestId(PredictFeedScreenTestIds.UNAVAILABLE),
+    ).toBeOnTheScreen();
+    expect(getFeedCalls()).toHaveLength(0);
+  });
+
+  it('shows a loading frame under the localized title while the catalog loads', async () => {
+    configurePredictNextCatalog('pending');
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: POLITICS_FEED_SCREEN_ID,
+    });
+
+    expect(
+      await view.findByTestId(PredictFeedScreenTestIds.LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
+        'Politics',
+      ),
+    ).toBeOnTheScreen();
+  });
+});
+
+describe('Sports Feed Screen', () => {
   const ncaaGameEvent = makeGameEvent('ncaa-game-1');
 
   beforeEach(() => {
@@ -348,10 +479,10 @@ describe('Trending Feed Screen', () => {
     });
   });
 
-  it('titles the screen Trending and lists the NFL Games Feed first', async () => {
+  it('titles the screen Sports and lists the NFL Games Feed first', async () => {
     const view = renderPredictFeedScreen({
       venueId: KALSHI_VENUE_ID,
-      feedScreenId: TRENDING_FEED_SCREEN_ID,
+      feedScreenId: SPORTS_FEED_SCREEN_ID,
     });
 
     expect(
@@ -361,7 +492,7 @@ describe('Trending Feed Screen', () => {
     ).toBeOnTheScreen();
     expect(
       within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
-        'Trending',
+        'Sports',
       ),
     ).toBeOnTheScreen();
     expect(
@@ -379,7 +510,7 @@ describe('Trending Feed Screen', () => {
   it('lists the college football Games Feed on the NCAAF tab', async () => {
     const view = renderPredictFeedScreen({
       venueId: KALSHI_VENUE_ID,
-      feedScreenId: TRENDING_FEED_SCREEN_ID,
+      feedScreenId: SPORTS_FEED_SCREEN_ID,
     });
     await view.findByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
@@ -410,7 +541,7 @@ describe('Trending Feed Screen', () => {
 
     const view = renderPredictFeedScreen({
       venueId: KALSHI_VENUE_ID,
-      feedScreenId: TRENDING_FEED_SCREEN_ID,
+      feedScreenId: SPORTS_FEED_SCREEN_ID,
     });
 
     expect(

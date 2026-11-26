@@ -5,6 +5,7 @@ import type {
   PredictFeedId,
   PredictFeedKey,
   PredictVenueAction,
+  PredictVenueEnvironment,
   PredictVenueId,
 } from '../types';
 import type { PredictSurfaceFeed, PredictVenueCapabilities } from './types';
@@ -98,7 +99,8 @@ export const canPerformVenueAction = (
   action: PredictVenueAction,
 ): boolean =>
   capabilities.status === 'ready' &&
-  capabilities.descriptor.actions.includes(action);
+  capabilities.descriptor.actions.includes(action) &&
+  (action !== 'deposit' || capabilities.descriptor.environment !== undefined);
 
 export const getVenueFeedId = (
   capabilities: PredictVenueCapabilities,
@@ -106,6 +108,13 @@ export const getVenueFeedId = (
 ): PredictFeedId | undefined =>
   capabilities.status === 'ready'
     ? capabilities.descriptor.feeds[feedKey]
+    : undefined;
+
+export const getVenueEnvironment = (
+  capabilities: PredictVenueCapabilities,
+): PredictVenueEnvironment | undefined =>
+  capabilities.status === 'ready'
+    ? capabilities.descriptor.environment
     : undefined;
 
 export const isVenueSearchSupported = (

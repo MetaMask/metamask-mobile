@@ -56,8 +56,11 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];

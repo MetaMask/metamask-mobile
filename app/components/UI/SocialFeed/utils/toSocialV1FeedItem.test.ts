@@ -212,6 +212,25 @@ describe('toSocialV1FeedItem', () => {
       expect(result.author.xHandle).toBeNull();
     });
 
+    it('marks the author verified when the actor is', () => {
+      const actor = {
+        profileId: 'profile-2',
+        address: '0x2222222222222222222222222222222222222222',
+        name: 'aparjey',
+        imageUrl: null,
+        verified: true,
+      };
+      const row = buildRow(mockPerpFeedItem({ actor }));
+
+      expect(toSocialV1FeedItem(row).author.verified).toBe(true);
+    });
+
+    it('leaves the author unverified when the actor has no verified flag', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result.author.verified).toBe(false);
+    });
+
     it('carries value, P&L and leverage straight from the mapped row', () => {
       const row = buildRow(mockPerpFeedItem());
 

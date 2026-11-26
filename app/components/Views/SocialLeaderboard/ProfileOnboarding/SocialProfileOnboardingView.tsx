@@ -75,7 +75,7 @@ import { useProfileController } from '../ManageProfileView/hooks/useProfileContr
 import { getProfileCreateErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
 import { getHandleAvailabilityRejection } from '../ManageProfileView/screens/handleAvailabilityError';
 import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
-import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
+import ProfileVerifiedBadge from '../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';

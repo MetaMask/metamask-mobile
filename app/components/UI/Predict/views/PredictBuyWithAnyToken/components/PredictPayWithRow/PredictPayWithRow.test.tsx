@@ -14,8 +14,7 @@ jest.mock('@react-navigation/native', () => ({
 
 let mockPayToken: {
   symbol?: string;
-  address?: string;
-  chainId?: string;
+  assetId?: string;
   balanceFiat?: string;
 } | null = null;
 jest.mock(
@@ -116,7 +115,7 @@ const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
 describe('PredictPayWithRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPayToken = { symbol: 'USDC', address: '0xToken', chainId: '0x89' };
+    mockPayToken = { symbol: 'USDC', assetId: 'eip155:137/erc20:0xToken' };
     mockTransactionMeta = { txParams: { from: '0xUserAddress' } };
     mockIsPredictBalanceSelected = false;
     mockSelectedPaymentToken = null;
@@ -160,8 +159,11 @@ describe('PredictPayWithRow', () => {
     expect(screen.getByTestId('token-icon-0xPUSD-0x89')).toBeOnTheScreen();
   });
 
-  it('does not render TokenIcon when payToken has no address', () => {
-    mockPayToken = { symbol: 'USDC' };
+  it('does not render TokenIcon when payToken is not an EVM token', () => {
+    mockPayToken = {
+      symbol: 'SOL',
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    };
 
     renderWithProvider(<PredictPayWithRow />);
 
@@ -381,7 +383,7 @@ describe('PredictPayWithRow', () => {
     });
 
     it('renders money account label instead of the underlying mUSD pay token', () => {
-      mockPayToken = { symbol: 'mUSD', address: '0xmusd', chainId: '0x279f' };
+      mockPayToken = { symbol: 'mUSD', assetId: 'eip155:10143/erc20:0xmusd' };
 
       renderWithProvider(<PredictPayWithRow />, { state: MONEY_ACCOUNT_STATE });
 
@@ -445,8 +447,7 @@ describe('PredictPayWithRow', () => {
       mockIsPredictBalanceSelected = false;
       mockPayToken = {
         symbol: 'USDC',
-        address: '0xToken',
-        chainId: '0x89',
+        assetId: 'eip155:137/erc20:0xToken',
         balanceFiat: '$200.50',
       } as typeof mockPayToken;
 

@@ -1,4 +1,5 @@
 import { AppState, type AppStateStatus } from 'react-native';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
@@ -16,6 +17,7 @@ import {
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_SURFACE,
   RAMPS_BUY_CUF_PATH,
+  RAMPS_BUY_CUF_BOUNDARY,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_LOG_MARKER,
@@ -507,6 +509,46 @@ export function endOpenRampsBuyCufChildrenByName(
     }
   }
   return ended;
+}
+
+/**
+ * Whether a provider id is the native (in-app) Transak provider, including its
+ * staging variant. Accepts the `/providers/<code>` form and the bare code.
+ *
+ * Order Details uses this to close `Ramp Buy Native To Order Created` only for
+ * native orders: the span is only open on the native path, and a leftover one
+ * from an abandoned native attempt must not be marked successful by a widget or
+ * aggregator order (TRAM-4173).
+ */
+export function isRampsNativeProviderId(providerId?: string | null): boolean {
+  if (!providerId) {
+    return false;
+  }
+  return providerId.replace(/^\/providers\//, '').startsWith('transak-native');
+}
+
+/**
+ * End data for the parent `Ramp Buy To Order Details` journey once the order
+ * shows on Order Details.
+ *
+ * Reaching Order Details is the success boundary, but an order that is already
+ * `FAILED` or `ID_EXPIRED` means the buy did not deliver crypto, so it ends as
+ * `reason:error` (the signal F1 alerts on) instead of a clean success.
+ */
+export function buildRampsBuyOrderDetailsCufEndData(
+  status: RampsOrderStatus,
+  orderId: string,
+): Record<string, TraceValue> {
+  const failed =
+    status === RampsOrderStatus.Failed || status === RampsOrderStatus.IdExpired;
+  return {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: !failed,
+    ...(failed
+      ? { [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR }
+      : {}),
+    [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+    orderId,
+  };
 }
 
 function abandonOpenChildTraces(reason: string): void {
