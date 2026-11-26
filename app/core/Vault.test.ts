@@ -302,7 +302,7 @@ describe('Vault', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('should call seedlessChangePassword and complete key sync lifecycle if seedless onboarding flow is active', async () => {
+    it('changes seedless password and completes key sync lifecycle when seedless onboarding flow is active', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
@@ -419,7 +419,7 @@ describe('Vault', () => {
       expect(mockEngine.context.CardController.logout).toHaveBeenCalledTimes(1);
     });
 
-    it('should lock the app when seedless change password fails if seedless onboarding flow is active', async () => {
+    it('locks the app when seedless password change fails in seedless onboarding flow', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
