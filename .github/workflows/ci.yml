@@ -1185,11 +1185,13 @@ jobs:
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
       # Pull requests that qualify (see get-requirements) run only the tests
-      # related to the changed files, without coverage. Everything else runs the
-      # full shard below, unchanged.
+      # related to the changed files, with coverage scoped to those files
+      # (JEST_COVERAGE_ARGS). Everything else runs the full shard below.
       - name: Run unit tests
         shell: bash
         run: |
+          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
+          # shellcheck disable=SC2086
           if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
             mapfile -t changed < <(printf '%s\n' "$JEST_RELATED_FILES" | sed '/^$/d')
             if [[ "${#changed[@]}" -eq 0 ]]; then
@@ -1219,9 +1221,10 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          # The related-tests tier collects no coverage; the merge job still expects
-          # one coverage file per shard.
-          if [[ ! -f ./tests/coverage/coverage-final.json ]]; then
+          # A related-tests shard can select no test files, and Jest then writes no
+          # coverage file; the merge job still expects one per shard. Full runs keep
+          # the strict behaviour: a missing file fails the mv below.
+          if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
           fi
@@ -1526,6 +1529,8 @@ jobs:
       - name: Run component view tests
         shell: bash
         run: |
+          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
+          # shellcheck disable=SC2086
           if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
             mapfile -t changed < <(printf '%s\n' "$JEST_RELATED_FILES" | sed '/^$/d')
             if [[ "${#changed[@]}" -eq 0 ]]; then
@@ -1554,7 +1559,7 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          if [[ ! -f ./tests/coverage/coverage-final.json ]]; then
+          if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
           fi
@@ -1721,6 +1726,8 @@ jobs:
       - name: Run integration tests
         shell: bash
         run: |
+          # JEST_COVERAGE_ARGS is validated in get-requirements and must word-split.
+          # shellcheck disable=SC2086
           if [[ "$JEST_RELATED_ONLY" == "true" ]]; then
             mapfile -t changed < <(printf '%s\n' "$JEST_RELATED_FILES" | sed '/^$/d')
             if [[ "${#changed[@]}" -eq 0 ]]; then
@@ -1749,7 +1756,7 @@ jobs:
         env:
           JEST_RELATED_ONLY: ${{ needs.get_requirements.outputs.jest_related_only }}
         run: |
-          if [[ ! -f ./tests/coverage/coverage-final.json ]]; then
+          if [[ "$JEST_RELATED_ONLY" == "true" && ! -f ./tests/coverage/coverage-final.json ]]; then
             mkdir -p ./tests/coverage
             echo '{}' > ./tests/coverage/coverage-final.json
           fi
