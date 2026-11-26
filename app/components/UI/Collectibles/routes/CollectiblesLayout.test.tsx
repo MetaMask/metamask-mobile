@@ -20,6 +20,10 @@ jest.mock('#app/components/UI/Collectibles/hooks/useCollectionCards', () => ({
   useCollectionCards: () => ({ data: [], isPending: false, isError: false }),
 }));
 
+jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
+  useEpicHuntPacks: () => ({ data: [], isPending: true }),
+}));
+
 interface MockPagerProps {
   children?: React.ReactNode;
   onPageSelected?: (e: { nativeEvent: { position: number } }) => void;

@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
@@ -44,6 +44,7 @@ interface UsePerpsFeedOptions {
 export interface UsePerpsFeedResult {
   data: PerpsFeedItem[];
   isLoading: boolean;
+  error: string | null;
   refetch: () => Promise<void>;
   /** The sort option ID that matches this feed's sort order — pass to `navigateToPerpsMarketList` so the market list opens consistently sorted. */
   defaultSortOptionId: SortOptionId;
@@ -145,14 +146,23 @@ export const usePerpsFeed = ({
   const {
     markets,
     isLoading,
-    refresh: refetch,
+    error,
+    refresh: refreshMarkets,
     isRefreshing,
   } = usePerpsMarkets({ skipInitialFetch });
+  const connectionError = connectionContext?.error ?? null;
+  const reconnectWithNewContext = connectionContext?.reconnectWithNewContext;
+  const refetch = useCallback(async () => {
+    if (connectionError && reconnectWithNewContext) {
+      await reconnectWithNewContext({ force: true });
+    }
+    await refreshMarkets();
+  }, [connectionError, reconnectWithNewContext, refreshMarkets]);
 
   useFeedRefresh(refresh, refetch);
 
   const filtered = useMemo<PerpsMarketData[]>(() => {
-    if (connectionContext?.error) return [];
+    if (connectionError) return [];
     const subset = filterByVariant(markets, variant);
     const sortFn = SORT_FNS[PERPS_VARIANT_SORT_OPTION[variant]];
     if (!query) {
@@ -162,7 +172,7 @@ export const usePerpsFeed = ({
     const fused = fuseSearch(queryFiltered, query, PERPS_FUSE_OPTIONS);
     // Preserve Fuse.js relevance ordering (more useful than a metric sort during search).
     return fused;
-  }, [connectionContext?.error, markets, variant, query]);
+  }, [connectionError, markets, variant, query]);
 
   // Only visible carousel tiles need sparklines. Preserve trends to avoid candle requests.
   const sparklineMarkets = useMemo(
@@ -186,7 +196,8 @@ export const usePerpsFeed = ({
 
   return {
     data,
-    isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
+    isLoading: connectionError ? false : isLoading || isRefreshing,
+    error: connectionError ?? error,
     refetch,
     defaultSortOptionId: PERPS_VARIANT_SORT_OPTION[variant],
   };

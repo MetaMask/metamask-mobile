@@ -3,10 +3,15 @@ import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   IconName,
   ListItem,
+  Tag,
+  TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import {
@@ -34,13 +39,19 @@ import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags'
 const PerpsMarketRowItem = ({
   market,
   onPress,
+  onLongPress,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false,
+  showTypeTag = false,
   compact = false,
   enableLivePrices = true,
   onAddPress,
+  onWatchlistPress,
+  isWatchlisted = false,
   twClassName,
+  accessibilityActions,
+  onAccessibilityAction,
 }: PerpsMarketRowItemProps): React.JSX.Element => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -173,6 +184,9 @@ const PerpsMarketRowItem = ({
     <ListItem
       isInteractive
       onPress={handlePress}
+      onLongPress={onLongPress}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
       avatar={
         <PerpsTokenLogo
@@ -192,7 +206,20 @@ const PerpsMarketRowItem = ({
         style: { flexShrink: 1 },
       }}
       titleEndAccessory={
-        <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+        showTypeTag ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Tag severity={TagSeverity.Neutral} twClassName="self-center">
+              {strings('token_watchlist.perp_tag')}
+            </Tag>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+          </Box>
+        ) : (
+          <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
+        )
       }
       description={description}
       descriptionProps={{
@@ -215,21 +242,23 @@ const PerpsMarketRowItem = ({
           : TextColor.ErrorDefault,
       }}
       endAccessory={
-        onAddPress ? (
+        onWatchlistPress || onAddPress ? (
           <ButtonIcon
-            iconName={IconName.Star}
+            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}
-            onPress={() => onAddPress(displayMarket)}
-            accessibilityLabel={strings(
-              'perps.market_details.add_to_watchlist',
-            )}
+            onPress={() => (onWatchlistPress ?? onAddPress)?.(displayMarket)}
+            accessibilityLabel={
+              isWatchlisted
+                ? strings('token_watchlist.remove_from_watchlist')
+                : strings('perps.market_details.add_to_watchlist')
+            }
             testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
             )}
           />
         ) : undefined
       }
-      accessoryGap={onAddPress ? 3 : undefined}
+      accessoryGap={onWatchlistPress || onAddPress ? 3 : undefined}
       twClassName={
         [compact ? 'py-2 min-h-0' : undefined, twClassName]
           .filter(Boolean)

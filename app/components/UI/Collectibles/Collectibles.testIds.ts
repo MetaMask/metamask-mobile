@@ -41,4 +41,8 @@ export const collectiblesTestIds = {
   collectionTile: (mint: string) => `collectibles-collection-tile-${mint}`,
   collectionBuyback: (mint: string) =>
     `collectibles-collection-buyback-${mint}`,
+  epicHuntInfoButton: 'collectibles-epic-hunt-info-button',
+  epicHuntInfoSheet: 'collectibles-epic-hunt-info-sheet',
+  epicHuntInfoClose: 'collectibles-epic-hunt-info-close',
+  epicHuntGauge: (code: string) => `collectibles-epic-hunt-gauge-${code}`,
 } as const;
