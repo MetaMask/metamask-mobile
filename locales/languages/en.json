@@ -5521,6 +5521,25 @@
     "marketplace": {
       "coming_soon": "Coming soon"
     },
+    "buy_sheet": {
+      "open_hint": "Opens the buy sheet for {{name}}",
+      "pack_count": {
+        "one": "{{count}} pack",
+        "other": "{{count}} packs"
+      },
+      "quantity": "Number of packs",
+      "max": "Max",
+      "auto_buyback": "Auto-buyback for Commons",
+      "skip_reveals": "Skip reveals",
+      "pay_with": "Pay with",
+      "pay_with_balance": "{{symbol}} ({{balance}})",
+      "total": "Total",
+      "no_fees": "No fees",
+      "open_packs": {
+        "one": "Open {{count}} pack",
+        "other": "Open {{count}} packs"
+      }
+    },
     "packs": {
       "all": "All",
       "categories": "Pack categories",
