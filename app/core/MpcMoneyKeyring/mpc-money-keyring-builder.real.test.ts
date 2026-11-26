@@ -1,9 +1,5 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
-import { sha256 } from '@noble/hashes/sha2';
-import {
-  buildRealMpcMoneyKeyringBuilder,
-  MPC_MFA_WHITELIST_CONFIG,
-} from './mpc-money-keyring-builder';
+import { buildRealMpcMoneyKeyringBuilder } from './mpc-money-keyring-builder';
 
 jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   MpcMoneyKeyring: Object.assign(
@@ -17,18 +13,18 @@ jest.mock('@metamask/mpc-react-native', () => ({
   dkls23Lib: { name: 'dkls23' },
 }));
 
-const toBase64Url = (value: object) =>
-  Buffer.from(JSON.stringify(value)).toString('base64url');
-const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1' })}.sig`;
+const TOKEN = 'profile-token';
 
 const buildKeyring = () => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
+  const getPrimaryMnemonic = jest.fn().mockResolvedValue([109, 110, 101]);
   const keyring = buildRealMpcMoneyKeyringBuilder({
     getBearerToken,
+    getPrimaryMnemonic,
   })() as unknown as {
     options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
   };
-  return { options: keyring.options, getBearerToken };
+  return { options: keyring.options, getBearerToken, getPrimaryMnemonic };
 };
 
 describe('buildRealMpcMoneyKeyringBuilder', () => {
@@ -39,6 +35,7 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
   it('is keyed by the MPC money keyring type', () => {
     const builder = buildRealMpcMoneyKeyringBuilder({
       getBearerToken: jest.fn(),
+      getPrimaryMnemonic: jest.fn(),
     });
 
     expect(builder.type).toBe('MPC Money Keyring');
@@ -63,40 +60,21 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(getBearerToken).toHaveBeenCalled();
   });
 
-  it('pins the Money Account whitelist config', async () => {
+  it('leaves MFA decisions to the backend', () => {
     const { options } = buildKeyring();
 
-    expect(await options.getMfaWhitelistConfig?.()).toBe(
-      MPC_MFA_WHITELIST_CONFIG,
-    );
+    expect(options).not.toHaveProperty('getMfaWhitelistConfig');
   });
 
-  it('derives a 32-byte backup key from the profile id', async () => {
-    const { options } = buildKeyring();
+  it('passes the primary mnemonic callback without deriving a backup key', async () => {
+    const { options, getPrimaryMnemonic, getBearerToken } = buildKeyring();
 
-    expect(await options.getBackupEncryptionKey()).toStrictEqual(
-      sha256(new TextEncoder().encode('mm-mobile-dev-backup:profile-1')),
-    );
-  });
+    const mnemonic = await options.getPrimaryMnemonic();
 
-  it('decodes a base64url profile token as base64', async () => {
-    // This payload encodes to base64url with `-` and `_`.
-    const sub = 'profile-??>>';
-    const token = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub })}.sig`;
-    expect(token.split('.')[1]).toMatch(/[-_]/u);
-    const from = jest.spyOn(Buffer, 'from');
-    const keyring = buildRealMpcMoneyKeyringBuilder({
-      getBearerToken: jest.fn().mockResolvedValue(token),
-    })() as unknown as {
-      options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
-    };
-
-    expect(await keyring.options.getBackupEncryptionKey()).toStrictEqual(
-      sha256(new TextEncoder().encode(`mm-mobile-dev-backup:${sub}`)),
-    );
-    expect(from).toHaveBeenCalledWith(
-      expect.not.stringMatching(/[-_]/u),
-      'base64',
-    );
+    expect(options.getPrimaryMnemonic).toBe(getPrimaryMnemonic);
+    expect(mnemonic).toStrictEqual([109, 110, 101]);
+    expect(getPrimaryMnemonic).toHaveBeenCalledWith();
+    expect(getBearerToken).not.toHaveBeenCalled();
+    expect(options).not.toHaveProperty('getBackupEncryptionKey');
   });
 });

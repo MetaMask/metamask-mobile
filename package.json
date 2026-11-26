@@ -349,7 +349,9 @@
     "@open-rpc/server-js@npm:1.9.3/body-parser": "1.20.9",
     "@react-native-community/cli-server-api@npm:20.1.0/body-parser": "1.20.9",
     "express@npm:4.22.2/body-parser": "1.20.9",
-    "mockttp@npm:3.15.2/body-parser": "1.20.9"
+    "mockttp@npm:3.15.2/body-parser": "1.20.9",
+    "@metamask/eth-money-mpc-keyring": "npm:@metamask-previews/eth-money-mpc-keyring@0.3.1-preview-804f391",
+    "@metamask/key-derivation-purposes": "npm:@metamask-previews/key-derivation-purposes@0.0.0-preview-804f391"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",

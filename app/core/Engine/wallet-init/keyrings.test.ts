@@ -24,6 +24,7 @@ import {
 } from './keyrings';
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
 import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
+import type { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
 import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
 
 jest.mock('../../../store', () => ({
@@ -309,7 +310,7 @@ describe('wallet-init/keyrings', () => {
         v2Builders.map((builder) => [builder.type, builder]),
       );
       const wrapper = byV2Type[MpcMoneyKeyring.type](
-        new MpcMoneyKeyring() as never,
+        new MpcMoneyKeyring(),
         { id: 'metadata-id', name: 'name' },
       );
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
@@ -332,6 +333,81 @@ describe('wallet-init/keyrings', () => {
         'https://mpc-service.dev-api.cx.metamask.io/v2',
       );
       expect(keyring.options.cl24Lib).toEqual({ name: 'cl24' });
+    });
+
+    it('provides the primary HD mnemonic as UTF-8 bytes for MPC backups', async () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
+      const mnemonic =
+        'test test test test test test test test test test test ball';
+      const legacyHd = new LegacyHdKeyring();
+      await legacyHd.deserialize({ mnemonic });
+      const hdKeyring = new HdKeyringV2({
+        legacyKeyring: legacyHd as never,
+        entropySource: 'primary-hd',
+      });
+      const messenger = getRootMessenger();
+      const handler = jest.fn(async (_selector, operation) =>
+        operation({
+          keyring: hdKeyring as unknown as Keyring,
+          metadata: { id: 'primary-hd', name: 'Primary' },
+        }),
+      );
+      messenger.registerActionHandler(
+        'KeyringController:withKeyringV2Unsafe',
+        handler,
+      );
+      const builder = getKeyringBuilders(messenger, false)?.find(
+        (entry) => entry.type === MpcMoneyKeyring.type,
+      );
+      if (!builder) {
+        throw new Error('MPC keyring builder missing');
+      }
+      const { options } = builder() as unknown as {
+        options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+      };
+
+      const bytes = await options.getPrimaryMnemonic();
+
+      expect(handler).toHaveBeenCalledWith(
+        { type: 'hd', index: 0 },
+        expect.any(Function),
+      );
+      expect(bytes).toStrictEqual(
+        Array.from(new TextEncoder().encode(mnemonic)),
+      );
+    });
+
+    it('rejects MPC backup derivation when the primary HD mnemonic is unavailable', async () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
+      const messenger = getRootMessenger();
+      messenger.registerActionHandler(
+        'KeyringController:withKeyringV2Unsafe',
+        (_selector, operation) =>
+          operation({
+            keyring: new HdKeyringV2({
+              legacyKeyring: new LegacyHdKeyring() as never,
+              entropySource: 'primary-hd',
+            }) as unknown as Keyring,
+            metadata: { id: 'primary-hd', name: 'Primary' },
+          }),
+      );
+      const builder = getKeyringBuilders(messenger, false)?.find(
+        (entry) => entry.type === MpcMoneyKeyring.type,
+      );
+      if (!builder) {
+        throw new Error('MPC keyring builder missing');
+      }
+      const { options } = builder() as unknown as {
+        options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+      };
+
+      const result = options.getPrimaryMnemonic();
+
+      await expect(result).rejects.toThrow(
+        'Primary keyring mnemonic unavailable for MPC backups.',
+      );
     });
   });
 });
