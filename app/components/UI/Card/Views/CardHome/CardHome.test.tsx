@@ -66,6 +66,15 @@ jest.mock('@tanstack/react-query', () => ({
     removeQueries: mockRemoveQueries,
     invalidateQueries: jest.fn().mockResolvedValue(undefined),
   })),
+  // The registration-status poll inside useCardSetupPendingRefresh only
+  // runs while the signed-out pending state is on screen; the tests never
+  // exercise it, so a settled empty query keeps the hook inert.
+  useQuery: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    isFetching: false,
+    error: null,
+  })),
 }));
 
 import {
@@ -80,6 +89,7 @@ import { Alert, Linking, Platform, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { CardHomeStatusViewSelectors } from './components/CardHomeStatusView';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import {
   CARD_SETUP_CREATING_POLL_MS,
@@ -351,6 +361,7 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
 }));
 
 const mockEnableCard = jest.fn();
+const mockRecheckProvisioning = jest.fn();
 let mockCanEnableCard = false;
 let mockIsEnableCardPending = false;
 let mockProvisioningView:
@@ -390,7 +401,6 @@ jest.mock('./hooks/useCardSetupPendingRefresh', () => {
   };
 });
 
-const mockRecheckProvisioning = jest.fn();
 jest.mock('./hooks/useCardEnableCard', () => ({
   useCardEnableCard: jest.fn(() => ({
     canEnableCard: mockCanEnableCard,
@@ -820,6 +830,13 @@ const mockToastRef = {
 };
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  // MarketingMomentTitle (rendered by the waiting view) subscribes to locale
+  // changes; provide a no-op emitter so the mock stays inert.
+  I18nEvents: {
+    addListener: jest.fn(() => jest.fn()),
+    removeListener: jest.fn(),
+    emit: jest.fn(),
+  },
   strings: (key: string, params?: Record<string, unknown>) => {
     const strings: { [key: string]: string } = {
       'card.card_home.spending_with': 'Spending with',
@@ -876,6 +893,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Authentication required to resume spending on your card.',
       'card.password_bottomsheet.description_unfreeze':
         'Enter your wallet password to unfreeze your card.',
+      'card.card_home.setup_pending.reviewing.title':
+        "We're reviewing your identity",
+      'card.card_home.setup_pending.reviewing.description':
+        "This can take a little while. We'll update this screen when it's ready.",
+      'card.card_home.setup_pending.creating.title': 'Creating your card',
+      'card.card_home.setup_pending.creating.description':
+        'This only takes a moment.',
+      'card.card_home.setup_pending.checking.title': 'Checking your card',
+      'card.card_home.setup_pending.checking.description':
+        "We'll update this screen when it's ready.",
+      'card.card_home.setup_pending.signed_out_pending.title':
+        'Setting up your card',
+      'card.card_home.setup_pending.signed_out_pending.description':
+        "We'll update this screen when it's ready. You can leave and come back anytime.",
       'card.card_home.segments.activity': 'Activity',
       'card.card_home.segments.manage': 'Manage',
       'card.card_home.recent_activity.see_all': 'See all',
@@ -2878,6 +2909,31 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('does not flash the creating copy while an Immersve check is in flight', () => {
+    mockProvisioningView = 'reconciling';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+    ).toHaveTextContent(strings('card.card_home.setup_pending.checking.title'));
+    expect(
+      screen.queryByText(
+        strings('card.card_home.setup_pending.creating.title'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
     mockCanEnableCard = false;
     mockProvisioningView = 'kyc_under_review';
@@ -2891,7 +2947,17 @@ describe('CardHome Component', () => {
 
     render();
 
-    expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+    // The waiting view replaces the dashboard; the reviewing copy shows and
+    // no Enable card button or dashboard banner does.
+    expect(
+      screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+    ).toHaveTextContent(
+      strings('card.card_home.setup_pending.reviewing.title'),
+    );
+    expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).not.toBeOnTheScreen();
@@ -4767,27 +4833,6 @@ describe('CardHome Component', () => {
     });
 
     describe('KYC Warning Display', () => {
-      it('displays KYC warning for PENDING user without card', () => {
-        // Given: PENDING user without card
-        setupMockSelectors({ isAuthenticated: true });
-        setupLoadCardDataMock({
-          isAuthenticated: true,
-
-          warning: CardStateWarning.NoCard,
-          priorityToken: mockPriorityToken,
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
-          isLoading: false,
-        });
-
-        // When: component renders
-        render();
-
-        // Then: KYC warning is displayed
-        expect(
-          screen.getByText('card.card_home.warnings.kyc_pending.title'),
-        ).toBeOnTheScreen();
-      });
-
       it('displays KYC warning for UNVERIFIED user without card', () => {
         // Given: UNVERIFIED user without card
         setupMockSelectors({ isAuthenticated: true });
@@ -4803,10 +4848,15 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: KYC warning is displayed
+        // Then: the waiting view shows with the reviewing copy
         expect(
-          screen.getByText('card.card_home.warnings.kyc_pending.title'),
+          screen.getByTestId(CardHomeSelectors.SETUP_PENDING_STATUS_VIEW),
         ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+        ).toHaveTextContent(
+          strings('card.card_home.setup_pending.reviewing.title'),
+        );
       });
 
       it('does not display KYC warning for VERIFIED user', () => {
@@ -4844,51 +4894,22 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: no Enable Card button shown, only warning is visible
+        // Then: the waiting view shows — no Enable Card button, no Add funds
         expect(
           screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeNull();
-        // KYC warning is shown
+        ).not.toBeOnTheScreen();
         expect(
-          screen.getByText('card.card_home.warnings.kyc_pending.title'),
-        ).toBeOnTheScreen();
+          screen.getByTestId(CardHomeStatusViewSelectors.TITLE),
+        ).toHaveTextContent(
+          strings('card.card_home.setup_pending.reviewing.title'),
+        );
       });
     });
 
     describe('Signed out while identity is in review', () => {
-      it('shows the pending banner and the waiting layout', () => {
-        // Given: still in onboarding, no signed-in Card account
-        mockIsSignedOutKycPending = true;
-        setupMockSelectors({ isAuthenticated: false });
-
-        // When: component renders
-        render();
-
-        // Then: the pending banner shows and nothing card-ready does
-        expect(
-          screen.getByText('card.card_home.warnings.kyc_pending.title'),
-        ).toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeNull();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).toBeNull();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.SET_PIN_BUTTON),
-        ).toBeNull();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_BUTTON),
-        ).toBeNull();
-        // The card art is muted to 50% opacity
-        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
-          opacity: 0.5,
-        });
-      });
-
       it('does not show the pending banner when signed out and not in review', () => {
         setupMockSelectors({ isAuthenticated: false });
 
@@ -5051,11 +5072,18 @@ describe('CardHome Component', () => {
     });
 
     describe('Waiting re-checks on pull to refresh', () => {
+      // The waiting view hands RefreshControl a void wrapper, so awaiting
+      // onRefresh does not wait for the refresh; wait for it to settle.
       const pullToRefresh = async () => {
         const refreshControl = screen.UNSAFE_getByType(RefreshControl);
         await act(async () => {
           await refreshControl.props.onRefresh();
         });
+        await waitFor(() =>
+          expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(
+            false,
+          ),
+        );
       };
 
       it('re-checks a card that is still being created', async () => {

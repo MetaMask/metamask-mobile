@@ -12264,6 +12264,25 @@
     },
     "card_home": {
       "title": "Card",
+      "done": "Done",
+      "setup_pending": {
+        "reviewing": {
+          "title": "We're reviewing your identity",
+          "description": "This can take a little while. We'll update this screen when it's ready."
+        },
+        "creating": {
+          "title": "Creating your card",
+          "description": "This only takes a moment."
+        },
+        "checking": {
+          "title": "Checking your card",
+          "description": "We'll update this screen when it's ready."
+        },
+        "signed_out_pending": {
+          "title": "Setting up your card",
+          "description": "We’ll update this screen when it’s ready. You can leave and come back anytime."
+        }
+      },
       "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
@@ -13980,6 +13999,11 @@
     "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
+    "token_tag": "Token",
+    "perp_tag": "Perp",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "loading_more_results": "Loading more results",
     "load_error": "Unable to load watchlist items",
     "save_error": "Unable to save watchlist order",
     "retry": "Try again",
@@ -13987,6 +14011,8 @@
     "done": "Done",
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "no_tokens_found": "No tokens in watchlist",
+    "no_tokens_description": "Tap the star icon on any token to add it to your watchlist",
     "search_placeholder": "Search for any asset to add"
   },
   "asset_spendable_balance": {
