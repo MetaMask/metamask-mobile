@@ -268,16 +268,22 @@ describe('useCardCashbackClaim', () => {
     ).rejects.toThrow('SIGN_FAILED');
   });
 
-  it('submits the voucher for this Money account', async () => {
+  it('submits the voucher from the Money account its route used', async () => {
     const input = await startedClaim();
     const voucher = { id: 'voucher-1' } as never;
 
-    await input.submitVoucher(voucher);
+    await input.submitVoucher(voucher, '0xmigrated');
 
     expect(submitClaimVoucher).toHaveBeenCalledWith({
       voucher,
       vaultConfig,
-      moneyAccountAddress: moneyAccount.address,
+      moneyAccountAddress: '0xmigrated',
     });
+  });
+
+  it('reports the current Money account for a migrated payout retry', async () => {
+    const input = await startedClaim();
+
+    expect(input.getMoneyAccountAddress()).toBe(moneyAccount.address);
   });
 });

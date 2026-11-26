@@ -28,6 +28,8 @@ export type CardCashbackClaimResult =
  */
 export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountRef = useRef(moneyAccount);
+  moneyAccountRef.current = moneyAccount;
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -80,11 +82,15 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
             throw new Error('SIGN_FAILED');
           }
         },
-        submitVoucher: async (voucher: ClaimVoucherDto) => {
+        getMoneyAccountAddress: () => moneyAccountRef.current?.address,
+        submitVoucher: async (
+          voucher: ClaimVoucherDto,
+          voucherMoneyAccountAddress: string,
+        ) => {
           await submitClaimVoucher({
             voucher,
             vaultConfig,
-            moneyAccountAddress,
+            moneyAccountAddress: voucherMoneyAccountAddress,
           });
         },
       });
