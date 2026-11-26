@@ -136,6 +136,8 @@ export function useMoneyAccountApiActivity({
   const queryClient = useQueryClient();
   const queryKeyRef = useRef(queryOptions.queryKey);
   queryKeyRef.current = queryOptions.queryKey;
+  const moneyAddressRef = useRef(moneyAddress);
+  moneyAddressRef.current = moneyAddress;
 
   // `initialDataUpdatedAt` carries the write time, so the `staleTime` below
   // still decides whether a background refetch runs — the freshness policy is
@@ -201,12 +203,16 @@ export function useMoneyAccountApiActivity({
       return undefined;
     }
     const pollFirstPage = async () => {
+      const polledAddress = moneyAddress;
       try {
         const page = await apiClient.accounts.fetchV1AccountTransactions(
-          moneyAddress,
+          polledAddress,
           ACCOUNT_ACTIVITY_QUERY_OPTIONS,
         );
-        writeCachedFirstPage(moneyAddress, page);
+        if (moneyAddressRef.current !== polledAddress) {
+          return;
+        }
+        writeCachedFirstPage(polledAddress, page);
         queryClient.setQueryData<InfiniteData<V1AccountTransactionsResponse>>(
           queryKeyRef.current,
           (oldData) => {

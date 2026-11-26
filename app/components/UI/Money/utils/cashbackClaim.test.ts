@@ -81,7 +81,17 @@ describe('isSettlingCashbackActivity', () => {
     const claim = createClaim({ txHash: CLAIM_HASH });
 
     const settled = isSettlingCashbackActivity(claim, [
-      createCashbackActivity({ hash: CLAIM_HASH }),
+      createCashbackActivity({ hash: CLAIM_HASH, time: 0, amount: '1' }),
+    ]);
+
+    expect(settled).toBe(true);
+  });
+
+  it('falls back to amount and time when the activity hash differs', () => {
+    const claim = createClaim({ txHash: CLAIM_HASH });
+
+    const settled = isSettlingCashbackActivity(claim, [
+      createCashbackActivity({ hash: ACTIVITY_HASH }),
     ]);
 
     expect(settled).toBe(true);
@@ -174,6 +184,14 @@ describe('resolveCashbackClaim', () => {
     const claim = createClaim();
 
     const result = resolveCashbackClaim(claim, [], moneyAddress, 1_600_000);
+
+    expect(result).toEqual({ visibleClaim: null, shouldClear: true });
+  });
+
+  it('clears an expired claim for another Money account', () => {
+    const claim = createClaim();
+
+    const result = resolveCashbackClaim(claim, [], '0xother', 1_600_000);
 
     expect(result).toEqual({ visibleClaim: null, shouldClear: true });
   });
