@@ -29,6 +29,7 @@ import Logger from '../../../../util/Logger';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { useMfa } from '../../../../util/identity/mfa';
+import { resolveGeoCountry } from '../utils/resolveGeoCountry';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 import { KALSHI_KYC_VENDOR } from '../vendors/kalshi';
 import { describeKalshiError, shouldRefreshAfter } from './kalshiErrors';
@@ -93,16 +94,6 @@ const getKycService = () => {
   }
   return KycService;
 };
-
-/**
- * Same country resolution as the shared consent pages
- * (`useKycSessionDisclaimers`): the country stored on the KYC controller wins,
- * and the detected one is only a fallback. This keeps the Kalshi agreements in
- * the country as the idOS and SumSub documents sent in the same `submitTerms`.
- */
-const getGeoCountry = async (): Promise<string> =>
-  Engine.context.KycController?.state?.geoCountry ??
-  (await getKycService().getGeoCountry());
 
 const errorMessage = (error: unknown): string => {
   const kalshiMessage = describeKalshiError(error);
@@ -336,7 +327,8 @@ const KalshiOnboarding = () => {
       return;
     }
     run(async () => {
-      const country = await getGeoCountry();
+      // Same country as the shared pages, since one submitTerms sends both.
+      const country = await resolveGeoCountry();
       const vendorDocuments = await getKycService().fetchVendorDisclaimers({
         vendor: VENDOR,
         country,
