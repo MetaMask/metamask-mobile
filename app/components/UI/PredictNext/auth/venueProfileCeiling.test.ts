@@ -40,13 +40,16 @@ interface HostileProfile {
     invariant?: string;
     confirm: { signLimit: number };
   }[];
-  payloads: Record<string, {
-    kind: string;
-    method: string;
-    path: string;
-    body: { json: { key: string; value: Record<string, unknown> }[] };
-    invariants: { implementation: string; params: Record<string, unknown> }[];
-  }>;
+  payloads: Record<
+    string,
+    {
+      kind: string;
+      method: string;
+      path: string;
+      body: { json: { key: string; value: Record<string, unknown> }[] };
+      invariants: { implementation: string; params: Record<string, unknown> }[];
+    }
+  >;
   implementation: { params: Record<string, unknown> };
 }
 
@@ -59,103 +62,147 @@ const hostileVariants: {
     name: 'funding deposit posting orders',
     reason: 'invalid_payload_contract',
     mutate: (profile) => {
-      profile.payloads.crypto_deposit_address.path = '/trade-api/v2/portfolio/events/orders';
+      profile.payloads.crypto_deposit_address.path =
+        '/trade-api/v2/portfolio/events/orders';
     },
   },
   {
     name: 'an extra intent payload',
     reason: 'invalid_payload_contract',
-    mutate: (profile) => { profile.intents[0].payloads.push('wallet_register'); },
+    mutate: (profile) => {
+      profile.intents[0].payloads.push('wallet_register');
+    },
   },
   {
     name: 'an opaque intent payload',
     reason: 'invalid_payload_contract',
-    mutate: (profile) => { profile.payloads.wallet_register.kind = 'eip712'; },
+    mutate: (profile) => {
+      profile.payloads.wallet_register.kind = 'eip712';
+    },
   },
   {
     name: 'a GET intent payload',
     reason: 'invalid_payload_contract',
-    mutate: (profile) => { profile.payloads.wallet_register.method = 'GET'; },
+    mutate: (profile) => {
+      profile.payloads.wallet_register.method = 'GET';
+    },
   },
   {
     name: 'a decoy price field',
     reason: 'invalid_order_invariant_params',
-    mutate: (profile) => { profile.payloads.create_order.invariants[0].params.priceField = 'decoy'; },
+    mutate: (profile) => {
+      profile.payloads.create_order.invariants[0].params.priceField = 'decoy';
+    },
   },
   {
     name: 'a const added to price',
     reason: 'invalid_body_contract',
     mutate: (profile) => {
-      const price = profile.payloads.create_order.body.json.find((field) => field.key === 'price');
-      if (!price) { throw new Error('fixture price missing'); }
+      const price = profile.payloads.create_order.body.json.find(
+        (field) => field.key === 'price',
+      );
+      if (!price) {
+        throw new Error('fixture price missing');
+      }
       price.value.const = 99;
     },
   },
   {
     name: 'a zero fee ceiling',
     reason: 'invalid_order_invariant_params',
-    mutate: (profile) => { profile.payloads.create_order.invariants[0].params.feeCeilingCentsPerContract = 0; },
+    mutate: (profile) => {
+      profile.payloads.create_order.invariants[0].params.feeCeilingCentsPerContract = 0;
+    },
   },
   {
     name: 'extra order invariant params',
     reason: 'invalid_order_invariant_params',
-    mutate: (profile) => { profile.payloads.create_order.invariants[0].params.extra = 'ignored'; },
+    mutate: (profile) => {
+      profile.payloads.create_order.invariants[0].params.extra = 'ignored';
+    },
   },
   {
     name: 'an hour-long signature lifetime',
     reason: 'invalid_implementation_params',
-    mutate: (profile) => { profile.implementation.params.lifetimeSec = 3600; },
+    mutate: (profile) => {
+      profile.implementation.params.lifetimeSec = 3600;
+    },
   },
   {
     name: 'one hundred signatures',
     reason: 'invalid_implementation_params',
-    mutate: (profile) => { profile.implementation.params.maxSignatures = 100; },
+    mutate: (profile) => {
+      profile.implementation.params.maxSignatures = 100;
+    },
   },
   {
     name: 'a const funding deposit body field',
     reason: 'invalid_body_contract',
-    mutate: (profile) => { profile.payloads.crypto_deposit_address.body.json[0].value = { const: 100 }; },
+    mutate: (profile) => {
+      profile.payloads.crypto_deposit_address.body.json[0].value = {
+        const: 100,
+      };
+    },
   },
   {
     name: 'ten signatures per confirmation',
     reason: 'invalid_sign_limit',
-    mutate: (profile) => { profile.intents[0].confirm.signLimit = 10; },
+    mutate: (profile) => {
+      profile.intents[0].confirm.signLimit = 10;
+    },
   },
   {
     name: 'a missing order intent invariant',
     reason: 'missing_order_invariant',
-    mutate: (profile) => { delete profile.intents[0].invariant; },
+    mutate: (profile) => {
+      delete profile.intents[0].invariant;
+    },
   },
   {
     name: 'a wrong order intent invariant',
     reason: 'missing_order_invariant',
-    mutate: (profile) => { profile.intents[0].invariant = 'different'; },
+    mutate: (profile) => {
+      profile.intents[0].invariant = 'different';
+    },
   },
   {
     name: 'a wrong order payload invariant',
     reason: 'missing_order_invariant',
-    mutate: (profile) => { profile.payloads.create_order.invariants[0].implementation = 'different'; },
+    mutate: (profile) => {
+      profile.payloads.create_order.invariants[0].implementation = 'different';
+    },
   },
   {
     name: 'an extra order body field',
     reason: 'invalid_body_contract',
-    mutate: (profile) => { profile.payloads.create_order.body.json.push({ key: 'decoy', value: { value: 'price' } }); },
+    mutate: (profile) => {
+      profile.payloads.create_order.body.json.push({
+        key: 'decoy',
+        value: { value: 'price' },
+      });
+    },
   },
   {
     name: 'a missing activation body field',
     reason: 'invalid_body_contract',
-    mutate: (profile) => { profile.payloads.wallet_register.body.json.pop(); },
+    mutate: (profile) => {
+      profile.payloads.wallet_register.body.json.pop();
+    },
   },
   {
     name: 'a different signing authority',
     reason: 'invalid_implementation_params',
-    mutate: (profile) => { profile.implementation.params.authority = 'evil.example'; },
+    mutate: (profile) => {
+      profile.implementation.params.authority = 'evil.example';
+    },
   },
   ...['price', 'count'].map((key) => ({
     name: `an input source for ${key}`,
     reason: 'invalid_body_contract' as const,
     mutate: (profile: HostileProfile) => {
-      const field = profile.payloads.create_order.body.json.find((entry) => entry.key === key);
+      const field = profile.payloads.create_order.body.json.find(
+        (entry) => entry.key === key,
+      );
       if (!field) {
         throw new Error(`fixture ${key} missing`);
       }
@@ -166,11 +213,15 @@ const hostileVariants: {
     name: `a noncanonical ${key} map`,
     reason: 'invalid_body_contract' as const,
     mutate: (profile: HostileProfile) => {
-      const field = profile.payloads.create_order.body.json.find((entry) => entry.key === key);
+      const field = profile.payloads.create_order.body.json.find(
+        (entry) => entry.key === key,
+      );
       if (!field) {
         throw new Error(`fixture ${key} missing`);
       }
-      field.value = { map: { inputs: ['action'], table: { buy: true, sell: false } } };
+      field.value = {
+        map: { inputs: ['action'], table: { buy: true, sell: false } },
+      };
     },
   })),
   ...[0, 1.5, Number.MAX_SAFE_INTEGER + 1].map((signLimit) => ({
@@ -209,7 +260,10 @@ describe('applyVenueProfileCeiling', () => {
   it.each(hostileVariants)('refuses $name', ({ mutate, reason }) => {
     const profile: HostileProfile = JSON.parse(TEST_VENUE_PROFILE_RAW);
     mutate(profile);
-    expect(applyVenueProfileCeiling(malformed(profile))).toEqual({ ok: false, reason });
+    expect(applyVenueProfileCeiling(malformed(profile))).toEqual({
+      ok: false,
+      reason,
+    });
   });
 
   it('refuses a payload using a future API version', () => {

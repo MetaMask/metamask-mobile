@@ -95,8 +95,11 @@ const matchesRecord = (
   hasExactKeys(value, Object.keys(expected)) &&
   Object.entries(value).every(([key, entry]) => expected[key] === entry);
 
-const isSafeIntegerWithin = (value: number, min: number, max: number): boolean =>
-  Number.isSafeInteger(value) && value >= min && value <= max;
+const isSafeIntegerWithin = (
+  value: number,
+  min: number,
+  max: number,
+): boolean => Number.isSafeInteger(value) && value >= min && value <= max;
 
 const matchesMap = (
   source: Source,
@@ -118,15 +121,22 @@ const matchesMap = (
   );
 };
 
-const hasCanonicalBody = (payload: HttpRfc9421Payload, intent: string): boolean => {
+const hasCanonicalBody = (
+  payload: HttpRfc9421Payload,
+  intent: string,
+): boolean => {
   const fields = payload.body?.json;
-  const keys = intent === 'order.place'
-    ? ORDER_FIELDS
-    : intent === 'account.activate'
-      ? ['wallet_address', 'network']
-      : ['amount_cents', 'networks'];
-  if (!fields || fields.length !== keys.length ||
-      !keys.every((key) => fields.some((field) => field.key === key))) {
+  const keys =
+    intent === 'order.place'
+      ? ORDER_FIELDS
+      : intent === 'account.activate'
+        ? ['wallet_address', 'network']
+        : ['amount_cents', 'networks'];
+  if (
+    !fields ||
+    fields.length !== keys.length ||
+    !keys.every((key) => fields.some((field) => field.key === key))
+  ) {
     return false;
   }
   if (intent !== 'order.place') {
@@ -144,14 +154,21 @@ const hasCanonicalBody = (payload: HttpRfc9421Payload, intent: string): boolean 
     }
     if (key === 'side') {
       return matchesMap(value, ['action', 'outcome'], {
-        'buy:yes': 'bid', 'buy:no': 'ask', 'sell:yes': 'ask', 'sell:no': 'bid',
+        'buy:yes': 'bid',
+        'buy:no': 'ask',
+        'sell:yes': 'ask',
+        'sell:no': 'bid',
       });
     }
     if (key === 'reduce_only') {
       return matchesMap(value, ['action'], { buy: false, sell: true });
     }
     if (key === 'price' || key === 'count') {
-      return hasExactKeys(value, ['value', 'shape']) && 'value' in value && value.value === key;
+      return (
+        hasExactKeys(value, ['value', 'shape']) &&
+        'value' in value &&
+        value.value === key
+      );
     }
     return true;
   });
@@ -162,7 +179,13 @@ const hasCanonicalImplementation = (profile: SigningProfile): boolean => {
   return (
     id === 'device-p256-rfc9421-v1' &&
     hasExactKeys(params, [
-      'authority', 'label', 'tag', 'lifetimeSec', 'tokenScheme', 'headers', 'maxSignatures',
+      'authority',
+      'label',
+      'tag',
+      'lifetimeSec',
+      'tokenScheme',
+      'headers',
+      'maxSignatures',
     ]) &&
     params.authority === 'demo-api.kalshi.co' &&
     params.label === 'kalshi' &&
@@ -222,16 +245,30 @@ export const applyVenueProfileCeiling = (
     }
     if (intent.id === 'order.place') {
       const invariant = payload.invariants?.[0];
-      if (intent.invariant !== ORDER_INVARIANT ||
-          invariant?.implementation !== ORDER_INVARIANT) {
+      if (
+        intent.invariant !== ORDER_INVARIANT ||
+        invariant?.implementation !== ORDER_INVARIANT
+      ) {
         return { ok: false, reason: 'missing_order_invariant' };
       }
       const params = invariant.params;
-      if (!params || payload.invariants?.length !== 1 ||
-          !hasExactKeys(params, [...Object.keys(ORDER_PARAMS), 'feeCeilingCentsPerContract']) ||
-          !Object.entries(ORDER_PARAMS).every(([key, value]) => params[key] === value) ||
-          typeof params.feeCeilingCentsPerContract !== 'number' ||
-          !isSafeIntegerWithin(params.feeCeilingCentsPerContract, 2, Number.MAX_SAFE_INTEGER)) {
+      if (
+        !params ||
+        payload.invariants?.length !== 1 ||
+        !hasExactKeys(params, [
+          ...Object.keys(ORDER_PARAMS),
+          'feeCeilingCentsPerContract',
+        ]) ||
+        !Object.entries(ORDER_PARAMS).every(
+          ([key, value]) => params[key] === value,
+        ) ||
+        typeof params.feeCeilingCentsPerContract !== 'number' ||
+        !isSafeIntegerWithin(
+          params.feeCeilingCentsPerContract,
+          2,
+          Number.MAX_SAFE_INTEGER,
+        )
+      ) {
         return { ok: false, reason: 'invalid_order_invariant_params' };
       }
     }

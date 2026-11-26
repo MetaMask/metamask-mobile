@@ -1072,8 +1072,9 @@ export const refreshVenueProfileAfterRefusal = async (): Promise<boolean> =>
   getResolver().refreshAfterRefusal();
 
 /** Records the profile version accepted for a signed mutation. */
-export const confirmVenueProfileVersion = async (version: number): Promise<void> =>
-  getResolver().confirmVenueProfileVersion(version);
+export const confirmVenueProfileVersion = async (
+  version: number,
+): Promise<void> => getResolver().confirmVenueProfileVersion(version);
 
 /** Test seam: forget the memoized snapshot. */
 export const resetVenueProfile = (): void => {

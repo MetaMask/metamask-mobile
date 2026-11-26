@@ -124,14 +124,18 @@ describe('VenueProfileResolver', () => {
     await resolver.refresh();
     await resolver.resolve();
     await resolver.resolve();
-    expect(log.mock.calls.filter(([message]) =>
-      message === 'PredictNext: venue profile unavailable',
-    )).toHaveLength(1);
+    expect(
+      log.mock.calls.filter(
+        ([message]) => message === 'PredictNext: venue profile unavailable',
+      ),
+    ).toHaveLength(1);
     getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 5 });
     await resolver.refresh();
-    expect(log.mock.calls.filter(([message]) =>
-      message === 'PredictNext: venue profile unavailable',
-    )).toHaveLength(2);
+    expect(
+      log.mock.calls.filter(
+        ([message]) => message === 'PredictNext: venue profile unavailable',
+      ),
+    ).toHaveLength(2);
   });
 
   it('returns no profile from a fresh cache without making network requests', async () => {

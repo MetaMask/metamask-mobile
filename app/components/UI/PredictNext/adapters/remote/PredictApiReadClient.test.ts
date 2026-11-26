@@ -1258,7 +1258,10 @@ describe('PredictApiReadClient', () => {
         outcome: 'not_placed',
       });
       expect(signOperation).toHaveBeenCalledTimes(1);
-      expect(signOperation).toHaveBeenLastCalledWith('order.place', pinnedSigning);
+      expect(signOperation).toHaveBeenLastCalledWith(
+        'order.place',
+        pinnedSigning,
+      );
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(refreshVenueProfileAfterRefusal).toHaveBeenCalledTimes(1);
     });

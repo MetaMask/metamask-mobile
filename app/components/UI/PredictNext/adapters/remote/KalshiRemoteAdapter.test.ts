@@ -1295,12 +1295,13 @@ describe('KalshiRemoteAdapter', () => {
     it('maps a changed signing profile to another preview review', async () => {
       await adapter.trading.previewOrder(previewParams);
       await adapter.trading.reviewOrder(previewPayload.previewId);
-      client.commitOrder.mockRejectedValue(new VenueProfilePreviewExpiredError());
+      client.commitOrder.mockRejectedValue(
+        new VenueProfilePreviewExpiredError(),
+      );
 
-      await expect(adapter.trading.commitOrder(
-        previewPayload.previewId,
-        USER_APPROVAL,
-      )).rejects.toMatchObject({
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).rejects.toMatchObject({
         code: PredictErrorCode.PREVIEW_EXPIRED,
         metadata: { phase: 'commit', requestSent: true, outcome: 'not_placed' },
       });
