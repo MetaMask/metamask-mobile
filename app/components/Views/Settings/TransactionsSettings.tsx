@@ -44,12 +44,7 @@ function TransactionsSettings() {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const analyticsHook = useAnalytics();
-  const trackEvent = (...args: Parameters<typeof analyticsHook.trackEvent>) =>
-    analyticsHook.trackEvent(...args);
-  const createEventBuilder = (
-    ...args: Parameters<typeof analyticsHook.createEventBuilder>
-  ) => analyticsHook.createEventBuilder(...args);
+  const analytics = useAnalytics();
 
   const smartTransactionsOptInStatus = useSelector(
     selectSmartTransactionsOptInStatus,
@@ -128,11 +123,15 @@ function TransactionsSettings() {
             labelTextVariant={LibraryTextVariant.BodySMMedium}
             onPress={() => {
               void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
-              trackExternalLinkClicked(trackEvent, createEventBuilder, {
-                location: 'app_settings',
-                text: strings('app_settings.simulation_details_learn_more'),
-                url_domain: SIMULATION_DETALS_ARTICLE_URL,
-              });
+              trackExternalLinkClicked(
+                (...args) => analytics.trackEvent(...args),
+                (...args) => analytics.createEventBuilder(...args),
+                {
+                  location: 'app_settings',
+                  text: strings('app_settings.simulation_details_learn_more'),
+                  url_domain: SIMULATION_DETALS_ARTICLE_URL,
+                },
+              );
             }}
             label={strings('app_settings.simulation_details_learn_more')}
           />
@@ -208,8 +207,8 @@ function TransactionsSettings() {
                       onPress={() => {
                         void Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
                         trackExternalLinkClicked(
-                          trackEvent,
-                          createEventBuilder,
+                          (...args) => analytics.trackEvent(...args),
+                          (...args) => analytics.createEventBuilder(...args),
                           {
                             location: 'app_settings',
                             text: strings(

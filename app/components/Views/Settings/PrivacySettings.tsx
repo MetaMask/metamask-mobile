@@ -60,7 +60,6 @@ interface Params {
 function PrivacySettings() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const analytics = useAnalytics();
-  const isEnabled = () => analytics.isEnabled();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<Params>();
@@ -102,8 +101,8 @@ function PrivacySettings() {
   const isMainnet = type === MAINNET;
 
   useEffect(() => {
-    setAnalyticsEnabled(isEnabled());
-  }, [setAnalyticsEnabled, isEnabled]);
+    setAnalyticsEnabled(analytics.isEnabled());
+  }, [setAnalyticsEnabled, analytics]);
 
   useEffect(() => {
     const triggerCascadeBasicFunctionalityDisable = async () => {
@@ -182,7 +181,9 @@ function PrivacySettings() {
   }
 
   function clearBrowserHistory() {
-    dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
+    dispatch(
+      clearHistory(analytics.isEnabled(), isDataCollectionForMarketingEnabled),
+    );
     toggleClearBrowserHistoryModal();
   }
 
