@@ -137,6 +137,34 @@ describe('useOpenMembershipAddFunds', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, sheet);
   });
 
+  it('stays busy and ignores a second tap until the top-up finishes opening', async () => {
+    checkBalance.mockResolvedValue(shortfall);
+    let resolveDeposit: () => void = () => undefined;
+    mockInitiateDeposit.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDeposit = resolve;
+      }),
+    );
+    const { result } = renderHook(useOpenMembershipAddFunds);
+    let opening: Promise<void> | undefined;
+
+    await act(async () => {
+      opening = result.current.openAddFunds(subscription);
+    });
+    await act(async () => result.current.openAddFunds(subscription));
+
+    expect(result.current.isCheckingBalance).toBe(true);
+    expect(checkBalance).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveDeposit();
+      await opening;
+    });
+
+    expect(result.current.isCheckingBalance).toBe(false);
+  });
+
   it('ignores a second tap during the check and does not navigate after unmount', async () => {
     let resolveBalance: (balance: typeof shortfall) => void = () => undefined;
     checkBalance.mockReturnValue(

@@ -21,7 +21,7 @@ import { getMembershipTopUpAmountUsd } from '../../shared/pro/membershipFundingA
  * MetaMask Pay flow the join screen uses. Falls back to the Money funding
  * options when there is no shortfall or the balance check fails.
  *
- * @returns The Add funds action and its balance-check state.
+ * @returns The Add funds action and whether it is still in progress.
  */
 export function useOpenMembershipAddFunds() {
   const navigation = useNavigation<AppNavigationProp>();
@@ -43,55 +43,57 @@ export function useOpenMembershipAddFunds() {
         return;
       }
 
-      let amount: string | undefined;
-      if (subscription?.paymentMethod.type === PAYMENT_TYPES.byCrypto) {
-        isCheckingBalanceRef.current = true;
-        setIsCheckingBalance(true);
-        try {
-          const { hasSufficientBalance, balance, requiredBalance } =
-            await Engine.context.SubscriptionDelegationService.checkMoneyAccountBalance(
-              {
-                product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-                recurringInterval: subscription.interval,
-                payerAddress: subscription.paymentMethod.crypto.payerAddress,
-              },
+      isCheckingBalanceRef.current = true;
+      setIsCheckingBalance(true);
+      try {
+        let amount: string | undefined;
+        if (subscription?.paymentMethod.type === PAYMENT_TYPES.byCrypto) {
+          try {
+            const { hasSufficientBalance, balance, requiredBalance } =
+              await Engine.context.SubscriptionDelegationService.checkMoneyAccountBalance(
+                {
+                  product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+                  recurringInterval: subscription.interval,
+                  payerAddress: subscription.paymentMethod.crypto.payerAddress,
+                },
+              );
+            if (!hasSufficientBalance) {
+              amount = getMembershipTopUpAmountUsd(balance, requiredBalance);
+            }
+          } catch (error) {
+            Logger.error(
+              ensureError(error, 'useOpenMembershipAddFunds.checkBalance'),
             );
-          if (!hasSufficientBalance) {
-            amount = getMembershipTopUpAmountUsd(balance, requiredBalance);
-          }
-        } catch (error) {
-          Logger.error(
-            ensureError(error, 'useOpenMembershipAddFunds.checkBalance'),
-          );
-        } finally {
-          isCheckingBalanceRef.current = false;
-          if (isMountedRef.current) {
-            setIsCheckingBalance(false);
           }
         }
-      }
 
-      if (!isMountedRef.current || !navigation.isFocused()) {
-        return;
-      }
+        if (!isMountedRef.current || !navigation.isFocused()) {
+          return;
+        }
 
-      if (amount === undefined) {
-        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-        });
-        return;
-      }
+        if (amount === undefined) {
+          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+          });
+          return;
+        }
 
-      try {
-        await initiateDeposit({
-          amount,
-          transactionType: TransactionType.membershipSubscription,
-          forceBottomSheet: true,
-        });
-      } catch (error) {
-        // Other failures already show a toast and are logged by initiateDeposit.
-        if (error instanceof MoneyAccountAccessBlockedError) {
-          navigateToMoneyAccountAccessNotice(navigation, error.reason);
+        try {
+          await initiateDeposit({
+            amount,
+            transactionType: TransactionType.membershipSubscription,
+            forceBottomSheet: true,
+          });
+        } catch (error) {
+          // Other failures already show a toast and are logged by initiateDeposit.
+          if (error instanceof MoneyAccountAccessBlockedError) {
+            navigateToMoneyAccountAccessNotice(navigation, error.reason);
+          }
+        }
+      } finally {
+        isCheckingBalanceRef.current = false;
+        if (isMountedRef.current) {
+          setIsCheckingBalance(false);
         }
       }
     },
