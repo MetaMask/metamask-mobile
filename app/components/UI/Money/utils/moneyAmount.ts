@@ -3,6 +3,7 @@ import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import { MUSD_TOKEN } from '../../Earn/constants/musd';
 
+/** Formats a signed, symbol-suffixed mUSD amount; the sign follows the row's direction. */
 export function formatMusdAmount(
   amount: BigNumber,
   isIncoming: boolean,

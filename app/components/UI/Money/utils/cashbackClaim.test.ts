@@ -23,14 +23,14 @@ const createClaim = (
   moneyAddress: '0x4444444444444444444444444444444444444444',
   submittedAt: 1_000_000,
   txHash: CLAIM_HASH,
-  chainId: '0xe708',
-  error: null,
   ...overrides,
 });
 
+type CashbackActivity = Extract<AccountsApiActivity, { kind: 'cashback' }>;
+
 const createCashbackActivity = (
-  overrides: Partial<AccountsApiActivity> = {},
-): AccountsApiActivity => ({
+  overrides: Partial<CashbackActivity> = {},
+): CashbackActivity => ({
   kind: 'cashback',
   hash: ACTIVITY_HASH,
   time: 1_000_000,
@@ -107,10 +107,21 @@ describe('isSettlingCashbackActivity', () => {
 
   it('ignores non-cashback rows', () => {
     const claim = createClaim();
+    const refund: AccountsApiActivity = {
+      kind: 'refund',
+      hash: ACTIVITY_HASH,
+      time: 1_000_000,
+      chainId: '0xe708',
+      token: {
+        address: TOKEN_ADDRESS,
+        symbol: 'mUSD',
+        decimals: 6,
+      },
+      amount: '10500000',
+      receivedFrom: TOKEN_ADDRESS,
+    };
 
-    const settled = isSettlingCashbackActivity(claim, [
-      createCashbackActivity({ kind: 'refund', receivedFrom: TOKEN_ADDRESS }),
-    ]);
+    const settled = isSettlingCashbackActivity(claim, [refund]);
 
     expect(settled).toBe(false);
   });

@@ -1,6 +1,7 @@
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import type { CardCashbackClaim } from '../../../app/core/Engine/controllers/card-controller/types';
+import type { Json } from '@metamask/utils';
 import { createStateFixture } from '../stateFixture';
 import {
   MONAD_MAINNET_CHAIN_ID,
@@ -65,7 +66,12 @@ export function moneyActivityViewState({
         ...moneyOverrides.engine,
         backgroundState: {
           ...moneyOverrides.engine.backgroundState,
-          CardController: { cashbackClaim },
+          CardController: {
+            cashbackClaim: cashbackClaim as unknown as Record<
+              string,
+              Json
+            > | null,
+          },
         },
       },
     })

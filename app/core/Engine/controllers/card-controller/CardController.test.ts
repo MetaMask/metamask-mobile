@@ -5139,7 +5139,6 @@ describe('CardController — data pass-throughs', () => {
         status: 'failed',
         amount: '10.5',
         moneyAddress: '0xMoneyAccount',
-        error: { reason: 'submit_failed' },
       });
     });
 

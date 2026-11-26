@@ -293,8 +293,6 @@ describeForPlatforms('MoneyActivityView cashback claims', () => {
     moneyAddress: MONEY_ACTIVITY_ACCOUNT,
     submittedAt: Date.now(),
     txHash: null,
-    chainId: '0x8f',
-    error: null,
     ...overrides,
   });
 

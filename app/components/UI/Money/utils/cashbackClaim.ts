@@ -7,7 +7,7 @@ import type { AccountsApiActivity } from '../types/moneyActivity';
 import { moneyFormatUsd } from './moneyFormatFiat';
 import { formatMusdAmount } from './moneyAmount';
 
-export const CASHBACK_CLAIM_TTL_MS = 10 * 60 * 1000;
+const CASHBACK_CLAIM_TTL_MS = 10 * 60 * 1000;
 const CASHBACK_CLAIM_TIME_TOLERANCE_MS = 60 * 1000;
 
 export function cashbackClaimDisplayInfo(

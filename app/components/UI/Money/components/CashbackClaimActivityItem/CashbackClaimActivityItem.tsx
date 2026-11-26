@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { CardCashbackClaim } from '../../../../core/Engine/controllers/card-controller/types';
+import type { CardCashbackClaim } from '../../../../../core/Engine/controllers/card-controller/types';
 import { cashbackClaimDisplayInfo } from '../../utils/cashbackClaim';
 import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 

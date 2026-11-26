@@ -207,8 +207,6 @@ describe('CardController selectors', () => {
         moneyAddress: '0xabc',
         submittedAt: 1,
         txHash: '0xdef',
-        chainId: '0xe708',
-        error: null,
       };
       const state = createMockRootState({ cashbackClaim });
       expect(selectCardCashbackClaim(state)).toEqual(cashbackClaim);

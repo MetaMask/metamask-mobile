@@ -3737,8 +3737,6 @@ export class CardController extends BaseController<
             moneyAddress: this.cashbackClaimMoneyAddress,
             submittedAt: value.submittedAt,
             txHash: value.txHash,
-            chainId: value.chainId,
-            error: value.error,
           }
         : null;
     this.update((s) => {

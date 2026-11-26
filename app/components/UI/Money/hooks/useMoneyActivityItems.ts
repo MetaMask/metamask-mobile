@@ -202,11 +202,13 @@ export function buildMoneyActivityBuckets(
   microdeposits: readonly MicrodepositActivity[] = [],
   cashbackClaim: CardCashbackClaim | null = null,
 ): MoneyActivityBuckets {
-  const withClaim = (items: MoneyActivityItem[]): MoneyActivityItem[] =>
+  const withCashbackClaim = (
+    items: MoneyActivityItem[],
+  ): MoneyActivityItem[] =>
     cashbackClaim ? [cashbackClaimItem(cashbackClaim), ...items] : items;
   return {
     [MoneyActivityFilter.All]: safeItems(
-      withClaim(
+      withCashbackClaim(
         mergeMoneyActivity(
           onchain.all,
           apiActivity,
@@ -239,10 +241,11 @@ export function buildMoneyActivityBuckets(
     [MoneyActivityFilter.Transfers]: onchainOnly(
       safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
     ),
-    // Purchases is API-only (+ declined card rows); the watermark gate still
-    // applies for same-timestamp siblings on the next page.
+    // Purchases is API-only (+ declined card rows and the pending cashback
+    // claim); the watermark gate still applies for same-timestamp siblings on
+    // the next page.
     [MoneyActivityFilter.Purchases]: safeItems(
-      withClaim(mergeMoneyActivity([], apiActivity, declinedCardTxs)),
+      withCashbackClaim(mergeMoneyActivity([], apiActivity, declinedCardTxs)),
       watermark,
     ),
   };

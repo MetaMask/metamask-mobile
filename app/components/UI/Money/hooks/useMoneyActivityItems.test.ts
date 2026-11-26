@@ -165,8 +165,6 @@ const createCashbackClaim = (
   moneyAddress: '0xmoney',
   submittedAt: 1_000,
   txHash: null,
-  chainId: '0x8f',
-  error: null,
   ...overrides,
 });
 
