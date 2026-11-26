@@ -16975,11 +16975,6 @@
       "count": 1
     }
   },
-  "app/components/Views/Settings/NotificationsSettings/hooks/useNotificationStoragePreferences.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    }
-  },
   "app/components/Views/Settings/NotificationsSettings/hooks/useOptimisticToggleValue.ts": {
     "typescript/promise-function-async": {
       "count": 2

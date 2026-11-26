@@ -308,6 +308,8 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
           'enableMetamaskNotifications',
         )
         .mockResolvedValue(undefined);
+      // The Engine mock shares this jest.fn across tests, so drop earlier calls.
+      enableSpy.mockClear();
       const engineWithState = Engine as unknown as {
         state: Record<string, unknown>;
       };

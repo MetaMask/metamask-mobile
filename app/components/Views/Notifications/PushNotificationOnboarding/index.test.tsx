@@ -592,7 +592,32 @@ describe('PushNotificationOnboarding', () => {
     expectPersonalizedAlertsOnToast();
   });
 
-  it('initializes notification preferences when the marketing prompt is confirmed', () => {
+  it('initializes notification preferences once marketing consent is saved when the marketing prompt is confirmed', async () => {
+    let resolveMarketingConsent: () => void = () => undefined;
+    mockEnableMarketingConsent.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveMarketingConsent = resolve;
+      }),
+    );
+    const { getByTestId } = renderPushNotificationOnboarding({
+      nativeOsPermissionEnabled: true,
+      prePromptVariant: 'marketing_consent',
+    });
+
+    fireEvent.press(getByTestId('mock-marketing-consent-confirm'));
+    await Promise.resolve();
+
+    expect(mockEnableNotificationsInBackground).not.toHaveBeenCalled();
+
+    resolveMarketingConsent();
+
+    await waitFor(() =>
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true),
+    );
+  });
+
+  it('initializes notification preferences when saving marketing consent fails', async () => {
+    mockEnableMarketingConsent.mockRejectedValue(new Error('AUS error'));
     const { getByTestId } = renderPushNotificationOnboarding({
       nativeOsPermissionEnabled: true,
       prePromptVariant: 'marketing_consent',
@@ -600,10 +625,12 @@ describe('PushNotificationOnboarding', () => {
 
     fireEvent.press(getByTestId('mock-marketing-consent-confirm'));
 
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+    await waitFor(() =>
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true),
+    );
   });
 
-  it('does not register push when confirming the marketing prompt without OS permission', () => {
+  it('does not register push when confirming the marketing prompt without OS permission', async () => {
     const { getByTestId } = renderPushNotificationOnboarding({
       nativeOsPermissionEnabled: null,
       prePromptVariant: 'marketing_consent',
@@ -612,7 +639,9 @@ describe('PushNotificationOnboarding', () => {
     fireEvent.press(getByTestId('mock-marketing-consent-confirm'));
 
     // Preferences are still initialized, only push registration is skipped.
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
+    await waitFor(() =>
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false),
+    );
   });
 
   it('does not enable marketing notifications when the marketing prompt is skipped', () => {

@@ -17,7 +17,6 @@ import {
 import { renderSecuritySettingsMarketingSection } from '../../../../../../../tests/component-view/renderers/seedlessOnboarding';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
-import Routes from '../../../../../../constants/navigation/Routes';
 import type { DeepPartial } from '../../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../../reducers';
 
@@ -60,8 +59,6 @@ describeForPlatforms(
           screen.store.getState().security.dataCollectionForMarketing,
         ).toBe(false);
       });
-
-      await screen.findByTestId(`route-${Routes.MODAL.ROOT_MODAL_FLOW}`);
 
       // Relaunch: the section remounts on the restored local state.
       const persistedState = screen.store.getState();

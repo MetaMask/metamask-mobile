@@ -64,8 +64,6 @@ describe('usePushPermissionNotificationSetup', () => {
 
     await waitFor(() => {
       expect(enableNotifications).toHaveBeenCalledWith({
-        hasMarketingConsent: true,
-        productAnnouncementEnabled: true,
         registerPushNotifications: true,
       });
     });
@@ -82,7 +80,7 @@ describe('usePushPermissionNotificationSetup', () => {
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
-  it('passes marketing options when initializing notification preferences from the prompt', async () => {
+  it('initializes new notification preferences without deprecated marketing options or a marketing update', async () => {
     const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     act(() => {
@@ -90,14 +88,13 @@ describe('usePushPermissionNotificationSetup', () => {
     });
 
     await waitFor(() => {
-      expect(enableNotifications).toHaveBeenCalledWith({
-        hasMarketingConsent: true,
-        productAnnouncementEnabled: true,
-        registerPushNotifications: true,
-      });
+      expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
+    });
+    expect(enableNotifications).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(enableNotifications).mock.calls[0][0]).toStrictEqual({
+      registerPushNotifications: true,
     });
     expect(setMarketingNotificationPreferencesEnabled).not.toHaveBeenCalled();
-    expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
   it('updates existing marketing preferences when enabling notifications from the prompt', async () => {
@@ -117,6 +114,12 @@ describe('usePushPermissionNotificationSetup', () => {
       expect(setMarketingNotificationPreferencesEnabled).toHaveBeenCalledWith(
         true,
       ),
+    );
+    expect(
+      jest.mocked(enableNotifications).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(setMarketingNotificationPreferencesEnabled).mock
+        .invocationCallOrder[0],
     );
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
@@ -138,8 +141,6 @@ describe('usePushPermissionNotificationSetup', () => {
 
     await waitFor(() => {
       expect(enableNotifications).toHaveBeenCalledWith({
-        hasMarketingConsent: true,
-        productAnnouncementEnabled: true,
         registerPushNotifications: false,
       });
     });

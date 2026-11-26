@@ -880,10 +880,6 @@ describe('App', () => {
       expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
     });
 
-    it('has data collection route defined', () => {
-      expect(Routes.SHEET.DATA_COLLECTION).toBeDefined();
-    });
-
     it('has account connect route defined', () => {
       expect(Routes.SHEET.ACCOUNT_CONNECT).toBeDefined();
     });
@@ -1183,10 +1179,6 @@ describe('App', () => {
 
     it('has experience enhancer route defined', () => {
       expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
-    });
-
-    it('has data collection route defined', () => {
-      expect(Routes.SHEET.DATA_COLLECTION).toBeDefined();
     });
 
     it('has fiat on testnets friction route defined', () => {
