@@ -4,6 +4,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyHistoricalVaultApys } from '../services/moneyHistoricalVaultApys';
 import type { VaultApyHistoryResponse } from '../types/moneyHistoricalVaultApys';
+import { getMoneyVaultChainId } from '../utils/getMoneyVaultChainId';
 
 const HISTORICAL_VAULT_APYS_STALE_TIME = 15 * 60 * 1000; // 15 minutes
 
@@ -22,12 +23,9 @@ export const useHistoricalVaultApys = ({
 }: UseHistoricalVaultApysOptions = {}): UseQueryResult<VaultApyHistoryResponse> => {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const normalizedVaultAddress = vaultConfig?.boringVault?.toLowerCase();
-  const configuredChainId = vaultConfig?.chainId;
-  const chainId =
-    configuredChainId === undefined ? undefined : Number(configuredChainId);
-  const isValidChainId = chainId !== undefined && Number.isSafeInteger(chainId);
+  const chainId = getMoneyVaultChainId(vaultConfig);
   const isEnabled =
-    enabled && Boolean(normalizedVaultAddress && isValidChainId);
+    enabled && Boolean(normalizedVaultAddress && chainId !== undefined);
 
   return useQuery({
     queryKey: [
@@ -36,7 +34,7 @@ export const useHistoricalVaultApys = ({
       chainId,
     ],
     queryFn: async () => {
-      if (!normalizedVaultAddress || !isValidChainId || chainId === undefined) {
+      if (!normalizedVaultAddress || chainId === undefined) {
         throw new Error(
           'Cannot fetch Money historical vault APYs without a vault address and valid chain ID',
         );

@@ -6,10 +6,10 @@ import {
   moneyHistoricalEarningsResponse,
   withRangeOverride,
 } from '../../__fixtures__/moneyInterestHistory';
+import { moneyVaultCompositionResponse } from '../../__fixtures__/moneyVaultComposition';
 import {
   clearMoneyEarningsApiMocks,
   clearMoneyAllocationApiMocks,
-  moneyVaultCompositionResponse,
   setupMoneyAllocationApiMock,
   setupMoneyEarningsApiMock,
 } from '../../../../../../tests/component-view/api-mocking/moneyEarnings';
@@ -291,12 +291,20 @@ describe('MoneyEarningsView', () => {
       clearMoneyAllocationApiMocks();
     });
 
+    const renderOnAllocationTab = async () => {
+      const queries = renderMoneyEarningsView();
+
+      await queries.findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+      fireEvent.press(
+        queries.getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION),
+      );
+
+      return queries;
+    };
+
     it('renders allocation data after the Allocation tab is selected', async () => {
       const { findByTestId, findByText, getByTestId, getByText } =
-        renderMoneyEarningsView();
-
-      await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
-      fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+        await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
@@ -413,10 +421,7 @@ describe('MoneyEarningsView', () => {
 
     it('shows allocation loading state before composition data resolves', async () => {
       const { findByTestId, getAllByTestId, getByTestId } =
-        renderMoneyEarningsView();
-
-      await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
-      fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+        await renderOnAllocationTab();
 
       expect(
         getByTestId(MoneyVaultCompositionChartTestIds.LOADING),
@@ -434,11 +439,8 @@ describe('MoneyEarningsView', () => {
         compositionStatus: 500,
         historicalApyStatus: 200,
       });
-      const { findByTestId, findByText, getByTestId, getByText } =
-        renderMoneyEarningsView();
-
-      await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
-      fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+      const { findByTestId, findByText, getByText } =
+        await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_ERROR),
@@ -462,10 +464,7 @@ describe('MoneyEarningsView', () => {
     it('shows allocation error when composition returns no data', async () => {
       setupMoneyAllocationApiMock({ compositionResponse: null });
       const { findByTestId, getByTestId, getByText } =
-        renderMoneyEarningsView();
-
-      await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
-      fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+        await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_ERROR),
@@ -482,11 +481,7 @@ describe('MoneyEarningsView', () => {
           components: [],
         },
       });
-      const { findByTestId, getByTestId, queryByTestId } =
-        renderMoneyEarningsView();
-
-      await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
-      fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+      const { findByTestId, queryByTestId } = await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_EMPTY),
@@ -505,10 +500,7 @@ describe('MoneyEarningsView', () => {
         },
       });
       const { findByTestId, getByTestId, queryByText } =
-        renderMoneyEarningsView();
-
-      await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
-      fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+        await renderOnAllocationTab();
 
       expect(
         await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_DEGRADED),

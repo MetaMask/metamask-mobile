@@ -1,5 +1,5 @@
 import type { VaultCompositionResponse } from '../types/moneyVaultComposition';
-import { getMoneyAccountApiBaseUrl } from './moneyAccountApi';
+import { fetchMoneyAccountApi } from './moneyAccountApi';
 
 /**
  * Fetches the latest published composition snapshot for a Money vault.
@@ -14,21 +14,10 @@ export const fetchMoneyVaultComposition = async (
   chainId: number,
 ): Promise<VaultCompositionResponse> => {
   const normalizedAddress = address.toLowerCase();
-  const url = new URL(
+  return await fetchMoneyAccountApi<VaultCompositionResponse>(
     `/v1/vaults/${normalizedAddress}/composition`,
-    getMoneyAccountApiBaseUrl(),
+    { chain_id: chainId },
+    'vault composition',
+    { includeStatus: true },
   );
-  url.searchParams.set('chain_id', String(chainId));
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw Object.assign(
-      new Error(
-        `Money Account API vault composition request failed with status '${response.status}'`,
-      ),
-      { status: response.status },
-    );
-  }
-
-  return (await response.json()) as VaultCompositionResponse;
 };

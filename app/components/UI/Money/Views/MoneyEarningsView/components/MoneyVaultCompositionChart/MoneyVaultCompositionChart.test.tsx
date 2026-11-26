@@ -7,6 +7,7 @@ import {
 import { act } from '@testing-library/react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { createVaultCompositionComponent } from '../../../../__fixtures__/moneyVaultComposition';
 import type { VaultCompositionComponent } from '../../../../types/moneyVaultComposition';
 import MoneyVaultCompositionChart from './MoneyVaultCompositionChart';
 import { MoneyVaultCompositionChartTestIds } from './MoneyVaultCompositionChart.testIds';
@@ -34,31 +35,26 @@ const createComponent = (
   componentKey: VaultCompositionComponent['component_key'],
   overrides: Partial<VaultCompositionComponent> = {},
 ): VaultCompositionComponent => ({
-  component_key: componentKey,
-  label: componentKey,
-  protocol:
-    componentKey === 'aave_v3_musd'
-      ? 'aave_v3'
-      : componentKey.startsWith('morpho')
-        ? 'morpho_v2'
-        : 'liquidity_buffer',
-  assets: [
-    {
-      asset_symbol: componentKey.endsWith('usdc') ? 'USDC' : 'mUSD',
-      amount: '1',
-      value_usd: '1',
-    },
-  ],
-  allocation_value_usd: '1',
-  allocation_fraction: '0.2',
-  organic_supply_apy: '0',
-  incentive_apr: null,
-  estimated_total_annual_rate: null,
-  weighted_organic_apy_contribution: '0',
-  weighted_incentive_apr_contribution: null,
-  campaign_ends_at: null,
-  source_links: [],
-  ...overrides,
+  ...createVaultCompositionComponent({
+    component_key: componentKey,
+    label: componentKey,
+    protocol:
+      componentKey === 'aave_v3_musd'
+        ? 'aave_v3'
+        : componentKey.startsWith('morpho')
+          ? 'morpho_v2'
+          : 'liquidity_buffer',
+    assets: [
+      {
+        asset_symbol: componentKey.endsWith('usdc') ? 'USDC' : 'mUSD',
+        amount: '1',
+        value_usd: '1',
+      },
+    ],
+    allocation_value_usd: '1',
+    allocation_fraction: '0.2',
+    ...overrides,
+  }),
 });
 
 const createComponents = (count: number): VaultCompositionComponent[] =>

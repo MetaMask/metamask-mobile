@@ -77,8 +77,8 @@ describe('useMoneyVaultComposition', () => {
 
     expect(queryOptions.queryKey).toEqual([
       MoneyQueryKeys.FETCH_VAULT_COMPOSITION,
-      VAULT_CONFIG.boringVault,
-      VAULT_CONFIG.chainId,
+      VAULT_CONFIG.boringVault.toLowerCase(),
+      143,
     ]);
     expect(queryOptions.enabled).toBe(true);
   });
@@ -103,6 +103,14 @@ describe('useMoneyVaultComposition', () => {
     expect(getQueryOptions().enabled).toBe(false);
   });
 
+  it('disables the query when the vault chain ID is invalid', () => {
+    setSelector({ ...VAULT_CONFIG, chainId: 'invalid' });
+
+    renderHook(() => useMoneyVaultComposition());
+
+    expect(getQueryOptions().enabled).toBe(false);
+  });
+
   it('passes the configured address and parsed chain ID to the composition service', async () => {
     mockFetchMoneyVaultComposition.mockResolvedValue(MOCK_RESPONSE);
     renderHook(() => useMoneyVaultComposition());
@@ -112,7 +120,7 @@ describe('useMoneyVaultComposition', () => {
 
     expect(result).toBe(MOCK_RESPONSE);
     expect(mockFetchMoneyVaultComposition).toHaveBeenCalledWith(
-      VAULT_CONFIG.boringVault,
+      VAULT_CONFIG.boringVault.toLowerCase(),
       143,
     );
   });

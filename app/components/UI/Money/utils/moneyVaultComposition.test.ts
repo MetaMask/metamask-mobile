@@ -1,3 +1,4 @@
+import { createVaultCompositionComponent } from '../__fixtures__/moneyVaultComposition';
 import type { VaultCompositionComponent } from '../types/moneyVaultComposition';
 import {
   formatVaultCompositionLabel,
@@ -6,30 +7,11 @@ import {
   getVaultCompositionPrimaryAssetSymbol,
 } from './moneyVaultComposition';
 
-const createComponent = (
-  overrides: Partial<VaultCompositionComponent> = {},
-): VaultCompositionComponent => ({
-  component_key: 'direct_idle_musd',
-  label: 'Idle mUSD',
-  protocol: 'liquidity_buffer',
-  assets: [{ asset_symbol: 'mUSD', amount: '1', value_usd: '1' }],
-  allocation_value_usd: '1',
-  allocation_fraction: '1',
-  organic_supply_apy: '0',
-  incentive_apr: null,
-  estimated_total_annual_rate: null,
-  weighted_organic_apy_contribution: '0',
-  weighted_incentive_apr_contribution: null,
-  campaign_ends_at: null,
-  source_links: [],
-  ...overrides,
-});
-
 describe('formatVaultCompositionLabel', () => {
   it('formats Aave protocol versions', () => {
     expect(
       formatVaultCompositionLabel(
-        createComponent({
+        createVaultCompositionComponent({
           protocol: 'aave_v3',
           assets: [{ asset_symbol: 'mUSD', amount: '1', value_usd: '1' }],
         }),
@@ -40,7 +22,7 @@ describe('formatVaultCompositionLabel', () => {
   it('formats Morpho protocol versions', () => {
     expect(
       formatVaultCompositionLabel(
-        createComponent({
+        createVaultCompositionComponent({
           protocol: 'morpho_v2',
           assets: [{ asset_symbol: 'USDC', amount: '1', value_usd: '1' }],
         }),
@@ -49,7 +31,7 @@ describe('formatVaultCompositionLabel', () => {
   });
 
   it('formats liquidity buffer as cash reserve', () => {
-    expect(formatVaultCompositionLabel(createComponent())).toBe(
+    expect(formatVaultCompositionLabel(createVaultCompositionComponent())).toBe(
       'Cash reserve · mUSD',
     );
   });
@@ -57,7 +39,7 @@ describe('formatVaultCompositionLabel', () => {
   it('formats new protocol identifiers dynamically', () => {
     expect(
       formatVaultCompositionLabel(
-        createComponent({
+        createVaultCompositionComponent({
           protocol: 'compound_v3' as VaultCompositionComponent['protocol'],
           assets: [{ asset_symbol: 'USDC', amount: '1', value_usd: '1' }],
         }),
@@ -68,7 +50,7 @@ describe('formatVaultCompositionLabel', () => {
   it('uses only the first asset', () => {
     expect(
       formatVaultCompositionLabel(
-        createComponent({
+        createVaultCompositionComponent({
           protocol: 'aave_v3',
           assets: [
             { asset_symbol: 'mUSD', amount: '1', value_usd: '1' },
@@ -81,7 +63,9 @@ describe('formatVaultCompositionLabel', () => {
 
   it('throws when the component has no asset symbol', () => {
     expect(() =>
-      formatVaultCompositionLabel(createComponent({ assets: [] })),
+      formatVaultCompositionLabel(
+        createVaultCompositionComponent({ assets: [] }),
+      ),
     ).toThrow(
       'Cannot format vault composition component without an asset symbol',
     );
@@ -90,7 +74,7 @@ describe('formatVaultCompositionLabel', () => {
 
 describe('vault composition label helpers', () => {
   it('returns the first asset symbol', () => {
-    const component = createComponent({
+    const component = createVaultCompositionComponent({
       assets: [
         { asset_symbol: 'mUSD', amount: '1', value_usd: '1' },
         { asset_symbol: 'USDC', amount: '1', value_usd: '1' },
@@ -116,7 +100,9 @@ describe('vault composition label helpers', () => {
 
   it('throws when the primary asset is missing', () => {
     expect(() =>
-      getVaultCompositionPrimaryAssetSymbol(createComponent({ assets: [] })),
+      getVaultCompositionPrimaryAssetSymbol(
+        createVaultCompositionComponent({ assets: [] }),
+      ),
     ).toThrow(
       'Cannot format vault composition component without an asset symbol',
     );

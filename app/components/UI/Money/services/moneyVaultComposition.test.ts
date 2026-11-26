@@ -1,5 +1,11 @@
-import { ApiEnv } from '../../../../core/apiEnv';
+import { fetchMoneyAccountApi } from './moneyAccountApi';
 import { fetchMoneyVaultComposition } from './moneyVaultComposition';
+
+jest.mock('./moneyAccountApi', () => ({
+  fetchMoneyAccountApi: jest.fn(),
+}));
+
+const mockFetchMoneyAccountApi = jest.mocked(fetchMoneyAccountApi);
 
 const MOCK_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 const MOCK_CHAIN_ID = 143;
@@ -10,46 +16,25 @@ const MOCK_RESPONSE = {
   nav_usd: '12.34',
 };
 
-const createResponse = (body: unknown, status = 200): Response =>
-  ({
-    ok: status >= 200 && status < 300,
-    status,
-    json: async () => body,
-  }) as Response;
-
 describe('fetchMoneyVaultComposition', () => {
-  const originalApiEnv = process.env.MM_API_ENV;
-
   afterEach(() => {
-    if (originalApiEnv === undefined) {
-      delete process.env.MM_API_ENV;
-    } else {
-      process.env.MM_API_ENV = originalApiEnv;
-    }
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
-  it.each([
-    [ApiEnv.Dev, 'https://money.dev-api.cx.metamask.io'],
-    [ApiEnv.Uat, 'https://money.uat-api.cx.metamask.io'],
-    [ApiEnv.Prod, 'https://money.api.cx.metamask.io'],
-  ] as const)('uses the %s Money API host', async (apiEnv, baseUrl) => {
-    process.env.MM_API_ENV = apiEnv;
-    const mockFetch = jest
-      .spyOn(global, 'fetch')
-      .mockResolvedValue(createResponse(MOCK_RESPONSE));
-
+  it('delegates to the shared Money Account API fetcher', async () => {
+    mockFetchMoneyAccountApi.mockResolvedValue(MOCK_RESPONSE);
     await fetchMoneyVaultComposition(MOCK_ADDRESS, MOCK_CHAIN_ID);
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      `${baseUrl}/v1/vaults/${MOCK_ADDRESS.toLowerCase()}/composition?chain_id=${MOCK_CHAIN_ID}`,
+    expect(mockFetchMoneyAccountApi).toHaveBeenCalledWith(
+      `/v1/vaults/${MOCK_ADDRESS.toLowerCase()}/composition`,
+      { chain_id: MOCK_CHAIN_ID },
+      'vault composition',
+      { includeStatus: true },
     );
   });
 
   it('returns the decoded composition response', async () => {
-    const mockFetch = jest
-      .spyOn(global, 'fetch')
-      .mockResolvedValue(createResponse(MOCK_RESPONSE));
+    mockFetchMoneyAccountApi.mockResolvedValue(MOCK_RESPONSE);
 
     const result = await fetchMoneyVaultComposition(
       MOCK_ADDRESS,
@@ -57,15 +42,16 @@ describe('fetchMoneyVaultComposition', () => {
     );
 
     expect(result).toEqual(MOCK_RESPONSE);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining(MOCK_ADDRESS.toLowerCase()),
-    );
   });
 
   it('throws an error with the HTTP status for non-2xx responses', async () => {
-    jest
-      .spyOn(global, 'fetch')
-      .mockResolvedValue(createResponse({ message: 'unavailable' }, 503));
+    const error = Object.assign(
+      new Error(
+        "Money Account API vault composition request failed with status '503'",
+      ),
+      { status: 503 },
+    );
+    mockFetchMoneyAccountApi.mockRejectedValue(error);
 
     await expect(
       fetchMoneyVaultComposition(MOCK_ADDRESS, MOCK_CHAIN_ID),

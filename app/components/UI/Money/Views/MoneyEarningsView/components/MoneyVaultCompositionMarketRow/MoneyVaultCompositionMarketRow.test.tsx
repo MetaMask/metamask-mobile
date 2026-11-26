@@ -4,29 +4,10 @@ import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../../../../util/theme';
 import { strings } from '../../../../../../../../locales/i18n';
-import type { VaultCompositionComponent } from '../../../../types/moneyVaultComposition';
+import { createVaultCompositionComponent } from '../../../../__fixtures__/moneyVaultComposition';
 import { getVaultCompositionComponentColor } from '../MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
 import MoneyVaultCompositionMarketRow from './MoneyVaultCompositionMarketRow';
 import { MoneyVaultCompositionMarketRowTestIds } from './MoneyVaultCompositionMarketRow.testIds';
-
-const createComponent = (
-  overrides: Partial<VaultCompositionComponent> = {},
-): VaultCompositionComponent => ({
-  component_key: 'aave_v3_musd',
-  label: 'Aave mUSD',
-  protocol: 'aave_v3',
-  assets: [{ asset_symbol: 'mUSD', amount: '1', value_usd: '1' }],
-  allocation_value_usd: '0.38',
-  allocation_fraction: '0.38',
-  organic_supply_apy: '0.1234',
-  incentive_apr: null,
-  estimated_total_annual_rate: '0.051',
-  weighted_organic_apy_contribution: '0',
-  weighted_incentive_apr_contribution: null,
-  campaign_ends_at: null,
-  source_links: [],
-  ...overrides,
-});
 
 describe('MoneyVaultCompositionMarketRow', () => {
   it('renders loading placeholders without component data', () => {
@@ -40,7 +21,15 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('renders market, asset, allocation, and estimated APY values', () => {
-    const component = createComponent();
+    const component = createVaultCompositionComponent({
+      component_key: 'aave_v3_musd',
+      label: 'Aave mUSD',
+      protocol: 'aave_v3',
+      allocation_value_usd: '0.38',
+      allocation_fraction: '0.38',
+      organic_supply_apy: '0.1234',
+      estimated_total_annual_rate: '0.051',
+    });
 
     const { getByTestId } = renderWithProvider(
       <MoneyVaultCompositionMarketRow
@@ -78,7 +67,7 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('renders unavailable when estimated APY is null', () => {
-    const component = createComponent({
+    const component = createVaultCompositionComponent({
       estimated_total_annual_rate: null,
     });
 
@@ -97,7 +86,9 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('renders a dash for a zero estimated APY', () => {
-    const component = createComponent({ estimated_total_annual_rate: '0' });
+    const component = createVaultCompositionComponent({
+      estimated_total_annual_rate: '0',
+    });
 
     const { getByTestId } = renderWithProvider(
       <MoneyVaultCompositionMarketRow
@@ -114,7 +105,7 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('renders cash reserve without a network suffix', () => {
-    const component = createComponent({
+    const component = createVaultCompositionComponent({
       component_key: 'direct_idle_musd',
       protocol: 'liquidity_buffer',
     });
@@ -143,7 +134,7 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('uses estimated APY instead of organic supply APY', () => {
-    const component = createComponent({
+    const component = createVaultCompositionComponent({
       organic_supply_apy: '0.9',
       estimated_total_annual_rate: '0.0123',
     });
@@ -163,7 +154,7 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('rounds allocation and APY values to one decimal place', () => {
-    const component = createComponent({
+    const component = createVaultCompositionComponent({
       allocation_fraction: '0.1235',
       estimated_total_annual_rate: '0.1235',
     });
@@ -190,7 +181,11 @@ describe('MoneyVaultCompositionMarketRow', () => {
   });
 
   it('uses the shared chart color and hides the indicator from accessibility', () => {
-    const component = createComponent();
+    const component = createVaultCompositionComponent({
+      component_key: 'aave_v3_musd',
+      protocol: 'aave_v3',
+      estimated_total_annual_rate: '0.051',
+    });
 
     const { getByTestId, UNSAFE_getAllByProps: getAllByProps } =
       renderWithProvider(

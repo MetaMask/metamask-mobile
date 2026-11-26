@@ -2,6 +2,7 @@ import type {
   VaultCompositionComponent,
   VaultCompositionResponse,
 } from '../../../../types/moneyVaultComposition';
+import { createVaultCompositionComponent } from '../../../../__fixtures__/moneyVaultComposition';
 import { mockTheme } from '../../../../../../../util/theme';
 import {
   buildVaultCompositionChartModel,
@@ -11,22 +12,11 @@ import {
 
 const createComponent = (
   overrides: Partial<VaultCompositionComponent> = {},
-): VaultCompositionComponent => ({
-  component_key: 'direct_idle_musd',
-  label: 'Idle mUSD',
-  protocol: 'liquidity_buffer',
-  assets: [],
-  allocation_value_usd: '1',
-  allocation_fraction: '0.38',
-  organic_supply_apy: '0',
-  incentive_apr: null,
-  estimated_total_annual_rate: null,
-  weighted_organic_apy_contribution: '0',
-  weighted_incentive_apr_contribution: null,
-  campaign_ends_at: null,
-  source_links: [],
-  ...overrides,
-});
+): VaultCompositionComponent =>
+  createVaultCompositionComponent({
+    allocation_fraction: '0.38',
+    ...overrides,
+  });
 
 const createComponents = (
   components: VaultCompositionComponent[],

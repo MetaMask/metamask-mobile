@@ -1,34 +1,21 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import type { VaultCompositionComponent } from '../../../../types/moneyVaultComposition';
+import { createVaultCompositionComponent } from '../../../../__fixtures__/moneyVaultComposition';
 import MoneyVaultCompositionMarketsTable from './MoneyVaultCompositionMarketsTable';
 import { MoneyVaultCompositionMarketsTableTestIds } from './MoneyVaultCompositionMarketsTable.testIds';
 import { MoneyVaultCompositionMarketRowTestIds } from '../MoneyVaultCompositionMarketRow/MoneyVaultCompositionMarketRow.testIds';
-
-const createComponent = (
-  componentKey: VaultCompositionComponent['component_key'],
-  allocationFraction: string,
-): VaultCompositionComponent => ({
-  component_key: componentKey,
-  label: componentKey,
-  protocol: componentKey === 'aave_v3_musd' ? 'aave_v3' : 'morpho_v2',
-  assets: [{ asset_symbol: 'mUSD', amount: '1', value_usd: '1' }],
-  allocation_value_usd: allocationFraction,
-  allocation_fraction: allocationFraction,
-  organic_supply_apy: '0.1',
-  incentive_apr: null,
-  estimated_total_annual_rate: null,
-  weighted_organic_apy_contribution: '0',
-  weighted_incentive_apr_contribution: null,
-  campaign_ends_at: null,
-  source_links: [],
-});
 
 describe('MoneyVaultCompositionMarketsTable', () => {
   it('renders localized headers', () => {
     const { getByTestId } = renderWithProvider(
       <MoneyVaultCompositionMarketsTable
-        components={[createComponent('aave_v3_musd', '1')]}
+        components={[
+          createVaultCompositionComponent({
+            component_key: 'aave_v3_musd',
+            label: 'aave_v3_musd',
+            protocol: 'aave_v3',
+          }),
+        ]}
         marketLabel="Markets"
         allocationLabel="Allocation"
         apyLabel="APY"
@@ -73,9 +60,21 @@ describe('MoneyVaultCompositionMarketsTable', () => {
 
   it('filters zero allocations and preserves chart ordering', () => {
     const components = [
-      createComponent('aave_v3_musd', '0.3'),
-      createComponent('direct_idle_usdc', '0.6'),
-      createComponent('morpho_v2_musd', '0'),
+      createVaultCompositionComponent({
+        component_key: 'aave_v3_musd',
+        allocation_value_usd: '0.3',
+        allocation_fraction: '0.3',
+      }),
+      createVaultCompositionComponent({
+        component_key: 'direct_idle_usdc',
+        allocation_value_usd: '0.6',
+        allocation_fraction: '0.6',
+      }),
+      createVaultCompositionComponent({
+        component_key: 'morpho_v2_musd',
+        allocation_value_usd: '0',
+        allocation_fraction: '0',
+      }),
     ];
 
     const { getAllByTestId, queryByTestId } = renderWithProvider(

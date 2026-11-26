@@ -1,5 +1,5 @@
 import type { VaultApyHistoryResponse } from '../types/moneyHistoricalVaultApys';
-import { getMoneyAccountApiBaseUrl } from './moneyAccountApi';
+import { fetchMoneyAccountApi } from './moneyAccountApi';
 
 /**
  * Fetches historical APYs for a Money vault.
@@ -14,19 +14,10 @@ export const fetchMoneyHistoricalVaultApys = async (
   chainId: number,
 ): Promise<VaultApyHistoryResponse> => {
   const normalizedAddress = vaultAddress.toLowerCase();
-  const url = new URL('/v1/vaults/apy-history', getMoneyAccountApiBaseUrl());
-  url.searchParams.set('chain_id', String(chainId));
-  url.searchParams.set('vault_address', normalizedAddress);
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw Object.assign(
-      new Error(
-        `Money Account API vault APY history request failed with status '${response.status}'`,
-      ),
-      { status: response.status },
-    );
-  }
-
-  return (await response.json()) as VaultApyHistoryResponse;
+  return await fetchMoneyAccountApi<VaultApyHistoryResponse>(
+    '/v1/vaults/apy-history',
+    { chain_id: chainId, vault_address: normalizedAddress },
+    'vault APY history',
+    { includeStatus: true },
+  );
 };

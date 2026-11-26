@@ -1,9 +1,10 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyVaultComposition } from '../services/moneyVaultComposition';
 import type { VaultCompositionResponse } from '../types/moneyVaultComposition';
-import { useSelector } from 'react-redux';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { getMoneyVaultChainId } from '../utils/getMoneyVaultChainId';
 
 const VAULT_COMPOSITION_STALE_TIME = 15 * 60 * 1000; // 15 minutes
 
@@ -21,23 +22,26 @@ export const useMoneyVaultComposition = ({
   enabled = true,
 }: UseMoneyVaultCompositionOptions = {}): UseQueryResult<VaultCompositionResponse> => {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  const vaultAddress = vaultConfig?.boringVault;
-  const chainId = vaultConfig?.chainId;
-  const hasValidConfig = Boolean(vaultAddress && chainId);
+  const normalizedVaultAddress = vaultConfig?.boringVault?.toLowerCase();
+  const chainId = getMoneyVaultChainId(vaultConfig);
+  const hasValidConfig = Boolean(
+    normalizedVaultAddress && chainId !== undefined,
+  );
 
   return useQuery({
-    queryKey: [MoneyQueryKeys.FETCH_VAULT_COMPOSITION, vaultAddress, chainId],
+    queryKey: [
+      MoneyQueryKeys.FETCH_VAULT_COMPOSITION,
+      normalizedVaultAddress,
+      chainId,
+    ],
     queryFn: async () => {
-      if (!vaultAddress || !chainId) {
+      if (!normalizedVaultAddress || chainId === undefined) {
         throw new Error(
           'Cannot fetch Money vault composition without a vault address and valid chain ID',
         );
       }
 
-      return await fetchMoneyVaultComposition(
-        vaultAddress,
-        Number.parseInt(chainId, 16),
-      );
+      return await fetchMoneyVaultComposition(normalizedVaultAddress, chainId);
     },
     staleTime: VAULT_COMPOSITION_STALE_TIME,
     enabled: enabled && hasValidConfig,
