@@ -53,6 +53,22 @@ const isAnyMoneyAccountMigrating = () =>
     Engine.context.MoneyAccountLifecycleController.state.moneyAccounts,
   ).some((lifecycle) => lifecycle.type === 'migrating');
 
+const hasMigratedMoneyAccount = () =>
+  Object.values(
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts,
+  ).some((lifecycle) => lifecycle.type === 'mfa');
+
+// A resumed or retried run may find CHOMP already migrating or done, e.g. after the app was killed mid-run.
+const startMigrationUnlessUnderway = async (trigger: MoneyMfaSetupTrigger) => {
+  if (trigger !== 'turn_on') {
+    await Engine.context.MoneyAccountLifecycleController.refresh();
+    if (hasMigratedMoneyAccount() || isAnyMoneyAccountMigrating()) {
+      return;
+    }
+  }
+  await Engine.context.MoneyAccountLifecycleController.startMigration();
+};
+
 class MigrationTimeoutError extends Error {
   constructor() {
     super('Money account migration did not finish in time');
@@ -117,8 +133,7 @@ export const moneyAccountMigration = {
           op: TraceOperation.MoneyMfaSetup,
           parentContext: setupTrace,
         },
-        async () =>
-          Engine.context.MoneyAccountLifecycleController.startMigration(),
+        async () => startMigrationUnlessUnderway(trigger),
       );
       phase = 'funds_transfer_status';
       await trace(

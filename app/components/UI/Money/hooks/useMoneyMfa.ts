@@ -147,7 +147,7 @@ export const useMoneyMfa = () => {
     }
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
-  } else if (migrationStatus === 'failed' && !isMigrated) {
+  } else if (migrationStatus === 'failed' && !isMoneyAccountMfaEnabled) {
     status = 'failed';
   } else if (isMoneyAccountMfaEnabled) {
     status = 'enabled';

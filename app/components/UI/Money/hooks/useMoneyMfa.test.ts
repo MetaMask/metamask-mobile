@@ -387,6 +387,16 @@ describe('useMoneyMfa', () => {
       expectToast('money.mfa.toast_on');
     });
 
+    it('shows the failed banner when a run failed on an account that is already the 2FA account', () => {
+      setMigration('failed');
+      const { result } = arrange({
+        lifecycle: mfaLifecycle,
+        primaryAddress: MPC_ADDRESS,
+      });
+
+      expect(result.current.status).toBe('failed');
+    });
+
     it('shows the setting-up banner again for a new migration', async () => {
       moneyMfaStore.setState({ isMigrationBannerDismissed: true });
       const finish = deferMigration();
