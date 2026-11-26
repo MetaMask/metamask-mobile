@@ -43,7 +43,7 @@ export const LIGHTER_PERPS_ROUTE_TYPE = 0;
  * Lighter returns this application code when the L1 address has no account.
  * The HTTP status is 400.
  */
-const LIGHTER_ACCOUNT_NOT_FOUND_CODE = 21100;
+export const LIGHTER_ACCOUNT_NOT_FOUND_CODE = 21100;
 
 const LIGHTER_DEPOSIT_SELECTOR = '0x8a857083';
 

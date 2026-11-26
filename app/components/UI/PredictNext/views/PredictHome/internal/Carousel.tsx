@@ -35,6 +35,11 @@ export interface CarouselProps<T> {
    */
   cardWidth: number;
   /**
+   * Minimum height of each card slot, in points.
+   * @default 220
+   */
+  cardHeight?: number;
+  /**
    * Space between cards, in points.
    * @default 12
    */
@@ -67,6 +72,7 @@ export function Carousel<T>({
   idPrefix,
   skeletonCount = SKELETON_PLACEHOLDER_COUNT,
   cardWidth,
+  cardHeight = CARD_HEIGHT,
   gap = DEFAULT_GAP,
   renderFooter,
   viewabilityConfig = DEFAULT_VIEWABILITY_CONFIG,
@@ -107,7 +113,7 @@ export function Carousel<T>({
             borderColor={BoxBorderColor.BorderDefault}
             style={tw.style({
               width: isLastItem ? cardWidth : slotWidth,
-              minHeight: CARD_HEIGHT,
+              minHeight: cardHeight,
               ...(isLastItem ? {} : { paddingRight: gap }),
             })}
             twClassName="rounded-2xl overflow-hidden"

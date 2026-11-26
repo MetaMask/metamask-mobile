@@ -164,6 +164,15 @@ describe('resolveCardHomeWaitingCopyStep', () => {
     );
   });
 
+  it('drops the signed-out copy once a signed-in reconcile check starts', () => {
+    expect(
+      resolveCardHomeWaitingCopyStep(
+        'immersve-reconciling',
+        'signed-out-kyc-pending',
+      ),
+    ).toBe('immersve-reconciling');
+  });
+
   it('returns the step itself once the check has settled', () => {
     expect(resolveCardHomeWaitingCopyStep('creating-card', null)).toBe(
       'creating-card',

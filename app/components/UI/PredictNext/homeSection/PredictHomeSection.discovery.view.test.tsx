@@ -293,8 +293,8 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
         home: 'Steelers',
         awayScore: '17',
         homeScore: '21',
-        awayQuote: 'PAC · 41¢',
-        homeQuote: 'STE · 59¢',
+        awayQuote: '41%',
+        homeQuote: '59%',
         competition: 'NFL',
       });
       expectPredictNextGameCard(discovery, 'nfl-2', {
@@ -302,16 +302,16 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
         home: 'Cardinals',
         awayScore: '10',
         homeScore: '7',
-        awayQuote: 'PAN · 36¢',
-        homeQuote: 'CAR · 64¢',
+        awayQuote: '36%',
+        homeQuote: '64%',
       });
       expectPredictNextGameCard(discovery, 'ncaa-1', {
         away: 'Pittsburgh',
         home: 'Miami',
         awayScore: '24',
         homeScore: '31',
-        awayQuote: 'PIT · 47¢',
-        homeQuote: 'MIA · 53¢',
+        awayQuote: '47%',
+        homeQuote: '53%',
         competition: 'NCAAF',
       });
       expectPredictNextGameCard(discovery, 'ncaa-2', {
@@ -319,8 +319,8 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
         home: 'Florida',
         awayScore: '3',
         homeScore: '0',
-        awayQuote: 'GEO · 55¢',
-        homeQuote: 'FLO · 45¢',
+        awayQuote: '55%',
+        homeQuote: '45%',
       });
       expect(
         within(discovery).getByTestId(
@@ -646,8 +646,8 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
         PredictHomeTestIds.event('kalshi', 'nfl-1'),
       );
 
-      // The prices stay; they are no longer buy buttons.
-      expect(within(card).getByText('PAC · 41¢')).toBeOnTheScreen();
+      // The percentages stay; they are no longer buy buttons.
+      expect(within(card).getByText('41%')).toBeOnTheScreen();
       expect(within(card).queryAllByLabelText(/, buy$/)).toHaveLength(0);
     });
 

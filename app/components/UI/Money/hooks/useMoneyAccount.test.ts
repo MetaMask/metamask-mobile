@@ -28,6 +28,7 @@ import {
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
+  type MoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -165,16 +166,16 @@ const mockUseMoneyAccountAvailability = jest.mocked(
 );
 const mockAssertMoneyAccountAccessible = jest.fn();
 const mockIsDepositPrefillEnabled = jest.fn(
-  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
+  (intent?: MoneyAccountDepositIntent) => intent === 'addMusd',
 );
 
 function mockDepositPrefillEnabled(
-  isEnabled: boolean | ((intent?: 'convert' | 'addMusd' | 'card') => boolean),
+  isEnabled: boolean | ((intent?: MoneyAccountDepositIntent) => boolean),
 ) {
   mockIsDepositPrefillEnabled.mockImplementation(
     typeof isEnabled === 'function'
       ? isEnabled
-      : (intent?: 'convert' | 'addMusd' | 'card') =>
+      : (intent?: MoneyAccountDepositIntent) =>
           intent === 'addMusd' ? true : isEnabled,
   );
   mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
@@ -260,6 +261,7 @@ describe('useMoneyAccountDeposit', () => {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: mockDepositFailed,
+          declined: jest.fn(),
         },
         withdraw: {
           inProgress: jest.fn(),
@@ -559,6 +561,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
+      depositIntent: 'addMusd',
       loader: ConfirmationLoader.PrefillCustomAmount,
       preferredPaymentToken,
       replace: undefined,
@@ -671,6 +674,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
+      depositIntent: 'card',
       loader: ConfirmationLoader.AdvancedCustomAmount,
       preferredPaymentToken: undefined,
       replace: undefined,
@@ -788,6 +792,32 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockDepositFailed).toHaveBeenCalledWith({ intent: undefined });
     expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+  });
+
+  it('skips the generic failure toast and dev alert for a declined card', async () => {
+    const declineError = new Error('MetaMask Pay: Fiat: Fiat order failed');
+    mockAddTransactionBatch.mockRejectedValue(declineError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({ intent: 'card' });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(declineError);
+    expect(Logger.error).toHaveBeenCalledWith(
+      declineError,
+      '[Money Account] Deposit setup failed',
+    );
+    expect(mockDepositFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
@@ -992,6 +1022,7 @@ describe('useMoneyAccountWithdrawal', () => {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: mockDepositFailed,
+          declined: jest.fn(),
         },
         withdraw: {
           inProgress: jest.fn(),

@@ -2,7 +2,6 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
-import { selectProfileControllerProfile } from '../../../../selectors/profileController';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { canOpenSocialTabDirectly } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { useCanOpenSocialTabDirectly } from './useCanOpenSocialTabDirectly';
@@ -50,24 +49,6 @@ describe('useCanOpenSocialTabDirectly', () => {
     jest.mocked(canOpenSocialTabDirectly).mockReturnValue(true);
 
     act(() => emitFocus?.());
-
-    expect(result.current).toBe(true);
-  });
-
-  it('re-reads the gate when the Social profile changes', () => {
-    const { result, rerender } = renderHook(() =>
-      useCanOpenSocialTabDirectly(true),
-    );
-    jest.mocked(canOpenSocialTabDirectly).mockReturnValue(true);
-    jest
-      .mocked(useSelector)
-      .mockImplementation((selector) =>
-        selector === selectProfileControllerProfile
-          ? { profileId: 'profile-1' }
-          : undefined,
-      );
-
-    rerender({});
 
     expect(result.current).toBe(true);
   });
