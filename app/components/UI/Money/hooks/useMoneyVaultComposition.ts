@@ -21,7 +21,6 @@ export interface UseMoneyVaultCompositionOptions {
  * @param options - Vault variant and optional query enablement.
  * @returns The TanStack Query result for vault composition.
  */
-// TODO: Add support for premium vault.
 export const useMoneyVaultComposition = ({
   enabled = true,
 }: UseMoneyVaultCompositionOptions = {}): UseQueryResult<VaultCompositionResponse> => {

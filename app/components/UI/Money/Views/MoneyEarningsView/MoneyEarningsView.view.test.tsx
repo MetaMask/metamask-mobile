@@ -1,5 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -8,6 +8,9 @@ import {
 } from '../../__fixtures__/moneyInterestHistory';
 import {
   clearMoneyEarningsApiMocks,
+  clearMoneyAllocationApiMocks,
+  moneyVaultCompositionResponse,
+  setupMoneyAllocationApiMock,
   setupMoneyEarningsApiMock,
 } from '../../../../../../tests/component-view/api-mocking/moneyEarnings';
 import {
@@ -16,14 +19,20 @@ import {
 } from '../../../../../../tests/component-view/renderers/moneyEarnings';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
+import { MoneyVaultCompositionChartTestIds } from './components/MoneyVaultCompositionChart/MoneyVaultCompositionChart.testIds';
+import { MoneyVaultCompositionMarketRowTestIds } from './components/MoneyVaultCompositionMarketRow/MoneyVaultCompositionMarketRow.testIds';
+import { MoneyVaultCompositionMarketsTableTestIds } from './components/MoneyVaultCompositionMarketsTable/MoneyVaultCompositionMarketsTable.testIds';
+import { AllocationDetailsTestIds } from './components/AllocationDetails/AllocationDetails.testIds';
 
 describe('MoneyEarningsView', () => {
   beforeEach(() => {
     setupMoneyEarningsApiMock();
+    setupMoneyAllocationApiMock();
   });
 
   afterEach(() => {
     clearMoneyEarningsApiMocks();
+    clearMoneyAllocationApiMocks();
   });
 
   it('loads complete earnings data for the primary Money account', async () => {
@@ -262,17 +271,99 @@ describe('MoneyEarningsView', () => {
 
   it('keeps Earnings active when disabled tabs are pressed or requested', async () => {
     const { findByTestId, getByTestId } = renderMoneyEarningsView({
-      initialParams: { activeTab: 'allocation' },
+      initialParams: { activeTab: 'apy' },
     });
 
     expect(
       await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL),
     ).toBeOnTheScreen();
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_APY));
-    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
 
     expect(
       getByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders allocation data after the Allocation tab is selected', async () => {
+    const { findByTestId, findByText, getByTestId, getByText } =
+      renderMoneyEarningsView();
+
+    await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+
+    expect(
+      await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(
+        strings('money.earnings.allocation_details.average_apy_value', {
+          value: 5.2,
+        }),
+      ),
+    ).toBeOnTheScreen();
+
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.ALLOCATION_PANEL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.CENTER_PERCENTAGE),
+    ).toHaveTextContent('60%');
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.WEDGE('direct_idle_usdc')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyVaultCompositionChartTestIds.WEDGE('aave_v3_musd')),
+    ).toBeOnTheScreen();
+
+    expect(
+      getByTestId(MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER),
+    ).toHaveTextContent(strings('money.earnings.markets'));
+    expect(
+      getByTestId(MoneyVaultCompositionMarketsTableTestIds.ALLOCATION_HEADER),
+    ).toHaveTextContent(strings('money.earnings.allocation'));
+    expect(
+      getByTestId(MoneyVaultCompositionMarketsTableTestIds.APY_HEADER),
+    ).toHaveTextContent(strings('money.earnings.apy'));
+
+    moneyVaultCompositionResponse.components.forEach((component) => {
+      const row = getByTestId(
+        MoneyVaultCompositionMarketRowTestIds.ROW(component.component_key),
+      );
+      const rowQueries = within(row);
+
+      expect(
+        rowQueries.getByTestId(
+          MoneyVaultCompositionMarketRowTestIds.ALLOCATION(
+            component.component_key,
+          ),
+        ),
+      ).toHaveTextContent(
+        component.component_key === 'direct_idle_usdc' ? '40%' : '60%',
+      );
+      expect(
+        rowQueries.getByTestId(
+          MoneyVaultCompositionMarketRowTestIds.APY(component.component_key),
+        ),
+      ).toHaveTextContent(
+        component.component_key === 'direct_idle_usdc' ? '—' : '6.2%',
+      );
+    });
+
+    expect(getByTestId(AllocationDetailsTestIds.HEADER)).toHaveTextContent(
+      strings('money.earnings.allocation_details.title'),
+    );
+    expect(
+      getByTestId(AllocationDetailsTestIds.VALUE('average-apy')),
+    ).toHaveTextContent(
+      strings('money.earnings.allocation_details.average_apy_value', {
+        value: 5.2,
+      }),
+    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.ALLOCATION_RISKS_DIVIDER),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings.risks_and_disclosures.title')),
     ).toBeOnTheScreen();
   });
 
