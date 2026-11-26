@@ -26,7 +26,7 @@ const renderItem = ({ item }: { item: EpicOddsPack }) => (
   />
 );
 
-export function EpicOddsSection() {
+export function EpicHuntSection() {
   const { packs, isPending } = useEpicOddsPacks();
 
   const [isInfoOpen, setIsInfoOpen] = useState(false);

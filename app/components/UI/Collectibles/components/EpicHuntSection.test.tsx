@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import type { EpicOddsPack } from '#app/components/UI/Collectibles/types/packs';
-import { EpicOddsSection } from '#app/components/UI/Collectibles/components/EpicOddsSection';
+import { EpicHuntSection } from '#app/components/UI/Collectibles/components/EpicHuntSection';
 
 let mockResult: { packs: EpicOddsPack[]; isPending: boolean };
 
@@ -20,21 +20,21 @@ const pack: EpicOddsPack = {
   gaugeValue: -68,
 };
 
-describe('EpicOddsSection', () => {
+describe('EpicHuntSection', () => {
   beforeEach(() => {
     mockResult = { packs: [pack], isPending: false };
   });
 
   it('shows skeleton tiles while loading', () => {
     mockResult = { packs: [], isPending: true };
-    render(<EpicOddsSection />);
+    render(<EpicHuntSection />);
 
     expect(screen.getByTestId(collectiblesTestIds.skeleton)).toBeOnTheScreen();
   });
 
   it('shows the empty state when no pack qualifies', () => {
     mockResult = { packs: [], isPending: false };
-    render(<EpicOddsSection />);
+    render(<EpicHuntSection />);
 
     expect(
       screen.getByText(strings('collectibles.home.empty')),
@@ -45,7 +45,7 @@ describe('EpicOddsSection', () => {
   });
 
   it('shows the Epic line in place of the social cue', () => {
-    render(<EpicOddsSection />);
+    render(<EpicHuntSection />);
 
     expect(
       screen.getByText('Epic 1% · 32 pulls since last Epic'),
@@ -53,7 +53,7 @@ describe('EpicOddsSection', () => {
   });
 
   it('shows the gauge in place of the pack counter', () => {
-    render(<EpicOddsSection />);
+    render(<EpicHuntSection />);
 
     expect(
       screen.getByTestId(collectiblesTestIds.epicOddsGauge(pack.code)),
@@ -64,13 +64,13 @@ describe('EpicOddsSection', () => {
 
   it('signs a gauge above the average', () => {
     mockResult = { packs: [{ ...pack, gaugeValue: 12 }], isPending: false };
-    render(<EpicOddsSection />);
+    render(<EpicHuntSection />);
 
     expect(screen.getByText('+12')).toBeOnTheScreen();
   });
 
   it('opens the info sheet from the info icon', () => {
-    render(<EpicOddsSection />);
+    render(<EpicHuntSection />);
 
     fireEvent.press(screen.getByTestId(collectiblesTestIds.epicOddsInfoButton));
 

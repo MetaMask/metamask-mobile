@@ -5495,7 +5495,7 @@
     },
     "landing": {
       "just_opened": "Just opened",
-      "epic_vs_odds": "Epic vs Odds",
+      "epic_vs_odds": "Epic Hunt",
       "greatest_hits": "Greatest hits"
     },
     "marketplace": {
@@ -5515,7 +5515,7 @@
       "empty": "No packs available right now"
     },
     "epic_vs_odds": {
-      "info": "About Epic vs Odds",
+      "info": "About Epic Hunt",
       "pulls_line": {
         "one": "Epic {{odds}} · {{formattedCount}} pull since last Epic",
         "other": "Epic {{odds}} · {{formattedCount}} pulls since last Epic"
