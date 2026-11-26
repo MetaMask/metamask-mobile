@@ -550,6 +550,28 @@ describeForPlatforms('Wallet', () => {
     });
   });
 
+  it('shows the onboarding primary action and hides Buy for an eligible wallet', async () => {
+    const { findByTestId, queryByTestId } = renderWalletView({
+      overrides: {
+        ...walletStateOverrides,
+        onboarding: {
+          completedOnboarding: true,
+          walletHomeOnboardingStepsEligible: true,
+          walletHomeOnboardingSkipInitialBalanceWait: true,
+          walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 0 },
+        },
+      },
+    });
+    const primaryActionTestId = `${WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
+
+    const primaryAction = await findByTestId(primaryActionTestId);
+
+    expect(primaryAction).toBeVisible();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_BUY_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
   describe('Money balance card', () => {
     /** Money account enabled + geo-eligible, so only the checklist can hide the card. */
     const renderMoneyAccountVisibleWallet = (
