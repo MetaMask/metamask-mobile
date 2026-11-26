@@ -2,20 +2,25 @@
 /* eslint-disable import-x/no-nodejs-modules, no-console */
 
 /**
- * GitHub issues for scheduled Hermes CPU-profile findings.
+ * Jira tickets for scheduled Hermes CPU-profile findings.
  *
- * One finding (a scenario over 1.5× its recent average) becomes one issue that
- * follows `.github/ISSUE_TEMPLATE/bug-report.yml`, labelled for the owning
- * team. A finding that recurs while its issue is still open is recorded as a
- * comment on that issue instead of a new one. Several scenarios crossing in
- * the same run each get their own issue.
+ * One finding (a scenario over 1.5× its recent average) becomes one Bug in
+ * the owning team's Jira project. A finding that recurs while that ticket is
+ * still open is recorded as a comment instead of a new ticket. Several
+ * scenarios crossing in the same run each get their own ticket.
  *
- * Every issue and recurrence comment carries a machine-readable HTML marker so
+ * Every ticket and recurrence comment carries a machine-readable marker so
  * the Monday report can list what was opened during the week without parsing
  * prose. The scenario's Hermes `.cpuprofile` (zipped when the capture has
- * several segments or a symbolicated copy) is uploaded onto the issue.
+ * several segments or a symbolicated copy) is uploaded onto the ticket.
+ * A file over the attachment cap is not uploaded; the ticket links the
+ * workflow artifact instead.
+ *
+ * Auth is HTTP Basic with `JIRA_USER_EMAIL` and `JIRA_API_TOKEN`. When either
+ * is missing, ticket creation is skipped and the job continues.
  */
 
+import { Buffer } from 'node:buffer';
 import { spawnSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -27,12 +32,77 @@ export const RECURRENCE_MARKER = 'hermes-profile-regression-recurrence';
 /** Marker key of run-level issues opened before each scenario got its own bug. */
 export const SLOW_RUN_KEY = 'slow-run';
 /** `type-bug` and `regression-main` follow the labeler for a `main` bug. */
-export const BASE_LABELS = ['type-bug', 'area-performance', 'regression-main'];
+export const BASE_LABELS = [
+  'type-bug',
+  'area-performance',
+  'performance',
+  'regression-main',
+];
 export const MAX_ISSUE_FRAMES = 5;
 export const MAX_TRACKED_ISSUES = 200;
-/** GitHub issue attachments: 25 MB for files other than images and video. */
-export const GITHUB_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+/**
+ * Files larger than this are not uploaded. The ticket links the workflow
+ * artifact instead. 25 MB is the cap this automation already used when the
+ * capture was attached to a GitHub issue.
+ */
+export const JIRA_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+export const DEFAULT_JIRA_BASE_URL = 'https://consensyssoftware.atlassian.net';
+export const DEFAULT_JIRA_ISSUE_TYPE = 'Bug';
 export const ISSUE_TITLE_PREFIX = '[Bug]: Hermes JS work regression';
+
+/**
+ * Custom fields a project requires to create a Bug. Shapes come from
+ * `GET /rest/api/3/issue/createmeta/{project}/issuetypes/{id}`: Severity and
+ * Detection stage are single options, Found in is an option limited to a list
+ * of versions plus `Not available`, and Platform / Client is an array of
+ * options.
+ */
+export const JIRA_FIELD_IDS = {
+  severity: 'customfield_10340',
+  detectionStage: 'customfield_13497',
+  foundIn: 'customfield_16946',
+  platformClient: 'customfield_16947',
+};
+export const JIRA_FOUND_IN_UNAVAILABLE = 'Not available';
+
+/**
+ * Per-project Jira settings, keyed by project key. `requiredFields` sends the
+ * custom fields above. `issueType` replaces the default `Bug`. A project that
+ * is not listed (TE, MMQA) is sent only project, summary, issue type, labels,
+ * and description. `JIRA_ISSUE_TYPE` or `--jira-issue-type` overrides every
+ * project's type.
+ */
+export const JIRA_PROJECT_CONFIG = {
+  TAT: { requiredFields: true },
+  PRED: { requiredFields: true },
+  SWAPS: { requiredFields: true },
+  ASSETS: { requiredFields: true },
+  MCWP: { requiredFields: true },
+  RWDS: { requiredFields: true },
+  MUL: { requiredFields: true },
+};
+
+export function jiraRequiredFields(projectKey, appVersion = null) {
+  if (!JIRA_PROJECT_CONFIG[projectKey]?.requiredFields) {
+    return {};
+  }
+  return {
+    [JIRA_FIELD_IDS.severity]: { value: 'needs-triage' },
+    [JIRA_FIELD_IDS.detectionStage]: { value: 'Internal release testing' },
+    [JIRA_FIELD_IDS.foundIn]: {
+      value: appVersion || JIRA_FOUND_IN_UNAVAILABLE,
+    },
+    [JIRA_FIELD_IDS.platformClient]: [{ value: 'Mobile' }],
+  };
+}
+
+export function jiraIssueTypeFor(projectKey, override = null) {
+  return (
+    override ||
+    JIRA_PROJECT_CONFIG[projectKey]?.issueType ||
+    DEFAULT_JIRA_ISSUE_TYPE
+  );
+}
 
 const ATTACHMENT_CONTENT_TYPES = {
   '.cpuprofile': 'application/json',
@@ -67,7 +137,7 @@ export function encodeMarker(kind, data) {
 }
 
 export function parseMarker(body, kind) {
-  const match = new RegExp(`<!-- ${kind} (\\{.*?\\}) -->`).exec(
+  const match = new RegExp(`<!-- ${kind} (\\{[\\s\\S]*?\\}) -->`).exec(
     String(body || ''),
   );
   if (!match) {
@@ -81,7 +151,10 @@ export function parseMarker(body, kind) {
 }
 
 export function parseRecurrenceMarkers(body) {
-  const pattern = new RegExp(`<!-- ${RECURRENCE_MARKER} (\\{.*?\\}) -->`, 'g');
+  const pattern = new RegExp(
+    `<!-- ${RECURRENCE_MARKER} (\\{[\\s\\S]*?\\}) -->`,
+    'g',
+  );
   const markers = [];
   for (const match of String(body || '').matchAll(pattern)) {
     try {
@@ -176,9 +249,8 @@ function zipDirectory(stageDirectory, destination) {
 }
 
 /**
- * One file to attach. A single raw capture stays a `.cpuprofile`, which
- * GitHub renders as a profiling file. Several segments, or a raw capture
- * plus its symbolicated copy, become one zip.
+ * One file to attach. A single raw capture stays a `.cpuprofile`. Several
+ * segments, or a raw capture plus its symbolicated copy, become one zip.
  */
 export function packageScenarioProfiles({ finding, files, outputDirectory }) {
   if (!files?.length) {
@@ -212,53 +284,30 @@ export function packageScenarioProfiles({ finding, files, outputDirectory }) {
   }
 }
 
-/**
- * Uploads one file to the repository's issue-attachment store and returns
- * the URL GitHub gives back. Same store a drag-and-drop into an issue uses.
- */
-export function uploadGitHubAttachment({ filePath, repositoryId, runGh }) {
-  const stat = fs.statSync(filePath);
-  const name = path.basename(filePath);
-  if (stat.size > GITHUB_ATTACHMENT_BYTES) {
-    throw new Error(
-      `${name} is ${(stat.size / (1024 * 1024)).toFixed(1)} MB and GitHub issue attachments are limited to 25 MB`,
-    );
-  }
-  const contentType =
-    ATTACHMENT_CONTENT_TYPES[path.extname(name)] || 'application/octet-stream';
-  const endpoint = [
-    'https://uploads.github.com/user-attachments/assets',
-    `?repository_id=${encodeURIComponent(repositoryId)}`,
-    `&name=${encodeURIComponent(name)}`,
-    `&content_type=${encodeURIComponent(contentType)}`,
-  ].join('');
-  const response = JSON.parse(
-    runGh([
-      'api',
-      '--method',
-      'POST',
-      '-H',
-      `Content-Type: ${contentType}`,
-      '--input',
-      filePath,
-      endpoint,
-    ]) || '{}',
-  );
-  if (!response.url) {
-    throw new Error(`attachment upload returned no url for ${name}`);
-  }
-  return { url: response.url, name, bytes: stat.size };
-}
-
 function attachmentMarkdown(attachment, label = null) {
   if (!attachment) {
     return null;
   }
   const prefix = label ? `**${label}:** ` : '';
+  if (attachment.tooLarge) {
+    const megabytes = (attachment.bytes / (1024 * 1024)).toFixed(1);
+    const limitBytes = attachment.limitBytes || JIRA_ATTACHMENT_BYTES;
+    const limit =
+      limitBytes >= 1024 * 1024
+        ? `${Math.round(limitBytes / (1024 * 1024))} MB`
+        : `${limitBytes} byte${limitBytes === 1 ? '' : 's'}`;
+    const link = attachment.url
+      ? ` Download it from the workflow artifact: [${attachment.name}](${attachment.url}).`
+      : ' It is on the performance run linked above.';
+    return `${prefix}Hermes CPU profile \`${attachment.name}\` is ${megabytes} MB, over the ${limit} Jira attachment limit.${link}`;
+  }
   if (attachment.error) {
     return `${prefix}Hermes CPU profile not attached: ${attachment.error}.`;
   }
-  return `${prefix}Hermes CPU profile: [${attachment.name}](${attachment.url})`;
+  if (attachment.url) {
+    return `${prefix}Hermes CPU profile: [${attachment.name}](${attachment.url})`;
+  }
+  return `${prefix}Hermes CPU profile attached: \`${attachment.name}\`.`;
 }
 
 function recordingsLines(currentReport, attachments) {
@@ -297,8 +346,27 @@ function ownerLine(team) {
   return `Owner: \`${team.handle}\`${mention}`;
 }
 
-function issueLabels(team) {
-  return team.githubLabel ? [...BASE_LABELS, team.githubLabel] : [...BASE_LABELS];
+/**
+ * Jira label that identifies one scenario. Labels cannot contain the `|` or
+ * spaces in a finding key, so the key is folded into a single token.
+ */
+export function scenarioIssueLabel(key) {
+  const sanitized = String(key || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 220);
+  return `hermes-key-${sanitized || 'unknown'}`;
+}
+
+function issueLabels(team, key) {
+  const labels = [
+    ...BASE_LABELS,
+    team.githubLabel,
+    ISSUE_MARKER,
+    scenarioIssueLabel(key),
+  ];
+  return labels.filter((label, index) => label && labels.indexOf(label) === index);
 }
 
 function operatingSystem(projectName) {
@@ -389,12 +457,15 @@ function additionalContextLines({ exception, currentReport, aiText, team }) {
   }
   lines.push(
     '- Source: Hermes CPU sampling only. "JS work" is sampled JS self time attributed from those samples (GC, idle and native waits excluded), not the wall-clock duration of the test.',
-    '- Opened automatically by the `Analyze App Profiling` workflow after a scheduled performance run. Recurrences while this issue is open are added as comments instead of new issues.',
+    '- Opened automatically by the `Analyze App Profiling` workflow after a scheduled performance run. Recurrences while this ticket is open are added as comments instead of new tickets.',
   );
-  if (team?.githubLabel) {
+  if (team?.jiraProject) {
     lines.push(
-      `- Team tag: \`${team.githubLabel}\`. That label routes this bug to the owning team's Jira project.`,
+      `- Jira project: \`${team.jiraProject}\`. Filed directly in that project.`,
     );
+  }
+  if (team?.githubLabel) {
+    lines.push(`- Team tag: \`${team.githubLabel}\`.`);
   }
   if (aiText) {
     lines.push(
@@ -425,6 +496,7 @@ export function buildRegressionIssue({
 }) {
   const team = scenarioTeam(displayName(finding.scenario));
   const scenario = displayName(finding.scenario);
+  const key = findingKey(finding);
   const [current, baseline] = formatDurationsAlike([
     finding.jsWorkMs,
     finding.baselineMedianJsWorkMs,
@@ -497,7 +569,7 @@ export function buildRegressionIssue({
     'To be assessed by the owning team. Hermes sampling only; one scheduled run is one sample per scenario.',
     '',
     encodeMarker(ISSUE_MARKER, {
-      key: findingKey(finding),
+      key,
       kind: 'scenario',
       scenario,
       projectName: finding.projectName,
@@ -512,27 +584,29 @@ export function buildRegressionIssue({
   ].join('\n');
 
   return {
-    key: findingKey(finding),
+    key,
     title: `${ISSUE_TITLE_PREFIX} — ${scenario}`,
     body,
-    labels: issueLabels(team),
+    labels: issueLabels(team, key),
     owner: team.handle,
+    jiraProject: team.jiraProject,
   };
 }
 
 export function buildRecurrenceComment({
   exception,
   finding,
-  profileAttachment = null,
+  currentReport = null,
 }) {
-  const attached = [attachmentMarkdown(profileAttachment)].filter(Boolean);
   const [current, baseline] = formatDurationsAlike([
     finding.jsWorkMs,
     finding.baselineMedianJsWorkMs,
   ]);
+  const analysisUrl = currentReport?.meta?.analysisArtifactsUrl;
   return [
     `Flagged again in performance run [${exception.meta.runId}](${exception.meta.runUrl}): JS work ${current} vs ${baseline} recent average (${finding.ratio}× across ${finding.baselineRuns} baseline runs).`,
-    ...(attached.length ? ['', ...attached] : []),
+    '',
+    `The Hermes CPU profile is not attached again. Download it from the [workflow artifacts](${exception.meta.runUrl}#artifacts)${analysisUrl ? ` or the [analysis artifacts](${analysisUrl})` : ''}.`,
     '',
     encodeMarker(RECURRENCE_MARKER, {
       runId: String(exception.meta.runId),
@@ -544,102 +618,555 @@ export function buildRecurrenceComment({
   ].join('\n');
 }
 
-export function issueNumberFromUrl(url) {
-  const match = /\/issues\/(\d+)\s*$/.exec(String(url || '').trim());
-  return match ? Number(match[1]) : null;
+const SEARCH_FIELDS = [
+  'summary',
+  'status',
+  'created',
+  'resolutiondate',
+  'labels',
+  'description',
+];
+
+const INLINE_MARKDOWN =
+  /(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\))/g;
+
+export function jiraConfigFromEnv(env = process.env) {
+  const baseUrl = String(env.JIRA_BASE_URL || DEFAULT_JIRA_BASE_URL).replace(
+    /\/+$/,
+    '',
+  );
+  const email = String(env.JIRA_USER_EMAIL || '').trim();
+  const apiToken = String(env.JIRA_API_TOKEN || '');
+  return {
+    baseUrl,
+    email,
+    apiToken,
+    issueType: String(env.JIRA_ISSUE_TYPE || '').trim() || null,
+    configured: Boolean(email && apiToken),
+  };
 }
 
-/**
- * Open issues this automation created, keyed by their finding. The search
- * narrows on the marker word; the exact marker is what identifies an issue,
- * so a hand-written issue that merely mentions the word is ignored.
- */
-export function listTrackedIssues({
-  repo,
-  runGh,
-  state = 'open',
-  search = '',
-  limit = MAX_TRACKED_ISSUES,
+function basicAuth(email, apiToken) {
+  return `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`;
+}
+
+function jiraErrorMessage(status, payload) {
+  if (payload && typeof payload === 'object') {
+    const messages = [
+      ...(Array.isArray(payload.errorMessages) ? payload.errorMessages : []),
+      ...Object.entries(payload.errors || {}).map(
+        ([field, message]) => `${field}: ${message}`,
+      ),
+    ];
+    if (payload.message) {
+      messages.push(String(payload.message));
+    }
+    if (messages.length > 0) {
+      return `Jira HTTP ${status}: ${messages.join('; ')}`;
+    }
+  }
+  const detail =
+    typeof payload === 'string' ? payload : JSON.stringify(payload ?? '');
+  return `Jira HTTP ${status}: ${String(detail).slice(0, 500)}`;
+}
+
+async function jiraRequest({
+  jira,
+  fetchFn = fetch,
+  method,
+  path: requestPath,
+  body,
+  headers = {},
 }) {
-  const query = [`${ISSUE_MARKER} in:body`, search].filter(Boolean).join(' ');
-  const listed = JSON.parse(
-    runGh([
-      'issue',
-      'list',
-      '--repo',
-      repo,
-      '--state',
-      state,
-      '--search',
-      query,
-      '--limit',
-      String(limit),
-      '--json',
-      'number,title,url,state,createdAt,closedAt,body,labels',
-    ]) || '[]',
-  );
-  return listed
-    .map((issue) => ({
-      number: issue.number,
-      title: issue.title,
-      url: issue.url,
-      state: String(issue.state || '').toLowerCase(),
-      createdAt: issue.createdAt,
-      closedAt: issue.closedAt || null,
-      labels: (issue.labels || []).map((label) => label.name),
-      marker: parseMarker(issue.body, ISSUE_MARKER),
-    }))
-    .filter((issue) => issue.marker?.key);
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
+  const response = await fetchFn(`${jira.baseUrl}${requestPath}`, {
+    method,
+    headers: {
+      Authorization: basicAuth(jira.email, jira.apiToken),
+      Accept: 'application/json',
+      ...(isForm ? {} : { 'Content-Type': 'application/json' }),
+      ...headers,
+    },
+    body: body == null ? undefined : isForm ? body : JSON.stringify(body),
+  });
+  const text = typeof response.text === 'function' ? await response.text() : '';
+  let payload = null;
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = text;
+    }
+  }
+  if (!response.ok) {
+    throw new Error(jiraErrorMessage(response.status, payload));
+  }
+  return payload;
 }
 
-export function findOpenIssue(issues, key) {
-  return (
-    issues
-      .filter((issue) => issue.marker.key === key && issue.state === 'open')
-      .sort((left, right) => right.number - left.number)[0] || null
-  );
-}
-
-function withBodyFile(body, callback) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-issue-'));
-  const bodyPath = path.join(directory, 'body.md');
-  fs.writeFileSync(bodyPath, body);
-  try {
-    return callback(bodyPath);
-  } finally {
-    fs.rmSync(directory, { recursive: true, force: true });
+function pushText(nodes, text) {
+  if (text) {
+    nodes.push({ type: 'text', text });
   }
 }
 
-export function createIssue({ repo, runGh, title, body, labels }) {
-  const url = withBodyFile(body, (bodyPath) =>
-    runGh([
-      'issue',
-      'create',
-      '--repo',
-      repo,
-      '--title',
-      title,
-      '--body-file',
-      bodyPath,
-      ...labels.flatMap((label) => ['--label', label]),
-    ]),
-  ).trim();
-  return { url, number: issueNumberFromUrl(url) };
+export function parseInline(text) {
+  const nodes = [];
+  const source = String(text ?? '');
+  let last = 0;
+  for (const match of source.matchAll(INLINE_MARKDOWN)) {
+    if (match.index > last) {
+      pushText(nodes, source.slice(last, match.index));
+    }
+    if (match[2] != null) {
+      nodes.push({
+        type: 'text',
+        text: match[2],
+        marks: [{ type: 'strong' }],
+      });
+    } else if (match[3] != null) {
+      nodes.push({
+        type: 'text',
+        text: match[3],
+        marks: [{ type: 'code' }],
+      });
+    } else if (match[4] != null) {
+      nodes.push({
+        type: 'text',
+        text: match[4],
+        marks: [{ type: 'link', attrs: { href: match[5] } }],
+      });
+    }
+    last = match.index + match[0].length;
+  }
+  if (last < source.length) {
+    pushText(nodes, source.slice(last));
+  }
+  return nodes.length > 0 ? nodes : [{ type: 'text', text: ' ' }];
 }
 
-export function commentOnIssue({ repo, runGh, number, body }) {
-  return withBodyFile(body, (bodyPath) =>
-    runGh([
-      'issue',
-      'comment',
-      String(number),
-      '--repo',
-      repo,
-      '--body-file',
-      bodyPath,
-    ]),
+function paragraphNode(text) {
+  return { type: 'paragraph', content: parseInline(text) };
+}
+
+function listItem(line) {
+  const match = /^(\s*)([-*]|\d+\.)\s+(.*)$/.exec(line);
+  if (!match) {
+    return null;
+  }
+  return {
+    indent: match[1].length,
+    ordered: /\d+\./.test(match[2]),
+    text: match[3],
+  };
+}
+
+function buildLists(items) {
+  function take(index, indent) {
+    const ordered = items[index].ordered;
+    const list = {
+      type: ordered ? 'orderedList' : 'bulletList',
+      content: [],
+      ...(ordered ? { attrs: { order: 1 } } : {}),
+    };
+    while (
+      index < items.length &&
+      items[index].indent === indent &&
+      items[index].ordered === ordered
+    ) {
+      const item = items[index];
+      index += 1;
+      const nested = [];
+      if (index < items.length && items[index].indent > indent) {
+        const child = take(index, items[index].indent);
+        nested.push(child.node);
+        index = child.next;
+      }
+      list.content.push({
+        type: 'listItem',
+        content: [paragraphNode(item.text), ...nested],
+      });
+    }
+    return { node: list, next: index };
+  }
+
+  const lists = [];
+  let index = 0;
+  while (index < items.length) {
+    const piece = take(index, items[index].indent);
+    lists.push(piece.node);
+    index = piece.next;
+  }
+  return lists;
+}
+
+function isMarkerLine(line) {
+  // `[\s\S]` so a newline cannot slip past the match (CodeQL js/bad-html-filtering-regexp).
+  return /^<!-- [\s\S]+ -->$/.test(line.trim());
+}
+
+/**
+ * Converts the bug-report markdown this file builds into Atlassian Document
+ * Format. The converter covers the headings, lists, code fences, links, and
+ * collapsed metadata this automation emits.
+ */
+export function markdownToAdf(markdown) {
+  const lines = String(markdown || '')
+    .replace(/\r\n/g, '\n')
+    .split('\n');
+  const content = [];
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index];
+    if (line.trim() === '') {
+      index += 1;
+      continue;
+    }
+    if (line.startsWith('```')) {
+      const language = line.slice(3).trim();
+      const code = [];
+      index += 1;
+      while (index < lines.length && !lines[index].startsWith('```')) {
+        code.push(lines[index]);
+        index += 1;
+      }
+      if (index < lines.length) {
+        index += 1;
+      }
+      const text = code.join('\n');
+      content.push({
+        type: 'codeBlock',
+        ...(language ? { attrs: { language } } : {}),
+        content: [{ type: 'text', text: text || ' ' }],
+      });
+      continue;
+    }
+    if (line.trim() === '<details>') {
+      index += 1;
+      let title = 'Details';
+      if (index < lines.length && lines[index].includes('<summary>')) {
+        title = lines[index].replace(/<\/?summary>/g, '').trim() || title;
+        index += 1;
+      }
+      const inner = [];
+      while (index < lines.length && lines[index].trim() !== '</details>') {
+        inner.push(lines[index]);
+        index += 1;
+      }
+      if (index < lines.length) {
+        index += 1;
+      }
+      const innerDoc = markdownToAdf(inner.join('\n'));
+      content.push({
+        type: 'expand',
+        attrs: { title },
+        content:
+          innerDoc.content.length > 0
+            ? innerDoc.content
+            : [paragraphNode(title)],
+      });
+      continue;
+    }
+    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (heading) {
+      content.push({
+        type: 'heading',
+        attrs: { level: heading[1].length },
+        content: parseInline(heading[2]),
+      });
+      index += 1;
+      continue;
+    }
+    if (isMarkerLine(line)) {
+      content.push({
+        type: 'expand',
+        attrs: { title: 'Automation metadata' },
+        content: [
+          {
+            type: 'codeBlock',
+            content: [{ type: 'text', text: line.trim() }],
+          },
+        ],
+      });
+      index += 1;
+      continue;
+    }
+    if (listItem(line)) {
+      const items = [];
+      while (index < lines.length && listItem(lines[index])) {
+        items.push(listItem(lines[index]));
+        index += 1;
+      }
+      content.push(...buildLists(items));
+      continue;
+    }
+    content.push(paragraphNode(line));
+    index += 1;
+  }
+  if (content.length === 0) {
+    content.push(paragraphNode(' '));
+  }
+  return { type: 'doc', version: 1, content };
+}
+
+export function adfToText(node) {
+  if (node == null) {
+    return '';
+  }
+  if (typeof node === 'string') {
+    return node;
+  }
+  if (node.type === 'text') {
+    return node.text || '';
+  }
+  if (node.type === 'hardBreak') {
+    return '\n';
+  }
+  const children = (node.content || []).map((child) => adfToText(child)).join('');
+  if (node.type === 'expand' || node.type === 'nestedExpand') {
+    const title = node.attrs?.title ? `${node.attrs.title}\n` : '';
+    return `${title}${children}\n`;
+  }
+  if (
+    node.type === 'paragraph' ||
+    node.type === 'heading' ||
+    node.type === 'codeBlock' ||
+    node.type === 'listItem'
+  ) {
+    return `${children}\n`;
+  }
+  return children;
+}
+
+export function issueNumberFromKey(jiraKey) {
+  const match = /-(\d+)$/.exec(String(jiraKey || '').trim());
+  return match ? Number(match[1]) : null;
+}
+
+function normalizeJiraIssue(issue, baseUrl) {
+  const fields = issue.fields || {};
+  const category = fields.status?.statusCategory?.key;
+  const jiraKey = issue.key;
+  return {
+    id: issue.id || null,
+    jiraKey,
+    number: issueNumberFromKey(jiraKey),
+    title: fields.summary || '',
+    url: `${baseUrl}/browse/${jiraKey}`,
+    state: category === 'done' ? 'closed' : 'open',
+    createdAt: fields.created || null,
+    closedAt: fields.resolutiondate || null,
+    labels: fields.labels || [],
+    marker: parseMarker(adfToText(fields.description), ISSUE_MARKER),
+  };
+}
+
+function trackedIssueJql({ state, sinceIso, projectKeys }) {
+  const clauses = [];
+  if (projectKeys?.length) {
+    clauses.push(
+      `project in (${projectKeys.map((key) => `"${key}"`).join(', ')})`,
+    );
+  }
+  if (state === 'open') {
+    // The label identifies tickets this job opened. The summary phrase also
+    // matches a ticket that was copied into Jira before that label existed,
+    // so a still-open copy is commented on instead of duplicated.
+    clauses.push('statusCategory != Done');
+    clauses.push(
+      `(labels = "${ISSUE_MARKER}" OR summary ~ "\\"Hermes JS work regression\\"")`,
+    );
+  } else {
+    clauses.push(`labels = "${ISSUE_MARKER}"`);
+  }
+  if (sinceIso) {
+    const date = new Date(sinceIso);
+    date.setUTCDate(date.getUTCDate() - 1);
+    clauses.push(`created >= "${date.toISOString().slice(0, 10)}"`);
+  }
+  return `${clauses.join(' AND ')} ORDER BY created DESC`;
+}
+
+async function searchJiraIssues({ jira, fetchFn, jql, limit }) {
+  const issues = [];
+  let nextPageToken;
+  while (issues.length < limit) {
+    const payload = await jiraRequest({
+      jira,
+      fetchFn,
+      method: 'POST',
+      path: '/rest/api/3/search/jql',
+      body: {
+        jql,
+        maxResults: Math.min(100, limit - issues.length),
+        fields: SEARCH_FIELDS,
+        ...(nextPageToken ? { nextPageToken } : {}),
+      },
+    });
+    const page = payload?.issues || [];
+    issues.push(...page);
+    if (payload?.isLast || !payload?.nextPageToken || page.length === 0) {
+      break;
+    }
+    nextPageToken = payload.nextPageToken;
+  }
+  return issues.slice(0, limit);
+}
+
+/**
+ * Tickets this automation created. The JQL requires the dedupe label. The
+ * marker in the description, or the scenario label, identifies the scenario.
+ */
+export async function listTrackedIssues({
+  jira = jiraConfigFromEnv(),
+  fetchFn = fetch,
+  state = 'open',
+  sinceIso = null,
+  projectKeys = null,
+  limit = MAX_TRACKED_ISSUES,
+}) {
+  if (!jira.configured) {
+    throw new Error('JIRA_USER_EMAIL or JIRA_API_TOKEN is not set');
+  }
+  const issues = await searchJiraIssues({
+    jira,
+    fetchFn,
+    jql: trackedIssueJql({ state, sinceIso, projectKeys }),
+    limit,
+  });
+  return issues
+    .map((issue) => normalizeJiraIssue(issue, jira.baseUrl))
+    .filter((issue) => issue.jiraKey);
+}
+
+function jiraProjectOf(issue) {
+  const match = /^([A-Z][A-Z0-9]+)-/.exec(String(issue?.jiraKey || ''));
+  return match ? match[1] : null;
+}
+
+function createdTimestamp(issue) {
+  const timestamp = Date.parse(issue?.createdAt || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+/**
+ * The open ticket for one scenario, looked up only in the owning team's
+ * `projectKey`. The marker key, the scenario label, or an identical title
+ * identifies it. The latest `createdAt` wins; Jira key numbers are per
+ * project and are not an order. A ticket in any other project is never
+ * returned, so a recurrence cannot comment on another team's ticket.
+ */
+export function findOpenIssue(issues, key, { title = null, projectKey } = {}) {
+  if (!projectKey) {
+    return null;
+  }
+  const label = scenarioIssueLabel(key);
+  return (
+    (issues || [])
+      .filter(
+        (issue) =>
+          issue.state === 'open' &&
+          jiraProjectOf(issue) === projectKey &&
+          (issue.marker?.key === key ||
+            (issue.labels || []).includes(label) ||
+            (title != null && issue.title === title)),
+      )
+      .sort(
+        (left, right) => createdTimestamp(right) - createdTimestamp(left),
+      )[0] || null
   );
+}
+
+export async function createIssue({
+  jira,
+  fetchFn = fetch,
+  title,
+  body,
+  labels,
+  projectKey,
+  appVersion = null,
+  issueType = null,
+}) {
+  const create = (foundInVersion) =>
+    jiraRequest({
+      jira,
+      fetchFn,
+      method: 'POST',
+      path: '/rest/api/3/issue',
+      body: {
+        fields: {
+          project: { key: projectKey },
+          summary: title,
+          issuetype: {
+            name: jiraIssueTypeFor(projectKey, issueType || jira.issueType),
+          },
+          labels,
+          description: markdownToAdf(body),
+          ...jiraRequiredFields(projectKey, foundInVersion),
+        },
+      },
+    });
+  let created;
+  try {
+    created = await create(appVersion);
+  } catch (error) {
+    // "Found in" only lists released versions, so an unlisted app version is
+    // rejected. Retry once with the option every project offers.
+    const message = error instanceof Error ? error.message : String(error);
+    const sentVersion =
+      appVersion && jiraRequiredFields(projectKey, appVersion)[JIRA_FIELD_IDS.foundIn];
+    if (!sentVersion || !message.includes(JIRA_FIELD_IDS.foundIn)) {
+      throw error;
+    }
+    console.log(
+      `ℹ️ Jira rejected Found in "${appVersion}" for ${projectKey}; retrying with "${JIRA_FOUND_IN_UNAVAILABLE}".`,
+    );
+    created = await create(null);
+  }
+  if (!created?.key) {
+    throw new Error('Jira issue create returned no key');
+  }
+  return {
+    jiraKey: created.key,
+    number: issueNumberFromKey(created.key),
+    url: `${jira.baseUrl}/browse/${created.key}`,
+  };
+}
+
+export async function commentOnIssue({ jira, fetchFn = fetch, jiraKey, body }) {
+  return jiraRequest({
+    jira,
+    fetchFn,
+    method: 'POST',
+    path: `/rest/api/3/issue/${encodeURIComponent(jiraKey)}/comment`,
+    body: { body: markdownToAdf(body) },
+  });
+}
+
+/**
+ * `POST /rest/api/3/issue/{key}/attachments`. Jira requires
+ * `X-Atlassian-Token: no-check` and a multipart field named `file`.
+ */
+export async function uploadJiraAttachment({
+  jira,
+  fetchFn = fetch,
+  jiraKey,
+  filePath,
+}) {
+  const name = path.basename(filePath);
+  const bytes = fs.readFileSync(filePath);
+  const type =
+    ATTACHMENT_CONTENT_TYPES[path.extname(name)] || 'application/octet-stream';
+  const form = new FormData();
+  form.append('file', new Blob([bytes], { type }), name);
+  return jiraRequest({
+    jira,
+    fetchFn,
+    method: 'POST',
+    path: `/rest/api/3/issue/${encodeURIComponent(jiraKey)}/attachments`,
+    body: form,
+    headers: { 'X-Atlassian-Token': 'no-check' },
+  });
 }
 
 /**
@@ -648,7 +1175,7 @@ export function commentOnIssue({ repo, runGh, number, body }) {
  * which may already be ahead of the run.
  */
 export function fetchAppVersion({ repo, sha, runGh }) {
-  if (!sha) {
+  if (!sha || typeof runGh !== 'function') {
     return null;
   }
   try {
@@ -672,41 +1199,78 @@ export function fetchAppVersion({ repo, sha, runGh }) {
   }
 }
 
-/**
- * An open issue for the same finding is referenced (and told about the new
- * run); otherwise a new one is opened. A closed issue is history: the finding
- * coming back after a fix is a new issue.
- */
-function syncOne({ repo, runGh, tracked, issue, recurrence }) {
-  const existing = findOpenIssue(tracked, issue.key);
+async function syncOne({
+  jira,
+  fetchFn,
+  tracked,
+  issue,
+  recurrence,
+  attachment,
+  appVersion,
+  issueType,
+}) {
+  const existing = findOpenIssue(tracked, issue.key, {
+    title: issue.title,
+    projectKey: issue.jiraProject,
+  });
   if (existing) {
-    commentOnIssue({ repo, runGh, number: existing.number, body: recurrence });
-    return { number: existing.number, url: existing.url, created: false };
+    await commentOnIssue({
+      jira,
+      fetchFn,
+      jiraKey: existing.jiraKey,
+      body: recurrence,
+    });
+    return {
+      jiraKey: existing.jiraKey,
+      number: existing.number,
+      url: existing.url,
+      created: false,
+    };
   }
-  const created = createIssue({
-    repo,
-    runGh,
+  const created = await createIssue({
+    jira,
+    fetchFn,
     title: issue.title,
     body: issue.body,
     labels: issue.labels,
+    projectKey: issue.jiraProject,
+    appVersion,
+    issueType,
   });
-  return { number: created.number, url: created.url, created: true };
+  await attachProfile({
+    jira,
+    fetchFn,
+    jiraKey: created.jiraKey,
+    attachment,
+  });
+  return { ...created, created: true };
 }
 
-function repositoryNumericId(repo, runGh) {
-  return runGh(['api', `repos/${repo}`, '--jq', '.id']).trim();
+async function attachProfile({ jira, fetchFn, jiraKey, attachment }) {
+  if (!attachment?.path || attachment.tooLarge || attachment.error) {
+    return;
+  }
+  try {
+    await uploadJiraAttachment({
+      jira,
+      fetchFn,
+      jiraKey,
+      filePath: attachment.path,
+    });
+  } catch (error) {
+    console.log(
+      `⚠️ Could not attach the Hermes profile to ${jiraKey}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
 }
 
-/**
- * Uploads the Hermes capture for one finding. A missing file or a rejected
- * upload is reported on the issue; it does not stop the issue itself.
- */
-function attachFindingProfile({
+function prepareFindingAttachment({
   finding,
   currentReport,
-  repositoryId,
-  runGh,
   outputDirectory,
+  byteLimit,
 }) {
   const label = displayName(finding.scenario);
   const files = scenarioProfilePaths(currentReport, finding);
@@ -726,76 +1290,64 @@ function attachFindingProfile({
       files,
       outputDirectory: directory,
     });
-    return {
+    const bytes = fs.statSync(packaged).size;
+    const prepared = {
       label,
-      ...uploadGitHubAttachment({
-        filePath: packaged,
-        repositoryId,
-        runGh,
-      }),
+      name: path.basename(packaged),
+      bytes,
+      path: packaged,
+      ownsDirectory,
+      directory,
+      tooLarge: bytes > byteLimit,
+      limitBytes: byteLimit,
     };
+    if (prepared.tooLarge) {
+      fs.rmSync(packaged, { force: true });
+      prepared.path = null;
+    }
+    return prepared;
   } catch (error) {
+    if (ownsDirectory) {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
     return {
       label,
       error: error instanceof Error ? error.message : String(error),
     };
-  } finally {
-    if (ownsDirectory) {
-      fs.rmSync(directory, { recursive: true, force: true });
-    }
   }
 }
 
-function attachFindingProfiles({
-  findings,
-  currentReport,
-  repo,
-  runGh,
-  outputDirectory,
-}) {
-  const withFiles = findings.filter(
-    (finding) => scenarioProfilePaths(currentReport, finding).length > 0,
-  );
-  let repositoryId = null;
-  let repositoryIdError = null;
-  if (withFiles.length > 0) {
-    try {
-      repositoryId = repositoryNumericId(repo, runGh);
-    } catch (error) {
-      repositoryIdError =
-        error instanceof Error ? error.message : String(error);
-      console.log(
-        `ℹ️ Could not resolve the repository id for the profile upload: ${repositoryIdError}`,
-      );
-    }
+function profileAttachmentForBody(prepared, artifactUrl) {
+  if (!prepared) {
+    return null;
   }
-  const directory = outputDirectory
-    ? path.join(outputDirectory, 'issue-profiles')
-    : null;
-  return findings.map((finding) => {
-    if (repositoryIdError && scenarioProfilePaths(currentReport, finding).length > 0) {
-      return {
-        label: displayName(finding.scenario),
-        error: repositoryIdError,
-      };
-    }
-    return attachFindingProfile({
-      finding,
-      currentReport,
-      repositoryId,
-      runGh,
-      outputDirectory: directory,
-    });
-  });
+  if (prepared.error) {
+    return { label: prepared.label, error: prepared.error };
+  }
+  if (prepared.tooLarge) {
+    return {
+      label: prepared.label,
+      name: prepared.name,
+      bytes: prepared.bytes,
+      tooLarge: true,
+      limitBytes: prepared.limitBytes,
+      url: artifactUrl || null,
+    };
+  }
+  return {
+    label: prepared.label,
+    name: prepared.name,
+    bytes: prepared.bytes,
+  };
 }
 
 /**
- * Creates or references one issue per finding and records the outcome on
- * `finding.issue` so the Slack and markdown builders can link it. Several
- * findings in one run each get their own issue. One failing GitHub call is
- * recorded on that finding and does not stop the others.
+ * Creates or references one Jira ticket per finding and records the outcome
+ * on `finding.issue` so the Slack and markdown builders can link it. One
+ * failing Jira call is recorded on that finding and does not stop the others.
+ * Missing credentials skip creation without failing the caller.
  */
-export function syncProfilingRegressionIssues({
+export async function syncProfilingRegressionIssues({
   exception,
   currentReport,
   frames = [],
@@ -803,82 +1355,111 @@ export function syncProfilingRegressionIssues({
   repo,
   runGh,
   outputDirectory = null,
+  fetchFn = fetch,
+  jira = jiraConfigFromEnv(),
+  attachmentByteLimit = JIRA_ATTACHMENT_BYTES,
+  issueType = null,
 }) {
   if (!exception?.meta?.hasFindings) {
     return { issues: [] };
+  }
+  if (!jira.configured) {
+    console.log(
+      '⚠️ JIRA_USER_EMAIL or JIRA_API_TOKEN is not set; skipping Jira ticket creation.',
+    );
+    return { issues: [], skipped: true };
   }
   const appVersion = fetchAppVersion({
     repo,
     sha: currentReport?.meta?.headSha || null,
     runGh,
   });
+  const projectKeys = [
+    ...new Set(
+      exception.findings.map(
+        (finding) => scenarioTeam(displayName(finding.scenario)).jiraProject,
+      ),
+    ),
+  ];
   let tracked = [];
   try {
-    tracked = listTrackedIssues({ repo, runGh, state: 'open' });
+    tracked = await listTrackedIssues({
+      jira,
+      fetchFn,
+      state: 'open',
+      projectKeys,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`ℹ️ Could not list open profiling issues: ${message}`);
+    console.log(`⚠️ Could not list open profiling tickets: ${message}`);
     for (const finding of exception.findings) {
       finding.issue = { error: message };
     }
     return { issues: [], error: message };
   }
 
-  const attachments = attachFindingProfiles({
-    findings: exception.findings,
-    currentReport,
-    repo,
-    runGh,
-    outputDirectory,
-  });
+  const profileDirectory = outputDirectory
+    ? path.join(outputDirectory, 'issue-profiles')
+    : null;
+  const artifactUrl =
+    currentReport?.meta?.analysisArtifactsUrl || exception.meta?.runUrl || null;
   const results = [];
-  for (const [index, finding] of exception.findings.entries()) {
-    const profileAttachment = attachments[index];
+  for (const finding of exception.findings) {
+    const prepared = prepareFindingAttachment({
+      finding,
+      currentReport,
+      outputDirectory: profileDirectory,
+      byteLimit: attachmentByteLimit,
+    });
     const issue = buildRegressionIssue({
       finding,
       exception,
       currentReport,
       frames,
-      aiText: proposalForFinding(
-        aiText,
-        finding,
-        exception.findings.length,
-      ),
+      aiText: proposalForFinding(aiText, finding, exception.findings.length),
       appVersion,
-      profileAttachment,
+      profileAttachment: profileAttachmentForBody(prepared, artifactUrl),
     });
     try {
-      const outcome = syncOne({
-        repo,
-        runGh,
+      const outcome = await syncOne({
+        jira,
+        fetchFn,
         tracked,
         issue,
         recurrence: buildRecurrenceComment({
           exception,
           finding,
-          profileAttachment,
+          currentReport,
         }),
+        attachment: prepared,
+        appVersion,
+        issueType,
       });
       finding.issue = outcome;
       results.push({
         key: issue.key,
         title: issue.title,
         owner: issue.owner,
+        jiraProject: issue.jiraProject,
         ...outcome,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.log(
-        `ℹ️ Could not sync the issue for ${displayName(finding.scenario)}: ${message}`,
+        `⚠️ Could not sync the Jira ticket for ${displayName(finding.scenario)}: ${message}`,
       );
       finding.issue = { error: message };
+    } finally {
+      if (prepared?.ownsDirectory && prepared.directory) {
+        fs.rmSync(prepared.directory, { recursive: true, force: true });
+      }
     }
   }
 
   if (outputDirectory) {
     fs.mkdirSync(outputDirectory, { recursive: true });
     fs.writeFileSync(
-      path.join(outputDirectory, 'github-issues.json'),
+      path.join(outputDirectory, 'jira-issues.json'),
       `${JSON.stringify(results, null, 2)}\n`,
     );
   }
@@ -890,20 +1471,32 @@ function inHalfOpenRange(isoDate, sinceIso, untilIso) {
   return timestamp >= Date.parse(sinceIso) && timestamp < Date.parse(untilIso);
 }
 
-export function countRecurrences({ repo, runGh, number }) {
-  const bodies = JSON.parse(
-    runGh([
-      'issue',
-      'view',
-      String(number),
-      '--repo',
-      repo,
-      '--json',
-      'comments',
-      '--jq',
-      '[.comments[].body]',
-    ]) || '[]',
-  );
+async function commentBodies({ jira, fetchFn, jiraKey }) {
+  const bodies = [];
+  let startAt = 0;
+  let total = Number.POSITIVE_INFINITY;
+  while (startAt < total) {
+    const payload = await jiraRequest({
+      jira,
+      fetchFn,
+      method: 'GET',
+      path: `/rest/api/3/issue/${encodeURIComponent(jiraKey)}/comment?startAt=${startAt}&maxResults=100`,
+    });
+    const comments = payload?.comments || [];
+    for (const comment of comments) {
+      bodies.push(adfToText(comment.body));
+    }
+    total = Number(payload?.total ?? startAt + comments.length);
+    if (comments.length === 0) {
+      break;
+    }
+    startAt += comments.length;
+  }
+  return bodies;
+}
+
+export async function countRecurrences({ jira, fetchFn = fetch, jiraKey }) {
+  const bodies = await commentBodies({ jira, fetchFn, jiraKey });
   return bodies.reduce(
     (total, body) => total + parseRecurrenceMarkers(body).length,
     0,
@@ -911,20 +1504,49 @@ export function countRecurrences({ repo, runGh, number }) {
 }
 
 /**
- * Issues this automation opened during `[sinceIso, untilIso)`, with the
+ * Tickets this automation opened during `[sinceIso, untilIso)`, with the
  * detection numbers taken from their marker and how many times each recurred.
  */
-export function listIssuesOpenedInWindow({ repo, runGh, sinceIso, untilIso }) {
-  const tracked = listTrackedIssues({
-    repo,
-    runGh,
+export async function listIssuesOpenedInWindow({
+  jira = jiraConfigFromEnv(),
+  fetchFn = fetch,
+  sinceIso,
+  untilIso,
+}) {
+  const tracked = await listTrackedIssues({
+    jira,
+    fetchFn,
     state: 'all',
-    search: `created:>=${sinceIso.slice(0, 10)}`,
+    sinceIso,
   });
-  return tracked
-    .filter((issue) => inHalfOpenRange(issue.createdAt, sinceIso, untilIso))
-    .map((issue) => ({
+  const opened = tracked
+    .filter(
+      (issue) =>
+        issue.marker?.key &&
+        inHalfOpenRange(issue.createdAt, sinceIso, untilIso),
+    )
+    .sort(
+      (left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt),
+    );
+  const items = [];
+  for (const issue of opened) {
+    let recurrences = 0;
+    try {
+      recurrences = await countRecurrences({
+        jira,
+        fetchFn,
+        jiraKey: issue.jiraKey,
+      });
+    } catch (error) {
+      console.log(
+        `⚠️ Could not read comments on ${issue.jiraKey}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+    items.push({
       number: issue.number,
+      jiraKey: issue.jiraKey,
       title: issue.title,
       url: issue.url,
       state: issue.state,
@@ -938,13 +1560,14 @@ export function listIssuesOpenedInWindow({ repo, runGh, sinceIso, untilIso }) {
       jsWorkMs: issue.marker.jsWorkMs ?? null,
       baselineMedianJsWorkMs: issue.marker.baselineMedianJsWorkMs ?? null,
       runId: issue.marker.runId || null,
-      recurrences: countRecurrences({ repo, runGh, number: issue.number }),
-    }))
-    .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt));
+      recurrences,
+    });
+  }
+  return items;
 }
 
 /**
- * One line per issue for the Monday report. The brief is the detection
+ * One line per ticket for the Monday report. The brief is the detection
  * numbers plus what happened since: still open, closed, and how often the
  * finding came back.
  */

@@ -38,10 +38,12 @@ const descriptor = (
   status: 'ready',
   descriptor: {
     venueId,
+    environment: 'production',
     actions,
     feeds: {},
     categories: [],
     searchSupported: false,
+    screens: [],
     displayName: venueId,
   },
 });

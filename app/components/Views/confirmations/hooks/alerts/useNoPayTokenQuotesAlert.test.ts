@@ -26,6 +26,7 @@ import {
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 import { TransactionType } from '@metamask/transaction-controller';
+import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
@@ -69,10 +70,10 @@ describe('useNoPayTokenQuotesAlert', () => {
     jest.resetAllMocks();
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: ADDRESS_MOCK,
         chainId: CHAIN_ID_MOCK,
-      },
+      }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -608,10 +609,10 @@ describe('useNoPayTokenQuotesAlert', () => {
 
     it('returns no alerts when a payment token is set and quotes are available', () => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: ADDRESS_MOCK,
           chainId: CHAIN_ID_MOCK,
-        },
+        }),
       } as ReturnType<typeof useTransactionPayToken>);
       useTransactionPayQuotesRawMock.mockReturnValue([
         {} as TransactionPayQuote<Json>,

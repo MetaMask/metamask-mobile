@@ -185,7 +185,10 @@ export function getLatestActiveOrUpcomingCampaignOfType(
  * @param locale - BCP 47 locale; defaults to the app locale
  * @returns Formatted date string (e.g., "March 15" in en-US)
  */
-function formatCampaignDate(date: Date, locale: string = I18n.locale): string {
+export function formatCampaignDate(
+  date: Date,
+  locale: string = I18n.locale,
+): string {
   return getIntlDateTimeFormatter(locale, {
     month: 'long',
     day: 'numeric',

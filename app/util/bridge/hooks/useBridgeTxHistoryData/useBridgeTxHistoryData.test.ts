@@ -402,7 +402,7 @@ describe('useBridgeTxHistoryData', () => {
   it('returns batch sell data for 7702 batch transactions', async () => {
     const batchTxHash = '0xbatchsellhash';
     const batchTxId = 'batch-sell-tx-id';
-    const batchId = '0xbatch123';
+    const batchId = '0xbatch123' as const;
     const stateWithBatchSellHistory = {
       ...initialState,
       engine: {

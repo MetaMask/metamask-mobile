@@ -36,6 +36,8 @@ const { tier, isResolved } = useNetworkTierState();
 
 Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network changes, so this is a hook, not `getNetworkTier()`.
 
+Outside render (analytics, callbacks), read `getNetworkTierSnapshot()` from `app/util/deviceCapability` instead. It returns the last tier from the process NetInfo listener, with the same `computeNetworkTier` rules, and adds no listener or re-render. It is `null` before the first NetInfo event and when latency monitoring has not started, since that listener feeds it. React screens keep using `useNetworkTier()`.
+
 **Transport tier** (`tier`) comes from NetInfo only and is never changed by measured latency: 2g / 3g are `SLOW_CELLULAR`, `wifi` / `ethernet` are `WIFI`, 4g / 5g are `FAST_CELLULAR`.
 
 **Measured latency** is a separate hook, `useNetworkLatency()` (`'UNKNOWN' | 'OK' | 'SLOW'`):
@@ -104,18 +106,19 @@ Not sampled: non-HTTP URLs (`data:`, `file:`, `content:`), `stream: true` fetche
 
 ## Files
 
-| File                             | Role                                           |
-| -------------------------------- | ---------------------------------------------- |
-| `types.ts`                       | `HardwareTier`, `NetworkTier`, `LatencyBucket` |
-| `thresholds.ts`                  | Per-platform RAM cutoffs, latency cutoffs      |
-| `computeHardwareTier.ts`         | Pure RAM → tier                                |
-| `computeNetworkTier.ts`          | Pure NetInfo fields → transport tier           |
-| `classifyFetchSample.ts`         | Pure settled fetch → duration or skip          |
-| `computeLatencyBucket.ts`        | Pure samples → `UNKNOWN` / `OK` / `SLOW`       |
-| `latencyStore.ts`                | In-memory samples, bucket, and reset listeners |
-| `index.ts`                       | `getHardwareTier()`                            |
-| `app/hooks/useNetworkTier.ts`    | NetInfo hooks (transport tier only)            |
-| `app/hooks/useNetworkLatency.ts` | Latency hooks (live and settled)               |
+| File                             | Role                                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `types.ts`                       | `HardwareTier`, `NetworkTier`, `LatencyBucket`                                                              |
+| `thresholds.ts`                  | Per-platform RAM cutoffs, latency cutoffs                                                                   |
+| `computeHardwareTier.ts`         | Pure RAM → tier                                                                                             |
+| `computeNetworkTier.ts`          | Pure NetInfo fields → transport tier                                                                        |
+| `classifyFetchSample.ts`         | Pure settled fetch → duration or skip                                                                       |
+| `computeLatencyBucket.ts`        | Pure samples → `UNKNOWN` / `OK` / `SLOW`                                                                    |
+| `latencyStore.ts`                | In-memory samples, bucket, and reset listeners                                                              |
+| `networkTierSnapshot.ts`         | Last transport tier from the process NetInfo listener; `getNetworkTierSnapshot()` for imperative reads only |
+| `index.ts`                       | `getHardwareTier()`, `getNetworkTierSnapshot()`                                                             |
+| `app/hooks/useNetworkTier.ts`    | NetInfo hooks (transport tier only)                                                                         |
+| `app/hooks/useNetworkLatency.ts` | Latency hooks (live and settled)                                                                            |
 
 ## Out of scope (this module)
 

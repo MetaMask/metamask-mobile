@@ -5,7 +5,7 @@ import {
 
 const ASSET = {
   assetId: 'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
   decimals: 18,
 };
 

@@ -58,7 +58,7 @@ const PerpsBalanceOrderView = () => {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   const activeProvider = useSelector(selectPerpsProvider);
-  const { markets, isLoading } = usePerpsMarkets();
+  const { markets, isLoading } = usePerpsMarkets({ fullCatalog: true });
   const orderProvider = params.providerId ?? activeProvider;
   const isLighterOrder = orderProvider === 'lighter';
   const defaultMarketProvider =
@@ -83,6 +83,7 @@ const PerpsBalanceOrderView = () => {
       : foundMarket;
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
   const prices = usePerpsLivePrices({
+    providerId: market?.providerId,
     symbols: market ? [market.symbol] : [],
     throttleMs: 1000,
   });
@@ -147,6 +148,7 @@ const PerpsBalanceOrderView = () => {
           contentContainerStyle={tw.style('p-4 pb-12')}
         >
           <PerpsOrderProvider
+            providerId={market?.providerId}
             key={`${market.providerId}:${market.symbol}`}
             initialAsset={market.symbol}
             initialDirection={params.direction}

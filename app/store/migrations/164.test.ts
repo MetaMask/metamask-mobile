@@ -1,15 +1,9 @@
 import { captureException } from '@sentry/react-native';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-import migration, { migrationVersion } from './164';
+import migrate, { migrationVersion } from './164';
 import { ensureValidState } from './util';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
-}));
-
-jest.mock('redux-persist-filesystem-storage', () => ({
-  __esModule: true,
-  default: { getItem: jest.fn(), removeItem: jest.fn() },
 }));
 
 jest.mock('./util', () => ({
@@ -18,184 +12,67 @@ jest.mock('./util', () => ({
 
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
-const mockedGetItem = jest.mocked(FilesystemStorage.getItem);
-const mockedRemoveItem = jest.mocked(FilesystemStorage.removeItem);
 
-const LEGACY_KEY = 'persist:MarketingConsentController';
+const createState = (backgroundState: Record<string, unknown>) => ({
+  engine: { backgroundState },
+});
 
-interface TestState {
-  engine: {
-    backgroundState: Record<string, unknown>;
-    preserved?: boolean;
-  };
-  preserved?: boolean;
-}
-
-function buildValidState(
-  backgroundState: Record<string, unknown> = {},
-): TestState {
-  return {
-    engine: {
-      backgroundState: {
-        OtherController: { preserved: true },
-        ...backgroundState,
-      },
-      preserved: true,
-    },
-    preserved: true,
-  };
-}
-
-const persistLegacyState = (state: Record<string, unknown>): void => {
-  mockedGetItem.mockResolvedValue(JSON.stringify(state));
-};
-
-describe(`Migration ${migrationVersion}: carry pending marketing consent`, () => {
+describe(`Migration ${migrationVersion}: remove TokensController state`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedEnsureValidState.mockReturnValue(true);
-    mockedGetItem.mockResolvedValue(undefined);
-    mockedRemoveItem.mockResolvedValue(undefined);
   });
 
-  it('reports the expected migration version', () => {
+  it('reports migration version 164', () => {
     expect(migrationVersion).toBe(164);
   });
 
-  it('carries a pending opt-in into AnalyticsController and keeps other state', async () => {
-    persistLegacyState({ pendingMarketingConsent: true });
-    const state = buildValidState({
-      AnalyticsController: {
-        analyticsId: 'analytics-id',
-        optedIn: true,
-        consentDecisionMade: true,
-        optedInToMarketing: false,
-        marketingConsentDecisionMade: false,
-      },
-    });
-
-    const result = (await migration(state)) as TestState;
-
-    expect(mockedGetItem).toHaveBeenCalledWith(LEGACY_KEY);
-    expect(result.engine.backgroundState.AnalyticsController).toStrictEqual({
-      analyticsId: 'analytics-id',
-      optedIn: true,
-      consentDecisionMade: true,
-      optedInToMarketing: true,
-      marketingConsentDecisionMade: true,
-      marketingConsentSyncPending: true,
-    });
-    expect(result.engine.backgroundState.OtherController).toStrictEqual({
-      preserved: true,
-    });
-    expect(result.engine.preserved).toBe(true);
-    expect(result.preserved).toBe(true);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('carries a pending opt-out into AnalyticsController', async () => {
-    persistLegacyState({ pendingMarketingConsent: false });
-    const state = buildValidState({
-      AnalyticsController: {
-        optedInToMarketing: true,
-        marketingConsentDecisionMade: true,
-      },
-    });
-
-    const result = (await migration(state)) as TestState;
-
-    expect(result.engine.backgroundState.AnalyticsController).toStrictEqual({
-      optedInToMarketing: false,
-      marketingConsentDecisionMade: true,
-      marketingConsentSyncPending: true,
-    });
-  });
-
-  it('creates AnalyticsController state when it is missing', async () => {
-    persistLegacyState({ pendingMarketingConsent: true });
-    const state = buildValidState();
-
-    const result = (await migration(state)) as TestState;
-
-    expect(result.engine.backgroundState.AnalyticsController).toStrictEqual({
-      optedInToMarketing: true,
-      marketingConsentDecisionMade: true,
-      marketingConsentSyncPending: true,
-    });
-  });
-
-  it('leaves state unchanged and keeps the legacy file when nothing is pending', async () => {
-    persistLegacyState({ pendingMarketingConsent: null });
-    const state = buildValidState({
-      AnalyticsController: {
-        optedInToMarketing: false,
-        marketingConsentDecisionMade: true,
-      },
-    });
-    const snapshot = JSON.stringify(state);
-
-    const result = await migration(state);
-
-    expect(JSON.stringify(result)).toBe(snapshot);
-    expect(mockedRemoveItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('leaves state unchanged when the legacy file is absent', async () => {
-    const state = buildValidState();
-    const snapshot = JSON.stringify(state);
-
-    const result = await migration(state);
-
-    expect(JSON.stringify(result)).toBe(snapshot);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('leaves state unchanged and reports invalid JSON', async () => {
-    mockedGetItem.mockResolvedValue('not json');
-    const state = buildValidState();
-    const snapshot = JSON.stringify(state);
-
-    const result = await migration(state);
-
-    expect(JSON.stringify(result)).toBe(snapshot);
-    expect(mockedCaptureException).toHaveBeenCalledTimes(1);
-  });
-
-  it('leaves state unchanged and reports a non-object legacy value', async () => {
-    mockedGetItem.mockResolvedValue('true');
-    const state = buildValidState();
-    const snapshot = JSON.stringify(state);
-
-    const result = await migration(state);
-
-    expect(JSON.stringify(result)).toBe(snapshot);
-    expect(mockedCaptureException).toHaveBeenCalledTimes(1);
-  });
-
-  it('leaves state unchanged and reports a read failure', async () => {
-    mockedGetItem.mockRejectedValue(new Error('disk error'));
-    const state = buildValidState({
-      AnalyticsController: {
-        optedInToMarketing: false,
-        marketingConsentDecisionMade: true,
-      },
-    });
-    const snapshot = JSON.stringify(state);
-
-    const result = await migration(state);
-
-    expect(JSON.stringify(result)).toBe(snapshot);
-    expect(mockedCaptureException).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not read the legacy file when ensureValidState fails', async () => {
+  it('returns state unchanged when ensureValidState fails', () => {
     mockedEnsureValidState.mockReturnValue(false);
-    const state = { invalid: true };
+    const state = { some: 'state' };
 
-    const result = await migration(state);
+    expect(migrate(state)).toBe(state);
+    expect(mockedEnsureValidState).toHaveBeenCalledWith(state, 164);
+  });
 
-    expect(result).toBe(state);
-    expect(mockedGetItem).not.toHaveBeenCalled();
+  it('returns state unchanged when TokensController is absent', () => {
+    const state = createState({ AssetsController: { assetsInfo: {} } });
+
+    expect(migrate(state)).toBe(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('removes TokensController and preserves other controllers', () => {
+    const state = createState({
+      TokensController: { allTokens: { '0x1': { '0xabc': [] } } },
+      AssetsController: { assetsInfo: { 'eip155:1/slip44:60': {} } },
+      NetworkController: { selectedNetworkClientId: 'mainnet' },
+    });
+
+    expect(migrate(state)).toStrictEqual({
+      engine: {
+        backgroundState: {
+          AssetsController: { assetsInfo: { 'eip155:1/slip44:60': {} } },
+          NetworkController: { selectedNetworkClientId: 'mainnet' },
+        },
+      },
+    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('captures the error and returns state unchanged when the migration throws', () => {
+    const state = createState({ TokensController: { allTokens: {} } });
+    Object.defineProperty(state.engine, 'backgroundState', {
+      get: () => {
+        throw new Error('boom');
+      },
+    });
+
+    expect(migrate(state)).toBe(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        `Migration ${migrationVersion}: Failed to remove TokensController state: boom`,
+      ),
+    );
   });
 });

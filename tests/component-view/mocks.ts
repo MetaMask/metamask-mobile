@@ -110,6 +110,7 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        listTransactions: jest.fn().mockResolvedValue({ items: [] }),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
           phone: '+441234567890',
@@ -505,6 +506,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
+        submitIntent: jest.fn().mockResolvedValue({ success: true }),
+        state: { txHistory: {} },
+      },
+      MoneyAccountController: {
+        getMoneyAccount: jest.fn().mockReturnValue(undefined),
       },
       PredictMarketDataService: {},
       PredictLiveDataService: {},
@@ -737,11 +743,13 @@ jest.mock('../../app/core/Engine', () => {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
       call: jest.fn((action: string, ...args: unknown[]) => {
+        if (action === 'MoneyAccountApiDataService:fetchVaults') {
+          return Promise.resolve({
+            vaults: [{ vault_key: 'standard', current_apy: '0.042' }],
+          });
+        }
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
-        if (action === 'MoneyAccountBalanceService:getVaultApy') {
-          return Promise.resolve({ apy: '0.042' });
-        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'

@@ -43,6 +43,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { OrderType } from '../../types/advancedOrders';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 const expectAdvancedOrderProperties = (
   event: { category: string },
@@ -125,6 +126,8 @@ jest.mock('../../api/limitOrders/create', () => ({
 jest.mock('../../utils/limitOrders/signLimitOrderDelegations', () => ({
   signLimitOrderDelegations: jest.fn(),
 }));
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -363,6 +366,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
       ),
     ).toBeOnTheScreen();
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   describe('insufficient balance warning', () => {
@@ -693,6 +697,20 @@ describe('LimitOrderConfirmationModalScreen', () => {
     ).toBeNull();
   });
 
+  it('keeps the primary button loading while checking whether an upgrade is required', () => {
+    mockUseEIP7702UpgradeFee.mockReturnValue({
+      status: 'checking',
+      retry: jest.fn(),
+    });
+
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
+        .accessibilityState?.busy,
+    ).toBe(true);
+  });
+
   it('fetches the delegations to sign when the primary button is pressed while the fee estimate is ready', async () => {
     const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
 
@@ -705,6 +723,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     await waitFor(() => {
       expect(mockFetchLimitOrdersDelegations).toHaveBeenCalledTimes(1);
     });
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('configures account auto-upgrade for the source wallet and chain', () => {
@@ -1198,6 +1217,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
     expect(retry).toHaveBeenCalledTimes(1);
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('derives the network fee token from the paying token chain', () => {

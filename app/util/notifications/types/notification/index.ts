@@ -12,9 +12,6 @@ export const NotificationTypes = {
   SIMPLE: 'simple',
 } as const;
 
-export type NotificationTypesType =
-  (typeof NotificationTypes)[keyof typeof NotificationTypes];
-
 export const NotificationTransactionTypes = {
   pending: 'pending',
   pending_deposit: 'pending_deposit',

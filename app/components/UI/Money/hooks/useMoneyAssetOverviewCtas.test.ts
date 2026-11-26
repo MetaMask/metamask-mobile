@@ -12,7 +12,7 @@ import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
@@ -28,7 +28,7 @@ jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
 jest.mock('./useMoneyDepositNavigation', () => ({
-  useMoneyCtaDepositNavigation: jest.fn(),
+  useMoneyDepositNavigation: jest.fn(),
 }));
 jest.mock('../../../../hooks/useABTest');
 
@@ -40,7 +40,7 @@ const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
   useMoneyAssetOverviewCtaVisibility,
 );
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseABTest = jest.mocked(useABTest);
 
 const asset = {
@@ -269,11 +269,11 @@ describe('useMoneyAssetOverviewCtas', () => {
     );
   });
 
-  it('tracks footer onboarding with interpolated labels and token context', async () => {
+  it('tracks footer splash with interpolated labels and token context', async () => {
     mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
       track?.({
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       });
     });
     const { result } = renderHook(() =>
@@ -290,14 +290,14 @@ describe('useMoneyAssetOverviewCtas', () => {
 
     expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
       component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
       label_en: strings('money.asset_overview.cta.earn_apy', {
         apy: 4,
         locale: 'en',
       }),
       label_localized: strings('money.asset_overview.cta.earn_apy', { apy: 4 }),
-      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       token_symbol: asset.symbol,
       token_position_in_list: 1,
       token_chain_id: asset.chainId,
@@ -384,11 +384,11 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('sends the selected asset to onboarding before tracking footer navigation', async () => {
+  it('sends the selected asset to the splash before tracking footer navigation', async () => {
     mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
       track?.({
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       });
     });
     const { result } = renderHook(() =>

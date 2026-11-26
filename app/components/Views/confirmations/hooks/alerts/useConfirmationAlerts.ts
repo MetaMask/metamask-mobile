@@ -14,6 +14,7 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
+import { useLighterDepositMinimumAlert } from './useLighterDepositMinimumAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -25,6 +26,7 @@ import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
+import { useLighterAccountLookupAlert } from './useLighterAccountLookupAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -48,6 +50,7 @@ function useTransactionAlerts(): Alert[] {
   // deposit cap is captured in alert metrics even when the user backs out
   // without ever committing the over-cap amount.
   const depositLimitAlert = useTransactionDepositLimitAlert();
+  const lighterDepositMinimumAlert = useLighterDepositMinimumAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -57,6 +60,7 @@ function useTransactionAlerts(): Alert[] {
   const accountNoFundsAlert = useAccountNoFundsAlert();
   const mmPayHardwareAccountAlert = useMMPayHardwareAccountAlert();
   const suggestedGasFeeHighAlert = useSuggestedGasFeeHighAlert();
+  const lighterAccountLookupAlert = useLighterAccountLookupAlert();
 
   return useMemo(
     () => [
@@ -72,6 +76,7 @@ function useTransactionAlerts(): Alert[] {
       ...noPayTokenQuotesAlert,
       ...fiatBuyLimitAlert,
       ...depositLimitAlert,
+      ...lighterDepositMinimumAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -80,6 +85,7 @@ function useTransactionAlerts(): Alert[] {
       ...tokenContractAlert,
       ...accountNoFundsAlert,
       ...mmPayHardwareAccountAlert,
+      ...lighterAccountLookupAlert,
     ],
     [
       gasEstimateFailedAlert,
@@ -94,6 +100,7 @@ function useTransactionAlerts(): Alert[] {
       noPayTokenQuotesAlert,
       fiatBuyLimitAlert,
       depositLimitAlert,
+      lighterDepositMinimumAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,
@@ -102,6 +109,7 @@ function useTransactionAlerts(): Alert[] {
       tokenContractAlert,
       accountNoFundsAlert,
       mmPayHardwareAccountAlert,
+      lighterAccountLookupAlert,
     ],
   );
 }

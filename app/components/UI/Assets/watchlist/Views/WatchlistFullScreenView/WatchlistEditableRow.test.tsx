@@ -129,9 +129,9 @@ describe('WatchlistEditableRow', () => {
     expect(onRemoveFromDraft).toHaveBeenCalledWith(token.assetId);
   });
 
-  it('does not call onRemoveFromDraft when unwatch star is pressed outside edit mode', () => {
+  it('does not render the unwatch action outside edit mode', () => {
     const onRemoveFromDraft = jest.fn();
-    const { getByTestId } = render(
+    const { queryByTestId } = render(
       <WatchlistEditableRow
         token={createToken()}
         position={0}
@@ -140,10 +140,9 @@ describe('WatchlistEditableRow', () => {
       />,
     );
 
-    fireEvent.press(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
-    );
-
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
+    ).toBeNull();
     expect(onRemoveFromDraft).not.toHaveBeenCalled();
   });
 });

@@ -138,6 +138,7 @@ const PerpsClosePositionView: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <PerpsOrderHeader
+        providerId={position.providerId}
         asset={position.symbol}
         price={currentPrice}
         title={strings('perps.close_position.title')}
@@ -287,6 +288,7 @@ const PerpsClosePositionView: React.FC = () => {
           mid-session flag flip closes it immediately (effectiveOrderType can
           only be 'limit' while the feature flag is enabled). */}
       <PerpsLimitPriceBottomSheet
+        providerId={position.providerId}
         isVisible={isLimitPriceVisible && effectiveOrderType === 'limit'}
         onClose={() => {
           setIsLimitPriceVisible(false);

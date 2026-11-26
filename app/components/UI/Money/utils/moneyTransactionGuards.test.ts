@@ -10,6 +10,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../Earn/constants/musd';
 import {
+  isFiatMoneyDeposit,
   isMoneyAccountTx,
   isMoneyDepositTx,
   isMoneyWithdrawTx,
@@ -119,6 +120,12 @@ describe('resolveMoneyDepositIntent', () => {
     );
   });
 
+  it('returns "card" for a fiat-strategy deposit without order metadata', () => {
+    expect(resolveMoneyDepositIntent(makeDepositTx({ strategy: 'fiat' }))).toBe(
+      'card',
+    );
+  });
+
   it('returns "addMusd" for a deposit paid with mUSD', () => {
     expect(
       resolveMoneyDepositIntent(
@@ -136,6 +143,55 @@ describe('resolveMoneyDepositIntent', () => {
         }),
       ),
     ).toBe('convert');
+  });
+});
+
+describe('isFiatMoneyDeposit', () => {
+  it('returns true when fiat order metadata is present', () => {
+    expect(
+      isFiatMoneyDeposit({
+        ...makeTx(TransactionType.moneyAccountDeposit),
+        metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns true for the fiat pay strategy without order metadata', () => {
+    expect(
+      isFiatMoneyDeposit({
+        ...makeTx(TransactionType.moneyAccountDeposit),
+        metamaskPay: { strategy: 'fiat' },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns true for a batch with a nested deposit', () => {
+    expect(
+      isFiatMoneyDeposit({
+        ...makeTx(TransactionType.batch, [
+          { type: TransactionType.moneyAccountDeposit },
+        ]),
+        metamaskPay: { strategy: 'fiat' },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for a non-fiat deposit', () => {
+    expect(
+      isFiatMoneyDeposit({
+        ...makeTx(TransactionType.moneyAccountDeposit),
+        metamaskPay: { strategy: 'relay' },
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for a withdraw even with the fiat strategy', () => {
+    expect(
+      isFiatMoneyDeposit({
+        ...makeTx(TransactionType.moneyAccountWithdraw),
+        metamaskPay: { strategy: 'fiat' },
+      }),
+    ).toBe(false);
   });
 });
 

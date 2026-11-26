@@ -29,6 +29,8 @@ import { useInsufficientNativeReserveError } from '../useInsufficientNativeReser
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
 import { useSwapQuotes } from '../useSwapQuotes';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
@@ -70,7 +72,8 @@ export const useBridgeQuoteRequest = (
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
-  const context = useUnifiedSwapBridgeContext();
+  const featureId = useSwapsFeatureId();
+  const context = useUnifiedSwapBridgeContext(featureId);
   const { latestSourceAtomicBalance } = options;
   const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
 
@@ -82,6 +85,7 @@ export const useBridgeQuoteRequest = (
           decimals: sourceToken?.decimals,
           chainId: sourceToken?.chainId,
           balance: sourceToken?.balance,
+          isMoneyToken: sourceToken?.isMoneyToken,
         },
   );
 
@@ -99,6 +103,8 @@ export const useBridgeQuoteRequest = (
     latestAtomicBalance: sourceAtomicBalance,
     ignoreGasFees: true,
   });
+
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
 
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
@@ -145,10 +151,17 @@ export const useBridgeQuoteRequest = (
         srcTokenAmount: normalizedSourceAmount,
         slippage: slippage ? Number(slippage) : undefined,
         walletAddress,
-        destWalletAddress: destAddress ?? walletAddress,
+        destWalletAddress:
+          destToken?.isMoneyToken && primaryMoneyAccount?.address
+            ? primaryMoneyAccount.address
+            : (destAddress ?? walletAddress),
         gasIncluded,
         gasIncluded7702,
-        insufficientBal,
+        insufficientBal: sourceToken?.isMoneyToken ? true : insufficientBal,
+        isMoneyAccount: Boolean(
+          // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+          sourceToken?.isMoneyToken || destToken?.isMoneyToken,
+        ),
       };
 
       const shouldTrace = isValidQuoteRequest(params);
@@ -183,6 +196,7 @@ export const useBridgeQuoteRequest = (
       gasIncluded,
       gasIncluded7702,
       insufficientBal,
+      primaryMoneyAccount?.address,
     ],
   );
 
@@ -238,7 +252,7 @@ export const useBridgeQuoteRequest = (
 
       cancelOwnedTrace();
 
-      debounced(requestOptions);
+      void debounced(requestOptions);
     }) as DebouncedFunc<typeof updateQuoteParams>;
 
     debouncedWithTrace.cancel = () => {

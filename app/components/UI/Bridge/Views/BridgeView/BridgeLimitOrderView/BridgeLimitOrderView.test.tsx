@@ -448,6 +448,7 @@ function buildSwapInputsMock() {
       handleFocus: jest.fn(),
       handleSelectionChange: jest.fn(),
       canToggle: false,
+      fiatRate: undefined,
       handleToggle: jest.fn(),
       inputPrefix: undefined,
       secondaryValue: undefined,

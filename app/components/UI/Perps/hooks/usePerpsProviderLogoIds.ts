@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
-import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
+import type {
+  PerpsActiveProviderMode,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
 
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { usePerpsProvider } from './usePerpsProvider';
@@ -19,6 +22,18 @@ const AGGREGATED_PROVIDER_LOGO_IDS: readonly PerpsProviderLogoId[] = [
   PROVIDER_CONFIG.DefaultProvider,
   PROVIDER_CONFIG.LighterProvider,
 ];
+
+/**
+ * Logo ids in stack order — Hyperliquid first, Lighter on top — matching
+ * the aggregated pair on Perps Home. A saved venue filter keeps the sheet's
+ * display order (Lighter first), so selections are re-ordered through this
+ * before reaching `PerpsProviderLogos`, whose paint order is its input
+ * order. Unknown ids drop out.
+ */
+export const orderPerpsProviderLogoIds = (
+  providerIds: readonly PerpsProviderType[],
+): readonly PerpsProviderLogoId[] =>
+  AGGREGATED_PROVIDER_LOGO_IDS.filter((id) => providerIds.includes(id));
 
 /**
  * Marks for the active provider. Aggregated mode draws both exchanges.

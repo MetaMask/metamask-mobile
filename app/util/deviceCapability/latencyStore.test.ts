@@ -22,6 +22,7 @@ const netInfoState = (
 
 describe('latencyStore', () => {
   let store: typeof import('./latencyStore');
+  let tierSnapshot: typeof import('./networkTierSnapshot');
   let emitNetInfo: NetInfoListener;
   let emitAppState: AppStateListener;
 
@@ -45,6 +46,7 @@ describe('latencyStore', () => {
     });
     jest.isolateModules(() => {
       store = jest.requireActual('./latencyStore');
+      tierSnapshot = jest.requireActual('./networkTierSnapshot');
     });
     store.startLatencyMonitoring('HIGH');
     emitNetInfo(netInfoState('wifi'));
@@ -367,12 +369,12 @@ describe('latencyStore', () => {
     });
   });
 
-  it('reports the network tier from the latest NetInfo event', () => {
-    expect(store.getNetworkTierSnapshot()).toBe('WIFI');
+  it('forwards the tier from each NetInfo event to the tier snapshot', () => {
+    expect(tierSnapshot.getNetworkTierSnapshot()).toBe('WIFI');
 
     emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '3g' }));
 
-    expect(store.getNetworkTierSnapshot()).toBe('SLOW_CELLULAR');
+    expect(tierSnapshot.getNetworkTierSnapshot()).toBe('SLOW_CELLULAR');
   });
 
   it('uses the HIGH thresholds for a HIGH hardware row', () => {
