@@ -245,7 +245,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW),
       ).toBeOnTheScreen();
-      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
+      expect(getByTestId('section-header-view-all-tokens')).toBeOnTheScreen();
       expect(getByTestId(TRENDING_ETHEREUM_ID)).toBeOnTheScreen();
     });
 

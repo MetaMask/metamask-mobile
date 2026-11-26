@@ -3667,8 +3667,8 @@
     },
     "exchange_filter": {
       "title": "Filter by exchange",
-      "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage",
+      "tagline_lighter": "Lower fee, higher leverage",
+      "tagline_hyperliquid": "Higher volume, lower slippage",
       "trigger": "{{count}} exchange",
       "trigger_plural": "{{count}} exchanges"
     },
@@ -3901,6 +3901,14 @@
     },
     "price_alerts": {
       "open": "Open price alerts"
+    },
+    "trade_on": {
+      "title": "Trade on",
+      "label": "Trade on",
+      "subtitle": "Select an exchange for this order. To set a default for all orders, go to settings.",
+      "accessibility_label": "Trade on {{venue}}",
+      "max_leverage": "max",
+      "default_tag": "Default"
     }
   },
   "market_insights": {
@@ -4047,7 +4055,17 @@
       "game_quote_price": "· {{price}}",
       "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
       "game_quote_price_accessibility_label": "{{team}}, {{price}}",
-      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable",
+      "card_volume_label": "${{volume}} vol.",
+      "game_draw_label": "Draw",
+      "game_status": {
+        "scheduled": "Scheduled",
+        "delayed": "Delayed",
+        "suspended": "Suspended",
+        "postponed": "Postponed",
+        "final": "Final",
+        "canceled": "Canceled"
+      }
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
@@ -13659,6 +13677,14 @@
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
+    "crypto_tokens_section": "Tokens",
+    "crypto_token_count": "{{count}} token",
+    "crypto_token_count_plural": "{{count}} tokens",
+    "crypto_pills": {
+      "trending": "Trending",
+      "most_traded": "Most traded",
+      "robinhood": "Robinhood"
+    },
     "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",

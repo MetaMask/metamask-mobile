@@ -18228,14 +18228,6 @@
       "count": 1
     }
   },
-  "app/components/Views/TrendingView/tabs/CryptoTab.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/Views/TrendingView/tabs/NowTab.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -20813,21 +20805,8 @@
       "count": 2
     }
   },
-  "app/core/DeeplinkManager/handlers/legacy/handleSocialPostUrl.ts": {
-    "typescript/unbound-method": {
-      "count": 1
-    }
-  },
-  "app/core/DeeplinkManager/handlers/legacy/handleSocialTraderPositionUrl.ts": {
-    "typescript/unbound-method": {
-      "count": 2
-    }
-  },
   "app/core/DeeplinkManager/handlers/legacy/handleSocialTraderUrl.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    },
-    "typescript/unbound-method": {
       "count": 1
     }
   },

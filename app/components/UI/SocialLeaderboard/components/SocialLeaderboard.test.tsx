@@ -46,15 +46,25 @@ jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
   useMyProfile: () => ({ profile: mockProfile }),
 }));
 
+const mockFollowSetupOptions = jest.fn();
 jest.mock(
   '../../../Views/SocialLeaderboard/hooks/useFollowWithNotificationSetup',
   () => ({
-    useFollowWithNotificationSetup: () => ({
-      followWithSetup: (_isFollowing: boolean, toggle: () => Promise<void>) =>
-        toggle(),
-    }),
+    useFollowWithNotificationSetup: (options: unknown) => {
+      mockFollowSetupOptions(options);
+      return {
+        followWithSetup: (_isFollowing: boolean, toggle: () => Promise<void>) =>
+          toggle(),
+      };
+    },
   }),
 );
+
+let mockHasSocialV1Access = false;
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual('../../../../selectors/featureFlagController/socialV1'),
+  selectHasSocialV1Access: () => mockHasSocialV1Access,
+}));
 
 jest.mock('../../../Views/SocialLeaderboard/analytics', () => ({
   ...jest.requireActual('../../../Views/SocialLeaderboard/analytics'),
@@ -211,6 +221,7 @@ describe('SocialLeaderboard', () => {
     mockNetworkTier = 'WIFI';
     mockIsUnlocked = true;
     mockProfile = null;
+    mockHasSocialV1Access = false;
     mockQueryResult();
     mockHoldersResult();
     mockRefetchViewerProfile.mockReset();
@@ -220,6 +231,39 @@ describe('SocialLeaderboard', () => {
       error: null,
       isLoading: false,
       refetch: mockRefetchViewerProfile,
+    });
+  });
+
+  describe('follow gates', () => {
+    it('requires a social profile to follow with Social V1 access', () => {
+      mockHasSocialV1Access = true;
+
+      renderLeaderboard();
+
+      expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
+        requireSocialTerms: true,
+        requireSocialProfile: true,
+      });
+    });
+
+    it('requires only the Social terms to follow outside Social V1', () => {
+      renderLeaderboard();
+
+      expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
+        requireSocialTerms: true,
+        requireSocialProfile: false,
+      });
+    });
+
+    it('keeps the profile gate the host passes', () => {
+      mockHasSocialV1Access = true;
+
+      renderLeaderboard({ requireSocialProfile: false });
+
+      expect(mockFollowSetupOptions).toHaveBeenLastCalledWith({
+        requireSocialTerms: true,
+        requireSocialProfile: false,
+      });
     });
   });
 

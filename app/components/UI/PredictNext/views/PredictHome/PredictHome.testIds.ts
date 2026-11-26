@@ -22,6 +22,7 @@ export const PredictHomeTestIds = {
   BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   DEPOSIT_STATUS: 'predict-next-home-deposit-status',
   ACTIONS: 'predict-next-home-portfolio-actions',
+  DIVIDER: 'predict-next-home-divider',
   POSITIONS: 'predict-next-home-positions',
   ADD_FUNDS: 'predict-next-home-add-funds',
   WITHDRAW: 'predict-next-home-withdraw',
