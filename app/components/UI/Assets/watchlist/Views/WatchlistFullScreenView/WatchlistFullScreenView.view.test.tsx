@@ -338,7 +338,7 @@ describeForPlatforms('WatchlistFullScreenView', () => {
   });
 
   it('shows the filtered empty state on the Tokens tab when only Perps are watched', async () => {
-    setupWatchlistStorageMock([]);
+    setupWatchlistStorageMock({ version: 1, assets: [] });
     setupWatchlistTokenApiMock([]);
 
     const perpsMarkets = [
