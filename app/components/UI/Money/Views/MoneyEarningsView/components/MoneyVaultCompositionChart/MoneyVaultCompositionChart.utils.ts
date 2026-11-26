@@ -68,7 +68,8 @@ export const getVaultCompositionComponentColor = (
   const hash = componentKey
     .split('')
     .reduce(
-      (total, character) => (total * 31 + character.charCodeAt(0)) >>> 0,
+      (total, character) =>
+        (total * 31 + (character.codePointAt(0) ?? 0)) >>> 0,
       0,
     );
 
@@ -90,7 +91,7 @@ export const getVaultCompositionComponentKeyAtPoint = (
 ): ComponentKey | null => {
   const deltaX = x - CHART_CENTER;
   const deltaY = y - CHART_CENTER;
-  const radius = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+  const radius = Math.hypot(deltaX, deltaY);
 
   if (radius < DONUT_INNER_RADIUS || radius > DONUT_OUTER_RADIUS) {
     return null;
@@ -193,7 +194,7 @@ export const buildVaultCompositionChartModel = (
 
   let segmentStartDegrees = new BigNumber(0);
   const wedges = positiveComponents.map(
-    ({ component, allocation }, index): VaultCompositionWedge => {
+    ({ component }, index): VaultCompositionWedge => {
       const paintedAngleDegrees = paintedAngles[index];
       const segmentEndDegrees = segmentStartDegrees
         .plus(new BigNumber(SEPARATOR_ANGLE_DEGREES))

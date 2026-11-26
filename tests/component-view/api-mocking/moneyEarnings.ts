@@ -157,9 +157,14 @@ interface SetupMoneyEarningsApiMockOptions {
 }
 
 interface SetupMoneyAllocationApiMockOptions {
-  compositionResponse?: VaultCompositionResponse | Record<string, unknown>;
+  compositionResponse?:
+    | VaultCompositionResponse
+    | Record<string, unknown>
+    | null;
   historicalApyResponse?: VaultApyHistoryResponse | Record<string, unknown>;
   status?: number;
+  compositionStatus?: number;
+  historicalApyStatus?: number;
 }
 
 export const setupMoneyEarningsApiMock = ({
@@ -185,13 +190,15 @@ export const setupMoneyAllocationApiMock = ({
   compositionResponse = moneyVaultCompositionResponse,
   historicalApyResponse = moneyHistoricalVaultApysResponse,
   status = 200,
+  compositionStatus = status,
+  historicalApyStatus = status,
 }: SetupMoneyAllocationApiMockOptions = {}): void => {
   MONEY_EARNINGS_ORIGINS.forEach((origin) => {
     stubFetchPath(
       origin,
       MONEY_VAULT_COMPOSITION_PATH,
       compositionResponse,
-      status,
+      compositionStatus,
       { method: 'GET' },
     );
   });
@@ -200,7 +207,7 @@ export const setupMoneyAllocationApiMock = ({
       origin,
       MONEY_VAULT_APY_HISTORY_PATH,
       historicalApyResponse,
-      status,
+      historicalApyStatus,
       { method: 'GET' },
     );
   });

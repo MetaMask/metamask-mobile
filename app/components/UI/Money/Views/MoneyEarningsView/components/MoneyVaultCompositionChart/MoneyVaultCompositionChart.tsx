@@ -93,7 +93,7 @@ const MoneyVaultCompositionChart = ({
     return (
       <Box
         testID={MoneyVaultCompositionChartTestIds.EMPTY}
-        twClassName="items-center justify-center px-4 py-8"
+        className="items-center justify-center px-4 py-8"
       >
         <Text variant={TextVariant.BodyMd}>
           {strings('money.earnings.chart_empty')}
@@ -107,7 +107,7 @@ const MoneyVaultCompositionChart = ({
       <Box
         testID={MoneyVaultCompositionChartTestIds.INVALID}
         accessibilityRole="alert"
-        twClassName="items-center justify-center px-4 py-8"
+        className="items-center justify-center px-4 py-8"
       >
         <Text variant={TextVariant.BodyMd}>
           {strings('money.earnings.chart_invalid')}
@@ -145,7 +145,7 @@ const MoneyVaultCompositionChart = ({
           selectPrevious();
         }
       }}
-      twClassName="items-center justify-center"
+      className="items-center justify-center"
       style={{
         width: CHART_VIEWBOX_SIZE,
         height: CHART_VIEWBOX_SIZE,
@@ -192,7 +192,7 @@ const MoneyVaultCompositionChart = ({
       <Box
         pointerEvents="none"
         accessible={false}
-        twClassName="absolute inset-0 items-center justify-center px-8"
+        className="absolute inset-0 items-center justify-center px-8"
       >
         <Text
           testID={MoneyVaultCompositionChartTestIds.CENTER_PERCENTAGE}
@@ -209,7 +209,7 @@ const MoneyVaultCompositionChart = ({
           ellipsizeMode="tail"
           accessibilityLabel={activeWedge.component.label}
           accessible={false}
-          twClassName="max-w-full text-center"
+          className="max-w-full text-center"
         >
           {formatVaultCompositionLabel(activeWedge.component)}
         </Text>

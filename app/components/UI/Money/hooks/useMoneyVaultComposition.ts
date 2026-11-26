@@ -36,7 +36,7 @@ export const useMoneyVaultComposition = ({
 
       return await fetchMoneyVaultComposition(
         vaultAddress,
-        parseInt(chainId, 16),
+        Number.parseInt(chainId, 16),
       );
     },
     staleTime: VAULT_COMPOSITION_STALE_TIME,

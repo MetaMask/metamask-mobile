@@ -41,13 +41,13 @@ const MoneyVaultCompositionMarketsTable = ({
       <Box
         testID={MoneyVaultCompositionMarketsTableTestIds.HEADER}
         accessible={false}
-        twClassName="flex-row items-center gap-3 pb-2"
+        className="flex-row items-center gap-3 pb-2"
       >
         <Text
           testID={MoneyVaultCompositionMarketsTableTestIds.MARKET_HEADER}
           variant={TextVariant.HeadingMd}
           color={TextColor.TextDefault}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
         >
           {marketLabel}
         </Text>
@@ -58,7 +58,7 @@ const MoneyVaultCompositionMarketsTable = ({
           color={TextColor.TextAlternative}
           numberOfLines={1}
           adjustsFontSizeToFit
-          twClassName="w-16 text-right"
+          className="w-16 text-right"
         >
           {allocationLabel}
         </Text>
@@ -67,7 +67,7 @@ const MoneyVaultCompositionMarketsTable = ({
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="w-16 text-right"
+          className="w-16 text-right"
         >
           {apyLabel}
         </Text>

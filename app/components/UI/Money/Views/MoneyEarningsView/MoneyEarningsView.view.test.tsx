@@ -403,7 +403,8 @@ describe('MoneyEarningsView', () => {
   });
 
   it('shows allocation loading state before composition data resolves', async () => {
-    const { findByTestId, getByTestId } = renderMoneyEarningsView();
+    const { findByTestId, getAllByTestId, getByTestId } =
+      renderMoneyEarningsView();
 
     await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
@@ -412,13 +413,20 @@ describe('MoneyEarningsView', () => {
       getByTestId(MoneyVaultCompositionChartTestIds.LOADING),
     ).toBeOnTheScreen();
     expect(
+      getAllByTestId(MoneyVaultCompositionMarketRowTestIds.LOADING),
+    ).toHaveLength(3);
+    expect(
       await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
     ).toBeOnTheScreen();
   });
 
   it('shows allocation error and recovers after retry', async () => {
-    setupMoneyAllocationApiMock({ status: 500 });
-    const { findByTestId, getByTestId, getByText } = renderMoneyEarningsView();
+    setupMoneyAllocationApiMock({
+      compositionStatus: 500,
+      historicalApyStatus: 200,
+    });
+    const { findByTestId, findByText, getByTestId, getByText } =
+      renderMoneyEarningsView();
 
     await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
@@ -432,6 +440,28 @@ describe('MoneyEarningsView', () => {
 
     expect(
       await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(
+        strings('money.earnings.allocation_details.average_apy_value', {
+          value: 5.2,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows allocation error when composition returns no data', async () => {
+    setupMoneyAllocationApiMock({ compositionResponse: null });
+    const { findByTestId, getByTestId, getByText } = renderMoneyEarningsView();
+
+    await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
+    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
+
+    expect(
+      await findByTestId(MoneyEarningsViewTestIds.ALLOCATION_ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings.allocation_retry')),
     ).toBeOnTheScreen();
   });
 
@@ -464,7 +494,8 @@ describe('MoneyEarningsView', () => {
         stale_reason: 'snapshot_lag',
       },
     });
-    const { findByTestId, getByTestId } = renderMoneyEarningsView();
+    const { findByTestId, getByTestId, queryByText } =
+      renderMoneyEarningsView();
 
     await findByTestId(MoneyEarningsViewTestIds.EARNINGS_PANEL);
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION));
@@ -475,6 +506,7 @@ describe('MoneyEarningsView', () => {
     expect(
       await findByTestId(MoneyVaultCompositionChartTestIds.CHART),
     ).toBeOnTheScreen();
+    expect(queryByText('snapshot_lag')).not.toBeOnTheScreen();
   });
 
   it('returns to Money Home when the back button is pressed', async () => {

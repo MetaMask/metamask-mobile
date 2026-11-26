@@ -13,6 +13,7 @@ import {
   formatVaultCompositionProtocolName,
   getVaultCompositionPrimaryAssetSymbol,
 } from '../../../../utils/moneyVaultComposition';
+import { parseApy } from '../../../../utils/apy';
 import { formatPercentage } from '../../../../utils/formatPercentage';
 import { useTheme } from '../../../../../../../util/theme';
 import { getVaultCompositionComponentColor } from '../MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
@@ -21,6 +22,21 @@ import { MoneyVaultCompositionMarketRowTestIds } from './MoneyVaultCompositionMa
 
 const formatMarketAssetSymbol = (assetSymbol: string): string =>
   assetSymbol === 'mUSD' ? 'MetaMask USD' : assetSymbol;
+
+const getApyDisplayValue = (
+  estimatedApy: string | null,
+  isZeroEstimatedApy: boolean,
+): string => {
+  if (estimatedApy === null) {
+    return strings('money.earnings.unavailable');
+  }
+
+  if (isZeroEstimatedApy) {
+    return '—';
+  }
+
+  return formatPercentage(estimatedApy);
+};
 
 /**
  * Renders one vault component in the markets table.
@@ -41,10 +57,10 @@ const MoneyVaultCompositionMarketRow = ({
       <Box
         testID={MoneyVaultCompositionMarketRowTestIds.LOADING}
         accessible={false}
-        twClassName="flex-row items-center gap-3 py-3"
+        className="flex-row items-center gap-3 py-3"
       >
         <Skeleton width={8} height={40} accessible={false} />
-        <Box accessible={false} twClassName="min-w-0 flex-1 gap-1">
+        <Box accessible={false} className="min-w-0 flex-1 gap-1">
           <Skeleton
             width="85%"
             height={18}
@@ -79,6 +95,8 @@ const MoneyVaultCompositionMarketRow = ({
   }
 
   const componentKey = component.component_key;
+  const isZeroEstimatedApy =
+    parseApy(component.estimated_total_annual_rate) === 0;
   const protocolLabel = formatVaultCompositionProtocolName(component.protocol);
   const primaryLabel =
     component.protocol === 'liquidity_buffer'
@@ -92,7 +110,7 @@ const MoneyVaultCompositionMarketRow = ({
     <Box
       testID={MoneyVaultCompositionMarketRowTestIds.ROW(componentKey)}
       accessible={false}
-      twClassName="flex-row items-center gap-3 py-3"
+      className="flex-row items-center gap-3 py-3"
     >
       <Box
         testID={MoneyVaultCompositionMarketRowTestIds.INDICATOR(componentKey)}
@@ -107,7 +125,7 @@ const MoneyVaultCompositionMarketRow = ({
           },
         ]}
       />
-      <Box accessible={false} twClassName="min-w-0 flex-1">
+      <Box accessible={false} className="min-w-0 flex-1">
         <Text
           testID={MoneyVaultCompositionMarketRowTestIds.PRIMARY_LABEL(
             componentKey,
@@ -130,7 +148,7 @@ const MoneyVaultCompositionMarketRow = ({
       <Text
         testID={MoneyVaultCompositionMarketRowTestIds.ALLOCATION(componentKey)}
         variant={TextVariant.BodyMd}
-        twClassName="w-16 text-right"
+        className="w-16 text-right"
       >
         {formatPercentage(component.allocation_fraction)}
       </Text>
@@ -138,18 +156,16 @@ const MoneyVaultCompositionMarketRow = ({
         testID={MoneyVaultCompositionMarketRowTestIds.APY(componentKey)}
         variant={TextVariant.BodyMd}
         color={
-          component.estimated_total_annual_rate !== null &&
-          component.estimated_total_annual_rate !== '0'
+          component.estimated_total_annual_rate !== null && !isZeroEstimatedApy
             ? TextColor.SuccessDefault
             : TextColor.TextDefault
         }
-        twClassName="w-16 text-right"
+        className="w-16 text-right"
       >
-        {component.estimated_total_annual_rate === null
-          ? strings('money.earnings.unavailable')
-          : component.estimated_total_annual_rate === '0'
-            ? '—'
-            : formatPercentage(component.estimated_total_annual_rate)}
+        {getApyDisplayValue(
+          component.estimated_total_annual_rate,
+          isZeroEstimatedApy,
+        )}
       </Text>
     </Box>
   );

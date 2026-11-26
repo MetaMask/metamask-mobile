@@ -11,6 +11,20 @@ import { useHistoricalVaultApys } from '../../../../hooks/useHistoricalVaultApys
 import { parseApy, toApyPercent } from '../../../../utils/apy';
 import { AllocationDetailsTestIds } from './AllocationDetails.testIds';
 
+const getApyValue = (parsedApy: number | undefined): string => {
+  if (parsedApy === undefined) {
+    return strings('money.earnings.unavailable');
+  }
+
+  if (parsedApy === 0) {
+    return strings('money.earnings.allocation_details.average_apy_zero');
+  }
+
+  return strings('money.earnings.allocation_details.average_apy_value', {
+    value: toApyPercent(parsedApy),
+  });
+};
+
 const AllocationDetails = (): React.ReactElement => {
   const { data, isLoading: isApyLoading } = useHistoricalVaultApys();
   const historicalVault = data?.vaults[0];
@@ -19,14 +33,7 @@ const AllocationDetails = (): React.ReactElement => {
       ? historicalVault.periods['30d'].average_apy
       : null;
   const parsedApy = parseApy(averageApy);
-  const apyValue =
-    parsedApy === undefined
-      ? strings('money.earnings.unavailable')
-      : parsedApy === 0
-        ? strings('money.earnings.allocation_details.average_apy_zero')
-        : strings('money.earnings.allocation_details.average_apy_value', {
-            value: toApyPercent(parsedApy),
-          });
+  const apyValue = getApyValue(parsedApy);
   const apyColor =
     parsedApy !== undefined && parsedApy > 0
       ? TextColor.SuccessDefault
@@ -70,7 +77,7 @@ const AllocationDetails = (): React.ReactElement => {
     <Box
       testID={AllocationDetailsTestIds.CONTAINER}
       accessible={false}
-      twClassName="w-full"
+      className="w-full"
     >
       <Text
         testID={AllocationDetailsTestIds.HEADER}
@@ -82,15 +89,13 @@ const AllocationDetails = (): React.ReactElement => {
         {details.map(({ key, label, value, color }, index) => (
           <Box
             key={key}
-            twClassName={`flex-row items-center ${
-              index === 0 ? 'pt-6' : 'pt-8'
-            }`}
+            className={`flex-row items-center ${index === 0 ? 'pt-6' : 'pt-8'}`}
           >
             <Text
               testID={AllocationDetailsTestIds.LABEL(key)}
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="min-w-0 flex-1"
+              className="min-w-0 flex-1"
             >
               {label}
             </Text>
@@ -107,7 +112,7 @@ const AllocationDetails = (): React.ReactElement => {
                 testID={AllocationDetailsTestIds.VALUE(key)}
                 variant={TextVariant.BodyMd}
                 color={color ?? TextColor.TextDefault}
-                twClassName="flex-1 text-right"
+                className="flex-1 text-right"
                 numberOfLines={1}
               >
                 {value}

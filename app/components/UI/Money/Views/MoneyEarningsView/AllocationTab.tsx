@@ -51,7 +51,7 @@ const AllocationTab = (): React.ReactElement => {
         <Box
           testID={MoneyEarningsViewTestIds.ALLOCATION_ERROR}
           accessibilityRole="alert"
-          twClassName="w-full flex-1 items-center justify-center gap-3 px-4 py-8"
+          className="w-full flex-1 items-center justify-center gap-3 px-4 py-8"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -76,7 +76,7 @@ const AllocationTab = (): React.ReactElement => {
       return (
         <Box
           testID={MoneyEarningsViewTestIds.ALLOCATION_EMPTY}
-          twClassName="items-center justify-center px-4 py-8"
+          className="items-center justify-center px-4 py-8"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -90,25 +90,25 @@ const AllocationTab = (): React.ReactElement => {
     }
 
     return (
-      <Box twClassName="w-full gap-6">
+      <Box className="w-full gap-6">
         {data?.data_freshness === 'degraded' ? (
           <Text
             testID={MoneyEarningsViewTestIds.ALLOCATION_DEGRADED}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {strings('money.earnings.allocation_degraded')}
           </Text>
         ) : null}
-        <Box twClassName="items-center">
+        <Box className="items-center">
           <MoneyVaultCompositionChart
             components={data?.components ?? []}
             isLoading={isCompositionLoading}
             setScrollEnabled={setScrollEnabled}
           />
         </Box>
-        <Box twClassName="w-full gap-2">
+        <Box className="w-full gap-2">
           <MoneyVaultCompositionMarketsTable
             components={data?.components ?? []}
             isLoading={isCompositionLoading}
@@ -121,17 +121,17 @@ const AllocationTab = (): React.ReactElement => {
         <SectionDivider
           testID={MoneyEarningsViewTestIds.ALLOCATION_DETAILS_DIVIDER}
           accessible={false}
-          twClassName="-mx-4 m-0"
+          className="m-0 -mx-4"
         />
-        <Box twClassName="w-full">
+        <Box className="w-full">
           <AllocationDetails />
         </Box>
         <SectionDivider
           testID={MoneyEarningsViewTestIds.ALLOCATION_RISKS_DIVIDER}
           accessible={false}
-          twClassName="-mx-4 m-0"
+          className="m-0 -mx-4"
         />
-        <Box twClassName="w-full gap-2">
+        <Box className="w-full gap-2">
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextAlternative}
@@ -149,6 +149,7 @@ const AllocationTab = (): React.ReactElement => {
   return (
     <ScrollView
       ref={scrollViewRef}
+      style={tw.style('flex-1')}
       contentContainerStyle={tw.style('items-center justify-center px-4 py-6')}
       showsVerticalScrollIndicator={false}
     >
